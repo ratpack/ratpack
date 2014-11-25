@@ -16,12 +16,12 @@
 
 package ratpack.server.internal
 
+import com.google.common.net.HostAndPort
 import io.netty.handler.codec.http.DefaultHttpHeaders
 import ratpack.handling.Context
 import ratpack.http.Headers
 import ratpack.http.Request
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders
-import ratpack.server.BindAddress
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -34,7 +34,7 @@ class DefaultPublicAddressSpec extends Specification {
   @Unroll
   def "Get URL #publicURL, #scheme, #requestUri, #headers, #bindHost:#bindPort -> #expected"() {
     given:
-    def context = mockContext(mockRequest(requestUri, mockHeaders(headers)), mockBindAddress(bindPort, bindHost))
+    def context = mockContext(mockRequest(requestUri, mockHeaders(headers), HostAndPort.fromParts(bindHost, bindPort)))
     def publicAddress = new DefaultPublicAddress(publicURL ? new URI(publicURL) : null, scheme)
 
     expect:
@@ -76,11 +76,11 @@ class DefaultPublicAddressSpec extends Specification {
   @Unroll
   def "Absolute request URIs are supported: #uri -> #expectedUri"() {
     given:
-    def bindAddress = mockBindAddress(8080, "bind.example.com")
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
 
     when: "The request URI is absolute"
-    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):"host.example.com"])), bindAddress)
+    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):"host.example.com"]), bindAddress))
     def address = publicAddress.getAddress(context)
 
     then: "The host is part of the request URI and any Host header MUST be ignored"
@@ -96,11 +96,11 @@ class DefaultPublicAddressSpec extends Specification {
   @Unroll
   def "Host headers are supported: #scheme, #host -> #expectedUri"() {
     given:
-    def bindAddress = mockBindAddress(8080, "bind.example.com")
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
     def publicAddress = new DefaultPublicAddress(null, scheme)
 
     when: "The request URI is not absolute and the request includes a Host header"
-    def context = mockContext(mockRequest("/user/12345", mockHeaders([(HOST):host])), bindAddress)
+    def context = mockContext(mockRequest("/user/12345", mockHeaders([(HOST):host]), bindAddress))
     def address = publicAddress.getAddress(context)
 
     then: "The host is determined by the Host header value"
@@ -118,11 +118,11 @@ class DefaultPublicAddressSpec extends Specification {
   @Unroll
   def "X-Forwarded-Host header is supported: #uri, #fhost, #host -> #expectedUri"() {
     given:
-    def bindAddress = mockBindAddress(8080, "bind.example.com")
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Host header and no public URL is defined"
-    def context = mockContext(mockRequest("/user/12345", mockHeaders([(X_FORWARDED_HOST):fhost, (HOST):host])), bindAddress)
+    def context = mockContext(mockRequest("/user/12345", mockHeaders([(X_FORWARDED_HOST):fhost, (HOST):host]), bindAddress))
     def address = publicAddress.getAddress(context)
 
     then: "The forwarded host is used in place of the absolute request URI and Host header"
@@ -136,14 +136,14 @@ class DefaultPublicAddressSpec extends Specification {
 
   def "X-Forwarded-Host header supports proxy chains"() {
     given:
-    def bindAddress = mockBindAddress(8080, "bind.example.com")
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Host header with multiple comma-separated entries"
     def context = mockContext(mockRequest("/user/12345", mockHeaders([
       (X_FORWARDED_HOST):"fhost1.example.com:8081, fhost2.example.com:8082",
       (HOST):"host.example.com:8083"
-    ])), bindAddress)
+    ]), bindAddress))
     def address = publicAddress.getAddress(context)
 
     then: "The first entry is used"
@@ -153,11 +153,11 @@ class DefaultPublicAddressSpec extends Specification {
   @Unroll
   def "X-Forwarded-Proto headers are supported: #uri, #host -> #expectedUri"() {
     given:
-    def bindAddress = mockBindAddress(8081, "bind.example.com")
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8081)
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Proto header and no public URL is defined"
-    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):host, (X_FORWARDED_PROTO): HTTPS_SCHEME])), bindAddress)
+    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):host, (X_FORWARDED_PROTO): HTTPS_SCHEME]), bindAddress))
     def address = publicAddress.getAddress(context)
 
     then: "The protocol is based on the header value in preference to absolute request URI or service scheme"
@@ -173,11 +173,11 @@ class DefaultPublicAddressSpec extends Specification {
   @Unroll
   def "X-Forwarded-Ssl headers are supported: #uri, #host -> #expectedUri"() {
     given:
-    def bindAddress = mockBindAddress(8081, "bind.example.com")
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8081)
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Proto header and no public URL is defined"
-    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):host, (X_FORWARDED_SSL): ON.toString()])), bindAddress)
+    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):host, (X_FORWARDED_SSL): ON.toString()]), bindAddress))
     def address = publicAddress.getAddress(context)
 
     then: "The protocol is based on the header value in preference to absolute request URI or service scheme"
@@ -200,24 +200,17 @@ class DefaultPublicAddressSpec extends Specification {
     return new NettyHeadersBackedMutableHeaders(headers)
   }
 
-  private Request mockRequest(String rawUri, Headers headers) {
+  private Request mockRequest(String rawUri, Headers headers, HostAndPort localAddress) {
     return Mock(Request) {
       getRawUri() >> rawUri
       getHeaders() >> headers
+      getLocalAddress() >> localAddress
     }
   }
 
-  private Context mockContext(Request request, BindAddress bindAddress) {
+  private Context mockContext(Request request) {
     return Mock(Context) {
       getRequest() >> request
-      getBindAddress() >> bindAddress
-    }
-  }
-
-  private BindAddress mockBindAddress(int port, String host) {
-    return Mock(BindAddress) {
-      getPort() >> port
-      getHost() >> host
     }
   }
 

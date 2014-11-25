@@ -18,6 +18,7 @@ package ratpack.http.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
@@ -35,6 +36,7 @@ import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Supplier;
@@ -46,6 +48,9 @@ public class DefaultRequest implements Request {
   private final Headers headers;
   private final ByteBuf content;
   private final String rawUri;
+  private final HttpMethod method;
+  private final InetSocketAddress remoteSocket;
+  private final InetSocketAddress localSocket;
 
   private TypedData body;
 
@@ -53,14 +58,15 @@ public class DefaultRequest implements Request {
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
   private String path;
-  private final HttpMethod method;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, io.netty.handler.codec.http.HttpMethod method, String rawUri, ByteBuf content) {
+  public DefaultRequest(Headers headers, io.netty.handler.codec.http.HttpMethod method, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
     this.headers = headers;
     this.content = content;
     this.method = DefaultHttpMethod.valueOf(method);
     this.rawUri = rawUri;
+    this.remoteSocket = remoteSocket;
+    this.localSocket = localSocket;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -190,6 +196,16 @@ public class DefaultRequest implements Request {
   @Override
   public Headers getHeaders() {
     return headers;
+  }
+
+  @Override
+  public HostAndPort getRemoteAddress() {
+    return HostAndPort.fromParts(remoteSocket.getHostString(), remoteSocket.getPort());
+  }
+
+  @Override
+  public HostAndPort getLocalAddress() {
+    return HostAndPort.fromParts(localSocket.getHostString(), localSocket.getPort());
   }
 
   @Override

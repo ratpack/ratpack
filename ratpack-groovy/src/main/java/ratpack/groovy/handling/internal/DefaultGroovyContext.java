@@ -43,7 +43,6 @@ import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.server.BindAddress;
 import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
@@ -226,11 +225,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @NonBlocking
   public void lastModified(Date date, Runnable runnable) {
     delegate.lastModified(date, runnable);
-  }
-
-  @Override
-  public BindAddress getBindAddress() {
-    return delegate.getBindAddress();
   }
 
   @Override

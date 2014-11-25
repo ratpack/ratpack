@@ -146,7 +146,7 @@ public class NettyRatpackServer implements RatpackServer {
     if (boundAddress == null) {
       return null;
     } else {
-      return InetSocketAddressBackedBindAddress.determineHost(boundAddress);
+      return HostUtil.determineHost(boundAddress);
     }
   }
 

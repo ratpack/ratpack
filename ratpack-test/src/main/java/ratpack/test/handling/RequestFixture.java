@@ -16,6 +16,7 @@
 
 package ratpack.test.handling;
 
+import com.google.common.net.HostAndPort;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -219,5 +220,21 @@ public interface RequestFixture {
    * @return this
    */
   RequestFixture uri(String uri);
+
+  /**
+   * Set the remote address from which the request is made.
+   *
+   * @param remote The remote host and port address.
+   * @return this
+   */
+  RequestFixture setRemoteAddress(HostAndPort remote);
+
+  /**
+   * Set the local address to which this request is made.
+   *
+   * @param local The local host and port address.
+   * @return this
+   */
+  RequestFixture setLocalAddress(HostAndPort local);
 
 }
