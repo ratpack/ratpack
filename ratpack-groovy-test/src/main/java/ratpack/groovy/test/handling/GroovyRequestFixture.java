@@ -28,49 +28,104 @@ import ratpack.test.handling.RequestFixture;
 import java.nio.file.Path;
 import java.util.Map;
 
+/**
+ * A more Groovy friendly version of {@link RequestFixture}.
+ *
+ * @see ratpack.groovy.test.GroovyUnitTest#requestFixture()
+ */
 public interface GroovyRequestFixture extends RequestFixture {
 
+  /**
+   * A closure friendly overload of {@link #registry(Action)}.
+   *
+   * @param closure the registry configuration
+   * @return this
+   * @see #registry(Action)
+   */
   GroovyRequestFixture registry(@DelegatesTo(value = RegistryBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture header(String name, String value);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture body(byte[] bytes, String contentType);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture body(String text, String contentType);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture responseHeader(String name, String value);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture method(String method);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture uri(String uri);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture timeout(int timeoutSeconds);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture registry(Action<? super RegistrySpec> action) throws Exception;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture pathBinding(Map<String, String> pathTokens);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture remoteAddress(HostAndPort remote);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyRequestFixture localAddress(HostAndPort local);
+
 }
