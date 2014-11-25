@@ -116,17 +116,16 @@ public interface Request extends MutableRegistry {
   Headers getHeaders();
 
   /**
-   * The host and port information of the client that sent the request.
+   * The address of the client that initiated the request.
    *
-   *
-   * @return the remote host and port
+   * @return the address of the client that initiated the request
    */
   HostAndPort getRemoteAddress();
 
   /**
-   * The host and port information of the server that received the request.
+   * The address of the local network interface that received the request.
    *
-   * @return the local host and port
+   * @return the address of the network interface that received the request
    */
   HostAndPort getLocalAddress();
 
