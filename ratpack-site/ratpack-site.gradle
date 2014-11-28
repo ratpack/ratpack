@@ -241,7 +241,7 @@ compass {
   debugInfo = false
 }
 
-run.dependsOn compassWatch
+run.dependsOn compassCompile
 
 task createScriptsDir {
   doLast {
