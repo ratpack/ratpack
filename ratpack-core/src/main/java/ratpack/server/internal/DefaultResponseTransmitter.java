@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioStream;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -65,6 +66,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final Predicate<? super Pair<Long, String>> shouldCompress;
   private final long startTime;
   private final boolean isKeepAlive;
+  private final boolean isSsl;
 
   private long stopTime;
 
@@ -82,6 +84,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.requestOutcomeEventController = requestOutcomeEventController;
     this.startTime = startTime;
     this.isKeepAlive = isKeepAlive(nettyRequest);
+    this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
   private ChannelFuture pre(HttpResponseStatus responseStatus) {
@@ -144,7 +147,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
     responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, size);
 
-    if (!compressThis && file.getFileSystem().equals(FileSystems.getDefault())) {
+    if (!isSsl && !compressThis && file.getFileSystem().equals(FileSystems.getDefault())) {
       execControl.blocking(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
         FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
         transmit(responseStatus, defaultFileRegion);

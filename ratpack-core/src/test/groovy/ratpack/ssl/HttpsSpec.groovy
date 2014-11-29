@@ -32,9 +32,21 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
+    def staticFile = file "public/static.text", "hello!"
+
+    and:
     handlers {
+      assets("public")
       get {
         response.send "trust no one"
+      }
+
+      get("handler") {
+        response.send staticFile.bytes
+      }
+
+      get("file") {
+        render file("public/static.text")
       }
     }
 
@@ -44,7 +56,38 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
     and:
     address.toURL().text == "trust no one"
+
+    and:
+    URI handler = new URI(address.scheme,
+      address.userInfo,
+      address.host,
+      address.port,
+      "/handler",
+      null,
+      null);
+    handler.toURL().text == "hello!"
+
+    and:
+    URI staticHandler = new URI(address.scheme,
+      address.userInfo,
+      address.host,
+      address.port,
+      "/file",
+      null,
+      null);
+    staticHandler.toURL().text == "hello!"
+
+    and:
+    URI staticUri = new URI(address.scheme,
+      address.userInfo,
+      address.host,
+      address.port,
+      "/static.text",
+      null,
+      null);
+    staticUri.toURL().text == "hello!"
   }
+
 }
 
 
