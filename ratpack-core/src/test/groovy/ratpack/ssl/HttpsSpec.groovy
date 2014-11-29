@@ -64,7 +64,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       address.port,
       "/handler",
       null,
-      null);
+      null)
     handler.toURL().text == "hello!"
 
     and:
@@ -74,7 +74,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       address.port,
       "/file",
       null,
-      null);
+      null)
     staticHandler.toURL().text == "hello!"
 
     and:
@@ -84,7 +84,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       address.port,
       "/static.text",
       null,
-      null);
+      null)
     staticUri.toURL().text == "hello!"
   }
 
