@@ -20,14 +20,10 @@ import org.pac4j.core.client.Clients;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
-
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Request;
 import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
-
-import java.util.concurrent.Callable;
 
 import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
 
@@ -69,26 +65,15 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
     request.get(SessionStorage.class).put(SAVED_URI, request.getUri());
     final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        clients.findClient(name).redirect(webContext, true, false);
-        return null;
+    context.blocking(() -> {
+      clients.findClient(name).redirect(webContext, true, false);
+      return null;
+    }).onError(ex -> {
+      if (ex instanceof RequiresHttpAction) {
+        webContext.sendResponse((RequiresHttpAction) ex);
+      } else {
+        throw new TechnicalException("Failed to redirect", ex);
       }
-    }).onError(new Action<Throwable>() {
-      @Override
-      public void execute(Throwable ex) throws Exception {
-        if (ex instanceof RequiresHttpAction) {
-          webContext.sendResponse((RequiresHttpAction) ex);
-        } else {
-          throw new TechnicalException("Failed to redirect", ex);
-        }
-      }
-    }).then(new Action<Void>() {
-      @Override
-      public void execute(Void ignored) throws Exception {
-        webContext.sendResponse();
-      }
-    });
+    }).then(ignored -> webContext.sendResponse());
   }
 }
