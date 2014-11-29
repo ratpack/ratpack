@@ -30,7 +30,7 @@ public class DefaultCrypto implements Crypto {
   private final String secret;
 
   public DefaultCrypto() {
-    this.secret = Long.toString(System.nanoTime());
+    this.secret = Long.toString(System.currentTimeMillis() / 10000);
   }
 
   @Override

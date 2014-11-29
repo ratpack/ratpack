@@ -21,7 +21,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.session.store.CookieBasedSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
@@ -83,7 +82,6 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
     session.value == "foo"
   }
 
-  @Ignore
   def "client should set-cookie only when session values have changed"() {
     given:
     handlers {
