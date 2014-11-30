@@ -23,6 +23,7 @@ import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.DefaultCookie;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.http.client.ReceivedResponse;
@@ -34,6 +35,7 @@ import ratpack.test.internal.BlockingHttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -247,4 +249,11 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
   }
 
+  public List<Cookie> getCookies() {
+    List<Cookie> clonedList = new ArrayList<>();
+    if (cookies != null) {
+      cookies.stream().forEach(c -> clonedList.add(new DefaultCookie(c.getName(), c.getValue())));
+    }
+    return clonedList;
+  }
 }
