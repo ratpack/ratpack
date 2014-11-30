@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 public class CookieBasedSessionStorageBindingHandler implements Handler {
 
+  private final String session_separator = ":";
   private final String ratpack_session = "ratpack_session";
   private final Handler handler;
 
@@ -96,7 +97,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
             String s = Base64.getUrlEncoder().encodeToString(encodedPairs.getBytes("utf-8"));
             String digest = context.get(Crypto.class).sign(encodedPairs);
 
-            responseMetaData.cookie(ratpack_session, s + "-" + digest);
+            responseMetaData.cookie(ratpack_session, s + session_separator + digest);
           }
         }
       }
@@ -112,7 +113,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
     String encodedPairs = cookieSession == null ? null : cookieSession.getValue();
     if (encodedPairs != null) {
-      String[] parts = encodedPairs.split("-");
+      String[] parts = encodedPairs.split(session_separator);
       if (parts.length == 2) {
         String encoded = parts[0];
         String digest = parts[1];

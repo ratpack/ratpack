@@ -18,6 +18,7 @@ package ratpack.session
 
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
+import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.store.CookieBasedSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -29,9 +30,16 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
     modules << new CookieBasedSessionsModule()
   }
 
-  def getDecodedPairs(String rawCookie) {
-    def parts = rawCookie.split("-")[0]
-    def encoded = parts['ratpack_session="'.length()..<parts.length()]
+  private String getSetCookie() {
+    response.headers.get("Set-Cookie")
+  }
+
+  private String getSessionCookie() {
+    cookies.find { it.name == "ratpack_session" }?.value
+  }
+
+  def getDecodedPairs() {
+    def encoded = sessionCookie.split(":")[0]
     new String(Base64.getUrlDecoder().decode(encoded.getBytes("utf-8")))
       .split("&")
       .inject([:]) { m, kvp ->
@@ -72,65 +80,10 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
         render storage.value.toString()
       }
     }
-    def session = [:]
 
-    when:
+    expect:
     getText("set/foo") == "foo"
-    session = getDecodedPairs(response.headers.get("Set-Cookie"))
-
-    then:
-    session.value == "foo"
-  }
-
-  def "client should set-cookie only when session values have changed"() {
-    given:
-    handlers {
-      get("") { SessionStorage storage ->
-        render storage.value.toString()
-      }
-      get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
-      }
-    }
-    def session = [:]
-
-    when:
-    getText("set/foo")
-    session = getDecodedPairs(response.headers.get("Set-Cookie"))
-
-    then:
-    response.body.text == "foo"
-    session.value == "foo"
-
-    when:
-    getText("")
-
-    then:
-    response.body.text == "foo"
-    !response.headers.get("Set-Cookie")
-
-    when:
-    getText("set/foo")
-
-    then:
-    response.body.text == "foo"
-    !response.headers.get("Set-Cookie")
-
-    when:
-    getText("set/bar")
-    session = getDecodedPairs(response.headers.get("Set-Cookie"))
-
-    then:
-    response.body.text == "bar"
-    session.value == "bar"
-
-    when:
-    getText("set/bar")
-
-    then:
-    response.body.text == "bar"
-    !response.headers.get("Set-Cookie")
+    decodedPairs.value == "foo"
 
   }
 
@@ -140,17 +93,63 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
     handlers {
       get { SessionStorage storage ->
         storage.value = unsafeSequence
-        response.send storage.value
+        response.send storage.value.toString()
       }
     }
-    def session = [:]
 
-    when:
+    expect:
     get()
-    session = getDecodedPairs(response.headers.get("Set-Cookie"))
+    decodedPairs.value == unsafeSequence
 
-    then:
-    session.value == unsafeSequence
+  }
+
+  def "client should set-cookie only when session values have changed"() {
+    given:
+    handlers {
+
+      handler { SessionStorage storage ->
+        storage.size()
+        next()
+      }
+
+      get("") { SessionStorage storage ->
+        render storage.value.toString()
+      }
+      get("set/:value") { SessionStorage storage ->
+        storage.value = pathTokens.value
+        render storage.value.toString()
+      }
+    }
+
+    expect:
+    get("")
+    response.body.text == "null"
+    setCookie == null
+
+    getText("set/foo")
+    response.body.text == "foo"
+    setCookie.startsWith("ratpack_session=")
+    decodedPairs.value == "foo"
+
+    getText("")
+    response.body.text == "foo"
+    setCookie == null
+    decodedPairs.value == "foo"
+
+    getText("set/foo")
+    response.body.text == "foo"
+    setCookie == null
+    decodedPairs.value == "foo"
+
+    getText("set/bar")
+    response.body.text == "bar"
+    setCookie.startsWith("ratpack_session=")
+    decodedPairs.value == "bar"
+
+    getText("set/bar")
+    response.body.text == "bar"
+    setCookie == null
+    decodedPairs.value == "bar"
 
   }
 
@@ -166,20 +165,14 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
         response.send "clear"
       }
     }
-    def session = [:]
 
-    when:
+    expect:
     get()
-    session = getDecodedPairs(response.headers.get("Set-Cookie"))
+    decodedPairs.value == "foo"
 
-    then:
-    session.value == "foo"
-
-    when:
     get("clear")
-
-    then:
     response.headers.get("Set-Cookie").startsWith("ratpack_session=; Expires=")
+    !sessionCookie
   }
 
   @Unroll
@@ -193,7 +186,7 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
 
     requestSpec { RequestSpec spec ->
       spec.headers { MutableHeaders headers ->
-        headers.set("Cookie", "ratpack_session=${value}")
+        headers.set(HttpHeaderConstants.COOKIE, "ratpack_session=${value}")
       }
     }
 
@@ -204,7 +197,7 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
     response.body.text == "true"
 
     where:
-    value << [null, '', ' ', '\t', 'foo', '--', '-', 'askldjfwel-asljdfl']
+    value << [null, '', ' ', '\t', 'foo', '::', ':', 'invalid:sequence', 'a:b:c']
 
   }
 
