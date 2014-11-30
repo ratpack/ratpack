@@ -16,8 +16,9 @@
 
 package ratpack.session.store;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import com.google.inject.Provides;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.session.Crypto;
@@ -47,11 +48,16 @@ import javax.inject.Singleton;
  * }
  * </pre>
  */
-public class CookieBasedSessionsModule extends AbstractModule implements HandlerDecoratingModule {
+public class CookieBasedSessionsModule extends ConfigurableModule<CookieBasedSessionsModule.Config> implements HandlerDecoratingModule {
 
   @Override
-  protected void configure() {
-    bind(Crypto.class).to(DefaultCrypto.class).in(Singleton.class);
+  protected void configure() { }
+
+  @SuppressWarnings("UnusedDeclaration")
+  @Provides
+  @Singleton
+  Crypto provideCrypto(Config config) {
+    return new DefaultCrypto(config.getSecretKey(), config.getMacAlgorithm());
   }
 
   /**
@@ -62,6 +68,36 @@ public class CookieBasedSessionsModule extends AbstractModule implements Handler
    * @return A handler that provides a {@link ratpack.session.store.SessionStorage} impl in the context registry
    */
   public Handler decorate(Injector injector, Handler handler) {
-    return new CookieBasedSessionStorageBindingHandler(handler);
+    return new CookieBasedSessionStorageBindingHandler(injector.getInstance(Config.class).getSessionName(), handler);
+  }
+
+  public static class Config {
+    private String sessionName = "ratpack_session";
+    private String secretKey = Long.toString(System.currentTimeMillis() / 10000);
+    private String macAlgorithm = "HmacSHA1";
+
+    public String getSessionName() {
+      return sessionName;
+    }
+
+    public void setSessionName(String sessionName) {
+      this.sessionName = sessionName;
+    }
+
+    public String getSecretKey() {
+      return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+      this.secretKey = secretKey;
+    }
+
+    public String getMacAlgorithm() {
+      return macAlgorithm;
+    }
+
+    public void setMacAlgorithm(String macAlgorithm) {
+      this.macAlgorithm = macAlgorithm;
+    }
   }
 }

@@ -16,6 +16,7 @@
 
 package ratpack.session
 
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
@@ -66,7 +67,7 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    !response.headers.get("Set-Cookie")
+    setCookie == null
   }
 
   def "can store session vars"() {
@@ -82,6 +83,11 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
     }
 
     expect:
+    get()
+    response.body.text == "null"
+    !sessionCookie
+    !setCookie
+
     getText("set/foo") == "foo"
     decodedPairs.value == "foo"
 
@@ -156,22 +162,29 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
   def "clearing an existing session informs client to expire cookie"() {
     given:
     handlers {
-      get { SessionStorage storage ->
-        storage.value = "foo"
-        response.send storage.value.toString()
+      get("") { SessionStorage storage ->
+        render storage.value.toString()
+      }
+      get("set/:value") { SessionStorage storage ->
+        storage.value = pathTokens.value
+        render storage.value.toString()
       }
       get("clear") { SessionStorage storage ->
         storage.clear()
-        response.send "clear"
+        response.status 200
       }
     }
 
     expect:
-    get()
+    get("set/foo")
     decodedPairs.value == "foo"
 
     get("clear")
-    response.headers.get("Set-Cookie").startsWith("ratpack_session=; Expires=")
+    setCookie.startsWith("ratpack_session=; Expires=")
+    !sessionCookie
+
+    get("")
+    !setCookie
     !sessionCookie
   }
 
@@ -211,7 +224,7 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
 
     requestSpec { RequestSpec spec ->
       spec.headers { MutableHeaders headers ->
-        headers.set("Cookie", 'ratpack_session="dmFsdWU9Zm9v-DjZCDssly41x7tzrfXCaLvPuRAM="')
+        headers.set(HttpHeaderConstants.COOKIE, 'ratpack_session="dmFsdWU9Zm9v-DjZCDssly41x7tzrfXCaLvPuRAM="')
       }
     }
 
@@ -220,6 +233,61 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
 
     then:
     response.body.text == "true"
+
+  }
+
+  def aut() {
+    GroovyEmbeddedApp.build {
+      bindings {
+        add CookieBasedSessionsModule, {
+          it.with {
+            secretKey = "secret"
+            sessionName = "_sess"
+            macAlgorithm = "HmacMD5"
+          }
+        }
+      }
+      handlers {
+        get { SessionStorage storage ->
+          response.send storage.value.toString()
+        }
+        get("set/:value") { SessionStorage storage ->
+          storage.value = pathTokens.get("value")
+          response.send storage.value.toString()
+        }
+      }
+    }
+  }
+
+  def "cookies can be read across servers with the same secret"() {
+    given:
+    def app1 = aut()
+    def client1 = app1.httpClient
+
+    def app2 = aut()
+    def client2 = app2.httpClient
+
+    expect:
+    client2.get("")
+    client2.response.body.text == "null"
+    !client2.response.headers.get("Set-Cookie")
+
+    and:
+    client1.get("set/foo")
+    client1.response.body.text == "foo"
+    client1.response.headers.get("Set-Cookie").startsWith("_sess")
+
+    when:
+    client2.requestSpec { RequestSpec spec ->
+      spec.headers { MutableHeaders headers ->
+        headers.set(HttpHeaderConstants.COOKIE, client1.response.headers.get("Set-Cookie"))
+      }
+    }
+
+    then:
+    client2.get("")
+    client2.response.body.text == "foo"
+    !client2.response.headers.get("Set-Cookie")
 
   }
 

@@ -41,10 +41,11 @@ import java.util.stream.Collectors;
 public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   private final String session_separator = ":";
-  private final String ratpack_session = "ratpack_session";
+  private final String sessionName;
   private final Handler handler;
 
-  public CookieBasedSessionStorageBindingHandler(Handler handler) {
+  public CookieBasedSessionStorageBindingHandler(String sessionName, Handler handler) {
+    this.sessionName = sessionName;
     this.handler = handler;
   }
 
@@ -59,7 +60,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       Cookie cookieSession = context.getRequest()
         .getCookies()
         .stream()
-        .filter(cookie -> ratpack_session.equals(cookie.getName()))
+        .filter(cookie -> sessionName.equals(cookie.getName()))
         .findFirst().orElse(null);
       DefaultSessionStorage storage = new DefaultSessionStorage(deserializeSession(context, cookieSession));
       context.getRequest().add(StorageHashContainer.class, new StorageHashContainer(storage.hashCode()));
@@ -97,7 +98,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
             String s = Base64.getUrlEncoder().encodeToString(encodedPairs.getBytes("utf-8"));
             String digest = context.get(Crypto.class).sign(encodedPairs);
 
-            responseMetaData.cookie(ratpack_session, s + session_separator + digest);
+            responseMetaData.cookie(sessionName, s + session_separator + digest);
           }
         }
       }
@@ -105,7 +106,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   }
 
   private void invalidateSession(ResponseMetaData responseMetaData) {
-    responseMetaData.expireCookie(ratpack_session);
+    responseMetaData.expireCookie(sessionName);
   }
 
   private ConcurrentMap<String, Object> deserializeSession(Context context, Cookie cookieSession) {

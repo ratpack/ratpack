@@ -28,9 +28,11 @@ import java.security.NoSuchAlgorithmException;
 public class DefaultCrypto implements Crypto {
 
   private final String secret;
+  private final String macAlgorithm;
 
-  public DefaultCrypto() {
-    this.secret = Long.toString(System.currentTimeMillis() / 10000);
+  public DefaultCrypto(String secret, String macAlgorithm) {
+    this.secret = secret;
+    this.macAlgorithm = macAlgorithm;
   }
 
   @Override
@@ -40,8 +42,8 @@ public class DefaultCrypto implements Crypto {
 
   @Override
   public String sign(String message, byte[] key) throws UnsupportedEncodingException, InvalidKeyException, NoSuchAlgorithmException {
-    SecretKeySpec secretKeySpec = new SecretKeySpec(key, "HmacSHA1");
-    Mac mac = Mac.getInstance("HmacSHA1");
+    SecretKeySpec secretKeySpec = new SecretKeySpec(key, macAlgorithm);
+    Mac mac = Mac.getInstance(macAlgorithm);
     mac.init(secretKeySpec);
     byte[] signed = mac.doFinal(message.getBytes("utf-8"));
     return BaseEncoding.base64Url().encode(signed);
