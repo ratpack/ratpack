@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.session
+package ratpack.session.clientside
 
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.session.store.CookieBasedSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
-class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
+class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    modules << new CookieBasedSessionsModule()
+    modules << new ClientSideSessionsModule()
   }
 
   private String getSetCookie() {
@@ -239,7 +238,7 @@ class CookieBasedSessionSpec extends RatpackGroovyDslSpec {
   def aut() {
     GroovyEmbeddedApp.build {
       bindings {
-        add CookieBasedSessionsModule, {
+        add ClientSideSessionsModule, {
           it.with {
             secretKey = "secret"
             sessionName = "_sess"

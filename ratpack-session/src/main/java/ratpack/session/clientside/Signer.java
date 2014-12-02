@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.session;
+package ratpack.session.clientside;
 
 import io.netty.buffer.ByteBuf;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.session.store.internal;
+package ratpack.session.clientside.internal;
 
 import com.google.common.collect.Iterables;
 import com.google.common.net.UrlEscapers;
@@ -25,9 +25,10 @@ import io.netty.util.CharsetUtil;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
-import ratpack.session.Signer;
-import ratpack.session.internal.StorageHashContainer;
+import ratpack.session.clientside.Signer;
+import ratpack.session.clientside.internal.StorageHashContainer;
 import ratpack.session.store.SessionStorage;
+import ratpack.session.store.internal.DefaultSessionStorage;
 import ratpack.util.ExceptionUtils;
 
 import java.nio.CharBuffer;

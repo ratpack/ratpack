@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package ratpack.session.internal;
+package ratpack.session.clientside.internal;
 
-/**
- * Provides a type wrapper to contain the hash code for a
- * {@link ratpack.session.store.SessionStorage}
- */
 public class StorageHashContainer {
   final private int hashCode;
 

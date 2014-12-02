@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.session.internal;
+package ratpack.session.clientside.internal;
 
 import io.netty.buffer.ByteBuf;
-import ratpack.session.Signer;
+import ratpack.session.clientside.Signer;
 import ratpack.util.ExceptionUtils;
 
 import javax.crypto.Mac;

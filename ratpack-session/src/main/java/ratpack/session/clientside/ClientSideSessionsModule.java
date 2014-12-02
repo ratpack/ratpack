@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.session.store;
+package ratpack.session.clientside;
 
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -22,9 +22,8 @@ import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.session.Signer;
-import ratpack.session.internal.DefaultSigner;
-import ratpack.session.store.internal.CookieBasedSessionStorageBindingHandler;
+import ratpack.session.clientside.internal.DefaultSigner;
+import ratpack.session.clientside.internal.CookieBasedSessionStorageBindingHandler;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Singleton;
@@ -33,12 +32,12 @@ import javax.inject.Singleton;
  * An extension module that provides a cookie based store for sessions.
  * <h3>Provides</h3>
  * <ul>
- * <li>{@link SessionStorage} - deserialized from the client's cookie</li>
+ * <li>{@link ratpack.session.store.SessionStorage} - deserialized from the client's cookie</li>
  * </ul>
  * <h3>Getting the session storage</h3>
  * <p>
  * This module {@linkplain #decorate(com.google.inject.Injector, ratpack.handling.Handler) decorates the handler} to make
- * the {@link SessionStorage} available during request processing.
+ * the {@link ratpack.session.store.SessionStorage} available during request processing.
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.session.store.SessionStorage;
@@ -50,7 +49,7 @@ import javax.inject.Singleton;
  * }
  * </pre>
  */
-public class CookieBasedSessionsModule extends ConfigurableModule<CookieBasedSessionsModule.Config> implements HandlerDecoratingModule {
+public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessionsModule.Config> implements HandlerDecoratingModule {
 
   @Override
   protected void configure() {
@@ -60,7 +59,8 @@ public class CookieBasedSessionsModule extends ConfigurableModule<CookieBasedSes
   @Provides
   @Singleton
   Signer provideCrypto(Config config) {
-    return new DefaultSigner(new SecretKeySpec(config.getSecretKey().getBytes(CharsetUtil.UTF_8), config.getMacAlgorithm()));
+    byte[] keyBytes = config.getSecretKey().getBytes(CharsetUtil.UTF_8);
+    return new DefaultSigner(new SecretKeySpec(keyBytes, config.getMacAlgorithm()));
   }
 
   /**
