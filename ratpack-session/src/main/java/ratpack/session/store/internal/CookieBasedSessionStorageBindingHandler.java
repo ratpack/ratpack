@@ -22,7 +22,6 @@ import io.netty.buffer.*;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
@@ -35,7 +34,6 @@ import java.nio.CharBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 
 public class CookieBasedSessionStorageBindingHandler implements Handler {
 
@@ -56,23 +54,15 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    context.getRequest().addLazy(SessionStorage.class, createSessionStorage(context));
-    context.getResponse().beforeSend(serializeSession(context));
-    context.insert(handler);
-  }
-
-  private Supplier<SessionStorage> createSessionStorage(Context context) {
-    return () -> {
+    context.getRequest().addLazy(SessionStorage.class, () -> {
       Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.getName()), null);
       ConcurrentMap<String, Object> sessionMap = deserializeSession(context, sessionCookie);
       DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
       context.getRequest().add(StorageHashContainer.class, new StorageHashContainer(storage.hashCode()));
       return storage;
-    };
-  }
+    });
 
-  private Action<ResponseMetaData> serializeSession(Context context) {
-    return responseMetaData -> {
+    context.getResponse().beforeSend(responseMetaData -> {
       Optional<SessionStorage> storageOptional = context.getRequest().maybeGet(SessionStorage.class);
       if (storageOptional.isPresent()) {
         SessionStorage storage = storageOptional.get();
@@ -120,7 +110,9 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
           }
         }
       }
-    };
+    });
+
+    context.insert(handler);
   }
 
   private ByteBuf encode(ByteBufAllocator bufferAllocator, String value) {
