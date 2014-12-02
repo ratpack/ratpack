@@ -17,6 +17,7 @@
 package ratpack.session.clientside.internal;
 
 import com.google.common.collect.Iterables;
+import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import io.netty.buffer.*;
 import io.netty.handler.codec.http.Cookie;
@@ -26,7 +27,6 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
 import ratpack.session.clientside.Signer;
-import ratpack.session.clientside.internal.StorageHashContainer;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.internal.DefaultSessionStorage;
 import ratpack.util.ExceptionUtils;
@@ -40,6 +40,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   private static final Base64.Encoder ENCODER = Base64.getUrlEncoder();
   private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
+  private static final Escaper ESCAPER = UrlEscapers.urlFormParameterEscaper();
 
   private static final ByteBuf EQUALS = Unpooled.unreleasableBuffer(ByteBufUtil.encodeString(UnpooledByteBufAllocator.DEFAULT, CharBuffer.wrap("="), CharsetUtil.UTF_8));
   private static final ByteBuf AMPERSAND = Unpooled.unreleasableBuffer(ByteBufUtil.encodeString(UnpooledByteBufAllocator.DEFAULT, CharBuffer.wrap("&"), CharsetUtil.UTF_8));
@@ -117,7 +118,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   }
 
   private ByteBuf encode(ByteBufAllocator bufferAllocator, String value) {
-    String escaped = UrlEscapers.urlFormParameterEscaper().escape(value);
+    String escaped = ESCAPER.escape(value);
     return ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(escaped), CharsetUtil.UTF_8);
   }
 
