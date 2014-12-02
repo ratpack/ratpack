@@ -18,13 +18,15 @@ package ratpack.session.store;
 
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.session.Crypto;
-import ratpack.session.internal.DefaultCrypto;
+import ratpack.session.Signer;
+import ratpack.session.internal.DefaultSigner;
 import ratpack.session.store.internal.CookieBasedSessionStorageBindingHandler;
 
+import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Singleton;
 
 /**
@@ -51,13 +53,14 @@ import javax.inject.Singleton;
 public class CookieBasedSessionsModule extends ConfigurableModule<CookieBasedSessionsModule.Config> implements HandlerDecoratingModule {
 
   @Override
-  protected void configure() { }
+  protected void configure() {
+  }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  Crypto provideCrypto(Config config) {
-    return new DefaultCrypto(config.getSecretKey(), config.getMacAlgorithm());
+  Signer provideCrypto(Config config) {
+    return new DefaultSigner(new SecretKeySpec(config.getSecretKey().getBytes(CharsetUtil.UTF_8), config.getMacAlgorithm()));
   }
 
   /**

@@ -16,31 +16,37 @@
 
 package ratpack.session.store.internal;
 
+import com.google.common.collect.Iterables;
+import com.google.common.net.UrlEscapers;
+import io.netty.buffer.*;
 import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
-import ratpack.func.Pair;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
-import ratpack.session.Crypto;
+import ratpack.session.Signer;
 import ratpack.session.internal.StorageHashContainer;
 import ratpack.session.store.SessionStorage;
+import ratpack.util.ExceptionUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Map;
+import java.nio.CharBuffer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class CookieBasedSessionStorageBindingHandler implements Handler {
 
-  private final String session_separator = ":";
+  private static final Base64.Encoder ENCODER = Base64.getUrlEncoder();
+  private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
+
+  private static final ByteBuf EQUALS = Unpooled.unreleasableBuffer(ByteBufUtil.encodeString(UnpooledByteBufAllocator.DEFAULT, CharBuffer.wrap("="), CharsetUtil.UTF_8));
+  private static final ByteBuf AMPERSAND = Unpooled.unreleasableBuffer(ByteBufUtil.encodeString(UnpooledByteBufAllocator.DEFAULT, CharBuffer.wrap("&"), CharsetUtil.UTF_8));
+
+  private static final String SESSION_SEPARATOR = ":";
+
   private final String sessionName;
   private final Handler handler;
 
@@ -57,52 +63,69 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   private Supplier<SessionStorage> createSessionStorage(Context context) {
     return () -> {
-      Cookie cookieSession = context.getRequest()
-        .getCookies()
-        .stream()
-        .filter(cookie -> sessionName.equals(cookie.getName()))
-        .findFirst().orElse(null);
-      DefaultSessionStorage storage = new DefaultSessionStorage(deserializeSession(context, cookieSession));
+      Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.getName()), null);
+      ConcurrentMap<String, Object> sessionMap = deserializeSession(context, sessionCookie);
+      DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
       context.getRequest().add(StorageHashContainer.class, new StorageHashContainer(storage.hashCode()));
       return storage;
     };
   }
 
-  private String getEncodedPair(Map.Entry<String, Object> pairs) {
-    String encoded = null;
-    try {
-      encoded = URLEncoder.encode(pairs.getKey(), "utf-8") + "=" + URLEncoder.encode(pairs.getValue().toString(), "utf-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-    return encoded;
-  }
-
   private Action<ResponseMetaData> serializeSession(Context context) {
-    SessionStorage storage = context.getRequest()
-      .maybeGet(SessionStorage.class)
-      .orElse(null);
     return responseMetaData -> {
-      if (storage != null) {
+      Optional<SessionStorage> storageOptional = context.getRequest().maybeGet(SessionStorage.class);
+      if (storageOptional.isPresent()) {
+        SessionStorage storage = storageOptional.get();
         boolean hasChanged = context.getRequest().get(StorageHashContainer.class).getHashCode() != storage.hashCode();
         if (hasChanged) {
-          String encodedPairs = storage
-            .entrySet()
-            .stream()
-            .map(this::getEncodedPair)
-            .collect(Collectors.joining("&"));
+          Set<Map.Entry<String, Object>> entries = storage.entrySet();
 
-          if (encodedPairs == null || encodedPairs.isEmpty()) {
+          if (entries.isEmpty()) {
             invalidateSession(responseMetaData);
           } else {
-            String s = Base64.getUrlEncoder().encodeToString(encodedPairs.getBytes("utf-8"));
-            String digest = context.get(Crypto.class).sign(encodedPairs);
+            ByteBuf[] buffers = new ByteBuf[3 * entries.size() + entries.size() - 1];
+            try {
+              ByteBufAllocator bufferAllocator = context.getLaunchConfig().getBufferAllocator();
 
-            responseMetaData.cookie(sessionName, s + session_separator + digest);
+              int i = 0;
+
+              for (Map.Entry<String, Object> entry : entries) {
+                buffers[i++] = encode(bufferAllocator, entry.getKey());
+                buffers[i++] = EQUALS;
+                buffers[i++] = encode(bufferAllocator, entry.getValue().toString());
+
+                if (i < buffers.length) {
+                  buffers[i++] = AMPERSAND;
+                }
+              }
+
+              ByteBuf payloadBuffer = Unpooled.wrappedBuffer(buffers.length, buffers);
+              byte[] payloadBytes = new byte[payloadBuffer.readableBytes()];
+              payloadBuffer.getBytes(0, payloadBytes);
+              String payloadString = ENCODER.encodeToString(payloadBytes);
+
+              byte[] digest = context.get(Signer.class).sign(payloadBuffer);
+              String digestString = ENCODER.encodeToString(digest);
+
+              String cookieValue = payloadString + SESSION_SEPARATOR + digestString;
+
+              responseMetaData.cookie(sessionName, cookieValue);
+            } finally {
+              for (ByteBuf buffer : buffers) {
+                if (buffer != null) {
+                  buffer.release();
+                }
+              }
+            }
           }
         }
       }
     };
+  }
+
+  private ByteBuf encode(ByteBufAllocator bufferAllocator, String value) {
+    String escaped = UrlEscapers.urlFormParameterEscaper().escape(value);
+    return ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(escaped), CharsetUtil.UTF_8);
   }
 
   private void invalidateSession(ResponseMetaData responseMetaData) {
@@ -114,44 +137,32 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
     String encodedPairs = cookieSession == null ? null : cookieSession.getValue();
     if (encodedPairs != null) {
-      String[] parts = encodedPairs.split(session_separator);
+      String[] parts = encodedPairs.split(SESSION_SEPARATOR);
       if (parts.length == 2) {
-        String encoded = parts[0];
-        String digest = parts[1];
+        byte[] urlEncoded = DECODER.decode(parts[0]);
+        byte[] digest = DECODER.decode(parts[1]);
 
-        Crypto crypto = context.get(Crypto.class);
+        Signer signer = context.get(Signer.class);
+
         try {
-          byte[] pairs = Base64.getUrlDecoder().decode(encoded.getBytes("utf-8"));
-          String unpacked = new String(pairs);
+          byte[] expectedDigest = signer.sign(Unpooled.wrappedBuffer(urlEncoded));
 
-          if (crypto.sign(unpacked).equals(digest)) {
-
-            Arrays.stream(unpacked.split("&")).map(s -> {
-              String[] pair = s.split("=");
-              return Pair.of(pair[0], pair[1]);
-            }).forEach(getDecodedPairs(sessionStorage));
-
+          if (Arrays.equals(digest, expectedDigest)) {
+            String payload = new String(urlEncoded, CharsetUtil.UTF_8);
+            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payload, CharsetUtil.UTF_8, false);
+            Map<String, List<String>> decoded = queryStringDecoder.parameters();
+            for (Map.Entry<String, List<String>> entry : decoded.entrySet()) {
+              String value = entry.getValue().isEmpty() ? null : entry.getValue().get(0);
+              sessionStorage.put(entry.getKey(), value);
+            }
           }
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          throw ExceptionUtils.uncheck(e);
         }
       }
-
     }
 
     return sessionStorage;
-  }
-
-  private Consumer<Pair<String, String>> getDecodedPairs(ConcurrentMap<String, Object> sessionStorage) throws UnsupportedEncodingException {
-    return p -> {
-      try {
-        String key = URLDecoder.decode(p.getLeft(), "utf-8");
-        String value = URLDecoder.decode(p.getRight(), "utf-8");
-        sessionStorage.put(key, value);
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException(e);
-      }
-    };
   }
 
 }
