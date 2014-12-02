@@ -28,6 +28,7 @@ buildscript {
   }
   dependencies {
     classpath "com.github.jruby-gradle:jruby-gradle-plugin:0.1.9"
+    classpath "com.github.jengelman.gradle.plugins:gradle-processes:0.3.0"
     classpath "com.github.robfletcher:compass-gradle-plugin:2.0.2"
     classpath "org.pegdown:pegdown:1.2.1"
   }
