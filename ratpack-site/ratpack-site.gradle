@@ -21,8 +21,9 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "com.github.jruby-gradle:jruby-gradle-plugin:0.1.3"
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.1"
+    classpath "com.github.jruby-gradle:jruby-gradle-plugin:0.1.9"
+    classpath "com.github.jengelman.gradle.plugins:gradle-processes:0.3.0"
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.2"
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
@@ -241,14 +242,15 @@ compass {
   debugInfo = false
 }
 
-run.dependsOn compassCompile
+run.dependsOn compassWatchStart
+run.finalizedBy compassWatchStop
 
 task createScriptsDir {
   doLast {
     mkdir "src/ratpack/assets/scripts"
   }
 }
-configure([compassWatch, compassCompile]) {
+configure([compassWatchStart, compassCompile]) {
   dependsOn createScriptsDir
 }
 
