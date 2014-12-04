@@ -21,12 +21,11 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.3"
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.4"
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
 
-import org.gradle.plugins.compass.*
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 
 import static org.apache.commons.io.FileUtils.copyURLToFile
@@ -229,6 +228,7 @@ jruby {
 }
 
 compass {
+  gemDir = file("${rootProject.buildDir}/tmp/compass")
   cssDir = file('src/ratpack/assets/styles')
   sassDir = file('src/main/static/styles')
   imagesDir = file('src/ratpack/assets/images')

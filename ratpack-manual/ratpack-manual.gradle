@@ -27,7 +27,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.3"
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.4"
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
@@ -223,6 +223,7 @@ jruby {
 }
 
 compass {
+  gemDir = file("${rootProject.buildDir}/tmp/compass")
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
