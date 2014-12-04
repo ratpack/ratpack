@@ -18,23 +18,21 @@ import ratpack.gradle.WriteTestConfig
 
 buildscript {
   repositories {
-    maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
     jcenter()
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.10'
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.4"
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
 
-import org.gradle.plugins.compass.*
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 
 import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang.SystemUtils.*
 
 apply plugin: 'coffeescript-base'
-apply plugin: 'compass'
+apply plugin: "com.github.robfletcher.compass"
 apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
 
@@ -90,6 +88,8 @@ dependencies {
   compile project(":ratpack-rx")
   compile project(":ratpack-newrelic")
   compile 'org.pegdown:pegdown:1.4.1'
+
+  compass commonDependencies.compass
 
   runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.0-rc2'
   runtime 'org.apache.logging.log4j:log4j-api:2.0-rc2'
@@ -213,7 +213,7 @@ task compileCoffee(type: CoffeeScriptCompile) {
 }
 
 prepareBaseDir {
-  dependsOn gatherManuals, compileCoffee, compileSass
+  dependsOn gatherManuals, compileCoffee, compassCompile
 }
 
 applicationDistribution.into("newrelic") {
@@ -223,8 +223,12 @@ applicationDistribution.into("newrelic") {
   from "src/newrelic"
 }
 
+jruby {
+  gemInstallDir = file("$project.rootProject.buildDir/build/gems")
+}
+
 compass {
-  gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
+  gemDir = file("${rootProject.buildDir}/tmp/compass")
   cssDir = file('src/ratpack/assets/styles')
   sassDir = file('src/main/static/styles')
   imagesDir = file('src/ratpack/assets/images')
@@ -232,22 +236,19 @@ compass {
   fontsDir = file('../ratpack-stylesheets/fonts')
   relativeAssets = true
   quiet = true
-}
-
-compileSass {
   environment = 'production'
   debugInfo = false
 }
 
-clean.dependsOn cleanCompileSass
-run.dependsOn watchSass
+run.dependsOn compassWatchStart
+run.finalizedBy compassWatchStop
 
 task createScriptsDir {
   doLast {
     mkdir "src/ratpack/assets/scripts"
   }
 }
-configure([watchSass, compileSass]) {
+configure([compassWatchStart, compassCompile]) {
   dependsOn createScriptsDir
 }
 
