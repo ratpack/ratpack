@@ -24,7 +24,6 @@ import ratpack.func.Predicate;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -36,7 +35,6 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   private final Supplier<ExecutionBacking> executionSupplier;
   private final Consumer<? super Fulfiller<? super T>> fulfillment;
   private final Action<? super Throwable> errorHandler;
-  private final AtomicBoolean fired = new AtomicBoolean();
 
   public DefaultSuccessPromise(Supplier<ExecutionBacking> executionSupplier, Consumer<? super Fulfiller<? super T>> fulfillment, Action<? super Throwable> errorHandler) {
     this.executionSupplier = executionSupplier;
@@ -46,17 +44,13 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public void then(final Action<? super T> then) {
-    if (fired.compareAndSet(false, true)) {
-      final ExecutionBacking executionBacking = executionSupplier.get();
-      try {
-        doThen(new UserActionFulfiller(executionBacking, then));
-      } catch (ExecutionException e) {
-        throw e;
-      } catch (Exception e) {
-        throw new InternalRatpackError("failed to add promise resume action", e);
-      }
-    } else {
-      throw new MultiplePromiseSubscriptionException();
+    final ExecutionBacking executionBacking = executionSupplier.get();
+    try {
+      doThen(new UserActionFulfiller(executionBacking, then));
+    } catch (ExecutionException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new InternalRatpackError("failed to add promise resume action", e);
     }
   }
 
@@ -66,60 +60,48 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> transformer) {
-    if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
-        @Override
-        protected void onSuccess(O transformed) {
-          downstream.success(transformed);
-        }
-      }));
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+    return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
+      @Override
+      protected void onSuccess(O transformed) {
+        downstream.success(transformed);
+      }
+    }));
   }
 
   @Override
   public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
-    if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
-        @Override
-        protected void onSuccess(Promise<O> transformed) {
-          transformed.onError(downstream::error).then(downstream::success);
-        }
-      }));
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+    return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
+      @Override
+      protected void onSuccess(Promise<O> transformed) {
+        transformed.onError(downstream::error).then(downstream::success);
+      }
+    }));
   }
 
   @Override
   public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> fulfillment) {
-    if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Step<T>(downstream) {
-        @Override
-        public void success(T value) {
-          boolean apply;
+    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Step<T>(downstream) {
+      @Override
+      public void success(T value) {
+        boolean apply;
+        try {
+          apply = predicate.apply(value);
+        } catch (Throwable e) {
+          error(e);
+          return;
+        }
+
+        if (apply) {
           try {
-            apply = predicate.apply(value);
+            fulfillment.execute(value);
           } catch (Throwable e) {
             error(e);
-            return;
           }
-
-          if (apply) {
-            try {
-              fulfillment.execute(value);
-            } catch (Throwable e) {
-              error(e);
-            }
-          } else {
-            downstream.success(value);
-          }
+        } else {
+          downstream.success(value);
         }
-      }));
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+      }
+    }));
   }
 
   @Override
@@ -178,84 +160,68 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public Promise<T> cache() {
-    if (fired.compareAndSet(false, true)) {
-      return new CachingPromise<>(fulfillment, executionSupplier, errorHandler);
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+    return new CachingPromise<>(fulfillment, executionSupplier, errorHandler);
   }
 
   @Override
   public Promise<T> onYield(Runnable onYield) {
-    if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> {
-        try {
-          onYield.run();
-        } catch (Throwable e) {
-          downstream.error(e);
-          return;
-        }
-        fulfillment.accept(downstream);
-      });
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+    return new DefaultPromise<>(executionSupplier, downstream -> {
+      try {
+        onYield.run();
+      } catch (Throwable e) {
+        downstream.error(e);
+        return;
+      }
+      fulfillment.accept(downstream);
+    });
   }
 
   @Override
   public Promise<T> defer(Action<? super Runnable> releaser) {
-    if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> {
-        ExecutionBacking executionBacking = executionSupplier.get();
-        executionBacking.streamSubscribe((streamHandle) -> {
-          try {
-            releaser.execute((Runnable) () ->
-                streamHandle.complete(e ->
-                    fulfillment.accept(downstream)
-                )
-            );
-          } catch (Throwable t) {
-            downstream.error(t);
-          }
-        });
+    return new DefaultPromise<>(executionSupplier, downstream -> {
+      ExecutionBacking executionBacking = executionSupplier.get();
+      executionBacking.streamSubscribe((streamHandle) -> {
+        try {
+          releaser.execute((Runnable) () ->
+              streamHandle.complete(e ->
+                  fulfillment.accept(downstream)
+              )
+          );
+        } catch (Throwable t) {
+          downstream.error(t);
+        }
       });
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+    });
   }
 
   @Override
   public Promise<T> wiretap(Action<? super Result<T>> listener) {
-    if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Step<T>(downstream) {
-        @Override
-        public void success(T value) {
-          try {
-            listener.execute(Result.success(value));
-          } catch (Throwable t) {
-            error(t);
-            return;
-          }
-
-          downstream.success(value);
+    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Step<T>(downstream) {
+      @Override
+      public void success(T value) {
+        try {
+          listener.execute(Result.success(value));
+        } catch (Throwable t) {
+          error(t);
+          return;
         }
 
-        @Override
-        public void error(Throwable throwable) {
-          try {
-            listener.execute(Result.<T>failure(throwable));
-          } catch (Throwable t) {
-            t.addSuppressed(throwable);
-            super.error(t);
-            return;
-          }
+        downstream.success(value);
+      }
 
-          super.error(throwable);
+      @Override
+      public void error(Throwable throwable) {
+        try {
+          listener.execute(Result.<T>failure(throwable));
+        } catch (Throwable t) {
+          t.addSuppressed(throwable);
+          super.error(t);
+          return;
         }
-      }));
-    } else {
-      throw new MultiplePromiseSubscriptionException();
-    }
+
+        super.error(throwable);
+      }
+    }));
   }
 
   @Override

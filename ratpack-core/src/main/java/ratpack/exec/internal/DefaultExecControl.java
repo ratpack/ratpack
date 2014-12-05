@@ -155,7 +155,7 @@ public class DefaultExecControl implements ExecControl {
               return Result.<T>failure(e);
             }
           }, execController.getBlockingExecutor()
-        ).thenAccept(v -> streamHandle.complete(e -> f.accept(v))))
+        ).thenAcceptAsync(v -> streamHandle.complete(e -> f.accept(v)), backing.getEventLoop()))
     );
   }
 

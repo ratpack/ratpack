@@ -181,11 +181,7 @@ public interface PromiseOperations<T> {
 
   /**
    * Caches the promised value (or error) and returns it to all subscribers.
-   * <p>
-   * Generally, promises are single use.
-   * The promise returned by this method <b>DOES</b> support multiple use.
    * <pre class="java">{@code
-   * import ratpack.exec.MultiplePromiseSubscriptionException;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -198,20 +194,16 @@ public interface PromiseOperations<T> {
    *       Promise<Integer> uncached = c.promise(f -> f.success(counter.getAndIncrement()));
    *
    *       uncached.then(i -> { assert i == 0; });
+   *       uncached.then(i -> { assert i == 1; });
+   *       uncached.then(i -> { assert i == 2; });
    *
-   *       try {
-   *         uncached.then(i -> {});
-   *         assert false : "shouldn't reach this line";
-   *       } catch (MultiplePromiseSubscriptionException e) {
-   *         // ok
-   *       }
-   *
-   *       uncached = c.promise(f -> f.success(counter.getAndIncrement()));
    *       Promise<Integer> cached = uncached.cache();
    *
-   *       cached.then(i -> { assert i == 1; });
-   *       cached.then(i -> { assert i == 1; });
-   *       cached.then(i -> { assert i == 1; });
+   *       cached.then(i -> { assert i == 3; });
+   *       cached.then(i -> { assert i == 3; });
+   *
+   *       uncached.then(i -> { assert i == 4; });
+   *       cached.then(i -> { assert i == 3; });
    *     });
    *   }
    * }

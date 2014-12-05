@@ -24,9 +24,7 @@ import ratpack.exec.*;
 import ratpack.func.Action;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static ratpack.func.Action.throwException;
@@ -45,19 +43,23 @@ public class ExecutionBacking {
   // stream has events, events have segments
 
   private static class Event {
-    Deque<ExecutionSegment> segments = new ConcurrentLinkedDeque<>();
+    Deque<ExecutionSegment> segments = Lists.newLinkedList();
   }
 
   private static class Stream {
     Queue<Event> events = new ConcurrentLinkedQueue<>();
+    Stream innerStream;
 
     private Stream() {
       events.add(new Event());
     }
+
+    Stream activeStream() {
+      return innerStream == null ? this : innerStream.activeStream();
+    }
   }
 
-  private final Deque<Stream> streams = new ConcurrentLinkedDeque<>();
-  private final Deque<Stream> suspendedStreams = new ConcurrentLinkedDeque<>();
+  private final Stream stream = new Stream();
 
   private final EventLoop eventLoop;
   private final Action<? super Throwable> onError;
@@ -66,9 +68,7 @@ public class ExecutionBacking {
   private final ThreadLocal<ExecutionBacking> threadBinding;
   private final Set<ExecutionBacking> executions;
 
-  private final AtomicInteger streaming = new AtomicInteger();
   private volatile boolean done;
-
   private final Execution execution;
 
   private Optional<StackTraceElement[]> startTrace = Optional.empty();
@@ -85,7 +85,7 @@ public class ExecutionBacking {
     executions.add(this);
     Event event = new Event();
     event.segments.add(new UserCodeSegment(action));
-    queueStream().events.add(event);
+    stream.events.add(event);
     drain();
   }
 
@@ -135,28 +135,12 @@ public class ExecutionBacking {
     return interceptors;
   }
 
-  private Stream queueStream() {
-    Stream stream = new Stream();
-    streams.add(stream);
-    return stream;
-  }
-
-  private Stream currentStream() {
-    return streams.peek();
-  }
-
-  private Event currentEvent() {
-    return currentStream().events.peek();
-  }
-
-  private ExecutionSegment nextSegment() {
-    return currentEvent().segments.peek();
-  }
-
   public class StreamHandle {
-    private final Stream stream;
+    final Stream parent;
+    final Stream stream;
 
-    private StreamHandle(Stream stream) {
+    private StreamHandle(Stream parent, Stream stream) {
+      this.parent = parent;
       this.stream = stream;
     }
 
@@ -177,59 +161,53 @@ public class ExecutionBacking {
   }
 
   public void streamSubscribe(Consumer<? super StreamHandle> runnable) {
-    StreamHandle handle = new StreamHandle(queueStream());
-    currentEvent().segments.add(new StreamSubscribe(handle, runnable));
+    assertNotDone();
+    stream.activeStream().events.element().segments.add(new StreamSubscribe(runnable));
     drain();
   }
 
   private void drain() {
-    if (this.equals(threadBinding.get())) {
+    ExecutionBacking threadBoundExecutionBacking = threadBinding.get();
+
+    if (this.equals(threadBoundExecutionBacking)) {
       return;
     }
 
-    if (eventLoop.inEventLoop() && threadBinding.get() == null) {
-      if (!hasExecutableSegments()) {
-        return;
-      }
-      try {
-        threadBinding.set(this);
-        assertNotDone();
-        while (true) {
-          ExecutionSegment segment = nextSegment();
-          if (segment == null) {
-            Stream stream = currentStream();
-            stream.events.remove(); // event is done
-
-            if (stream.events.isEmpty()) {
-              if (suspendedStreams.isEmpty()) {
-                done();
-                return;
-              } else {
-                if (streaming.get() < suspendedStreams.size()) {
-                  streams.remove();
-                  streams.addFirst(suspendedStreams.removeLast());
-                } else {
-                  break;
-                }
-              }
-            }
-
-          } else {
-            Event event = currentEvent();
-            event.segments.poll();
-            segment.run();
-          }
-        }
-      } finally {
-        threadBinding.remove();
-      }
-    } else {
+    if (!eventLoop.inEventLoop() || threadBoundExecutionBacking != null) {
       eventLoop.execute(this::drain);
+      return;
+    }
+
+    try {
+      threadBinding.set(this);
+      while (true) {
+        Queue<Event> events = stream.activeStream().events;
+        if (events.isEmpty()) {
+          return;
+        }
+
+        ExecutionSegment segment = events.element().segments.poll();
+        if (segment == null) {
+          events.remove();
+          if (events.isEmpty()) {
+            if (stream.events.isEmpty()) {
+              done();
+              return;
+            } else {
+              break;
+            }
+          }
+        } else {
+          segment.run();
+        }
+      }
+    } finally {
+      threadBinding.remove();
     }
   }
 
   private boolean hasExecutableSegments() {
-    return currentEvent() != null;
+    return !stream.activeStream().events.isEmpty();
   }
 
   private void done() {
@@ -290,7 +268,7 @@ public class ExecutionBacking {
       try {
         onError.execute(throwable);
       } catch (final Throwable errorHandlerException) {
-        currentEvent().segments.addFirst(new UserCodeSegment(throwException(errorHandlerException)));
+        stream.activeStream().events.element().segments.addFirst(new UserCodeSegment(throwException(errorHandlerException)));
       }
     }
   }
@@ -307,7 +285,7 @@ public class ExecutionBacking {
       try {
         intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
       } catch (final Throwable e) {
-        Event event = currentEvent();
+        Event event = stream.activeStream().events.element();
         event.segments.clear();
         event.segments.addFirst(new ThrowSegment(e));
       }
@@ -315,18 +293,17 @@ public class ExecutionBacking {
   }
 
   private class StreamSubscribe extends ExecutionSegment {
-    private final StreamHandle handle;
     private final Consumer<? super StreamHandle> consumer;
 
-    private StreamSubscribe(StreamHandle handle, Consumer<? super StreamHandle> consumer) {
-      this.handle = handle;
+    private StreamSubscribe(Consumer<? super StreamHandle> consumer) {
       this.consumer = consumer;
     }
 
     @Override
     public void run() {
-      suspendedStreams.add(streams.remove());
-      streaming.incrementAndGet();
+      Stream activeStream = stream.activeStream();
+      activeStream.innerStream = new Stream();
+      StreamHandle handle = new StreamHandle(activeStream, activeStream.innerStream);
       consumer.accept(handle);
     }
   }
@@ -347,13 +324,8 @@ public class ExecutionBacking {
 
     @Override
     public void run() {
+      handle.parent.innerStream = null;
       super.run();
-      handle.streamEvent(new ExecutionSegment() {
-        @Override
-        public void run() {
-          streaming.decrementAndGet();
-        }
-      });
     }
   }
 
