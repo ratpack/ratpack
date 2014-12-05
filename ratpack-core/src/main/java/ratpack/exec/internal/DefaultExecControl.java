@@ -16,10 +16,8 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
-import io.netty.util.internal.ConcurrentSet;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -34,7 +32,6 @@ import ratpack.stream.TransformablePublisher;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -49,7 +46,6 @@ public class DefaultExecControl implements ExecControl {
 
   private final ExecController execController;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
-  private final Set<ExecutionBacking> executions = new ConcurrentSet<>();
 
   public DefaultExecControl(ExecController execController) {
     this.execController = execController;
@@ -128,9 +124,9 @@ public class DefaultExecControl implements ExecControl {
 
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
         if (eventLoop.inEventLoop() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, executions, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete);
+          new ExecutionBacking(execController, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete);
         } else {
-          eventLoop.submit(() -> new ExecutionBacking(execController, executions, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete));
+          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -191,12 +187,6 @@ public class DefaultExecControl implements ExecControl {
           })
       );
     });
-  }
-
-  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
-    ImmutableList.Builder<ExecutionSnapshot> builder = ImmutableList.builder();
-    executions.forEach(e -> builder.add(e.getSnapshot()));
-    return builder.build();
   }
 
 }

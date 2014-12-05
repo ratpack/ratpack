@@ -21,9 +21,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.exec.ExecutionSnapshot;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -94,11 +92,6 @@ public class DefaultExecController implements ExecController {
   @Override
   public int getNumThreads() {
     return numThreads;
-  }
-
-  @Override
-  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
-    return control.getExecutionSnapshots();
   }
 
 }

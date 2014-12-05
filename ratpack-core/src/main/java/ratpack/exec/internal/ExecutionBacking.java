@@ -20,11 +20,17 @@ import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.*;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
+import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 
-import java.util.*;
+import java.util.Deque;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -34,8 +40,6 @@ public class ExecutionBacking {
   public static final boolean TRACE = Boolean.getBoolean("ratpack.execution.trace");
 
   final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
-
-  private final long startedAt = System.currentTimeMillis();
 
   // package access to allow direct field access by inners
   final List<ExecInterceptor> interceptors = Lists.newLinkedList();
@@ -50,23 +54,16 @@ public class ExecutionBacking {
   private final Action<? super Execution> onComplete;
 
   private final ThreadLocal<ExecutionBacking> threadBinding;
-  private final Set<ExecutionBacking> executions;
 
   private volatile boolean done;
   private final Execution execution;
 
-  private Optional<StackTraceElement[]> startTrace = Optional.empty();
-
-  public ExecutionBacking(ExecController controller, Set<ExecutionBacking> executions, EventLoop eventLoop, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
-    this.executions = executions;
+  public ExecutionBacking(ExecController controller, EventLoop eventLoop, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
     this.eventLoop = eventLoop;
     this.onError = onError;
     this.onComplete = onComplete;
     this.threadBinding = threadBinding;
     this.execution = new DefaultExecution(eventLoop, controller, closeables);
-    this.startTrace = startTrace;
-
-    executions.add(this);
 
     Deque<NoArgAction> event = Lists.newLinkedList();
     //noinspection RedundantCast
@@ -81,40 +78,6 @@ public class ExecutionBacking {
 
   // Marker interface used to detect user code vs infrastructure code, for error handling and interception
   public interface UserCode extends NoArgAction {
-  }
-
-  private class Snapshot implements ExecutionSnapshot {
-
-    private final boolean waiting;
-
-    private Snapshot() {
-      this.waiting = !hasExecutableSegments();
-    }
-
-    @Override
-    public String getId() {
-      return Integer.toString(System.identityHashCode(ExecutionBacking.this));
-    }
-
-    @Override
-    public boolean getWaiting() {
-      return waiting;
-    }
-
-
-    @Override
-    public Long getStartedAt() {
-      return startedAt;
-    }
-
-    @Override
-    public Optional<StackTraceElement[]> getStartedTrace() {
-      return startTrace;
-    }
-  }
-
-  public ExecutionSnapshot getSnapshot() {
-    return new Snapshot();
   }
 
   public Execution getExecution() {
@@ -235,10 +198,6 @@ public class ExecutionBacking {
     }
   }
 
-  private boolean hasExecutableSegments() {
-    return !stream.isEmpty();
-  }
-
   private void done() {
     try {
       onComplete.execute(getExecution());
@@ -253,8 +212,6 @@ public class ExecutionBacking {
         LOGGER.warn(String.format("exception raised by closeable %s", closeable), e);
       }
     }
-
-    executions.remove(this);
   }
 
   public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {
