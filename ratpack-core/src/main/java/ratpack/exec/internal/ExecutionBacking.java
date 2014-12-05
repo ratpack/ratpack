@@ -31,27 +31,21 @@ import static ratpack.func.Action.throwException;
 
 public class ExecutionBacking {
 
+
   public static final boolean TRACE = Boolean.getBoolean("ratpack.execution.trace");
 
   final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
   private final long startedAt = System.currentTimeMillis();
 
-  private final List<ExecInterceptor> interceptors = Lists.newLinkedList();
-  private final List<AutoCloseable> closeables = Lists.newLinkedList();
 
-  // stream has events, events have segments
-
-  private static class Event {
-    Deque<ExecutionSegment> segments = Lists.newLinkedList();
-  }
 
   private static class Stream {
-    Queue<Event> events = new ConcurrentLinkedQueue<>();
+    Queue<Deque<ExecutionSegment>> events = new ConcurrentLinkedQueue<>();
     Stream innerStream;
 
-    private Stream() {
-      events.add(new Event());
+    Stream() {
+      events.add(Lists.newLinkedList());
     }
 
     Stream activeStream() {
@@ -59,9 +53,12 @@ public class ExecutionBacking {
     }
   }
 
-  private final Stream stream = new Stream();
+  // package access to allow direct field access by inners
+  final List<ExecInterceptor> interceptors = Lists.newLinkedList();
+  final Stream stream = new Stream();
 
   private final EventLoop eventLoop;
+  private final List<AutoCloseable> closeables = Lists.newLinkedList();
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
@@ -83,8 +80,8 @@ public class ExecutionBacking {
     this.startTrace = startTrace;
 
     executions.add(this);
-    Event event = new Event();
-    event.segments.add(new UserCodeSegment(action));
+    Deque<ExecutionSegment> event = Lists.newLinkedList();
+    event.add(new UserCodeSegment(action));
     stream.events.add(event);
     drain();
   }
@@ -153,8 +150,8 @@ public class ExecutionBacking {
     }
 
     private void streamEvent(ExecutionSegment s) {
-      Event event = new Event();
-      event.segments.add(s);
+      Deque<ExecutionSegment> event = Lists.newLinkedList();
+      event.add(s);
       stream.events.add(event);
       drain();
     }
@@ -162,7 +159,7 @@ public class ExecutionBacking {
 
   public void streamSubscribe(Consumer<? super StreamHandle> runnable) {
     assertNotDone();
-    stream.activeStream().events.element().segments.add(new StreamSubscribe(runnable));
+    stream.activeStream().events.element().add(new StreamSubscribe(runnable));
     drain();
   }
 
@@ -181,12 +178,12 @@ public class ExecutionBacking {
     try {
       threadBinding.set(this);
       while (true) {
-        Queue<Event> events = stream.activeStream().events;
+        Queue<Deque<ExecutionSegment>> events = stream.activeStream().events;
         if (events.isEmpty()) {
           return;
         }
 
-        ExecutionSegment segment = events.element().segments.poll();
+        ExecutionSegment segment = events.element().poll();
         if (segment == null) {
           events.remove();
           if (events.isEmpty()) {
@@ -268,7 +265,7 @@ public class ExecutionBacking {
       try {
         onError.execute(throwable);
       } catch (final Throwable errorHandlerException) {
-        stream.activeStream().events.element().segments.addFirst(new UserCodeSegment(throwException(errorHandlerException)));
+        stream.activeStream().events.element().addFirst(new UserCodeSegment(throwException(errorHandlerException)));
       }
     }
   }
@@ -285,9 +282,9 @@ public class ExecutionBacking {
       try {
         intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
       } catch (final Throwable e) {
-        Event event = stream.activeStream().events.element();
-        event.segments.clear();
-        event.segments.addFirst(new ThrowSegment(e));
+        Deque<ExecutionSegment> event = stream.activeStream().events.element();
+        event.clear();
+        event.addFirst(new ThrowSegment(e));
       }
     }
   }
