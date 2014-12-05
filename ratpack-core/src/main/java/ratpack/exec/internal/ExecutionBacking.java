@@ -42,7 +42,7 @@ public class ExecutionBacking {
 
   // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
   // All other collections do not need to be concurrent safe because they are only accessed on the event loop
-  Queue<Deque<Runnable>> stream = new ConcurrentLinkedQueue<>();
+  Queue<Deque<NoArgAction>> stream = new ConcurrentLinkedQueue<>();
 
   private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newLinkedList();
@@ -68,14 +68,19 @@ public class ExecutionBacking {
 
     executions.add(this);
 
-    Deque<Runnable> event = Lists.newLinkedList();
-    event.add(() -> execUserCode(() -> action.execute(execution)));
+    Deque<NoArgAction> event = Lists.newLinkedList();
+    //noinspection RedundantCast
+    event.add((UserCode) () -> action.execute(execution));
     stream.add(event);
 
-    Deque<Runnable> doneEvent = Lists.newLinkedList();
+    Deque<NoArgAction> doneEvent = Lists.newLinkedList();
     doneEvent.add(() -> done = true);
     stream.add(doneEvent);
     drain();
+  }
+
+  // Marker interface used to detect user code vs infrastructure code, for error handling and interception
+  public interface UserCode extends NoArgAction {
   }
 
   private class Snapshot implements ExecutionSnapshot {
@@ -125,27 +130,28 @@ public class ExecutionBacking {
   }
 
   public class StreamHandle {
-    final Queue<Deque<Runnable>> parent;
-    final Queue<Deque<Runnable>> stream;
+    final Queue<Deque<NoArgAction>> parent;
+    final Queue<Deque<NoArgAction>> stream;
 
-    private StreamHandle(Queue<Deque<Runnable>> parent, Queue<Deque<Runnable>> stream) {
+    private StreamHandle(Queue<Deque<NoArgAction>> parent, Queue<Deque<NoArgAction>> stream) {
       this.parent = parent;
       this.stream = stream;
     }
 
-    public void event(NoArgAction action) {
-      streamEvent(() -> execUserCode(action));
+    public void event(UserCode action) {
+      streamEvent(action);
     }
 
-    public void complete(NoArgAction action) {
-      streamEvent(() -> {
+    public void complete(UserCode action) {
+      //noinspection RedundantCast
+      streamEvent((UserCode) () -> {
         ExecutionBacking.this.stream = this.parent;
-        execUserCode(action);
+        action.execute();
       });
     }
 
-    private void streamEvent(Runnable s) {
-      Deque<Runnable> event = Lists.newLinkedList();
+    private void streamEvent(NoArgAction s) {
+      Deque<NoArgAction> event = Lists.newLinkedList();
       event.add(s);
       stream.add(event);
       drain();
@@ -154,7 +160,7 @@ public class ExecutionBacking {
 
   public void streamSubscribe(Consumer<? super StreamHandle> consumer) {
     stream.element().add(() -> {
-      Queue<Deque<Runnable>> parent = stream;
+      Queue<Deque<NoArgAction>> parent = stream;
       stream = new ConcurrentLinkedDeque<>();
       stream.add(Lists.newLinkedList());
       StreamHandle handle = new StreamHandle(parent, stream);
@@ -186,7 +192,7 @@ public class ExecutionBacking {
           return;
         }
 
-        Runnable segment = stream.element().poll();
+        NoArgAction segment = stream.element().poll();
         if (segment == null) {
           stream.remove();
           if (stream.isEmpty()) {
@@ -198,7 +204,30 @@ public class ExecutionBacking {
             }
           }
         } else {
-          segment.run();
+          if (segment instanceof UserCode) {
+            try {
+              intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, segment);
+            } catch (final Throwable e) {
+              Deque<NoArgAction> event = stream.element();
+              event.clear();
+              event.addFirst(() -> {
+                try {
+                  onError.execute(e);
+                } catch (final Throwable errorHandlerException) {
+                  //noinspection RedundantCast
+                  stream.element().addFirst((UserCode) () -> {
+                    throw errorHandlerException;
+                  });
+                }
+              });
+            }
+          } else {
+            try {
+              segment.execute();
+            } catch (Exception e) {
+              LOGGER.error("Internal Ratpack Error - please raise an issue", e);
+            }
+          }
         }
       }
     } finally {
@@ -226,22 +255,6 @@ public class ExecutionBacking {
     }
 
     executions.remove(this);
-  }
-
-  private void execUserCode(NoArgAction code) {
-    try {
-      intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, code);
-    } catch (final Throwable e) {
-      Deque<Runnable> event = stream.element();
-      event.clear();
-      event.addFirst(() -> {
-        try {
-          onError.execute(e);
-        } catch (final Throwable errorHandlerException) {
-          stream.element().addFirst(() -> execUserCode(NoArgAction.throwException(errorHandlerException)));
-        }
-      });
-    }
   }
 
   public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {

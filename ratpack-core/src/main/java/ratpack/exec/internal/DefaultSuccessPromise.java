@@ -28,7 +28,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static ratpack.func.Action.ignoreArg;
-import static ratpack.func.NoArgAction.throwException;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -265,7 +264,9 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       try {
         errorHandler.execute(throwable);
       } catch (Throwable errorHandlerThrown) {
-        executionBacking.streamSubscribe(h -> h.complete(throwException(errorHandlerThrown)));
+        executionBacking.streamSubscribe(h -> h.complete(() -> {
+          throw errorHandlerThrown;
+        }));
       }
     }
 
@@ -274,7 +275,9 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       try {
         then.execute(value);
       } catch (Throwable throwable) {
-        executionBacking.streamSubscribe(h -> h.complete(throwException(throwable)));
+        executionBacking.streamSubscribe(h -> h.complete(() -> {
+          throw throwable;
+        }));
       }
     }
   }
