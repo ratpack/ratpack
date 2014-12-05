@@ -82,6 +82,7 @@ configureRun.doLast {
     systemProperty "ratpack.development", "false"
     systemProperty "ratpack.timeResponses", "true"
     systemProperty "endpoint", project.endpoint
+    maxHeapSize "128m"
   }
 }
 """
