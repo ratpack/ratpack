@@ -24,6 +24,7 @@ import ratpack.exec.*;
 import ratpack.func.Action;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
@@ -31,31 +32,15 @@ import static ratpack.func.Action.throwException;
 
 public class ExecutionBacking {
 
-
   public static final boolean TRACE = Boolean.getBoolean("ratpack.execution.trace");
 
   final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
   private final long startedAt = System.currentTimeMillis();
 
-
-
-  private static class Stream {
-    Queue<Deque<ExecutionSegment>> events = new ConcurrentLinkedQueue<>();
-    Stream innerStream;
-
-    Stream() {
-      events.add(Lists.newLinkedList());
-    }
-
-    Stream activeStream() {
-      return innerStream == null ? this : innerStream.activeStream();
-    }
-  }
-
   // package access to allow direct field access by inners
   final List<ExecInterceptor> interceptors = Lists.newLinkedList();
-  final Stream stream = new Stream();
+  Queue<Deque<ExecutionSegment>> stream = new ConcurrentLinkedQueue<>();
 
   private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newLinkedList();
@@ -80,9 +65,19 @@ public class ExecutionBacking {
     this.startTrace = startTrace;
 
     executions.add(this);
+
     Deque<ExecutionSegment> event = Lists.newLinkedList();
     event.add(new UserCodeSegment(action));
-    stream.events.add(event);
+    stream.add(event);
+
+    Deque<ExecutionSegment> doneEvent = Lists.newLinkedList();
+    doneEvent.add(new ExecutionSegment() {
+      @Override
+      public void run() {
+        done = true;
+      }
+    });
+    stream.add(doneEvent);
     drain();
   }
 
@@ -133,10 +128,10 @@ public class ExecutionBacking {
   }
 
   public class StreamHandle {
-    final Stream parent;
-    final Stream stream;
+    final Queue<Deque<ExecutionSegment>> parent;
+    final Queue<Deque<ExecutionSegment>> stream;
 
-    private StreamHandle(Stream parent, Stream stream) {
+    private StreamHandle(Queue<Deque<ExecutionSegment>> parent, Queue<Deque<ExecutionSegment>> stream) {
       this.parent = parent;
       this.stream = stream;
     }
@@ -152,22 +147,24 @@ public class ExecutionBacking {
     private void streamEvent(ExecutionSegment s) {
       Deque<ExecutionSegment> event = Lists.newLinkedList();
       event.add(s);
-      stream.events.add(event);
+      stream.add(event);
       drain();
     }
   }
 
   public void streamSubscribe(Consumer<? super StreamHandle> runnable) {
-    assertNotDone();
-    stream.activeStream().events.element().add(new StreamSubscribe(runnable));
+    stream.element().add(new StreamSubscribe(runnable));
     drain();
   }
 
   private void drain() {
     ExecutionBacking threadBoundExecutionBacking = threadBinding.get();
-
     if (this.equals(threadBoundExecutionBacking)) {
       return;
+    }
+
+    if (done) {
+      throw new ExecutionException("execution is complete");
     }
 
     if (!eventLoop.inEventLoop() || threadBoundExecutionBacking != null) {
@@ -178,16 +175,15 @@ public class ExecutionBacking {
     try {
       threadBinding.set(this);
       while (true) {
-        Queue<Deque<ExecutionSegment>> events = stream.activeStream().events;
-        if (events.isEmpty()) {
+        if (stream.isEmpty()) {
           return;
         }
 
-        ExecutionSegment segment = events.element().poll();
+        ExecutionSegment segment = stream.element().poll();
         if (segment == null) {
-          events.remove();
-          if (events.isEmpty()) {
-            if (stream.events.isEmpty()) {
+          stream.remove();
+          if (stream.isEmpty()) {
+            if (done) {
               done();
               return;
             } else {
@@ -204,11 +200,10 @@ public class ExecutionBacking {
   }
 
   private boolean hasExecutableSegments() {
-    return !stream.activeStream().events.isEmpty();
+    return !stream.isEmpty();
   }
 
   private void done() {
-    done = true;
     try {
       onComplete.execute(getExecution());
     } catch (Throwable e) {
@@ -226,12 +221,6 @@ public class ExecutionBacking {
     executions.remove(this);
   }
 
-  private void assertNotDone() {
-    if (done) {
-      throw new ExecutionException("execution is complete");
-    }
-  }
-
   public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, final Action<? super Execution> action) throws Exception {
     new InterceptedOperation(execType, interceptors) {
       @Override
@@ -242,15 +231,7 @@ public class ExecutionBacking {
   }
 
   private abstract class ExecutionSegment implements Runnable {
-    private final Optional<StackTraceElement[]> trace;
 
-    protected ExecutionSegment() {
-      this.trace = TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
-    }
-
-    public Optional<StackTraceElement[]> getTrace() {
-      return trace;
-    }
   }
 
   private class ThrowSegment extends ExecutionSegment {
@@ -265,7 +246,7 @@ public class ExecutionBacking {
       try {
         onError.execute(throwable);
       } catch (final Throwable errorHandlerException) {
-        stream.activeStream().events.element().addFirst(new UserCodeSegment(throwException(errorHandlerException)));
+        stream.element().addFirst(new UserCodeSegment(throwException(errorHandlerException)));
       }
     }
   }
@@ -282,7 +263,7 @@ public class ExecutionBacking {
       try {
         intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
       } catch (final Throwable e) {
-        Deque<ExecutionSegment> event = stream.activeStream().events.element();
+        Deque<ExecutionSegment> event = stream.element();
         event.clear();
         event.addFirst(new ThrowSegment(e));
       }
@@ -298,9 +279,10 @@ public class ExecutionBacking {
 
     @Override
     public void run() {
-      Stream activeStream = stream.activeStream();
-      activeStream.innerStream = new Stream();
-      StreamHandle handle = new StreamHandle(activeStream, activeStream.innerStream);
+      Queue<Deque<ExecutionSegment>> parent = stream;
+      stream = new ConcurrentLinkedDeque<>();
+      stream.add(Lists.newLinkedList());
+      StreamHandle handle = new StreamHandle(parent, stream);
       consumer.accept(handle);
     }
   }
@@ -321,7 +303,7 @@ public class ExecutionBacking {
 
     @Override
     public void run() {
-      handle.parent.innerStream = null;
+      stream = handle.parent;
       super.run();
     }
   }
