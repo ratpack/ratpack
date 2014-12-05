@@ -22,7 +22,7 @@ package ratpack.exec;
  * The interception methods <i>wrap</i> the rest of the execution.
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
  * <p>
- * Request handling execution can be intercepted by the {@link ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)} method.
+ * Request handling execution can be intercepted by the {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)} method.
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.http.Request;
@@ -82,7 +82,7 @@ package ratpack.exec;
  *   public static void main(String[] args) throws Exception {
  *     HandlingResult result = UnitTest.requestFixture().handleChain(chain -> chain
  *         .handler(context ->
- *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), execution -> context.next())
+ *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), () -> context.next())
  *         )
  *         .handler(context -> {
  *           sleep(100);
@@ -104,10 +104,10 @@ package ratpack.exec;
  *   }
  * }
  * }</pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ratpack.exec.ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
+ * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)}.
  *
  * @see Execution
- * @see ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)
+ * @see ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)
  */
 public interface ExecInterceptor {
 

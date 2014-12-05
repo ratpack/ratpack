@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static ratpack.func.Action.ignoreArg;
-import static ratpack.func.Action.throwException;
+import static ratpack.func.NoArgAction.throwException;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -183,9 +183,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       executionBacking.streamSubscribe((streamHandle) -> {
         try {
           releaser.execute((Runnable) () ->
-              streamHandle.complete(e ->
-                  fulfillment.accept(downstream)
-              )
+              streamHandle.complete(() -> fulfillment.accept(downstream))
           );
         } catch (Throwable t) {
           downstream.error(t);

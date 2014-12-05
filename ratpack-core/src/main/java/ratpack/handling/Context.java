@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -484,7 +485,7 @@ public interface Context extends ExecControl, Registry {
   ExecController getController();
 
   @Override
-  void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
+  void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception;
 
   <T> TransformablePublisher<T> stream(Publisher<T> publisher);
 

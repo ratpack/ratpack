@@ -30,6 +30,7 @@ import ratpack.event.internal.EventRegistry;
 import ratpack.exec.*;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -192,7 +193,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
     requestConstants.applicationConstants.execControl.addInterceptor(execInterceptor, continuation);
   }
 

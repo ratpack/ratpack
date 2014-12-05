@@ -26,6 +26,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
@@ -74,7 +75,7 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
     ExecutionBacking backing = getBacking();
     backing.getInterceptors().add(execInterceptor);
     backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
@@ -147,7 +148,7 @@ public class DefaultExecControl implements ExecControl {
         backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(() -> {
             List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
             try {
-              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
+              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
                   holder.add(0, Result.success(blockingOperation.call()))
               );
               return holder.get(0);
@@ -155,7 +156,7 @@ public class DefaultExecControl implements ExecControl {
               return Result.<T>failure(e);
             }
           }, execController.getBlockingExecutor()
-        ).thenAcceptAsync(v -> streamHandle.complete(e -> f.accept(v)), backing.getEventLoop()))
+        ).thenAcceptAsync(v -> streamHandle.complete(() -> f.accept(v)), backing.getEventLoop()))
     );
   }
 
@@ -170,22 +171,22 @@ public class DefaultExecControl implements ExecControl {
           publisher.subscribe(new Subscriber<T>() {
             @Override
             public void onSubscribe(final Subscription subscription) {
-              handle.event((e) -> subscriber.onSubscribe(subscription));
+              handle.event(() -> subscriber.onSubscribe(subscription));
             }
 
             @Override
             public void onNext(final T element) {
-              handle.event(execution -> subscriber.onNext(element));
+              handle.event(() -> subscriber.onNext(element));
             }
 
             @Override
             public void onComplete() {
-              handle.complete(execution -> subscriber.onComplete());
+              handle.complete(subscriber::onComplete);
             }
 
             @Override
             public void onError(final Throwable cause) {
-              handle.complete(execution -> subscriber.onError(cause));
+              handle.complete(() -> subscriber.onError(cause));
             }
           })
       );

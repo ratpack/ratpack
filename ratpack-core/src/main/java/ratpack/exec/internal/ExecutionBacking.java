@@ -22,13 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
-
-import static ratpack.func.Action.throwException;
 
 public class ExecutionBacking {
 
@@ -40,7 +39,10 @@ public class ExecutionBacking {
 
   // package access to allow direct field access by inners
   final List<ExecInterceptor> interceptors = Lists.newLinkedList();
-  Queue<Deque<ExecutionSegment>> stream = new ConcurrentLinkedQueue<>();
+
+  // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
+  // All other collections do not need to be concurrent safe because they are only accessed on the event loop
+  Queue<Deque<Runnable>> stream = new ConcurrentLinkedQueue<>();
 
   private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newLinkedList();
@@ -66,17 +68,12 @@ public class ExecutionBacking {
 
     executions.add(this);
 
-    Deque<ExecutionSegment> event = Lists.newLinkedList();
-    event.add(new UserCodeSegment(action));
+    Deque<Runnable> event = Lists.newLinkedList();
+    event.add(() -> execUserCode(() -> action.execute(execution)));
     stream.add(event);
 
-    Deque<ExecutionSegment> doneEvent = Lists.newLinkedList();
-    doneEvent.add(new ExecutionSegment() {
-      @Override
-      public void run() {
-        done = true;
-      }
-    });
+    Deque<Runnable> doneEvent = Lists.newLinkedList();
+    doneEvent.add(() -> done = true);
     stream.add(doneEvent);
     drain();
   }
@@ -128,32 +125,42 @@ public class ExecutionBacking {
   }
 
   public class StreamHandle {
-    final Queue<Deque<ExecutionSegment>> parent;
-    final Queue<Deque<ExecutionSegment>> stream;
+    final Queue<Deque<Runnable>> parent;
+    final Queue<Deque<Runnable>> stream;
 
-    private StreamHandle(Queue<Deque<ExecutionSegment>> parent, Queue<Deque<ExecutionSegment>> stream) {
+    private StreamHandle(Queue<Deque<Runnable>> parent, Queue<Deque<Runnable>> stream) {
       this.parent = parent;
       this.stream = stream;
     }
 
-    public void event(Action<? super Execution> action) {
-      streamEvent(new StreamEvent(action));
+    public void event(NoArgAction action) {
+      streamEvent(() -> execUserCode(action));
     }
 
-    public void complete(Action<? super Execution> action) {
-      streamEvent(new StreamCompletion(this, action));
+    public void complete(NoArgAction action) {
+      streamEvent(() -> {
+        ExecutionBacking.this.stream = this.parent;
+        execUserCode(action);
+      });
     }
 
-    private void streamEvent(ExecutionSegment s) {
-      Deque<ExecutionSegment> event = Lists.newLinkedList();
+    private void streamEvent(Runnable s) {
+      Deque<Runnable> event = Lists.newLinkedList();
       event.add(s);
       stream.add(event);
       drain();
     }
   }
 
-  public void streamSubscribe(Consumer<? super StreamHandle> runnable) {
-    stream.element().add(new StreamSubscribe(runnable));
+  public void streamSubscribe(Consumer<? super StreamHandle> consumer) {
+    stream.element().add(() -> {
+      Queue<Deque<Runnable>> parent = stream;
+      stream = new ConcurrentLinkedDeque<>();
+      stream.add(Lists.newLinkedList());
+      StreamHandle handle = new StreamHandle(parent, stream);
+      consumer.accept(handle);
+    });
+
     drain();
   }
 
@@ -179,7 +186,7 @@ public class ExecutionBacking {
           return;
         }
 
-        ExecutionSegment segment = stream.element().poll();
+        Runnable segment = stream.element().poll();
         if (segment == null) {
           stream.remove();
           if (stream.isEmpty()) {
@@ -221,91 +228,29 @@ public class ExecutionBacking {
     executions.remove(this);
   }
 
-  public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, final Action<? super Execution> action) throws Exception {
+  private void execUserCode(NoArgAction code) {
+    try {
+      intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, code);
+    } catch (final Throwable e) {
+      Deque<Runnable> event = stream.element();
+      event.clear();
+      event.addFirst(() -> {
+        try {
+          onError.execute(e);
+        } catch (final Throwable errorHandlerException) {
+          stream.element().addFirst(() -> execUserCode(NoArgAction.throwException(errorHandlerException)));
+        }
+      });
+    }
+  }
+
+  public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {
     new InterceptedOperation(execType, interceptors) {
       @Override
       protected void performOperation() throws Exception {
-        action.execute(getExecution());
+        action.execute();
       }
     }.run();
-  }
-
-  private abstract class ExecutionSegment implements Runnable {
-
-  }
-
-  private class ThrowSegment extends ExecutionSegment {
-    private final Throwable throwable;
-
-    private ThrowSegment(Throwable throwable) {
-      this.throwable = throwable;
-    }
-
-    @Override
-    public void run() {
-      try {
-        onError.execute(throwable);
-      } catch (final Throwable errorHandlerException) {
-        stream.element().addFirst(new UserCodeSegment(throwException(errorHandlerException)));
-      }
-    }
-  }
-
-  private class UserCodeSegment extends ExecutionSegment {
-    private final Action<? super Execution> action;
-
-    public UserCodeSegment(Action<? super Execution> action) {
-      this.action = action;
-    }
-
-    @Override
-    public void run() {
-      try {
-        intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
-      } catch (final Throwable e) {
-        Deque<ExecutionSegment> event = stream.element();
-        event.clear();
-        event.addFirst(new ThrowSegment(e));
-      }
-    }
-  }
-
-  private class StreamSubscribe extends ExecutionSegment {
-    private final Consumer<? super StreamHandle> consumer;
-
-    private StreamSubscribe(Consumer<? super StreamHandle> consumer) {
-      this.consumer = consumer;
-    }
-
-    @Override
-    public void run() {
-      Queue<Deque<ExecutionSegment>> parent = stream;
-      stream = new ConcurrentLinkedDeque<>();
-      stream.add(Lists.newLinkedList());
-      StreamHandle handle = new StreamHandle(parent, stream);
-      consumer.accept(handle);
-    }
-  }
-
-  private class StreamEvent extends UserCodeSegment {
-    private StreamEvent(Action<? super Execution> action) {
-      super(action);
-    }
-  }
-
-  private class StreamCompletion extends UserCodeSegment {
-    private final StreamHandle handle;
-
-    private StreamCompletion(StreamHandle handle, Action<? super Execution> action) {
-      super(action);
-      this.handle = handle;
-    }
-
-    @Override
-    public void run() {
-      stream = handle.parent;
-      super.run();
-    }
   }
 
 }

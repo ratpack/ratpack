@@ -129,7 +129,7 @@ public class CachingPromise<T> implements Promise<T> {
         Job job = waiting.poll();
         while (job != null) {
           Job finalJob = job;
-          job.streamHandle.complete(e -> finalJob.fulfiller.accept(result));
+          job.streamHandle.complete(() -> finalJob.fulfiller.accept(result));
           job = waiting.poll();
         }
       } finally {

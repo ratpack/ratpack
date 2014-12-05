@@ -33,7 +33,7 @@ public class NewRelicInterceptorBindingHandler implements Handler {
   @Override
   public void handle(final Context context) throws Exception {
     context.getRequest().add(NewRelicTransaction.class, new DefaultNewRelicTransaction(context));
-    context.addInterceptor(new NewRelicExecInterceptor(context), execution -> context.insert(delegate));
+    context.addInterceptor(new NewRelicExecInterceptor(context), () -> context.insert(delegate));
   }
 
   private static class NewRelicExecInterceptor implements ExecInterceptor {

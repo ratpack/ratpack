@@ -65,7 +65,7 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
       return;
     }
 
-    streamHandle.complete(e -> delegate.error(throwable));
+    streamHandle.complete(() -> delegate.error(throwable));
   }
 
   @Override
@@ -75,6 +75,6 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
       return;
     }
 
-    streamHandle.complete(e -> delegate.success(value));
+    streamHandle.complete(() -> delegate.success(value));
   }
 }
