@@ -516,6 +516,7 @@ public interface Context extends ExecControl, Registry {
    * <li>{@link java.nio.file.Path} (see {@link ratpack.file.FileRenderer})</li>
    * <li>{@link java.lang.CharSequence} (see {@link ratpack.render.CharSequenceRenderer})</li>
    * <li>{@link SuccessPromise} (renders the promised value, using this {@code render()} method)</li>
+   * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)} and renders it)</li>
    * </ul>
    * <p>
    * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
