@@ -63,6 +63,7 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.render.internal.DefaultRenderController;
+import ratpack.render.internal.PromiseRenderer;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
 import ratpack.sse.internal.ServerSentEventsRenderer;
@@ -241,6 +242,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(ServerErrorHandler.class, errorHandler)
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
+      .add(PromiseRenderer.TYPE, new PromiseRenderer())
       .add(ServerSentEventsRenderer.TYPE, new ServerSentEventsRenderer(launchConfig.getBufferAllocator()))
       .add(HttpResponseChunksRenderer.TYPE, new HttpResponseChunksRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
