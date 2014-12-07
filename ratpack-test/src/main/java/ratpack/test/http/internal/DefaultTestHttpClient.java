@@ -65,13 +65,15 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public void requestSpec(Action<? super RequestSpec> requestAction) {
+  public TestHttpClient requestSpec(Action<? super RequestSpec> requestAction) {
     request = requestAction;
+    return this;
   }
 
   @Override
-  public void params(Action<? super ImmutableMultimap.Builder<String, Object>> params) {
+  public TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params) {
     this.params = params;
+    return this;
   }
 
   @Override

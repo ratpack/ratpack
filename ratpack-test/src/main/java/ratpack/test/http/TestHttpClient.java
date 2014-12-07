@@ -29,9 +29,9 @@ public interface TestHttpClient {
 
   ApplicationUnderTest getApplicationUnderTest();
 
-  void requestSpec(Action<? super RequestSpec> requestAction);
+  TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);
 
-  void params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
+  TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
 
   void resetRequest();
 
