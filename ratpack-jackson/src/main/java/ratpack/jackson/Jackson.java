@@ -91,6 +91,7 @@ import ratpack.render.Renderer;
  *
  * import java.util.List;
  *
+ * import static ratpack.util.Types.listOf;
  * import static ratpack.jackson.Jackson.jsonNode;
  * import static ratpack.jackson.Jackson.fromJson;
  * import static org.junit.Assert.*;
@@ -125,7 +126,7 @@ import ratpack.render.Renderer;
  *             ctx.render(person.getName());
  *           })
  *           .post("asPersonList", ctx -> {
- *             List<Person> person = ctx.parse(fromJson(new TypeToken<List<Person>>() {}));
+ *             List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
  *             ctx.render(person.get(0).getName());
  *           })
  *         )

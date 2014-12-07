@@ -17,6 +17,11 @@
 package ratpack.util;
 
 
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
+
+import java.util.List;
+
 /**
  * Static utility methods for dealing with types.
  */
@@ -37,6 +42,29 @@ public abstract class Types {
   public static <T> T cast(Object o) {
     @SuppressWarnings("unchecked") T cast = (T) o;
     return cast;
+  }
+
+  /**
+   * Creates a type token for a list of of the given type.
+   * <pre class="java">{@code
+   * import ratpack.util.Types;
+   * import com.google.common.reflect.TypeToken;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) {
+   *     assertEquals(Types.listOf(String.class), new TypeToken<List<String>>() {});
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param type the list element type
+   * @param <T> the list element type
+   * @return a type token for a list of of the given type.
+   */
+  public static <T> TypeToken<List<T>> listOf(Class<T> type) {
+    return new TypeToken<List<T>>() {}.where(new TypeParameter<T>() {}, TypeToken.of(type));
   }
 
 }
