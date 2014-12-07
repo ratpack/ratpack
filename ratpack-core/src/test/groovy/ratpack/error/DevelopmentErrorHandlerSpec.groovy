@@ -20,7 +20,33 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
 
-  def "debug error handler prints info"() {
+  def "debug error handler prints html info if client wants html"() {
+    given:
+    def e = new RuntimeException("!")
+    requestSpec { it.headers.add("Accept", "text/html;q=1,text/plain;q=0.9") }
+
+    when:
+    launchConfig { development(true) }
+    handlers {
+      get("client") { clientError(404) }
+      get("server") { error(e) }
+    }
+
+    then:
+    with(get("client")) {
+      statusCode == 404
+      body.text.startsWith("<!DOCTYPE html>")
+      body.contentType.html
+    }
+
+    with(get("server")) {
+      statusCode == 500
+      body.text.startsWith("<!DOCTYPE html>")
+      body.contentType.html
+    }
+  }
+
+  def "debug error handler prints text if no content preference"() {
     given:
     def e = new RuntimeException("!")
 
@@ -34,12 +60,14 @@ class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
     then:
     with(get("client")) {
       statusCode == 404
-      body.text.startsWith("<!DOCTYPE html>")
+      body.text.startsWith("Client error 404")
+      body.contentType.text
     }
 
     with(get("server")) {
       statusCode == 500
-      body.text.startsWith("<!DOCTYPE html>")
+      body.text.startsWith(RuntimeException.name)
+      body.contentType.text
     }
   }
 }
