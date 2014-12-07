@@ -72,7 +72,7 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
     Thread.start {
       publisher.subscribe(new CollectingSubscriber<T>({
-        ref.set(it);
+        ref.set(it)
         latch.countDown()
       }, { it.request(Long.MAX_VALUE) }))
     }
