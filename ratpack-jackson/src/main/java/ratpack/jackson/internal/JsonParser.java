@@ -30,7 +30,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static ratpack.util.ExceptionUtils.uncheck;
 import static ratpack.util.Types.cast;
 
 public class JsonParser extends ParserSupport<JsonParseOpts> {
@@ -46,20 +45,16 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
   }
 
   @Override
-  public <T> T parse(Context context, TypedData body, Parse<T, JsonParseOpts> parse) {
+  public <T> T parse(Context context, TypedData body, Parse<T, JsonParseOpts> parse) throws IOException {
     JsonParseOpts opts = parse.getOpts();
     TypeToken<T> type = parse.getType();
 
     ObjectMapper objectMapper = getObjectMapper(opts);
-    try {
-      InputStream inputStream = body.getInputStream();
-      if (type.equals(JSON_NODE_TYPE)) {
-        return cast(objectMapper.readTree(inputStream));
-      } else {
-        return objectMapper.readValue(inputStream, toJavaType(type, objectMapper));
-      }
-    } catch (IOException e) {
-      throw uncheck(e);
+    InputStream inputStream = body.getInputStream();
+    if (type.equals(JSON_NODE_TYPE)) {
+      return cast(objectMapper.readTree(inputStream));
+    } else {
+      return objectMapper.readValue(inputStream, toJavaType(type, objectMapper));
     }
   }
 

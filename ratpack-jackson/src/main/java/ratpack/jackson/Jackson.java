@@ -21,106 +21,326 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
-import ratpack.jackson.internal.DefaultJsonParseOpts;
-import ratpack.jackson.internal.DefaultJsonRender;
+import ratpack.jackson.internal.*;
+import ratpack.parse.NullParseOpts;
 import ratpack.parse.Parse;
-
+import ratpack.parse.Parser;
+import ratpack.registry.RegistrySpec;
+import ratpack.render.Renderer;
 
 /**
  * Provides key integration points with the Jackson support for dealing with JSON.
  * <p>
  * The {@link ratpack.jackson.JacksonModule} Guice module provides the infrastructure necessary to use these functions.
- * </p>
- * <h3>Rendering as JSON</h3>
+ *
+ * <h3><a name="rendering">Rendering as JSON</a></h3>
  * <p>
- * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.handling.Context#render(Object)} method for serializing
- * objects to the response as JSON.
- * </p>
- * <pre class="tested">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
+ * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.handling.Context#render(Object)} method for serializing objects to the response as JSON.
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.jackson.JacksonModule;
+ * import ratpack.http.client.ReceivedResponse;
  *
  * import static ratpack.jackson.Jackson.json;
+ * import static org.junit.Assert.*;
  *
- * public class MyHandler implements Handler {
- *   public void handle(Context context) {
- *     Person person = new Person("John");
- *     context.render(json(person));
+ * public class Example {
+ *
+ *   public static class Person {
+ *     private final String name;
+ *
+ *     public Person(String name) {
+ *       this.name = name;
+ *     }
+ *
+ *     public String getName() {
+ *       return name;
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *       Guice.builder(launchConfig)
+ *         .bindings(b ->
+ *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         )
+ *         .build(chain ->
+ *           chain.get(ctx -> ctx.render(json(new Person("John"))))
+ *         )
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.get();
+ *       assertEquals("{\"name\":\"John\"}", response.getBody().getText());
+ *       assertEquals("application/json", response.getBody().getContentType().getType());
+ *     });
  *   }
  * }
+ * }</pre>
  *
- * public class Person {
- *   private final String name;
- *   public Person(String name) {
- *     this.name = name;
- *   }
- * }
- * </pre>
- * <h3>Parsing JSON requests</h3>
+ * <h3><a name="parsing">Parsing JSON requests</a></h3>
  * <p>
- * The methods that return a {@link JsonParseOpts} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing
- * request bodies containing JSON.
- * </p>
- * <pre class="tested">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
+ * The methods that return a {@link Parse} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing request bodies containing JSON.
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.jackson.JacksonModule;
+ * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.JsonNode;
+ * import com.fasterxml.jackson.annotation.JsonProperty;
+ * import com.google.common.reflect.TypeToken;
+ *
+ * import java.util.List;
  *
  * import static ratpack.jackson.Jackson.jsonNode;
+ * import static ratpack.jackson.Jackson.fromJson;
+ * import static org.junit.Assert.*;
  *
- * public class MyHandler implements Handler {
- *   public void handle(Context context) {
- *     JsonNode node = context.parse(jsonNode())
- *     context.render(node.get("someKey"));
+ * public class Example {
+ *
+ *   public static class Person {
+ *     private final String name;
+ *
+ *     public Person(@JsonProperty("name") String name) {
+ *       this.name = name;
+ *     }
+ *
+ *     public String getName() {
+ *       return name;
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *       Guice.builder(launchConfig)
+ *         .bindings(b ->
+ *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         )
+ *         .build(chain -> chain
+ *           .post("asNode", ctx -> {
+ *             JsonNode node = ctx.parse(jsonNode());
+ *             ctx.render(node.get("name").asText());
+ *           })
+ *           .post("asPerson", ctx -> {
+ *             Person person = ctx.parse(fromJson(Person.class));
+ *             ctx.render(person.getName());
+ *           })
+ *           .post("asPersonList", ctx -> {
+ *             List<Person> person = ctx.parse(fromJson(new TypeToken<List<Person>>() {}));
+ *             ctx.render(person.get(0).getName());
+ *           })
+ *         )
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.requestSpec(s ->
+ *         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
+ *       ).post("asNode");
+ *       assertEquals("John", response.getBody().getText());
+ *
+ *       response = httpClient.requestSpec(s ->
+ *         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
+ *       ).post("asPerson");
+ *       assertEquals("John", response.getBody().getText());
+ *
+ *       response = httpClient.requestSpec(s ->
+ *         s.body(b -> b.type("application/json").text("[{\"name\":\"John\"}]"))
+ *       ).post("asPersonList");
+ *       assertEquals("John", response.getBody().getText());
+ *     });
  *   }
  * }
- * </pre>
+ * }</pre>
  */
 public abstract class Jackson {
 
+  private Jackson() {
+  }
+
   /**
-   * Jackson rendering of the given object, using the default object writer.
+   * Creates a {@link ratpack.handling.Context#render renderable object} to render the given object as JSON.
+   * <p>
+   * The given object will be converted to JSON using an {@link ObjectWriter} obtained from the context registry.
+   * <p>
+   * See the <a href="#rendering">rendering</a> section for usage examples.
    *
-   * @param object The object to render as JSON.
-   * @return A JSON type wrapper for the given object.
+   * @param object the object to render as JSON
+   * @return a renderable wrapper for the given object
    */
   public static JsonRender json(Object object) {
     return new DefaultJsonRender(object, null);
   }
 
   /**
-   * Jackson rendering of the given object, using the given object writer.
+   * Creates a {@link ratpack.handling.Context#render renderable object} to render the given object as JSON.
+   * <p>
+   * The given object will be converted to JSON using the given {@link ObjectWriter}.
+   * If it is {@code null}, an {@code ObjectWriter} will be obtained from the context registry.
+   * <p>
+   * See the <a href="#rendering">rendering</a> section for usage examples.
    *
-   * @param object The object to render as JSON.
-   * @param objectWriter The writer to use to render the object as JSON. If null, the default object writer will be used by the renderer.
-   * @return A JSON type wrapper for the given object.
+   * @param object the object to render as JSON
+   * @param objectWriter the object writer to use to serialize the object to JSON
+   * @return a renderable wrapper for the given object
    */
   public static JsonRender json(Object object, @Nullable ObjectWriter objectWriter) {
     return new DefaultJsonRender(object, objectWriter);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link JsonNode}.
+   * <p>
+   * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
+   * <p>
+   * The request body will be parsed using an {@link ObjectMapper} obtained from the context registry.
+   * <p>
+   * See the <a href="#parsing">parsing</a> section for usage examples.
+   *
+   * @return a parse object
+   */
   public static Parse<JsonNode, JsonParseOpts> jsonNode() {
     return jsonNode(null);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link JsonNode}.
+   * <p>
+   * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
+   * <p>
+   * The request body will be parsed using the given {@link ObjectMapper}.
+   * If it is {@code null}, a mapper will be obtained from the context registry.
+   * <p>
+   * See the <a href="#parsing">parsing</a> section for usage examples.
+   *
+   * @param objectMapper the object mapper to use to parse the JSON
+   * @return a parse object
+   */
   public static Parse<JsonNode, JsonParseOpts> jsonNode(@Nullable ObjectMapper objectMapper) {
     return fromJson(JsonNode.class, objectMapper);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * <p>
+   * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
+   * <p>
+   * The request body will be parsed using an {@link ObjectMapper} obtained from the context registry.
+   * <p>
+   * See the <a href="#parsing">parsing</a> section for usage examples.
+   *
+   * @param type the type of object to deserialize the JSON into
+   * @param <T> the type of object to deserialize the JSON into
+   * @return a parse object
+   */
   public static <T> Parse<T, JsonParseOpts> fromJson(Class<T> type) {
     return fromJson(type, null);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * <p>
+   * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
+   * <p>
+   * The request body will be parsed using an {@link ObjectMapper} obtained from the context registry.
+   * <p>
+   * See the <a href="#parsing">parsing</a> section for usage examples.
+   *
+   * @param type the type of object to deserialize the JSON into
+   * @param <T> the type of object to deserialize the JSON into
+   * @return a parse object
+   */
   public static <T> Parse<T, JsonParseOpts> fromJson(TypeToken<T> type) {
     return fromJson(type, null);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * <p>
+   * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
+   * <p>
+   * The request body will be parsed using the given {@link ObjectMapper}.
+   * If it is {@code null}, a mapper will be obtained from the context registry.
+   * <p>
+   * See the <a href="#parsing">parsing</a> section for usage examples.
+   *
+   * @param type the type of object to deserialize the JSON into
+   * @param objectMapper the object mapper to use to convert the JSON into a Java object
+   * @param <T> the type of object to deserialize the JSON into
+   * @return a parse object
+   */
   public static <T> Parse<T, JsonParseOpts> fromJson(Class<T> type, @Nullable ObjectMapper objectMapper) {
     return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * <p>
+   * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
+   * <p>
+   * The request body will be parsed using the given {@link ObjectMapper}.
+   * If it is {@code null}, a mapper will be obtained from the context registry.
+   * <p>
+   * See the <a href="#parsing">parsing</a> section for usage examples.
+   *
+   * @param type the type of object to deserialize the JSON into
+   * @param objectMapper the object mapper to use to convert the JSON into a Java object
+   * @param <T> the type of object to deserialize the JSON into
+   * @return a parse object
+   */
   public static <T> Parse<T, JsonParseOpts> fromJson(TypeToken<T> type, @Nullable ObjectMapper objectMapper) {
     return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
+  }
+
+  /**
+   * Factories for Ratpack specific integration types.
+   * <p>
+   * Use of these methods are not required at all if using the Guice integration and {@link JacksonModule}.
+   */
+  public static abstract class Init {
+
+    /**
+     * The renderer.
+     *
+     * @param objectWriter the object writer to use to render object
+     * @return a JSON renderer
+     */
+    public static Renderer<JsonRender> renderer(ObjectWriter objectWriter) {
+      return new JsonRenderer(objectWriter);
+    }
+
+    /**
+     * The no-opts parser.
+     *
+     * @return a JSON parser
+     */
+    public static Parser<NullParseOpts> noOptParser() {
+      return new JsonNoOptParser();
+    }
+
+    /**
+     * The parser.
+     *
+     * @return a JSON parser
+     */
+    public static Parser<JsonParseOpts> parser(ObjectMapper objectMapper) {
+      return new JsonParser(objectMapper);
+    }
+
+    /**
+     * Registers the renderer and parsers with the given registry.
+     * <p>
+     * If using Jackson support without Guice and the {@link JacksonModule}, this method should be used to register the renderer and parsers with the context registry.
+     * Use of this method is not necessary if using {@link JacksonModule} as it makes the renderer and parsers available.
+     *
+     * @param registrySpec the registry to register with
+     * @param objectMapper the object mapper for parsing requests
+     * @param objectWriter the object writer for rendering to responses
+     * @return the given registry spec
+     */
+    public static RegistrySpec register(RegistrySpec registrySpec, ObjectMapper objectMapper, ObjectWriter objectWriter) {
+      return registrySpec
+        .add(new TypeToken<Renderer<JsonRender>>() {}, renderer(objectWriter))
+        .add(new TypeToken<Parser<NullParseOpts>>() {}, noOptParser())
+        .add(new TypeToken<Parser<JsonParseOpts>>() {}, parser(objectMapper));
+    }
+
   }
 
 }

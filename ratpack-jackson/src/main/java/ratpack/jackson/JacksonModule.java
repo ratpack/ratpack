@@ -18,60 +18,185 @@ package ratpack.jackson;
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.inject.AbstractModule;
+import com.google.common.collect.Lists;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import ratpack.jackson.internal.DefaultJsonRenderer;
-import ratpack.jackson.internal.JsonNoOptParser;
-import ratpack.jackson.internal.JsonParser;
+import ratpack.guice.ConfigurableModule;
+import ratpack.parse.NullParseOpts;
+import ratpack.parse.Parser;
+import ratpack.render.Renderer;
 
 import javax.inject.Singleton;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
- * A Guice module that provides an implementation of {@link JsonRenderer}, a renderer for {@link Jackson} object.
+ * Integrates the <a href="https://github.com/FasterXML/jackson">Jackson JSON processing library</a>.
  * <p>
- * Also provides a default instance of {@link ObjectMapper}, which is the engine for serialization, and an
- * instance of {@link ObjectWriter} derived from this which is used by the {@link JsonRenderer} implementation.
- * To globally customize JSON generation, It is usually sufficient to override the {@link ObjectMapper} binding.
+ * See the {@link Jackson} class documentation for usage examples.
+ * <h3>Provided Objects</h3>
+ * <p>
+ * Provides singleton instances of the following Jackson types:
+ * <ul>
+ * <li>{@link com.fasterxml.jackson.databind.ObjectMapper}</li>
+ * <li>{@link com.fasterxml.jackson.databind.ObjectWriter}</li>
+ * <li>{@link com.fasterxml.jackson.databind.ObjectReader}</li>
+ * </ul>
+ * <p>
+ * Also Provides singleton instances of the following Ratpack specific types:
+ * <ul>
+ * <li><code>{@link Renderer}&lt;{@link JsonRender}&gt;</code> (with content type {@code "application/json"})</li>
+ * <li><code>{@link Parser}&lt;{@link JsonParseOpts}&gt;</code> (with content type {@code "application/json"})</li>
+ * <li><code>{@link Parser}&lt;{@link NullParseOpts}&gt;</code> (with content type {@code "application/json"})</li>
+ * </ul>
+ * <p>
+ * The above support the renderable/parseable types provided by the {@link Jackson} class.
+ * <h3>Configuration</h3>
+ * <p>
+ * This module follows Ratpack's {@link ConfigurableModule configurable module} pattern, using the {@link Config} type as the configuration.
+ *
+ * @see Jackson
  */
 @SuppressWarnings("UnusedDeclaration")
-public class JacksonModule extends AbstractModule {
-
-  private boolean prettyPrint = true;
+public class JacksonModule extends ConfigurableModule<JacksonModule.Config> {
 
   /**
-   * Disables pretty printing by default whe rendering JSON.
-   * <p>
-   * Pretty printing is enabled by default.
-   *
-   * @return this.
+   * The configuration object for {@link JacksonModule}.
    */
-  public JacksonModule noPrettyPrint() {
-    prettyPrint = false;
-    return this;
+  public static class Config {
+    private boolean prettyPrint = true;
+    private List<Module> modules = Lists.newLinkedList();
+    private List<Consumer<? super ObjectMapper>> configurers = Lists.newLinkedList();
+
+    /**
+     * Whether JSON should be pretty printed.
+     * <p>
+     * {@code true} by default.
+     *
+     * @return whether JSON should be pretty printed.
+     */
+    public boolean isPrettyPrint() {
+      return prettyPrint;
+    }
+
+    /**
+     * Sets whether JSON should be pretty printed.
+     * <p>
+     * This value affects the {@link ObjectWriter} instance provided by this Guice module.
+     * If this binding is overridden, calling this method may have no effect.
+     *
+     * @param prettyPrint whether JSON should be pretty printed
+     * @return this
+     */
+    public Config prettyPrint(boolean prettyPrint) {
+      this.prettyPrint = prettyPrint;
+      return this;
+    }
+
+    /**
+     * The {@link com.fasterxml.jackson.databind.Module Jackson modules} to register with the object mapper.
+     * <p>
+     * Jackson modules extend Jackson to handle extra data types.
+     *
+     * @return the Jackson modules to register with the object mapper
+     * @see #modules
+     */
+    public List<Module> getModules() {
+      return modules;
+    }
+
+    /**
+     * Add the given modules to the modules to be registered with the created object mapper.
+     * <p>
+     * This affects the {@link ObjectMapper} instance provided by this Guice module.
+     * If this binding is overridden, calling this method may have no effect.
+     *
+     * @param modules the Jackson modules
+     * @return this
+     */
+    public Config modules(Iterable<Module> modules) {
+      this.modules.addAll(Lists.newArrayList(modules));
+      return this;
+    }
+
+    /**
+     * Add the given modules to the modules to be registered with the created object mapper.
+     * <p>
+     * This affects the {@link ObjectMapper} instance provided by this Guice module.
+     * If this binding is overridden, calling this method may have no effect.
+     *
+     * @param modules the Jackson modules
+     * @return this
+     */
+    public Config modules(Module... modules) {
+      return modules(Arrays.asList(modules));
+    }
+
+    /**
+     * Adds configuration actions to be executed against the object mapper created by this Guice module before it is used.
+     * <p>
+     * This method is cumulative, with configure actions being executed in order.
+     * They are executed <b>after</b> applying other relevant configuration to the mapper (e.g. registering modules).
+     * <p>
+     * This affects the {@link ObjectMapper} instance provided by this Guice module.
+     * If this binding is overridden, calling this method may have no effect.
+     *
+     * @param configurer configuration for the object mapper
+     * @return this
+     */
+    public Config withMapper(Consumer<? super ObjectMapper> configurer) {
+      this.configurers.add(configurer);
+      return this;
+    }
   }
 
   @Override
   protected void configure() {
-    bind(ObjectMapper.class).in(Scopes.SINGLETON);
-    bind(JsonParser.class).in(Scopes.SINGLETON);
-    bind(JsonNoOptParser.class).in(Scopes.SINGLETON);
-    bind(JsonRenderer.class).to(DefaultJsonRenderer.class);
   }
 
   @Provides
   @Singleton
-  protected ObjectWriter objectWriter(ObjectMapper objectMapper) {
-    return objectMapper.writer(prettyPrint ? new DefaultPrettyPrinter() : new MinimalPrettyPrinter());
+  protected ObjectMapper objectMapper(Config config) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModules(config.getModules());
+    for (Consumer<? super ObjectMapper> configurer : config.configurers) {
+      configurer.accept(objectMapper);
+    }
+    return objectMapper;
+  }
+
+  @Provides
+  @Singleton
+  protected ObjectWriter objectWriter(ObjectMapper objectMapper, Config config) {
+    return objectMapper.writer(config.isPrettyPrint() ? new DefaultPrettyPrinter() : new MinimalPrettyPrinter());
   }
 
   @Provides
   @Singleton
   protected ObjectReader objectReader(ObjectMapper objectMapper) {
     return objectMapper.reader();
+  }
+
+  @Provides
+  @Singleton
+  protected Renderer<JsonRender> renderer(ObjectWriter objectWriter) {
+    return Jackson.Init.renderer(objectWriter);
+  }
+
+  @Provides
+  @Singleton
+  protected Parser<NullParseOpts> noOptParser() {
+    return Jackson.Init.noOptParser();
+  }
+
+  @Provides
+  @Singleton
+  protected Parser<JsonParseOpts> parser(ObjectMapper objectMapper) {
+    return Jackson.Init.parser(objectMapper);
   }
 
 }

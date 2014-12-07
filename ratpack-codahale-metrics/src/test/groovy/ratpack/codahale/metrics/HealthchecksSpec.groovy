@@ -137,7 +137,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       add new CodaHaleMetricsModule().healthChecks()
-      add new JacksonModule().noPrettyPrint()
+      add JacksonModule, { it.prettyPrint(false) }
       bind MyHealthCheck
       bind FooHealthCheck
       bind HealthCheckJsonRenderer
