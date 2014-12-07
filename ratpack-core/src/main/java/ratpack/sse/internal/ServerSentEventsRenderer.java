@@ -27,7 +27,6 @@ import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
-import ratpack.sse.ServerSentEvent;
 import ratpack.sse.ServerSentEvents;
 import ratpack.stream.Streams;
 import ratpack.util.internal.ByteBufWriteThroughOutputStream;
@@ -40,7 +39,8 @@ import static io.netty.util.CharsetUtil.UTF_8;
 
 public class ServerSentEventsRenderer extends RendererSupport<ServerSentEvents> {
 
-  public static final TypeToken<Renderer<ServerSentEvents>> TYPE = new TypeToken<Renderer<ServerSentEvents>>() {};
+  public static final TypeToken<Renderer<ServerSentEvents>> TYPE = new TypeToken<Renderer<ServerSentEvents>>() {
+  };
 
   private static final byte[] EVENT_TYPE_PREFIX = "event: ".getBytes(UTF_8);
   private static final byte[] EVENT_DATA_PREFIX = "data: ".getBytes(UTF_8);
@@ -64,7 +64,7 @@ public class ServerSentEventsRenderer extends RendererSupport<ServerSentEvents> 
     response.sendStream(Streams.map(object.getPublisher(), encoder));
   }
 
-  public static class Encoder implements Function<ServerSentEvent, ByteBuf> {
+  public static class Encoder implements Function<ServerSentEvents.Event<?>, ByteBuf> {
     private final ByteBufAllocator bufferAllocator;
 
     public Encoder(ByteBufAllocator bufferAllocator) {
@@ -72,20 +72,20 @@ public class ServerSentEventsRenderer extends RendererSupport<ServerSentEvents> 
     }
 
     @Override
-    public ByteBuf apply(ServerSentEvent serverSentEvent) throws Exception {
+    public ByteBuf apply(ServerSentEvents.Event<?> event) throws Exception {
       ByteBuf buffer = bufferAllocator.buffer();
 
       OutputStream outputStream = new ByteBufWriteThroughOutputStream(buffer);
       Writer writer = new OutputStreamWriter(outputStream, UTF_8);
 
-      String eventType = serverSentEvent.getEventType();
+      String eventType = event.getEvent();
       if (eventType != null) {
         outputStream.write(EVENT_TYPE_PREFIX);
         writer.append(eventType).flush();
         outputStream.write(NEWLINE);
       }
 
-      String eventData = serverSentEvent.getEventData();
+      String eventData = event.getData();
       if (eventData != null) {
         outputStream.write(EVENT_DATA_PREFIX);
         for (Character character : Lists.charactersOf(eventData)) {
@@ -100,7 +100,7 @@ public class ServerSentEventsRenderer extends RendererSupport<ServerSentEvents> 
       }
 
 
-      String eventId = serverSentEvent.getEventId();
+      String eventId = event.getId();
       if (eventId != null) {
         outputStream.write(EVENT_ID_PREFIX);
         writer.append(eventId).flush();

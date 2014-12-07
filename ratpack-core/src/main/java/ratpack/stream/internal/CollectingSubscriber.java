@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.stream.testutil;
+package ratpack.stream.internal;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class CollectingSubscriber<T> implements Subscriber<T> {
+
   public final List<T> received = Lists.newLinkedList();
   public Subscription subscription;
   public Throwable error;
@@ -71,7 +72,6 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
   public void onComplete() {
     complete = true;
     consumer.accept(Result.success(received));
-
   }
 
 }
