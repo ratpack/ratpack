@@ -25,6 +25,7 @@ import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
+import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
@@ -34,6 +35,7 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
   def encoder = new ServerSentEventsRenderer.Encoder(UnpooledByteBufAllocator.DEFAULT)
 
+  @Unroll
   def "can encode valid server sent events"() {
     expect:
     IoUtils.utf8String(encoder.apply(sse)) == expectedEncoding
@@ -61,7 +63,7 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
   }
 
   public <T> ServerSentEvents.Event serverSentEvent(Action<? super ServerSentEvents.Event> action) {
-    serverSentEvent(null, action)
+    serverSentEvent("foo", action)
   }
 
   public static <T> List<T> toList(Publisher<T> publisher) throws Exception {
@@ -69,7 +71,10 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     AtomicReference<Result<List<T>>> ref = new AtomicReference<>()
 
     Thread.start {
-      publisher.subscribe(new CollectingSubscriber<T>({ ref.set(it); latch.countDown() }, {}))
+      publisher.subscribe(new CollectingSubscriber<T>({
+        ref.set(it);
+        latch.countDown()
+      }, { it.request(Long.MAX_VALUE) }))
     }
 
     latch.await()
