@@ -149,6 +149,66 @@ import ratpack.render.Renderer;
  *   }
  * }
  * }</pre>
+ * <p>
+ * A {@link ratpack.parse.NoOptParserSupport} parser is also rendered for the {@code "application/json"} content type.
+ * This allows the use of the {@link ratpack.handling.Context#parse(java.lang.Class)} and {@link ratpack.handling.Context#parse(com.google.common.reflect.TypeToken)} methods.
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.jackson.JacksonModule;
+ * import ratpack.http.client.ReceivedResponse;
+ * import com.fasterxml.jackson.annotation.JsonProperty;
+ * import com.google.common.reflect.TypeToken;
+ *
+ * import java.util.List;
+ *
+ * import static ratpack.util.Types.listOf;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *
+ *   public static class Person {
+ *     private final String name;
+ *
+ *     public Person(@JsonProperty("name") String name) {
+ *       this.name = name;
+ *     }
+ *
+ *     public String getName() {
+ *       return name;
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *       Guice.builder(launchConfig)
+ *         .bindings(b ->
+ *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         )
+ *         .build(chain -> chain
+ *           .post("asPerson", ctx -> {
+ *             Person person = ctx.parse(Person.class);
+ *             ctx.render(person.getName());
+ *           })
+ *           .post("asPersonList", ctx -> {
+ *             List<Person> person = ctx.parse(listOf(Person.class));
+ *             ctx.render(person.get(0).getName());
+ *           })
+ *         )
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.requestSpec(s ->
+ *         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
+ *       ).post("asPerson");
+ *       assertEquals("John", response.getBody().getText());
+ *
+ *       response = httpClient.requestSpec(s ->
+ *         s.body(b -> b.type("application/json").text("[{\"name\":\"John\"}]"))
+ *       ).post("asPersonList");
+ *       assertEquals("John", response.getBody().getText());
+ *     });
+ *   }
+ * }
+ * }</pre>
  */
 public abstract class Jackson {
 
@@ -318,6 +378,7 @@ public abstract class Jackson {
     /**
      * The parser.
      *
+     * @param objectMapper the object mapper to use for parsing
      * @return a JSON parser
      */
     public static Parser<JsonParseOpts> parser(ObjectMapper objectMapper) {
