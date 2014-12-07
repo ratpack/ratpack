@@ -50,6 +50,8 @@ public abstract class Types {
    * import ratpack.util.Types;
    * import com.google.common.reflect.TypeToken;
    *
+   * import java.util.List;
+   *
    * import static org.junit.Assert.*;
    *
    * public class Example {
