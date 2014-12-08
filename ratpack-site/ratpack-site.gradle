@@ -21,7 +21,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.4"
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
