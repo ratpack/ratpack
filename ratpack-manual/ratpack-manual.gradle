@@ -222,7 +222,7 @@ jruby {
 }
 
 compass {
-  gemDir = file("${rootProject.buildDir}/tmp/compass")
+  gemDir = file("${gradle.gradleUserHomeDir}/ruby-gems")
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
