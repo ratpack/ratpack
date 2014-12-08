@@ -74,6 +74,9 @@ abstract class SubscriptionSupport<T> implements Subscription {
       } finally {
         drainingRequests.set(false);
       }
+      if (waitingRequests.get() > 0) {
+        drainRequests();
+      }
     }
   }
 
