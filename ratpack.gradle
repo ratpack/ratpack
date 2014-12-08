@@ -17,6 +17,8 @@
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 
+import java.util.concurrent.locks.ReentrantLock
+
 buildscript {
   repositories {
     jcenter()
@@ -296,6 +298,29 @@ task allDependencies << {
     configurations.each { c ->
       println "Downloading dependencies for $p.path - $c.name"
       c.files
+    }
+  }
+}
+
+// Maven POM generation is not thread safe, so serialize all the Upload tasks we can use `--parallel`.
+def lock = new ReentrantLock()
+def available = lock.newCondition()
+def busy = false
+allprojects {
+  tasks.withType(Upload) {
+    doFirst {
+      lock.lock()
+      while (busy) {
+        available.await()
+      }
+      busy = true
+    }
+    finalizedBy tasks.create("post${it.name.capitalize()}") {
+      doFirst {
+        busy = false
+        available.signal()
+        lock.unlock()
+      }
     }
   }
 }
