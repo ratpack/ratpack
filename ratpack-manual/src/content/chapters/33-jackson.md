@@ -3,6 +3,7 @@
 Integration with the [Jackson JSON marshalling library](https://github.com/FasterXML/jackson-databind) provides the ability to work with JSON.
  
 The `ratpack-jackson` JAR is released as part of Ratpack's core distribution and is versioned with it.
+As of Ratpack @ratpack-version@ is built against (and depends on) Jackson Core @versions-jackson@.
  
 ## Initialisation
 
@@ -31,11 +32,9 @@ public class Example {
 
   public static class Person {
     private final String name;
-
     public Person(String name) {
       this.name = name;
     }
-
     public String getName() {
       return name;
     }
@@ -85,11 +84,9 @@ public class Example {
 
   public static class Person {
     private final String name;
-
     public Person(@JsonProperty("name") String name) {
       this.name = name;
     }
-
     public String getName() {
       return name;
     }
@@ -154,11 +151,9 @@ public class Example {
 
   public static class Person {
     private final String name;
-
     public Person(@JsonProperty("name") String name) {
       this.name = name;
     }
-
     public String getName() {
       return name;
     }
@@ -190,6 +185,61 @@ public class Example {
         s.body(b -> b.type("application/json").text("[{\"name\":\"John\"}]"))
       ).post("asPersonList");
       assertEquals("John", response.getBody().getText());
+    });
+  }
+}
+```
+
+## Using Jackson feature modules
+
+Jackson [feature modules](http://wiki.fasterxml.com/JacksonFeatureModules) allow Jackson to be extended to support extra data types and capabilities.
+For example the [JDK8 module](https://github.com/FasterXML/jackson-datatype-jdk8) adds support for JDK8 types like [Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html).
+
+If using Guice, such modules can easily be registered via the module's config.
+
+```language-java
+import ratpack.guice.Guice;
+import ratpack.test.embed.EmbeddedApp;
+import ratpack.jackson.JacksonModule;
+import ratpack.http.client.ReceivedResponse;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+
+import java.util.Optional;
+
+import static ratpack.jackson.Jackson.json;
+import static org.junit.Assert.*;
+
+public class Example {
+
+  public static class Person {
+    private final String name;
+    public Person(String name) {
+      this.name = name;
+    }
+    public String getName() {
+      return name;
+    }
+  }
+
+  public static void main(String... args) {
+    EmbeddedApp.fromHandlerFactory(launchConfig ->
+      Guice.builder(launchConfig)
+        .bindings(b ->
+          b.add(JacksonModule.class, c -> c
+            .modules(new Jdk8Module()) // register the Jackson module
+            .prettyPrint(false)
+          )
+        )
+        .build(chain ->
+          chain.get(ctx -> {
+            Optional<Person> personOptional = Optional.of(new Person("John"));
+            ctx.render(json(personOptional));
+          })
+        )
+    ).test(httpClient -> {
+      ReceivedResponse response = httpClient.get();
+      assertEquals("{\"name\":\"John\"}", response.getBody().getText());
+      assertEquals("application/json", response.getBody().getContentType().getType());
     });
   }
 }

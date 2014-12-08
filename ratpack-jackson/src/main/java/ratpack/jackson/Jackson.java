@@ -49,11 +49,9 @@ import ratpack.render.Renderer;
  *
  *   public static class Person {
  *     private final String name;
- *
  *     public Person(String name) {
  *       this.name = name;
  *     }
- *
  *     public String getName() {
  *       return name;
  *     }
@@ -100,11 +98,9 @@ import ratpack.render.Renderer;
  *
  *   public static class Person {
  *     private final String name;
- *
  *     public Person(@JsonProperty("name") String name) {
  *       this.name = name;
  *     }
- *
  *     public String getName() {
  *       return name;
  *     }
@@ -169,11 +165,9 @@ import ratpack.render.Renderer;
  *
  *   public static class Person {
  *     private final String name;
- *
  *     public Person(@JsonProperty("name") String name) {
  *       this.name = name;
  *     }
- *
  *     public String getName() {
  *       return name;
  *     }

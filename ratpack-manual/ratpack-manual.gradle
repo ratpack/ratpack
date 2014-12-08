@@ -41,8 +41,9 @@ dependencies {
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
   }
-  testRuntime("org.gradle:gradle-tooling-api:${gradle.gradleVersion}") // used by gradle snippet fixture
+  testRuntime "org.gradle:gradle-tooling-api:${gradle.gradleVersion}" // used by gradle snippet fixture
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
+  testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 }
 
 def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)

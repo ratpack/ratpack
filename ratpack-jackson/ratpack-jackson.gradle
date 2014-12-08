@@ -19,7 +19,7 @@ description = "Support for JSON via the Jackson marshalling library - http://jac
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-  "http://fasterxml.github.io/jackson-databind/javadoc/2.3.0/"
+  "http://fasterxml.github.io/jackson-databind/javadoc/2.4/"
 ]
 
 dependencies {

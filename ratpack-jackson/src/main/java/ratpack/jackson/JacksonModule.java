@@ -58,6 +58,56 @@ import java.util.function.Consumer;
  * <h3>Configuration</h3>
  * <p>
  * This module follows Ratpack's {@link ConfigurableModule configurable module} pattern, using the {@link Config} type as the configuration.
+ * <p>Note that Jackson feature modules can be conveniently registered via the {@link ratpack.jackson.JacksonModule.Config#modules(Iterable)} method.
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.jackson.JacksonModule;
+ * import ratpack.http.client.ReceivedResponse;
+ * import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+ *
+ * import java.util.Optional;
+ *
+ * import static ratpack.jackson.Jackson.json;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *
+ *   public static class Person {
+ *     private final String name;
+ *     public Person(String name) {
+ *       this.name = name;
+ *     }
+ *     public String getName() {
+ *       return name;
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *       Guice.builder(launchConfig)
+ *         .bindings(b ->
+ *           b.add(JacksonModule.class, c -> c
+ *             .modules(new Jdk8Module()) // register the Jackson module
+ *             .prettyPrint(false)
+ *           )
+ *         )
+ *         .build(chain ->
+ *           chain.get(ctx -> {
+ *             Optional<Person> personOptional = Optional.of(new Person("John"));
+ *             ctx.render(json(personOptional));
+ *           })
+ *         )
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.get();
+ *       assertEquals("{\"name\":\"John\"}", response.getBody().getText());
+ *       assertEquals("application/json", response.getBody().getContentType().getType());
+ *     });
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * In the above example, the Jackson capabilities are being extended by use of the <a href="https://github.com/FasterXML/jackson-datatype-jdk8">additional JDK 8 datatype module</a>.
  *
  * @see Jackson
  */
@@ -103,7 +153,8 @@ public class JacksonModule extends ConfigurableModule<JacksonModule.Config> {
      * Jackson modules extend Jackson to handle extra data types.
      *
      * @return the Jackson modules to register with the object mapper
-     * @see #modules
+     * @see #modules(Iterable)
+     * @see #modules(Module...)
      */
     public List<Module> getModules() {
       return modules;
@@ -117,6 +168,7 @@ public class JacksonModule extends ConfigurableModule<JacksonModule.Config> {
      *
      * @param modules the Jackson modules
      * @return this
+     * @see #modules(Module...)
      */
     public Config modules(Iterable<Module> modules) {
       this.modules.addAll(Lists.newArrayList(modules));
@@ -131,6 +183,7 @@ public class JacksonModule extends ConfigurableModule<JacksonModule.Config> {
      *
      * @param modules the Jackson modules
      * @return this
+     * @see #modules(Iterable)
      */
     public Config modules(Module... modules) {
       return modules(Arrays.asList(modules));
