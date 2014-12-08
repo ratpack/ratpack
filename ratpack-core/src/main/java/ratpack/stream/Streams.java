@@ -120,6 +120,18 @@ public class Streams {
     return transformable(new MapPublisher<>(input, function));
   }
 
+  public interface WriteStream<T> {
+    void item(T item);
+
+    void error(Throwable throwable);
+
+    void complete();
+  }
+
+  public static <I, O> TransformablePublisher<O> streamMap(Publisher<I> input, Function<? super WriteStream<O>, ? extends WriteStream<I>> mapper) {
+    return new StreamMapPublisher<>(buffer(input), mapper);
+  }
+
   /**
    * Returns a publisher that publishes items from the given input publisher after transforming each item via the given, promise returning, function.
    * <p>

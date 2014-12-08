@@ -16,17 +16,27 @@
 
 package ratpack.jackson;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.reflect.TypeToken;
+import io.netty.buffer.Unpooled;
+import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
+import ratpack.http.ResponseChunks;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.internal.*;
 import ratpack.parse.NullParseOpts;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.render.Renderer;
+import ratpack.stream.Streams;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Provides key integration points with the Jackson support for dealing with JSON.
@@ -341,6 +351,55 @@ public abstract class Jackson {
    */
   public static <T> Parse<T, JsonParseOpts> fromJson(TypeToken<T> type, @Nullable ObjectMapper objectMapper) {
     return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
+  }
+
+  public static <T> ResponseChunks chunkedJsonList(Registry registry, Publisher<T> stream) {
+    return chunkedJsonList(registry.get(ObjectWriter.class), stream);
+  }
+
+  public static <T> ResponseChunks chunkedJsonList(ObjectWriter objectWriter, Publisher<T> stream) {
+    return ResponseChunks.bufferChunks(HttpHeaderConstants.JSON, Streams.streamMap(stream, out -> {
+      JsonGenerator generator = objectWriter.getFactory().createGenerator(new OutputStream() {
+        @Override
+        public void write(int b) throws IOException {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+          out.item(Unpooled.copiedBuffer(b, off, len));
+        }
+      });
+
+      generator.writeStartArray();
+
+      return new Streams.WriteStream<T>() {
+        @Override
+        public void item(T item) {
+          try {
+            generator.writeObject(item);
+          } catch (Exception e) {
+            out.error(e);
+          }
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          out.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          try {
+            generator.writeEndArray();
+            generator.close();
+            out.complete();
+          } catch (IOException e) {
+            out.error(e);
+          }
+        }
+      };
+    }));
   }
 
   /**
