@@ -354,10 +354,73 @@ public abstract class Jackson {
     return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
   }
 
+  /**
+   * Renders a data stream as a JSON list, directly streaming the JSON.
+   * <p>
+   * This method differs from rendering a list of items using {@link #json(Object) json(someList)} in that data is
+   * written to the response as chunks, and is streamed.
+   * <p>
+   * If stream can be very large without using considerable memory as the JSON is streamed incrementally in chunks.
+   * This does mean that if on object-to-JSON conversion fails midway through the stream, then the output JSON will be malformed due to being incomplete.
+   * If the publisher emits an error, the response will be terminated and no more JSON will be sent.
+   * <pre class="java">{@code
+   * import ratpack.guice.Guice;
+   * import ratpack.test.embed.EmbeddedApp;
+   * import ratpack.jackson.JacksonModule;
+   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.stream.Streams;
+   * import org.reactivestreams.Publisher;
+   *
+   * import java.util.Arrays;
+   *
+   * import static ratpack.jackson.Jackson.chunkedJsonList;
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) {
+   *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+   *       Guice.builder(launchConfig)
+   *         .bindings(b -> b.add(JacksonModule.class))
+   *         .build(chain ->
+   *           chain.get(ctx -> {
+   *             Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
+   *             ctx.render(chunkedJsonList(ctx, ints));
+   *           })
+   *         )
+   *     ).test(httpClient -> {
+   *       ReceivedResponse response = httpClient.get();
+   *       assertEquals("[1,2,3]", response.getBody().getText()); // body was streamed in chunks
+   *       assertEquals("application/json", response.getBody().getContentType().getType());
+   *     });
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * Items of the stream will be converted to JSON by an {@link ObjectMapper} obtained from the given registry.
+   * <p>
+   * This method uses {@link Streams#streamMap(Publisher, ratpack.func.Function)} to consume the given stream.
+   *
+   * @param registry the registry to obtain the object mapper from
+   * @param stream the stream to render
+   * @param <T> the type of item in the stream
+   * @return a renderable object
+   * @see Streams#streamMap(Publisher, ratpack.func.Function)
+   */
   public static <T> ResponseChunks chunkedJsonList(Registry registry, Publisher<T> stream) {
     return chunkedJsonList(registry.get(ObjectWriter.class), stream);
   }
 
+  /**
+   * Renders a data stream as a JSON list, directly streaming the JSON.
+   * <p>
+   * Identical to {@link #chunkedJsonList(Registry, Publisher)}, except uses the given object writer instead of obtaining one from the registry.
+   *
+   * @param objectWriter the object write to use to convert stream items to their JSON representation
+   * @param stream the stream to render
+   * @param <T> the type of item in the stream
+   * @return a renderable object
+   * @see #chunkedJsonList(Registry, Publisher)
+   */
   public static <T> ResponseChunks chunkedJsonList(ObjectWriter objectWriter, Publisher<T> stream) {
     return ResponseChunks.bufferChunks(HttpHeaderConstants.JSON, Streams.streamMap(stream, out -> {
       JsonGenerator generator = objectWriter.getFactory().createGenerator(new OutputStream() {
@@ -367,7 +430,7 @@ public abstract class Jackson {
         }
 
         @Override
-        public void write(byte[] b, int off, int len) throws IOException {
+        public void write(@SuppressWarnings("NullableProblems") byte[] b, int off, int len) throws IOException {
           out.item(Unpooled.copiedBuffer(b, off, len));
         }
       });
