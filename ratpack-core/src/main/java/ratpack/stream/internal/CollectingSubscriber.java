@@ -22,6 +22,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Result;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -71,7 +72,7 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
   @Override
   public void onComplete() {
     complete = true;
-    consumer.accept(Result.success(received));
+    consumer.accept(Result.success(Collections.unmodifiableList(received)));
   }
 
 }

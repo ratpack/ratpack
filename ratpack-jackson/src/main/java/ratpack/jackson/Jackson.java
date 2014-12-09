@@ -34,6 +34,7 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.render.Renderer;
 import ratpack.stream.Streams;
+import ratpack.stream.WriteStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -373,7 +374,7 @@ public abstract class Jackson {
 
       generator.writeStartArray();
 
-      return new Streams.WriteStream<T>() {
+      return new WriteStream<T>() {
         @Override
         public void item(T item) {
           try {

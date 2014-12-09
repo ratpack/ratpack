@@ -16,20 +16,21 @@
 
 package ratpack.stream.internal;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Function;
-import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.stream.WriteStream;
 
 public class StreamMapPublisher<I, O> implements TransformablePublisher<O> {
 
-  private final TransformablePublisher<I> upstream;
-  private final Function<? super Streams.WriteStream<O>, ? extends Streams.WriteStream<I>> mapper;
+  private final Publisher<I> upstream;
+  private final Function<? super WriteStream<O>, ? extends WriteStream<I>> mapper;
 
-  private Streams.WriteStream<I> input;
+  private WriteStream<I> input;
 
-  public StreamMapPublisher(TransformablePublisher<I> upstream, Function<? super Streams.WriteStream<O>, ? extends Streams.WriteStream<I>> mapper) {
+  public StreamMapPublisher(Publisher<I> upstream, Function<? super WriteStream<O>, ? extends WriteStream<I>> mapper) {
     this.upstream = upstream;
     this.mapper = mapper;
   }
@@ -40,7 +41,7 @@ public class StreamMapPublisher<I, O> implements TransformablePublisher<O> {
       @Override
       public void onSubscribe(Subscription upstreamSubscription) {
         try {
-          input = mapper.apply(new Streams.WriteStream<O>() {
+          input = mapper.apply(new WriteStream<O>() {
             @Override
             public void item(O item) {
               downstreamSubscriber.onNext(item);
