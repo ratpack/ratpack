@@ -24,6 +24,7 @@ import com.google.common.reflect.TypeToken;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
+import ratpack.func.Function;
 import ratpack.http.ResponseChunks;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.internal.*;
@@ -43,6 +44,7 @@ import java.io.OutputStream;
  * Provides key integration points with the Jackson support for dealing with JSON.
  * <p>
  * The {@link ratpack.jackson.JacksonModule} Guice module provides the infrastructure necessary to use these functions.
+ * See {@link Jackson.Init} for alternative ways to initialise the integration to using the Guice module.
  *
  * <h3><a name="rendering">Rendering as JSON</a></h3>
  * <p>
@@ -85,6 +87,75 @@ import java.io.OutputStream;
  *   }
  * }
  * }</pre>
+ *
+ * <h4>Streaming JSON and events</h4>
+ * <p>
+ * There are several options for streaming JSON data and events.
+ * <p>
+ * The {@link #chunkedJsonList(Registry, Publisher)} method can be used for rendering a very large JSON stream/list without buffering the entire list in memory.
+ * <p>
+ * It is also easy to render {@link ratpack.sse.ServerSentEvents server sent events}, which can be useful for real time applications and infinite data streams.
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.jackson.JacksonModule;
+ * import ratpack.stream.Streams;
+ * import ratpack.http.client.ReceivedResponse;
+ * import org.reactivestreams.Publisher;
+ *
+ * import java.util.Arrays;
+ *
+ * import static ratpack.jackson.Jackson.toJson;
+ * import static ratpack.sse.ServerSentEvents.serverSentEvents;
+ * import static java.util.stream.Collectors.joining;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *
+ *   public static class Person {
+ *     private final String name;
+ *     public Person(String name) {
+ *       this.name = name;
+ *     }
+ *     public String getName() {
+ *       return name;
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *       Guice.builder(launchConfig)
+ *         .bindings(b ->
+ *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         )
+ *         .build(chain -> chain
+ *           .get("stream", ctx -> {
+ *             Publisher<Person> people = Streams.publish(Arrays.asList(
+ *               new Person("a"),
+ *               new Person("b"),
+ *               new Person("c")
+ *             ));
+ *
+ *             ctx.render(serverSentEvents(people, e -> e.data(toJson(ctx))));
+ *           })
+ *         )
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.get("stream");
+ *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
+ *
+ *       String expectedOutput = Arrays.asList("a", "b", "c")
+ *         .stream()
+ *         .map(i -> "data: {\"name\":\"" + i + "\"}\n")
+ *         .collect(joining("\n"))
+ *         + "\n";
+ *
+ *       assertEquals(expectedOutput, response.getBody().getText());
+ *     });
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * A similar approach could be used directly with the {@link ratpack.http.Response#sendStream(Publisher)} method for a custom “protocol”.
  *
  * <h3><a name="parsing">Parsing JSON requests</a></h3>
  * <p>
@@ -464,6 +535,10 @@ public abstract class Jackson {
         }
       };
     }));
+  }
+
+  public static <T> Function<T, String> toJson(Registry registry) {
+    return registry.get(ObjectWriter.class)::writeValueAsString;
   }
 
   /**

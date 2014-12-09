@@ -4,6 +4,8 @@ Integration with the [Jackson JSON marshalling library](https://github.com/Faste
  
 The `ratpack-jackson` JAR is released as part of Ratpack's core distribution and is versioned with it.
 As of Ratpack @ratpack-version@ is built against (and depends on) Jackson Core @versions-jackson@.
+
+The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides most of the Jackson related functions. 
  
 ## Initialisation
 
@@ -57,6 +59,8 @@ public class Example {
   }
 }
 ```
+
+See the [`Jackson`](api/ratpack/jackson/Jackson.html) class documention for more examples, including streaming and JSON events.
 
 ## Reading JSON requests
 
