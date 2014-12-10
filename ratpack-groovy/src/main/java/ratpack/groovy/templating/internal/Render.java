@@ -19,6 +19,7 @@ package ratpack.groovy.templating.internal;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
@@ -33,15 +34,15 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class Render {
 
   private final ExecControl execControl;
-  private final ByteBuf byteBuf;
+  private final ByteBufAllocator bufferAllocator;
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateSource templateSource;
   private final Map<String, ?> model;
   private final Function<String, TemplateSource> includeTransformer;
 
-  public Render(ExecControl execControl, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Function<String, TemplateSource> includeTransformer) {
+  public Render(ExecControl execControl, ByteBufAllocator bufferAllocator, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Function<String, TemplateSource> includeTransformer) {
     this.execControl = execControl;
-    this.byteBuf = byteBuf;
+    this.bufferAllocator = bufferAllocator;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateSource = templateSource;
     this.model = model;
@@ -50,11 +51,13 @@ public class Render {
 
   private Promise<ByteBuf> invoke() {
     return execControl.promise(f -> {
+        ByteBuf byteBuf = bufferAllocator.ioBuffer();
         try {
           CompiledTemplate fromCache = getFromCache(compiledTemplateCache, templateSource);
           Render.this.execute(fromCache, model, byteBuf);
           f.success(byteBuf);
         } catch (Throwable e) {
+          byteBuf.release();
           f.error(e);
         }
       }
@@ -83,7 +86,7 @@ public class Render {
     });
   }
 
-  public static Promise<ByteBuf> render(ExecControl execControl, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Function<String, TemplateSource> includeTransformer) throws Exception {
-    return new Render(execControl, byteBuf, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
+  public static Promise<ByteBuf> render(ExecControl execControl, ByteBufAllocator bufferAllocator, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Function<String, TemplateSource> includeTransformer) throws Exception {
+    return new Render(execControl, bufferAllocator, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
   }
 }
