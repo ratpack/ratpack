@@ -537,6 +537,50 @@ public abstract class Jackson {
     }));
   }
 
+  /**
+   * Creates a mapping function that returns the JSON representation as a string of the input object.
+   * <p>
+   * An {@link ObjectWriter} instance is obtained from the given registry eagerly.
+   * The returned function uses the {@link ObjectWriter#writeValueAsString(Object)} method to convert the input object to JSON.
+   * <pre class="java">{@code
+   * import ratpack.guice.Guice;
+   * import ratpack.test.embed.EmbeddedApp;
+   * import ratpack.jackson.JacksonModule;
+   * import ratpack.http.client.ReceivedResponse;
+   *
+   * import java.util.Arrays;
+   *
+   * import static ratpack.jackson.Jackson.toJson;
+   * import static java.util.Collections.singletonMap;
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) {
+   *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+   *       Guice.builder(launchConfig)
+   *         .bindings(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false)))
+   *         .build(chain -> chain
+   *           .get(ctx -> ctx
+   *             .blocking(() -> singletonMap("foo", "bar"))
+   *             .map(toJson(ctx))
+   *             .then(ctx::render)
+   *           )
+   *         )
+   *     ).test(httpClient -> {
+   *       assertEquals("{\"foo\":\"bar\"}", httpClient.getText());
+   *     });
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * Note that in the above example, it would have been better to just <a href="#rendering">render</a> the result of the blocking call.
+   * Doing so would be more convenient and also set the correct {@code "Content-Type"} header.
+   * This method can be useful when sending the JSON somewhere else than directly to the response, or when {@link Streams#map(Publisher, Function) mapping streams}.
+   *
+   * @param registry the registry to obtain the {@link ObjectWriter} from
+   * @param <T> the type of object to convert to JSON
+   * @return a function that converts objects to their JSON string representation
+   */
   public static <T> Function<T, String> toJson(Registry registry) {
     return registry.get(ObjectWriter.class)::writeValueAsString;
   }
