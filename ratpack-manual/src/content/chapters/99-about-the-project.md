@@ -16,6 +16,7 @@ The following people are currently actively contributing their time to Ratpack.
 * [Danny Hyun](https://github.com/danhyun)
 * [Dan Woods](https://github.com/danveloper)
 * [Jeff Beck](https://github.com/beckje01)
+* [John Engelman](https://github.com/johnrengelman)
 
 ### Contributors
 
@@ -43,7 +44,6 @@ The following people have provided significant contributions.
 * [Cédric Champeau](https://github.com/melix)
 * [Kevin Greene](https://github.com/KevinGreene)
 * [David Tiselius](https://github.com/traneHead)
-* [John Engelman](https://github.com/johnrengelman)
 * [Andre Steingress](https://github.com/andresteingress)
 * [Gareth Davis](https://github.com/tempredirect)
 * [Lari Hotari](https://github.com/lhotari)
