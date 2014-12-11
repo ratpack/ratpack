@@ -119,12 +119,24 @@ task api(type: Javadoc) {
   }
   options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
 
-  options.bottom = """
+  ext.additionalAssets = """
       <script src=\"{@docRoot}/../js/manual.js\"></script>
+      <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
-  inputs.property "bottom", options.bottom
+  options.bottom = ext.additionalAssets
+
+  inputs.property "additionalAssets", ext.additionalAssets
   inputs.property "groups", options.groups
+
+  // For some awesome reason, the 'bottom' arg doesn't get applied to these files
+  doLast {
+	def replacementString = additionalAssets.replaceAll(java.util.regex.Pattern.quote("{@docRoot}/"), "") + "</html>"
+	["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
+	  def f = new File(destinationDir, it)
+	  f.text = f.text.replace("</html>", replacementString)
+	}
+  }
 }
 
 test {
@@ -168,7 +180,8 @@ task tokeniseManual(type: Sync) {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
-        <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
+        <!--[if gt IE 7]><!--><link href="css/manual.css" rel="stylesheet" type="text/css"><!--<![endif]-->
+        <link href="css/fonts.css" rel="stylesheet" type="text/css">
         <script src="js/manual.js"></script>
       """,
       footer: """
