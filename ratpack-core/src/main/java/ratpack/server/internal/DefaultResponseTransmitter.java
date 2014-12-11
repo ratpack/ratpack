@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
-import ratpack.file.internal.ChunkedInputAdapter;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Pair;
 import ratpack.handling.RequestOutcome;
@@ -153,7 +152,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         transmit(responseStatus, defaultFileRegion);
       });
     } else {
-      execControl.blocking(() -> Files.newByteChannel(file)).then(fileChannel -> transmit(responseStatus, new ChunkedInputAdapter(new ChunkedNioStream(fileChannel))));
+      execControl.blocking(() -> Files.newByteChannel(file)).then(fileChannel ->
+        transmit(responseStatus, new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
+      );
     }
   }
 
