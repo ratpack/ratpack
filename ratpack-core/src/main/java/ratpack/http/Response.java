@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.function.Supplier;
 
 /**
  * A response to a request.
@@ -44,6 +45,8 @@ public interface Response extends ResponseMetaData {
    */
   @NonBlocking
   public void send();
+
+  Response contentTypeIfNotSet(Supplier<CharSequence> contentType);
 
   /**
    * Sends the response, using "{@code text/plain}" as the content type and the given string as the response body.
@@ -127,7 +130,9 @@ public interface Response extends ResponseMetaData {
   Response contentType(CharSequence contentType);
 
   @Override
-  Response contentTypeIfNotSet(CharSequence contentType);
+  default Response contentTypeIfNotSet(CharSequence contentType) {
+    return contentTypeIfNotSet(() -> contentType);
+  }
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.

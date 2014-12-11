@@ -68,6 +68,8 @@ import java.util.Arrays;
  *   }
  * }
  * }</pre>
+ * <p>
+ * An alternative to implementing a render is to make the type to be rendered implement {@link Renderable}.
  *
  * @param <T> The type of object this renderer renders
  */

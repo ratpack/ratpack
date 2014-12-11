@@ -68,7 +68,6 @@ import java.util.concurrent.Callable;
  * <li>A {@link ratpack.file.MimeTypes} implementation</li>
  * <li>A {@link ratpack.error.ServerErrorHandler}</li>
  * <li>A {@link ratpack.error.ClientErrorHandler}</li>
- * <li>A {@link ratpack.file.FileRenderer}</li>
  * <li>A {@link ratpack.server.PublicAddress}</li>
  * <li>A {@link Redirector}</li>
  * </ul>
@@ -513,8 +512,8 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * Ratpack has built in support for rendering the following types:
    * <ul>
-   * <li>{@link java.nio.file.Path} (see {@link ratpack.file.FileRenderer})</li>
-   * <li>{@link java.lang.CharSequence} (see {@link ratpack.render.CharSequenceRenderer})</li>
+   * <li>{@link java.nio.file.Path}</li>
+   * <li>{@link java.lang.CharSequence}</li>
    * <li>{@link SuccessPromise} (renders the promised value, using this {@code render()} method)</li>
    * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)} and renders it)</li>
    * </ul>

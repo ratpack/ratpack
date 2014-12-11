@@ -20,31 +20,4 @@ import ratpack.render.Renderer;
 
 import java.nio.file.Path;
 
-/**
- * A renderer for static files.
- * <p>
- * An implementation of this is <b>always</b> provided by Ratpack core.
- * <p>
- * Example usage:
- * <pre class="tested">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
- * import java.nio.file.Path;
- *
- * public class FileRenderingHandler implements Handler {
- *   public void handle(Context context) {
- *     Path file = context.file("some/file/to/serve.txt");
- *     context.render(file);
- *   }
- * }
- * </pre>
- * <p>
- * Use of this renderer should be preferred over {@link ratpack.http.Response#sendFile} as it handles
- * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html">HTTP Caching</a> by way of the {@code If-Modified-Since} header,
- * based on timestamps reported by the filesystem.
- * <p>
- * If the {@link ratpack.http.Response#contentType(CharSequence)} has not been set prior to calling this method,
- * it will be guessed by retrieving the {@link MimeTypes} from the context and using it to calculate the type
- * based on the name of the file.
- */
 public interface FileRenderer extends Renderer<Path> {}

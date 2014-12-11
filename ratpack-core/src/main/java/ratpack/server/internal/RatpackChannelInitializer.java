@@ -38,7 +38,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   private SSLContext sslContext;
   private int maxContentLength;
 
-  public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler, Stopper stopper) {
+  public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler, Stopper stopper) throws Exception {
     this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, launchConfig);
     this.sslContext = launchConfig.getSSLContext();
     this.maxContentLength = launchConfig.getMaxContentLength();

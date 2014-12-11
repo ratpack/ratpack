@@ -16,9 +16,15 @@
 
 package ratpack.sse;
 
+import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.handling.Context;
+import ratpack.http.Response;
+import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderable;
+import ratpack.sse.internal.ServerSentEventEncoder;
 import ratpack.stream.Streams;
 
 /**
@@ -73,7 +79,7 @@ import ratpack.stream.Streams;
  * @see <a href="http://en.wikipedia.org/wiki/Server-sent_events" target="_blank">Wikipedia - Using server-sent events</a>
  * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
  */
-public class ServerSentEvents {
+public class ServerSentEvents implements Renderable {
 
   private final Publisher<? extends Event<?>> publisher;
 
@@ -107,13 +113,24 @@ public class ServerSentEvents {
 
   /**
    * The stream of events.
-   * <p>
-   * Used by the associated renderer for this type.
    *
    * @return the stream of events
    */
   public Publisher<? extends Event<?>> getPublisher() {
     return publisher;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void render(Context context) throws Exception {
+    ByteBufAllocator bufferAllocator = context.getLaunchConfig().getBufferAllocator();
+    Response response = context.getResponse();
+    response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
+    response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
+    response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
+    response.sendStream(Streams.map(publisher, i -> ServerSentEventEncoder.INSTANCE.encode(i, bufferAllocator)));
   }
 
   /**

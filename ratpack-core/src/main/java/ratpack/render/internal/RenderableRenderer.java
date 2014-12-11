@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 package ratpack.render.internal;
 
 import ratpack.handling.Context;
-import ratpack.render.CharSequenceRenderer;
+import ratpack.render.Renderable;
 import ratpack.render.RendererSupport;
 
-public class DefaultCharSequenceRenderer extends RendererSupport<CharSequence> implements CharSequenceRenderer {
+public class RenderableRenderer extends RendererSupport<Renderable> {
 
   @Override
-  public void render(Context context, CharSequence charSequence) {
-    context.getResponse().send(charSequence.toString());
+  public void render(Context context, Renderable object) throws Exception {
+    object.render(context);
   }
 
 }

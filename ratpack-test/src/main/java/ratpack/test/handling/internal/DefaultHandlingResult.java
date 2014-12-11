@@ -71,7 +71,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private Integer clientError;
 
-  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfig launchConfig, final Handler handler) {
+  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfig launchConfig, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs

@@ -34,7 +34,6 @@ import ratpack.error.internal.ErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
@@ -60,14 +59,9 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
-import ratpack.render.CharSequenceRenderer;
-import ratpack.render.internal.DefaultCharSequenceRenderer;
-import ratpack.render.internal.DefaultRenderController;
-import ratpack.render.internal.PromiseRenderer;
-import ratpack.render.internal.PublisherRenderer;
+import ratpack.render.internal.*;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.sse.internal.ServerSentEventsRenderer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -98,7 +92,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final boolean addResponseTimeHeader;
   private final ExecControl execControl;
 
-  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
+  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) throws Exception {
     super(false);
 
     this.handlers = ChainHandler.unpack(handler);
@@ -231,7 +225,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) {
+  public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) throws Exception {
     ErrorHandler errorHandler = launchConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
 
     RegistryBuilder registryBuilder = Registries.registry()
@@ -242,12 +236,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(ClientErrorHandler.class, errorHandler)
       .add(ServerErrorHandler.class, errorHandler)
       .add(LaunchConfig.class, launchConfig)
-      .add(FileRenderer.class, new DefaultFileRenderer())
-      .add(PromiseRenderer.TYPE, new PromiseRenderer())
-      .add(PublisherRenderer.TYPE, new PublisherRenderer())
-      .add(ServerSentEventsRenderer.TYPE, new ServerSentEventsRenderer(launchConfig.getBufferAllocator()))
-      .add(HttpResponseChunksRenderer.TYPE, new HttpResponseChunksRenderer())
-      .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
+      .with(new DefaultFileRenderer().register())
+      .with(new PromiseRenderer().register())
+      .with(new PublisherRenderer().register())
+      .with(new RenderableRenderer().register())
+      .with(new CharSequenceRenderer().register())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())
       .add(HttpClient.class, HttpClients.httpClient(launchConfig));

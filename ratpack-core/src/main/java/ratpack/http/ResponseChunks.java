@@ -22,7 +22,9 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.func.Function;
+import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderable;
 import ratpack.stream.Streams;
 import ratpack.util.ExceptionUtils;
 
@@ -62,7 +64,7 @@ import java.nio.charset.Charset;
  * @see Response#sendStream(org.reactivestreams.Publisher)
  * @see <a href="http://en.wikipedia.org/wiki/Chunked_transfer_encoding" target="_blank">Wikipedia - Chunked transfer encoding</a>
  */
-public class ResponseChunks {
+public class ResponseChunks implements Renderable {
 
   /**
    * Transmit each string emitted by the publisher as a chunk.
@@ -147,6 +149,18 @@ public class ResponseChunks {
    */
   public CharSequence getContentType() {
     return contentType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void render(Context context) throws Exception {
+    Response response = context.getResponse();
+    response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
+    response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, getContentType());
+    Publisher<? extends ByteBuf> publisher = publisher(context.getLaunchConfig().getBufferAllocator());
+    response.sendStream(publisher);
   }
 
 }

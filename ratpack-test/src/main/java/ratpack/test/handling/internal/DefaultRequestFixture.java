@@ -42,6 +42,7 @@ import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
+import ratpack.util.ExceptionUtils;
 
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
@@ -116,6 +117,8 @@ public class DefaultRequestFixture implements RequestFixture {
         launchConfig,
         handler
       );
+    } catch (Exception e) {
+      throw ExceptionUtils.uncheck(e);
     } finally {
       launchConfig.getExecController().close();
     }

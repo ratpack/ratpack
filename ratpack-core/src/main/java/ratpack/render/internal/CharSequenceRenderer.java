@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.render;
+package ratpack.render.internal;
 
-/**
- * A renderer for {@link CharSequence} objects.
- * <p>
- * The string returned by {@code toString()} will be written to the response as UTF-8 bytes.
- * This renderer does not set a content type, which means that the standard default of {@code text/plain} will be
- * used unless one has been explicitly set.
- */
-public interface CharSequenceRenderer extends Renderer<CharSequence> {
+import ratpack.handling.Context;
+import ratpack.render.RendererSupport;
+
+public class CharSequenceRenderer extends RendererSupport<CharSequence> {
+
+  @Override
+  public void render(Context context, CharSequence charSequence) {
+    context.getResponse().send(charSequence.toString());
+  }
+
 }

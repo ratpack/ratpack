@@ -30,15 +30,14 @@ import spock.lang.Unroll
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 
-
 class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
-  def encoder = new ServerSentEventsRenderer.Encoder(UnpooledByteBufAllocator.DEFAULT)
+  def encoder = new ServerSentEventEncoder()
 
   @Unroll
   def "can encode valid server sent events"() {
     expect:
-    IoUtils.utf8String(encoder.apply(sse)) == expectedEncoding
+    IoUtils.utf8String(encoder.encode(sse, UnpooledByteBufAllocator.DEFAULT)) == expectedEncoding
 
     where:
     sse                                                                                             | expectedEncoding

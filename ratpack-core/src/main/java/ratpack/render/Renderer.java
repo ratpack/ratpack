@@ -16,8 +16,12 @@
 
 package ratpack.render;
 
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
+import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.registry.RegistrySpec;
 
 /**
  * A renderer is responsible for rendering an object to the response.
@@ -31,6 +35,28 @@ import ratpack.handling.Context;
  * @param <T> The type of object that this renderer knows how to render.
  */
 public interface Renderer<T> {
+
+  /**
+   * An action that registers this renderer with a registry.
+   * <p>
+   * Can be used with the {@link RegistrySpec#with(Action)} method of a registry spec.
+   *
+   * @return an action that registers this renderer with a registry
+   */
+  default Action<RegistrySpec> register() {
+    return (registrySpec) -> registrySpec.add(typeOf(getType()), this);
+  }
+
+  /**
+   * Creates a type token for a renderer of the given type of object.
+   *
+   * @param typeToRender the type that the renderer renders
+   * @param <T> the type that the renderer renders
+   * @return a type token for a renderer of the given type of object
+   */
+  static <T> TypeToken<Renderer<T>> typeOf(Class<T> typeToRender) {
+    return new TypeToken<Renderer<T>>(typeToRender) {}.where(new TypeParameter<T>() {}, typeToRender);
+  }
 
   /**
    * The type of object that this renderer can render.

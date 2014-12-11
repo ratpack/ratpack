@@ -39,6 +39,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
@@ -217,16 +218,16 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public Response contentType(CharSequence contentType) {
-    headers.set(CONTENT_TYPE, contentType);
+  public Response contentTypeIfNotSet(Supplier<CharSequence> contentType) {
+    if (!contentTypeSet) {
+      contentType(contentType.get());
+    }
     return this;
   }
 
   @Override
-  public Response contentTypeIfNotSet(CharSequence contentType) {
-    if (!contentTypeSet) {
-      contentType(contentType);
-    }
+  public Response contentType(CharSequence contentType) {
+    headers.set(CONTENT_TYPE, contentType);
     return this;
   }
 
