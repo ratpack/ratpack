@@ -153,7 +153,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       });
     } else {
       execControl.blocking(() -> Files.newByteChannel(file)).then(fileChannel ->
-        transmit(responseStatus, new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
+          transmit(responseStatus, new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
       );
     }
   }

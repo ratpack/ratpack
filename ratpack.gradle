@@ -95,6 +95,7 @@ allprojects {
   repositories {
     jcenter()
     maven { url 'http://oss.jfrog.org/artifactory/repo' }
+    maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots' }
   }
 
   jacoco {
