@@ -16,13 +16,18 @@
 
 package ratpack.util.internal;
 
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+
+import java.util.concurrent.ThreadFactory;
 
 public abstract class ChannelImplDetector {
 
@@ -34,6 +39,10 @@ public abstract class ChannelImplDetector {
 
   public static Class<? extends SocketChannel> getSocketChannelImpl() {
     return EPOLL ? EpollSocketChannel.class : NioSocketChannel.class;
+  }
+
+  public static EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory) {
+    return EPOLL ? new EpollEventLoopGroup(nThreads, threadFactory) : new NioEventLoopGroup(nThreads, threadFactory);
   }
 
 }
