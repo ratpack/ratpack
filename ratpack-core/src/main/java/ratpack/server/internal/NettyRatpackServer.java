@@ -22,7 +22,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
 import ratpack.server.RatpackServer;
 import ratpack.server.Stopper;
+import ratpack.util.internal.ChannelImplDetector;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,7 +85,7 @@ public class NettyRatpackServer implements RatpackServer {
       bootstrap
         .group(launchConfig.getExecController().getEventLoopGroup())
         .childHandler(channelInitializer)
-        .channel(NioServerSocketChannel.class)
+        .channel(ChannelImplDetector.getServerSocketChannelImpl())
         .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
 
       if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {

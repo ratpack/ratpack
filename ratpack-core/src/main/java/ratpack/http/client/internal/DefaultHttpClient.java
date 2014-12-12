@@ -21,7 +21,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -34,6 +33,7 @@ import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
+import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -151,7 +151,7 @@ public class DefaultHttpClient implements HttpClient {
     public void execute(final Fulfiller<? super ReceivedResponse> fulfiller) throws Exception {
       final Bootstrap b = new Bootstrap();
       b.group(eventLoopGroup)
-        .channel(NioSocketChannel.class)
+        .channel(ChannelImplDetector.getSocketChannelImpl())
         .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel ch) throws Exception {
