@@ -16,6 +16,7 @@
 
 package ratpack.util.internal;
 
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.ServerSocketChannel;
@@ -23,11 +24,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.util.Locale;
-
 public abstract class ChannelImplDetector {
 
-  private static final boolean EPOLL = System.getProperty("os.name").toLowerCase(Locale.UK).trim().startsWith("linux");
+  private static final boolean EPOLL = Epoll.isAvailable();
 
   public static Class<? extends ServerSocketChannel> getServerSocketChannelImpl() {
     return EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
