@@ -42,14 +42,14 @@ public class RequestSessionManager {
       Cookie match = null;
 
       for (Cookie cookie : context.getRequest().getCookies()) {
-        if (cookie.getName().equals(COOKIE_NAME)) {
+        if (cookie.name().equals(COOKIE_NAME)) {
           match = cookie;
           break;
         }
       }
 
       if (match != null) {
-        cookieSessionId = match.getValue();
+        cookieSessionId = match.value();
       } else {
         cookieSessionId = "";
       }

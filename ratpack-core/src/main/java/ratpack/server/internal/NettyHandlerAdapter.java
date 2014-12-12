@@ -128,7 +128,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
-    if (!nettyRequest.getDecoderResult().isSuccess()) {
+    if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       nettyRequest.release();
       return;
@@ -141,7 +141,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
 
-    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod(), nettyRequest.getUri(), remoteAddress, socketAddress, nettyRequest.content());
+    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.method(), nettyRequest.uri(), remoteAddress, socketAddress, nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();

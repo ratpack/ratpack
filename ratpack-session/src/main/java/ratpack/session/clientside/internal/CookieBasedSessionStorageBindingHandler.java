@@ -57,7 +57,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   public void handle(final Context context) {
     context.getRequest().addLazy(SessionStorage.class, () -> {
-      Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.getName()), null);
+      Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
       ConcurrentMap<String, Object> sessionMap = deserializeSession(context, sessionCookie);
       DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
       context.getRequest().add(StorageHashContainer.class, new StorageHashContainer(storage.hashCode()));
@@ -129,7 +129,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   private ConcurrentMap<String, Object> deserializeSession(Context context, Cookie cookieSession) {
     ConcurrentMap<String, Object> sessionStorage = new ConcurrentHashMap<>();
 
-    String encodedPairs = cookieSession == null ? null : cookieSession.getValue();
+    String encodedPairs = cookieSession == null ? null : cookieSession.value();
     if (encodedPairs != null) {
       String[] parts = encodedPairs.split(SESSION_SEPARATOR);
       if (parts.length == 2) {

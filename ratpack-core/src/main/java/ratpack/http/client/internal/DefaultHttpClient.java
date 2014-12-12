@@ -176,7 +176,7 @@ public class DefaultHttpClient implements HttpClient {
                   ByteBuf responseBuffer = initBufferReleaseOnExecutionClose(response.content(), execution);
                   final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
 
-                  final Status status = new DefaultStatus(response.getStatus());
+                  final Status status = new DefaultStatus(response.status());
 
                   int maxRedirects = requestSpecBacking.getMaxRedirects();
                   String locationValue = headers.get("Location");

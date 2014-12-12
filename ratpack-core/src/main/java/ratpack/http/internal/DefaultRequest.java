@@ -155,7 +155,7 @@ public class DefaultRequest implements Request {
     Cookie found = null;
     List<Cookie> allFound = null;
     for (Cookie cookie : getCookies()) {
-      if (cookie.getName().equals(name)) {
+      if (cookie.name().equals(name)) {
         if (found == null) {
           found = cookie;
         } else if (allFound == null) {
@@ -181,7 +181,7 @@ public class DefaultRequest implements Request {
 
       throw new IllegalStateException(s.toString());
     } else {
-      return found.getValue();
+      return found.value();
     }
   }
 

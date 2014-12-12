@@ -254,7 +254,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   public List<Cookie> getCookies() {
     List<Cookie> clonedList = new ArrayList<>();
     if (cookies != null) {
-      cookies.stream().forEach(c -> clonedList.add(new DefaultCookie(c.getName(), c.getValue())));
+      cookies.stream().forEach(c -> clonedList.add(new DefaultCookie(c.name(), c.value())));
     }
     return clonedList;
   }
