@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,9 @@ package ratpack.launch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
-import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
-import ratpack.launch.internal.DefaultLaunchConfig;
-import ratpack.registry.Registries;
-import ratpack.registry.Registry;
+import ratpack.launch.internal.DefaultServerConfig;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -36,76 +31,92 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("UnusedDeclaration")
-public class LaunchConfigBuilder {
+/**
+ * Builds ServerConfig objects.
+ */
+public class ServerConfigBuilder implements ServerConfigSpec {
 
   private FileSystemBinding baseDir;
 
-  private int port = LaunchConfig.DEFAULT_PORT;
+  private int port = ServerConfig.DEFAULT_PORT;
   private InetAddress address;
   private boolean development;
-  private int threads = LaunchConfig.DEFAULT_THREADS;
+  private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
-  private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
   private SSLContext sslContext;
-  private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
+  private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
   private boolean compressResponses;
-  private long compressionMinSize = LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE;
+  private long compressionMinSize = ServerConfig.DEFAULT_COMPRESSION_MIN_SIZE;
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
-  private Registry defaultRegistry = Registries.empty();
 
-  private LaunchConfigBuilder() {
+  private ServerConfigBuilder() {
   }
 
-  private LaunchConfigBuilder(Path baseDir) {
+  private ServerConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
   }
 
-  /**
-   * Create a new builder, with no base dir.
-   *
-   * @return A new launch config builder
-   */
-  public static LaunchConfigBuilder noBaseDir() {
-    return new LaunchConfigBuilder();
+  public static ServerConfigBuilder noBaseDir() {
+    return new ServerConfigBuilder();
   }
 
   /**
    * Create a new builder, using the given file as the base dir.
    *
    * @param baseDir The base dir of the launch config
-   * @return A new launch config builder
+   * @return A new server config builder
    * @see LaunchConfig#getBaseDir()
    */
-  public static LaunchConfigBuilder baseDir(File baseDir) {
+  public static ServerConfigBuilder baseDir(File baseDir) {
     return baseDir(baseDir.toPath());
   }
 
   /**
-   * Create a new builder, using the given file as the base dir.
-   *
-   * @param baseDir The base dir of the launch config
-   * @return A new launch config builder
-   * @see LaunchConfig#getBaseDir()
+   * Initialize a ServerConfigBuilder from the legacy launch config.
+   * @param launchConfig the launch config data to initialize the builder
+   * @return A new server config builder
    */
-  public static LaunchConfigBuilder baseDir(Path baseDir) {
-    return new LaunchConfigBuilder(baseDir.toAbsolutePath().normalize());
+  public static ServerConfigBuilder launchConfig(LaunchConfig launchConfig) {
+    ServerConfigBuilder builder;
+    if (launchConfig.isHasBaseDir()) {
+      builder = baseDir(launchConfig.getBaseDir().getFile());
+    } else {
+      builder = noBaseDir();
+    }
+    builder.port(launchConfig.getPort());
+    builder.address(launchConfig.getAddress());
+    builder.development(launchConfig.isDevelopment());
+    builder.threads(launchConfig.getThreads());
+    builder.publicAddress(launchConfig.getPublicAddress());
+    builder.maxContentLength(launchConfig.getMaxContentLength());
+    builder.timeResponses(launchConfig.isTimeResponses());
+    builder.compressResponses(launchConfig.isCompressResponses());
+    builder.compressionMinSize(launchConfig.getCompressionMinSize());
+    builder.compressionWhiteListMimeTypes(launchConfig.getCompressionMimeTypeWhiteList().asList());
+    builder.compressionBlackListMimeTypes(launchConfig.getCompressionMimeTypeBlackList().asList());
+    builder.indexFiles(launchConfig.getIndexFiles());
+    builder.ssl(launchConfig.getSSLContext());
+    builder.other(launchConfig.getOtherPrefixedWith(""));
+    return builder;
   }
 
   /**
-   * Sets the port to bind to.
-   * <p>
-   * Default value is {@code 5050}.
+   * Create a new builder, using the given file as the base dir.
    *
-   * @param port The port to bind to
-   * @return this
-   * @see LaunchConfig#getPort()
+   * @param baseDir The base dir of the launch config
+   * @return A new server config builder
+   * @see LaunchConfig#getBaseDir()
    */
-  public LaunchConfigBuilder port(int port) {
+  public static ServerConfigBuilder baseDir(Path baseDir) {
+    return new ServerConfigBuilder(baseDir.toAbsolutePath().normalize());
+  }
+
+  @Override
+  public ServerConfigBuilder port(int port) {
     this.port = port;
     return this;
   }
@@ -117,9 +128,9 @@ public class LaunchConfigBuilder {
    *
    * @param address The address to bind to
    * @return this
-   * @see LaunchConfig#getAddress()
+   * @see ServerConfig#getAddress()
    */
-  public LaunchConfigBuilder address(InetAddress address) {
+  public ServerConfigBuilder address(InetAddress address) {
     this.address = address;
     return this;
   }
@@ -131,9 +142,9 @@ public class LaunchConfigBuilder {
    *
    * @param development Whether or not the application is "development".
    * @return this
-   * @see LaunchConfig#isDevelopment()
+   * @see ServerConfig#isDevelopment()
    */
-  public LaunchConfigBuilder development(boolean development) {
+  public ServerConfigBuilder development(boolean development) {
     this.development = development;
     return this;
   }
@@ -141,31 +152,17 @@ public class LaunchConfigBuilder {
   /**
    * The number of threads to use.
    * <p>
-   * Defaults to {@link LaunchConfig#DEFAULT_THREADS}
+   * Defaults to {@link ServerConfig#DEFAULT_THREADS}
    *
    * @param threads the size of the event loop thread pool
    * @return this
-   * @see LaunchConfig#getThreads()
+   * @see ServerConfig#getThreads()
    */
-  public LaunchConfigBuilder threads(int threads) {
+  public ServerConfigBuilder threads(int threads) {
     if (threads < 1) {
       throw new IllegalArgumentException("'threads' must be > 0");
     }
     this.threads = threads;
-    return this;
-  }
-
-  /**
-   * The allocator to use when creating buffers in the application.
-   * <p>
-   * Default value is {@link PooledByteBufAllocator#DEFAULT}.
-   *
-   * @param byteBufAllocator The allocator to use when creating buffers in the application
-   * @return this
-   * @see LaunchConfig#getBufferAllocator()
-   */
-  public LaunchConfigBuilder bufferAllocator(ByteBufAllocator byteBufAllocator) {
-    this.byteBufAllocator = byteBufAllocator;
     return this;
   }
 
@@ -176,9 +173,9 @@ public class LaunchConfigBuilder {
    *
    * @param publicAddress The public address of the application
    * @return this
-   * @see LaunchConfig#getPublicAddress()
+   * @see ServerConfig#getPublicAddress()
    */
-  public LaunchConfigBuilder publicAddress(URI publicAddress) {
+  public ServerConfigBuilder publicAddress(URI publicAddress) {
     this.publicAddress = publicAddress;
     return this;
   }
@@ -190,9 +187,9 @@ public class LaunchConfigBuilder {
    *
    * @param maxContentLength The max content length to accept.
    * @return this
-   * @see LaunchConfig#getMaxContentLength()
+   * @see ServerConfig#getMaxContentLength()
    */
-  public LaunchConfigBuilder maxContentLength(int maxContentLength) {
+  public ServerConfigBuilder maxContentLength(int maxContentLength) {
     this.maxContentLength = maxContentLength;
     return this;
   }
@@ -204,9 +201,9 @@ public class LaunchConfigBuilder {
    *
    * @param timeResponses Whether to time responses
    * @return this
-   * @see LaunchConfig#isTimeResponses()
+   * @see ServerConfig#isTimeResponses()
    */
-  public LaunchConfigBuilder timeResponses(boolean timeResponses) {
+  public ServerConfigBuilder timeResponses(boolean timeResponses) {
     this.timeResponses = timeResponses;
     return this;
   }
@@ -218,9 +215,9 @@ public class LaunchConfigBuilder {
    *
    * @param compressResponses Whether to compress responses
    * @return this
-   * @see LaunchConfig#isCompressResponses()
+   * @see ServerConfig#isCompressResponses()
    */
-  public LaunchConfigBuilder compressResponses(boolean compressResponses) {
+  public ServerConfigBuilder compressResponses(boolean compressResponses) {
     this.compressResponses = compressResponses;
     return this;
   }
@@ -230,9 +227,9 @@ public class LaunchConfigBuilder {
    *
    * @param compressionMinSize The minimum size at which responses should be compressed, in bytes
    * @return this
-   * @see LaunchConfig#getCompressionMinSize()
+   * @see ServerConfig#getCompressionMinSize()
    */
-  public LaunchConfigBuilder compressionMinSize(long compressionMinSize) {
+  public ServerConfigBuilder compressionMinSize(long compressionMinSize) {
     this.compressionMinSize = compressionMinSize;
     return this;
   }
@@ -242,9 +239,9 @@ public class LaunchConfigBuilder {
    *
    * @param mimeTypes the compressible mime types.
    * @return this
-   * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+   * @see ServerConfig#getCompressionMimeTypeWhiteList()
    */
-  public LaunchConfigBuilder compressionWhiteListMimeTypes(String... mimeTypes) {
+  public ServerConfigBuilder compressionWhiteListMimeTypes(String... mimeTypes) {
     this.compressionMimeTypeWhiteList.add(mimeTypes);
     return this;
   }
@@ -254,9 +251,9 @@ public class LaunchConfigBuilder {
    *
    * @param mimeTypes the compressible mime types.
    * @return this
-   * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+   * @see ServerConfig#getCompressionMimeTypeWhiteList()
    */
-  public LaunchConfigBuilder compressionWhiteListMimeTypes(List<String> mimeTypes) {
+  public ServerConfigBuilder compressionWhiteListMimeTypes(List<String> mimeTypes) {
     this.compressionMimeTypeWhiteList.addAll(mimeTypes);
     return this;
   }
@@ -266,9 +263,9 @@ public class LaunchConfigBuilder {
    *
    * @param mimeTypes the non-compressible mime types.
    * @return this
-   * @see LaunchConfig#getCompressionMimeTypeBlackList()
+   * @see ServerConfig#getCompressionMimeTypeBlackList()
    */
-  public LaunchConfigBuilder compressionBlackListMimeTypes(String... mimeTypes) {
+  public ServerConfigBuilder compressionBlackListMimeTypes(String... mimeTypes) {
     this.compressionMimeTypeBlackList.add(mimeTypes);
     return this;
   }
@@ -278,9 +275,9 @@ public class LaunchConfigBuilder {
    *
    * @param mimeTypes the non-compressible mime types.
    * @return this
-   * @see LaunchConfig#getCompressionMimeTypeBlackList()
+   * @see ServerConfig#getCompressionMimeTypeBlackList()
    */
-  public LaunchConfigBuilder compressionBlackListMimeTypes(List<String> mimeTypes) {
+  public ServerConfigBuilder compressionBlackListMimeTypes(List<String> mimeTypes) {
     this.compressionMimeTypeBlackList.addAll(mimeTypes);
     return this;
   }
@@ -290,9 +287,9 @@ public class LaunchConfigBuilder {
    *
    * @param indexFiles the potential index file names.
    * @return this
-   * @see LaunchConfig#getIndexFiles()
+   * @see ServerConfig#getIndexFiles()
    */
-  public LaunchConfigBuilder indexFiles(String... indexFiles) {
+  public ServerConfigBuilder indexFiles(String... indexFiles) {
     this.indexFiles.add(indexFiles);
     return this;
   }
@@ -302,9 +299,9 @@ public class LaunchConfigBuilder {
    *
    * @param indexFiles the potential index file names.
    * @return this
-   * @see LaunchConfig#getIndexFiles()
+   * @see ServerConfig#getIndexFiles()
    */
-  public LaunchConfigBuilder indexFiles(List<String> indexFiles) {
+  public ServerConfigBuilder indexFiles(List<String> indexFiles) {
     this.indexFiles.addAll(indexFiles);
     return this;
   }
@@ -315,9 +312,9 @@ public class LaunchConfigBuilder {
    * @param sslContext the SSL context.
    * @return this
    * @see ratpack.ssl.SSLContexts
-   * @see LaunchConfig#getSSLContext()
+   * @see ServerConfig#getSSLContext()
    */
-  public LaunchConfigBuilder ssl(SSLContext sslContext) {
+  public ServerConfigBuilder ssl(SSLContext sslContext) {
     this.sslContext = sslContext;
     return this;
   }
@@ -328,9 +325,9 @@ public class LaunchConfigBuilder {
    * @param key The key of the property
    * @param value The value of the property
    * @return this
-   * @see LaunchConfig#getOther(String, String)
+   * @see ServerConfig#getOther(String, String)
    */
-  public LaunchConfigBuilder other(String key, String value) {
+  public ServerConfigBuilder other(String key, String value) {
     other.put(key, value);
     return this;
   }
@@ -340,67 +337,21 @@ public class LaunchConfigBuilder {
    *
    * @param other A map of properties to add to the launch config other properties
    * @return this
-   * @see LaunchConfig#getOther(String, String)
+   * @see ServerConfig#getOther(String, String)
    */
-  public LaunchConfigBuilder other(Map<String, String> other) {
+  public ServerConfigBuilder other(Map<String, String> other) {
     for (Map.Entry<String, String> entry : other.entrySet()) {
       other(entry.getKey(), entry.getValue());
     }
     return this;
   }
 
-  /**
-   * The default registry for the built launch config.
-   *
-   * @param defaultRegistry the default registry
-   * @return this
-   */
-  public LaunchConfigBuilder defaultRegistry(Registry defaultRegistry) {
-    this.defaultRegistry = defaultRegistry;
-    return this;
+  public ServerConfig build() {
+    return new DefaultServerConfig(baseDir, port, address, development, threads,
+      publicAddress, indexFiles.build(), other.build(), sslContext, maxContentLength,
+      timeResponses, compressResponses, compressionMinSize,
+      compressionMimeTypeWhiteList.build(), compressionMimeTypeBlackList.build());
   }
 
-  /**
-   * Builds the launch config, based on the current state and the handler factory.
-   * <p>
-   * Supplying {@code null} for the {@code handlerFactory} will result in a launch config that can't be used to start a server.
-   * This is the same as calling {@link #build()}.
-   *
-   * @param handlerFactory The handler factory for the application
-   * @return A newly constructed {@link LaunchConfig} based on this builder's state
-   */
-  public LaunchConfig build(@Nullable HandlerFactory handlerFactory) {
-    return new DefaultLaunchConfig(
-      baseDir,
-      port,
-      address,
-      development,
-      threads,
-      byteBufAllocator,
-      publicAddress,
-      indexFiles.build(),
-      other.build(),
-      sslContext,
-      maxContentLength,
-      timeResponses,
-      compressResponses,
-      compressionMinSize,
-      compressionMimeTypeWhiteList.build(),
-      compressionMimeTypeBlackList.build(),
-      handlerFactory,
-      defaultRegistry
-    );
-  }
-
-  /**
-   * Builds the launch config, based on the current state and WITHOUT handler factory.
-   * <p>
-   * This variant is really only useful for using the resultant launch config for testing purposes.
-   *
-   * @return A newly constructed {@link LaunchConfig} based on this builder's state
-   */
-  public LaunchConfig build() {
-    return build(null);
-  }
 
 }

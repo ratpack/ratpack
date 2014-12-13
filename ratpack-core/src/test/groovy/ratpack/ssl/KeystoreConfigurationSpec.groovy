@@ -20,8 +20,8 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
-import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigs
+import ratpack.registry.Registry
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,7 +35,7 @@ class KeystoreConfigurationSpec extends Specification {
 
   static class NullHandlerFactory implements HandlerFactory {
     @Override
-    Handler create(LaunchConfig launchConfig) throws Exception {
+    Handler create(Registry registry) throws Exception {
       return null
     }
   }

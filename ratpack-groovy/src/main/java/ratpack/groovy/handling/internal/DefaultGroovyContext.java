@@ -31,7 +31,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -69,8 +69,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public LaunchConfig getLaunchConfig() {
-    return delegate.getLaunchConfig();
+  public ServerConfig getServerConfig() {
+    return delegate.getServerConfig();
   }
 
   @Override

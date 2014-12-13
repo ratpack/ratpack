@@ -18,7 +18,9 @@ package ratpack.websocket
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
+import ratpack.exec.ExecController
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Timeout
 import spock.util.concurrent.BlockingVariable
 
 import java.time.Duration
@@ -31,6 +33,7 @@ import static ratpack.stream.Streams.publish
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
+@Timeout(5)
 class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   def "can send and receive websockets"() {
@@ -119,8 +122,8 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     def streamCancelled = new CountDownLatch(1)
 
     handlers {
-      get {
-        def stream = periodically(launchConfig.execController.executor, Duration.ofMillis(100)) {
+      get { ctx ->
+        def stream = periodically(ctx.get(ExecController).executor, Duration.ofMillis(100)) {
           "1"
         }.wiretap {
           if (it.cancel) {

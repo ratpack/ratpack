@@ -105,9 +105,9 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
       add JacksonModule
     }
     handlers {
-      get {
+      get { ctx ->
         def data = [1, 2, [foo: "bar"], 4]
-        render chunkedJsonList(context, Streams.periodically(launchConfig, Duration.ofMillis(100), {
+        render chunkedJsonList(context, Streams.periodically(ctx, Duration.ofMillis(100), {
           it < data.size() ? data.get(it) : null
         }))
       }

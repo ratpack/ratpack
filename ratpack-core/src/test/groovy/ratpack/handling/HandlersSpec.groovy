@@ -21,7 +21,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
-import ratpack.launch.LaunchConfig
+import ratpack.launch.ServerConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.handling.Handlers.chain
@@ -46,7 +46,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
         get(ServerErrorHandler)
         get(ClientErrorHandler)
         get(MimeTypes)
-        get(LaunchConfig)
+        get(ServerConfig)
         get(FileSystemBinding)
         response.send "ok"
       }

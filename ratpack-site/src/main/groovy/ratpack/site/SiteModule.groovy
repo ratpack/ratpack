@@ -7,7 +7,7 @@ import groovy.util.logging.Slf4j
 import ratpack.file.FileSystemChecksumServices
 import ratpack.groovy.template.MarkupTemplate
 import ratpack.http.client.HttpClient
-import ratpack.launch.LaunchConfig
+import ratpack.launch.ServerConfig
 import ratpack.render.RenderableDecorator
 import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi
@@ -24,10 +24,10 @@ class SiteModule extends AbstractModule {
   public static final String GITHUB_URL = "github.url"
   public static final String GITHUB_URL_DEFAULT = "https://api.github.com/"
 
-  private final LaunchConfig launchConfig
+  private final ServerConfig serverConfig
 
-  SiteModule(LaunchConfig launchConfig) {
-    this.launchConfig = launchConfig
+  SiteModule(ServerConfig serverConfig) {
+    this.serverConfig = serverConfig
   }
 
   @Override
@@ -35,7 +35,7 @@ class SiteModule extends AbstractModule {
 //    bind(ClientErrorHandler).toInstance(new SiteErrorHandler())
 //    bind(ServerErrorHandler).toInstance(new SiteErrorHandler())
 
-    boolean enableGithub = launchConfig.getOther(GITHUB_ENABLE, "true").toBoolean()
+    boolean enableGithub = serverConfig.getOther(GITHUB_ENABLE, "true").toBoolean()
     if (enableGithub) {
       install(new ApiModule())
       bind(RatpackVersions)
@@ -46,7 +46,7 @@ class SiteModule extends AbstractModule {
   @Provides
   @com.google.inject.Singleton
   AssetLinkService assetLinkService() {
-    new AssetLinkService(FileSystemChecksumServices.service(launchConfig))
+    new AssetLinkService(FileSystemChecksumServices.service(serverConfig))
   }
 
   @Slf4j
@@ -59,16 +59,16 @@ class SiteModule extends AbstractModule {
 
     @Provides
     @com.google.inject.Singleton
-    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, HttpClient httpClient) {
-      String authToken = launchConfig.getOther(GITHUB_AUTH, null)
+    GitHubApi gitHubApi(ServerConfig serverConfig, ObjectReader reader, HttpClient httpClient) {
+      String authToken = serverConfig.getOther(GITHUB_AUTH, null)
       if (authToken == null) {
         log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth other property)"
       }
 
-      String ttlMins = launchConfig.getOther(GITHUB_TTL, GITHUB_TTL_DEFAULT)
+      String ttlMins = serverConfig.getOther(GITHUB_TTL, GITHUB_TTL_DEFAULT)
       def ttlMinsInt = Integer.parseInt(ttlMins)
 
-      String url = launchConfig.getOther(GITHUB_URL, GITHUB_URL_DEFAULT)
+      String url = serverConfig.getOther(GITHUB_URL, GITHUB_URL_DEFAULT)
 
       new GitHubApi(url, authToken, ttlMinsInt, reader, httpClient)
     }

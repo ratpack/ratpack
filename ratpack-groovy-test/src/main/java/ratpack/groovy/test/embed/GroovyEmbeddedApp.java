@@ -27,11 +27,11 @@ import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigBuilder;
+import ratpack.launch.*;
+import ratpack.server.RatpackServer;
 import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.test.embed.internal.LaunchConfigEmbeddedApp;
+import ratpack.test.embed.internal.EmbeddedAppSupport;
 
 import java.nio.file.Path;
 import java.util.function.Supplier;
@@ -55,7 +55,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  *     }
  *   }
  *
- *   launchConfig {
+ *   serverConfig {
  *     development true
  *     other "some.other.property": "value"
  *   }
@@ -112,7 +112,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     Spec bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
     /**
-     * Modifies the launch config of the application.
+     * Modifies the server config of the application.
      * <p>
      * The given closure will not be executed until this application is started.
      * <p>
@@ -122,7 +122,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
      * @param closure The definition of the application handlers
      * @return {@code this}
      */
-    Spec launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+    Spec serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
     Spec parentInjector(Injector parentInjector);
 
@@ -140,31 +140,29 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
   public static EmbeddedApp build(@DelegatesTo(value = Spec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
 
 
-    return new LaunchConfigEmbeddedApp() {
+    return new EmbeddedAppSupport() {
       @Override
-      protected LaunchConfig createLaunchConfig() {
+      protected RatpackServer createServer() {
         final SpecWrapper spec = new SpecWrapper();
         configureDelegateFirst(spec.getSpec(), closure);
-        LaunchConfigBuilder launchConfigBuilder;
+        ServerConfigBuilder serverConfigBuilder;
 
         if (spec.baseDirSupplier != null) {
           Path baseDirPath = spec.baseDirSupplier.get();
-          launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDirPath);
+          serverConfigBuilder = ServerConfigBuilder.baseDir(baseDirPath);
         } else {
-          launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
+          serverConfigBuilder = ServerConfigBuilder.noBaseDir();
         }
 
-        configureDelegateFirst(launchConfigBuilder.port(0), spec.launchConfig);
+        configureDelegateFirst(serverConfigBuilder.port(0), spec.serverConfig);
 
         final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
 
-        return launchConfigBuilder.build(launchConfig -> {
-
-          Guice.Builder builder = Guice.builder(launchConfig);
+        return RatpackLauncher.launcher(r -> r.add(ServerConfig.class, serverConfigBuilder.build())).build(r -> {
+          Guice.Builder builder = Guice.builder(r);
           if (spec.parentInjector != null) {
             builder.parent(spec.parentInjector);
           }
-
           return builder.bindings(bindingsAction).build(chain -> Groovy.chain(chain, spec.handlers));
         });
       }
@@ -174,7 +172,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
   static class SpecWrapper {
     private Closure<?> handlers = ClosureUtil.noop();
     private Closure<?> bindings = ClosureUtil.noop();
-    private Closure<?> launchConfig = ClosureUtil.noop();
+    private Closure<?> serverConfig = ClosureUtil.noop();
     private Injector parentInjector;
     private Supplier<? extends Path> baseDirSupplier;
 
@@ -193,8 +191,8 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
         }
 
         @Override
-        public Spec launchConfig(Closure<?> closure) {
-          launchConfig = closure;
+        public Spec serverConfig(Closure<?> closure) {
+          serverConfig = closure;
           return this;
         }
 

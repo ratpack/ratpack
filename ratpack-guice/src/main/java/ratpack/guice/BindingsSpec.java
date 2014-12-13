@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import ratpack.func.Action;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 import java.util.function.Consumer;
 
@@ -74,7 +74,7 @@ import java.util.function.Consumer;
  * <p>
  * Added modules can implement the {@link HandlerDecoratingModule} interface to facilitate adding handlers implicitly to the handler chain.
  *
- * @see Guice#builder(ratpack.launch.LaunchConfig)
+ * @see Guice#builder(ratpack.registry.Registry)
  * @see HandlerDecoratingModule
  */
 public interface BindingsSpec {
@@ -84,7 +84,7 @@ public interface BindingsSpec {
    *
    * @return the launch config for the application
    */
-  LaunchConfig getLaunchConfig();
+  ServerConfig getServerConfig();
 
   /**
    * Adds the bindings from the given modules.

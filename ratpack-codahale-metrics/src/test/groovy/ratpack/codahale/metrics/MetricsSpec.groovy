@@ -67,7 +67,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     System.out = new PrintStream(output, true)
 
     and:
-    launchConfig {
+    serverConfig {
       other("metrics.scheduledreporter.interval", "1")
     }
 
@@ -344,7 +344,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can use metrics endpoint"() {
     given:
-    launchConfig {
+    serverConfig {
       other("metrics.scheduledreporter.interval", "1")
     }
 

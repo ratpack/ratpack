@@ -66,7 +66,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
           if (entries.isEmpty()) {
             invalidateSession(responseMetaData);
           } else {
-            ByteBufAllocator bufferAllocator = context.getLaunchConfig().getBufferAllocator();
+              ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
             String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
             responseMetaData.cookie(sessionName, cookieValue);
           }

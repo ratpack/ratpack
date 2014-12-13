@@ -30,7 +30,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a thymeleaf template from #scenario'() {
     given:
-    launchConfig { other(otherConfig) }
+    serverConfig { other(otherConfig) }
     file filePath, '<span th:text="${key}"/>'
 
     when:
@@ -58,7 +58,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'use default suffix if a #scenario suffix is used'() {
     given:
-    launchConfig { other(otherConfig) }
+    serverConfig { other(otherConfig) }
     file 'thymeleaf/simple.html', '<span th:text="${text}"/>'
 
     when:

@@ -19,8 +19,12 @@ package ratpack.groovy.handling
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigs
+import ratpack.launch.RatpackLauncher
+import ratpack.launch.ServerConfig
+import ratpack.launch.ServerConfigBuilder
+import ratpack.server.RatpackServer
 import ratpack.test.embed.EmbeddedApp
-import ratpack.test.embed.internal.LaunchConfigEmbeddedApp
+import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
@@ -30,10 +34,17 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
   EmbeddedApp createApplication() {
-    new LaunchConfigEmbeddedApp() {
-      @Override
+    new EmbeddedAppSupport() {
+      //TODO-JOHN
       protected LaunchConfig createLaunchConfig() {
         LaunchConfigs.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())
+      }
+
+      @Override
+      protected RatpackServer createServer() {
+        RatpackLauncher.launcher { r ->
+          r.add(ServerConfig, ServerConfigBuilder.launchConfig(createLaunchConfig()).port(0).build())
+        }.build(new GroovyScriptFileHandlerFactory().&create)
       }
     }
   }

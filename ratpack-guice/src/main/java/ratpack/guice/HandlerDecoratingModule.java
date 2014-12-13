@@ -76,7 +76,7 @@ import ratpack.handling.Handler;
 * }
 * </pre>
 *
-* @see ratpack.guice.Guice#builder(ratpack.launch.LaunchConfig)
+* @see ratpack.guice.Guice#builder(ratpack.registry.Registry)
 */
 public interface HandlerDecoratingModule extends Module {
 

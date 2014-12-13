@@ -18,11 +18,13 @@ package ratpack.groovy.template;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.groovy.template.internal.TextTemplateRenderingEngine;
 import ratpack.groovy.template.internal.TextTemplateRenderer;
 import ratpack.guice.ConfigurableModule;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 @SuppressWarnings("UnusedDeclaration")
 public class TextTemplateModule extends ConfigurableModule<TextTemplateModule.Config> {
@@ -56,18 +58,18 @@ public class TextTemplateModule extends ConfigurableModule<TextTemplateModule.Co
 
   @Provides
   @Singleton
-  TextTemplateRenderingEngine provideGroovyTemplateRenderingEngine(LaunchConfig launchConfig, Config config) {
+  TextTemplateRenderingEngine provideGroovyTemplateRenderingEngine(ServerConfig serverConfig, ExecController execController, ByteBufAllocator bufferAllocator, Config config) {
     String templatesPath = config.getTemplatesPath();
-    FileSystemBinding templateDir = launchConfig.getBaseDir().binding(templatesPath);
+    FileSystemBinding templateDir = serverConfig.getBaseDir().binding(templatesPath);
     if (templateDir == null) {
       throw new IllegalStateException("templatesPath '" + templatesPath + "' is outside the file system binding");
     }
 
     return new TextTemplateRenderingEngine(
-      launchConfig.getExecController().getControl(),
-      launchConfig.getBufferAllocator(),
+      execController.getControl(),
+      bufferAllocator,
       templateDir,
-      launchConfig.isDevelopment(),
+      serverConfig.isDevelopment(),
       config.staticallyCompile
     );
   }

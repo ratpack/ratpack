@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
  *
  * <pre class="java">{@code
  * import ratpack.exec.ExecControl;
+ * import ratpack.exec.ExecController;
  * import ratpack.exec.Promise;
  *
  * import ratpack.test.handling.RequestFixture;
@@ -49,7 +50,7 @@ import java.util.concurrent.Callable;
  *
  *   public static void main(String[] args) throws Exception {
  *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
- *       ExecControl control = chain.getLaunchConfig().getExecController().getControl();
+ *       ExecControl control = chain.getRegistry().get(ExecController.class).getControl();
  *       AsyncUpperCaseService service = new AsyncUpperCaseService(control);
  *       chain.get(ctx -> service.toUpper("foo").then(ctx::render));
  *     });

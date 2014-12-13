@@ -17,6 +17,7 @@
 package ratpack.test.handling.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Subscriber;
@@ -40,7 +41,7 @@ import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
@@ -71,7 +72,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private Integer clientError;
 
-  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfig launchConfig, final Handler handler) throws Exception {
+  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, ServerConfig serverConfig, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -100,8 +101,7 @@ public class DefaultHandlingResult implements HandlingResult {
     final Registry userRegistry = Registries.registry().
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
-      build()
-      .join(registry);
+      build();
 
     final RenderController renderController = (object, context) -> {
       rendered = object;
@@ -136,12 +136,12 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     };
 
-    ExecController execController = launchConfig.getExecController();
+    ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
-    Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
-    Registry effectiveRegistry = baseRegistry.join(userRegistry);
-    Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController, next);
+    //TODO-JOHN this isn't ideal but it works. Run it past Luke.
+    Registry effectiveRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, serverConfig, registry, userRegistry);
+    Response response = new DefaultResponse(execControl, responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, request, response, null, eventController.getRegistry()
     );

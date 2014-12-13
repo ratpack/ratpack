@@ -102,7 +102,7 @@ id: 3
 
   def "can send compressed server sent event"() {
     given:
-    launchConfig {
+    serverConfig {
       compressResponses(true)
     }
     handlers {

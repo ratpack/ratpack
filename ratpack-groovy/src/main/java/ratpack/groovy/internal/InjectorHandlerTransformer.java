@@ -22,22 +22,22 @@ import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.guice.Guice;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 
 public class InjectorHandlerTransformer implements Function<Injector, Handler> {
 
-  private final LaunchConfig launchConfig;
+  private final ServerConfig serverConfig;
   private final Closure<?> closure;
 
-  public InjectorHandlerTransformer(LaunchConfig launchConfig, Closure<?> closure) {
-    this.launchConfig = launchConfig;
+  public InjectorHandlerTransformer(ServerConfig serverConfig, Closure<?> closure) {
+    this.serverConfig = serverConfig;
     this.closure = closure;
   }
 
   public Handler apply(Injector injector) throws Exception {
     final Registry registry = Guice.justInTimeRegistry(injector);
-    return Groovy.chain(launchConfig, registry, closure);
+    return Groovy.chain(serverConfig, registry, closure);
   }
 
 }

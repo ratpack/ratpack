@@ -26,7 +26,7 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
@@ -107,8 +107,8 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public LaunchConfig getLaunchConfig() {
-    return delegate.getLaunchConfig();
+  public ServerConfig getServerConfig() {
+    return delegate.getServerConfig();
   }
 
   @Nullable

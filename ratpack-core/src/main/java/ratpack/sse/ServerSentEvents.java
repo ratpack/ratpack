@@ -51,7 +51,7 @@ import ratpack.stream.Streams;
  * public class Example {
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(context -> {
- *       Publisher<String> stream = periodically(context.getLaunchConfig(), Duration.ofMillis(5), i ->
+ *       Publisher<String> stream = periodically(context, Duration.ofMillis(5), i ->
  *         i < 5 ? i.toString() : null
  *       );
  *
@@ -125,7 +125,7 @@ public class ServerSentEvents implements Renderable {
    */
   @Override
   public void render(Context context) throws Exception {
-    ByteBufAllocator bufferAllocator = context.getLaunchConfig().getBufferAllocator();
+    ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
     response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);

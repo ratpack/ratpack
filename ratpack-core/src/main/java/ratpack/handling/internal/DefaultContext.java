@@ -38,7 +38,7 @@ import ratpack.http.Response;
 import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.MultiMethodHandler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
@@ -73,14 +73,14 @@ public class DefaultContext implements Context {
 
   public static class ApplicationConstants {
     private final RenderController renderController;
-    private final LaunchConfig launchConfig;
+    private final Registry registry;
     private final ExecControl execControl;
     private final Handler end;
 
-    public ApplicationConstants(LaunchConfig launchConfig, RenderController renderController, Handler end) {
+    public ApplicationConstants(Registry registry, RenderController renderController, Handler end) {
       this.renderController = renderController;
-      this.launchConfig = launchConfig;
-      this.execControl = launchConfig.getExecController().getControl();
+      this.registry = registry;
+      this.execControl = registry.get(ExecController.class).getControl();
       this.end = end;
     }
   }
@@ -203,8 +203,10 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public LaunchConfig getLaunchConfig() {
-    return requestConstants.applicationConstants.launchConfig;
+  public ServerConfig getServerConfig() {
+    //TODO-JOHN
+//    return requestConstants.applicationConstants.registry.get(ServerConfig.class);
+    return get(ServerConfig.class);
   }
 
   public Request getRequest() {
@@ -397,7 +399,7 @@ public class DefaultContext implements Context {
     LOGGER.error(msg);
 
     Response response = requestConstants.response.status(500);
-    if (getLaunchConfig().isDevelopment()) {
+    if (getServerConfig().isDevelopment()) {
       response.send(msg);
     } else {
       response.send();

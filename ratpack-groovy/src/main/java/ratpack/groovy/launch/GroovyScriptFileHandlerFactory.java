@@ -27,7 +27,8 @@ import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
+import ratpack.registry.Registry;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,15 +42,16 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
   public static final String COMPILE_STATIC_PROPERTY_NAME = "groovy.compileStatic";
   public static final String COMPILE_STATIC_PROPERTY_DEFAULT = "false";
 
-  public Handler create(LaunchConfig launchConfig) {
-    String scriptName = launchConfig.getOther(SCRIPT_PROPERTY_NAME, SCRIPT_PROPERTY_DEFAULT);
-    Path script = launchConfig.getBaseDir().file(scriptName);
+  public Handler create(Registry registry) {
+    ServerConfig serverConfig = registry.get(ServerConfig.class);
+    String scriptName = serverConfig.getOther(SCRIPT_PROPERTY_NAME, SCRIPT_PROPERTY_DEFAULT);
+    Path script = serverConfig.getBaseDir().file(scriptName);
     if (script == null) {
       throw new IllegalStateException("scriptName '" + scriptName + "' escapes application base dir");
     }
 
     if (!Files.exists(script)) {
-      Path capitalized = launchConfig.getBaseDir().file(scriptName.substring(0, 1).toUpperCase() + scriptName.substring(1));
+      Path capitalized = serverConfig.getBaseDir().file(scriptName.substring(0, 1).toUpperCase() + scriptName.substring(1));
       if (capitalized != null) {
         if (Files.exists(capitalized)) {
           script = capitalized;
@@ -63,13 +65,13 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
       // ignore
     }
 
-    boolean compileStatic = Boolean.parseBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
+    boolean compileStatic = Boolean.parseBoolean(serverConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
 
-    Function<Module, Injector> moduleTransformer = Guice.newInjectorFactory(launchConfig);
-    GuiceBackedHandlerFactory handlerFactory = new GroovyKitAppFactory(launchConfig);
-    Function<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, handlerFactory, moduleTransformer);
+    Function<Module, Injector> moduleTransformer = Guice.newInjectorFactory(serverConfig);
+    GuiceBackedHandlerFactory handlerFactory = new GroovyKitAppFactory(registry);
+    Function<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(serverConfig, handlerFactory, moduleTransformer);
 
-    return new ScriptBackedApp(script, compileStatic, launchConfig.isDevelopment(), closureTransformer);
+    return new ScriptBackedApp(script, compileStatic, serverConfig.isDevelopment(), closureTransformer);
   }
 
 }

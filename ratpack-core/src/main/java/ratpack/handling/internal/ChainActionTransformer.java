@@ -20,23 +20,23 @@ import ratpack.api.Nullable;
 import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 
 import java.util.List;
 
 public class ChainActionTransformer implements Function<List<Handler>, Chain> {
 
-  private final LaunchConfig launchConfig;
+  private final ServerConfig serverConfig;
   private final Registry registry;
 
-  public ChainActionTransformer(LaunchConfig launchConfig, @Nullable Registry registry) {
-    this.launchConfig = launchConfig;
+  public ChainActionTransformer(ServerConfig serverConfig, @Nullable Registry registry) {
+    this.serverConfig = serverConfig;
     this.registry = registry;
   }
 
   public Chain apply(List<Handler> handlers) {
-    return new DefaultChain(handlers, launchConfig, registry);
+    return new DefaultChain(handlers, serverConfig, registry);
   }
 
 }

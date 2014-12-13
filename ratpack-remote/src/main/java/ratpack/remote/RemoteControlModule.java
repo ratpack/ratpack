@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import ratpack.guice.Guice;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.remote.internal.RemoteControlHandler;
 
 /**
@@ -64,9 +64,9 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {
-    LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
-    String endpointPath = path == null ? launchConfig.getOther("remoteControl.path", "remote-control") : path;
-    boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false")) || launchConfig.isDevelopment();
+    ServerConfig serverConfig = injector.getInstance(ServerConfig.class);
+    String endpointPath = path == null ? serverConfig.getOther("remoteControl.path", "remote-control") : path;
+    boolean enabled = Boolean.valueOf(serverConfig.getOther("remoteControl.enabled", "false")) || serverConfig.isDevelopment();
 
     if (enabled) {
       return new RemoteControlHandler(endpointPath, Guice.justInTimeRegistry(injector), handler);

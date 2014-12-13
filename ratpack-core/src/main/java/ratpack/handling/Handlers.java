@@ -22,7 +22,7 @@ import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
 import ratpack.handling.internal.*;
 import ratpack.http.internal.*;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinders;
 import ratpack.path.internal.PathHandler;
@@ -63,39 +63,51 @@ public abstract class Handlers {
    * <p>
    * If no file can be found to serve, then control will be delegated to the next handler.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param path The relative path to the location of the assets to serve
    * @param indexFiles The index files to try if the request is for a directory
    * @return A handler
    */
-  public static Handler assets(LaunchConfig launchConfig, String path, List<String> indexFiles) {
+  public static Handler assets(ServerConfig serverConfig, String path, List<String> indexFiles) {
     Handler handler = new AssetHandler(copyOf(indexFiles));
-    return fileSystem(launchConfig, path, handler);
+    return fileSystem(serverConfig, path, handler);
   }
 
   /**
    * Builds a handler chain, with no backing registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The server config
    * @param action The chain definition
    * @return A handler
    * @throws Exception any thrown by {@code action}
    */
-  public static Handler chain(LaunchConfig launchConfig, Action<? super Chain> action) throws Exception {
-    return chain(launchConfig, null, action);
+  public static Handler chain(ServerConfig serverConfig, Action<? super Chain> action) throws Exception {
+    return chain(serverConfig, null, action);
   }
 
   /**
    * Builds a chain, backed by the given registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The server config
    * @param registry The registry.
    * @param action The chain building action.
    * @return A handler
    * @throws Exception any thrown by {@code action}
    */
-  public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
-    return ChainBuilders.build(launchConfig != null && launchConfig.isDevelopment(), new ChainActionTransformer(launchConfig, registry), action);
+  public static Handler chain(@Nullable ServerConfig serverConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
+    return ChainBuilders.build(serverConfig != null && serverConfig.isDevelopment(), new ChainActionTransformer(serverConfig, registry), action);
+  }
+
+  /**
+   * Builds a chain, backed by the given registry.
+   *
+   * @param registry The registry.
+   * @param action The chain building action.
+   * @return A handler
+   * @throws Exception any thrown by {@code action}
+   */
+  public static Handler chain(Registry registry, Action<? super Chain> action) throws Exception {
+    return chain(registry.get(ServerConfig.class), registry, action);
   }
 
   /**
@@ -164,13 +176,13 @@ public abstract class Handlers {
    * <p>
    * The new file system binding will be created by the {@link ratpack.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param path The relative path to the new file system binding point
    * @param handler The handler to execute with the new file system binding
    * @return A handler
    */
-  public static Handler fileSystem(LaunchConfig launchConfig, String path, Handler handler) {
-    return new FileSystemBindingHandler(launchConfig, path, handler);
+  public static Handler fileSystem(ServerConfig serverConfig, String path, Handler handler) {
+    return new FileSystemBindingHandler(serverConfig, path, handler);
   }
 
   /**

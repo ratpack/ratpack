@@ -19,6 +19,7 @@ package ratpack.jackson.internal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -44,7 +45,7 @@ public class JsonRenderer extends RendererSupport<JsonRender> {
       writer = defaultObjectWriter;
     }
 
-    ByteBuf buffer = context.getLaunchConfig().getBufferAllocator().buffer();
+    ByteBuf buffer = context.get(ByteBufAllocator.class).buffer();
     OutputStream outputStream = new ByteBufOutputStream(buffer);
 
     try {

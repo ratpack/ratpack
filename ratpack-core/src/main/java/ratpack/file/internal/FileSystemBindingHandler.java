@@ -20,7 +20,7 @@ import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 
 public class FileSystemBindingHandler implements Handler {
@@ -28,8 +28,8 @@ public class FileSystemBindingHandler implements Handler {
   private final String path;
   private final Handler handler;
 
-  public FileSystemBindingHandler(LaunchConfig launchConfig, String path, Handler handler) {
-    if (launchConfig.isHasBaseDir()) {
+  public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
+    if (serverConfig.isHasBaseDir()) {
       this.path = path;
       this.handler = handler;
     } else {

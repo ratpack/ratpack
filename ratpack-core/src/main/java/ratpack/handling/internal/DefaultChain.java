@@ -21,7 +21,7 @@ import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
@@ -33,22 +33,22 @@ import static com.google.common.collect.ImmutableList.copyOf;
 public class DefaultChain implements Chain {
 
   private final List<Handler> handlers;
-  private final LaunchConfig launchConfig;
+  private final ServerConfig serverConfig;
   private final Registry registry;
 
-  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry registry) {
+  public DefaultChain(List<Handler> handlers, ServerConfig serverConfig, @Nullable Registry registry) {
     this.handlers = handlers;
-    this.launchConfig = launchConfig;
+    this.serverConfig = serverConfig;
     this.registry = registry;
   }
 
   public Chain assets(String path, String... indexFiles) {
-    return handler(Handlers.assets(getLaunchConfig(), path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
+    return handler(Handlers.assets(getServerConfig(), path, indexFiles.length == 0 ? serverConfig.getIndexFiles() : copyOf(indexFiles)));
   }
 
   @Override
   public Handler chain(Action<? super Chain> action) throws Exception {
-    return Handlers.chain(getLaunchConfig(), getRegistry(), action);
+    return Handlers.chain(getServerConfig(), getRegistry(), action);
   }
 
   public Chain delete(String path, Handler handler) {
@@ -60,7 +60,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.fileSystem(getLaunchConfig(), path, chain(action)));
+    return handler(Handlers.fileSystem(getServerConfig(), path, chain(action)));
   }
 
   public Chain get(String path, Handler handler) {
@@ -71,8 +71,8 @@ public class DefaultChain implements Chain {
     return get("", handler);
   }
 
-  public LaunchConfig getLaunchConfig() {
-    return launchConfig;
+  public ServerConfig getServerConfig() {
+    return serverConfig;
   }
 
   public Registry getRegistry() {

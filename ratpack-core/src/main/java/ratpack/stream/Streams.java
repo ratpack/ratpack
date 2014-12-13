@@ -18,10 +18,11 @@ package ratpack.stream;
 
 import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
@@ -279,8 +280,8 @@ public class Streams {
     return buffer(new PeriodicPublisher<>(executorService, producer, duration));
   }
 
-  public static <T> TransformablePublisher<T> periodically(LaunchConfig launchConfig, Duration duration, Function<Integer, T> producer) {
-    return buffer(new PeriodicPublisher<>(launchConfig.getExecController().getExecutor(), producer, duration));
+  public static <T> TransformablePublisher<T> periodically(Registry registry, Duration duration, Function<Integer, T> producer) {
+    return buffer(new PeriodicPublisher<>(registry.get(ExecController.class).getExecutor(), producer, duration));
   }
 
   /**

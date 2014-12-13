@@ -17,28 +17,29 @@
 package ratpack.handling;
 
 import ratpack.func.Action;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
- * A handler chain can be constructed using the {@link Handlers#chain(LaunchConfig, ratpack.func.Action)} like methods.
+ * A handler chain can be constructed using the {@link Handlers#chain(ServerConfig, ratpack.func.Action)} like methods.
  * For example, from a {@link ratpack.launch.HandlerFactory} implementation…
  * <pre class="tested">
  * import ratpack.launch.HandlerFactory;
- * import ratpack.launch.LaunchConfig;
+ * import ratpack.launch.ServerConfig;
  * import ratpack.handling.Chain;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Handlers;
  * import ratpack.handling.Context;
  * import ratpack.func.Action;
+ * import ratpack.registry.Registry;
  *
  * public class MyHandlerBootstrap implements HandlerFactory {
- *   public Handler create(LaunchConfig launchConfig) {
+ *   public Handler create(Registry registry) {
  *
- *     return Handlers.chain(launchConfig, new Action&lt;Chain&gt;() {
+ *     return Handlers.chain(registry.get(ServerConfig), new Action&lt;Chain&gt;() {
  *       public void execute(Chain chain) {
  *         chain
  *           .assets("public")
@@ -79,7 +80,7 @@ public interface Chain {
   /**
    * Adds a handler that serves static assets at the given file system path, relative to the contextual file system binding.
    * <p>
-   * See {@link Handlers#assets(LaunchConfig, String, java.util.List)} for more details on the handler created
+   * See {@link Handlers#assets(ServerConfig, String, java.util.List)} for more details on the handler created
    * <pre>
    *    prefix("foo") {
    *      assets("d1", "index.html", "index.xhtml")
@@ -201,20 +202,20 @@ public interface Chain {
   }
 
   /**
-   * The launch config of the application that this chain is being created for.
+   * The server config of the application that this chain is being created for.
    *
-   * @return The launch config of the application that this chain is being created for.
+   * @return The server config of the application that this chain is being created for.
    */
-  LaunchConfig getLaunchConfig();
+  ServerConfig getServerConfig();
 
   /**
    * The registry that backs this chain.
    * <p>
    * What the registry is depends on how the chain was created.
-   * The {@link Handlers#chain(LaunchConfig, Registry, Action)} allows the registry to be specified.
+   * The {@link Handlers#chain(ServerConfig, Registry, Action)} allows the registry to be specified.
    * For a Guice based application, the registry is backed by Guice.
    *
-   * @see Handlers#chain(LaunchConfig, Registry, Action)
+   * @see Handlers#chain(ServerConfig, Registry, Action)
    * @return The registry that backs this
    * @throws IllegalStateException if there is no backing registry for this chain
    */

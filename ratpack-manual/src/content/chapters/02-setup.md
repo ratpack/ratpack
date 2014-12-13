@@ -57,13 +57,13 @@ Create a `src/main/java/AppHandlerFactory.java` with the following contents:
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 
 import static ratpack.handling.Handlers.*;
 
 public class AppHandlerFactory implements HandlerFactory {
   @Override
-  public Handler create(LaunchConfig launchConfig) throws Exception {
+  public Handler create(Registry registry) throws Exception {
     return chain(
       path("foo", new Handler() {
           @Override

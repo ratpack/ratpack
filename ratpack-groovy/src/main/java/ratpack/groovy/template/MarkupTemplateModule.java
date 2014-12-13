@@ -22,7 +22,7 @@ import groovy.text.markup.TemplateConfiguration;
 import ratpack.groovy.template.internal.CachingTemplateResolver;
 import ratpack.groovy.template.internal.MarkupTemplateRenderer;
 import ratpack.guice.ConfigurableModule;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.render.Renderer;
 
 import javax.inject.Singleton;
@@ -86,19 +86,19 @@ public class MarkupTemplateModule extends ConfigurableModule<MarkupTemplateModul
   }
 
   @Override
-  protected void defaultConfig(LaunchConfig launchConfig, Config config) {
+  protected void defaultConfig(ServerConfig serverConfig, Config config) {
     config.setAutoEscape(true);
-    config.setCacheTemplates(!launchConfig.isDevelopment());
+    config.setCacheTemplates(!serverConfig.isDevelopment());
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig, Config config) {
+  MarkupTemplateEngine provideTemplateEngine(ServerConfig serverConfig, Config config) {
     ClassLoader parent = getClass().getClassLoader();
     TemplateConfiguration effectiveConfiguration = new TemplateConfiguration(config);
     effectiveConfiguration.setCacheTemplates(config.isCacheTemplates()); // not copied by constructor
-    Path templatesDir = launchConfig.getBaseDir().file(config.getTemplatesDirectory());
+    Path templatesDir = serverConfig.getBaseDir().file(config.getTemplatesDirectory());
     return new MarkupTemplateEngine(parent, effectiveConfiguration, new CachingTemplateResolver(templatesDir));
   }
 

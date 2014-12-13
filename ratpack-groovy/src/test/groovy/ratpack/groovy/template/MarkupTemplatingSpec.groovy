@@ -254,7 +254,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "templates are reloadable in development mode"() {
     given:
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     file "templates/t.gtpl", "yield 1"
     bindings {
       add(MarkupTemplateModule)
@@ -278,7 +278,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "templates are not reloadable in development false mode"() {
     given:
-    launchConfig { development(false) }
+    serverConfig { development(false) }
     file "templates/t.gtpl", "yield 1"
     bindings {
       add(MarkupTemplateModule)

@@ -18,6 +18,7 @@ package ratpack.server.internal;
 
 import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -25,10 +26,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.exec.ExecController;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.func.Function;
-import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
+import ratpack.launch.ServerConfig;
+import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.Stopper;
 import ratpack.util.internal.ChannelImplDetector;
@@ -44,7 +47,8 @@ public class NettyRatpackServer implements RatpackServer {
 
   private final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
-  private final LaunchConfig launchConfig;
+  private final Registry rootRegistry;
+  private final ServerConfig serverConfig;
   private final Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
 
   private InetSocketAddress boundAddress;
@@ -53,14 +57,15 @@ public class NettyRatpackServer implements RatpackServer {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackServer(LaunchConfig launchConfig, Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
-    this.launchConfig = launchConfig;
+  public NettyRatpackServer(Registry rootRegistry, Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+    this.rootRegistry = rootRegistry;
+    this.serverConfig = rootRegistry.get(ServerConfig.class);
     this.channelInitializerTransformer = channelInitializerTransformer;
   }
 
   @Override
-  public LaunchConfig getLaunchConfig() {
-    return launchConfig;
+  public ServerConfig getServerConfig() {
+    return serverConfig;
   }
 
   @Override
@@ -83,10 +88,10 @@ public class NettyRatpackServer implements RatpackServer {
       ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.apply(stopper);
 
       bootstrap
-        .group(launchConfig.getExecController().getEventLoopGroup())
-        .childHandler(channelInitializer)
+        .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
+          .childHandler(channelInitializer)
         .channel(ChannelImplDetector.getServerSocketChannelImpl())
-        .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
+          .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class));
 
       if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
@@ -130,12 +135,12 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private void partialShutdown() throws Exception {
-    launchConfig.getExecController().close();
+    rootRegistry.get(ExecController.class).close();
   }
 
   @Override
   public String getScheme() {
-    return launchConfig.getSSLContext() == null ? "http" : "https";
+    return serverConfig.getSSLContext() == null ? "http" : "https";
   }
 
   public int getBindPort() {
@@ -151,7 +156,7 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private InetSocketAddress buildSocketAddress() {
-    return (launchConfig.getAddress() == null) ? new InetSocketAddress(launchConfig.getPort()) : new InetSocketAddress(launchConfig.getAddress(), launchConfig.getPort());
+    return (serverConfig.getAddress() == null) ? new InetSocketAddress(serverConfig.getPort()) : new InetSocketAddress(serverConfig.getAddress(), serverConfig.getPort());
   }
 
 }

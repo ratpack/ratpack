@@ -19,15 +19,16 @@ package ratpack.http.client;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecController;
 import ratpack.http.client.internal.DefaultHttpClient;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
+import ratpack.registry.Registry;
 
 public abstract class HttpClients {
 
   private HttpClients() {
   }
 
-  public static HttpClient httpClient(LaunchConfig launchConfig) {
-    return new DefaultHttpClient(launchConfig.getExecController(), launchConfig.getBufferAllocator(), launchConfig.getMaxContentLength());
+  public static HttpClient httpClient(ServerConfig serverConfig, Registry registry) {
+    return new DefaultHttpClient(registry.get(ExecController.class), registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength());
   }
 
   public static HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {

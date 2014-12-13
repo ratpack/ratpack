@@ -21,7 +21,7 @@ import org.junit.rules.TemporaryFolder
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
-import ratpack.launch.LaunchConfig
+import ratpack.registry.Registry
 import ratpack.test.http.TestHttpClients
 import spock.lang.Specification
 
@@ -52,7 +52,7 @@ class RatpackMainApplicationUnderTestSpec extends Specification {
 
 @SuppressWarnings("GroovyUnusedDeclaration")
 class TestHandlerFactory implements HandlerFactory {
-  Handler create(LaunchConfig launchConfig) throws Exception {
+  Handler create(Registry registry) throws Exception {
     return new Handler() {
       void handle(Context context) throws Exception {
         context.response.send("from aut")

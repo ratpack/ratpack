@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,8 @@
 package ratpack.launch;
 
 import com.google.common.collect.ImmutableSet;
-import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
-import ratpack.registry.Registries;
-import ratpack.registry.Registry;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -31,14 +27,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The configuration used to launch a server.
- *
- * @see LaunchConfigBuilder
- * @see LaunchConfigs
- * TODO-JOHN
-// * @see ratpack.server.RatpackServerBuilder#build(LaunchConfig)
+ * Server configuration holder
  */
-public interface LaunchConfig {
+public interface ServerConfig {
 
   /**
    * The default port for Ratpack applications, {@value}.
@@ -61,22 +52,6 @@ public interface LaunchConfig {
    * The default compression minimum size in bytes, {@value}.
    */
   public long DEFAULT_COMPRESSION_MIN_SIZE = 1024;
-
-  /**
-   * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
-   *
-   * @return The base dir of the application.
-   * @throws NoBaseDirException if this launch config has no base dir set.
-   */
-  public FileSystemBinding getBaseDir() throws NoBaseDirException;
-
-  /**
-   * The handler factory that can create the root handler for the application.
-   *
-   * @return The handler factory that can create the root handler for the application.
-   * @throws NoHandlerFactoryException if no handler factory was defined (i.e. this launch config isn't used for a HTTP server)
-   */
-  public HandlerFactory getHandlerFactory() throws NoHandlerFactoryException;
 
   /**
    * The port that the application should listen to requests on.
@@ -121,22 +96,6 @@ public interface LaunchConfig {
   public int getThreads();
 
   /**
-   * The execution controller.
-   *
-   * @return the execution controller
-   */
-  public ExecController getExecController();
-
-  /**
-   * The allocator for buffers needed by the application.
-   * <p>
-   * Defaults to Netty's {@link io.netty.buffer.PooledByteBufAllocator}.
-   *
-   * @return The allocator for buffers needed by the application.
-   */
-  public ByteBufAllocator getBufferAllocator();
-
-  /**
    * The public address of the site used for redirects.
    *
    * @return The url of the public address
@@ -157,28 +116,6 @@ public interface LaunchConfig {
    */
   @Nullable
   public SSLContext getSSLContext();
-
-  /**
-   * Provides access to any "other" properties that were specified.
-   * <p>
-   * Extensions and plugins can use other properties for their configuration.
-   *
-   * @param key The property key
-   * @param defaultValue The value to return if the property was not set
-   * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
-   */
-  public String getOther(String key, String defaultValue);
-
-
-  /**
-   * Provides access to all "other" properties whose name starts with a given prefix.
-   * <p>
-   * The prefix is removed from keys of the result map.
-   *
-   * @param prefix Property name prefix that should be used for filtering
-   * @return A map of all "other" properties whose name starts with the prefix with the prefix removed from key names
-   */
-  public Map<String, String> getOtherPrefixedWith(String prefix);
 
   /**
    * The max content length to use for the HttpObjectAggregator.
@@ -238,12 +175,32 @@ public interface LaunchConfig {
   public boolean isHasBaseDir();
 
   /**
-   * A registry that will be used as the default for all handlers constructed for this config.
+   * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
    *
-   * @return the default registry
+   * @return The base dir of the application.
+   * @throws NoBaseDirException if this launch config has no base dir set.
    */
-  default public Registry getDefaultRegistry() {
-    return Registries.empty();
-  }
+  public FileSystemBinding getBaseDir() throws NoBaseDirException;
 
+  /**
+   * Provides access to any "other" properties that were specified.
+   * <p>
+   * Extensions and plugins can use other properties for their configuration.
+   *
+   * @param key The property key
+   * @param defaultValue The value to return if the property was not set
+   * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
+   */
+  public String getOther(String key, String defaultValue);
+
+
+  /**
+   * Provides access to all "other" properties whose name starts with a given prefix.
+   * <p>
+   * The prefix is removed from keys of the result map.
+   *
+   * @param prefix Property name prefix that should be used for filtering
+   * @return A map of all "other" properties whose name starts with the prefix with the prefix removed from key names
+   */
+  public Map<String, String> getOtherPrefixedWith(String prefix);
 }

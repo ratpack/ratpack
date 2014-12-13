@@ -21,23 +21,23 @@ import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.DefaultChain;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 
 import java.util.List;
 
 public class GroovyDslChainActionTransformer implements Function<List<Handler>, GroovyChain> {
 
-  private final LaunchConfig launchConfig;
+  private final ServerConfig serverConfig;
   private final Registry registry;
 
-  public GroovyDslChainActionTransformer(LaunchConfig launchConfig, @Nullable Registry registry) {
-    this.launchConfig = launchConfig;
+  public GroovyDslChainActionTransformer(ServerConfig serverConfig, @Nullable Registry registry) {
+    this.serverConfig = serverConfig;
     this.registry = registry;
   }
 
   public GroovyChain apply(List<Handler> storage) {
-    return new DefaultGroovyChain(new DefaultChain(storage, launchConfig, registry));
+    return new DefaultGroovyChain(new DefaultChain(storage, serverConfig, registry));
   }
 
 }

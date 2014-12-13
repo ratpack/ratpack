@@ -26,16 +26,16 @@ import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 public class RatpackDslClosureToHandlerTransformer implements Function<Closure<?>, Handler> {
 
-  private final LaunchConfig launchConfig;
+  private final ServerConfig serverConfig;
   private final GuiceBackedHandlerFactory handlerFactory;
   private final Function<? super Module, ? extends Injector> moduleTransformer;
 
-  public RatpackDslClosureToHandlerTransformer(LaunchConfig launchConfig, GuiceBackedHandlerFactory handlerFactory, Function<? super Module, ? extends Injector> moduleTransformer) {
-    this.launchConfig = launchConfig;
+  public RatpackDslClosureToHandlerTransformer(ServerConfig serverConfig, GuiceBackedHandlerFactory handlerFactory, Function<? super Module, ? extends Injector> moduleTransformer) {
+    this.serverConfig = serverConfig;
     this.handlerFactory = handlerFactory;
     this.moduleTransformer = moduleTransformer;
   }
@@ -56,7 +56,7 @@ public class RatpackDslClosureToHandlerTransformer implements Function<Closure<?
     };
 
 
-    return handlerFactory.create(bindingsAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
+    return handlerFactory.create(bindingsAction, moduleTransformer, new InjectorHandlerTransformer(serverConfig, handlersConfigurer));
   }
 
   static class RatpackImpl implements Groovy.Ratpack {

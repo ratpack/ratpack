@@ -23,7 +23,7 @@ import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.func.Function;
 import ratpack.handling.Context;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.stream.Streams;
 import ratpack.websocket.internal.DefaultWebSocketConnector;
 import ratpack.websocket.internal.WebSocketEngine;
@@ -38,11 +38,11 @@ public abstract class WebSockets {
   }
 
   public static void websocket(Context context, WebSocketHandler<?> handler) {
-    WebSocketEngine.connect(context, "/", context.get(LaunchConfig.class).getMaxContentLength(), handler);
+    WebSocketEngine.connect(context, "/", context.get(ServerConfig.class).getMaxContentLength(), handler);
   }
 
   public static void websocketBroadcast(final Context context, final Publisher<String> broadcaster) {
-    ByteBufAllocator bufferAllocator = context.getLaunchConfig().getBufferAllocator();
+    ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
     websocketByteBufBroadcast(context, Streams.map(broadcaster, s ->
         ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(s), CharsetUtil.UTF_8)
     ));

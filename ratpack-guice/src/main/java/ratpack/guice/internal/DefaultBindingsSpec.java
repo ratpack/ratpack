@@ -24,7 +24,7 @@ import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.NoSuchModuleException;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -32,19 +32,19 @@ import java.util.function.Consumer;
 class DefaultBindingsSpec implements BindingsSpec {
 
   private final List<Module> modules;
-  private final LaunchConfig launchConfig;
+  private final ServerConfig serverConfig;
   private final List<Action<? super Binder>> binderActions;
   private final List<Action<? super Injector>> injectorActions;
 
-  public DefaultBindingsSpec(LaunchConfig launchConfig, List<Action<? super Binder>> binderActions, List<Action<? super Injector>> injectorActions, List<Module> modules) {
-    this.launchConfig = launchConfig;
+  public DefaultBindingsSpec(ServerConfig serverConfig, List<Action<? super Binder>> binderActions, List<Action<? super Injector>> injectorActions, List<Module> modules) {
+    this.serverConfig = serverConfig;
     this.binderActions = binderActions;
     this.injectorActions = injectorActions;
     this.modules = modules;
   }
 
-  public LaunchConfig getLaunchConfig() {
-    return launchConfig;
+  public ServerConfig getServerConfig() {
+    return serverConfig;
   }
 
   @Override

@@ -41,7 +41,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 
 import java.nio.charset.Charset;
@@ -127,13 +127,13 @@ public abstract class Groovy {
   /**
    * Builds a handler chain, with no backing registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param closure The chain definition
    * @return A handler
    * @throws Exception any exception thrown by the given closure
    */
-  public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
-    return chain(launchConfig, null, closure);
+  public static Handler chain(ServerConfig serverConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return chain(serverConfig, null, closure);
   }
 
   /**
@@ -149,18 +149,30 @@ public abstract class Groovy {
   /**
    * Builds a chain, backed by the given registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param registry The registry.
    * @param closure The chain building closure.
    * @return A handler
    * @throws Exception any exception thrown by the given closure
    */
-  public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+  public static Handler chain(@Nullable ServerConfig serverConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return ChainBuilders.build(
-      launchConfig != null && launchConfig.isDevelopment(),
-      new GroovyDslChainActionTransformer(launchConfig, registry),
+      serverConfig != null && serverConfig.isDevelopment(),
+      new GroovyDslChainActionTransformer(serverConfig, registry),
       new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
     );
+  }
+
+  /**
+   * Builds a chain, backed by the given registry.
+   *
+   * @param registry The registry.
+   * @param closure The chain building closure.
+   * @return A handler
+   * @throws Exception any exception thrown by the given closure
+   */
+  public static Handler chain(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return chain(registry.get(ServerConfig.class), registry, closure);
   }
 
   /**

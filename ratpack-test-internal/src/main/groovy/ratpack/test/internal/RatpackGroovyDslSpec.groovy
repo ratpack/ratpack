@@ -22,7 +22,7 @@ import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.launch.LaunchConfigBuilder
+import ratpack.launch.ServerConfigBuilder
 import ratpack.test.embed.EmbeddedApp
 
 abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
@@ -30,7 +30,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
   protected final List<Module> modules = []
   protected Closure<?> _handlers = ClosureUtil.noop()
   protected Closure<?> _bindings = ClosureUtil.noop()
-  protected Closure<?> _launchConfig = ClosureUtil.noop()
+  protected Closure<?> _serverConfig = ClosureUtil.noop()
   protected Injector parentInjector
 
   @Delegate
@@ -46,7 +46,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
         modules.each { add(it) }
         it.with(this._bindings)
       }
-      launchConfig(this._launchConfig)
+      serverConfig(this._serverConfig)
       if (this.parentInjector) {
         parentInjector(this.parentInjector)
       }
@@ -61,8 +61,8 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     _bindings = configurer
   }
 
-  void launchConfig(@DelegatesTo(value = LaunchConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    _launchConfig = configurer
+  void serverConfig(@DelegatesTo(value = ServerConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    _serverConfig = configurer
   }
 
 }

@@ -26,6 +26,7 @@ import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
 import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.registry.internal.EmptyRegistry
 import ratpack.server.PublicAddress
 import ratpack.server.internal.DefaultPublicAddress
@@ -58,7 +59,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
   static class TestHandlerFactory implements HandlerFactory {
     @Override
-    Handler create(LaunchConfig launchConfig) {
+    Handler create(Registry registry) {
       new Handler() {
         void handle(Context context) throws Exception {
 

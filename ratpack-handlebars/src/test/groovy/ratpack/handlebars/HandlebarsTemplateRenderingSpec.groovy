@@ -29,7 +29,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a handlebars template from #scenario'() {
     given:
-    launchConfig { other(otherConfig) }
+    serverConfig { other(otherConfig) }
     file filePath, '{{key}}'
 
     when:
@@ -55,7 +55,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can configure loader suffix via #scenario'() {
     given:
-    launchConfig { other(otherConfig) }
+    serverConfig { other(otherConfig) }
     file('handlebars/simple.hbs', '{{this}}')
 
     when:

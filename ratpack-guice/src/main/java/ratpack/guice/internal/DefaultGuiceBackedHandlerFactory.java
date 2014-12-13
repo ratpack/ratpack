@@ -32,7 +32,7 @@ import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.internal.FactoryHandler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
@@ -43,14 +43,16 @@ import java.util.List;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
-  private final LaunchConfig launchConfig;
+  private final Registry rootRegistry;
+  private final ServerConfig serverConfig;
 
-  public DefaultGuiceBackedHandlerFactory(LaunchConfig launchConfig) {
-    this.launchConfig = launchConfig;
+  public DefaultGuiceBackedHandlerFactory(Registry rootRegistry) {
+    this.rootRegistry = rootRegistry;
+    this.serverConfig = rootRegistry.get(ServerConfig.class);
   }
 
   public Handler create(final Action<? super BindingsSpec> modulesAction, final Function<? super Module, ? extends Injector> moduleTransformer, final Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
-    if (launchConfig.isDevelopment()) {
+    if (serverConfig.isDevelopment()) {
       File classFile = ClassUtil.getClassFile(modulesAction);
       if (classFile != null) {
         Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> doCreate(modulesAction, moduleTransformer, injectorTransformer));
@@ -68,7 +70,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     List<Action<? super Injector>> injectorActions = Lists.newLinkedList();
     List<Module> modules = Lists.newLinkedList();
 
-    BindingsSpec moduleRegistry = new DefaultBindingsSpec(launchConfig, binderActions, injectorActions, modules);
+    BindingsSpec moduleRegistry = new DefaultBindingsSpec(serverConfig, binderActions, injectorActions, modules);
 
     registerDefaultModules(moduleRegistry);
     modulesAction.toConsumer().accept(moduleRegistry);
@@ -100,11 +102,11 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     Registry registry = Guice.registry(injector);
-    return Handlers.chain(Handlers.register(registry), handler);
+    return Handlers.chain(Handlers.register(rootRegistry.join(registry)), handler);
   }
 
   protected void registerDefaultModules(BindingsSpec bindingsSpec) {
-    bindingsSpec.add(new DefaultRatpackModule(launchConfig));
+    bindingsSpec.add(new DefaultRatpackModule(rootRegistry));
   }
 
 }

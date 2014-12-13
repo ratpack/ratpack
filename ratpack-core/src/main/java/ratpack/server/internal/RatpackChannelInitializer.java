@@ -25,7 +25,8 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
+import ratpack.registry.Registry;
 import ratpack.server.Stopper;
 
 import javax.net.ssl.SSLContext;
@@ -38,11 +39,12 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   private SSLContext sslContext;
   private int maxContentLength;
 
-  public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler, Stopper stopper) throws Exception {
-    this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, launchConfig);
-    this.sslContext = launchConfig.getSSLContext();
-    this.maxContentLength = launchConfig.getMaxContentLength();
-    this.compressResponses = launchConfig.isCompressResponses();
+  public RatpackChannelInitializer(Registry rootRegistry, Handler handler, Stopper stopper) throws Exception {
+    ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
+    this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, rootRegistry);
+    this.sslContext = serverConfig.getSSLContext();
+    this.maxContentLength = serverConfig.getMaxContentLength();
+    this.compressResponses = serverConfig.isCompressResponses();
   }
 
   public void initChannel(SocketChannel ch) {

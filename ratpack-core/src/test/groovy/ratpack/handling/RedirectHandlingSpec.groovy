@@ -70,7 +70,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
   def "Server root path redirect with public url"() {
     when:
     def publicUrl = "http://example.com"
-    launchConfig {
+    serverConfig {
       publicAddress(new URI(publicUrl))
     }
 
@@ -91,7 +91,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
   def "Server Relative Path Redirect with public url"() {
     when:
     def publicUrl = "http://example.com"
-    launchConfig {
+    serverConfig {
       publicAddress(new URI(publicUrl))
     }
 

@@ -22,7 +22,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.util.ExceptionUtils;
 
 import javax.inject.Singleton;
@@ -105,8 +105,8 @@ import java.lang.reflect.Constructor;
  *   }
  * 
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig -&gt;
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry -&gt;
+ *         Guice.builder(registry)
  *           .bindings(b -&gt; b
  *               .add(StringModule.class)
  *               .bindInstance(new StringModule.Config().value("bar"))
@@ -147,15 +147,15 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
    * In order for this to succeed, the following needs to be met:
    * <ul>
    * <li>The type must be public.</li>
-   * <li>Must have a public constructor that takes only a {@link LaunchConfig}, or takes no args.</li>
+   * <li>Must have a public constructor that takes only a {@link ServerConfig}, or takes no args.</li>
    * </ul>
    * <p>
    * If the config object cannot be created this way, override this method.
    *
-   * @param launchConfig the application launch config
+   * @param serverConfig the application launch config
    * @return a newly created config object
    */
-  protected T createConfig(LaunchConfig launchConfig) {
+  protected T createConfig(ServerConfig serverConfig) {
     TypeToken<T> typeToken = new TypeToken<T>(getClass()) {
     };
 
@@ -163,14 +163,14 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
       @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) typeToken.getRawType();
       Factory<T> factory;
       try {
-        Constructor<T> constructor = clazz.getConstructor(LaunchConfig.class);
-        factory = () -> Invokable.from(constructor).invoke(null, launchConfig);
+        Constructor<T> constructor = clazz.getConstructor(ServerConfig.class);
+        factory = () -> Invokable.from(constructor).invoke(null, serverConfig);
       } catch (NoSuchMethodException ignore) {
         try {
           Constructor<T> constructor = clazz.getConstructor();
           factory = () -> Invokable.from(constructor).invoke(null);
         } catch (NoSuchMethodException e) {
-          throw new IllegalStateException("No suitable constructor (no arg, or just LaunchConfig) for module config type " + typeToken);
+          throw new IllegalStateException("No suitable constructor (no arg, or just ServerConfig) for module config type " + typeToken);
         }
       }
 
@@ -181,28 +181,28 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
   }
 
   /**
-   * Hook for applying any default configuration to the configuration object created by {@link #createConfig(LaunchConfig)}.
+   * Hook for applying any default configuration to the configuration object created by {@link #createConfig(ServerConfig)}.
    * <p>
    * This can be used if it's not possible to apply the configuration in the constructor.
    *
-   * @param launchConfig the application launch config
+   * @param serverConfig the application server config
    * @param config the config object
    */
-  protected void defaultConfig(LaunchConfig launchConfig, T config) {
+  protected void defaultConfig(ServerConfig serverConfig, T config) {
 
   }
 
   /**
-   * Binds the config object, after creating it via {@link #createConfig(LaunchConfig)} and after giving it to {@link #defaultConfig(LaunchConfig, Object)}.
+   * Binds the config object, after creating it via {@link #createConfig(ServerConfig)} and after giving it to {@link #defaultConfig(ServerConfig, Object)}.
    *
-   * @param launchConfig the application launch config
+   * @param serverConfig the application server config
    * @return the config object
    */
   @Provides
   @Singleton
-  T provideConfig(LaunchConfig launchConfig) {
-    T configuration = createConfig(launchConfig);
-    defaultConfig(launchConfig, configuration);
+  T provideConfig(ServerConfig serverConfig) {
+    T configuration = createConfig(serverConfig);
+    defaultConfig(serverConfig, configuration);
     try {
       configurer.execute(configuration);
     } catch (Exception e) {

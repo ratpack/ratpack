@@ -19,7 +19,7 @@ package ratpack.file;
 import ratpack.file.internal.DefaultFileSystemChecksumService;
 import ratpack.file.internal.FileSystemChecksumServicePopulater;
 import ratpack.func.Function;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 import java.io.InputStream;
 import java.util.concurrent.Executors;
@@ -31,14 +31,14 @@ public abstract class FileSystemChecksumServices {
   private FileSystemChecksumServices() {
   }
 
-  public static FileSystemChecksumService service(LaunchConfig launchConfig) {
+  public static FileSystemChecksumService service(ServerConfig serverConfig) {
     Function<InputStream, String> checksummer = new Adler32Checksummer();
-    DefaultFileSystemChecksumService service = new DefaultFileSystemChecksumService(launchConfig.getBaseDir(), checksummer);
-    if (launchConfig.isDevelopment()) {
+    DefaultFileSystemChecksumService service = new DefaultFileSystemChecksumService(serverConfig.getBaseDir(), checksummer);
+    if (serverConfig.isDevelopment()) {
       return service;
     } else {
       CachingFileSystemChecksumService cachingService = new CachingFileSystemChecksumService(service);
-      new FileSystemChecksumServicePopulater(launchConfig.getBaseDir().getFile(), cachingService, Executors.newFixedThreadPool(5), 4).start();
+      new FileSystemChecksumServicePopulater(serverConfig.getBaseDir().getFile(), cachingService, Executors.newFixedThreadPool(5), 4).start();
       return cachingService;
     }
   }

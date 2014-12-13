@@ -24,7 +24,7 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.test.handling.internal.DefaultGroovyRequestFixture;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfigBuilder;
+import ratpack.launch.ServerConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.HandlingResult;
@@ -214,13 +214,13 @@ public interface GroovyRequestFixture extends RequestFixture {
    * {@inheritDoc}
    */
   @Override
-  GroovyRequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception;
+  GroovyRequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyRequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
+  GroovyRequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception;
 
   /**
    * {@inheritDoc}

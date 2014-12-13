@@ -61,7 +61,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "doesn't encode when compression disabled"() {
     when:
-    launchConfig {
+    serverConfig {
       compressResponses(false)
     }
     def response = get(path)
@@ -79,7 +79,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "encodes when compression enabled, larger than min size, and not an excluded content type"() {
     when:
-    launchConfig {
+    serverConfig {
       compressResponses(true)
     }
     def response = get(path)
@@ -108,7 +108,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "minimum compression size can be configured"() {
     when:
-    launchConfig {
+    serverConfig {
       compressResponses(true)
       compressionMinSize(minSize)
     }
@@ -130,7 +130,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "images, videos, audio, archives are not compressed by default"() {
     when:
-    launchConfig {
+    serverConfig {
       compressResponses(true)
     }
 
@@ -148,7 +148,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "compression white list can be configured"() {
     when:
-    launchConfig {
+    serverConfig {
       compressResponses(true)
       compressionWhiteListMimeTypes("image/png")
     }
@@ -169,7 +169,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "compression black list can be configured"() {
     when:
-    launchConfig {
+    serverConfig {
       compressResponses(true)
       compressionBlackListMimeTypes("text/plain", "application/xml")
     }

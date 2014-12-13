@@ -23,6 +23,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
+import ratpack.exec.ExecController;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -31,8 +32,9 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigBuilder;
+import ratpack.launch.RatpackLauncher;
+import ratpack.launch.ServerConfig;
+import ratpack.launch.ServerConfigBuilder;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.registry.Registries;
@@ -64,12 +66,12 @@ public class DefaultRequestFixture implements RequestFixture {
   private String method = "GET";
   private String uri = "/";
   private HostAndPort remoteHostAndPort = HostAndPort.fromParts("localhost", 45678);
-  private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", LaunchConfig.DEFAULT_PORT);
+  private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", ServerConfig.DEFAULT_PORT);
   private int timeout = 5;
 
   private RegistryBuilder registryBuilder = Registries.registry();
 
-  private LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
+  private ServerConfigBuilder serverConfigBuilder = ServerConfigBuilder.noBaseDir();
 
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
@@ -91,36 +93,37 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
-    return invoke(handler, launchConfigBuilder.build(), registryBuilder.build());
+    return invoke(handler, getEffectiveRegistry());
   }
 
   @Override
   public HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception {
-    LaunchConfig launchConfig = launchConfigBuilder.build();
-    Registry registry = registryBuilder.build();
-    Handler handler = Handlers.chain(launchConfig, registry, chainAction);
-    return invoke(handler, launchConfig, registry);
+    Registry registry = getEffectiveRegistry();
+    ServerConfig serverConfig = registry.get(ServerConfig.class);
+    Handler handler = Handlers.chain(serverConfig, registry, chainAction);
+    return invoke(handler, registry);
   }
 
-  private HandlingResult invoke(Handler handler, LaunchConfig launchConfig, Registry registry) throws HandlerTimeoutException {
+  private HandlingResult invoke(Handler handler, Registry registry) throws HandlerTimeoutException {
     Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       requestBody);
 
     try {
+      ServerConfig serverConfig = registry.get(ServerConfig.class);
       return new DefaultHandlingResult(
         request,
         responseHeaders,
         registry,
         timeout,
-        launchConfig,
+        serverConfig,
         handler
       );
     } catch (Exception e) {
       throw ExceptionUtils.uncheck(e);
     } finally {
-      launchConfig.getExecController().close();
+      registry.get(ExecController.class).close();
     }
   }
 
@@ -131,16 +134,16 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
-    launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
-    action.execute(launchConfigBuilder);
+  public RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
+    serverConfigBuilder = ServerConfigBuilder.noBaseDir();
+    action.execute(serverConfigBuilder);
     return this;
   }
 
   @Override
-  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
-    launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir);
-    action.execute(launchConfigBuilder);
+  public RequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception {
+    serverConfigBuilder = ServerConfigBuilder.baseDir(baseDir);
+    action.execute(serverConfigBuilder);
     return this;
   }
 
@@ -208,6 +211,10 @@ public class DefaultRequestFixture implements RequestFixture {
   public RequestFixture localAddress(HostAndPort local) {
     localHostAndPort = local;
     return this;
+  }
+
+  private Registry getEffectiveRegistry() {
+    return RatpackLauncher.baseRegistry().join(registryBuilder.build());
   }
 
 }

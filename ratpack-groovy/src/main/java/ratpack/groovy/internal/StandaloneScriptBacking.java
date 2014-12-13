@@ -25,12 +25,9 @@ import ratpack.func.Action;
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
-import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigs;
+import ratpack.launch.*;
 import ratpack.launch.internal.DelegatingLaunchConfig;
 import ratpack.server.RatpackServer;
-import ratpack.server.RatpackServerBuilder;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -46,6 +43,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     CAPTURE_ACTION.set(action);
   }
 
+  //TODO-JOHN
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
@@ -63,6 +61,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     Properties properties = createProperties(scriptFile);
 
     Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigs.CONFIG_RESOURCE_DEFAULT);
+    //TODO-JOHN
     LaunchConfig launchConfig = LaunchConfigs.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
     if (scriptFile == null) {
@@ -74,7 +73,10 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
       };
     }
 
-    RatpackServer server = RatpackServerBuilder.build(launchConfig);
+    final LaunchConfig effectiveLaunchConfig = launchConfig;
+    RatpackServer server = RatpackLauncher.launcher(r -> {
+      r.add(ServerConfig.class, ServerConfigBuilder.launchConfig(effectiveLaunchConfig).build());
+    }).build(launchConfig.getHandlerFactory());
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {

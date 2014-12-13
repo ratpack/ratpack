@@ -24,7 +24,7 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.pac4j.Authorizer;
 import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
 
@@ -61,8 +61,8 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
    * @return The callback path
    */
   private String getCallbackPath(Injector injector) {
-    LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
-    return callbackPath == null ? launchConfig.getOther("pac4j.callbackPath", DEFAULT_CALLBACK_PATH) : callbackPath;
+    ServerConfig serverConfig = injector.getInstance(ServerConfig.class);
+    return callbackPath == null ? serverConfig.getOther("pac4j.callbackPath", DEFAULT_CALLBACK_PATH) : callbackPath;
   }
 
   /**

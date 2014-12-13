@@ -49,7 +49,7 @@ import java.nio.charset.Charset;
  * public class Example {
  *   public static void main(String[] args) {
  *     EmbeddedApp.fromHandler(ctx -> {
- *       Publisher<String> strings = Streams.periodically(ctx.getLaunchConfig(), Duration.ofMillis(5),
+ *       Publisher<String> strings = Streams.periodically(ctx, Duration.ofMillis(5),
  *         i -> i < 5 ? i.toString() : null
  *       );
  *
@@ -159,7 +159,7 @@ public class ResponseChunks implements Renderable {
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
     response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, getContentType());
-    Publisher<? extends ByteBuf> publisher = publisher(context.getLaunchConfig().getBufferAllocator());
+    Publisher<? extends ByteBuf> publisher = publisher(context.get(ByteBufAllocator.class));
     response.sendStream(publisher);
   }
 

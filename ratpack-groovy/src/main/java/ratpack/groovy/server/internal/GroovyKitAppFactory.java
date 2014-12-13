@@ -18,12 +18,12 @@ package ratpack.groovy.server.internal;
 
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
-import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 
 public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
 
-  public GroovyKitAppFactory(LaunchConfig launchConfig) {
-    super(launchConfig);
+  public GroovyKitAppFactory(Registry rootRegistry) {
+    super(rootRegistry);
   }
 
   @Override

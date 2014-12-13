@@ -28,7 +28,7 @@ ratpack {
         autoIndent = true
       }
     }
-    add new SiteModule(launchConfig)
+    add new SiteModule(serverConfig)
     add(TextTemplateModule) { it.staticallyCompile = true }
     RxRatpack.initialize()
   }
@@ -83,7 +83,7 @@ ratpack {
 
     handler("reset") { GitHubApi gitHubApi ->
       byMethod {
-        if (launchConfig.development) {
+        if (serverConfig.development) {
           get {
             gitHubApi.invalidateCache()
             render "ok"

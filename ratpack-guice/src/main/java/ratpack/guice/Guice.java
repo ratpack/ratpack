@@ -27,7 +27,7 @@ import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 
@@ -182,7 +182,7 @@ public abstract class Guice {
     Handler build(Action<? super Chain> action) throws Exception;
   }
 
-  public static Builder builder(LaunchConfig launchConfig) {
+  public static Builder builder(Registry rootRegistry) {
     return new Builder() {
       private Injector parent;
       private Action<? super BindingsSpec> bindings = Action.noop();
@@ -201,9 +201,9 @@ public abstract class Guice {
 
       @Override
       public Handler build(Action<? super Chain> action) throws Exception {
-        Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(launchConfig) : childInjectorFactory(parent);
-        return new DefaultGuiceBackedHandlerFactory(launchConfig).create(bindings, moduleTransformer,
-          injector -> Handlers.chain(launchConfig, justInTimeRegistry(injector), action)
+        Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(rootRegistry.get(ServerConfig.class)) : childInjectorFactory(parent);
+        return new DefaultGuiceBackedHandlerFactory(rootRegistry).create(bindings, moduleTransformer,
+          injector -> Handlers.chain(rootRegistry.get(ServerConfig.class), justInTimeRegistry(injector), action)
         );
       }
     };
@@ -239,11 +239,11 @@ public abstract class Guice {
    * <p>
    * The module given to the {@code transform()} method may be {@code null}.
    *
-   * @param launchConfig The launch config of the server
+   * @param serverConfig The server config of the application
    * @return a transformer that can build an injector from a module
    */
-  public static Function<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
-    final Stage stage = launchConfig.isDevelopment() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
+  public static Function<Module, Injector> newInjectorFactory(final ServerConfig serverConfig) {
+    final Stage stage = serverConfig.isDevelopment() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
     return from -> from == null ? createInjector(stage) : createInjector(stage, from);
   }
 

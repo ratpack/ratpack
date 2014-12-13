@@ -16,6 +16,7 @@
 
 package ratpack.guice
 
+import ratpack.exec.ExecController
 import ratpack.exec.Execution
 import ratpack.handling.Context
 import ratpack.handling.InjectionHandler
@@ -42,7 +43,7 @@ class InjectableExecutionSpec extends RatpackGroovyDslSpec {
     handlers {
       handler new InjectionHandler() {
         void handle(Context context, InjectionScopeService service) {
-          assert service.execution.is(context.launchConfig.execController.control.execution)
+          assert service.execution.is(context.get(ExecController).control.execution)
           context.render "ok"
         }
       }

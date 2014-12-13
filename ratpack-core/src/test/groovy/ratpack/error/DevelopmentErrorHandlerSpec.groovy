@@ -26,7 +26,7 @@ class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
     requestSpec { it.headers.add("Accept", "text/html;q=1,text/plain;q=0.9") }
 
     when:
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     handlers {
       get("client") { clientError(404) }
       get("server") { error(e) }
@@ -51,7 +51,7 @@ class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
     def e = new RuntimeException("!")
 
     when:
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     handlers {
       get("client") { clientError(404) }
       get("server") { error(e) }

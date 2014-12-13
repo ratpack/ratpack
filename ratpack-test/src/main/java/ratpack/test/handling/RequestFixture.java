@@ -20,7 +20,7 @@ import com.google.common.net.HostAndPort;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfigBuilder;
+import ratpack.launch.ServerConfigBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.internal.DefaultRequestFixture;
 
@@ -226,27 +226,27 @@ public interface RequestFixture {
   RequestFixture header(String name, String value);
 
   /**
-   * Configures the launch config to have the given base dir and given configuration.
+   * Configures the server config to have the given base dir and given configuration.
    * <p>
-   * By default the launch config is equivalent to {@link ratpack.launch.LaunchConfigBuilder#noBaseDir() LaunchConfigBuilder.noBaseDir()}.{@link ratpack.launch.LaunchConfigBuilder#build() build()}.
+   * By default the server config is equivalent to {@link ratpack.launch.ServerConfigBuilder#noBaseDir() ServerConfigBuilder.noBaseDir()}.{@link ratpack.launch.ServerConfigBuilder#build() build()}.
    *
-   * @param baseDir the launch config base dir
-   * @param action configuration of the launch config
+   * @param baseDir the server config base dir
+   * @param action configuration of the server config
    * @return this
    * @throws Exception any thrown by {@code action}
    */
-  RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception;
+  RequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception;
 
   /**
-   * Configures the launch config to have no base dir and given configuration.
+   * Configures the server config to have no base dir and given configuration.
    * <p>
-   * By default the launch config is equivalent to {@link ratpack.launch.LaunchConfigBuilder#noBaseDir() LaunchConfigBuilder.noBaseDir()}.{@link ratpack.launch.LaunchConfigBuilder#build() build()}.
+   * By default the server config is equivalent to {@link ratpack.launch.ServerConfigBuilder#noBaseDir() ServerConfigBuilder.noBaseDir()}.{@link ratpack.launch.ServerConfigBuilder#build() build()}.
    *
-   * @param action configuration of the launch config
+   * @param action configuration of the server config
    * @return this
    * @throws Exception any thrown by {@code action}
    */
-  RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
+  RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception;
 
   /**
    * Set the request method (case insensitive).

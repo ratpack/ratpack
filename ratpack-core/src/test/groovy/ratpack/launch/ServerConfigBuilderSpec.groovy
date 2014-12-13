@@ -16,45 +16,35 @@
 
 package ratpack.launch
 
-import ratpack.handling.Context
 import ratpack.handling.Handler
-import ratpack.server.RatpackServerBuilder
+import ratpack.registry.Registry
 import spock.lang.Specification
 
-class LaunchConfigBuilderSpec extends Specification {
-
-  static class TestHandlerFactory implements HandlerFactory {
-    @Override
-    Handler create(LaunchConfig launchConfig) {
-      new Handler() {
-        void handle(Context context) throws Exception { }
-      }
-    }
-  }
+class ServerConfigBuilderSpec extends Specification {
 
   def "no base dir"() {
     given:
-    def launchConfig = LaunchConfigBuilder.noBaseDir().build(new TestHandlerFactory())
+    ServerConfig serverConfig = ServerConfigBuilder.noBaseDir().build()
 
     when:
-    launchConfig.baseDir
+    serverConfig.baseDir
 
     then:
     thrown(NoBaseDirException)
-
-    cleanup:
-    launchConfig.execController.close()
   }
 
   def "error subclass thrown from HandlerFactory's create method"() {
     given:
     def e = new Error("e")
-    def config = LaunchConfigBuilder.noBaseDir().build(new HandlerFactory() {
-      Handler create(LaunchConfig launchConfig) throws Exception {
+    def config = ServerConfigBuilder.noBaseDir().build()
+    def server = RatpackLauncher.launcher({r ->
+      r.add(ServerConfig, config)
+    }).build(new HandlerFactory() {
+      @Override
+      Handler create(Registry rootRegistry) throws Exception {
         throw e
       }
     })
-    def server = RatpackServerBuilder.build(config)
 
     when:
     server.start()

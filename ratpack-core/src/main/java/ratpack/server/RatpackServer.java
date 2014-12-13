@@ -16,7 +16,7 @@
 
 package ratpack.server;
 
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 /**
  * A Ratpack server.
@@ -28,7 +28,7 @@ public interface RatpackServer {
    *
    * @return the (read only) configuration that was used to launch this server.
    */
-  LaunchConfig getLaunchConfig();
+  ServerConfig getServerConfig();
 
   /**
    * The URL scheme the server uses.

@@ -27,7 +27,7 @@ import org.thymeleaf.dialect.IDialect;
 import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.thymeleaf.internal.FileSystemBindingThymeleafResourceResolver;
 import ratpack.thymeleaf.internal.ThymeleafTemplateRenderer;
 
@@ -136,28 +136,28 @@ public class ThymeleafModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  ITemplateResolver provideTemplateResolver(LaunchConfig launchConfig) {
-    IResourceResolver resourceResolver = new FileSystemBindingThymeleafResourceResolver(launchConfig.getBaseDir());
+  ITemplateResolver provideTemplateResolver(ServerConfig serverConfig) {
+    IResourceResolver resourceResolver = new FileSystemBindingThymeleafResourceResolver(serverConfig.getBaseDir());
     TemplateResolver templateResolver = new TemplateResolver();
     templateResolver.setResourceResolver(resourceResolver);
 
 
-    String mode = templatesMode == null ? launchConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
+    String mode = templatesMode == null ? serverConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
     templateResolver.setTemplateMode(mode);
 
-    String prefix = templatesPrefix == null ? launchConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
+    String prefix = templatesPrefix == null ? serverConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
     if (!prefix.endsWith(File.separator)) {
       prefix += File.separator;
     }
     templateResolver.setPrefix(prefix);
 
-    String suffix = templatesSuffix == null ? launchConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
+    String suffix = templatesSuffix == null ? serverConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
     if (suffix.equalsIgnoreCase("")) {
       suffix = DEFAULT_TEMPLATE_SUFFIX;
     }
     templateResolver.setSuffix(suffix);
 
-    Integer cacheSize = getCacheSizeSetting(launchConfig);
+    Integer cacheSize = getCacheSizeSetting(serverConfig);
     templateResolver.setCacheable(cacheSize > 0);
 
     // Never use TTL expiration
@@ -169,8 +169,8 @@ public class ThymeleafModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  StandardCacheManager provideCacheManager(LaunchConfig launchConfig) {
-    Integer cacheSize = getCacheSizeSetting(launchConfig);
+  StandardCacheManager provideCacheManager(ServerConfig serverConfig) {
+    Integer cacheSize = getCacheSizeSetting(serverConfig);
     StandardCacheManager cacheManager = new StandardCacheManager();
     cacheManager.setTemplateCacheMaxSize(cacheSize);
     return cacheManager;
@@ -189,7 +189,7 @@ public class ThymeleafModule extends AbstractModule {
     return templateEngine;
   }
 
-  private Integer getCacheSizeSetting(LaunchConfig launchConfig) {
-    return templatesCacheSize == null ? Integer.valueOf(launchConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
+  private Integer getCacheSizeSetting(ServerConfig serverConfig) {
+    return templatesCacheSize == null ? Integer.valueOf(serverConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
   }
 }

@@ -28,7 +28,7 @@ import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.Guice;
 import ratpack.guice.NoSuchModuleException;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registry;
 
 import java.util.function.Consumer;
@@ -56,8 +56,8 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public LaunchConfig getLaunchConfig() {
-    return delegate.getLaunchConfig();
+  public ServerConfig getServerConfig() {
+    return delegate.getServerConfig();
   }
 
   @Override

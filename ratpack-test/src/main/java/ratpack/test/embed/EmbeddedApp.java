@@ -22,12 +22,10 @@ import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigBuilder;
+import ratpack.launch.*;
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
-import ratpack.test.embed.internal.LaunchConfigEmbeddedApp;
+import ratpack.test.embed.internal.EmbeddedAppSupport;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.http.TestHttpClients;
 
@@ -49,41 +47,43 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * Implementations must ensure that the application is up and receiving request when returning from {@link #getAddress()}.
  * Be sure to {@link #close()} the application after use to free resources.
  *
- * @see ratpack.test.embed.internal.LaunchConfigEmbeddedApp
+ * @see ratpack.test.embed.internal.EmbeddedAppSupport
  */
 public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
 
   /**
-   * Creates an embedded application by building a {@link LaunchConfig}.
+   * Creates an embedded application by building a {@link ServerConfig}.
    * <p>
-   * The given {@link LaunchConfigBuilder} will be configured to not have base dir, and to use an ephemeral port.
+   * The given {@link ratpack.launch.ServerConfigBuilder} will be configured to not have base dir, and to use an ephemeral port.
    *
    * @param function a function that builds a launch config from a launch config builder
+   * @param handlerFactory the application's root handler
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromLaunchConfigBuilder(Function<? super LaunchConfigBuilder, ? extends LaunchConfig> function) {
-    return new LaunchConfigEmbeddedApp() {
+  static EmbeddedApp fromServerConfigBuilder(Function<? super ServerConfigBuilder, ? extends ServerConfig> function, HandlerFactory handlerFactory) {
+    return new EmbeddedAppSupport() {
       @Override
-      protected LaunchConfig createLaunchConfig() {
-        return uncheck(() -> function.apply(LaunchConfigBuilder.noBaseDir().development(true).port(0)));
+      protected RatpackServer createServer() {
+        return uncheck(() -> RatpackLauncher.launcher(r -> r.add(ServerConfig.class, function.apply(ServerConfigBuilder.noBaseDir().development(true).port(0)))).build(handlerFactory));
       }
     };
   }
 
   /**
-   * Creates an embedded application by building a {@link LaunchConfig} with the given base dir.
+   * Creates an embedded application by building a {@link ServerConfig} with the given base dir.
    * <p>
-   * The given {@link LaunchConfigBuilder} will be configured to use an ephemeral port.
+   * The given {@link ratpack.launch.ServerConfigBuilder} will be configured to use an ephemeral port.
    *
    * @param baseDir the base dir for the embedded app
-   * @param function a function that builds a launch config from a launch config builder
+   * @param function a function that builds a server config from a server config builder
+   * @param handlerFactory the application's root handler
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromLaunchConfigBuilder(Path baseDir, Function<? super LaunchConfigBuilder, ? extends LaunchConfig> function) {
-    return new LaunchConfigEmbeddedApp() {
+  static EmbeddedApp fromServerConfigBuilder(Path baseDir, Function<? super ServerConfigBuilder, ? extends ServerConfig> function, HandlerFactory handlerFactory) {
+    return new EmbeddedAppSupport() {
       @Override
-      protected LaunchConfig createLaunchConfig() {
-        return uncheck(() -> function.apply(LaunchConfigBuilder.baseDir(baseDir).development(true).port(0)));
+      protected RatpackServer createServer() {
+        return uncheck(() -> RatpackLauncher.launcher(r -> r.add(ServerConfig.class, function.apply(ServerConfigBuilder.baseDir(baseDir).development(true).port(0)))).build(handlerFactory));
       }
     };
   }
@@ -91,63 +91,63 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
+   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Path, Function, ratpack.launch.HandlerFactory)}.
    *
    * @param handlerFactory a handler factory
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandlerFactory(HandlerFactory handlerFactory) {
-    return fromLaunchConfigBuilder(lcb -> lcb.build(handlerFactory::create));
+    return fromServerConfigBuilder(ServerConfigBuilder::build, handlerFactory);
   }
 
   /**
    * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
+   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Path, Function, ratpack.launch.HandlerFactory)}.
    *
    * @param baseDir the base dir for the embedded app
    * @param handlerFactory a handler factory
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandlerFactory(Path baseDir, HandlerFactory handlerFactory) {
-    return fromLaunchConfigBuilder(baseDir, lcb -> lcb.build(handlerFactory::create));
+    return fromServerConfigBuilder(baseDir, ServerConfigBuilder::build, handlerFactory);
   }
 
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Function)}.
+   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Function, ratpack.launch.HandlerFactory)}.
    *
    * @param handler the application handler
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandler(Handler handler) {
-    return fromLaunchConfigBuilder(lcb -> lcb.build(lc -> handler));
+    return fromServerConfigBuilder(ServerConfigBuilder::build, r -> handler);
   }
 
   /**
    * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
+   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Path, Function, ratpack.launch.HandlerFactory)}.
    *
    * @param baseDir the base dir for the embedded app
    * @param handler the application handler
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandler(Path baseDir, Handler handler) {
-    return fromLaunchConfigBuilder(baseDir, lcb -> lcb.build(lc -> handler));
+    return fromServerConfigBuilder(baseDir, ServerConfigBuilder::build, r -> handler);
   }
 
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler chain.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Function)}.
+   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Function, ratpack.launch.HandlerFactory)}.
    *
    * @param action the handler chain definition
    * @return a newly created embedded application
    */
   static EmbeddedApp fromChain(Action<? super Chain> action) {
-    return fromLaunchConfigBuilder(lcb -> lcb.build(lc -> Handlers.chain(lc, action)));
+    return fromServerConfigBuilder(ServerConfigBuilder::build, r -> Handlers.chain(r.get(ServerConfig.class), r, action));
   }
 
   /**

@@ -16,31 +16,31 @@
 
 package ratpack.handling;
 
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 @SuppressWarnings({"UnusedParameters", "UnusedDeclaration"})
 public class TestInjectionHandlers {
 
   public static class MethodIsProtected extends InjectionHandler {
-    protected void handle(Context context, LaunchConfig launchConfig) {
+    protected void handle(Context context, ServerConfig serverConfig) {
       context.render("ok");
     }
   }
 
   public static class MethodIsPrivate extends InjectionHandler {
-    private void handle(Context context, LaunchConfig launchConfig) {
+    private void handle(Context context, ServerConfig serverConfigg) {
       context.render("ok");
     }
   }
 
   public class PublicInnerWithPrivate extends InjectionHandler {
-    private void handle(Context context, LaunchConfig launchConfig) {
+    private void handle(Context context, ServerConfig serverConfig) {
       context.render("ok");
     }
   }
 
   private class PrivateInnerWithPrivate extends InjectionHandler {
-    private void handle(Context context, LaunchConfig launchConfig) {
+    private void handle(Context context, ServerConfig serverConfig) {
       context.render("ok");
     }
   }

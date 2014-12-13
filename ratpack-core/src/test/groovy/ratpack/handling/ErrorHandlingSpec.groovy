@@ -154,7 +154,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "exceptions thrown by render in server error handler while in development mode has response body"() {
     when:
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     bindings {
       bindInstance Renderer, new Renderer<Map>() {
         @Override

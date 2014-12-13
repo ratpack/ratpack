@@ -40,8 +40,8 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     and:
     handlers {
       get {
-        ExecController execController = launchConfig.execController
-        ByteBufAllocator byteBufAllocator = launchConfig.bufferAllocator
+        ExecController execController = get(ExecController)
+        ByteBufAllocator byteBufAllocator = get(ByteBufAllocator)
 
         requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), execution, byteBufAllocator)
         execController.control.promise(requestAction).then {

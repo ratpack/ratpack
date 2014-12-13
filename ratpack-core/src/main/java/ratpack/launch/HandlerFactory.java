@@ -17,6 +17,7 @@
 package ratpack.launch;
 
 import ratpack.handling.Handler;
+import ratpack.registry.Registry;
 
 /**
  * A factory contract for creating handlers, typically the root handler of the application.
@@ -28,10 +29,10 @@ public interface HandlerFactory {
   /**
    * Creates a handler from the given launch config.
    *
-   * @param launchConfig The application launch config
+   * @param registry The registry backing this handler
    * @return A handler
    * @throws Exception any if the handler cannot be created
    */
-  Handler create(LaunchConfig launchConfig) throws Exception;
+  Handler create(Registry registry) throws Exception;
 
 }

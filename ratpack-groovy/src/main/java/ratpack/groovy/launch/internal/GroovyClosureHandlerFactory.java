@@ -26,7 +26,8 @@ import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
+import ratpack.registry.Registry;
 
 public class GroovyClosureHandlerFactory implements HandlerFactory {
 
@@ -37,10 +38,11 @@ public class GroovyClosureHandlerFactory implements HandlerFactory {
   }
 
   @Override
-  public Handler create(LaunchConfig launchConfig) throws Exception {
-    GuiceBackedHandlerFactory guiceHandlerFactory = new GroovyKitAppFactory(launchConfig);
-    Function<Module, Injector> moduleInjectorTransformer = Guice.newInjectorFactory(launchConfig);
-    Function<Closure<?>, Handler> handlerTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, guiceHandlerFactory, moduleInjectorTransformer);
+  public Handler create(Registry registry) throws Exception {
+    ServerConfig serverConfig = registry.get(ServerConfig.class);
+    GuiceBackedHandlerFactory guiceHandlerFactory = new GroovyKitAppFactory(registry);
+    Function<Module, Injector> moduleInjectorTransformer = Guice.newInjectorFactory(serverConfig);
+    Function<Closure<?>, Handler> handlerTransformer = new RatpackDslClosureToHandlerTransformer(serverConfig, guiceHandlerFactory, moduleInjectorTransformer);
     return handlerTransformer.apply(ratpackClosure);
   }
 

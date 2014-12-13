@@ -387,8 +387,8 @@ class HttpClientSmokeSpec extends HttpClientSpec {
   def "can set read timeout"() {
     when:
     otherApp {
-      get {
-        def stream = Streams.periodically(launchConfig, Duration.ofSeconds(5)) {
+      get { ctx ->
+        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
           it < 5 ? "a" : null
         }
 

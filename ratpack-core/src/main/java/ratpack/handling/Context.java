@@ -25,7 +25,7 @@ import ratpack.func.NoArgAction;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -88,7 +88,8 @@ public interface Context extends ExecControl, Registry {
    */
   Execution getExecution();
 
-  LaunchConfig getLaunchConfig();
+  //TODO-JOHN
+  ServerConfig getServerConfig();
 
   /**
    * The HTTP request.

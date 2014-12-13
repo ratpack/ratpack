@@ -243,7 +243,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "templates are reloadable in development mode"() {
     given:
     bindings { add(TextTemplateModule) }
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     file "templates/t", "1"
 
     when:
@@ -265,7 +265,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "templates are not reloadable in development false mode"() {
     given:
     bindings { add(TextTemplateModule) }
-    launchConfig { development(false) }
+    serverConfig { development(false) }
     file "templates/t", "1"
 
     when:

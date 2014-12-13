@@ -29,13 +29,13 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
 
   def "stream can use promises"() {
     when:
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     handlers {
-      get {
-        def s = stream(periodically(launchConfig, Duration.ofMillis(100)) { it < 10 ? it : null })
+      get { ctx ->
+        def s = stream(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
           promise { f ->
-            launchConfig.execController.executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
+            ctx.get(ExecController).executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
           }
         }
         .map {
@@ -52,17 +52,17 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
 
   def "stream can consume stream during event promises"() {
     when:
-    launchConfig { development(true) }
+    serverConfig { development(true) }
     handlers {
-      get {
-        def s = stream(periodically(launchConfig, Duration.ofMillis(100)) { it < 10 ? it : null })
+      get { ctx ->
+        def s = stream(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
           promise { f ->
             def c = new CollectingSubscriber({
               f.success(it.value.get(0))
             }, { it.request(10) })
 
-            stream(periodically(launchConfig, Duration.ofMillis(100)) {
+            stream(periodically(ctx, Duration.ofMillis(100)) {
               it < 1 ? n : null
             }).subscribe(c)
           }

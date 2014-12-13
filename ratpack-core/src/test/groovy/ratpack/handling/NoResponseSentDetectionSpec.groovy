@@ -21,7 +21,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    launchConfig {
+    serverConfig {
       development(true)
     }
   }

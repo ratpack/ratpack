@@ -22,7 +22,7 @@ import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileSystemBinding
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.launch.LaunchConfig
+import ratpack.launch.ServerConfig
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -54,7 +54,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'only posts are allowed'() {
     given:
-    launchConfig { other(enabled) }
+    serverConfig { other(enabled) }
 
     expect:
     get(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
@@ -63,7 +63,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'only requests that contain groovy-remote-control-command are allowed'() {
     given:
-    launchConfig { other(enabled) }
+    serverConfig { other(enabled) }
 
     expect:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == UNSUPPORTED_MEDIA_TYPE.code()
@@ -71,7 +71,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'only requests that accept groovy-remote-control-result are allowed'() {
     given:
-    launchConfig { other(enabled) }
+    serverConfig { other(enabled) }
 
     when:
     requestSpec { RequestSpec requestSpec ->
@@ -89,7 +89,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     bindings {
       add new RemoteControlModule(path: modulePath)
     }
-    launchConfig { other(*: enabled, *: otherConfig) }
+    serverConfig { other(*: enabled, *: otherConfig) }
 
     and:
     server.start()
@@ -107,11 +107,11 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'registry is available in command context'() {
     given:
-    launchConfig { other(*: enabled, test: 'it works') }
+    serverConfig { other(*: enabled, test: 'it works') }
 
     expect:
     //from guice
-    remote.exec { get(LaunchConfig).other.test } == 'it works'
+    remote.exec { get(ServerConfig).other.test } == 'it works'
     //from root registry
     remote.exec { get(FileSystemBinding) != null }
     //created just in time
@@ -120,7 +120,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'endpoint is also enabled if reloading is enabled'() {
     given:
-    launchConfig {
+    serverConfig {
       other(enabled)
       development(true)
     }

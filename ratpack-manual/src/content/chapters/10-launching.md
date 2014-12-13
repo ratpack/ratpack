@@ -2,17 +2,47 @@
 
 This chapter introduces how to launch a Ratpack application, and the associated launch time configuration.
 
-## Launch configuration
+## Configuring and starting a Ratpack application
 
-To launch a Ratpack application, you must create a [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html).
-This can then be used with the [`RatpackServerBuilder`](api/ratpack/server/RatpackServerBuilder.html#build-ratpack.launch.LaunchConfig-) method to create a [`RatpackServer`](api/ratpack/server/RatpackServer.html) that can then be started.
+A Ratpack application is configured and started via the [`RatpackLauncher`](api/ratpack/launch/RatpackLauncher.html). The [`launcher`][api/ratpack/launch/RatpackLauncher.html#launcher-ratpack.func.Action`]
+provides access to the base [`Registry`][api/ratpack/registry/Registry.html] that is used to configure the Ratpack application.
 
-Note that one of the `LaunchConfig` object's responsibilities is to provide a [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation.
-This factory is responsible for creating the handler that is effectively the Ratpack application.
+The base registry must provide the [`ServerConfig`][api/ratpack/launch/ServerConfig.html], the [`ExecController`][api/ratpack/exec/ExecController.html], and the default Netty `ByteBufAllocator`. 
+If not provided, defaults will be added to the Registry. All subsequent Registries will inherit from this base registry.
+
+The `launcher` method will return an instance of `RatpackLauncher`. This instance provides the [`config`][api/ratpack/launch/RatpackLauncher.html#config-ratpack.func.action] convenience method to
+configure the default `ServerConfig`.
+
+Calling the [`build`](api/ratpack/launch/RatpackLauncher.html#build-ratpack.launch.HandlerFactory] will construct a [`RatpackServer`][api/ratpack/server/RatpackServer.html] that can be started.
+Note that the `build` method accepts a [`HandlerFactory`][api/ratpack/launch/HandlerFactory.html]. This factory is responsible for create the handler that is effectively the Ratpack application.
 See the [chapter on handlers](handlers.html) for more details.
 
-One option for building a `LaunchConfig` is to use the [`LaunchConfigBuilder`](api/ratpack/launch/LaunchConfigBuilder.html).
-Another option is to use [`LaunchConfigs`](api/ratpack/launch/LaunchConfigs.html) which is able to build a launch config from system properties and a properties file.
+The Ratpack application can be customized by adding a custom `ServerConfig` object to the `Registry. This instance can be constructed using the [`ServerConfigBuilder`][api/ratpack/launch/ServerConfigBuilder.html].
+For example, 
+
+```language-java
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
+import ratpack.launch.RatpackLauncher;
+import ratpack.launch.ServerConfig;
+import ratpack.launch.ServerConfigBuilder;
+import ratpack.server.RatpackServer;
+
+public class ApplicationMain {
+    public static void main(String[] args) {
+        RatpackServer server = RatpackLauncher.launcher(r -> {
+            ServerConfig config = ServerConfigBuilder.noBaseDir().port(6060).build();
+            r.add(ServerConfig.class, config);
+        }).build(r -> new HelloWorld());
+    }
+    
+    private static class HelloWorld implements Handler {
+        public void handle(Context context) {
+            context.getResponse().send("Hellow world!");
+        }
+    }
+}
+```
 
 ## RatpackMain
 

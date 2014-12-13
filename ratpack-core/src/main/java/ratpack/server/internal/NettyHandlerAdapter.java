@@ -55,7 +55,7 @@ import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -84,30 +84,30 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final DefaultContext.ApplicationConstants applicationConstants;
   private final ExecController execController;
-  private final LaunchConfig launchConfig;
   private final Predicate<Pair<Long, String>> shouldCompress;
 
-  private Registry registry;
+  private Registry rootRegistry;
 
   private final boolean addResponseTimeHeader;
   private final ExecControl execControl;
 
-  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) throws Exception {
+  public NettyHandlerAdapter(Stopper stopper, Handler handler, Registry rootRegistry) throws Exception {
     super(false);
 
+    ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
+
     this.handlers = ChainHandler.unpack(handler);
-    this.launchConfig = launchConfig;
-    this.registry = buildBaseRegistry(stopper, launchConfig);
-    this.addResponseTimeHeader = launchConfig.isTimeResponses();
-    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController(), Handlers.notFound());
-    this.execController = launchConfig.getExecController();
+    this.rootRegistry = buildBaseRegistry(stopper, serverConfig, rootRegistry);
+    this.addResponseTimeHeader = serverConfig.isTimeResponses();
+    this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
+    this.execController = rootRegistry.get(ExecController.class);
     this.execControl = execController.getControl();
 
-    if (launchConfig.isCompressResponses()) {
-      ImmutableSet<String> blacklist = launchConfig.getCompressionMimeTypeBlackList();
+    if (serverConfig.isCompressResponses()) {
+      ImmutableSet<String> blacklist = serverConfig.getCompressionMimeTypeBlackList();
       this.shouldCompress = new ShouldCompressPredicate(
-        launchConfig.getCompressionMinSize(),
-        launchConfig.getCompressionMimeTypeWhiteList(),
+        serverConfig.getCompressionMinSize(),
+        serverConfig.getCompressionMimeTypeWhiteList(),
         blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist
       );
     } else {
@@ -140,14 +140,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-
+    final ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.method(), nettyRequest.uri(), remoteAddress, socketAddress, nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController, launchConfig.isCompressResponses(), shouldCompress, startTime);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController, serverConfig.isCompressResponses(), shouldCompress, startTime);
 
     final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter);
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
@@ -164,7 +164,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       applicationConstants, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
-    DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, registry, handlers, execution -> {
+    DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, rootRegistry, handlers, execution -> {
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
@@ -187,7 +187,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
         response.status(500);
 
-        if (launchConfig.isDevelopment()) {
+        if (serverConfig.isDevelopment()) {
           response.send(message);
         } else {
           response.send();
@@ -225,17 +225,20 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) throws Exception {
-    ErrorHandler errorHandler = launchConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
+  public static Registry buildBaseRegistry(Stopper stopper, ServerConfig serverConfig, Registry defaultRegistry) throws Exception {
+    return buildBaseRegistry(stopper, serverConfig, defaultRegistry, null);
+  }
+
+  public static Registry buildBaseRegistry(Stopper stopper, ServerConfig serverConfig, Registry defaultRegistry, Registry userRegistry) throws Exception {
+    ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
 
     RegistryBuilder registryBuilder = Registries.registry()
       .add(Stopper.class, stopper)
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
-      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+      .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
       .add(Redirector.class, new DefaultRedirector())
       .add(ClientErrorHandler.class, errorHandler)
       .add(ServerErrorHandler.class, errorHandler)
-      .add(LaunchConfig.class, launchConfig)
       .with(new DefaultFileRenderer().register())
       .with(new PromiseRenderer().register())
       .with(new PublisherRenderer().register())
@@ -243,15 +246,17 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .with(new CharSequenceRenderer().register())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())
-      .add(HttpClient.class, HttpClients.httpClient(launchConfig));
+      .add(HttpClient.class, HttpClients.httpClient(serverConfig, defaultRegistry));
 
-    if (launchConfig.isHasBaseDir()) {
-      registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
+    if (serverConfig.isHasBaseDir()) {
+      registryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
 
-    Registry foundationRegistry = registryBuilder.build();
-    Registry defaultRegistry = launchConfig.getDefaultRegistry();
-    return defaultRegistry != null ? foundationRegistry.join(defaultRegistry) : foundationRegistry;
+    Registry effectiveRegistry = registryBuilder.build();
+    if (userRegistry != null) {
+      effectiveRegistry = effectiveRegistry.join(userRegistry);
+    }
+    return effectiveRegistry.join(defaultRegistry);
   }
 
 }

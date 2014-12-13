@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.test.embed.internal;
+package ratpack.launch;
 
-import ratpack.launch.LaunchConfig;
-import ratpack.server.RatpackServer;
-import ratpack.server.RatpackServerBuilder;
+/**
+ * Set server configuration values
+ */
+public interface ServerConfigSpec {
 
-public abstract class LaunchConfigEmbeddedApp extends EmbeddedAppSupport {
+  ServerConfigSpec port(int port);
 
-  @Override
-  protected RatpackServer createServer() {
-    LaunchConfig launchConfig = createLaunchConfig();
-    return RatpackServerBuilder.build(launchConfig);
-  }
-
-  abstract protected LaunchConfig createLaunchConfig();
-
+  ServerConfigSpec development(boolean development);
 }

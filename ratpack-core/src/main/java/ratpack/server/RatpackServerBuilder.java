@@ -25,8 +25,9 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
+import ratpack.launch.ServerConfig;
+import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.internal.NettyRatpackServer;
@@ -47,35 +48,36 @@ public abstract class RatpackServerBuilder {
    * <p>
    * The returned server has not been started.
    *
-   * @param launchConfig The server's configuration
+   * @param rootRegistry the base registry containing the ServerConfig and items used to initialize the server
+   * @param handlerFactory the application's root handler
+   *
    * @return A new, not yet started, Ratpack server.
    */
-  public static RatpackServer build(LaunchConfig launchConfig) {
-    Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(launchConfig);
-    return new NettyRatpackServer(launchConfig, channelInitializer);
+  public static RatpackServer build(Registry rootRegistry, HandlerFactory handlerFactory) {
+    Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(handlerFactory, rootRegistry);
+    return new NettyRatpackServer(rootRegistry, channelInitializer);
   }
 
-  private static Function<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
-    return stopper -> new RatpackChannelInitializer(launchConfig, createHandler(launchConfig), stopper);
+  private static Function<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final HandlerFactory handlerFactory, final Registry rootRegistry) {
+    return stopper -> new RatpackChannelInitializer(rootRegistry, createHandler(handlerFactory, rootRegistry, rootRegistry.get(ServerConfig.class)), stopper);
   }
 
-  private static Handler createHandler(final LaunchConfig launchConfig) {
-    final HandlerFactory handlerFactory = launchConfig.getHandlerFactory();
+  private static Handler createHandler(final HandlerFactory handlerFactory, final Registry rootRegistry, final ServerConfig serverConfig) {
 
-    if (launchConfig.isDevelopment()) {
+    if (serverConfig.isDevelopment()) {
       File classFile = ClassUtil.getClassFile(handlerFactory);
       if (classFile != null) {
-        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> createHandler(launchConfig, handlerFactory));
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> createHandler(rootRegistry, handlerFactory));
         return new FactoryHandler(factory);
       }
     }
 
-    return createHandler(launchConfig, handlerFactory);
+    return createHandler(rootRegistry, handlerFactory);
   }
 
-  private static Handler createHandler(LaunchConfig launchConfig, HandlerFactory handlerFactory) {
+  private static Handler createHandler(Registry rootRegistry, HandlerFactory handlerFactory) {
     try {
-      return handlerFactory.create(launchConfig);
+      return handlerFactory.create(rootRegistry);
     } catch (Exception e) {
       Throwables.propagateIfInstanceOf(e, BaseDirRequiredException.class);
       throw new LaunchException("Could not create handler via handler factory: " + handlerFactory.getClass().getName(), e);

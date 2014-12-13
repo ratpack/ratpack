@@ -20,9 +20,10 @@ import com.google.common.base.StandardSystemProperty
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.launch.HandlerFactory
-import ratpack.launch.LaunchConfigBuilder
 import ratpack.launch.LaunchException
-import ratpack.server.RatpackServerBuilder
+import ratpack.launch.RatpackLauncher
+import ratpack.launch.ServerConfig
+import ratpack.launch.ServerConfigBuilder
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -33,13 +34,17 @@ class NettyRatpackServiceSpec extends Specification {
   @IgnoreIf({ StandardSystemProperty.OS_NAME.value().startsWith("Windows") }) // Windows allows multiple binds (implicit SO_REUSEPORT)
   def "throws exception if can't bind to port"() {
     given:
-    def config1 = LaunchConfigBuilder.baseDir(temporaryFolder.root).port(0).build({} as HandlerFactory)
-    def server1 = RatpackServerBuilder.build(config1)
+    def config1 = ServerConfigBuilder.baseDir(temporaryFolder.root).port(0).build()
+    def server1 = RatpackLauncher.launcher {r ->
+      r.add(ServerConfig, config1)
+    }.build({} as HandlerFactory)
     server1.start()
 
     when:
-    def config2 = LaunchConfigBuilder.baseDir(temporaryFolder.root).port(server1.bindPort).build({} as HandlerFactory)
-    def server2 = RatpackServerBuilder.build(config2)
+    def config2 = ServerConfigBuilder.baseDir(temporaryFolder.root).port(server1.bindPort).build()
+    def server2 = RatpackLauncher.launcher { r ->
+      r.add(ServerConfig, config2)
+    }.build({} as HandlerFactory)
     server2.start()
 
     then:

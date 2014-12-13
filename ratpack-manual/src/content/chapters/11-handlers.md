@@ -200,8 +200,8 @@ For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#pa
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-import ratpack.launch.LaunchConfig;
 import ratpack.launch.HandlerFactory;
+import ratpack.registry.Registry;
 
 import static ratpack.handling.Handlers.path;
 import static ratpack.handling.Handlers.get;
@@ -214,7 +214,7 @@ public class SomeHandler implements Handler {
 }
 
 public class Application implements HandlerFactory {
-  public Handler create(LaunchConfig launchConfig) {
+  public Handler create(Registry registry) {
     return path("foo/bar", chain(get(), new SomeHandler()));
   }
 }
@@ -228,18 +228,18 @@ For this “application”:
 3. anything else would produce a HTTP 404
 
 This is easier than doing it all yourself, but we can do better.
-We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain-ratpack.launch.LaunchConfig-ratpack.func.Action-) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
+We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain-ratpack.registry.Registry-ratpack.func.Action-) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
 
 ```language-java
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 
 import static ratpack.handling.Handlers.chain;
 
 public class Application implements HandlerFactory {
-  public Handler create(LaunchConfig launchConfig) throws Exception {
-    return chain(launchConfig, (chain) -> chain
+  public Handler create(Registry registry) throws Exception {
+    return chain(registry, (chain) -> chain
         .prefix("api", (api) -> api
           .delete("someResource", context -> {
             // delete the resource
@@ -261,14 +261,14 @@ The Groovy version of this DSL is extremely sweet…
 
 ```language-groovy tested
 import ratpack.handling.Handler
-import ratpack.launch.LaunchConfig
 import ratpack.launch.HandlerFactory
+import ratpack.registry.Registry
 
 import static ratpack.groovy.Groovy.chain
 
 class Application implements HandlerFactory {
-  Handler create(LaunchConfig launchConfig) {
-    chain(launchConfig) {
+  Handler create(Registry registry) {
+    chain(registry) {
       prefix("api") {
         delete("someResource") {
           // delete the resource

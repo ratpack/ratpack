@@ -31,7 +31,7 @@ import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
 import ratpack.handlebars.internal.RatpackTemplateCache;
 import ratpack.handlebars.internal.TemplateKey;
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.ServerConfig;
 
 /**
  * An extension module that provides support for Handlebars.java templating engine.
@@ -138,19 +138,19 @@ public class HandlebarsModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  TemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
-    String path = templatesPath == null ? launchConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
-    String suffix = templatesSuffix == null ? launchConfig.getOther("handlebars.templatesSuffix", ".hbs") : templatesSuffix;
+  TemplateLoader provideTemplateLoader(ServerConfig serverConfig) {
+    String path = templatesPath == null ? serverConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
+    String suffix = templatesSuffix == null ? serverConfig.getOther("handlebars.templatesSuffix", ".hbs") : templatesSuffix;
 
-    FileSystemBinding templatesBinding = launchConfig.getBaseDir().binding(path);
+    FileSystemBinding templatesBinding = serverConfig.getBaseDir().binding(path);
     return new FileSystemBindingTemplateLoader(templatesBinding, suffix);
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  TemplateCache provideTemplateCache(LaunchConfig launchConfig) {
-    boolean reloadable = this.reloadable == null ? launchConfig.isDevelopment() : this.reloadable;
-    int cacheSize = this.cacheSize == null ? Integer.parseInt(launchConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
+  TemplateCache provideTemplateCache(ServerConfig serverConfig) {
+    boolean reloadable = this.reloadable == null ? serverConfig.isDevelopment() : this.reloadable;
+    int cacheSize = this.cacheSize == null ? Integer.parseInt(serverConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
     return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build());
   }
 

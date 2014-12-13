@@ -36,7 +36,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
   def "does contain response time header if enabled"() {
     given:
-    launchConfig {
+    serverConfig {
       timeResponses true
     }
 
@@ -53,7 +53,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
   def "does contain response time header when blocking operation used"() {
     given:
-    launchConfig {
+    serverConfig {
       timeResponses true
     }
 
@@ -88,7 +88,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
   def "static files have response time when enabled"() {
     given:
-    launchConfig {
+    serverConfig {
       timeResponses true
     }
 

@@ -307,7 +307,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get("file.txt")
     response.statusCode == statusCode.code()
-    if (!application.server.launchConfig.compressResponses) {
+    if (!application.server.serverConfig.compressResponses) {
       assert response.headers.get(CONTENT_LENGTH).toInteger() == contentLength
     }
 
@@ -336,7 +336,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get("")
     response.statusCode == NOT_MODIFIED.code()
-    if (!application.server.launchConfig.compressResponses) {
+    if (!application.server.serverConfig.compressResponses) {
       assert response.headers.get(CONTENT_LENGTH).toInteger() == 0
     }
 
@@ -357,7 +357,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     with(head("static.text")) {
       statusCode == OK.code()
       body.bytes.length == 0
-      if (!application.server.launchConfig.compressResponses) {
+      if (!application.server.serverConfig.compressResponses) {
         assert headers.get(CONTENT_LENGTH) == size(file).toString()
       }
     }
@@ -372,7 +372,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file "d2/custom.xhtml", "bar"
 
     and:
-    launchConfig {
+    serverConfig {
       indexFiles "custom.xhtml", "custom.html"
     }
 
@@ -397,7 +397,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file "public/index.html", "bar"
 
     and:
-    launchConfig {
+    serverConfig {
       indexFiles "custom.html"
     }
 
@@ -415,7 +415,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file "public/custom.html", "foo"
     file "public/index.html", "bar"
     and:
-    launchConfig {
+    serverConfig {
       indexFiles "index.html", "custom.html"
     }
 
