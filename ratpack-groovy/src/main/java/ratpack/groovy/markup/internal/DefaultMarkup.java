@@ -17,8 +17,13 @@
 package ratpack.groovy.markup.internal;
 
 import groovy.lang.Closure;
+import groovy.xml.MarkupBuilder;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.markup.Markup;
+import ratpack.handling.Context;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
 public class DefaultMarkup implements Markup {
@@ -48,4 +53,14 @@ public class DefaultMarkup implements Markup {
     return definition;
   }
 
+  @Override
+  public void render(Context context) throws Exception {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    OutputStreamWriter writer = new OutputStreamWriter(out, getEncoding());
+    MarkupBuilder markupBuilder = new MarkupBuilder(writer);
+
+    ClosureUtil.configureDelegateFirst(markupBuilder, markupBuilder, getDefinition());
+
+    context.getResponse().contentType(getContentType()).send(out.toByteArray());
+  }
 }

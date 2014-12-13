@@ -16,8 +16,6 @@
 
 package ratpack.groovy.server.internal;
 
-import ratpack.groovy.markup.MarkupRenderer;
-import ratpack.groovy.markup.internal.DefaultMarkupRenderer;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
 import ratpack.launch.LaunchConfig;
@@ -30,7 +28,6 @@ public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
 
   @Override
   protected void registerDefaultModules(BindingsSpec bindingsSpec) {
-    bindingsSpec.bind(MarkupRenderer.class, DefaultMarkupRenderer.class);
     super.registerDefaultModules(bindingsSpec);
   }
 
