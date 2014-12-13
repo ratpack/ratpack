@@ -173,12 +173,7 @@ public abstract class Groovy {
    * @throws Exception any exception thrown by the given closure
    */
   public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
-    return new Action<Chain>() {
-      @Override
-      public void execute(Chain chain) throws Exception {
-        ClosureUtil.configureDelegateFirst(new DefaultGroovyChain(chain), closure);
-      }
-    };
+    return chain -> ClosureUtil.configureDelegateFirst(new DefaultGroovyChain(chain), closure);
   }
 
   /**
