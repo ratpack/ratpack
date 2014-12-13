@@ -205,8 +205,6 @@ sourceSets.test.resources.srcDir generatedTestResourcesDir
 
 processTestResources.dependsOn writeTestConfig
 
-ideaModule.dependsOn processTestResources
-
 task compileCoffee(type: CoffeeScriptCompile) {
   source fileTree('src/main/static/scripts')
   destinationDir file('src/ratpack/assets/scripts')
