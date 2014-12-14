@@ -16,10 +16,8 @@
 
 package ratpack.http.client.internal;
 
-import java.util.concurrent.TimeUnit;
+import ratpack.exec.Fulfiller;
+import ratpack.func.Action;
 
-class RequestParams {
-
-  long readTimeoutNanos = TimeUnit.SECONDS.toNanos(30);
-
+interface RequestAction<T> extends Action<Fulfiller<? super T>> {
 }

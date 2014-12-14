@@ -33,7 +33,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
-public class RequestSpecBacking {
+class RequestSpecBacking {
 
   private final MutableHeaders headers;
   private final URI uri;

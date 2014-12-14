@@ -57,4 +57,6 @@ public interface HttpClient {
    */
   Promise<ReceivedResponse> request(URI uri, Action<? super RequestSpec> action);
 
+  Promise<StreamedResponse> streamRequest(URI uri, final Action<? super RequestSpec> requestConfigurer);
+
 }
