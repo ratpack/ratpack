@@ -64,7 +64,7 @@ import java.nio.file.Path;
  *     );
  *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
  *         Guice.builder(launchConfig)
- *           .bindings(b -> b.add(MarkupTemplatingModule.class))
+ *           .bindings(b -> b.add(MarkupTemplateModule.class))
  *           .build(chain -> chain
  *               .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
  *           )
