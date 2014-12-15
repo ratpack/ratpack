@@ -5,7 +5,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import groovy.util.logging.Slf4j
 import ratpack.file.FileSystemChecksumServices
-import ratpack.groovy.markuptemplates.MarkupTemplate
+import ratpack.groovy.template.MarkupTemplate
 import ratpack.http.client.HttpClient
 import ratpack.launch.LaunchConfig
 import ratpack.render.RenderableDecorator

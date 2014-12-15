@@ -1,11 +1,11 @@
-import ratpack.groovy.templating.TemplatingModule
+import ratpack.groovy.template.TextTemplateModule
 
 import static ratpack.groovy.Groovy.groovyTemplate
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   bindings {
-    add TemplatingModule
+    add TextTemplateModule
   }
 
   handlers {
