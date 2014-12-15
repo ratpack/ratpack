@@ -1,10 +1,12 @@
 import ratpack.codahale.metrics.CodaHaleMetricsModule
 import ratpack.file.internal.DefaultFileSystemBinding
+import ratpack.groovy.markuptemplates.MarkupTemplate
 import ratpack.groovy.markuptemplates.MarkupTemplatingModule
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.jackson.JacksonModule
 import ratpack.newrelic.NewRelicModule
 import ratpack.remote.RemoteControlModule
+import ratpack.render.RenderableDecorator
 import ratpack.rx.RxRatpack
 import ratpack.site.SiteModule
 import ratpack.site.github.GitHubApi
@@ -30,7 +32,6 @@ ratpack {
     }
     add new SiteModule(launchConfig)
     add(TemplatingModule) { it.staticallyCompile = true }
-
     RxRatpack.initialize()
   }
 

@@ -20,14 +20,15 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.render.NoSuchRendererException;
+import ratpack.render.RenderableDecorator;
 import ratpack.render.Renderer;
 import ratpack.render.RendererException;
+import ratpack.util.Types;
 
 public class DefaultRenderController implements RenderController {
 
-  private static final TypeToken<Renderer<?>> RENDERER_TYPE_TOKEN = new TypeToken<Renderer<?>>() {
-    private static final long serialVersionUID = 0;
-  };
+  private final static TypeToken<RenderableDecorator<?>> DECORATOR_TYPE = new TypeToken<RenderableDecorator<?>>() {};
+  private final static TypeToken<Renderer<?>> RENDERER_TYPE = new TypeToken<Renderer<?>>() {};
 
   @Override
   public void render(final Object toRender, final Context context) throws Exception {
@@ -36,31 +37,42 @@ public class DefaultRenderController implements RenderController {
       return;
     }
 
-    Renderer<?> renderer = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()))
-      .orElseThrow(() -> new NoSuchRendererException(toRender));
+    doRender(toRender, context);
+  }
 
+  private <T> void doRender(T toRender, Context context) throws Exception {
+    Class<T> type = Types.cast(toRender.getClass());
+
+    Iterable<? extends RenderableDecorator<?>> decorators = context.all(DECORATOR_TYPE, new DecoratorPredicate(type));
+    for (RenderableDecorator<?> decorator : decorators) {
+      RenderableDecorator<T> cast = Types.cast(decorator);
+      toRender = cast.decorate(context, toRender);
+    }
+
+    T decorated = toRender;
+
+    Renderer<?> renderer = context.first(RENDERER_TYPE, new RendererPredicate(type))
+      .orElseThrow(() -> new NoSuchRendererException(decorated));
+
+    Renderer<? super T> cast = Types.cast(renderer);
     try {
-      doRender(toRender, renderer, context);
+      cast.render(context, decorated);
     } catch (Exception e) {
-      throw new RendererException(renderer, toRender, e);
+      throw new RendererException(renderer, decorated, e);
     }
   }
 
-  private <T> void doRender(Object object, Renderer<T> renderer, Context context) throws Exception {
-    @SuppressWarnings("unchecked") T cast = (T) object;
-    renderer.render(context, cast);
-  }
+  private static class DecoratorPredicate implements Predicate<RenderableDecorator<?>> {
 
-  private static class RendererForTypePredicate implements Predicate<Renderer<?>> {
-    private final Class<?> toRenderType;
+    private final Class<?> type;
 
-    public RendererForTypePredicate(Class<?> toRenderType) {
-      this.toRenderType = toRenderType;
+    public DecoratorPredicate(Class<?> type) {
+      this.type = type;
     }
 
     @Override
-    public boolean apply(Renderer<?> renderer) {
-      return renderer.getType().isAssignableFrom(toRenderType);
+    public boolean apply(RenderableDecorator<?> t) {
+      return t.getType().equals(type);
     }
 
     @Override
@@ -72,14 +84,47 @@ public class DefaultRenderController implements RenderController {
         return false;
       }
 
-      RendererForTypePredicate that = (RendererForTypePredicate) o;
+      DecoratorPredicate that = (DecoratorPredicate) o;
 
-      return toRenderType.equals(that.toRenderType);
+      return type.equals(that.type);
     }
 
     @Override
     public int hashCode() {
-      return toRenderType.hashCode();
+      return type.hashCode();
     }
   }
+
+  private static class RendererPredicate implements Predicate<Renderer<?>> {
+    private final Class<?> type;
+
+    public RendererPredicate(Class<?> type) {
+      this.type = type;
+    }
+
+    @Override
+    public boolean apply(Renderer<?> renderer) {
+      return renderer.getType().isAssignableFrom(type);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      RendererPredicate that = (RendererPredicate) o;
+
+      return type.equals(that.type);
+    }
+
+    @Override
+    public int hashCode() {
+      return type.hashCode();
+    }
+  }
+
 }

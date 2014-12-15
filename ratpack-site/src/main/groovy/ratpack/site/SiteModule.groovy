@@ -3,13 +3,12 @@ package ratpack.site
 import com.fasterxml.jackson.databind.ObjectReader
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
-import com.google.inject.TypeLiteral
 import groovy.util.logging.Slf4j
 import ratpack.file.FileSystemChecksumServices
 import ratpack.groovy.markuptemplates.MarkupTemplate
 import ratpack.http.client.HttpClient
 import ratpack.launch.LaunchConfig
-import ratpack.render.Renderer
+import ratpack.render.RenderableDecorator
 import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
@@ -42,8 +41,6 @@ class SiteModule extends AbstractModule {
       bind(RatpackVersions)
       bind(GitHubData).to(ApiBackedGitHubData)
     }
-
-    bind(new TypeLiteral<Renderer<MarkupTemplate>>() {}).to(TemplateDecoratingRenderer.class).in(com.google.inject.Singleton.class);
   }
 
   @Provides
@@ -74,6 +71,13 @@ class SiteModule extends AbstractModule {
       String url = launchConfig.getOther(GITHUB_URL, GITHUB_URL_DEFAULT)
 
       new GitHubApi(url, authToken, ttlMinsInt, reader, httpClient)
+    }
+  }
+
+  @Provides
+  RenderableDecorator<MarkupTemplate> markupTemplateRenderableDecorator(AssetLinkService assetLinkService) {
+    RenderableDecorator.of(MarkupTemplate) { c, t ->
+      new MarkupTemplate(t.name, t.contentType, t.model + [assets: assetLinkService])
     }
   }
 

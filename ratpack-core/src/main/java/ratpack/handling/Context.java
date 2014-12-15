@@ -519,8 +519,10 @@ public interface Context extends ExecControl, Registry {
    * </ul>
    * <p>
    * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
+   * <p>
+   * The object-to-render will be decorated by all registered {@link ratpack.render.RenderableDecorator} whose type is exactly equal to the type of the object-to-render, before being passed to the selected renderer.
    *
-   * @param object The object to render
+   * @param object The object-to-render
    * @throws NoSuchRendererException if no suitable renderer can be found
    */
   @NonBlocking
