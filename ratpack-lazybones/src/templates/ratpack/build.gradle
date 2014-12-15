@@ -13,7 +13,6 @@ apply plugin: "eclipse"
 
 repositories {
   jcenter()
-  maven { url "https://repo.spring.io/repo" } // for springloaded
   maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots' }
 }
 
