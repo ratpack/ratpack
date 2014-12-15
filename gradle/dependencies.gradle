@@ -16,7 +16,7 @@
 
 ext {
   commonVersions = [
-    remote: "0.6-SNAPSHOT",
+    remote: "0.7",
     slf4j: "1.7.5",
     netty: "4.1.0.Beta4-SNAPSHOT",
     guava: "17.0",
