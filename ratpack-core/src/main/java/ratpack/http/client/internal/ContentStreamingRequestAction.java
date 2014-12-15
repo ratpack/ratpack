@@ -46,6 +46,7 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
+  private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
   public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator) {
     super(requestConfigurer, uri, execution, byteBufAllocator);
@@ -63,6 +64,11 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
       public void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
+        execution.onCleanup(() -> {
+          if (!subscribedTo.get() && ctx.channel().isOpen()) {
+            ctx.close();
+          }
+        });
 
         final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
         final Status status = new DefaultStatus(msg.status());
@@ -133,6 +139,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
 
     @Override
     public void subscribe(Subscriber<? super ByteBuf> s) {
+      subscribedTo.compareAndSet(false, true);
       subscriber = s;
 
       channelPipeline.remove("httpResponseHandler");
