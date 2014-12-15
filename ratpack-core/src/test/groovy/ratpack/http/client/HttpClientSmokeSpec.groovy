@@ -410,8 +410,8 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-Transfer-Encoding: chunked
-Content-Type: text/plain;charset=UTF-8
+transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
 
 3
 bar
@@ -450,8 +450,8 @@ bar
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-Transfer-Encoding: chunked
-Content-Type: text/plain;charset=UTF-8
+transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
 
 3
 BAR

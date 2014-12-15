@@ -80,7 +80,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.responseHeaders = responseHeaders;
     this.requestOutcomeEventController = requestOutcomeEventController;
     this.startTime = startTime;
-    this.isKeepAlive = nettyRequest.protocolVersion().isKeepAliveDefault();
+    this.isKeepAlive = HttpHeaderUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
