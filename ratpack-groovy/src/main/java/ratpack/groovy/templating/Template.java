@@ -16,14 +16,32 @@
 
 package ratpack.groovy.templating;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
-public interface Template {
+public class Template {
 
-  String getId();
+  private final String id;
+  private final ImmutableMap<String, ?> model;
+  private final String type;
 
-  String getType();
+  public Template(Map<String, ?> model, String id, String type) {
+    this.id = id;
+    this.type = type;
+    this.model = ImmutableMap.copyOf(model);
+  }
 
-  Map<String, ?> getModel();
+  public String getId() {
+    return id;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public ImmutableMap<String, ?> getModel() {
+    return model;
+  }
 
 }

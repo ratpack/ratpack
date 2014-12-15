@@ -37,7 +37,6 @@ import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
 import ratpack.groovy.markuptemplates.MarkupTemplate;
 import ratpack.groovy.templating.Template;
-import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -275,7 +274,7 @@ public abstract class Groovy {
    * @return a template
    */
   public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
-    return new DefaultTemplate(id, model, type);
+    return new Template(model, id, type);
   }
 
   /**
