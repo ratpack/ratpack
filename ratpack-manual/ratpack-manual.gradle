@@ -182,7 +182,9 @@ task tokeniseManual(type: Sync) {
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
         <!--[if gt IE 7]><!--><link href="css/manual.css" rel="stylesheet" type="text/css"><!--<![endif]-->
         <link href="css/fonts.css" rel="stylesheet" type="text/css">
+        <link href="css/manual_toggle_imports.css" rel="stylesheet" type="text/css">
         <script src="js/manual.js"></script>
+        <script src="js/manual_toggle_imports.js"></script>
       """,
       footer: """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
