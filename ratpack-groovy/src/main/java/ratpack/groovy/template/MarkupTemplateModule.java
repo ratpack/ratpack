@@ -47,7 +47,8 @@ import java.nio.file.Path;
  * Response content type can be manually specified, i.e. {@code groovyMarkupTemplate("template.gtpl", model, "text/html")} if
  * not specified will default to {@code text/html}.
  * <pre class="java">{@code
- * import ratpackratpack.groovy.template.MarkupTemplatingModuleport ratpack.guice.Guice;
+ * import ratpack.groovy.template.MarkupTemplatingModule;
+ * import ratpack.guice.Guice;
  * import ratpack.test.embed.BaseDirBuilder;
  * import ratpack.test.embed.EmbeddedApp;
  *
