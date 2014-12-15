@@ -17,6 +17,9 @@
 package ratpack.render.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.render.NoSuchRendererException;
@@ -29,6 +32,20 @@ public class DefaultRenderController implements RenderController {
 
   private final static TypeToken<RenderableDecorator<?>> DECORATOR_TYPE = new TypeToken<RenderableDecorator<?>>() {};
   private final static TypeToken<Renderer<?>> RENDERER_TYPE = new TypeToken<Renderer<?>>() {};
+
+  private final LoadingCache<Class<?>, RendererPredicate> rendererPredicateCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, RendererPredicate>() {
+    @Override
+    public RendererPredicate load(Class<?> key) throws Exception {
+      return new RendererPredicate(key);
+    }
+  });
+
+  private final LoadingCache<Class<?>, DecoratorPredicate> decoratorPredicateCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, DecoratorPredicate>() {
+    @Override
+    public DecoratorPredicate load(Class<?> key) throws Exception {
+      return new DecoratorPredicate(key);
+    }
+  });
 
   @Override
   public void render(final Object toRender, final Context context) throws Exception {
@@ -43,7 +60,7 @@ public class DefaultRenderController implements RenderController {
   private <T> void doRender(T toRender, Context context) throws Exception {
     Class<T> type = Types.cast(toRender.getClass());
 
-    Iterable<? extends RenderableDecorator<?>> decorators = context.all(DECORATOR_TYPE, new DecoratorPredicate(type));
+    Iterable<? extends RenderableDecorator<?>> decorators = context.all(DECORATOR_TYPE, decoratorPredicateCache.get(type));
     for (RenderableDecorator<?> decorator : decorators) {
       RenderableDecorator<T> cast = Types.cast(decorator);
       toRender = cast.decorate(context, toRender);
@@ -51,7 +68,7 @@ public class DefaultRenderController implements RenderController {
 
     T decorated = toRender;
 
-    Renderer<?> renderer = context.first(RENDERER_TYPE, new RendererPredicate(type))
+    Renderer<?> renderer = context.first(RENDERER_TYPE, rendererPredicateCache.get(type))
       .orElseThrow(() -> new NoSuchRendererException(decorated));
 
     Renderer<? super T> cast = Types.cast(renderer);
