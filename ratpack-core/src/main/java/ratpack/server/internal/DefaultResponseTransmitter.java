@@ -45,8 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
-
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
@@ -82,7 +80,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.responseHeaders = responseHeaders;
     this.requestOutcomeEventController = requestOutcomeEventController;
     this.startTime = startTime;
-    this.isKeepAlive = isKeepAlive(nettyRequest);
+    this.isKeepAlive = nettyRequest.protocolVersion().isKeepAliveDefault();
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 

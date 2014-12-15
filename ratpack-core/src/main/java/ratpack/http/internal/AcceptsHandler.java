@@ -16,7 +16,7 @@
 
 package ratpack.http.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -33,7 +33,7 @@ public class AcceptsHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {
-    String acceptHeader = context.getRequest().getHeaders().get(HttpHeaders.Names.ACCEPT);
+    String acceptHeader = context.getRequest().getHeaders().get(HttpHeaderNames.ACCEPT);
 
     if (acceptHeader == null || acceptHeader.isEmpty()) {
       context.clientError(406);

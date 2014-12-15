@@ -16,45 +16,47 @@
 
 package ratpack.http.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.AsciiString;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 
 public abstract class HttpHeaderConstants {
 
   private HttpHeaderConstants() {
   }
 
-  public static final CharSequence CONTENT_LENGTH = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_LENGTH);
-  public static final CharSequence CONTENT_TYPE = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_TYPE);
-  public static final CharSequence ACCEPT = HttpHeaders.newEntity(HttpHeaders.Names.ACCEPT);
-  public static final CharSequence LAST_MODIFIED = HttpHeaders.newEntity(HttpHeaders.Names.LAST_MODIFIED);
-  public static final CharSequence CONNECTION = HttpHeaders.newEntity(HttpHeaders.Names.CONNECTION);
-  public static final CharSequence KEEP_ALIVE = HttpHeaders.newEntity(HttpHeaders.Values.KEEP_ALIVE);
-  public static final CharSequence CONTENT_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_ENCODING);
-  public static final CharSequence IDENTITY = HttpHeaders.newEntity(HttpHeaders.Values.IDENTITY);
-  public static final CharSequence TRANSFER_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.TRANSFER_ENCODING);
-  public static final CharSequence CHUNKED = HttpHeaders.newEntity(HttpHeaders.Values.CHUNKED);
-  public static final CharSequence CACHE_CONTROL = HttpHeaders.newEntity(HttpHeaders.Names.CACHE_CONTROL);
-  public static final CharSequence PRAGMA = HttpHeaders.newEntity(HttpHeaders.Names.PRAGMA);
-  public static final CharSequence NO_CACHE = HttpHeaders.newEntity(HttpHeaders.Values.NO_CACHE);
-  public static final CharSequence NO_STORE = HttpHeaders.newEntity(HttpHeaders.Values.NO_STORE);
-  public static final CharSequence MAX_AGE = HttpHeaders.newEntity(HttpHeaders.Values.MAX_AGE);
-  public static final CharSequence MUST_REVALIDATE = HttpHeaders.newEntity(HttpHeaders.Values.MUST_REVALIDATE);
-  public static final CharSequence NO_CACHE_FULL = HttpHeaders.newEntity(NO_CACHE + ", " + NO_STORE + ", " + MAX_AGE + "=0, " + MUST_REVALIDATE);
-  public static final CharSequence HOST = HttpHeaders.newEntity(HttpHeaders.Names.HOST);
-  public static final CharSequence COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.COOKIE);
-  public static final CharSequence SET_COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.SET_COOKIE);
-  public static final CharSequence ALLOW = HttpHeaders.newEntity(HttpHeaders.Names.ALLOW);
-  public static final CharSequence LOCATION = HttpHeaders.newEntity(HttpHeaders.Names.LOCATION);
+  public static final CharSequence CONTENT_LENGTH = HttpHeaderNames.CONTENT_LENGTH;
+  public static final CharSequence CONTENT_TYPE = HttpHeaderNames.CONTENT_TYPE;
+  public static final CharSequence ACCEPT = HttpHeaderNames.ACCEPT;
+  public static final CharSequence LAST_MODIFIED = HttpHeaderNames.LAST_MODIFIED;
+  public static final CharSequence CONNECTION = HttpHeaderNames.CONNECTION;
+  public static final CharSequence KEEP_ALIVE = HttpHeaderValues.KEEP_ALIVE;
+  public static final CharSequence CONTENT_ENCODING = HttpHeaderNames.CONTENT_ENCODING;
+  public static final CharSequence IDENTITY = HttpHeaderValues.IDENTITY;
+  public static final CharSequence TRANSFER_ENCODING = HttpHeaderNames.TRANSFER_ENCODING;
+  public static final CharSequence CHUNKED = HttpHeaderValues.CHUNKED;
+  public static final CharSequence CACHE_CONTROL = HttpHeaderNames.CACHE_CONTROL;
+  public static final CharSequence PRAGMA = HttpHeaderNames.PRAGMA;
+  public static final CharSequence NO_CACHE = HttpHeaderValues.NO_CACHE;
+  public static final CharSequence NO_STORE = HttpHeaderValues.NO_STORE;
+  public static final CharSequence MAX_AGE = HttpHeaderValues.MAX_AGE;
+  public static final CharSequence MUST_REVALIDATE = HttpHeaderValues.MUST_REVALIDATE;
+  public static final CharSequence NO_CACHE_FULL = new AsciiString(NO_CACHE + ", " + NO_STORE + ", " + MAX_AGE + "=0, " + MUST_REVALIDATE);
+  public static final CharSequence HOST = HttpHeaderNames.HOST;
+  public static final CharSequence COOKIE = HttpHeaderNames.COOKIE;
+  public static final CharSequence SET_COOKIE = HttpHeaderNames.SET_COOKIE;
+  public static final CharSequence ALLOW = HttpHeaderNames.ALLOW;
+  public static final CharSequence LOCATION = HttpHeaderNames.LOCATION;
 
-  public static final CharSequence X_FORWARDED_HOST = HttpHeaders.newEntity("X-Forwarded-Host");
-  public static final CharSequence X_FORWARDED_PROTO = HttpHeaders.newEntity("X-Forwarded-Proto");
-  public static final CharSequence X_FORWARDED_SSL = HttpHeaders.newEntity("X-Forwarded-Ssl");
+  public static final CharSequence X_FORWARDED_HOST = new AsciiString("X-Forwarded-Host");
+  public static final CharSequence X_FORWARDED_PROTO = new AsciiString("X-Forwarded-Proto");
+  public static final CharSequence X_FORWARDED_SSL = new AsciiString("X-Forwarded-Ssl");
 
-  public static final CharSequence PLAIN_TEXT_UTF8 = HttpHeaders.newEntity("text/plain;charset=UTF-8");
-  public static final CharSequence OCTET_STREAM = HttpHeaders.newEntity("application/octet-stream");
-  public static final CharSequence JSON = HttpHeaders.newEntity("application/json");
-  public static final CharSequence HTML_UTF_8 = HttpHeaders.newEntity("text/html;charset=UTF-8");
-  public static final CharSequence ON = HttpHeaders.newEntity("on");
+  public static final CharSequence PLAIN_TEXT_UTF8 = new AsciiString("text/plain;charset=UTF-8");
+  public static final CharSequence OCTET_STREAM = new AsciiString("application/octet-stream");
+  public static final CharSequence JSON = new AsciiString("application/json");
+  public static final CharSequence HTML_UTF_8 = new AsciiString("text/html;charset=UTF-8");
+  public static final CharSequence ON = new AsciiString("on");
 
-  public static final CharSequence TEXT_EVENT_STREAM_CHARSET_UTF_8 = HttpHeaders.newEntity("text/event-stream;charset=UTF-8");
+  public static final CharSequence TEXT_EVENT_STREAM_CHARSET_UTF_8 = new AsciiString("text/event-stream;charset=UTF-8");
 }

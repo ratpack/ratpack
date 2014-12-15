@@ -23,7 +23,7 @@ import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.func.Action;
 import ratpack.http.Headers;
@@ -140,7 +140,7 @@ public class DefaultRequest implements Request {
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      String header = headers.get(HttpHeaders.Names.COOKIE);
+      String header = headers.get(HttpHeaderNames.COOKIE);
       if (header == null || header.length() == 0) {
         cookies = Collections.emptySet();
       } else {
@@ -188,7 +188,7 @@ public class DefaultRequest implements Request {
   @Override
   public TypedData getBody() {
     if (body == null) {
-      body = new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE)));
+      body = new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE)));
     }
     return body;
   }

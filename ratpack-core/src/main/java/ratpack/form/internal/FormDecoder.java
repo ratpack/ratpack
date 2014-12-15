@@ -49,7 +49,7 @@ public abstract class FormDecoder {
     Request request = context.getRequest();
     HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());
     HttpRequest nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
-    nettyRequest.headers().add(HttpHeaders.Names.CONTENT_TYPE, request.getBody().getContentType().toString());
+    nettyRequest.headers().add(HttpHeaderNames.CONTENT_TYPE, request.getBody().getContentType().toString());
     HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(nettyRequest);
 
     HttpContent content = new DefaultHttpContent(requestBody.getBuffer());
