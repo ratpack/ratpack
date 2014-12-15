@@ -22,7 +22,9 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.func.Function;
+import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderable;
 import ratpack.stream.Streams;
 import ratpack.util.ExceptionUtils;
 
@@ -62,7 +64,7 @@ import java.nio.charset.Charset;
  * @see Response#sendStream(org.reactivestreams.Publisher)
  * @see <a href="http://en.wikipedia.org/wiki/Chunked_transfer_encoding" target="_blank">Wikipedia - Chunked transfer encoding</a>
  */
-public class ResponseChunks {
+public class ResponseChunks implements Renderable {
 
   /**
    * Transmit each string emitted by the publisher as a chunk.
@@ -72,7 +74,7 @@ public class ResponseChunks {
    * @param publisher a publisher of strings
    * @return a renderable object
    */
-  public static ResponseChunks stringChunks(final Publisher<? extends CharSequence> publisher) {
+  public static ResponseChunks stringChunks(Publisher<? extends CharSequence> publisher) {
     return stringChunks(HttpHeaderConstants.PLAIN_TEXT_UTF8, CharsetUtil.UTF_8, publisher);
   }
 
@@ -85,7 +87,7 @@ public class ResponseChunks {
    * @param publisher a publisher of strings
    * @return a renderable object
    */
-  public static ResponseChunks stringChunks(CharSequence contentType, final Publisher<? extends CharSequence> publisher) {
+  public static ResponseChunks stringChunks(CharSequence contentType, Publisher<? extends CharSequence> publisher) {
     return stringChunks(contentType, CharsetUtil.UTF_8, publisher);
   }
 
@@ -99,21 +101,12 @@ public class ResponseChunks {
    * @param publisher a publisher of strings
    * @return a renderable object
    */
-  public static ResponseChunks stringChunks(CharSequence contentType, final Charset charset, final Publisher<? extends CharSequence> publisher) {
-    return new ResponseChunks(contentType, new Function<ByteBufAllocator, Publisher<? extends ByteBuf>>() {
-      @Override
-      public Publisher<? extends ByteBuf> apply(final ByteBufAllocator byteBufAllocator) throws Exception {
-        return Streams.map(publisher, new Function<CharSequence, ByteBuf>() {
-          @Override
-          public ByteBuf apply(CharSequence charSequence) throws Exception {
-            // We are counting on Netty releasing these buffers when it sends them out.
-            // this isn't going to happen if they never make it to Netty.
-            // Might have to use Unpooled here
-            return ByteBufUtil.encodeString(byteBufAllocator, CharBuffer.wrap(charSequence), charset);
-          }
-        });
-      }
-    });
+  public static ResponseChunks stringChunks(CharSequence contentType, Charset charset, Publisher<? extends CharSequence> publisher) {
+    return new ResponseChunks(contentType, allocator ->
+      Streams.map(publisher, charSequence ->
+          ByteBufUtil.encodeString(allocator, CharBuffer.wrap(charSequence), charset)
+      )
+    );
   }
 
   /**
@@ -125,13 +118,8 @@ public class ResponseChunks {
    * @param publisher a publisher of byte buffers
    * @return a renderable object
    */
-  public static ResponseChunks bufferChunks(CharSequence contentType, final Publisher<? extends ByteBuf> publisher) {
-    return new ResponseChunks(contentType, new Function<ByteBufAllocator, Publisher<? extends ByteBuf>>() {
-      @Override
-      public Publisher<? extends ByteBuf> apply(ByteBufAllocator byteBufAllocator) throws Exception {
-        return publisher;
-      }
-    });
+  public static ResponseChunks bufferChunks(CharSequence contentType, Publisher<? extends ByteBuf> publisher) {
+    return new ResponseChunks(contentType, byteBufAllocator -> publisher);
   }
 
   private final Function<? super ByteBufAllocator, ? extends Publisher<? extends ByteBuf>> publisherFactory;
@@ -151,12 +139,7 @@ public class ResponseChunks {
    * @return a publisher of byte buffers
    */
   public Publisher<? extends ByteBuf> publisher(ByteBufAllocator byteBufAllocator) {
-    try {
-      return publisherFactory.apply(byteBufAllocator);
-    } catch (Exception e) {
-      // really shouldn't happen, so just uncheck and throw
-      throw ExceptionUtils.uncheck(e);
-    }
+    return ExceptionUtils.uncheck(() -> publisherFactory.apply(byteBufAllocator));
   }
 
   /**
@@ -166,6 +149,18 @@ public class ResponseChunks {
    */
   public CharSequence getContentType() {
     return contentType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void render(Context context) throws Exception {
+    Response response = context.getResponse();
+    response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
+    response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, getContentType());
+    Publisher<? extends ByteBuf> publisher = publisher(context.getLaunchConfig().getBufferAllocator());
+    response.sendStream(publisher);
   }
 
 }

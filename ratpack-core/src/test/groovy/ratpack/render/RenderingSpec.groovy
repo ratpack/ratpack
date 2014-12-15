@@ -75,5 +75,4 @@ class RenderingSpec extends RatpackGroovyDslSpec {
       body.text.contains NoSuchRendererException.name
     }
   }
-
 }

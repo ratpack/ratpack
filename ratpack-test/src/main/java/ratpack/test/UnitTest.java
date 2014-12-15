@@ -19,7 +19,6 @@ package ratpack.test;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.internal.DefaultRequestFixture;
@@ -65,7 +64,7 @@ public abstract class UnitTest {
    * @param handler The handler to invoke
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
-   * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @throws Exception any thrown by {@code action}
    * @see #handle(Action, Action)
    */
@@ -114,7 +113,7 @@ public abstract class UnitTest {
    * @param chainAction the definition of a handler chain to test
    * @param requestFixtureAction the configuration of the request fixture
    * @return a result object indicating what happened
-   * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @throws Exception any thrown by {@code chainAction} or {@code requestFixtureAction}
    * @see #handle(Handler, Action)
    */

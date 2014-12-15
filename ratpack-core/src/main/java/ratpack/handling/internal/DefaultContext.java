@@ -19,6 +19,7 @@ package ratpack.handling.internal;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import ratpack.event.internal.EventRegistry;
 import ratpack.exec.*;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -49,7 +51,6 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
-import ratpack.server.BindAddress;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.Types;
@@ -87,7 +88,6 @@ public class DefaultContext implements Context {
   public static class RequestConstants {
     private final ApplicationConstants applicationConstants;
 
-    private final BindAddress bindAddress;
     private final Request request;
     private final Response response;
 
@@ -100,11 +100,10 @@ public class DefaultContext implements Context {
     public Handler handler;
 
     public RequestConstants(
-      ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
+      ApplicationConstants applicationConstants, Request request, Response response,
       DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
-      this.bindAddress = bindAddress;
       this.request = request;
       this.response = response;
       this.directChannelAccess = directChannelAccess;
@@ -137,7 +136,7 @@ public class DefaultContext implements Context {
 
   private final RequestConstants requestConstants;
 
-  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
+  public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     ChainIndex index = new ChainIndex(handlers, registry, true);
     requestConstants.indexes.push(index);
 
@@ -147,6 +146,7 @@ public class DefaultContext implements Context {
     execControl.exec()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
+      .eventLoop(eventLoop)
       .start(e -> context.next());
   }
 
@@ -193,7 +193,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
     requestConstants.applicationConstants.execControl.addInterceptor(execInterceptor, continuation);
   }
 
@@ -369,11 +369,6 @@ public class DefaultContext implements Context {
 
     requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, date);
     runnable.run();
-  }
-
-  @Override
-  public BindAddress getBindAddress() {
-    return requestConstants.bindAddress;
   }
 
   public void error(Throwable throwable) {

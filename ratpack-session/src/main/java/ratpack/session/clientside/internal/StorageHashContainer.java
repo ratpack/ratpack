@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.render.internal;
+package ratpack.session.clientside.internal;
 
-import ratpack.handling.Context;
-import ratpack.render.CharSequenceRenderer;
-import ratpack.render.RendererSupport;
+public class StorageHashContainer {
+  final private int hashCode;
 
-public class DefaultCharSequenceRenderer extends RendererSupport<CharSequence> implements CharSequenceRenderer {
-
-  @Override
-  public void render(Context context, CharSequence charSequence) {
-    context.getResponse().send(charSequence.toString());
+  public StorageHashContainer(int hashCode) {
+    this.hashCode = hashCode;
   }
 
+  public int getHashCode() {
+    return hashCode;
+  }
 }

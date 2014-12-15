@@ -26,6 +26,7 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -43,7 +44,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
-import ratpack.server.BindAddress;
 import ratpack.server.Stopper;
 import ratpack.server.internal.NettyHandlerAdapter;
 import ratpack.test.handling.HandlerExceptionNotThrownException;
@@ -71,7 +71,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private Integer clientError;
 
-  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfig launchConfig, final Handler handler) {
+  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfig launchConfig, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -85,18 +85,6 @@ public class DefaultHandlingResult implements HandlingResult {
     final Handler next = context -> {
       calledNext = true;
       latch.countDown();
-    };
-
-    final BindAddress bindAddress = new BindAddress() {
-      @Override
-      public String getHost() {
-        return "localhost";
-      }
-
-      @Override
-      public int getPort() {
-        return 5050;
-      }
     };
 
     ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
@@ -148,16 +136,17 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     };
 
-    ExecControl execControl = launchConfig.getExecController().getControl();
+    ExecController execController = launchConfig.getExecController();
+    ExecControl execControl = execController.getControl();
     Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
     Registry effectiveRegistry = baseRegistry.join(userRegistry);
     Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
+      applicationConstants, request, response, null, eventController.getRegistry()
     );
 
-    DefaultContext.start(execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
+    DefaultContext.start(execController.getEventLoopGroup().next(), execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

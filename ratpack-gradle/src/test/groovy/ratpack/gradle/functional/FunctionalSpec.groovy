@@ -146,6 +146,7 @@ abstract class FunctionalSpec extends Specification {
       repositories {
         maven { url "${localRepo.toURI()}" }
         jcenter()
+        maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots' }
       }
       dependencies {
         compile 'org.slf4j:slf4j-simple:1.7.7'

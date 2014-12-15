@@ -18,7 +18,6 @@ package ratpack.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ratpack.configuration.internal.DefaultLaunchConfigFactory;
-import ratpack.launch.LaunchConfig;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;

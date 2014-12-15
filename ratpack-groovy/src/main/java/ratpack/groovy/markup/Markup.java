@@ -17,6 +17,7 @@
 package ratpack.groovy.markup;
 
 import groovy.lang.Closure;
+import ratpack.render.Renderable;
 
 import java.nio.charset.Charset;
 
@@ -25,7 +26,7 @@ import java.nio.charset.Charset;
  *
  * @see ratpack.groovy.Groovy#markupBuilder(CharSequence, CharSequence, groovy.lang.Closure)
  */
-public interface Markup {
+public interface Markup extends Renderable {
 
   /**
    * The content type of the markup.

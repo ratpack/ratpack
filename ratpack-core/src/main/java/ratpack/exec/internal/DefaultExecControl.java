@@ -16,15 +16,15 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import io.netty.util.internal.ConcurrentSet;
+import io.netty.channel.EventLoop;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
@@ -32,7 +32,6 @@ import ratpack.stream.TransformablePublisher;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -47,7 +46,6 @@ public class DefaultExecControl implements ExecControl {
 
   private final ExecController execController;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
-  private final Set<ExecutionBacking> executions = new ConcurrentSet<>();
 
   public DefaultExecControl(ExecController execController) {
     this.execController = execController;
@@ -73,7 +71,7 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
     ExecutionBacking backing = getBacking();
     backing.getInterceptors().add(execInterceptor);
     backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
@@ -85,6 +83,13 @@ public class DefaultExecControl implements ExecControl {
       private Action<? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
       private Action<? super RegistrySpec> registry;
+      private EventLoop eventLoop = execController.getEventLoopGroup().next();
+
+      @Override
+      public ExecStarter eventLoop(EventLoop eventLoop) {
+        this.eventLoop = eventLoop;
+        return this;
+      }
 
       @Override
       public ExecStarter onError(Action<? super Throwable> onError) {
@@ -118,10 +123,10 @@ public class DefaultExecControl implements ExecControl {
         Optional<StackTraceElement[]> startTrace = ExecutionBacking.TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
 
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
-        if (execController.isManagedThread() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, executions, startTrace, threadBinding, effectiveAction, onError, onComplete);
+        if (eventLoop.inEventLoop() && threadBinding.get() == null) {
+          new ExecutionBacking(execController, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete);
         } else {
-          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startTrace, threadBinding, effectiveAction, onError, onComplete));
+          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -135,20 +140,19 @@ public class DefaultExecControl implements ExecControl {
   @Override
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     final ExecutionBacking backing = getBacking();
-    final ExecController controller = backing.getController();
     return directPromise(f ->
         backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(() -> {
             List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
             try {
-              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
+              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
                   holder.add(0, Result.success(blockingOperation.call()))
               );
               return holder.get(0);
             } catch (Exception e) {
               return Result.<T>failure(e);
             }
-          }, controller.getBlockingExecutor()
-        ).thenAccept(v -> streamHandle.complete(e -> f.accept(v))))
+          }, execController.getBlockingExecutor()
+        ).thenAcceptAsync(v -> streamHandle.complete(() -> f.accept(v)), backing.getEventLoop()))
     );
   }
 
@@ -163,32 +167,26 @@ public class DefaultExecControl implements ExecControl {
           publisher.subscribe(new Subscriber<T>() {
             @Override
             public void onSubscribe(final Subscription subscription) {
-              handle.event((e) -> subscriber.onSubscribe(subscription));
+              handle.event(() -> subscriber.onSubscribe(subscription));
             }
 
             @Override
             public void onNext(final T element) {
-              handle.event(execution -> subscriber.onNext(element));
+              handle.event(() -> subscriber.onNext(element));
             }
 
             @Override
             public void onComplete() {
-              handle.complete(execution -> subscriber.onComplete());
+              handle.complete(subscriber::onComplete);
             }
 
             @Override
             public void onError(final Throwable cause) {
-              handle.complete(execution -> subscriber.onError(cause));
+              handle.complete(() -> subscriber.onError(cause));
             }
           })
       );
     });
-  }
-
-  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
-    ImmutableList.Builder<ExecutionSnapshot> builder = ImmutableList.builder();
-    executions.forEach(e -> builder.add(e.getSnapshot()));
-    return builder.build();
   }
 
 }

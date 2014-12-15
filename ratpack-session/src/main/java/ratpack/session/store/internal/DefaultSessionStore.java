@@ -23,7 +23,6 @@ import ratpack.session.SessionListener;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.SessionStore;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -51,11 +50,7 @@ public class DefaultSessionStore implements SessionStore, SessionListener {
 
   public SessionStorage get(String sessionId) {
     try {
-      return storage.get(sessionId, new Callable<SessionStorage>() {
-        public SessionStorage call() throws Exception {
-          return new DefaultSessionStorage(new ConcurrentHashMap<String, Object>());
-        }
-      });
+      return storage.get(sessionId, () -> new DefaultSessionStorage(new ConcurrentHashMap<>()));
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }

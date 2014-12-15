@@ -47,10 +47,8 @@ public class BlockingHttpClient {
         .start(requestAction::execute);
 
       try {
-        // TODO - make this configurable
-        // TODO - improve this exception (better type and add info about the request)
         if (!requestAction.latch.await(timeout, timeUnit)) {
-          throw new IllegalStateException("Timeout");
+          throw new IllegalStateException("Request to " + uri + " took more than " + timeout + " " + timeUnit.name().toLowerCase() + " to complete");
         }
       } catch (InterruptedException e) {
         throw ExceptionUtils.uncheck(e);
@@ -81,7 +79,8 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(uri, action)
+      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
+        .request(uri, Action.join(s -> s.readTimeout(60, TimeUnit.MINUTES), action))
         .then(response -> {
           TypedData responseBody = response.getBody();
           ByteBuf responseBodyBuffer = responseBody.getBuffer();

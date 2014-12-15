@@ -16,6 +16,7 @@
 
 package ratpack.test.handling
 
+import com.google.common.net.HostAndPort
 import io.netty.util.CharsetUtil
 import ratpack.error.ServerErrorHandler
 import ratpack.func.Action
@@ -412,6 +413,25 @@ class HandlerUnitTestingSpec extends Specification {
     result.sentResponse
     result.status.code == 302
     result.headers.location == "http://localhost:5050/foo"
+  }
+
+  @Unroll
+  def "can get remote host and port"() {
+    given:
+    fixture.remoteAddress(HostAndPort.fromParts(host, port))
+
+    when:
+    handle {
+      response.send request.remoteAddress.toString()
+    }
+
+    then:
+    result.bodyText == "${host}:${port}"
+
+    where:
+    host          | port
+    'localhost'   | 8080
+    'ratpack.io'  | 45678
   }
 
 }

@@ -16,7 +16,6 @@
 
 package ratpack.groovy.markup
 
-import ratpack.groovy.markup.internal.DefaultMarkupRenderer
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -27,9 +26,6 @@ class MarkupRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render html markup"() {
     when:
-    bindings {
-      bind(MarkupRenderer, DefaultMarkupRenderer)
-    }
     handlers {
       get {
         render htmlBuilder {

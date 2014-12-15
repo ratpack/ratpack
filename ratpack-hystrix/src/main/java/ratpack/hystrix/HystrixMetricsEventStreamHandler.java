@@ -45,7 +45,7 @@ import static ratpack.stream.Streams.merge;
  * application in realtime.
  *
  * @see <a href="https://github.com/Netflix/Hystrix/wiki" target="_blank">Hystrix</a>
- * @see ratpack.sse.internal.ServerSentEventsRenderer
+ * @see ratpack.sse.ServerSentEvents
  */
 public class HystrixMetricsEventStreamHandler implements Handler {
 

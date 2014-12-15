@@ -17,7 +17,7 @@
 package ratpack.exec
 
 import ratpack.http.ResponseChunks
-import ratpack.stream.testutil.CollectingSubscriber
+import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.TimeUnit

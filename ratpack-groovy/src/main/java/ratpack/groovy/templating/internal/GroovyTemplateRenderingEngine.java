@@ -36,6 +36,7 @@ public class GroovyTemplateRenderingEngine {
 
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
+  private final ByteBufAllocator byteBufAllocator;
   private final boolean reloadable;
   private final FileSystemBinding templateDir;
   private final ExecControl execControl;
@@ -43,6 +44,7 @@ public class GroovyTemplateRenderingEngine {
   @Inject
   public GroovyTemplateRenderingEngine(ExecControl execControl, ByteBufAllocator byteBufAllocator, FileSystemBinding templateDir, boolean reloadable, boolean staticCompile) {
     this.execControl = execControl;
+    this.byteBufAllocator = byteBufAllocator;
     this.reloadable = reloadable;
     this.templateDir = templateDir;
 
@@ -63,9 +65,9 @@ public class GroovyTemplateRenderingEngine {
     });
   }
 
-  public Promise<ByteBuf> renderTemplate(ByteBuf byteBuf, final String templateId, final Map<String, ?> model) throws Exception {
+  public Promise<ByteBuf> renderTemplate(String templateId, Map<String, ?> model) throws Exception {
     Path templateFile = getTemplateFile(templateId);
-    return render(byteBuf, toTemplateSource(templateId, templateFile), model);
+    return render(toTemplateSource(templateId, templateFile), model);
   }
 
   private TemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
@@ -73,8 +75,8 @@ public class GroovyTemplateRenderingEngine {
     return new TemplateSource(id, templateFile, templateId);
   }
 
-  private Promise<ByteBuf> render(ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
-    return Render.render(execControl, byteBuf, compiledTemplateCache, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
+  private Promise<ByteBuf> render(final TemplateSource templateSource, Map<String, ?> model) throws Exception {
+    return Render.render(execControl, byteBufAllocator, compiledTemplateCache, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
   }
 
   private Path getTemplateFile(String templateName) {

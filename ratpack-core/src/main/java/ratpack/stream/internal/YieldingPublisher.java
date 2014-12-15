@@ -97,10 +97,7 @@ public class YieldingPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "YieldRequest{" +
-        "requestNum=" + requestNum +
-        ", subscriptionNum=" + subscriptionNum +
-        '}';
+      return "YieldRequest{requestNum=" + requestNum + ", subscriptionNum=" + subscriptionNum + '}';
     }
   }
 

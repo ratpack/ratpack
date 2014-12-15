@@ -16,6 +16,8 @@
 
 package ratpack.func;
 
+import ratpack.util.ExceptionUtils;
+
 /**
  * An action that takes no arguments.
  * <p>
@@ -30,5 +32,19 @@ public interface NoArgAction {
    * @throws Exception any
    */
   public void execute() throws Exception;
+
+  /**
+   * Returns an action that immediately throws the given exception.
+   * <p>
+   * The exception is thrown via {@link ratpack.util.ExceptionUtils#toException(Throwable)}
+   *
+   * @param throwable the throwable to immediately throw when the returned action is executed
+   * @return an action that immediately throws the given exception.
+   */
+  static NoArgAction throwException(final Throwable throwable) {
+    return () -> {
+      throw ExceptionUtils.toException(throwable);
+    };
+  }
 
 }

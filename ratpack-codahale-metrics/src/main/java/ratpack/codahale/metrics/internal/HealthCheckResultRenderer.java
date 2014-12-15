@@ -17,6 +17,8 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
 
@@ -24,7 +26,21 @@ public class HealthCheckResultRenderer extends RendererSupport<HealthCheck.Resul
 
   @Override
   public void render(Context context, HealthCheck.Result object) throws Exception {
-    context.render(object.toString());
-  }
+    context.byContent(spec -> spec.json(c -> {
+      ObjectMapper mapper = new ObjectMapper();
 
+      byte[] bytes;
+      try {
+        bytes = mapper.writeValueAsBytes(object);
+      } catch (JsonProcessingException e) {
+        c.error(e);
+        return;
+      }
+      c.getResponse().getHeaders()
+        .add("Cache-Control", "no-cache, no-store, must-revalidate")
+        .add("Pragma", "no-cache")
+        .add("Expires", 0);
+      c.getResponse().send(bytes);
+    }));
+  }
 }

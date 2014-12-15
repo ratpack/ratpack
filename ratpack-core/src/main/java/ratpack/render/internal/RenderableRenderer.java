@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.jackson;
+package ratpack.render.internal;
 
-import ratpack.render.Renderer;
+import ratpack.handling.Context;
+import ratpack.render.Renderable;
+import ratpack.render.RendererSupport;
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender> {
+public class RenderableRenderer extends RendererSupport<Renderable> {
+
+  @Override
+  public void render(Context context, Renderable object) throws Exception {
+    object.render(context);
+  }
 
 }

@@ -29,8 +29,20 @@ public class CustomHttpResponse extends DefaultHttpObject implements HttpRespons
   }
 
   @Override
-  public HttpResponseStatus getStatus() {
+  public HttpResponseStatus status() {
     return httpResponseStatus;
+  }
+
+  @Override
+  @Deprecated
+  public HttpResponseStatus getStatus() {
+    return status();
+  }
+
+  @Override
+  @Deprecated
+  public HttpVersion getProtocolVersion() {
+    return protocolVersion();
   }
 
   @Override
@@ -44,7 +56,7 @@ public class CustomHttpResponse extends DefaultHttpObject implements HttpRespons
   }
 
   @Override
-  public HttpVersion getProtocolVersion() {
+  public HttpVersion protocolVersion() {
     return HttpVersion.HTTP_1_1;
   }
 

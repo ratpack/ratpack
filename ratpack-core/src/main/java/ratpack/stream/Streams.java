@@ -26,6 +26,7 @@ import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * <p><a href="http://www.reactive-streams.org/">http://www.reactive-streams.org</a></p>
  * </blockquote>
  * <p>
- * Ratpack uses the Reactive Streams API when consuming streams of data (e.g {@link ratpack.http.Response#sendStream(org.reactivestreams.Publisher)}).
+ * Ratpack uses the Reactive Streams API when consuming streams of data (e.g {@link ratpack.http.Response#sendStream(Publisher)}).
  * </p>
  * <p>
  * This class provides some useful reactive utilities that integrate other parts of the Ratpack API with Reactive Stream types.
@@ -121,6 +122,80 @@ public class Streams {
   }
 
   /**
+   * Allows transforming a stream into an entirely different stream.
+   * <p>
+   * While the {@link #map(Publisher, Function)} method support transforming individual items, this method supports transforming the stream as a whole.
+   * This is necessary when the transformation causes a different number of items to be emitted than the original stream.
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.stream.WriteStream;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> result = ExecHarness.yieldSingle(execControl -> {
+   *       Publisher<String> chars = Streams.publish(Arrays.asList("a", "b", "c"));
+   *       Publisher<String> mapped = Streams.streamMap(chars, out ->
+   *         new WriteStream<String>() {
+   *           public void item(String item) {
+   *             out.item(item);
+   *             out.item(item.toUpperCase());
+   *           }
+   *
+   *           public void error(Throwable error) {
+   *             out.error(error);
+   *           }
+   *
+   *           public void complete() {
+   *             out.complete();
+   *           }
+   *         }
+   *       );
+   *
+   *       return Streams.toList(execControl, mapped);
+   *     }).getValue();
+   *
+   *     assertEquals(Arrays.asList("a", "A", "b", "B", "c", "C"), result);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The {@code mapper} function receives a {@link WriteStream} for emitting items and returns a {@link WriteStream} that will be written to by the upstream publisher.
+   * Calling {@link WriteStream#complete()} or {@link WriteStream#error(Throwable)} on the received write stream will {@link org.reactivestreams.Subscription#cancel() cancel} the upstream subscription and it is guaranteed that no more items will be emitted from the upstream.
+   * If the complete/error signals from upstream don't need to be intercepted, the {@link WriteStream#itemMap(Action)} can be used on the write stream given to the mapping function to create the return write stream.
+   * <p>
+   * The returned stream is {@link #buffer buffered}, which allows the stream transformation to emit more items downstream than what was received from the upstream.
+   * Currently, the upstream subscription will always receive a single {@link org.reactivestreams.Subscription#request(long) request} for {@link Long#MAX_VALUE}, effectively asking upstream to emit as fast as it can.
+   * Future versions may propagate backpressure more intelligently.
+   *
+   * @param input the stream to map
+   * @param mapper the mapping function
+   * @param <I> the type of item received
+   * @param <O> the type of item produced
+   * @return the input stream transformed
+   */
+  public static <I, O> TransformablePublisher<O> streamMap(Publisher<I> input, Function<? super WriteStream<O>, ? extends WriteStream<I>> mapper) {
+    /*
+       Implementation note: we need a smarter buffering strategy here.
+
+       We'll need to translate demand in a smart way as the arity of the outgoing stream may be different.
+       If the downstream requests, say 5 items, which the mapper then receives and translates into only 3 items
+       we'll need to ask for more from the upstream to meet the downstream demand.
+
+       We get around this now by always opening up the firehose to upstream, but this means we are nullifying back pressure and buffering in memory.
+
+       https://github.com/ratpack/ratpack/issues/515
+    */
+    return buffer(new StreamMapPublisher<>(input, mapper));
+  }
+
+  /**
    * Returns a publisher that publishes items from the given input publisher after transforming each item via the given, promise returning, function.
    * <p>
    * The returned publisher does not perform any flow control on the data stream.
@@ -192,7 +267,7 @@ public class Streams {
    * <p>
    * If the function throws an exception, the error will be sent to the subscribers and no more invocations of the function will occur.
    * <p>
-   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(org.reactivestreams.Publisher)}.
+   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(Publisher)}.
    *
    * @param executorService the executor service that will periodically execute the function
    * @param delay the delay value
@@ -253,7 +328,7 @@ public class Streams {
    * new item for each element to its downstream subscriber e.g. if the return publisher receives a Collection with 10 elements then the downstream
    * subscriber will receive 10 calls to its onNext method.
    * <p>
-   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(org.reactivestreams.Publisher)}.
+   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(Publisher)}.
    *
    * @param publisher the data source
    * @param <T> the type of item emitted
@@ -324,6 +399,77 @@ public class Streams {
    */
   public static <T> Promise<T> toPromise(ExecControl execControl, Publisher<T> publisher) {
     return execControl.promise(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
+  }
+
+  /**
+   * Delegates to {@link #toList(ExecControl, Publisher)}, using {@link ExecControl#current()} as the exec control.
+   *
+   * @param publisher the stream to collect to a list
+   * @param <T> the type of item in the stream
+   * @return a promise for the streams contents as a list
+   */
+  public static <T> Promise<List<T>> toList(Publisher<T> publisher) {
+    return toList(ExecControl.current(), publisher);
+  }
+
+  /**
+   * Consumes the given publisher's items to a list.
+   * <p>
+   * This method can be useful when testing, but should be avoided in production code where possible as it will exhaust memory if the stream is very large or infinite.
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> expected = Arrays.asList("a", "b", "c");
+   *     List<String> result = ExecHarness.yieldSingle(execControl ->
+   *       Streams.toList(execControl, Streams.publish(expected))
+   *     ).getValue();
+   *
+   *     assertEquals(Arrays.asList("a", "b", "c"), result);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If the publisher emits an error, the promise will fail and the collected items will be discarded.
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     Throwable error = ExecHarness.yieldSingle(execControl ->
+   *       Streams.toList(execControl, Streams.yield(r -> {
+   *         if (r.getRequestNum() < 1) {
+   *           return "a";
+   *         } else {
+   *           throw new RuntimeException("bang!");
+   *         }
+   *       }))
+   *     ).getThrowable();
+   *
+   *     assertEquals("bang!", error.getMessage());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param execControl the execution control
+   * @param publisher the stream to collect to a list
+   * @param <T> the type of item in the stream
+   * @return a promise for the streams contents as a list
+   */
+  public static <T> Promise<List<T>> toList(ExecControl execControl, Publisher<T> publisher) {
+    return execControl.promise(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
   }
 
 }

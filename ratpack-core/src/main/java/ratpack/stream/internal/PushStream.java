@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.render;
+package ratpack.stream.internal;
 
-/**
- * A renderer for {@link CharSequence} objects.
- * <p>
- * The string returned by {@code toString()} will be written to the response as UTF-8 bytes.
- * This renderer does not set a content type, which means that the standard default of {@code text/plain} will be
- * used unless one has been explicitly set.
- */
-public interface CharSequenceRenderer extends Renderer<CharSequence> {
+public interface PushStream<T> {
+
+  public void push(T item);
+
+  public void complete();
+
+  public void error(Throwable throwable);
+
 }

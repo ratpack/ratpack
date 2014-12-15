@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.session.clientside;
 
-import java.util.Optional;
+import io.netty.buffer.ByteBuf;
 
-public interface ExecutionSnapshot {
+public interface Signer {
 
-  String getId();
-
-  boolean getWaiting();
-
-  Long getStartedAt();
-
-  Optional<StackTraceElement[]> getStartedTrace();
+  public byte[] sign(ByteBuf message);
 
 }

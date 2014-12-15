@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.markup;
+package ratpack.render.internal;
 
+import com.google.common.reflect.TypeToken;
+import ratpack.exec.SuccessPromise;
+import ratpack.handling.Context;
 import ratpack.render.Renderer;
+import ratpack.render.RendererSupport;
 
-public interface MarkupRenderer extends Renderer<Markup> {
+public class PromiseRenderer extends RendererSupport<SuccessPromise<?>> {
+
+  public static final TypeToken<Renderer<SuccessPromise<?>>> TYPE = new TypeToken<Renderer<SuccessPromise<?>>>() {
+  };
+
+  @Override
+  public void render(Context context, SuccessPromise<?> promise) throws Exception {
+    promise.then(context::render);
+  }
 
 }

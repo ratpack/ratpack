@@ -17,19 +17,23 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.Lists;
+import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.*;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
+import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 
-import java.util.*;
+import java.util.Deque;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
-import static ratpack.func.Action.throwException;
 
 public class ExecutionBacking {
 
@@ -37,207 +41,164 @@ public class ExecutionBacking {
 
   final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
-  private final long startedAt = System.currentTimeMillis();
+  // package access to allow direct field access by inners
+  final List<ExecInterceptor> interceptors = Lists.newLinkedList();
 
-  private final List<ExecInterceptor> interceptors = Lists.newLinkedList();
+  // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
+  // All other collections do not need to be concurrent safe because they are only accessed on the event loop
+  Queue<Deque<NoArgAction>> stream = new ConcurrentLinkedQueue<>();
+
+  private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newLinkedList();
-
-  // stream has events, events have segments
-
-  private static class Event {
-    Deque<ExecutionSegment> segments = new ConcurrentLinkedDeque<>();
-  }
-
-  private static class Stream {
-    Queue<Event> events = new ConcurrentLinkedQueue<>();
-
-    private Stream() {
-      events.add(new Event());
-    }
-  }
-
-  private final Deque<Stream> streams = new ConcurrentLinkedDeque<>();
-  private final Deque<Stream> suspendedStreams = new ConcurrentLinkedDeque<>();
-
-  private final ExecController controller;
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
   private final ThreadLocal<ExecutionBacking> threadBinding;
-  private final Set<ExecutionBacking> executions;
 
-  private final AtomicBoolean active = new AtomicBoolean();
-
-  private final AtomicInteger streaming = new AtomicInteger();
   private volatile boolean done;
-
   private final Execution execution;
 
-  private Optional<StackTraceElement[]> startTrace = Optional.empty();
-
-  public ExecutionBacking(ExecController controller, Set<ExecutionBacking> executions, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
-    this.controller = controller;
-    this.executions = executions;
+  public ExecutionBacking(ExecController controller, EventLoop eventLoop, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
+    this.eventLoop = eventLoop;
     this.onError = onError;
     this.onComplete = onComplete;
     this.threadBinding = threadBinding;
-    this.execution = new DefaultExecution(controller, closeables);
-    this.startTrace = startTrace;
+    this.execution = new DefaultExecution(eventLoop, controller, closeables);
 
-    executions.add(this);
-    Event event = new Event();
-    event.segments.add(new UserCodeSegment(action));
-    queueStream().events.add(event);
+    Deque<NoArgAction> event = Lists.newLinkedList();
+    //noinspection RedundantCast
+    event.add((UserCode) () -> action.execute(execution));
+    stream.add(event);
+
+    Deque<NoArgAction> doneEvent = Lists.newLinkedList();
+    doneEvent.add(() -> done = true);
+    stream.add(doneEvent);
     drain();
   }
 
-  private class Snapshot implements ExecutionSnapshot {
-
-    private final boolean waiting;
-
-    private Snapshot() {
-      this.waiting = !hasExecutableSegments();
-    }
-
-    @Override
-    public String getId() {
-      return Integer.toString(System.identityHashCode(ExecutionBacking.this));
-    }
-
-    @Override
-    public boolean getWaiting() {
-      return waiting;
-    }
-
-
-    @Override
-    public Long getStartedAt() {
-      return startedAt;
-    }
-
-    @Override
-    public Optional<StackTraceElement[]> getStartedTrace() {
-      return startTrace;
-    }
-  }
-
-  public ExecutionSnapshot getSnapshot() {
-    return new Snapshot();
+  // Marker interface used to detect user code vs infrastructure code, for error handling and interception
+  public interface UserCode extends NoArgAction {
   }
 
   public Execution getExecution() {
     return execution;
   }
 
-  public ExecController getController() {
-    return controller;
+  public EventLoop getEventLoop() {
+    return eventLoop;
   }
 
   public List<ExecInterceptor> getInterceptors() {
     return interceptors;
   }
 
-  private Stream queueStream() {
-    Stream stream = new Stream();
-    streams.add(stream);
-    return stream;
-  }
-
-  private Stream currentStream() {
-    return streams.peek();
-  }
-
-  private Event currentEvent() {
-    return currentStream().events.peek();
-  }
-
-  private ExecutionSegment nextSegment() {
-    return currentEvent().segments.peek();
-  }
-
   public class StreamHandle {
-    private final Stream stream;
+    final Queue<Deque<NoArgAction>> parent;
+    final Queue<Deque<NoArgAction>> stream;
 
-    private StreamHandle(Stream stream) {
+    private StreamHandle(Queue<Deque<NoArgAction>> parent, Queue<Deque<NoArgAction>> stream) {
+      this.parent = parent;
       this.stream = stream;
     }
 
-    public void event(Action<? super Execution> action) {
-      streamEvent(new StreamEvent(action));
+    public void event(UserCode action) {
+      streamEvent(action);
     }
 
-    public void complete(Action<? super Execution> action) {
-      streamEvent(new StreamCompletion(this, action));
+    public void complete(UserCode action) {
+      //noinspection RedundantCast
+      streamEvent((UserCode) () -> {
+        ExecutionBacking.this.stream = this.parent;
+        action.execute();
+      });
     }
 
-    private void streamEvent(ExecutionSegment s) {
-      Event event = new Event();
-      event.segments.add(s);
-      stream.events.add(event);
+    private void streamEvent(NoArgAction s) {
+      Deque<NoArgAction> event = Lists.newLinkedList();
+      event.add(s);
+      stream.add(event);
       drain();
     }
   }
 
-  public void streamSubscribe(Consumer<? super StreamHandle> runnable) {
-    StreamHandle handle = new StreamHandle(queueStream());
-    currentEvent().segments.add(new StreamSubscribe(handle, runnable));
+  public void streamSubscribe(Consumer<? super StreamHandle> consumer) {
+    stream.element().add(() -> {
+      Queue<Deque<NoArgAction>> parent = stream;
+      stream = new ConcurrentLinkedDeque<>();
+      stream.add(Lists.newLinkedList());
+      StreamHandle handle = new StreamHandle(parent, stream);
+      consumer.accept(handle);
+    });
+
     drain();
   }
 
   private void drain() {
-    if (active.compareAndSet(false, true)) {
-      if (threadBinding.get() == null && controller.isManagedThread()) {
-        try {
-          threadBinding.set(this);
-          assertNotDone();
-          if (hasExecutableSegments()) {
-            while (true) {
-              ExecutionSegment segment = nextSegment();
-              if (segment == null) {
-                Stream stream = currentStream();
-                stream.events.remove(); // event is done
+    ExecutionBacking threadBoundExecutionBacking = threadBinding.get();
+    if (this.equals(threadBoundExecutionBacking)) {
+      return;
+    }
 
-                if (stream.events.isEmpty()) {
-                  if (suspendedStreams.isEmpty()) {
-                    done();
-                    return;
-                  } else {
-                    if (streaming.get() < suspendedStreams.size()) {
-                      streams.remove();
-                      streams.addFirst(suspendedStreams.removeLast());
-                    } else {
-                      break;
-                    }
-                  }
-                }
-              } else {
-                Event event = currentEvent();
-                event.segments.poll();
-                segment.run();
-              }
+    if (done) {
+      throw new ExecutionException("execution is complete");
+    }
+
+    if (!eventLoop.inEventLoop() || threadBoundExecutionBacking != null) {
+      eventLoop.execute(this::drain);
+      return;
+    }
+
+    try {
+      threadBinding.set(this);
+      while (true) {
+        if (stream.isEmpty()) {
+          return;
+        }
+
+        NoArgAction segment = stream.element().poll();
+        if (segment == null) {
+          stream.remove();
+          if (stream.isEmpty()) {
+            if (done) {
+              done();
+              return;
+            } else {
+              break;
             }
           }
-        } finally {
-          threadBinding.remove();
-          active.set(false);
+        } else {
+          if (segment instanceof UserCode) {
+            try {
+              intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, segment);
+            } catch (final Throwable e) {
+              Deque<NoArgAction> event = stream.element();
+              event.clear();
+              event.addFirst(() -> {
+                try {
+                  onError.execute(e);
+                } catch (final Throwable errorHandlerException) {
+                  //noinspection RedundantCast
+                  stream.element().addFirst((UserCode) () -> {
+                    throw errorHandlerException;
+                  });
+                }
+              });
+            }
+          } else {
+            try {
+              segment.execute();
+            } catch (Exception e) {
+              LOGGER.error("Internal Ratpack Error - please raise an issue", e);
+            }
+          }
         }
-
-        if (hasExecutableSegments()) {
-          drain();
-        }
-      } else {
-        active.set(false);
-        controller.getEventLoopGroup().submit(this::drain);
       }
+    } finally {
+      threadBinding.remove();
     }
   }
 
-  private boolean hasExecutableSegments() {
-    return currentEvent() != null;
-  }
-
   private void done() {
-    done = true;
     try {
       onComplete.execute(getExecution());
     } catch (Throwable e) {
@@ -251,114 +212,15 @@ public class ExecutionBacking {
         LOGGER.warn(String.format("exception raised by closeable %s", closeable), e);
       }
     }
-
-    executions.remove(this);
   }
 
-  private void assertNotDone() {
-    if (done) {
-      throw new ExecutionException("execution is complete");
-    }
-  }
-
-  public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, final Action<? super Execution> action) throws Exception {
+  public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {
     new InterceptedOperation(execType, interceptors) {
       @Override
       protected void performOperation() throws Exception {
-        action.execute(getExecution());
+        action.execute();
       }
     }.run();
-  }
-
-  private abstract class ExecutionSegment implements Runnable {
-    private final Optional<StackTraceElement[]> trace;
-
-    protected ExecutionSegment() {
-      this.trace = TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
-    }
-
-    public Optional<StackTraceElement[]> getTrace() {
-      return trace;
-    }
-  }
-
-  private class ThrowSegment extends ExecutionSegment {
-    private final Throwable throwable;
-
-    private ThrowSegment(Throwable throwable) {
-      this.throwable = throwable;
-    }
-
-    @Override
-    public void run() {
-      try {
-        onError.execute(throwable);
-      } catch (final Throwable errorHandlerException) {
-        currentEvent().segments.addFirst(new UserCodeSegment(throwException(errorHandlerException)));
-      }
-    }
-  }
-
-  private class UserCodeSegment extends ExecutionSegment {
-    private final Action<? super Execution> action;
-
-    public UserCodeSegment(Action<? super Execution> action) {
-      this.action = action;
-    }
-
-    @Override
-    public void run() {
-      try {
-        intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
-      } catch (final Throwable e) {
-        Event event = currentEvent();
-        event.segments.clear();
-        event.segments.addFirst(new ThrowSegment(e));
-      }
-    }
-  }
-
-  private class StreamSubscribe extends ExecutionSegment {
-    private final StreamHandle handle;
-    private final Consumer<? super StreamHandle> consumer;
-
-    private StreamSubscribe(StreamHandle handle, Consumer<? super StreamHandle> consumer) {
-      this.handle = handle;
-      this.consumer = consumer;
-    }
-
-    @Override
-    public void run() {
-      suspendedStreams.add(streams.remove());
-      streaming.incrementAndGet();
-      consumer.accept(handle);
-    }
-  }
-
-  private class StreamEvent extends UserCodeSegment {
-    private StreamEvent(Action<? super Execution> action) {
-      super(action);
-    }
-  }
-
-  private class StreamCompletion extends UserCodeSegment {
-    private final StreamHandle handle;
-
-    private StreamCompletion(StreamHandle handle, Action<? super Execution> action) {
-      super(action);
-      this.handle = handle;
-    }
-
-    @Override
-    public void run() {
-      super.run();
-      handle.streamEvent(new ExecutionSegment() {
-        @Override
-        public void run() {
-          streaming.decrementAndGet();
-        }
-      });
-    }
   }
 
 }

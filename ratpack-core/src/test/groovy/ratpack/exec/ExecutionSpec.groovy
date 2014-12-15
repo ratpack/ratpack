@@ -272,55 +272,52 @@ class ExecutionSpec extends Specification {
   }
 
   @Unroll
-  def "cannot subscribe to promise more than once"() {
+  def "can subscribe to promise more than once"() {
     when:
     exec({
       def p = it.blocking { 2 }
-      code(p)
-      code(p)
+      code(p).then { events << it }
+      code(p).then { events << it }
     }) {
       events << it
     }
 
     then:
-    events.size() == 2
-    events.first() instanceof MultiplePromiseSubscriptionException
+    events.size() == 3
 
     where:
     code << [
-      { it.then { throw new UnsupportedOperationException() } },
-      { it.onError { throw new UnsupportedOperationException() } },
-      { it.map { throw new UnsupportedOperationException() } },
-      { it.blockingMap { throw new UnsupportedOperationException() } },
-      { it.onNull { throw new UnsupportedOperationException() } },
-      { it.flatMap { throw new UnsupportedOperationException() } },
-      { it.route({ throw new UnsupportedOperationException() }) {} },
+      { it.flatMap { ExecControl.current().blocking { 2 } } },
+      { it },
+      { it.map { 2 } },
+      { it.blockingMap { 2 } },
+      { it.onNull { 2 } },
+      { it.route({ it == 4 }) { throw new UnsupportedOperationException() } },
     ]
   }
 
   @Unroll
-  def "cannot subscribe to success promise more than once"() {
+  def "can subscribe to success promise more than once"() {
     when:
     exec({
       def p = it.blocking { 2 }.onError { throw new UnsupportedOperationException() }
-      code(p)
-      code(p)
+      code(p).then { events << it }
+      code(p).then { events << it }
     }) {
       events << it
     }
 
     then:
-    events.size() == 2
-    events.first() instanceof MultiplePromiseSubscriptionException
+    events.size() == 3
 
     where:
     code << [
-      { it.then { throw new UnsupportedOperationException() } },
-      { it.map { throw new UnsupportedOperationException() } },
-      { it.blockingMap { throw new UnsupportedOperationException() } },
-      { it.onNull { throw new UnsupportedOperationException() } },
-      { it.flatMap { throw new UnsupportedOperationException() } },
-      { it.route({ throw new UnsupportedOperationException() }) {} },
+      { it.flatMap { ExecControl.current().blocking { 2 } } },
+      { it },
+      { it.map { 2 } },
+      { it.blockingMap { 2 } },
+      { it.onNull { 2 } },
+      { it.route({ it == 4 }) { throw new UnsupportedOperationException() } },
     ]
   }
 

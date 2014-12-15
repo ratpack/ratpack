@@ -186,7 +186,11 @@ class Harness {
     def latch = new CountDownLatch(1)
     def resultHandler = new LatchResultHandler(latch)
 
-    connection.newBuild().withArguments("-u", "run", "-Pendpoint=$endpoint").setStandardOutput(output).setStandardError(output).run(resultHandler)
+    connection.newBuild()
+      .setJvmArguments("-Xmx512m")
+      .withArguments("-u", "run", "-Pendpoint=$endpoint")
+      .setStandardOutput(output)
+      .setStandardError(output).run(resultHandler)
 
     def timeoutMins = 1
     def retryMs = 500

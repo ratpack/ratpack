@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.server
+package ratpack.http.client.internal;
 
-import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.exec.Fulfiller;
+import ratpack.func.Action;
 
-class BindAddressInContextSpec extends RatpackGroovyDslSpec {
-
-  def "bind address is available via context"() {
-    when:
-    handlers {
-      get("port") {
-        response.send bindAddress.port.toString()
-      }
-      get("host") {
-        response.send bindAddress.host
-      }
-    }
-
-    then:
-    getText("port") == server.bindPort.toString()
-    getText("host") == server.bindHost
-  }
-
+interface RequestAction<T> extends Action<Fulfiller<? super T>> {
 }

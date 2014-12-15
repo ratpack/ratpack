@@ -17,6 +17,7 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.func.Action;
 
 import java.util.function.Supplier;
 
@@ -75,6 +76,12 @@ public interface RegistryBuilder extends RegistrySpec {
    */
   @Override
   <O> RegistryBuilder addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
+
+  @Override
+  default RegistryBuilder with(Action<? super RegistrySpec> action) throws Exception {
+    RegistrySpec.super.with(action);
+    return this;
+  }
 
   /**
    * Builds the registry.

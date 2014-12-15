@@ -23,6 +23,7 @@ import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.DefaultCookie;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.http.client.ReceivedResponse;
@@ -34,6 +35,7 @@ import ratpack.test.internal.BlockingHttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -63,13 +65,15 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public void requestSpec(Action<? super RequestSpec> requestAction) {
+  public TestHttpClient requestSpec(Action<? super RequestSpec> requestAction) {
     request = requestAction;
+    return this;
   }
 
   @Override
-  public void params(Action<? super ImmutableMultimap.Builder<String, Object>> params) {
+  public TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params) {
     this.params = params;
+    return this;
   }
 
   @Override
@@ -209,7 +213,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
     try {
       URI uri = builder(path).params(params).build();
 
-      response = client.request(uri, 1, TimeUnit.MINUTES, Action.join(defaultRequestConfig, request, requestSpec -> {
+      response = client.request(uri, 60, TimeUnit.MINUTES, Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
@@ -247,4 +251,11 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
   }
 
+  public List<Cookie> getCookies() {
+    List<Cookie> clonedList = new ArrayList<>();
+    if (cookies != null) {
+      cookies.stream().forEach(c -> clonedList.add(new DefaultCookie(c.name(), c.value())));
+    }
+    return clonedList;
+  }
 }

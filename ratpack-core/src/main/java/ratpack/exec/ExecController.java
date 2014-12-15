@@ -19,7 +19,6 @@ package ratpack.exec;
 import io.netty.channel.EventLoopGroup;
 import ratpack.exec.internal.ExecControllerThreadBinding;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -107,8 +106,6 @@ public interface ExecController extends AutoCloseable {
    * @return the number of threads that will be used for computation
    */
   int getNumThreads();
-
-  List<? extends ExecutionSnapshot> getExecutionSnapshots();
 
   /**
    * Shuts down this controller, terminating the event loop and blocking threads.

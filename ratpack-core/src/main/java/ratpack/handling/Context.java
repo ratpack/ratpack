@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -32,7 +33,6 @@ import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
-import ratpack.server.BindAddress;
 import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
@@ -68,8 +68,6 @@ import java.util.concurrent.Callable;
  * <li>A {@link ratpack.file.MimeTypes} implementation</li>
  * <li>A {@link ratpack.error.ServerErrorHandler}</li>
  * <li>A {@link ratpack.error.ClientErrorHandler}</li>
- * <li>A {@link ratpack.file.FileRenderer}</li>
- * <li>A {@link ratpack.server.BindAddress}</li>
  * <li>A {@link ratpack.server.PublicAddress}</li>
  * <li>A {@link Redirector}</li>
  * </ul>
@@ -486,7 +484,7 @@ public interface Context extends ExecControl, Registry {
   ExecController getController();
 
   @Override
-  void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
+  void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception;
 
   <T> TransformablePublisher<T> stream(Publisher<T> publisher);
 
@@ -514,8 +512,10 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * Ratpack has built in support for rendering the following types:
    * <ul>
-   * <li>{@link java.nio.file.Path} (see {@link ratpack.file.FileRenderer})</li>
-   * <li>{@link java.lang.CharSequence} (see {@link ratpack.render.CharSequenceRenderer})</li>
+   * <li>{@link java.nio.file.Path}</li>
+   * <li>{@link java.lang.CharSequence}</li>
+   * <li>{@link SuccessPromise} (renders the promised value, using this {@code render()} method)</li>
+   * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)} and renders it)</li>
    * </ul>
    * <p>
    * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
@@ -709,13 +709,6 @@ public interface Context extends ExecControl, Registry {
    * @return Direct access to the underlying channel.
    */
   DirectChannelAccess getDirectChannelAccess();
-
-  /**
-   * The address that this request was received on.
-   *
-   * @return The address that this request was received on.
-   */
-  BindAddress getBindAddress();
 
   /**
    * The contextual path tokens of the current {@link ratpack.path.PathBinding}.

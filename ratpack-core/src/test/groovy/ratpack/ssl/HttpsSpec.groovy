@@ -19,12 +19,24 @@ package ratpack.ssl
 import org.junit.Rule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.ssl.client.NonValidatingSSLClientContext
+import spock.lang.Unroll
 
 class HttpsSpec extends RatpackGroovyDslSpec {
 
   @Rule
   NonValidatingSSLClientContext clientContext = new NonValidatingSSLClientContext()
 
+  private URI uriWithPath(URI uri, String path) {
+    new URI(uri.scheme,
+      uri.userInfo,
+      uri.host,
+      uri.port,
+      path,
+      null,
+      null)
+  }
+
+  @Unroll("#path yields #responseBody")
   def "can serve content over HTTPS"() {
     given:
     launchConfig {
@@ -32,19 +44,38 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
+    def staticFile = file "public/static.text", "trust no file"
+
+    and:
     handlers {
+      assets("public")
       get {
         response.send "trust no one"
+      }
+
+      get("handler") {
+        response.send staticFile.bytes
+      }
+
+      get("file") {
+        render file("public/static.text")
       }
     }
 
     expect:
     def address = applicationUnderTest.address
     address.scheme == "https"
+    uriWithPath(address, path).toURL().text == responseBody
 
-    and:
-    address.toURL().text == "trust no one"
+    where:
+    path           | responseBody
+    "/"            | "trust no one"
+    "/handler"     | "trust no file"
+    "/file"        | "trust no file"
+    "/static.text" | "trust no file"
+
   }
+
 }
 
 

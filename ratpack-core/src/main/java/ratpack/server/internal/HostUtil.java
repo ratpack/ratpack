@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,33 @@
 
 package ratpack.server.internal;
 
-import ratpack.server.BindAddress;
+import com.google.common.net.HostAndPort;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
-public class InetSocketAddressBackedBindAddress implements BindAddress {
-
-  private final int port;
-  private final String host;
-
-  public InetSocketAddressBackedBindAddress(InetSocketAddress socketAddress) {
-    this.port = socketAddress.getPort();
-    this.host = determineHost(socketAddress);
-  }
+public class HostUtil {
 
   public static String determineHost(InetSocketAddress socketAddress) {
     InetAddress address = socketAddress.getAddress();
+    return determineHost(address);
+  }
+
+  public static String determineHost(HostAndPort hostAndPort) {
+    try {
+      InetAddress address = InetAddress.getByName(hostAndPort.getHostText());
+      return determineHost(address);
+    } catch (UnknownHostException e) {
+      return hostAndPort.getHostText();
+    }
+  }
+
+  private static String determineHost(InetAddress address) {
     if (address.isLoopbackAddress() || address.isAnyLocalAddress()) {
       return "localhost";
     } else {
       return address.getHostAddress();
     }
   }
-
-  public int getPort() {
-    return port;
-  }
-
-  public String getHost() {
-    return host;
-  }
-
 }

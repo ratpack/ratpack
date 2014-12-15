@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.server;
+package ratpack.render.internal;
 
-/**
- * Represents the address that the server is listening on for requests.
- * <p>
- * This is available as a contextual object.
- */
-public interface BindAddress {
+import ratpack.handling.Context;
+import ratpack.render.RendererSupport;
 
-  /**
-   * The port number.
-   *
-   * @return The port number
-   */
-  int getPort();
+public class CharSequenceRenderer extends RendererSupport<CharSequence> {
 
-  /**
-   * The host name.
-   *
-   * @return The host name
-   */
-  String getHost();
+  @Override
+  public void render(Context context, CharSequence charSequence) {
+    context.getResponse().send(charSequence.toString());
+  }
 
 }

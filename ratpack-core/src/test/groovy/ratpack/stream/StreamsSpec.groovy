@@ -19,7 +19,7 @@ package ratpack.stream
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.stream.testutil.CollectingSubscriber
+import ratpack.stream.internal.CollectingSubscriber
 import spock.lang.Specification
 
 import java.util.concurrent.LinkedBlockingDeque

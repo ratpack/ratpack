@@ -20,29 +20,30 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 configurations.runtime.artifacts.clear()
 configurations.archives.artifacts.clear()
 
-apply plugin: 'compass'
+apply plugin: "com.github.robfletcher.compass"
 
 buildscript {
   repositories {
     jcenter()
-    maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.10'
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
 
 dependencies {
+  compass commonDependencies.compass
+
   testCompile apiModules
   testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
   }
-  testRuntime("org.gradle:gradle-tooling-api:${gradle.gradleVersion}") // used by gradle snippet fixture
+  testRuntime "org.gradle:gradle-tooling-api:${gradle.gradleVersion}" // used by gradle snippet fixture
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
-  testRuntime project(":ratpack-spring-boot")
+  testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 }
 
 def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)
@@ -89,7 +90,7 @@ task configureApi << {
 // Note: does not build viewable docs.
 // Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
-  dependsOn configureApi, compileSass
+  dependsOn configureApi, compassCompile
   group "manual"
   description "Generates the Javadoc for the entire public API"
 
@@ -112,18 +113,30 @@ task api(type: Javadoc) {
   configure(options) {
     splitIndex true
     use = true
-    links "http://docs.oracle.com/javase/7/docs/api/"
+    links "http://docs.oracle.com/javase/8/docs/api/"
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
   }
   options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
 
-  options.bottom = """
+  ext.additionalAssets = """
       <script src=\"{@docRoot}/../js/manual.js\"></script>
+      <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
-  inputs.property "bottom", options.bottom
+  options.bottom = ext.additionalAssets
+
+  inputs.property "additionalAssets", ext.additionalAssets
   inputs.property "groups", options.groups
+
+  // For some awesome reason, the 'bottom' arg doesn't get applied to these files
+  doLast {
+	def replacementString = additionalAssets.replaceAll(java.util.regex.Pattern.quote("{@docRoot}/"), "") + "</html>"
+	["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
+	  def f = new File(destinationDir, it)
+	  f.text = f.text.replace("</html>", replacementString)
+	}
+  }
 }
 
 test {
@@ -138,7 +151,6 @@ test {
 }
 
 task checkApi(type: Checkstyle) {
-  enabled = false
   group "manual"
   description "Tests that the public API is sufficiently documented"
 
@@ -168,7 +180,8 @@ task tokeniseManual(type: Sync) {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
-        <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
+        <!--[if gt IE 7]><!--><link href="css/manual.css" rel="stylesheet" type="text/css"><!--<![endif]-->
+        <link href="css/fonts.css" rel="stylesheet" type="text/css">
         <script src="js/manual.js"></script>
       """,
       footer: """
@@ -217,22 +230,25 @@ task compileManual {
   }
 }
 
+jruby {
+  gemInstallDir = file("$project.rootProject.buildDir/build/gems")
+}
+
 compass {
-  gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
+  gemDir = file("${gradle.gradleUserHomeDir}/ruby-gems")
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
   importPath = files('../ratpack-stylesheets')
   fontsDir = file('../ratpack-stylesheets/fonts')
   relativeAssets = true
-  encoding = 'UTF-8'
   quiet = true
 }
 
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
-  from compileSass
+  from compassCompile
 }
 
 file("src/assets").eachDir { File dir ->
@@ -241,7 +257,7 @@ file("src/assets").eachDir { File dir ->
     into "$buildDir/assets/$dir.name"
   }
 
-  compileSass.dependsOn task
+  compassCompile.dependsOn task
 
   stylizeManual {
     into dir.name, {

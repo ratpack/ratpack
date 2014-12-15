@@ -19,31 +19,51 @@ package ratpack.manual.snippets.junit;
 import org.junit.runner.Runner;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.RunnerScheduler;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DelegatingTestRunner extends Suite {
 
-  public DelegatingTestRunner(Class<?> clazz) throws InitializationError {
-    super(clazz, extractRunners(clazz));
-  }
+    public DelegatingTestRunner(Class<?> clazz) throws InitializationError {
+        super(clazz, extractRunners(clazz));
 
-  @SuppressWarnings("unchecked")
-  private static List<Runner> extractRunners(Class<?> clazz) throws InitializationError {
-    if (!RunnerProvider.class.isAssignableFrom(clazz)) {
-      throw new InitializationError(clazz.getName() + " does not implement " + RunnerProvider.class.getName());
+        setScheduler(new RunnerScheduler() {
+
+            private final ExecutorService service = Executors.newFixedThreadPool(4);
+
+            public void schedule(Runnable childStatement) {
+                service.submit(childStatement);
+            }
+
+            public void finished() {
+                try {
+                    service.shutdown();
+                    service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        });
     }
 
-    Class<RunnerProvider> asType = (Class<RunnerProvider>) clazz;
-    RunnerProvider instance;
-    try {
-      instance = asType.newInstance();
-    } catch (InstantiationException e) {
-      throw new InitializationError(e);
-    } catch (IllegalAccessException e) {
-      throw new InitializationError(e);
-    }
+    @SuppressWarnings("unchecked")
+    private static List<Runner> extractRunners(Class<?> clazz) throws InitializationError {
+        if (!RunnerProvider.class.isAssignableFrom(clazz)) {
+            throw new InitializationError(clazz.getName() + " does not implement " + RunnerProvider.class.getName());
+        }
 
-    return instance.getRunners();
-  }
+        Class<RunnerProvider> asType = (Class<RunnerProvider>) clazz;
+        RunnerProvider instance;
+        try {
+            instance = asType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new InitializationError(e);
+        }
+
+        return instance.getRunners();
+    }
 }

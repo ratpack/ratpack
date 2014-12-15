@@ -34,7 +34,6 @@ import ratpack.error.internal.ErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
@@ -60,13 +59,9 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
-import ratpack.render.CharSequenceRenderer;
-import ratpack.render.internal.DefaultCharSequenceRenderer;
-import ratpack.render.internal.DefaultRenderController;
-import ratpack.server.BindAddress;
+import ratpack.render.internal.*;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.sse.internal.ServerSentEventsRenderer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -97,7 +92,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final boolean addResponseTimeHeader;
   private final ExecControl execControl;
 
-  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
+  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) throws Exception {
     super(false);
 
     this.handlers = ChainHandler.unpack(handler);
@@ -133,15 +128,20 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
-    if (!nettyRequest.getDecoderResult().isSuccess()) {
+    if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       nettyRequest.release();
       return;
     }
 
     final long startTime = addResponseTimeHeader ? System.nanoTime() : 0;
-    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
+
     final Channel channel = ctx.channel();
+    InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
+    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
+
+
+    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.method(), nettyRequest.uri(), remoteAddress, socketAddress, nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
@@ -152,9 +152,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter);
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 
-    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
-    final BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
-
     Action<Action<Object>> subscribeHandler = thing -> {
       transmitted.set(true);
       channelSubscriptions.put(channel, thing);
@@ -164,10 +161,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
     final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
+      applicationConstants, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
-    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, execution -> {
+    DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, registry, handlers, execution -> {
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
@@ -228,7 +225,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) {
+  public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) throws Exception {
     ErrorHandler errorHandler = launchConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
 
     RegistryBuilder registryBuilder = Registries.registry()
@@ -239,10 +236,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(ClientErrorHandler.class, errorHandler)
       .add(ServerErrorHandler.class, errorHandler)
       .add(LaunchConfig.class, launchConfig)
-      .add(FileRenderer.class, new DefaultFileRenderer())
-      .add(ServerSentEventsRenderer.TYPE, new ServerSentEventsRenderer(launchConfig.getBufferAllocator()))
-      .add(HttpResponseChunksRenderer.TYPE, new HttpResponseChunksRenderer())
-      .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
+      .with(new DefaultFileRenderer().register())
+      .with(new PromiseRenderer().register())
+      .with(new PublisherRenderer().register())
+      .with(new RenderableRenderer().register())
+      .with(new CharSequenceRenderer().register())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())
       .add(HttpClient.class, HttpClients.httpClient(launchConfig));

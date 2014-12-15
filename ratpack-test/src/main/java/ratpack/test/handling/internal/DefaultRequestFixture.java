@@ -17,9 +17,11 @@
 package ratpack.test.handling.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
@@ -40,7 +42,9 @@ import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
+import ratpack.util.ExceptionUtils;
 
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -59,7 +63,8 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private String method = "GET";
   private String uri = "/";
-
+  private HostAndPort remoteHostAndPort = HostAndPort.fromParts("localhost", 45678);
+  private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", LaunchConfig.DEFAULT_PORT);
   private int timeout = 5;
 
   private RegistryBuilder registryBuilder = Registries.registry();
@@ -98,7 +103,10 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private HandlingResult invoke(Handler handler, LaunchConfig launchConfig, Registry registry) throws HandlerTimeoutException {
-    Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
+    Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), uri,
+      new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
+      new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
+      requestBody);
 
     try {
       return new DefaultHandlingResult(
@@ -109,6 +117,8 @@ public class DefaultRequestFixture implements RequestFixture {
         launchConfig,
         handler
       );
+    } catch (Exception e) {
+      throw ExceptionUtils.uncheck(e);
     } finally {
       launchConfig.getExecController().close();
     }
@@ -185,6 +195,18 @@ public class DefaultRequestFixture implements RequestFixture {
     }
 
     this.uri = uri;
+    return this;
+  }
+
+  @Override
+  public RequestFixture remoteAddress(HostAndPort remote) {
+    remoteHostAndPort = remote;
+    return this;
+  }
+
+  @Override
+  public RequestFixture localAddress(HostAndPort local) {
+    localHostAndPort = local;
     return this;
   }
 

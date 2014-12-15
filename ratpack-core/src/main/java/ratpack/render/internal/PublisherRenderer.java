@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.render.internal;
 
 import com.google.common.reflect.TypeToken;
-import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Publisher;
 import ratpack.handling.Context;
-import ratpack.http.Response;
-import ratpack.http.ResponseChunks;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.stream.Streams;
 
-public class HttpResponseChunksRenderer extends RendererSupport<ResponseChunks> {
+public class PublisherRenderer extends RendererSupport<Publisher<?>> {
 
-  public static final TypeToken<Renderer<ResponseChunks>> TYPE = new TypeToken<Renderer<ResponseChunks>>() {};
+  public static final TypeToken<Renderer<Publisher<?>>> TYPE = new TypeToken<Renderer<Publisher<?>>>() {
+  };
+
 
   @Override
-  public void render(Context context, ResponseChunks chunks) throws Exception {
-    Response response = context.getResponse();
-    response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-    response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, chunks.getContentType());
-    Publisher<? extends ByteBuf> publisher = chunks.publisher(context.getLaunchConfig().getBufferAllocator());
-    response.sendStream(publisher);
+  public void render(Context context, Publisher<?> publisher) throws Exception {
+    Streams.toPromise(context, publisher).then(context::render);
   }
 
 }

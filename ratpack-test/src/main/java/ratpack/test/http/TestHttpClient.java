@@ -17,18 +17,21 @@
 package ratpack.test.http;
 
 import com.google.common.collect.ImmutableMultimap;
+import io.netty.handler.codec.http.Cookie;
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 
+import java.util.List;
+
 public interface TestHttpClient {
 
   ApplicationUnderTest getApplicationUnderTest();
 
-  void requestSpec(Action<? super RequestSpec> requestAction);
+  TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);
 
-  void params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
+  TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
 
   void resetRequest();
 
@@ -82,4 +85,5 @@ public interface TestHttpClient {
 
   String deleteText(String path);
 
+  List<Cookie> getCookies();
 }

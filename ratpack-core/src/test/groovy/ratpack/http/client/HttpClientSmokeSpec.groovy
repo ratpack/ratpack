@@ -18,12 +18,16 @@ package ratpack.http.client
 
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.util.CharsetUtil
 import ratpack.stream.Streams
 import ratpack.util.internal.IoUtils
 
+import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
+import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
+import static ratpack.stream.Streams.publish
 
 class HttpClientSmokeSpec extends HttpClientSpec {
 
@@ -334,6 +338,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
   def "500 Error when RequestSpec throws an exception"() {
     given:
+    otherApp { }
+
+    and:
     handlers {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
@@ -381,4 +388,130 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     text == ReadTimeoutException.name
   }
 
+  def "can directly stream a client chunked response"() {
+    given:
+    otherApp {
+      get("foo") {
+        render stringChunks(
+          publish(["bar"] * 3)
+        )
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.streamRequest(otherAppUrl("foo")) {
+        } then { StreamedResponse responseStream ->
+          responseStream.send(response)
+        }
+      }
+    }
+
+    expect:
+    rawResponse() == """HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Content-Type: text/plain;charset=UTF-8
+
+3
+bar
+3
+bar
+3
+bar
+0
+
+"""
+  }
+
+  def "can modify the stream of a client chunked response"() {
+    given:
+    otherApp {
+      get("foo") {
+        render stringChunks(
+          publish(["bar"] * 3)
+        )
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.streamRequest(otherAppUrl("foo")) {
+        } then { StreamedResponse stream ->
+          render stringChunks(
+            stream.body.map{
+              IoUtils.utf8String(it).toUpperCase()
+            }
+          )
+        }
+      }
+    }
+
+    expect:
+    rawResponse() == """HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Content-Type: text/plain;charset=UTF-8
+
+3
+BAR
+3
+BAR
+3
+BAR
+0
+
+"""
+  }
+
+  def "can follow a redirect when streaming a client response"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        render "bar"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.streamRequest(otherAppUrl("foo2")) {
+        } then { StreamedResponse responseStream ->
+          responseStream.send(response)
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+  }
+
+  String rawResponse(Charset charset = CharsetUtil.UTF_8) {
+    StringBuilder builder = new StringBuilder()
+    Socket socket = new Socket(getAddress().host, getAddress().port)
+    try {
+      new OutputStreamWriter(socket.outputStream, "UTF-8").with {
+        write("GET / HTTP/1.1\r\n")
+        write("Connection: close\r\n")
+        write("\r\n")
+        flush()
+      }
+
+      InputStreamReader inputStreamReader = new InputStreamReader(socket.inputStream, charset)
+      BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
+
+      def chunk
+      while ((chunk = bufferedReader.readLine()) != null) {
+        builder.append(chunk).append("\n")
+      }
+
+      builder.toString()
+    } finally {
+      socket.close()
+    }
+  }
 }

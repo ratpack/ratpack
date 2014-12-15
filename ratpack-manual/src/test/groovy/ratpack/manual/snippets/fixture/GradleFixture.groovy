@@ -16,30 +16,47 @@
 
 package ratpack.manual.snippets.fixture
 
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+
 class GradleFixture extends GroovyScriptFixture {
-  @Override
-  void setup() {
-  }
 
-  @Override
-  void cleanup() {
-  }
+	private final Lock lock = new ReentrantLock()
+	private final Condition available = lock.newCondition()
+	private volatile boolean busy
 
-  @Override
-  String pre() {
-    """
+	@Override
+	void setup() {
+		lock.lock()
+		while (busy) {
+			available.await()
+		}
+		busy = true
+	}
+
+	@Override
+	void cleanup() {
+		busy = false
+		available.signal()
+		lock.unlock()
+	}
+
+	@Override
+	String pre() {
+		"""
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 
 def script = '''
 """
-  }
+	}
 
-  @Override
-  String post() {
-    String localRepo = System.getProperty("localRepo", "build/localrepo")
-    def localRepoPath = new File(localRepo).canonicalPath?.replaceAll("\\\\", "/")
-    """
+	@Override
+	String post() {
+		String localRepo = System.getProperty("localRepo", "build/localrepo")
+		def localRepoPath = new File(localRepo).canonicalPath?.replaceAll("\\\\", "/")
+		"""
 '''
 def projectDir = File.createTempDir()
 def buildFile = new File(projectDir, "build.gradle")
@@ -68,5 +85,5 @@ try {
   projectDir.deleteDir()
 }
 """
-  }
+	}
 }

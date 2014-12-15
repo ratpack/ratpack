@@ -56,4 +56,5 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence HTML_UTF_8 = HttpHeaders.newEntity("text/html;charset=UTF-8");
   public static final CharSequence ON = HttpHeaders.newEntity("on");
 
+  public static final CharSequence TEXT_EVENT_STREAM_CHARSET_UTF_8 = HttpHeaders.newEntity("text/event-stream;charset=UTF-8");
 }

@@ -67,8 +67,9 @@ abstract class SubscriptionSupport<T> implements Subscription {
     if (drainingRequests.compareAndSet(false, true)) {
       try {
         long n = waitingRequests.getAndSet(0);
-        if (n > 0) {
+        while (n > 0) {
           doRequest(n);
+          n = waitingRequests.getAndSet(0);
         }
       } finally {
         drainingRequests.set(false);

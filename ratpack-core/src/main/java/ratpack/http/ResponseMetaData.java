@@ -17,7 +17,6 @@
 package ratpack.http;
 
 import io.netty.handler.codec.http.Cookie;
-import ratpack.func.Action;
 
 import java.util.Set;
 

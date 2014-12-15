@@ -23,9 +23,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static ratpack.sse.ServerSentEvent.serverSentEvent
 import static ratpack.sse.ServerSentEvents.serverSentEvents
-import static ratpack.stream.Streams.*
+import static ratpack.stream.Streams.publish
+import static ratpack.stream.Streams.wiretap
 
 class ServerSentEventsSpec extends RatpackGroovyDslSpec {
 
@@ -38,41 +38,9 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       handler {
-        render serverSentEvents(publish(1..3)) { ServerSentEvent.Spec spec ->
-          spec.id(spec.item.toString()).event("add").data("Event ${spec.item}".toString())
+        render serverSentEvents(publish(1..3)) { ServerSentEvents.Event event ->
+          event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
         }
-      }
-    }
-
-    expect:
-    def response = get()
-    response.body.text == """event: add
-data: Event 1
-id: 1
-
-event: add
-data: Event 2
-id: 2
-
-event: add
-data: Event 3
-id: 3
-
-"""
-    response.statusCode == OK.code()
-    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
-    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
-    response.headers["Pragma"] == "no-cache"
-    response.headers["Content-Encoding"] == null
-  }
-
-  def "can send server sent event constructed during stream chain"() {
-    given:
-    handlers {
-      handler {
-        render serverSentEvents(map(publish(1..3)) { i ->
-          serverSentEvent { it.id(i.toString()).event("add").data("Event $i".toString()) }
-        })
       }
     }
 
@@ -115,7 +83,7 @@ id: 3
         }
 
         render serverSentEvents(stream) {
-          it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
+          it.id({ it.toString() }).event("add").data({ "Event ${it}".toString() })
         }
       }
     }

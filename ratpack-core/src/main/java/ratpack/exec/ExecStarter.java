@@ -16,6 +16,7 @@
 
 package ratpack.exec;
 
+import io.netty.channel.EventLoop;
 import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
 
@@ -31,6 +32,8 @@ public interface ExecStarter {
   ExecStarter onComplete(Action<? super Execution> onComplete);
 
   ExecStarter register(Action<? super RegistrySpec> registry);
+
+  ExecStarter eventLoop(EventLoop eventLoop);
 
   void start(Action<? super Execution> onError);
 

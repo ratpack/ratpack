@@ -18,23 +18,21 @@ import ratpack.gradle.WriteTestConfig
 
 buildscript {
   repositories {
-    maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
     jcenter()
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.10'
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
 
-import org.gradle.plugins.compass.*
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 
 import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang.SystemUtils.*
 
 apply plugin: 'coffeescript-base'
-apply plugin: 'compass'
+apply plugin: "com.github.robfletcher.compass"
 apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
 
@@ -48,7 +46,7 @@ ext {
     "0.9.0", "0.9.1", "0.9.2",
     "0.9.3", "0.9.4", "0.9.5",
     "0.9.6", "0.9.7", "0.9.8",
-    "0.9.9", "0.9.10"
+    "0.9.9", "0.9.10", "0.9.11"
   ]
 }
 
@@ -90,6 +88,8 @@ dependencies {
   compile project(":ratpack-rx")
   compile project(":ratpack-newrelic")
   compile 'org.pegdown:pegdown:1.4.1'
+
+  compass commonDependencies.compass
 
   runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.0-rc2'
   runtime 'org.apache.logging.log4j:log4j-api:2.0-rc2'
@@ -205,15 +205,13 @@ sourceSets.test.resources.srcDir generatedTestResourcesDir
 
 processTestResources.dependsOn writeTestConfig
 
-ideaModule.dependsOn processTestResources
-
 task compileCoffee(type: CoffeeScriptCompile) {
   source fileTree('src/main/static/scripts')
   destinationDir file('src/ratpack/assets/scripts')
 }
 
 prepareBaseDir {
-  dependsOn gatherManuals, compileCoffee, compileSass
+  dependsOn gatherManuals, compileCoffee, compassCompile
 }
 
 applicationDistribution.into("newrelic") {
@@ -223,8 +221,12 @@ applicationDistribution.into("newrelic") {
   from "src/newrelic"
 }
 
+jruby {
+  gemInstallDir = file("$project.rootProject.buildDir/build/gems")
+}
+
 compass {
-  gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
+  gemDir = file("${gradle.gradleUserHomeDir}/ruby-gems")
   cssDir = file('src/ratpack/assets/styles')
   sassDir = file('src/main/static/styles')
   imagesDir = file('src/ratpack/assets/images')
@@ -232,22 +234,19 @@ compass {
   fontsDir = file('../ratpack-stylesheets/fonts')
   relativeAssets = true
   quiet = true
-}
-
-compileSass {
   environment = 'production'
   debugInfo = false
 }
 
-clean.dependsOn cleanCompileSass
-run.dependsOn watchSass
+run.dependsOn compassWatchStart
+run.finalizedBy compassWatchStop
 
 task createScriptsDir {
   doLast {
     mkdir "src/ratpack/assets/scripts"
   }
 }
-configure([watchSass, compileSass]) {
+configure([compassWatchStart, compassCompile]) {
   dependsOn createScriptsDir
 }
 

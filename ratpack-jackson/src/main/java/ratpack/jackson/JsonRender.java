@@ -19,6 +19,11 @@ package ratpack.jackson;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import ratpack.api.Nullable;
 
+/**
+ * A {@link ratpack.handling.Context#render renderable object wrapper} for rendering as JSON.
+ *
+ * @see Jackson#json
+ */
 public interface JsonRender {
 
   /**
