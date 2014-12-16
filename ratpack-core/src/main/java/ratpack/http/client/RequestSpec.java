@@ -23,7 +23,9 @@ import ratpack.http.MutableHeaders;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public interface RequestSpec {
 
@@ -58,10 +60,10 @@ public interface RequestSpec {
   URI getUrl();
 
   default RequestSpec readTimeoutSeconds(int seconds) {
-    return readTimeout(seconds, TimeUnit.SECONDS);
+    return readTimeout(Duration.of(seconds, SECONDS));
   }
 
-  RequestSpec readTimeout(int amount, TimeUnit timeUnit);
+  RequestSpec readTimeout(Duration duration);
 
   /**
    * The body of the request, used for specifying the body content.

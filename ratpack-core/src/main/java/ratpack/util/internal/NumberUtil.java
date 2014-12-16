@@ -18,17 +18,18 @@ package ratpack.util.internal;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.concurrent.TimeUnit;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
 public abstract class NumberUtil {
 
-  public static BigDecimal convertNanoDiff(long startNanos, long stopNanos, TimeUnit timeUnit) {
+  public static BigDecimal convertNanoDiff(long startNanos, long stopNanos, TemporalUnit unit) {
     BigDecimal diffNanos = new BigDecimal(stopNanos - startNanos);
-    return diffNanos.divide(BigDecimal.valueOf(timeUnit.toNanos(1)));
+    return diffNanos.divide(BigDecimal.valueOf(unit.getDuration().toNanos()));
   }
 
   public static String toMillisDiffString(long startNanos, long stopNanos) {
-    return convertNanoDiff(startNanos, stopNanos, TimeUnit.MILLISECONDS).setScale(5, RoundingMode.UP).toString();
+    return convertNanoDiff(startNanos, stopNanos, ChronoUnit.MILLIS).setScale(5, RoundingMode.UP).toString();
   }
 
 }
