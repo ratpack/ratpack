@@ -51,7 +51,7 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
   public Registry build() {
     ImmutableList<RegistryEntry<?>> entries = builder.build();
     if (entries.size() == 1) {
-      return new CachingRegistry(new SingleEntryRegistry(entries.get(0)));
+      return new SingleEntryRegistry(entries.get(0));
     } else {
       return new CachingRegistry(new MultiEntryRegistry(entries));
     }
