@@ -210,3 +210,16 @@ nav.all-toc > ul > li:first-child > {
 		}
 	}
 }
+
+.gutter-folded:before {
+  content: "\25B8";
+  position: absolute;
+  left: 5px;
+}
+
+.gutter-open:before {
+  content: "\25BE";
+  position: absolute;
+  left: 5px;
+}
+
