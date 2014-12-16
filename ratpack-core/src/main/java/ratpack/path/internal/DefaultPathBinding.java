@@ -70,4 +70,32 @@ public class DefaultPathBinding implements PathBinding {
   public PathTokens getAllTokens() {
     return allTokens;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultPathBinding that = (DefaultPathBinding) o;
+
+    return allTokens.equals(that.allTokens)
+      && binding.equals(that.binding)
+      && bindingWithSlash.equals(that.bindingWithSlash)
+      && pastBinding.equals(that.pastBinding)
+      && tokens.equals(that.tokens);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = binding.hashCode();
+    result = 31 * result + bindingWithSlash.hashCode();
+    result = 31 * result + pastBinding.hashCode();
+    result = 31 * result + tokens.hashCode();
+    result = 31 * result + allTokens.hashCode();
+    return result;
+  }
 }
