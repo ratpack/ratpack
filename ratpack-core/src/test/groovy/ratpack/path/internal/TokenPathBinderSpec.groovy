@@ -23,7 +23,7 @@ import spock.lang.Specification
 class TokenPathBinderSpec extends Specification {
 
   PathBinding bind(String pattern, String path, boolean exact = false, PathBinding parent = null) {
-    PathBinders.parse(pattern, exact).bind(path, parent).orElse(null)
+    PathBinders.parse(pattern, exact).bind(path, parent)
   }
 
   Map<String, String> tokens(String pattern, String path, boolean exact = false, PathBinding parent = null) {
