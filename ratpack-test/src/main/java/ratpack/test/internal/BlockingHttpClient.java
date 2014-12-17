@@ -33,6 +33,7 @@ import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.util.ExceptionUtils;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -80,7 +81,7 @@ public class BlockingHttpClient {
     @Override
     public void execute(Execution execution) throws Exception {
       HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
-        .request(uri, Action.join(s -> s.readTimeout(60, TimeUnit.MINUTES), action))
+        .request(uri, Action.join(s -> s.readTimeout(Duration.ofHours(1)), action))
         .then(response -> {
           TypedData responseBody = response.getBody();
           ByteBuf responseBodyBuffer = responseBody.getBuffer();
