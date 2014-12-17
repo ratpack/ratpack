@@ -16,10 +16,10 @@
 
 package ratpack.http.client.internal;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 class RequestParams {
 
-  long readTimeoutNanos = TimeUnit.SECONDS.toNanos(30);
+  long readTimeoutNanos = Duration.ofSeconds(30).toNanos();
 
 }

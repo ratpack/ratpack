@@ -35,10 +35,10 @@ import ratpack.test.internal.BlockingHttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -213,7 +213,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
     try {
       URI uri = builder(path).params(params).build();
 
-      response = client.request(uri, 60, TimeUnit.MINUTES, Action.join(defaultRequestConfig, request, requestSpec -> {
+      response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
