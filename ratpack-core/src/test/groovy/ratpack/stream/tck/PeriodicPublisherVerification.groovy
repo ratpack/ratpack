@@ -23,7 +23,6 @@ import ratpack.stream.Streams
 
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 
 class PeriodicPublisherVerification extends PublisherVerification<Integer> {
 
