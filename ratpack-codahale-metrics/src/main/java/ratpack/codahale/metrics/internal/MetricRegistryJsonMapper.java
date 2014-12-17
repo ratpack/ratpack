@@ -49,7 +49,6 @@ public class MetricRegistryJsonMapper implements Function<MetricRegistry, String
     OutputStream out = new ByteArrayOutputStream();
     JsonGenerator json = factory.createGenerator(out);
 
-
     json.writeStartObject();
     json.writeNumberField("timestamp", clock.getTime());
     writeTimers(json, metricRegistry.getTimers());
