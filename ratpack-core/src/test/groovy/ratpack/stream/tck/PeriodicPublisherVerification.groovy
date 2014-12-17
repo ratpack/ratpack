@@ -21,6 +21,7 @@ import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.stream.Streams
 
+import java.time.Duration
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -38,7 +39,7 @@ class PeriodicPublisherVerification extends PublisherVerification<Integer> {
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    Streams.periodically(scheduled, 1, TimeUnit.MICROSECONDS) {
+    Streams.periodically(scheduled, Duration.ofNanos(1000)) {
       it < elements ? it : null
     }
   }

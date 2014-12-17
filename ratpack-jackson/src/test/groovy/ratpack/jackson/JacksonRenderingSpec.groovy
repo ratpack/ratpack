@@ -20,7 +20,7 @@ import com.google.common.base.StandardSystemProperty
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import java.util.concurrent.TimeUnit
+import java.time.Duration
 
 import static Jackson.json
 import static ratpack.jackson.Jackson.chunkedJsonList
@@ -107,7 +107,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         def data = [1, 2, [foo: "bar"], 4]
-        render chunkedJsonList(context, Streams.periodically(launchConfig, 100, TimeUnit.MILLISECONDS, {
+        render chunkedJsonList(context, Streams.periodically(launchConfig, Duration.ofMillis(100), {
           it < data.size() ? data.get(it) : null
         }))
       }

@@ -34,12 +34,13 @@ import ratpack.util.ExceptionUtils;
 
 import java.net.URI;
 import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class BlockingHttpClient {
 
-  public ReceivedResponse request(URI uri, long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
+  public ReceivedResponse request(URI uri, Duration duration, Action<? super RequestSpec> action) throws Throwable {
     try (ExecController execController = new DefaultExecController(2)) {
       final RequestAction requestAction = new RequestAction(uri, execController, action);
 
@@ -48,8 +49,9 @@ public class BlockingHttpClient {
         .start(requestAction::execute);
 
       try {
-        if (!requestAction.latch.await(timeout, timeUnit)) {
-          throw new IllegalStateException("Request to " + uri + " took more than " + timeout + " " + timeUnit.name().toLowerCase() + " to complete");
+        if (!requestAction.latch.await(duration.toNanos(), TimeUnit.NANOSECONDS)) {
+          TemporalUnit unit = duration.getUnits().get(0);
+          throw new IllegalStateException("Request to " + uri + " took more than " + duration.get(unit) + " "+ unit.toString() +" to complete");
         }
       } catch (InterruptedException e) {
         throw ExceptionUtils.uncheck(e);
