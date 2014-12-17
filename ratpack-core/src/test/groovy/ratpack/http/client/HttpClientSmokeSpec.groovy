@@ -23,7 +23,7 @@ import ratpack.stream.Streams
 import ratpack.util.internal.IoUtils
 
 import java.nio.charset.Charset
-import java.util.concurrent.TimeUnit
+import java.time.Duration
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
@@ -362,7 +362,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     otherApp {
       get {
-        def stream = Streams.periodically(launchConfig, 5, TimeUnit.SECONDS) {
+        def stream = Streams.periodically(launchConfig, Duration.ofSeconds(5)) {
           it < 5 ? "a" : null
         }
 

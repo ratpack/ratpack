@@ -16,7 +16,7 @@
 
 package ratpack.test.internal
 
-import java.util.concurrent.TimeUnit
+import java.time.Duration
 
 class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
 
@@ -32,7 +32,7 @@ class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
     def client = new BlockingHttpClient()
 
     then:
-    client.request(applicationUnderTest.address, 5, TimeUnit.SECONDS, {}).body.text == "ok"
+    client.request(applicationUnderTest.address, Duration.ofSeconds(5), {}).body.text == "ok"
   }
 
 }

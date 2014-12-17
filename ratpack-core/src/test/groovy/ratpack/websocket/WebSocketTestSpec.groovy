@@ -21,6 +21,7 @@ import org.reactivestreams.Subscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -119,7 +120,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get {
-        def stream = periodically(launchConfig.execController.executor, 100, TimeUnit.MICROSECONDS) {
+        def stream = periodically(launchConfig.execController.executor, Duration.ofMillis(100)) {
           "1"
         }.wiretap {
           if (it.cancel) {
@@ -224,7 +225,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
         websocketBroadcast(context, new Publisher<String>() {
           @Override
           void subscribe(Subscriber<? super String> s) {
-            def publisher = periodically(executor, 1, TimeUnit.SECONDS) {
+            def publisher = periodically(executor, Duration.ofSeconds(1)) {
               it < 1 ? "foo" : null
             }
             Thread.start { publisher.subscribe(s) }

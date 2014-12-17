@@ -42,14 +42,14 @@ import java.nio.charset.Charset;
  * import ratpack.stream.Streams;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import java.util.concurrent.TimeUnit;
+ * import java.time.Duration;
  *
  * import static ratpack.http.ResponseChunks.stringChunks;
  *
  * public class Example {
  *   public static void main(String[] args) {
  *     EmbeddedApp.fromHandler(ctx -> {
- *       Publisher<String> strings = Streams.periodically(ctx.getLaunchConfig(), 5, TimeUnit.MILLISECONDS,
+ *       Publisher<String> strings = Streams.periodically(ctx.getLaunchConfig(), Duration.ofMillis(5),
  *         i -> i < 5 ? i.toString() : null
  *       );
  *

@@ -25,10 +25,10 @@ import ratpack.launch.LaunchConfig;
 import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Some lightweight utilities for working with <a href="http://www.reactive-streams.org/">reactive streams</a>.
@@ -270,18 +270,17 @@ public class Streams {
    * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(Publisher)}.
    *
    * @param executorService the executor service that will periodically execute the function
-   * @param delay the delay value
-   * @param timeUnit the delay time unit
+   * @param duration the duration of the delay (Duration.ofSeconds(1) - delay will be 1 second)
    * @param producer a function that produces values to emit
    * @param <T> the type of item
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
-  public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, long delay, TimeUnit timeUnit, Function<Integer, T> producer) {
-    return buffer(new PeriodicPublisher<>(executorService, producer, delay, timeUnit));
+  public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, Duration duration, Function<Integer, T> producer) {
+    return buffer(new PeriodicPublisher<>(executorService, producer, duration));
   }
 
-  public static <T> TransformablePublisher<T> periodically(LaunchConfig launchConfig, long delay, TimeUnit timeUnit, Function<Integer, T> producer) {
-    return buffer(new PeriodicPublisher<>(launchConfig.getExecController().getExecutor(), producer, delay, timeUnit));
+  public static <T> TransformablePublisher<T> periodically(LaunchConfig launchConfig, Duration duration, Function<Integer, T> producer) {
+    return buffer(new PeriodicPublisher<>(launchConfig.getExecController().getExecutor(), producer, duration));
   }
 
   /**

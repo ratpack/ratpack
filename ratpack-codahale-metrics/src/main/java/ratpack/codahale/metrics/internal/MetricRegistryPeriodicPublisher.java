@@ -22,6 +22,7 @@ import ratpack.func.Function;
 import ratpack.launch.LaunchConfig;
 import ratpack.stream.internal.PeriodicPublisher;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricRegistry> {
@@ -41,8 +42,7 @@ public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricReg
           return metricRegistry;
         }
       },
-      new Long(launchConfig.getOther("metrics.scheduledreporter.interval", DEFAULT_INTERVAL)),
-      TimeUnit.SECONDS
+      Duration.ofSeconds(new Long(launchConfig.getOther("metrics.scheduledreporter.interval", DEFAULT_INTERVAL)))
     );
   }
 

@@ -21,6 +21,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Function;
 
+import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -33,14 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PeriodicPublisher<T> implements Publisher<T> {
   private final ScheduledExecutorService executorService;
   private final Function<Integer, T> producer;
-  private final long delay;
-  private final TimeUnit timeUnit;
+  private final Duration duration;
 
-  public PeriodicPublisher(ScheduledExecutorService executorService, Function<Integer, T> producer, long delay, TimeUnit timeUnit) {
+  public PeriodicPublisher(ScheduledExecutorService executorService, Function<Integer, T> producer, Duration duration) {
     this.executorService = executorService;
     this.producer = producer;
-    this.delay = delay;
-    this.timeUnit = timeUnit;
+    this.duration = duration;
   }
 
   @Override
@@ -64,7 +63,7 @@ public class PeriodicPublisher<T> implements Publisher<T> {
         } else {
           s.onNext(value);
         }
-      }, 0, delay, timeUnit);
+      }, 0, duration.toNanos(), TimeUnit.NANOSECONDS);
 
       @Override
       public void request(long n) {

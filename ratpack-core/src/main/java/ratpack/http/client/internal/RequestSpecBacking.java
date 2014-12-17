@@ -31,7 +31,7 @@ import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 class RequestSpecBacking {
 
@@ -104,8 +104,8 @@ class RequestSpecBacking {
     }
 
     @Override
-    public RequestSpec readTimeout(int amount, TimeUnit timeUnit) {
-      requestParams.readTimeoutNanos = timeUnit.toNanos(amount);
+    public RequestSpec readTimeout(Duration duration) {
+      requestParams.readTimeoutNanos = duration.toNanos();
       return this;
     }
 
