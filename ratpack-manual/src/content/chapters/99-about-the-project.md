@@ -52,6 +52,7 @@ The following people have provided significant contributions.
 * [Tom Duncan](https://github.com/tomdcc)
 * [Wilson MacGyver](https://github.com/wmacgyver)
 * [Jörn Huxhorn](https://github.com/huxi)
+* [Glenn Saqui](https://github.com/gsaqui)
 
 ### Past project members
 

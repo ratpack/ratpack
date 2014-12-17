@@ -23,7 +23,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.stream.internal.PeriodicPublisher;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricRegistry> {
 
