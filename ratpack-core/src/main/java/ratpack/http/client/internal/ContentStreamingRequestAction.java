@@ -45,6 +45,8 @@ import ratpack.stream.TransformablePublisher;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
   private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
@@ -117,13 +119,20 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
 
     @Override
     public void send(Response response) {
-      send(response, null);
+      send(response, Action.noop());
     }
 
     @Override
     public void send(Response response, Action<? super MutableHeaders> headerMutator) {
-      response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-      response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, this.headers.get(HttpHeaderConstants.CONTENT_TYPE));
+      response.getHeaders().copy(this.headers);
+      response.getHeaders().remove(HttpHeaderConstants.CONTENT_LENGTH); // responses will always be chunked
+      try {
+        headerMutator.execute(response.getHeaders());
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+      response.getHeaders().set(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
+      response.status(this.status);
       response.sendStream(getBody());
     }
   }
