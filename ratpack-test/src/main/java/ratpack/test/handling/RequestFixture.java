@@ -22,6 +22,7 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.test.handling.internal.DefaultRequestFixture;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -31,15 +32,116 @@ import java.util.Map;
  * <p>
  * A request fixture emulates a request, <b>and</b> the effective state of the request handling in the handler pipeline.
  * <p>
- * A request fixture can be obtained by the {@link ratpack.test.UnitTest#requestFixture()} method.
- * However it is often more convenient to use the alternative {@link ratpack.test.UnitTest#handle(ratpack.handling.Handler, ratpack.func.Action)} method.
+ * A request fixture can be obtained by the {@link ratpack.test.handling.RequestFixture#requestFixture()} method.
+ * However it is often more convenient to use the alternative {@link ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, ratpack.func.Action)} method.
  * <p>
- * See {@link ratpack.test.UnitTest} for usage examples.
  *
- * @see ratpack.test.UnitTest
  * @see #handle(ratpack.handling.Handler)
  */
 public interface RequestFixture {
+
+  /**
+   * Unit test a single {@link Handler}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.handling.Context;
+   * import ratpack.handling.Handler;
+   * import ratpack.test.handling.RequestFixture;
+   * import ratpack.test.handling.HandlingResult;
+   *
+   * public class Example {
+   *
+   *   public static class MyHandler implements Handler {
+   *     public void handle(Context ctx) throws Exception {
+   *       String outputHeaderValue = ctx.getRequest().getHeaders().get("input-value") + ":bar";
+   *       ctx.getResponse().getHeaders().set("output-value", outputHeaderValue);
+   *       ctx.render("received: " + ctx.getRequest().getPath());
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     HandlingResult result = RequestFixture.handle(new MyHandler(), fixture ->
+   *         fixture.header("input-value", "foo").uri("some/path")
+   *     );
+   *
+   *     assert result.rendered(String.class).equals("received: some/path");
+   *     assert result.getHeaders().get("output-value").equals("foo:bar");
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param handler The handler to invoke
+   * @param action The configuration of the context for the handler
+   * @return A result object indicating what happened
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code action}
+   * @see #handle(Action, Action)
+   */
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws Exception {
+    RequestFixture requestFixture = requestFixture();
+    action.execute(requestFixture);
+    return requestFixture.handle(handler);
+  }
+  /**
+   * Unit test a {@link Handler} chain.
+   *
+   * <pre class="java">{@code
+   * import ratpack.func.Action;
+   * import ratpack.handling.Chain;
+   * import ratpack.test.handling.RequestFixture;
+   * import ratpack.test.handling.HandlingResult;
+   *
+   * public class Example {
+   *
+   *   public static class MyHandlers implements Action<Chain> {
+   *     public void execute(Chain chain) throws Exception {
+   *       chain.handler(ctx -> {
+   *         String outputHeaderValue = ctx.getRequest().getHeaders().get("input-value") + ":bar";
+   *         ctx.getResponse().getHeaders().set("output-value", outputHeaderValue);
+   *         ctx.next();
+   *       });
+   *       chain.handler(ctx -> {
+   *         ctx.render("received: " + ctx.getRequest().getPath());
+   *       });
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     HandlingResult result = RequestFixture.handle(new MyHandlers(), fixture ->
+   *         fixture.header("input-value", "foo").uri("some/path")
+   *     );
+   *
+   *     assert result.rendered(String.class).equals("received: some/path");
+   *     assert result.getHeaders().get("output-value").equals("foo:bar");
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param chainAction the definition of a handler chain to test
+   * @param requestFixtureAction the configuration of the request fixture
+   * @return a result object indicating what happened
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code chainAction} or {@code requestFixtureAction}
+   * @see #handle(Handler, Action)
+   */
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws Exception {
+    RequestFixture requestFixture = requestFixture();
+    requestFixtureAction.execute(requestFixture);
+    return requestFixture.handleChain(chainAction);
+  }
+
+  /**
+   * Create a request fixture, for unit testing of {@link Handler handlers}.
+   *
+   * @see #handle(ratpack.handling.Handler, ratpack.func.Action)
+   * @see #handle(ratpack.func.Action, ratpack.func.Action)
+   * @return a request fixture
+   */
+  public static RequestFixture requestFixture() {
+    return new DefaultRequestFixture();
+  }
 
   /**
    * Sets the request body to be the given bytes, and adds a {@code Content-Type} request header of the given value.

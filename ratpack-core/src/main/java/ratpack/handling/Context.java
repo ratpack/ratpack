@@ -171,7 +171,6 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.handling.ByMethodSpec;
    * import ratpack.func.Action;
    *
-   * import ratpack.test.UnitTest;
    * import ratpack.test.handling.HandlingResult;
    * import ratpack.test.handling.RequestFixture;
    *
@@ -201,14 +200,14 @@ public interface Context extends ExecControl, Registry {
    *   public static void main(String[] args) throws Exception {
    *     Handler handler = new MultiMethodHandler();
    *
-   *     HandlingResult result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *     HandlingResult result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
    *       public void execute(RequestFixture fixture) {
    *         fixture.method("get");
    *       }
    *     });
    *     assert result.rendered(String.class).equals("hello! from GET request");
    *
-   *     result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *     result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
    *       public void execute(RequestFixture fixture) {
    *         fixture.method("post");
    *       }
@@ -249,7 +248,6 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.handling.ByContentSpec;
    * import ratpack.func.Action;
    *
-   * import ratpack.test.UnitTest;
    * import ratpack.test.handling.HandlingResult;
    * import ratpack.test.handling.RequestFixture;
    *
@@ -279,7 +277,7 @@ public interface Context extends ExecControl, Registry {
    *   public static void main(String[] args) throws Exception {
    *     Handler handler = new ContentNegotiatingHandler();
    *
-   *     HandlingResult result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *     HandlingResult result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
    *       public void execute(RequestFixture fixture) {
    *         fixture.header("Accept", "application/json");
    *       }
@@ -287,7 +285,7 @@ public interface Context extends ExecControl, Registry {
    *     assert result.rendered(String.class).equals("{\"msg\": \"hello!\"}");
    *     assert result.getHeaders().get("Content-Type").equals("application/json");
    *
-   *     result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *     result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
    *       public void execute(RequestFixture fixture) {
    *         fixture.header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
    *       }
@@ -412,7 +410,6 @@ public interface Context extends ExecControl, Registry {
    * import java.util.concurrent.atomic.AtomicInteger;
    * import java.util.concurrent.atomic.AtomicReference;
    *
-   * import ratpack.test.UnitTest;
    * import ratpack.test.handling.HandlingResult;
    * import ratpack.test.handling.RequestFixture;
    *
@@ -461,10 +458,10 @@ public interface Context extends ExecControl, Registry {
    *   }
    *
    *   public static void main(String[] args) throws Exception {
-   *     HandlingResult result = UnitTest.handle(new ForkingHandler(), Action.noop());
+   *     HandlingResult result = RequestFixture.handle(new ForkingHandler(), Action.noop());
    *     assert result.rendered(String.class).equals("3");
    *
-   *     result = UnitTest.handle(new ForkingHandler(), new Action<RequestFixture>() {
+   *     result = RequestFixture.handle(new ForkingHandler(), new Action<RequestFixture>() {
    *       public void execute(RequestFixture fixture) {
    *         fixture.pathBinding(Collections.singletonMap("failOn", "2"));
    *       }

@@ -27,7 +27,6 @@ import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
-import ratpack.test.UnitTest;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 
@@ -75,7 +74,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    */
   @SuppressWarnings("overloads")
   public static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
-    return UnitTest.handle(handler, builder -> {
+    return RequestFixture.handle(handler, builder -> {
       GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
       ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
     });
@@ -117,7 +116,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    */
   @SuppressWarnings("overloads")
   public static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
-    return UnitTest.handle(handlers, builder -> {
+    return RequestFixture.handle(handlers, builder -> {
       GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
       ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
     });
@@ -129,7 +128,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    * @return a Groovy request fixture
    */
   public static GroovyRequestFixture requestFixture() {
-    return requestFixture(UnitTest.requestFixture());
+    return requestFixture(RequestFixture.requestFixture());
   }
 
   /**
