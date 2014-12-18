@@ -9,7 +9,7 @@ Note: The `ratpack` and `ratpack-groovy` Gradle plugins auto configure these lib
 
 The primary integration point between Ratpack and your code is the [`Handler`](api/ratpack/handling/Handler.html) contract.
 Ratpack provides the [`UnitTest.handle()`](api/ratpack/test/UnitTest.html#handle-ratpack.handling.Handler-ratpack.func.Action-) and
-[`GroovyUnitTest.handle()`](api/ratpack/groovy/test/GroovyUnitTest.html#handle-ratpack.handling.Handler-groovy.lang.Closure-) for contriving the invocation of a handler.
+[`GroovyRequestFixture.handle()`](api/ratpack/groovy/test/GroovyRequestFixture.html#handle-ratpack.handling.Handler-groovy.lang.Closure-) for contriving the invocation of a handler.
 As the routing of requests is also implemented via handlers in Ratpack, this can also be used to test the routing.
 
 Ratpack doesn't couple to any particular test framework.

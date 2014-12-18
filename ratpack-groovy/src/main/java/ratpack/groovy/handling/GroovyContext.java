@@ -36,7 +36,7 @@ public interface GroovyContext extends Context {
    * Groovy friendly overload of {@link #byMethod(ratpack.func.Action)}.
    *
    * <pre class="tested">
-   * import ratpack.groovy.test.GroovyUnitTest
+   * import ratpack.groovy.test.handling.GroovyRequestFixture
    * import static ratpack.groovy.Groovy.groovyHandler
    *
    * def handler = groovyHandler {
@@ -51,13 +51,13 @@ public interface GroovyContext extends Context {
    *   }
    * }
    *
-   * def result = GroovyUnitTest.handle(handler) {
+   * def result = GroovyRequestFixture.handle(handler) {
    *   method "get"
    * }
    *
    * assert result.rendered(CharSequence) == "hello! from GET request"
    *
-   * result = GroovyUnitTest.handle(handler) {
+   * result = GroovyRequestFixture.handle(handler) {
    *   method "post"
    * }
    *
@@ -73,7 +73,7 @@ public interface GroovyContext extends Context {
    * Groovy friendly overload of {@link #byContent(ratpack.func.Action)}.
    *
    * <pre class="tested">
-   * import ratpack.groovy.test.GroovyUnitTest
+   * import ratpack.groovy.test.handling.GroovyRequestFixture
    * import static ratpack.groovy.Groovy.groovyHandler
    *
    * def handler = groovyHandler {
@@ -88,14 +88,14 @@ public interface GroovyContext extends Context {
    *   }
    * }
    *
-   * def result = GroovyUnitTest.handle(handler) {
+   * def result = GroovyRequestFixture.handle(handler) {
    *   header("Accept", "application/json");
    * }
    *
    * assert result.rendered(CharSequence) == "{\"msg\": \"hello!\"}"
    * assert result.headers.get("content-type") == "application/json"
    *
-   * result = GroovyUnitTest.handle(handler) {
+   * result = GroovyRequestFixture.handle(handler) {
    *   header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
    * }
    *

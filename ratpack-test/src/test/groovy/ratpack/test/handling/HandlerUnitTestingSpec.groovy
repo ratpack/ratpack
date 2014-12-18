@@ -21,7 +21,6 @@ import io.netty.util.CharsetUtil
 import ratpack.error.ServerErrorHandler
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
-import ratpack.groovy.test.GroovyUnitTest
 import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
@@ -39,7 +38,7 @@ import static ratpack.handling.Handlers.chain
 
 class HandlerUnitTestingSpec extends Specification {
 
-  GroovyRequestFixture fixture = GroovyUnitTest.requestFixture()
+  GroovyRequestFixture fixture = GroovyRequestFixture.requestFixture()
 
   @Delegate
   HandlingResult result
