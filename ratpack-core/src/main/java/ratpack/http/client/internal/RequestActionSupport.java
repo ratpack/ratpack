@@ -111,7 +111,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
               if (msg instanceof HttpResponse) {
-                final HttpResponse response = (HttpResponse)msg;
+                final HttpResponse response = (HttpResponse) msg;
                 final Headers headers = new NettyHeadersBackedHeaders(response.headers());
                 final Status status = new DefaultStatus(response.status());
                 int maxRedirects = requestSpecBacking.getMaxRedirects();
@@ -163,7 +163,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         if (headers.get(HttpHeaderConstants.HOST) == null) {
           headers.set(HttpHeaderConstants.HOST, host);
         }
-        headers.set(HttpHeaderConstants.CONNECTION, HttpHeaders.Values.CLOSE);
+        headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
         int contentLength = request.content().readableBytes();
         if (contentLength > 0) {
           headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength, 10));

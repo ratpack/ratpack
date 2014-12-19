@@ -39,19 +39,19 @@ import ratpack.stream.Streams;
  * import ratpack.sse.ServerSentEvents;
  * import ratpack.test.embed.EmbeddedApp;
  *
+ * import java.time.Duration;
  * import java.util.Arrays;
  * import java.util.Objects;
  *
  * import static ratpack.sse.ServerSentEvents.serverSentEvents;
  * import static ratpack.stream.Streams.periodically;
  *
- * import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * import static java.util.stream.Collectors.joining;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(context -> {
- *       Publisher<String> stream = periodically(context.getLaunchConfig(), 5, MILLISECONDS, i ->
+ *       Publisher<String> stream = periodically(context.getLaunchConfig(), Duration.ofMillis(5), i ->
  *         i < 5 ? i.toString() : null
  *       );
  *

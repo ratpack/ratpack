@@ -1,5 +1,11 @@
+<% if (patch > 11) { %>
+import ratpack.groovy.template.MarkupTemplateModule
+import ratpack.groovy.template.TextTemplateModule
+<% } else { %>
 import ratpack.groovy.markuptemplates.MarkupTemplatingModule
 import ratpack.groovy.templating.TemplatingModule
+<% } %>
+
 import ratpack.handlebars.HandlebarsModule
 import ratpack.perf.incl.*
 import ratpack.thymeleaf.ThymeleafModule
@@ -10,17 +16,11 @@ import static ratpack.thymeleaf.Template.thymeleafTemplate
 
 ratpack {
   bindings {
-    <% if (patch < 10) { %>
-      def t = new TemplatingModule()
-      t.staticallyCompile = true
-      add t
-    <% } else { %>
-      add(TemplatingModule) { TemplatingModule.Config config -> config.staticallyCompile = true }
-    <% } %>
-
+    <% def c = patch > 11 ? "TextTemplateModule" : "TemplatingModule"  %>
+    add($c) { ${c}.Config config -> config.staticallyCompile = true }
     add new HandlebarsModule()
     add new ThymeleafModule()
-    add new MarkupTemplatingModule()
+    add new <%= patch > 11 ? "MarkupTemplateModule" : "MarkupTemplatingModule" %>()
   }
 
   handlers {

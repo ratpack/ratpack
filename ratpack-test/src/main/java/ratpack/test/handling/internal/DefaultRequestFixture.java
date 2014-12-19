@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
@@ -73,8 +73,8 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
-    requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
-    requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
+    requestHeaders.add(HttpHeaderNames.CONTENT_TYPE, contentType);
+    requestHeaders.add(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
     requestBody.capacity(bytes.length).writeBytes(bytes);
     return this;
   }

@@ -1,7 +1,7 @@
 import ratpack.codahale.metrics.CodaHaleMetricsModule
 import ratpack.file.internal.DefaultFileSystemBinding
-import ratpack.groovy.markuptemplates.MarkupTemplatingModule
-import ratpack.groovy.templating.TemplatingModule
+import ratpack.groovy.template.MarkupTemplateModule
+import ratpack.groovy.template.TextTemplateModule
 import ratpack.jackson.JacksonModule
 import ratpack.newrelic.NewRelicModule
 import ratpack.remote.RemoteControlModule
@@ -21,7 +21,7 @@ ratpack {
     add RemoteControlModule
     add NewRelicModule
     add new CodaHaleMetricsModule().metrics()
-    add MarkupTemplatingModule, {
+    add MarkupTemplateModule, {
       it.with {
         autoNewLine = true
         useDoubleQuotes = true
@@ -29,8 +29,7 @@ ratpack {
       }
     }
     add new SiteModule(launchConfig)
-    add(TemplatingModule) { it.staticallyCompile = true }
-
+    add(TextTemplateModule) { it.staticallyCompile = true }
     RxRatpack.initialize()
   }
 

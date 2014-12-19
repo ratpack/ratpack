@@ -571,6 +571,9 @@ div.description li.blockList > pre {
 	font-size: 120%;
 }
 
+// Javadoc <pre> now contains <code> to be compatible with manual code sample DOM structure
+// Padding for pre is no needed. <code> has own padding. font-size is changed on <code> level too.
 pre.language-groovy {
-	padding: 1em;
+	//padding: 1em;
+        font-size:100%
 }

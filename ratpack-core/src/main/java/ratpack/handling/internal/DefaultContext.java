@@ -61,7 +61,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
-import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class DefaultContext implements Context {

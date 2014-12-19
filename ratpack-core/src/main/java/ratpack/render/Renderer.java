@@ -22,6 +22,9 @@ import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.registry.RegistrySpec;
+import ratpack.util.Types;
+
+import java.util.function.BiConsumer;
 
 /**
  * A renderer is responsible for rendering an object to the response.
@@ -29,10 +32,14 @@ import ratpack.registry.RegistrySpec;
  * Renderers are typically not used directly.
  * Instead, they are used via by {@link Context#render(Object)} method.
  * <p>
- * See {@link ratpack.render.RendererSupport} for support base class for implementations.
+ * See {@link RendererSupport} for support base class for implementations.
+ * <p>
+ * An alternative to implementing a renderer for a type is to make the type directly implement {@link Renderable}.
  *
- * @see ratpack.render.RendererSupport
  * @param <T> The type of object that this renderer knows how to render.
+ * @see RendererSupport
+ * @see RenderableDecorator
+ * @see Renderable
  */
 public interface Renderer<T> {
 
@@ -45,6 +52,40 @@ public interface Renderer<T> {
    */
   default Action<RegistrySpec> register() {
     return (registrySpec) -> registrySpec.add(typeOf(getType()), this);
+  }
+
+  /**
+   * Creates a type token for a <i>compatible</i> renderer of the given type of object.
+   *
+   * @param toRender the type that the renderer renders
+   * @param <T> the type that the renderer renders
+   * @return a type token for a <i>compatible</i> renderer of the given type of object
+   */
+  static <T> TypeToken<Renderer<? super T>> typeCompatibleOf(T toRender) {
+    Class<T> clazz = Types.cast(toRender.getClass());
+    return new TypeToken<Renderer<? super T>>(clazz) {}.where(new TypeParameter<T>() {}, clazz);
+  }
+
+  /**
+   * Creates a renderer implementation from the given arguments.
+   *
+   * @param type the type of object-to-render
+   * @param impl the implementation of the {@link #render(Context, Object)} method
+   * @param <T> the type of object-to-render
+   * @return a renderer implementation
+   */
+  static <T> Renderer<T> of(Class<T> type, BiConsumer<? super Context, ? super T> impl) {
+    return new Renderer<T>() {
+      @Override
+      public Class<T> getType() {
+        return type;
+      }
+
+      @Override
+      public void render(Context context, T object) throws Exception {
+        impl.accept(context, object);
+      }
+    };
   }
 
   /**

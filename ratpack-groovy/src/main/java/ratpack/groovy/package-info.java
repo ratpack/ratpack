@@ -20,7 +20,7 @@
  * <p>The Groovy support provides the following key features:</p>
  * <ul>
  * <li>A {@link groovy.lang.Closure} based Handler Chain building DSL - see {@link ratpack.groovy.handling.GroovyChain}.</li>
- * <li>Dynamic templates based on embedded groovy code - see {@link ratpack.groovy.templating.internal.TemplateRenderer}.</li>
+ * <li>Dynamic templates based on embedded groovy code - see {@link ratpack.groovy.template.internal.TextTemplateRenderer}.</li>
  * <li>Defining applications as a single script - see {@link ratpack.groovy.Groovy.Ratpack}.</li>
  * </ul>
  * <h3>Use of <a href="http://groovy.codehaus.org/Closures">closures</a> and {@link groovy.lang.DelegatesTo}</h3>

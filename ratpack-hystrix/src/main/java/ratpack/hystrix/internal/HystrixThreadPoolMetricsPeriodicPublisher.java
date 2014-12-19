@@ -21,8 +21,8 @@ import com.netflix.hystrix.HystrixThreadPoolMetrics;
 import ratpack.launch.LaunchConfig;
 import ratpack.stream.internal.PeriodicPublisher;
 
+import java.time.Duration;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 public class HystrixThreadPoolMetricsPeriodicPublisher extends PeriodicPublisher<Collection<HystrixThreadPoolMetrics>> {
 
@@ -36,8 +36,7 @@ public class HystrixThreadPoolMetricsPeriodicPublisher extends PeriodicPublisher
     super(
       launchConfig.getExecController().getExecutor(),
       integer -> HystrixThreadPoolMetrics.getInstances(),
-      new Long(launchConfig.getOther("hystrix.stream.interval", DEFAULT_INTERVAL)),
-      TimeUnit.SECONDS
+      Duration.ofSeconds(new Long(launchConfig.getOther("hystrix.stream.interval", DEFAULT_INTERVAL)))
     );
   }
 

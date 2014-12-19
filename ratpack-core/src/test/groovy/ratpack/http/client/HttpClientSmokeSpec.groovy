@@ -18,12 +18,10 @@ package ratpack.http.client
 
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
-import io.netty.util.CharsetUtil
 import ratpack.stream.Streams
 import ratpack.util.internal.IoUtils
 
-import java.nio.charset.Charset
-import java.util.concurrent.TimeUnit
+import java.time.Duration
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
@@ -362,7 +360,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     otherApp {
       get {
-        def stream = Streams.periodically(launchConfig, 5, TimeUnit.SECONDS) {
+        def stream = Streams.periodically(launchConfig, Duration.ofSeconds(5)) {
           it < 5 ? "a" : null
         }
 
@@ -410,8 +408,8 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-Transfer-Encoding: chunked
-Content-Type: text/plain;charset=UTF-8
+content-type: text/plain;charset=UTF-8
+transfer-encoding: chunked
 
 3
 bar
@@ -450,8 +448,8 @@ bar
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-Transfer-Encoding: chunked
-Content-Type: text/plain;charset=UTF-8
+transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
 
 3
 BAR
@@ -490,28 +488,4 @@ BAR
     text == "bar"
   }
 
-  String rawResponse(Charset charset = CharsetUtil.UTF_8) {
-    StringBuilder builder = new StringBuilder()
-    Socket socket = new Socket(getAddress().host, getAddress().port)
-    try {
-      new OutputStreamWriter(socket.outputStream, "UTF-8").with {
-        write("GET / HTTP/1.1\r\n")
-        write("Connection: close\r\n")
-        write("\r\n")
-        flush()
-      }
-
-      InputStreamReader inputStreamReader = new InputStreamReader(socket.inputStream, charset)
-      BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
-
-      def chunk
-      while ((chunk = bufferedReader.readLine()) != null) {
-        builder.append(chunk).append("\n")
-      }
-
-      builder.toString()
-    } finally {
-      socket.close()
-    }
-  }
 }

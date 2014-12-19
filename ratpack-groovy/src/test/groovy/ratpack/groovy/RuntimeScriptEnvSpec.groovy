@@ -17,7 +17,7 @@
 package ratpack.groovy
 
 import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.groovy.templating.EphemeralPortScriptBacking
+import ratpack.groovy.template.EphemeralPortScriptBacking
 import ratpack.server.RatpackServer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport

@@ -4,16 +4,17 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@version@"
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.0"
   }
 }
 
 apply plugin: "io.ratpack.ratpack-groovy"
+apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "idea"
 apply plugin: "eclipse"
 
 repositories {
   jcenter()
-  maven { url "https://repo.spring.io/repo" } // for springloaded
   maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots' }
 }
 

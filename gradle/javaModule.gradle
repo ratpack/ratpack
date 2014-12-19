@@ -34,7 +34,7 @@ sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
 tasks.withType(AbstractCompile) {
-//  options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
+  options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
 }
 
 task sourceJar(type: Jar) {

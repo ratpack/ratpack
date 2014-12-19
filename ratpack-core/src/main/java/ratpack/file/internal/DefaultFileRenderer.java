@@ -16,7 +16,7 @@
 
 package ratpack.file.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.exec.ExecControl;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
@@ -54,7 +54,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
     Date date = new Date(attributes.lastModifiedTime().toMillis());
 
     context.lastModified(date, () -> {
-      final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
+      final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaderNames.IF_NONE_MATCH);
       Response response = context.getResponse();
       if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
         response.status(NOT_MODIFIED.code()).send();

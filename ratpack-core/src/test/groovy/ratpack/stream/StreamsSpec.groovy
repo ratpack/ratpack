@@ -22,6 +22,7 @@ import org.reactivestreams.Subscription
 import ratpack.stream.internal.CollectingSubscriber
 import spock.lang.Specification
 
+import java.time.Duration
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
@@ -96,7 +97,7 @@ class StreamsSpec extends Specification {
     Runnable runnable = null
     def future = Mock(ScheduledFuture)
     def executor = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
         runnable = it[0]
         future
       }
@@ -107,7 +108,7 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 5 ? it : null }
+    def stream = periodically(executor, Duration.ofSeconds(5)) { it < 5 ? it : null }
 
     stream.subscribe(new Subscriber<Integer>() {
       @Override
@@ -187,7 +188,7 @@ class StreamsSpec extends Specification {
     Runnable runnable = null
     def future = Mock(ScheduledFuture)
     def executor = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
         runnable = it[0]
         future
       }
@@ -201,7 +202,7 @@ class StreamsSpec extends Specification {
     Subscription fooSubscription
     Subscription barSubscription
 
-    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 10 ? it : null }.wiretap {
+    def stream = periodically(executor, Duration.ofSeconds(5)) { it < 10 ? it : null }.wiretap {
       if (it.data) {
         sent << it.item
       }
@@ -365,7 +366,7 @@ class StreamsSpec extends Specification {
     Runnable runnable = null
     def future = Mock(ScheduledFuture)
     def executor = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
         runnable = it[0]
         future
       }
@@ -375,7 +376,7 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 3 ? [0, 1, 2, 3] : null }
+    def stream = periodically(executor, Duration.ofSeconds(5)) { it < 3 ? [0, 1, 2, 3] : null }
     stream = fanOut(stream)
 
     stream.subscribe(new Subscriber<Integer>() {
@@ -453,13 +454,13 @@ class StreamsSpec extends Specification {
 
     def future = Mock(ScheduledFuture)
     def executor1 = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
         runnable1 = it[0]
         future
       }
     }
     def executor2 = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
         runnable2 = it[0]
         future
       }
@@ -469,8 +470,8 @@ class StreamsSpec extends Specification {
     boolean complete = false
     Subscription subscription
 
-    def stream1 = periodically(executor1, 5, TimeUnit.SECONDS) { it < 3 ? it + 1 : null }
-    def stream2 = periodically(executor2, 5, TimeUnit.SECONDS) { it < 3 ? it + 11 : null }
+    def stream1 = periodically(executor1, Duration.ofSeconds(5)) { it < 3 ? it + 1 : null }
+    def stream2 = periodically(executor2, Duration.ofSeconds(5)) { it < 3 ? it + 11 : null }
     def stream = merge(stream1, stream2)
 
     stream.subscribe(new Subscriber<Integer>() {
