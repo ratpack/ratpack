@@ -72,31 +72,30 @@ public class HealthCheckHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {
-
-    // TODO: We should consider running health checks on a non request thread, which would allow them to block.
-
     HealthCheckRegistry registry = context.get(HealthCheckRegistry.class);
-    String healthCheckName = context.getPathTokens().get(healthCheckNameToken);
+    final String healthCheckName = context.getPathTokens().get(healthCheckNameToken);
 
-    if (healthCheckName != null) {
-      HealthCheck.Result result;
-      try {
-        result = registry.runHealthCheck(healthCheckName);
-      } catch (NoSuchElementException e) {
-        result = null;
+    context.blocking(
+      () -> {
+        if (healthCheckName != null) {
+          try {
+            return registry.runHealthCheck(healthCheckName);
+          } catch (NoSuchElementException e) {
+            return null;
+          }
+        } else {
+          SortedMap<String, HealthCheck.Result> healthCheckResults = registry.runHealthChecks();
+          return new DefaultHealthCheckResults(healthCheckResults);
+        }
       }
-
-      if (result == null) {
-        context.clientError(404);
-      } else {
-        context.render(result);
+    ).then(
+      (result) -> {
+        if (result == null) {
+          context.clientError(404);
+        } else {
+          context.render(result);
+        }
       }
-    } else {
-      SortedMap<String, HealthCheck.Result> healthCheckResults = registry.runHealthChecks();
-      HealthCheckResults wrappedHealthCheckResults = new DefaultHealthCheckResults(healthCheckResults);
-      context.render(wrappedHealthCheckResults);
-    }
+    );
   }
-
 }
-
