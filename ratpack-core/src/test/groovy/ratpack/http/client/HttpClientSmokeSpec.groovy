@@ -18,6 +18,7 @@ package ratpack.http.client
 
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
+import ratpack.http.internal.HttpHeaderConstants
 import ratpack.stream.Streams
 import ratpack.util.internal.IoUtils
 
@@ -75,6 +76,33 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+  }
+
+  def "can follow a relative redirect get request"() {
+    given:
+    otherApp {
+      get("foo") {
+        response.with {
+          status(301)
+          headers.set(HttpHeaderConstants.LOCATION, "/tar")
+          send()
+        }
+      }
+      get("tar") { render "tar" }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "tar"
   }
 
 

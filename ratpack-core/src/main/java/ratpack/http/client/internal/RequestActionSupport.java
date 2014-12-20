@@ -41,10 +41,13 @@ import javax.net.ssl.SSLEngine;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
 abstract class RequestActionSupport<T> implements RequestAction<T> {
+
+  private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
 
   private final Action<? super RequestSpec> requestConfigurer;
   private final boolean finalUseSsl;
@@ -117,13 +120,8 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                 int maxRedirects = requestSpecBacking.getMaxRedirects();
                 String locationValue = headers.get("Location");
 
-                URI locationUrl = null;
-                if (locationValue != null) {
-                  locationUrl = new URI(locationValue);
-                }
-
                 //Check for redirect and location header if it is follow redirect if we have request forwarding left
-                if (shouldRedirect(status) && maxRedirects > 0 && locationUrl != null) {
+                if (shouldRedirect(status) && maxRedirects > 0 && locationValue != null) {
                   redirecting.compareAndSet(false, true);
 
                   Action<? super RequestSpec> redirectRequestConfig = Action.join(requestConfigurer, s -> {
@@ -132,6 +130,13 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                     }
                     s.redirects(maxRedirects - 1);
                   });
+
+                  URI locationUrl;
+                  if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
+                    locationUrl = new URI(locationValue);
+                  } else {
+                    locationUrl = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), locationValue, null, null);
+                  }
 
                   buildRedirectRequestAction(redirectRequestConfig, locationUrl).execute(fulfiller);
                 } else {
