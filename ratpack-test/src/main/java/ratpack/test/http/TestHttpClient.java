@@ -38,12 +38,14 @@ public interface TestHttpClient {
 
   /**
    * @param requestAction A {@link ratpack.func.Action} that will act on the {@link ratpack.http.client.RequestSpec} this is used to configure details of the next request.
+   * @return this
    */
   TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);
 
   /**
    *
    * @param params The params that will be used with the HttpUrlBuilder passed into {@link ratpack.http.HttpUrlBuilder#params(Action)}
+   * @return this
    */
   TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
 
