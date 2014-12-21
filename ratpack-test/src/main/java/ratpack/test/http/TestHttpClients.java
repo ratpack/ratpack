@@ -24,10 +24,21 @@ import ratpack.test.http.internal.DefaultTestHttpClient;
 
 public abstract class TestHttpClients {
 
+  /**
+   *
+   * @param applicationUnderTest Which Ratpack application to make requests against.
+   * @return {@link ratpack.test.http.TestHttpClient} which is configured to make requests against the provided ApplicationUnderTest
+   */
   public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest) {
     return testHttpClient(applicationUnderTest, null);
   }
 
+  /**
+   *
+   * @param applicationUnderTest Which Ratpack application to make requests against.
+   * @param requestConfigurer A {@link ratpack.func.Action} that will set up the {@link ratpack.http.client.RequestSpec} for all requests made through this instance of TestHttpClient. These settings can be overridden on a per request basis via {@link ratpack.test.http.TestHttpClient#requestSpec}.
+   * @return {@link ratpack.test.http.TestHttpClient} which is configured to make requests against the provided ApplicationUnderTest
+   */
   public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
     return new DefaultTestHttpClient(applicationUnderTest, Action.noopIfNull(requestConfigurer));
   }

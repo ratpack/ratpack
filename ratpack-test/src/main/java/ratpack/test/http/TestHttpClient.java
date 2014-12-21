@@ -25,64 +25,220 @@ import ratpack.test.ApplicationUnderTest;
 
 import java.util.List;
 
+/**
+ * A Http Client focused on testing Ratpack applications.
+ */
 public interface TestHttpClient {
 
+  /**
+   * @return The {@link ratpack.test.ApplicationUnderTest} requests are being made against.
+   */
   ApplicationUnderTest getApplicationUnderTest();
 
+
+  /**
+   * @param requestAction A {@link ratpack.func.Action} that will act on the {@link ratpack.http.client.RequestSpec} this is used to configure details of the next request.
+   */
   TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);
 
+  /**
+   *
+   * @param params The params that will be used with the HttpUrlBuilder passed into {@link ratpack.http.HttpUrlBuilder#params(Action)}
+   */
   TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
 
+  /**
+   * Set the requestSpec back to a No Op default and clear the cookies.
+   */
   void resetRequest();
 
+  /**
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the last request sent.
+   */
   ReceivedResponse getResponse();
 
+  /**
+   * Make a HEAD request with a path of "" this is the same as calling head("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the HEAD request.
+   */
   ReceivedResponse head();
 
+  /**
+   * Make a HEAD request to the specified path.
+   *
+   * @param path What path the HEAD request will be made against.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the HEAD request.
+   */
   ReceivedResponse head(String path);
 
+  /**
+   * Make a OPTIONS request with a path of "" this is the same as calling options("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the OPTIONS request.
+   */
   ReceivedResponse options();
 
+  /**
+   * Make a OPTIONS request to the specified path.
+   *
+   * @param path What path the OPTIONS request will be made against.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the OPTIONS request.
+   */
   ReceivedResponse options(String path);
 
+  /**
+   * Make a GET request with a path of "" this is the same as calling get("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the GET request.
+   */
   ReceivedResponse get();
 
+  /**
+   * Make a GET request to the specified path.
+   *
+   * @param path What path the GET request will be made against.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the GET request.
+   */
   ReceivedResponse get(String path);
 
+  /**
+   * A convenience method for doing a GET request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * Useful if you need to only check details of the response body.
+   *
+   * @return A String that is the body of the response.
+   */
   String getText();
 
+  /**
+   * A convenience method for doing a GET request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * Useful if you need to only check details of the response body.
+   *
+   * @param path What path the GET request will be made against.
+   * @return A String that is the body of the response.
+   */
   String getText(String path);
 
+  /**
+   * Make a POST request with a path of "" this is the same as calling post("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the POST request.
+   */
   ReceivedResponse post();
 
+  /**
+   * Make a POST request to the specified path.
+   *
+   * @param path What path the POST request will be made against.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the POST request.
+   */
   ReceivedResponse post(String path);
 
+  /**
+   * A convenience method for doing a POST request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @return A String that is the body of the response.
+   */
   String postText();
 
+  /**
+   * A convenience method for doing a GET request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @param path What path the POST request will be made against.
+   * @return A String that is the body of the response.
+   */
   String postText(String path);
 
+  /**
+   * Make a PUT request with a path of "" this is the same as calling put("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the PUT request.
+   */
   ReceivedResponse put();
 
+  /**
+   * Make a PUT request to the specified path.
+   *
+   * @param path What path the PUT request will be made against.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the PUT request.
+   */
   ReceivedResponse put(String path);
 
+  /**
+   * A convenience method for doing a PUT request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @return A String that is the body of the response.
+   */
   String putText();
 
+  /**
+   * A convenience method for doing a PUT request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @param path What path the PUT request will be made against.
+   * @return A String that is the body of the response.
+   */
   String putText(String path);
 
+  /**
+   * Make a PATCH request with a path of "" this is the same as calling patch("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the PATCH request.
+   */
   ReceivedResponse patch();
 
+  /**
+   * Make a PATCH request to the specified path.
+   *
+   * @param path Make a PATCH request to the specified path.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the PATCH request.
+   */
   ReceivedResponse patch(String path);
 
+  /**
+   *  A convenience method for doing a PATCH request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @return A String that is the body of the response.
+   */
   String patchText();
 
+  /**
+   * A convenience method for doing a PATCH request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @param path What path the PATCH request will be made against.
+   * @return A String that is the body of the response.
+   */
   String patchText(String path);
 
+  /**
+   * Make a DELETE request with a path of "" this is the same as calling delete("")
+   *
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the DELETE request.
+   */
   ReceivedResponse delete();
 
+  /**
+   * Make a DELETE request to the specified path.
+   *
+   * @param path What path the DELETE request will be made against.
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the DELETE request.
+   */
   ReceivedResponse delete(String path);
 
+  /**
+   * A convenience method for doing a DELETE request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @return A String that is the body of the response.
+   */
   String deleteText();
 
+  /**
+   * A convenience method for doing a DELETE request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @param path What path the DELETE request will be made against.
+   * @return A String that is the body of the response.
+   */
   String deleteText(String path);
 
   List<Cookie> getCookies();
