@@ -29,8 +29,11 @@ buildscript {
   dependencies {
     classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
     classpath "org.pegdown:pegdown:1.2.1"
+    classpath "com.eriwen:gradle-js-plugin:1.12.1"
   }
 }
+
+apply plugin: "com.eriwen.gradle.js"
 
 dependencies {
   compass commonDependencies.compass
