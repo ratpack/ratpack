@@ -87,10 +87,6 @@ task configureApi << {
   }
 }
 
-task listJars << {
-  configurations.compile.each { File file -> println file.name }
-}
-
 // Note: does not build viewable docs.
 // Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
