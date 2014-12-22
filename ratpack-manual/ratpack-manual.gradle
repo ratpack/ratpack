@@ -29,8 +29,11 @@ buildscript {
   dependencies {
     classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
     classpath "org.pegdown:pegdown:1.2.1"
+    classpath "com.eriwen:gradle-js-plugin:1.12.1"
   }
 }
+
+apply plugin: "com.eriwen.gradle.js"
 
 dependencies {
   compass commonDependencies.compass
@@ -87,6 +90,10 @@ task configureApi << {
   }
 }
 
+task listJars << {
+  configurations.compile.each { File file -> println file.name }
+}
+
 // Note: does not build viewable docs.
 // Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
@@ -120,7 +127,7 @@ task api(type: Javadoc) {
   options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
 
   ext.additionalAssets = """
-      <script src=\"{@docRoot}/../js/manual.js\"></script>
+      <script src=\"{@docRoot}/../js/all.min.js\"></script>
       <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
@@ -182,7 +189,7 @@ task tokeniseManual(type: Sync) {
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
         <!--[if gt IE 7]><!--><link href="css/manual.css" rel="stylesheet" type="text/css"><!--<![endif]-->
         <link href="css/fonts.css" rel="stylesheet" type="text/css">
-        <script src="js/manual.js"></script>
+        <script src="js/all.min.js"></script>
       """,
       footer: """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
@@ -245,10 +252,16 @@ compass {
   quiet = true
 }
 
+task buildJs(type: GradleBuild) {
+  buildFile = "minifyjs.gradle"
+  tasks = ["combineJs", "minifyJs"]
+}
+
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
   from compassCompile
+  from buildJs
 }
 
 file("src/assets").eachDir { File dir ->

@@ -1,0 +1,29 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "com.eriwen:gradle-js-plugin:1.12.1"
+  }
+}
+
+apply plugin: "com.eriwen.gradle.js"
+
+// grunt-js tasks
+// merge listed js files into one file
+combineJs {
+  source = [
+    "${projectDir}/src/assets/js/googleAnalytics.js",
+    "${projectDir}/src/assets/js/modernizr.js",
+    "${projectDir}/src/assets/js/prism.js",
+    "${projectDir}/src/assets/js/jquery.js",
+    "${projectDir}/src/assets/js/anchorHighlight.js",
+    "${projectDir}/src/assets/js/toggleImports.js"
+  ]
+  dest = file("${buildDir}/assets/js/all.js")
+}
+
+minifyJs {
+  source = combineJs
+  dest = file("${buildDir}/assets/js/all.min.js")
+}
