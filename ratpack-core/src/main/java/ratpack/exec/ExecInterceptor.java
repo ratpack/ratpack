@@ -26,7 +26,7 @@ package ratpack.exec;
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.http.Request;
- * import ratpack.test.UnitTest;
+ * import ratpack.test.handling.RequestFixture;
  * import ratpack.test.handling.HandlingResult;
  *
  * import java.util.concurrent.atomic.AtomicLong;
@@ -80,7 +80,7 @@ package ratpack.exec;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     HandlingResult result = UnitTest.requestFixture().handleChain(chain -> chain
+ *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> chain
  *         .handler(context ->
  *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), () -> context.next())
  *         )

@@ -70,7 +70,7 @@ import ratpack.handling.InjectionHandler;
 import ratpack.handling.Context;
 import ratpack.func.Action;
 
-import ratpack.test.UnitTest;
+import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
 
 import java.util.concurrent.Callable;
@@ -96,7 +96,7 @@ public class Example {
 
   // Unit test
   public static void main(String... args) throws Exception {
-    HandlingResult result = UnitTest.handle(new DeletingHandler(), fixture -> fixture
+    HandlingResult result = RequestFixture.handle(new DeletingHandler(), fixture -> fixture
       .pathBinding(Collections.singletonMap("days", "10"))
       .registry(r -> r.add(Datastore.class, new Datastore() {
         public int deleteOlderThan(int days) throws IOException {

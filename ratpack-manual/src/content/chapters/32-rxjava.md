@@ -23,7 +23,7 @@ import ratpack.exec.Promise;
 import ratpack.test.handling.HandlingResult;
 
 import static ratpack.rx.RxRatpack.observe;
-import static ratpack.test.UnitTest.requestFixture;
+import static ratpack.test.handling.RequestFixture.requestFixture;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -46,7 +46,7 @@ In practice, this means that error handlers rarely need to be defined for observ
 ```language-java
 import ratpack.error.ServerErrorHandler;
 import ratpack.rx.RxRatpack;
-import ratpack.test.UnitTest;
+import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
 import rx.Observable;
 
@@ -54,7 +54,7 @@ public class Example {
   public static void main(String... args) throws Exception {
     RxRatpack.initialize(); // must be called once per JVM
 
-    HandlingResult result = UnitTest.requestFixture().handleChain(chain -> {
+    HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
       chain.register(registry ->
         registry.add(ServerErrorHandler.class, (context, throwable) ->
           context.render("caught by error handler: " + throwable.getMessage())

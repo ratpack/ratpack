@@ -36,7 +36,6 @@ import ratpack.http.TypedData;
  *
  * import com.google.common.reflect.TypeToken;
  *
- * import ratpack.test.UnitTest;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
  *
@@ -64,7 +63,7 @@ import ratpack.http.TypedData;
  *
  *   // unit test
  *   public static void main(String[] args) throws Exception {
- *     HandlingResult result = UnitTest.handle(new ExampleHandler(), new Action&lt;RequestFixture&gt;() {
+ *     HandlingResult result = RequestFixture.handle(new ExampleHandler(), new Action&lt;RequestFixture&gt;() {
  *       public void execute(RequestFixture fixture) throws Exception {
  *         fixture
  *           .body("10", "text/plain")

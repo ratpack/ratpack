@@ -62,7 +62,7 @@ public abstract class RxRatpack {
    * <pre class="java">{@code
    * import ratpack.error.ServerErrorHandler;
    * import ratpack.rx.RxRatpack;
-   * import ratpack.test.UnitTest;
+   * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    * import rx.Observable;
    *
@@ -70,7 +70,7 @@ public abstract class RxRatpack {
    *   public static void main(String... args) throws Exception {
    *     RxRatpack.initialize(); // must be called once per JVM
    *
-   *     HandlingResult result = UnitTest.requestFixture().handleChain(chain -> {
+   *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
    *       chain.register(registry ->
    *         registry.add(ServerErrorHandler.class, (context, throwable) ->
    *           context.render("caught by error handler: " + throwable.getMessage())
@@ -161,7 +161,7 @@ public abstract class RxRatpack {
    * import ratpack.test.handling.HandlingResult;
    *
    * import static ratpack.rx.RxRatpack.observe;
-   * import static ratpack.test.UnitTest.requestFixture;
+   * import static ratpack.test.handling.RequestFixture.requestFixture;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -263,7 +263,7 @@ public abstract class RxRatpack {
    * import java.util.List;
    *
    * import static ratpack.rx.RxRatpack.observeEach;
-   * import static ratpack.test.UnitTest.requestFixture;
+   * import static ratpack.test.handling.RequestFixture.requestFixture;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

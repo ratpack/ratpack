@@ -18,8 +18,8 @@ package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
-import ratpack.groovy.test.GroovyUnitTest
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -295,7 +295,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Exception("!")
 
     when:
-    def result = GroovyUnitTest.handle({ Observable.error(e).subscribe() } as Handler) {
+    def result = GroovyRequestFixture.handle({ Observable.error(e).subscribe() } as Handler) {
 
     }
 

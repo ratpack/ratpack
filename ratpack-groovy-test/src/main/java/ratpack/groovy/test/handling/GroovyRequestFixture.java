@@ -20,9 +20,14 @@ import com.google.common.net.HostAndPort;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
+import ratpack.groovy.internal.ClosureUtil;
+import ratpack.groovy.test.handling.internal.DefaultGroovyRequestFixture;
+import ratpack.handling.Chain;
+import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 
 import java.nio.file.Path;
@@ -30,10 +35,111 @@ import java.util.Map;
 
 /**
  * A more Groovy friendly version of {@link RequestFixture}.
- *
- * @see ratpack.groovy.test.GroovyUnitTest#requestFixture()
  */
 public interface GroovyRequestFixture extends RequestFixture {
+
+  /**
+   * Unit test a {@link ratpack.handling.Handler}.
+   * <p>
+   * Example:
+   * <pre class="tested">
+   * import ratpack.groovy.handling.GroovyHandler
+   * import ratpack.groovy.handling.GroovyContext
+   * import ratpack.groovy.test.handling.GroovyRequestFixture
+   *
+   * class MyHandler extends GroovyHandler {
+   *   void handle(GroovyContext context) {
+   *     context.with {
+   *       def outputHeaderValue = request.headers.get("input-value") + ":bar"
+   *       response.headers.set("output-value", outputHeaderValue)
+   *       render "received: " + request.path
+   *     }
+   *   }
+   * }
+   *
+   * def result = GroovyRequestFixture.handle(new MyHandler()) {
+   *   header "input-value", "foo"
+   *   uri "some/path"
+   * }
+   *
+   * assert result.rendered(String) == "received: some/path"
+   * assert result.headers.get("output-value") == "foo:bar"
+   * </pre>
+   *
+   * @param handler the handler to test
+   * @param closure the configuration of the request fixture
+   * @return The result of the invocation
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code closure}
+   */
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
+    return RequestFixture.handle(handler, builder -> {
+      GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
+      ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
+    });
+  }
+
+  /**
+   * Unit test a chain of {@link Handler handlers}.
+   * <p>
+   * Example:
+   * <pre class="tested">{@code
+   * import ratpack.groovy.test.handling.GroovyRequestFixture
+   * import ratpack.groovy.Groovy
+   *
+   * def handlers = Groovy.chain {
+   *   handler {
+   *     def outputHeaderValue = request.headers.get("input-value") + ":bar"
+   *     response.headers.set("output-value", outputHeaderValue)
+   *     next()
+   *   }
+   *   handler {
+   *     render "received: " + request.path
+   *   }
+   * }
+   *
+   * def result = GroovyRequestFixture.handle(handlers) {
+   *   header "input-value", "foo"
+   *   uri "some/path"
+   * }
+   *
+   * assert result.rendered(String) == "received: some/path"
+   * assert result.headers.get("output-value") == "foo:bar"
+   * }</pre>
+   *
+   * @param handlers the handlers to test
+   * @param closure the configuration of the request fixture
+   * @return The result of the invocation
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code closure}
+   */
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
+    return RequestFixture.handle(handlers, builder -> {
+      GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
+      ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
+    });
+  }
+
+  /**
+   * Create a Groovy request fixture, for unit testing a {@link Handler}.
+   *
+   * @return a Groovy request fixture
+   */
+  public static GroovyRequestFixture requestFixture() {
+    return requestFixture(RequestFixture.requestFixture());
+  }
+
+  /**
+   * Create a Groovy request fixture, for unit testing a {@link Handler}, by wrapping the given {@link RequestFixture}.
+   *
+   * @param requestFixture The request fixture to wrap
+   * @return a Groovy request fixture
+   */
+  public static GroovyRequestFixture requestFixture(RequestFixture requestFixture) {
+    return new DefaultGroovyRequestFixture(requestFixture);
+  }
 
   /**
    * A closure friendly overload of {@link #registry(Action)}.

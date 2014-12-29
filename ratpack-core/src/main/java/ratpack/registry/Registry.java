@@ -57,12 +57,11 @@ import java.util.Optional;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
  *
- * import static ratpack.test.UnitTest.handle;
  * import static ratpack.handling.Handlers.chain;
  * import static ratpack.func.Action.noop;
  *
  * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
- * HandlingResult result = handle(chain, noop());
+ * HandlingResult result = RequestFixture.handle(chain, noop());
  *
  * assert result.rendered(String.class).equals("foo");
  * </pre>

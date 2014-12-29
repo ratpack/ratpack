@@ -52,7 +52,7 @@ import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 /**
- * @see ratpack.test.UnitTest#handle(ratpack.handling.Handler, ratpack.func.Action)
+ * @see ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, ratpack.func.Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public class DefaultRequestFixture implements RequestFixture {
