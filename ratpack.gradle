@@ -123,7 +123,7 @@ ext {
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
     "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
     "ratpack-codahale-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot"
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-configuration"
   ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }

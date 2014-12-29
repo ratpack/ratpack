@@ -44,7 +44,7 @@ public interface ConfigurationSpec {
    * Back this configuration with values obtained from environment variables.
    * @return
    */
-  default ConfigurationSpec envvars() {
+  default ConfigurationSpec env() {
     return new HierarchialConfiguration(new EnvironmentVariablesBackedConfiguration(), this);
   }
 
