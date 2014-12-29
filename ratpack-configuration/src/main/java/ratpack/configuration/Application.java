@@ -18,9 +18,7 @@ package ratpack.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchException;
-import ratpack.server.RatpackServerBuilder;
+import ratpack.launch.*;
 
 /**
  * An application entry point for starting a Configuration-based Ratpack application.
@@ -35,7 +33,11 @@ public class Application {
    */
   public void start() throws Exception {
     try {
-      RatpackServerBuilder.build(buildLaunchConfig()).start();
+      //TODO-JOHN
+      LaunchConfig launchConfig = buildLaunchConfig();
+      RatpackLauncher.launcher(r -> {
+        r.add(ServerConfig.class, ServerConfigBuilder.launchConfig(launchConfig).build());
+      }).build(launchConfig.getHandlerFactory()).start();
     } catch (ConfigurationException ex) {
       throw new LaunchException("Failed to launch application", ex);
     }

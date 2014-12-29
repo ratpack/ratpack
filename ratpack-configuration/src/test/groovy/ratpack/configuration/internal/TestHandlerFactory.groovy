@@ -18,11 +18,11 @@ package ratpack.configuration.internal
 
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
-import ratpack.launch.LaunchConfig
+import ratpack.registry.Registry
 
 class TestHandlerFactory implements HandlerFactory {
   @Override
-  public Handler create(LaunchConfig launchConfig) throws Exception {
+  public Handler create(Registry registry) throws Exception {
     return { context -> context.response.send("Hello World!") } as Handler
   }
 }

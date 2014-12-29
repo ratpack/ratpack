@@ -39,10 +39,9 @@ include \
     "ratpack-newrelic",
     "ratpack-pac4j",
     "ratpack-hystrix",
-    "ratpack-spring-boot"
-//TODO-JOHN
-//    "ratpack-configuration",
-//    "ratpack-jackson-configuration"
+    "ratpack-spring-boot",
+    "ratpack-configuration",
+    "ratpack-jackson-configuration"
 
 include "perf"
 
