@@ -18,7 +18,7 @@ package ratpack.codahale.metrics;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import ratpack.codahale.metrics.internal.DefaultHealthCheckResults;
+import com.google.common.collect.ImmutableSortedMap;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -93,7 +93,7 @@ public class HealthCheckHandler implements Handler {
       }
     } else {
       SortedMap<String, HealthCheck.Result> healthCheckResults = registry.runHealthChecks();
-      HealthCheckResults wrappedHealthCheckResults = new DefaultHealthCheckResults(healthCheckResults);
+      HealthCheckResults wrappedHealthCheckResults = new HealthCheckResults(ImmutableSortedMap.copyOfSorted(healthCheckResults));
       context.render(wrappedHealthCheckResults);
     }
   }

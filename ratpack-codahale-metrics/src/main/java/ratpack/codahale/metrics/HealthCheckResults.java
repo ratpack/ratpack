@@ -17,11 +17,33 @@
 package ratpack.codahale.metrics;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.google.common.collect.ImmutableSortedMap;
 
-import java.util.SortedMap;
+/**
+ * A {@link ratpack.handling.Context#render(Object) renderable} type for the result of running health checks.
+ *
+ * @see HealthCheckHandler
+ */
+public class HealthCheckResults {
 
-public interface HealthCheckResults {
+  private final ImmutableSortedMap<String, HealthCheck.Result> healthChecks;
 
-  SortedMap<String, HealthCheck.Result> getResults();
+  /**
+   * Constructor.
+   *
+   * @param healthChecks the health check results
+   */
+  public HealthCheckResults(ImmutableSortedMap<String, HealthCheck.Result> healthChecks) {
+    this.healthChecks = healthChecks;
+  }
+
+  /**
+   * The health check results.
+   *
+   * @return the health check results
+   */
+  public ImmutableSortedMap<String, HealthCheck.Result> getResults() {
+    return healthChecks;
+  }
 
 }
