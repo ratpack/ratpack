@@ -19,49 +19,63 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.*;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.inject.Inject;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Function;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
-public class MetricRegistryJsonMapper implements Function<MetricRegistry, String> {
+public class MetricRegistryJsonMapper implements Function<MetricRegistry, ByteBuf> {
+
   private final static Logger LOGGER = LoggerFactory.getLogger(MetricRegistryJsonMapper.class);
   private final static TimeUnit DEFAULT_RATE_UNIT = TimeUnit.SECONDS;
   private final static TimeUnit DEFAULT_DURATION_UNIT = TimeUnit.MILLISECONDS;
+
   private final JsonFactory factory = new JsonFactory();
   private final Clock clock = Clock.defaultClock();
   private final double durationFactor;
   private final double rateFactor;
+  private final ByteBufAllocator byteBufAllocator;
 
-  public MetricRegistryJsonMapper() {
+  @Inject
+  public MetricRegistryJsonMapper(ByteBufAllocator byteBufAllocator) {
+    this.byteBufAllocator = byteBufAllocator;
     this.durationFactor = 1.0 / DEFAULT_DURATION_UNIT.toNanos(1);
     this.rateFactor = DEFAULT_RATE_UNIT.toSeconds(1);
   }
 
   @Override
-  public String apply(MetricRegistry metricRegistry) throws Exception {
-    OutputStream out = new ByteArrayOutputStream();
-    JsonGenerator json = factory.createGenerator(out);
+  public ByteBuf apply(MetricRegistry metricRegistry) throws Exception {
+    ByteBuf byteBuf = byteBufAllocator.ioBuffer();
+    try {
+      OutputStream out = new ByteBufOutputStream(byteBuf);
+      JsonGenerator json = factory.createGenerator(out);
 
-    json.writeStartObject();
-    json.writeNumberField("timestamp", clock.getTime());
-    writeTimers(json, metricRegistry.getTimers());
-    writeGauges(json, metricRegistry.getGauges());
-    writeMeters(json, metricRegistry.getMeters());
-    writeCounters(json, metricRegistry.getCounters());
-    writeHistograms(json, metricRegistry.getHistograms());
-    json.writeEndObject();
+      json.writeStartObject();
+      json.writeNumberField("timestamp", clock.getTime());
+      writeTimers(json, metricRegistry.getTimers());
+      writeGauges(json, metricRegistry.getGauges());
+      writeMeters(json, metricRegistry.getMeters());
+      writeCounters(json, metricRegistry.getCounters());
+      writeHistograms(json, metricRegistry.getHistograms());
+      json.writeEndObject();
 
-    json.flush();
-    json.close();
+      json.flush();
+      json.close();
 
-    return out.toString();
+      return byteBuf;
+    } catch (Exception e) {
+      byteBuf.release();
+      throw e;
+    }
   }
 
   private void writeHistograms(JsonGenerator json, SortedMap<String, Histogram> histograms) throws IOException {

@@ -16,13 +16,20 @@
 
 package ratpack.websocket;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.func.Function;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
+import ratpack.stream.Streams;
 import ratpack.websocket.internal.DefaultWebSocketConnector;
 import ratpack.websocket.internal.WebSocketEngine;
 import ratpack.websocket.internal.WebsocketBroadcastSubscriber;
+
+import java.nio.CharBuffer;
 
 public abstract class WebSockets {
 
@@ -35,6 +42,13 @@ public abstract class WebSockets {
   }
 
   public static void websocketBroadcast(final Context context, final Publisher<String> broadcaster) {
+    ByteBufAllocator bufferAllocator = context.getLaunchConfig().getBufferAllocator();
+    websocketByteBufBroadcast(context, Streams.map(broadcaster, s ->
+        ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(s), CharsetUtil.UTF_8)
+    ));
+  }
+
+  public static void websocketByteBufBroadcast(final Context context, final Publisher<ByteBuf> broadcaster) {
     websocket(context, new AutoCloseWebSocketHandler<AutoCloseable>() {
       @Override
       public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {

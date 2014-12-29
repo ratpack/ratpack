@@ -16,6 +16,7 @@
 
 package ratpack.websocket.internal;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -54,6 +55,11 @@ public class DefaultWebSocket implements WebSocket {
 
   @Override
   public void send(String text) {
+    channel.writeAndFlush(new TextWebSocketFrame(text));
+  }
+
+  @Override
+  public void send(ByteBuf text) {
     channel.writeAndFlush(new TextWebSocketFrame(text));
   }
 

@@ -16,11 +16,12 @@
 
 package ratpack.websocket.internal;
 
+import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.websocket.WebSocket;
 
-public class WebsocketBroadcastSubscriber implements Subscriber<String>, AutoCloseable {
+public class WebsocketBroadcastSubscriber implements Subscriber<ByteBuf>, AutoCloseable {
   private final WebSocket webSocket;
   private Subscription subscription;
   protected boolean terminated;
@@ -49,7 +50,7 @@ public class WebsocketBroadcastSubscriber implements Subscriber<String>, AutoClo
   }
 
   @Override
-  public void onNext(String s) {
+  public void onNext(ByteBuf s) {
     if (!terminated) {
       webSocket.send(s);
       this.subscription.request(1);

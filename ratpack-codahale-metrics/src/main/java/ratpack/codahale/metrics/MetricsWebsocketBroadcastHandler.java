@@ -22,7 +22,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
 import static ratpack.stream.Streams.map;
-import static ratpack.websocket.WebSockets.websocketBroadcast;
+import static ratpack.websocket.WebSockets.websocketByteBufBroadcast;
 
 /**
  * A Handler that broadcasts metric reports via web sockets.
@@ -42,7 +42,7 @@ public class MetricsWebsocketBroadcastHandler implements Handler {
     final MetricsBroadcaster broadcaster = context.get(MetricsBroadcaster.class);
     final MetricRegistryJsonMapper mapper = context.get(MetricRegistryJsonMapper.class);
 
-    websocketBroadcast(
+    websocketByteBufBroadcast(
       context,
       map(broadcaster, mapper)
     );
