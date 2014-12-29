@@ -69,8 +69,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     with(head("static.text")) {
       statusCode == OK.code()
       body.text.bytes.length == 0
-      //TODO Currently Netty in HttpObjectAggregator sets content length to the actual length of the body
-      //headers.get(CONTENT_LENGTH) == size(file).toString()
+      headers.get(CONTENT_LENGTH) == size(file).toString()
     }
   }
 
@@ -358,10 +357,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     with(head("static.text")) {
       statusCode == OK.code()
       body.bytes.length == 0
-      //TODO Currently Netty in HttpObjectAggregator sets content length to the actual length of the body
-//      if (!application.server.launchConfig.compressResponses) {
-//        assert headers.get(CONTENT_LENGTH) == size(file).toString()
-//      }
+      if (!application.server.launchConfig.compressResponses) {
+        assert headers.get(CONTENT_LENGTH) == size(file).toString()
+      }
     }
 
     where:
