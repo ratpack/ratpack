@@ -35,7 +35,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   }
 
   private String getSessionCookie() {
-    cookies.find { it.name == "ratpack_session" }?.value
+    cookies.find { it.name() == "ratpack_session" }?.value()
   }
 
   def getDecodedPairs() {
@@ -92,19 +92,30 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "can handle values that should be encoded"() {
+  @Unroll('key #key and value #value should be encoded')
+  def "can handle keys/values that should be encoded"() {
     given:
-    def unsafeSequence = "=&%25/"
     handlers {
       get { SessionStorage storage ->
-        storage.value = unsafeSequence
-        response.send storage.value.toString()
+        storage[key] = value
+        response.send storage[key].toString()
       }
     }
 
     expect:
     get()
-    decodedPairs.value == unsafeSequence
+    response.body.text == value
+    decodedPairs[key] == value
+
+    where:
+    key   | value
+    'a'   | 'a'
+    ':'   | ':'
+    '='   | '='
+    '/'   | '/'
+    '\\'  | '\\'
+    '&'   | ':'
+    '&=:' | ':=&'
 
   }
 

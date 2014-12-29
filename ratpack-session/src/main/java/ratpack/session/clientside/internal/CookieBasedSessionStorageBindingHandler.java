@@ -60,7 +60,8 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
       ConcurrentMap<String, Object> sessionMap = deserializeSession(context, sessionCookie);
       DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
-      context.getRequest().add(StorageHashContainer.class, new StorageHashContainer(storage.hashCode()));
+      ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
+      context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap)));
       return storage;
     });
 
@@ -68,7 +69,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       Optional<SessionStorage> storageOptional = context.getRequest().maybeGet(SessionStorage.class);
       if (storageOptional.isPresent()) {
         SessionStorage storage = storageOptional.get();
-        boolean hasChanged = context.getRequest().get(StorageHashContainer.class).getHashCode() != storage.hashCode();
+        boolean hasChanged = !context.getRequest().get(InitialStorageContainer.class).isSameAsInitial(storage);
         if (hasChanged) {
           Set<Map.Entry<String, Object>> entries = storage.entrySet();
 

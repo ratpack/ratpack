@@ -16,14 +16,17 @@
 
 package ratpack.session.clientside.internal;
 
-public class StorageHashContainer {
-  final private int hashCode;
+import ratpack.session.store.SessionStorage;
 
-  public StorageHashContainer(int hashCode) {
-    this.hashCode = hashCode;
+public class InitialStorageContainer {
+  final private SessionStorage storage;
+
+  public InitialStorageContainer(SessionStorage storage) {
+    this.storage = storage;
   }
 
-  public int getHashCode() {
-    return hashCode;
+  public boolean isSameAsInitial(SessionStorage storage) {
+    return this.storage.equals(storage);
   }
+
 }
