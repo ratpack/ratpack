@@ -27,6 +27,10 @@ buildscript {
   dependencies {
     classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
 
+    // Artifactory plugin pulls in very old Guava, which conflicts with child projects.
+    // Force to newer version here.
+    classpath 'com.google.guava:guava:18.0'
+
     // Prevent coveralls from dragging in the whole android tooling stack
     // https://github.com/kt3k/coveralls-gradle-plugin/issues/20
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:1.0.2", {

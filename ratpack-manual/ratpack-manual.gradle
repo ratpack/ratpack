@@ -21,6 +21,7 @@ configurations.runtime.artifacts.clear()
 configurations.archives.artifacts.clear()
 
 apply plugin: "com.github.robfletcher.compass"
+apply plugin: "com.eriwen.gradle.js"
 
 buildscript {
   repositories {
@@ -29,6 +30,8 @@ buildscript {
   dependencies {
     classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
     classpath "org.pegdown:pegdown:1.2.1"
+	classpath "com.eriwen:gradle-js-plugin:1.12.1"
+	classpath "com.google.javascript:closure-compiler:v20141215"
   }
 }
 
@@ -245,16 +248,28 @@ compass {
   quiet = true
 }
 
-task buildJs(type: GradleBuild) {
-  buildFile = "minifyjs.gradle"
-  tasks = ["combineJs", "minifyJs"]
+combineJs {
+	source = [
+		"${projectDir}/src/assets/js/googleAnalytics.js",
+		"${projectDir}/src/assets/js/modernizr.js",
+		"${projectDir}/src/assets/js/prism.js",
+		"${projectDir}/src/assets/js/jquery.js",
+		"${projectDir}/src/assets/js/anchorHighlight.js",
+		"${projectDir}/src/assets/js/toggleImports.js"
+	]
+	dest = file("${buildDir}/assets/js/all.js")
+}
+
+minifyJs {
+	source = combineJs
+	dest = file("${buildDir}/assets/js/all.min.js")
 }
 
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
   from compassCompile
-  from buildJs
+  from minifyJs
 }
 
 file("src/assets").eachDir { File dir ->
