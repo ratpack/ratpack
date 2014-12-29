@@ -22,8 +22,9 @@ import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.session.clientside.internal.DefaultSigner;
 import ratpack.session.clientside.internal.CookieBasedSessionStorageBindingHandler;
+import ratpack.session.clientside.internal.DefaultClientSessionService;
+import ratpack.session.clientside.internal.DefaultSigner;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Singleton;
@@ -63,6 +64,17 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     return new DefaultSigner(new SecretKeySpec(keyBytes, config.getMacAlgorithm()));
   }
 
+  @SuppressWarnings("UnusedDeclaration")
+  @Provides
+  @Singleton
+  SessionService provideSessionService(Config config, Signer signer) {
+    SessionService sessionService = config.getSessionService();
+    if (sessionService == null) {
+      sessionService = new DefaultClientSessionService(signer);
+    }
+    return sessionService;
+  }
+
   /**
    * Makes {@link ratpack.session.store.SessionStorage} available in the context registry.
    *
@@ -71,13 +83,14 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
    * @return A handler that provides a {@link ratpack.session.store.SessionStorage} impl in the context registry
    */
   public Handler decorate(Injector injector, Handler handler) {
-    return new CookieBasedSessionStorageBindingHandler(injector.getInstance(Config.class).getSessionName(), handler);
+    return new CookieBasedSessionStorageBindingHandler(injector.getInstance(SessionService.class), injector.getInstance(Config.class).getSessionName(), handler);
   }
 
   public static class Config {
     private String sessionName = "ratpack_session";
     private String secretKey = Long.toString(System.currentTimeMillis() / 10000);
     private String macAlgorithm = "HmacSHA1";
+    private SessionService sessionService;
 
     public String getSessionName() {
       return sessionName;
@@ -101,6 +114,14 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
 
     public void setMacAlgorithm(String macAlgorithm) {
       this.macAlgorithm = macAlgorithm;
+    }
+
+    public SessionService getSessionService() {
+      return sessionService;
+    }
+
+    public void setSessionService(SessionService sessionService) {
+      this.sessionService = sessionService;
     }
   }
 }
