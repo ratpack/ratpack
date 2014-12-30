@@ -45,7 +45,7 @@ import ratpack.server.RatpackServerBuilder;
  *  public static void main(String[] args) throws Exception {
  *    RatpackServer server = RatpackLauncher.launcher(r -> {
  *      r.add(MyHandler.class, new MyHandler());
- *    }).config( c -> {
+ *    }).configure( c -> {
  *      c.port(5060);
  *    }).build(registry -> {
  *      return registry.get(MyHandler.class);
