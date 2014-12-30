@@ -62,6 +62,13 @@ import ratpack.server.RatpackServerBuilder;
  */
 public abstract class RatpackLauncher {
 
+  /**
+   * Create a RatpackLauncher instance by configuring the root registry  with the supplied action.
+   *
+   * @param action the action to configure the root application registry
+   *
+   * @return a launcher instance that can be used to build a {@link ratpack.server.RatpackServer}.
+   */
   public static RatpackLauncher launcher(Action<? super RegistrySpec> action) {
     try {
       Registry baseRegistry = baseRegistry();
@@ -73,6 +80,20 @@ public abstract class RatpackLauncher {
     }
   }
 
+  /**
+   * Create a RatpackLauncher instance with the default root registry.
+   *
+   * @return a launcher instance that can be used to a build a {@link ratpack.server.RatpackServer}.
+   */
+  public static RatpackLauncher launcher() {
+    return launcher(r -> {});
+  }
+
+  /**
+   * Create a default root registry for the application.
+   *
+   * @return a {@link ratpack.registry.Registry} that contains the minimum configuration elements for a Ratpack application.
+   */
   public static Registry baseRegistry() {
     RegistryBuilder builder = Registries.registry();
     builder.add(ServerConfig.class, ServerConfigBuilder.noBaseDir().build());
@@ -85,11 +106,27 @@ public abstract class RatpackLauncher {
     return builder.build();
   }
 
+  /**
+   * Builds a {@link ratpack.server.RatpackServer} with the supplied root handler and backed by the configured root registry.
+   *
+   * @param handlerFactory the root handler for the application.
+   *
+   * @return a new, not yet started Ratpack server.
+   */
   public abstract RatpackServer build(HandlerFactory handlerFactory);
 
-  public abstract RatpackLauncher config(Action<? super ServerConfigSpec> action);
+  /**
+   * Convenience method for setting the server configuration.
+   * <p>
+   * Calling this method will generate a new {@link ServerConfig} in the root registry, replacing any instance previously added to the registry.
+   *
+   * @param action the spec to configure the application's ServerConfig.
+   *
+   * @return this
+   */
+  public abstract RatpackLauncher configure(Action<? super ServerConfigSpec> action);
 
-  static class DefaultRatpackLauncher extends RatpackLauncher {
+  private static class DefaultRatpackLauncher extends RatpackLauncher {
 
     private Registry baseRegistry;
 
@@ -107,7 +144,7 @@ public abstract class RatpackLauncher {
     }
 
     @Override
-    public RatpackLauncher config(Action<? super ServerConfigSpec> action) {
+    public RatpackLauncher configure(Action<? super ServerConfigSpec> action) {
       try {
         ServerConfigBuilder builder = ServerConfigBuilder.noBaseDir();
         action.execute(builder);

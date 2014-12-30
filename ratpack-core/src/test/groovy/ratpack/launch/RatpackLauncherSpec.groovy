@@ -23,7 +23,7 @@ class RatpackLauncherSpec extends Specification {
 
   def "start default server"() {
     given:
-    def server = RatpackLauncher.launcher {}.config {}.build {
+    def server = RatpackLauncher.launcher().build {
       return {} as Handler
     }
 
@@ -42,8 +42,7 @@ class RatpackLauncherSpec extends Specification {
 
   def "start server on port"() {
     given:
-    def server = RatpackLauncher.launcher {
-    }.config { config ->
+    def server = RatpackLauncher.launcher().configure { config ->
       config.port 5060
     }.build {
       return {} as Handler
