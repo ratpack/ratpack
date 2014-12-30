@@ -300,7 +300,7 @@ dependencies {
 Reloading is now enabled for your application.
 SpringLoaded will detect changed _class files_ while your application is running and patch the code in memory.
 
-An effective workflow is to open to terminal windows.
+An effective workflow is to open two terminal windows.
 In the first, execute…
 
 ```language-bash
