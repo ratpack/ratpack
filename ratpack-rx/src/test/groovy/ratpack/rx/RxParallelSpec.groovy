@@ -154,7 +154,7 @@ class RxParallelSpec extends Specification {
     Throwable e = null
 
     when:
-    sequence.lift(forkOnNext(control)).subscribe({
+    sequence.lift(forkOnNext(control)).serialize().subscribe({
       throw new RuntimeException("!")
     }, { e = it; barrier.await() })
     barrier.await()
