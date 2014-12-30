@@ -40,7 +40,7 @@ public class Configuration {
     this.launchConfigFactory = launchConfigFactory;
   }
 
-  public <T> T toClass(Class<T> cast) {
+  public <T> T get(Class<T> cast) {
 
     //TODO-JOHN obviously not correct, but gets us thru compilation.
     return cast.cast(new Object());

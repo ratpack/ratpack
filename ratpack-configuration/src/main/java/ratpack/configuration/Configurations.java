@@ -55,8 +55,8 @@ import ratpack.configuration.internal.SystemPropertiesBackedConfiguration;
  *    Configuration configuration = Configurations.load("classpath-properties.properties").sysProps().env().fileSystem("/tmp/default.properties").build();
  *    RatpackServer server = RatpackLauncher.launcher(r -> {
  *      //Example adding configuration to registry
- *      //r.add(ServerConfig.class, configuration.toClass(ServerConfig.class));
- *      //r.add(MyAppConfig.class, configuration.toClass(MyAppConfig.class));
+ *      //r.add(ServerConfig.class, configuration.get(ServerConfig.class));
+ *      //r.add(MyAppConfig.class, configuration.get(MyAppConfig.class));
  *    }).build(registry -> {
  *      //This should be how we return the handler
  *      //return registry.get(MyAppConfig.class).getMyHandler();
