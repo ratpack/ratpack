@@ -46,10 +46,104 @@ import javax.inject.Singleton;
  *
  * class MyHandler implements Handler {
  *   void handle(Context ctx) {
- *     SessionStorage session = ctx.get(SessionStorage.class);
+ *     SessionStorage session = ctx.getRequest().get(SessionStorage.class);
+ *     String value = session.get("value");
+ *     ctx.render(value);
  *   }
  * }
  * </pre>
+ * <h3>Configuration</h3>
+ * <p>
+ * This module also provides a programmatic configurable object that helps customize various elements.
+ * <table>
+ *   <caption>Configurable Elements</caption>
+ *   <tr>
+ *     <th>sessionName</th>
+ *     <td>The name of the cookie in which the session is stored. Defaults to <strong>ratpack_session</strong>.</td>
+ *   </tr>
+ *   <tr>
+ *     <th>secretToken</th>
+ *     <td>The token used to sign the serialized session to prevent tampering. If not set, this is set to a time based value</td>
+ *   </tr>
+ *   <tr>
+ *     <th>macAlgorithm</th>
+ *     <td>The {@link javax.crypto.Mac} algorithm used to sign the serialized session with the <strong>secretToken</strong>.</td>
+ *   </tr>
+ *   <tr>
+ *     <th>secretKey</th>
+ *     <td>The secret key used in the symmetric-key encyrption/decryption with the serialized session.</td>
+ *   </tr>
+ *   <tr>
+ *     <th>cipherAlgorithm</th>
+ *     <td>The {@link javax.crypto.Cipher} algorithm used to encrypt/decrypt the serialized session, e.g. <strong>AES/CBC/PKCS5Padding</strong> which is also the default value.</td>
+ *   </tr>
+ * </table>
+ *
+ * <h3>Configuration Example</h3>
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.session.clientside.ClientSideSessionsModule;
+ * import ratpack.session.store.SessionStorage;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import static org.junit.Assert.*;
+ *
+ * public class ClientSideSessionsModuleConfigExample {
+ *   public static void main(String[] args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *       Guice.builder(launchConfig)
+ *         .bindings(b -> b.add(ClientSideSessionsModule.class, config -> {
+ *           config.setSessionName("session-name");
+ *           config.setSecretToken("your token for signing");
+ *           // config.setSecretKey("key for cipher");
+ *           // config.setMacAlgorithm("MAC algorithm for signing");
+ *           // config.setCipherAlgorithm("Cipher Algorithm");
+ *         }))
+ *         .build(chain ->
+ *           chain.get(ctx -> {
+ *             SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
+ *             ctx.render(sessionStorage.getOrDefault("value", "not set"));
+ *           }).get("set/:value", ctx -> {
+ *             SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
+ *             String value = ctx.getPathTokens().get("value");
+ *             sessionStorage.put("value", value);
+ *             ctx.render(value);
+ *           }))
+ *     ).test(client -> {
+ *       ReceivedResponse response = client.get();
+ *       assertEquals("not set", response.getBody().getText());
+ *       assertFalse("No cookies should be set", response.getHeaders().contains("Set-Cookie"));
+ *
+ *       response = client.get("set/foo");
+ *       assertEquals("foo", response.getBody().getText());
+ *       assertTrue("We set a value", response.getHeaders().contains("Set-Cookie"));
+ *       assertTrue("Session uses our session name", response.getHeaders().get("Set-Cookie").contains("session-name"));
+ *
+ *       response = client.get();
+ *       assertEquals("foo", response.getBody().getText());
+ *       assertFalse("We did not update session", response.getHeaders().contains("Set-Cookie"));
+ *     });
+ *   }
+ * }
+ * }</pre>
+ *
+ * <h3>Notes</h3>
+ * <p>
+ * Because the session is serialized to the client, all key value pairs in the session
+ * are String based. The max cookie size for a client is 4k so it's important to keep
+ * this in mind when using the ClientSideSessionsModule.
+ *
+ * <p>
+ * By default your session will be signed but not encrypted. This is because the <strong>secretKey</strong>
+ * is not set by default. That is, your users will not be able to tamper with the
+ * cookie but they can still read the key value pairs that you have set. If you want to render
+ * the entire cookie unreadable make sure you set a <strong>secretKey</strong>
+ *
+ * <p>
+ * When setting your own <strong>secretKey</strong> and <strong>cipherAlgorithm</strong>
+ * make sure that the key length is acceptable according to the algorithm you have chosen.
+ *
  */
 public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessionsModule.Config> implements HandlerDecoratingModule {
 
