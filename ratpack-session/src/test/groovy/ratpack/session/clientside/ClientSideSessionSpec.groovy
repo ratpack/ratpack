@@ -16,6 +16,8 @@
 
 package ratpack.session.clientside
 
+import io.netty.handler.codec.http.QueryStringDecoder
+import io.netty.util.CharsetUtil
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
@@ -38,15 +40,18 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     cookies.find { it.name() == "ratpack_session" }?.value()
   }
 
+  private String getSessionPayload() {
+    sessionCookie.split(":")[0]
+  }
+
   def getDecodedPairs() {
-    def encoded = sessionCookie.split(":")[0]
-    new String(Base64.getUrlDecoder().decode(encoded.getBytes("utf-8")))
+    new String(Base64.getUrlDecoder().decode(sessionPayload.getBytes("utf-8")))
       .split("&")
       .inject([:]) { m, kvp ->
-        def p = kvp.split("=")
-        m[urlDecode(p[0])] = urlDecode(p[1])
-        m
-      }
+      def p = kvp.split("=")
+      m[urlDecode(p[0])] = urlDecode(p[1])
+      m
+    }
   }
 
   def urlDecode(String s) {
@@ -103,8 +108,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     }
 
     expect:
-    get()
-    response.body.text == value
+    getText() == value
     decodedPairs[key] == value
 
     where:
@@ -234,7 +238,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     requestSpec { RequestSpec spec ->
       spec.headers { MutableHeaders headers ->
-        headers.set(HttpHeaderConstants.COOKIE, 'ratpack_session="dmFsdWU9Zm9v-DjZCDssly41x7tzrfXCaLvPuRAM="')
+        headers.set(HttpHeaderConstants.COOKIE, 'ratpack_session="dmFsdWU9Zm9v:DjZCDssly41x7tzrfXCaLvPuRAM="')
       }
     }
 
@@ -246,15 +250,11 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def aut() {
+  def aut(Closure sessionModuleConfig) {
     GroovyEmbeddedApp.build {
       bindings {
         add ClientSideSessionsModule, {
-          it.with {
-            secretKey = "secret"
-            sessionName = "_sess"
-            macAlgorithm = "HmacMD5"
-          }
+          it.with sessionModuleConfig
         }
       }
       handlers {
@@ -269,22 +269,21 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  def "cookies can be read across servers with the same secret"() {
+  @Unroll
+  def "cookies can be read across servers with the same secret token and key"() {
     given:
-    def app1 = aut()
+    def app1 = aut(sessionModuleConfig)
     def client1 = app1.httpClient
 
-    def app2 = aut()
+    def app2 = aut(sessionModuleConfig)
     def client2 = app2.httpClient
 
     expect:
-    client2.get("")
-    client2.response.body.text == "null"
+    client2.getText("") == "null"
     !client2.response.headers.get("Set-Cookie")
 
     and:
-    client1.get("set/foo")
-    client1.response.body.text == "foo"
+    client1.getText("set/foo") == "foo"
     client1.response.headers.get("Set-Cookie").startsWith("_sess")
 
     when:
@@ -295,9 +294,93 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    client2.get("")
-    client2.response.body.text == "foo"
+    client2.getText("") == "foo"
     !client2.response.headers.get("Set-Cookie")
+
+    where:
+    sessionModuleConfig << [{
+                              secretToken = "secret"
+                              sessionName = "_sess"
+                              macAlgorithm = "HmacMD5"
+                            }, {
+                              secretToken = "secret"
+                              secretKey = "a" * 16
+                              sessionName = "_sess"
+                              macAlgorithm = "HmacMD5"
+                            }]
+
+  }
+
+  @Unroll
+  def "secretKey with #algorithm renders session unreadable"() {
+    given:
+    modules.clear()
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          int length = 16
+          switch (algorithm) {
+            case ~/^AES.*/:
+              length = 16
+              break
+            case ~/^DESede.*/:
+              length = 24
+              break
+            case ~/^DES.*/:
+              length = 8
+              break
+          }
+          secretKey = "a" * length
+          cipherAlgorithm = algorithm
+        }
+      }
+    }
+
+    handlers {
+      get("") { SessionStorage storage ->
+        render storage.value.toString()
+      }
+      get("set/:value") { SessionStorage storage ->
+        storage.value = pathTokens.value
+        render storage.value.toString()
+      }
+    }
+
+    expect:
+    get()
+    response.body.text == "null"
+    !sessionCookie
+    !setCookie
+
+    getText("set/foo") == "foo"
+    sessionPayload
+    String payload
+    try {
+      payload = new String(Base64.getUrlDecoder().decode(sessionPayload.bytes), CharsetUtil.UTF_8)
+      QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payload, CharsetUtil.UTF_8, false)
+      queryStringDecoder.parameters().every { key, value ->
+        key != "value" && value != "foo"
+      }
+    } catch (Exception e) { }
+
+    getText() == "foo"
+
+    where:
+    algorithm << [
+//      "Blowfish",
+//      "AES/CBC/NoPadding",
+      "AES/CBC/PKCS5Padding",
+//      "AES/ECB/NoPadding",
+      "AES/ECB/PKCS5Padding",
+//      "DES/CBC/NoPadding",
+//      "DES/CBC/PKCS5Padding",
+//      "DES/ECB/NoPadding",
+//      "DES/ECB/PKCS5Padding",
+//      "DESede/CBC/NoPadding",
+//      "DESede/CBC/PKCS5Padding",
+//      "DESede/ECB/NoPadding",
+//      "DESede/ECB/PKCS5Padding"
+      ]
 
   }
 

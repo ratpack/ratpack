@@ -24,6 +24,7 @@ import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.session.clientside.internal.CookieBasedSessionStorageBindingHandler;
 import ratpack.session.clientside.internal.DefaultClientSessionService;
+import ratpack.session.clientside.internal.DefaultCrypto;
 import ratpack.session.clientside.internal.DefaultSigner;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -59,18 +60,30 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  Signer provideCrypto(Config config) {
-    byte[] keyBytes = config.getSecretKey().getBytes(CharsetUtil.UTF_8);
-    return new DefaultSigner(new SecretKeySpec(keyBytes, config.getMacAlgorithm()));
+  Signer provideSigner(Config config) {
+    byte[] token = config.getSecretToken().getBytes(CharsetUtil.UTF_8);
+    return new DefaultSigner(new SecretKeySpec(token, config.getMacAlgorithm()));
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  SessionService provideSessionService(Config config, Signer signer) {
+  Crypto provideCrypto(Config config) {
+    DefaultCrypto crypto = null;
+    if (config.getSecretKey() != null && config.getCipherAlgorithm() != null) {
+      byte[] key = config.getSecretKey().getBytes(CharsetUtil.UTF_8);
+      crypto = new DefaultCrypto(key, config.getCipherAlgorithm());
+    }
+    return crypto;
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  @Provides
+  @Singleton
+  SessionService provideSessionService(Config config, Signer signer, Crypto crypto) {
     SessionService sessionService = config.getSessionService();
     if (sessionService == null) {
-      sessionService = new DefaultClientSessionService(signer);
+      sessionService = new DefaultClientSessionService(signer, crypto);
     }
     return sessionService;
   }
@@ -88,8 +101,10 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
 
   public static class Config {
     private String sessionName = "ratpack_session";
-    private String secretKey = Long.toString(System.currentTimeMillis() / 10000);
+    private String secretToken = Long.toString(System.currentTimeMillis() / 10000);
     private String macAlgorithm = "HmacSHA1";
+    private String secretKey;
+    private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
     private SessionService sessionService;
 
     public String getSessionName() {
@@ -100,12 +115,12 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
       this.sessionName = sessionName;
     }
 
-    public String getSecretKey() {
-      return secretKey;
+    public String getSecretToken() {
+      return secretToken;
     }
 
-    public void setSecretKey(String secretKey) {
-      this.secretKey = secretKey;
+    public void setSecretToken(String secretToken) {
+      this.secretToken = secretToken;
     }
 
     public String getMacAlgorithm() {
@@ -114,6 +129,22 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
 
     public void setMacAlgorithm(String macAlgorithm) {
       this.macAlgorithm = macAlgorithm;
+    }
+
+    public String getSecretKey() {
+      return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+      this.secretKey = secretKey;
+    }
+
+    public String getCipherAlgorithm() {
+      return cipherAlgorithm;
+    }
+
+    public void setCipherAlgorithm(String cipherAlgorithm) {
+      this.cipherAlgorithm = cipherAlgorithm;
     }
 
     public SessionService getSessionService() {

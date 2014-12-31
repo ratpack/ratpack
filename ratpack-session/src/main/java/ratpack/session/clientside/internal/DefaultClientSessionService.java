@@ -22,6 +22,7 @@ import io.netty.buffer.*;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
+import ratpack.session.clientside.Crypto;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.clientside.Signer;
 import ratpack.util.ExceptionUtils;
@@ -43,9 +44,11 @@ public class DefaultClientSessionService implements SessionService {
   private static final String SESSION_SEPARATOR = ":";
 
   private final Signer signer;
+  private final Crypto crypto;
 
-  public DefaultClientSessionService(Signer signer) {
+  public DefaultClientSessionService(Signer signer, Crypto crypto) {
     this.signer = signer;
+    this.crypto = crypto;
   }
 
   @Override
@@ -68,6 +71,11 @@ public class DefaultClientSessionService implements SessionService {
       ByteBuf payloadBuffer = Unpooled.wrappedBuffer(buffers.length, buffers);
       byte[] payloadBytes = new byte[payloadBuffer.readableBytes()];
       payloadBuffer.getBytes(0, payloadBytes);
+      if (crypto != null) {
+        payloadBytes = crypto.encrypt(payloadBuffer);
+        payloadBuffer = Unpooled.wrappedBuffer(payloadBytes);
+      }
+
       String payloadString = ENCODER.encodeToString(payloadBytes);
 
       byte[] digest = signer.sign(payloadBuffer);
@@ -104,7 +112,14 @@ public class DefaultClientSessionService implements SessionService {
           byte[] expectedDigest = signer.sign(Unpooled.wrappedBuffer(urlEncoded));
 
           if (Arrays.equals(digest, expectedDigest)) {
-            String payload = new String(urlEncoded, CharsetUtil.UTF_8);
+            byte[] message;
+            if (crypto == null) {
+              message = urlEncoded;
+            } else {
+              message = crypto.decrypt(Unpooled.wrappedBuffer(urlEncoded));
+            }
+
+            String payload = new String(message, CharsetUtil.UTF_8);
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payload, CharsetUtil.UTF_8, false);
             Map<String, List<String>> decoded = queryStringDecoder.parameters();
             for (Map.Entry<String, List<String>> entry : decoded.entrySet()) {
