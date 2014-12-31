@@ -25,24 +25,26 @@ import ratpack.render.RendererSupport;
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
 
   @Override
-  public void render(Context context, HealthCheckResults object) throws Exception {
-    context.byContent(spec -> spec.json(c -> {
-      ObjectMapper mapper = new ObjectMapper();
+  public void render(Context ctx, HealthCheckResults object) throws Exception {
+    ctx.byContent(spec -> spec
+        .json(() -> {
+          ObjectMapper mapper = new ObjectMapper();
 
-      byte[] bytes;
-      try {
-        bytes = mapper.writeValueAsBytes(object);
-      } catch (JsonProcessingException e) {
-        c.error(e);
-        return;
-      }
+          byte[] bytes;
+          try {
+            bytes = mapper.writeValueAsBytes(object);
+          } catch (JsonProcessingException e) {
+            ctx.error(e);
+            return;
+          }
 
-      c.getResponse().getHeaders()
-        .add("Cache-Control", "no-cache, no-store, must-revalidate")
-        .add("Pragma", "no-cache")
-        .add("Expires", 0);
-      c.getResponse().send(bytes);
-    }));
+          ctx.getResponse().getHeaders()
+            .add("Cache-Control", "no-cache, no-store, must-revalidate")
+            .add("Pragma", "no-cache")
+            .add("Expires", 0);
+          ctx.getResponse().send(bytes);
+        })
+    );
   }
 
 }

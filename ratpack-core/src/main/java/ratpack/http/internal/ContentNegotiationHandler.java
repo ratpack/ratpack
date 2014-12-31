@@ -17,6 +17,7 @@
 package ratpack.http.internal;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import ratpack.func.NoArgAction;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -27,9 +28,9 @@ import java.util.Map;
 
 public class ContentNegotiationHandler implements Handler {
 
-  private final Map<? extends CharSequence, Handler> handlers;
+  private final Map<? extends CharSequence, NoArgAction> handlers;
 
-  public ContentNegotiationHandler(Map<? extends CharSequence, Handler> handlers) {
+  public ContentNegotiationHandler(Map<? extends CharSequence, NoArgAction> handlers) {
     this.handlers = handlers;
   }
 
@@ -54,8 +55,8 @@ public class ContentNegotiationHandler implements Handler {
       context.clientError(406);
     } else {
       context.getResponse().contentType(winner);
-      Handler handler = handlers.get(winner);
-      handler.handle(context);
+      NoArgAction handler = handlers.get(winner);
+      handler.execute();
     }
   }
 }

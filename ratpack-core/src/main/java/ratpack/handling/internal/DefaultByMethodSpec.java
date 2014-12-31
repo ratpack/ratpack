@@ -16,40 +16,40 @@
 
 package ratpack.handling.internal;
 
+import ratpack.func.NoArgAction;
 import ratpack.handling.ByMethodSpec;
-import ratpack.handling.Handler;
 
 import java.util.Map;
 
 public class DefaultByMethodSpec implements ByMethodSpec {
 
-  private final Map<String, Handler> handlers;
+  private final Map<String, NoArgAction> handlers;
 
-  public DefaultByMethodSpec(Map<String, Handler> handlers) {
+  public DefaultByMethodSpec(Map<String, NoArgAction> handlers) {
     this.handlers = handlers;
   }
 
-  public ByMethodSpec get(Handler handler) {
+  public ByMethodSpec get(NoArgAction handler) {
     return named("GET", handler);
   }
 
-  public ByMethodSpec post(Handler handler) {
+  public ByMethodSpec post(NoArgAction handler) {
     return named("POST", handler);
   }
 
-  public ByMethodSpec put(Handler handler) {
+  public ByMethodSpec put(NoArgAction handler) {
     return named("PUT", handler);
   }
 
-  public ByMethodSpec patch(Handler handler) {
+  public ByMethodSpec patch(NoArgAction handler) {
     return named("PATCH", handler);
   }
 
-  public ByMethodSpec delete(Handler handler) {
+  public ByMethodSpec delete(NoArgAction handler) {
     return named("DELETE", handler);
   }
 
-  public ByMethodSpec named(String methodName, Handler handler) {
+  public ByMethodSpec named(String methodName, NoArgAction handler) {
     handlers.put(methodName.toUpperCase(), handler);
     return this;
   }

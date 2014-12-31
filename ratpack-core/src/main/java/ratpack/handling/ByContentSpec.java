@@ -16,6 +16,8 @@
 
 package ratpack.handling;
 
+import ratpack.func.NoArgAction;
+
 /**
  * A specification of how to respond to a request, based on the requested content type (i.e. the request's Accept header).
  *
@@ -30,7 +32,7 @@ public interface ByContentSpec {
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
-  ByContentSpec type(String mimeType, Handler handler);
+  ByContentSpec type(String mimeType, NoArgAction handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/plain".
@@ -38,7 +40,7 @@ public interface ByContentSpec {
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
-  ByContentSpec plainText(Handler handler);
+  ByContentSpec plainText(NoArgAction handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/html".
@@ -46,7 +48,7 @@ public interface ByContentSpec {
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
-  ByContentSpec html(Handler handler);
+  ByContentSpec html(NoArgAction handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "application/json".
@@ -54,7 +56,7 @@ public interface ByContentSpec {
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
-  ByContentSpec json(Handler handler);
+  ByContentSpec json(NoArgAction handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "application/xml".
@@ -62,6 +64,6 @@ public interface ByContentSpec {
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
-  ByContentSpec xml(Handler handler);
+  ByContentSpec xml(NoArgAction handler);
 
 }

@@ -37,13 +37,21 @@ import java.util.List;
 
 public class GroovySnippetExecuter implements SnippetExecuter {
 
+  private final boolean compileStatic;
+
+  public GroovySnippetExecuter(boolean compileStatic) {
+    this.compileStatic = compileStatic;
+  }
+
   @Override
   public void execute(TestCodeSnippet snippet) {
     CompilerConfiguration config = new CompilerConfiguration();
     config.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
       @Override
       public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
-        classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
+        if (compileStatic) {
+          classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
+        }
       }
     });
 

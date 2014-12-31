@@ -21,9 +21,19 @@ import ratpack.manual.snippets.executer.SnippetExecuter
 
 class GroovyScriptFixture extends SnippetFixture {
 
+  boolean compileStatic
+
+  GroovyScriptFixture() {
+    this(true)
+  }
+
+  GroovyScriptFixture(boolean compileStatic) {
+    this.compileStatic = compileStatic
+  }
+
   @Override
   SnippetExecuter getExecuter() {
-    new GroovySnippetExecuter()
+    new GroovySnippetExecuter(compileStatic)
   }
 
   @Override

@@ -165,58 +165,37 @@ public interface Context extends ExecControl, Registry {
   /**
    * Respond to the request based on the request method.
    *
-   * <pre class="java">
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Context;
-   * import ratpack.handling.ByMethodSpec;
-   * import ratpack.func.Action;
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
    *
-   * import ratpack.test.handling.HandlingResult;
-   * import ratpack.test.handling.RequestFixture;
+   * import static org.junit.Assert.*;
    *
    * public class Example {
-   *
-   *   public static class MultiMethodHandler implements Handler {
-   *     public void handle(final Context context) throws Exception {
-   *       final String message = "hello!";
-   *
-   *       context.byMethod(new Action&lt;ByMethodSpec&gt;() {
-   *         public void execute(ByMethodSpec spec) {
-   *           spec.get(new Handler() {
-   *             public void handle(Context context) {
-   *               context.render(message + " from GET request");
-   *             }
-   *           }).
-   *           post(new Handler() {
-   *             public void handle(Context context) {
-   *               context.render(message + " from POST request");
-   *             }
-   *           });
-   *         }
-   *       });
-   *     }
-   *   }
-   *
    *   public static void main(String[] args) throws Exception {
-   *     Handler handler = new MultiMethodHandler();
-   *
-   *     HandlingResult result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
-   *       public void execute(RequestFixture fixture) {
-   *         fixture.method("get");
-   *       }
+   *     EmbeddedApp.fromChain(chain -> chain
+   *       .handler("a", ctx -> {
+   *         String val = "a";
+   *         ctx.byMethod(m -> m
+   *           .get(() -> ctx.render(val + " - " + "GET"))
+   *           .post(() -> ctx.render(val + " - " + "POST"))
+   *         );
+   *       })
+   *       .handler("b", ctx -> {
+   *         String val = "b";
+   *         ctx.byMethod(m -> m
+   *           .get(() -> ctx.render(val + " - " + "GET"))
+   *           .post(() -> ctx.render(val + " - " + "POST"))
+   *         );
+   *       })
+   *     ).test(httpClient -> {
+   *       assertEquals("a - GET", httpClient.getText("a"));
+   *       assertEquals("a - POST", httpClient.postText("a"));
+   *       assertEquals("b - GET", httpClient.getText("b"));
+   *       assertEquals("b - POST", httpClient.postText("b"));
    *     });
-   *     assert result.rendered(String.class).equals("hello! from GET request");
-   *
-   *     result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
-   *       public void execute(RequestFixture fixture) {
-   *         fixture.method("post");
-   *       }
-   *     });
-   *     assert result.rendered(String.class).equals("hello! from POST request");
    *   }
-   *
    * }
-   * </pre>
+   * }</pre>
    *
    * <p>
    * Only the last added handler for a method will be used.
@@ -242,60 +221,32 @@ public interface Context extends ExecControl, Registry {
    * The order that types are specified is significant for wildcard matching.
    * The earliest registered type that matches the wildcard will be used.
    *
-   * <pre class="java">
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Context;
-   * import ratpack.handling.ByContentSpec;
-   * import ratpack.func.Action;
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
+   * import ratpack.http.client.ReceivedResponse;
    *
-   * import ratpack.test.handling.HandlingResult;
-   * import ratpack.test.handling.RequestFixture;
+   * import static org.junit.Assert.*;
    *
    * public class Example {
-   *
-   *   public static class ContentNegotiatingHandler implements Handler {
-   *     public void handle(final Context context) throws Exception {
-   *       final String message = "hello!";
-   *
-   *       context.byContent(new Action&lt;ByContentSpec&gt;() {
-   *         public void execute(ByContentSpec spec) {
-   *           spec.json(new Handler() {
-   *             public void handle(Context context) {
-   *               context.render("{\"msg\": \"" + message + "\"}");
-   *             }
-   *           }).
-   *           html(new Handler() {
-   *             public void handle(Context context) {
-   *               context.render("&lt;p&gt;" + message + "&lt;/p&gt;");
-   *             }
-   *           });
-   *         }
-   *       });
-   *     }
-   *   }
-   *
    *   public static void main(String[] args) throws Exception {
-   *     Handler handler = new ContentNegotiatingHandler();
+   *     EmbeddedApp.fromHandler(ctx -> {
+   *       String message = "hello!";
+   *       ctx.byContent(m -> m
+   *         .json(() -> ctx.render("{\"msg\": \"" + message + "\"}"))
+   *         .html(() -> ctx.render("<p>" + message + "</p>"))
+   *       );
+   *     }).test(httpClient -> {
+   *       ReceivedResponse response = httpClient.requestSpec(s -> s.getHeaders().add("Accept", "application/json")).get();
+   *       assertEquals("{\"msg\": \"hello!\"}", response.getBody().getText());
+   *       assertEquals("application/json", response.getBody().getContentType().getType());
    *
-   *     HandlingResult result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
-   *       public void execute(RequestFixture fixture) {
-   *         fixture.header("Accept", "application/json");
-   *       }
+   *       response = httpClient.requestSpec(s -> s.getHeaders().add("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7")).get();
+   *       assertEquals("<p>hello!</p>", response.getBody().getText());
+   *       assertEquals("text/html", response.getBody().getContentType().getType());
    *     });
-   *     assert result.rendered(String.class).equals("{\"msg\": \"hello!\"}");
-   *     assert result.getHeaders().get("Content-Type").equals("application/json");
-   *
-   *     result = RequestFixture.handle(handler, new Action&lt;RequestFixture&gt;() {
-   *       public void execute(RequestFixture fixture) {
-   *         fixture.header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
-   *       }
-   *     });
-   *     assert result.rendered(String.class).equals("&lt;p&gt;hello!&lt;/p&gt;");
-   *     assert result.getHeaders().get("content-type").equals("text/html");
    *   }
-   *
    * }
-   * </pre>
+   * }</pre>
    * If there is no type registered, or if the client does not accept any of the given types, a {@code 406} will be issued with {@link Context#clientError(int)}.
    * <p>
    * Only the last specified handler for a type will be used.

@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import ratpack.func.NoArgAction;
 
 /**
  * A specification of how to respond to a request, based on the requeste method.
@@ -30,7 +31,7 @@ public interface ByMethodSpec {
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec get(Handler handler);
+  ByMethodSpec get(NoArgAction handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of POST.
@@ -38,7 +39,7 @@ public interface ByMethodSpec {
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec post(Handler handler);
+  ByMethodSpec post(NoArgAction handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -46,7 +47,7 @@ public interface ByMethodSpec {
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec put(Handler handler);
+  ByMethodSpec put(NoArgAction handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PATCH.
@@ -54,7 +55,7 @@ public interface ByMethodSpec {
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec patch(Handler handler);
+  ByMethodSpec patch(NoArgAction handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
@@ -62,7 +63,7 @@ public interface ByMethodSpec {
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec delete(Handler handler);
+  ByMethodSpec delete(NoArgAction handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.
@@ -73,6 +74,6 @@ public interface ByMethodSpec {
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec named(String methodName, Handler handler);
+  ByMethodSpec named(String methodName, NoArgAction handler);
 
 }

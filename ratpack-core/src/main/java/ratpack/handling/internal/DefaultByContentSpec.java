@@ -16,20 +16,20 @@
 
 package ratpack.handling.internal;
 
+import ratpack.func.NoArgAction;
 import ratpack.handling.ByContentSpec;
-import ratpack.handling.Handler;
 
 import java.util.Map;
 
 public class DefaultByContentSpec implements ByContentSpec {
 
-  private final Map<String, Handler> map;
+  private final Map<String, NoArgAction> map;
 
-  public DefaultByContentSpec(Map<String, Handler> map) {
+  public DefaultByContentSpec(Map<String, NoArgAction> map) {
     this.map = map;
   }
 
-  public ByContentSpec type(String mimeType, Handler handler) {
+  public ByContentSpec type(String mimeType, NoArgAction handler) {
     if (mimeType == null) {
       throw new IllegalArgumentException("mimeType cannot be null");
     }
@@ -43,19 +43,19 @@ public class DefaultByContentSpec implements ByContentSpec {
     return this;
   }
 
-  public ByContentSpec plainText(Handler handler) {
+  public ByContentSpec plainText(NoArgAction handler) {
     return type("text/plain", handler);
   }
 
-  public ByContentSpec html(Handler handler) {
+  public ByContentSpec html(NoArgAction handler) {
     return type("text/html", handler);
   }
 
-  public ByContentSpec json(Handler handler) {
+  public ByContentSpec json(NoArgAction handler) {
     return type("application/json", handler);
   }
 
-  public ByContentSpec xml(Handler handler) {
+  public ByContentSpec xml(NoArgAction handler) {
     return type("application/xml", handler);
   }
 

@@ -26,6 +26,7 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 
   public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
     "tested"            : new GroovyScriptFixture(),
+    "tested-dynamic"    : new GroovyScriptFixture(false),
     "java-chain-dsl"    : new JavaChainDslFixture(),
     "groovy-chain-dsl"  : new GroovyChainDslFixture(),
     "groovy-ratpack-dsl": new GroovyRatpackDslFixture(),
