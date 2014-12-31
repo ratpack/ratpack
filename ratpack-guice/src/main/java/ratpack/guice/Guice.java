@@ -110,8 +110,8 @@ import static com.google.inject.Guice.createInjector;
  *   }
  *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *         Guice.builder(registry)
  *           .bindings(b -> b.add(new ServiceModule()))
  *           .build(chain -> {
  *             // The registry in a Guice backed chain can be used to retrieve objects that were bound,
