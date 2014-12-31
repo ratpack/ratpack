@@ -74,7 +74,7 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   @Override
-  public Promise<StreamedResponse> streamRequest(URI uri, final Action<? super RequestSpec> requestConfigurer) {
+  public Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer) {
     final ExecControl execControl = execController.getControl();
     final Execution execution = execControl.getExecution();
 

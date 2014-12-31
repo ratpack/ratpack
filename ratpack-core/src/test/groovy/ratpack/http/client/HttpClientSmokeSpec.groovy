@@ -427,7 +427,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response)
         }
@@ -463,7 +463,7 @@ bar
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse stream ->
           render stringChunks(
             stream.body.map{
@@ -505,7 +505,7 @@ BAR
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo2")) {
+        httpClient.requestStream(otherAppUrl("foo2")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response)
         }

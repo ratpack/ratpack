@@ -24,6 +24,13 @@ import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.stream.TransformablePublisher;
 
+/**
+ * A received response to a http client request with streamed response content.
+ * <p>
+ * The HTTP status and response headers are available immediately, the response content can be accessed by
+ * subscribing to the {@link org.reactivestreams.Publisher} returned from {@link #getBody()} or can
+ * be directly streamed as a server response using {@link #send(ratpack.http.Response, ratpack.func.Action)}.
+ */
 public interface StreamedResponse {
   /**
    *
@@ -33,7 +40,7 @@ public interface StreamedResponse {
 
   /**
    *
-   * @return The integer status code of the response.
+   * @return the integer status code of the response.
    */
   int getStatusCode();
 
@@ -43,9 +50,30 @@ public interface StreamedResponse {
    */
   Headers getHeaders();
 
+  /**
+   *
+   * @return a {@link org.reactivestreams.Publisher} of response content chunks.
+   */
   TransformablePublisher<ByteBuf> getBody();
 
+  /**
+   * @see #send(ratpack.http.Response, ratpack.func.Action)
+   */
   void send(Response response);
 
+  /**
+   * Stream this received response out to the given server response.
+   * <p>
+   * The HTTP status and response headers of this response will be copied to the given server response.  If this response
+   * has a {@code content-length} http header it will be excluded from the copy as all responses will be streamed with a
+   * {@code transfer-encoding} of {@code chunked}.  Outgoing response headers can be added and modified with the given
+   * header mutating {@link ratpack.func.Action}.
+   * <p>
+   * This method will stream the response content chunks unmodified to the given server response using the publisher returned
+   * from {@link #getBody()}.
+   *
+   * @param response the server response to stream to
+   * @param headerMutator an action that will act on the outgoing response headers
+   */
   void send(Response response, Action<? super MutableHeaders> headerMutator);
 }

@@ -57,6 +57,19 @@ public interface HttpClient {
    */
   Promise<ReceivedResponse> request(URI uri, Action<? super RequestSpec> action);
 
-  Promise<StreamedResponse> streamRequest(URI uri, final Action<? super RequestSpec> requestConfigurer);
+  /**
+   * An asynchronous method to do a HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec,
+   * the received response content will be streamed.
+   * <p>
+   * In order to access the response content stream either subscribe to the {@link org.reactivestreams.Publisher} returned from {@link StreamedResponse#getBody()}
+   * or use {@link ratpack.http.client.StreamedResponse#send(ratpack.http.Response, ratpack.func.Action)} to directly stream the content as a server response.
+   *
+   * @param uri the request URL (as a URI), must be of the {@code http} or {@code https} protocol
+   * @param requestConfigurer an action that will act on the {@link RequestSpec}
+   * @return a promise for a {@link ratpack.http.client.StreamedResponse}
+   *
+   * @see ratpack.http.client.StreamedResponse
+   */
+  Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer);
 
 }

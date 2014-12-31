@@ -35,7 +35,7 @@ class HttpProxySpec extends HttpClientSpec {
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response)
         }
@@ -69,7 +69,7 @@ bar
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response)
         }
@@ -107,7 +107,7 @@ bar
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response) {MutableHeaders headers ->
             headers.remove("x-foo-header")
@@ -146,7 +146,7 @@ bar
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response)
         }
@@ -175,7 +175,7 @@ transfer-encoding: chunked
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.streamRequest(otherAppUrl("foo")) {
+        httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.send(response)
         }
