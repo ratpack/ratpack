@@ -46,8 +46,8 @@ import javax.inject.Singleton;
  * import ratpack.session.store.SessionStorage;
  *
  * class MyHandler implements Handler {
- *   void handle(Context exchange) {
- *     SessionStorage session = exchange.get(SessionStorage.class);
+ *   void handle(Context ctx) {
+ *     SessionStorage session = ctx.getRequest().get(SessionStorage.class);
  *   }
  * }
  * </pre>
