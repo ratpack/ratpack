@@ -22,8 +22,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Subscriber;
 import ratpack.api.Nullable;
-import ratpack.error.ClientErrorHandler;
-import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
@@ -42,7 +40,6 @@ import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
 import ratpack.launch.ServerConfig;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.Stopper;
@@ -62,7 +59,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class DefaultHandlingResult implements HandlingResult {
 
   private DefaultContext.RequestConstants requestConstants;
-  private Throwable throwable;
   private Headers headers;
   private byte[] body = new byte[0];
   private Status status;
@@ -70,38 +66,24 @@ public class DefaultHandlingResult implements HandlingResult {
   private boolean sentResponse;
   private Path sentFile;
   private Object rendered;
-  private Integer clientError;
+  private ResultsHolder results;
 
-  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, ServerConfig serverConfig, final Handler handler) throws Exception {
+  public DefaultHandlingResult(final Request request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, ServerConfig serverConfig, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
 
     this.headers = new DelegatingHeaders(responseHeaders);
 
-    final CountDownLatch latch = new CountDownLatch(1);
+    this.results = results;
+    final CountDownLatch latch = results.getLatch();
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
     final Handler next = context -> {
       calledNext = true;
-      latch.countDown();
+      results.getLatch().countDown();
     };
-
-    ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
-      DefaultHandlingResult.this.clientError = statusCode;
-      latch.countDown();
-    };
-
-    ServerErrorHandler serverErrorHandler = (context, throwable1) -> {
-      DefaultHandlingResult.this.throwable = throwable1;
-      latch.countDown();
-    };
-
-    final Registry userRegistry = Registries.registry().
-      add(ClientErrorHandler.class, clientErrorHandler).
-      add(ServerErrorHandler.class, serverErrorHandler).
-      build();
 
     final RenderController renderController = (object, context) -> {
       rendered = object;
@@ -138,8 +120,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
-    //TODO-JOHN this isn't ideal but it works. Run it past Luke.
-    Registry effectiveRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, serverConfig, registry, userRegistry);
+    Registry effectiveRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, serverConfig, registry);
     Response response = new DefaultResponse(execControl, responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
@@ -161,6 +142,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public byte[] getBodyBytes() {
+    Throwable throwable = results.getThrowable();
     if (throwable != null) {
       throw new UnexpectedHandlerException(throwable);
     }
@@ -173,6 +155,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public String getBodyText() {
+    Throwable throwable = results.getThrowable();
     if (throwable != null) {
       throw new UnexpectedHandlerException(throwable);
     }
@@ -186,7 +169,7 @@ public class DefaultHandlingResult implements HandlingResult {
   @Nullable
   @Override
   public Integer getClientError() {
-    return clientError;
+    return results.getClientError();
   }
 
   private Context getContext() {
@@ -195,6 +178,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public <T extends Throwable> T exception(Class<T> clazz) {
+    Throwable throwable = results.getThrowable();
     if (throwable == null) {
       throw new HandlerExceptionNotThrownException();
     } else {
@@ -233,6 +217,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public boolean isCalledNext() {
+    Throwable throwable = results.getThrowable();
     if (throwable != null) {
       throw new UnexpectedHandlerException(throwable);
     }
@@ -246,6 +231,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public <T> T rendered(Class<T> type) {
+    Throwable throwable = results.getThrowable();
     if (throwable != null) {
       throw new UnexpectedHandlerException(throwable);
     }
@@ -257,6 +243,32 @@ public class DefaultHandlingResult implements HandlingResult {
       return type.cast(rendered);
     } else {
       throw new AssertionError(String.format("Wrong type of object rendered. Was expecting %s but got %s", type, rendered.getClass()));
+    }
+  }
+
+  public static class ResultsHolder {
+    private Integer clientError;
+    private Throwable throwable;
+    private final CountDownLatch latch = new CountDownLatch(1);
+
+    public Integer getClientError() {
+      return clientError;
+    }
+
+    public void setClientError(Integer clientError) {
+      this.clientError = clientError;
+    }
+
+    public Throwable getThrowable() {
+      return throwable;
+    }
+
+    public void setThrowable(Throwable throwable) {
+      this.throwable = throwable;
+    }
+
+    public CountDownLatch getLatch() {
+      return latch;
     }
   }
 }

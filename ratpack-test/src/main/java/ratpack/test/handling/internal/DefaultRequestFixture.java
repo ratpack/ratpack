@@ -23,6 +23,8 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
+import ratpack.error.ClientErrorHandler;
+import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
@@ -93,18 +95,20 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
-    return invoke(handler, getEffectiveRegistry());
+    final DefaultHandlingResult.ResultsHolder results = new DefaultHandlingResult.ResultsHolder();
+    return invoke(handler, getEffectiveRegistry(results), results);
   }
 
   @Override
   public HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception {
-    Registry registry = getEffectiveRegistry();
+    final DefaultHandlingResult.ResultsHolder results = new DefaultHandlingResult.ResultsHolder();
+    Registry registry = getEffectiveRegistry(results);
     ServerConfig serverConfig = registry.get(ServerConfig.class);
     Handler handler = Handlers.chain(serverConfig, registry, chainAction);
-    return invoke(handler, registry);
+    return invoke(handler, registry, results);
   }
 
-  private HandlingResult invoke(Handler handler, Registry registry) throws HandlerTimeoutException {
+  private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
     Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
@@ -114,6 +118,7 @@ public class DefaultRequestFixture implements RequestFixture {
       ServerConfig serverConfig = registry.get(ServerConfig.class);
       return new DefaultHandlingResult(
         request,
+        results,
         responseHeaders,
         registry,
         timeout,
@@ -213,8 +218,22 @@ public class DefaultRequestFixture implements RequestFixture {
     return this;
   }
 
-  private Registry getEffectiveRegistry() {
-    return RatpackLauncher.baseRegistry().join(registryBuilder.build());
-  }
+  private Registry getEffectiveRegistry(final DefaultHandlingResult.ResultsHolder results) {
 
+    ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
+      results.setClientError(statusCode);
+      results.getLatch().countDown();
+    };
+
+    ServerErrorHandler serverErrorHandler = (context, throwable1) -> {
+      results.setThrowable(throwable1);
+      results.getLatch().countDown();
+    };
+
+    final Registry userRegistry = Registries.registry().
+      add(ClientErrorHandler.class, clientErrorHandler).
+      add(ServerErrorHandler.class, serverErrorHandler).
+      build();
+    return RatpackLauncher.baseRegistry().join(userRegistry).join(registryBuilder.build());
+  }
 }
