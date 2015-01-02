@@ -5,12 +5,11 @@ import ratpack.handling.*;
 import ratpack.func.*;
 import ratpack.server.*;
 import ratpack.perf.incl.*;
-import ratpack.registry.*;
 
 public class HandlerFactory implements ratpack.launch.HandlerFactory {
 
-  public Handler create(Registry registry) throws Exception {
-    return Handlers.chain(registry.get(ServerConfig.class), chain -> {
+  public Handler create(LaunchConfig launchConfig) throws Exception {
+    return Handlers.chain(launchConfig, chain -> {
         chain
           .handler("stop", new StopHandler())
           .handler("render", ctx -> ctx.render("ok"))

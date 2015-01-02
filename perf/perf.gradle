@@ -53,6 +53,12 @@ task createApps {
           expand params
         }
 
+        copy {
+          from "$source/src-${params.label}"
+          into "$destination/src"
+          expand params
+        }
+
         def buildScript = """
 buildscript {
   repositories {
@@ -117,7 +123,7 @@ class PerfTestRun extends JavaExec {
     systemProperty "quick", flag
   }
 
-    @org.gradle.api.internal.tasks.options.Option(option = "smoke", description = "just exercise the benches to make sure they work")
+  @org.gradle.api.internal.tasks.options.Option(option = "smoke", description = "just exercise the benches to make sure they work")
   void smoke(boolean flag) {
     systemProperty "smoke", flag
   }
