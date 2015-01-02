@@ -204,8 +204,6 @@ public class DefaultContext implements Context {
 
   @Override
   public ServerConfig getServerConfig() {
-    //TODO-JOHN
-//    return requestConstants.applicationConstants.registry.get(ServerConfig.class);
     return get(ServerConfig.class);
   }
 
