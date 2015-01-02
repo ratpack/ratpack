@@ -134,6 +134,126 @@ It achieves performance through its use of Netty (and non-blocking) and supports
 
 TBD.
 
+### Play Framework
+[https://playframework.com/](https://playframework.com/)
+
+Ratpack and Play share a few commonalities:
+
+* Netty Based (Play uses Netty 3.9, Ratpack uses Netty 4.X)
+* Async from the ground up
+* [Reactive](http://www.reactivemanifesto.org/)
+
+The biggest differences are found in request handling, SDK, Netty version, async execution, and deployment.
+
+#### Request Handling
+Play follows the traditional MVC approach of handling requests, i.e. an incoming request gets mapped to a controller
+which then processes your request and sends back a response.
+
+Ratpack has no concept of controllers. All of Ratpack's request handling is processed via a [chain](api/ratpack/handling/Chain.html)
+of [handlers](api/ratpack/handling/Handler.html)
+
+#### SDK
+Play requires you to download an SDK to develop Play apps.
+Two active Play distributions are maintained
+
+* Play 1.X Java core - uses python script to execute sdk commands
+* Play 2.X Scala core with optional Java API - requires sbt
+
+You do not need to download any SDK to develop Ratpack apps. In fact a Ratpack app can be as simple as a 
+[standalone groovy script](https://github.com/ratpack/example-ratpack-standalone-groovy-script/blob/master/ratpack.groovy).
+
+Ratpack is purely Java 8 based with first class Groovy support.
+
+
+#### Netty 3.9 vs 4.X
+Trustin Lee, a core Netty developer at Twitter, wrote an article about performance increase [migrating from Netty 3.X to 4.X](https://blog.twitter.com/2013/netty-4-at-twitter-reduced-gc-overhead).
+To summarize Netty 4 has significantly less garbage production and less frequent GC pauses.
+[More indepth summary of Netty 4 vs Netty 3 can be found here](http://netty.io/wiki/new-and-noteworthy-in-4.0.html).
+
+
+#### Async Execution
+When working with an asynchronous framework, you need to be able to reason about the application's execution.
+You also need to be aware of the execution model so that you are not misusing the framework's resources.
+Most libraries, e.g. JDBC, are blocking and need to be integrated into a non-blocking world. How this is accomplished
+is a detail of the framework.
+
+You'll need some way to hook into the framework's non-cpu bound thread pool to execute long running tasks.
+
+This is [non-trivial in Play](https://playframework.com/documentation/2.3.x/ThreadPools) and requires that you
+understand what each provided thread pool does so that you are using the Play's resources optimally.
+
+Play also warns:
+> Note that you may be tempted to therefore wrap your blocking code in Futures. This does not make it non blocking, it just means the blocking will happen in a different thread. You still need to make sure that the thread pool that you are using there has enough threads to handle the blocking.
+
+In order to integrate traditional blocking APIs into your app, you'll need to understand the nature of
+each provided thread pool.
+
+To drive the point home, [Play's documentation states](https://playframework.com/documentation/2.3.x/JavaAsync)
+> You can’t magically turn synchronous IO into asynchronous by wrapping it in a Promise.
+
+In Ratpack you can via the [ExecController](api/ratpack/exec/ExecControl.html#promise-ratpack.func.Action-).
+
+In an async world, you do not know when various asynchronous tasks will complete. This leads to debugging induced
+headaches.
+
+Compare these two code samples
+
+Play async code example
+
+```
+package controllers;
+
+import play.libs.F;
+import play.mvc.*;
+
+public class Application extends Controller {
+  public static F.Promise<Result> index() throws InterruptedException {
+    System.out.println("1");
+  
+    F.Promise<String> promise1 = F.Promise.promise(() -> {
+      System.out.println("2");
+      return "foo";
+    });
+  
+    Thread.sleep(10000);
+  
+    System.out.println("4");
+    return promise1.map(s -> {
+      System.out.println("3");
+      return ok(s);
+    });
+  }
+}
+```
+
+Ratpack async code example from [Luke Daley's Blog](http://ldaley.com/post/97376696242/ratpack-execution-model-part-1)
+
+```language-groovy
+handlers {
+  get {
+    print "1"
+    blocking {
+      print "2"
+      getValueFromDb() // returns string
+    }.then {
+      print "3"
+      render it // it is the return of getValueFromDb() 
+    }
+    sleep 10000
+    print "4"
+  }
+}
+```
+
+From Ratpack's execution model the execution order of the Ratpack code is guaranteed to be 1,4,2,3.
+Play does not guarantee any kind of execution order as it depends on how long it takes for each promise
+to resolve.
+
+#### Deployment
+Deployment: Play suggests to use the Play SDK to run the application in production, Ratpack does not force you to use anything.
+Standard way of distributing and deploying Ratpack apps is a fatjar. It should be noted that Play offers a way to [create a standalone distribution](https://www.playframework.com/documentation/2.3.x/ProductionDist).
+
+
 ## How to read the documentation
 
 The canonical reference documentation for Ratpack is the [Javadoc](api/).
