@@ -88,7 +88,10 @@ public interface Context extends ExecControl, Registry {
    */
   Execution getExecution();
 
-  //TODO-JOHN
+  /**
+   * The server configuration for the application.
+   * @return the server configuration for the application
+   */
   ServerConfig getServerConfig();
 
   /**
