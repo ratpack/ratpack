@@ -23,7 +23,7 @@ class RatpackLauncherSpec extends Specification {
 
   def "start default server"() {
     given:
-    def server = RatpackLauncher.launcher().build {
+    def server = RatpackLauncher.withDefaults().build {
       return {} as Handler
     }
 
@@ -42,11 +42,10 @@ class RatpackLauncherSpec extends Specification {
 
   def "start server on port"() {
     given:
-    def server = RatpackLauncher.launcher().configure { config ->
-      config.port 5060
-    }.build {
-      return {} as Handler
-    }
+    def server = RatpackLauncher.with(ServerConfigBuilder.noBaseDir().port(5060).build())
+      .build {
+        return {} as Handler
+      }
 
     when:
     server.start()
@@ -59,27 +58,5 @@ class RatpackLauncherSpec extends Specification {
     if (server.running) {
       server.stop()
     }
-  }
-
-  def "provide configuration via base registry"() {
-    given:
-    def server = RatpackLauncher.launcher { r ->
-      r.add(ServerConfig, ServerConfigBuilder.noBaseDir().port(6060).build())
-    }.build {
-      return {} as Handler
-    }
-
-    when:
-    server.start()
-
-    then:
-    server.running
-    server.bindPort == 6060
-
-    cleanup:
-    if (server.running) {
-      server.stop()
-    }
-
   }
 }

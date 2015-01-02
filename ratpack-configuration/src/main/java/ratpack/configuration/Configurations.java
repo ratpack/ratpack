@@ -52,21 +52,19 @@ import ratpack.configuration.internal.SystemPropertiesBackedConfiguration;
  *  }
  *
  *  public static void main(String[] args) throws Exception {
- *    Configuration configuration = Configurations.load("classpath-properties.properties").sysProps().env().fileSystem("/tmp/default.properties").build();
- *    RatpackServer server = RatpackLauncher.launcher(r -> {
- *      //Example adding configuration to registry
- *      //r.add(ServerConfig.class, configuration.get(ServerConfig.class));
- *      //r.add(MyAppConfig.class, configuration.get(MyAppConfig.class));
- *    }).build(registry -> {
- *      //This should be how we return the handler
- *      //return registry.get(MyAppConfig.class).getMyHandler();
- *      return new MyHandler();
- *    });
- *    server.start();
  *
- *    assert server.isRunning();
+ *    //Configuration configuration = Configurations.load("classpath-properties.properties").sysProps().env().fileSystem("/tmp/default.properties").build();
+ *    //RatpackServer server = RatpackLauncher.with(configuration.get(ServerConfig.class))
+ *    //  .bindings(r -> {
+ *    //    r.add(MyAppConfig.class, configuration.get(MyAppConfig.class));
+ *    //  }).build(registry -> {
+ *    //    return registry.get(MyAppConfig.class).getMyHandler();
+ *    //  });
+ *    //server.start();
  *
- *    server.stop();
+ *    //assert server.isRunning();
+ *
+ *    //server.stop();
  *  }
  * }
  * }</pre>

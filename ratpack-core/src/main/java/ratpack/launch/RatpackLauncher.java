@@ -17,15 +17,37 @@
 package ratpack.launch;
 
 import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
+import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.error.ClientErrorHandler;
+import ratpack.error.ServerErrorHandler;
+import ratpack.error.internal.DefaultDevelopmentErrorHandler;
+import ratpack.error.internal.DefaultProductionErrorHandler;
+import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
+import ratpack.file.FileSystemBinding;
+import ratpack.file.MimeTypes;
+import ratpack.file.internal.ActivationBackedMimeTypes;
+import ratpack.file.internal.DefaultFileRenderer;
+import ratpack.form.internal.FormParser;
 import ratpack.func.Action;
+import ratpack.handling.Redirector;
+import ratpack.handling.internal.DefaultRedirector;
+import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClients;
 import ratpack.registry.*;
+import ratpack.render.internal.CharSequenceRenderer;
+import ratpack.render.internal.PromiseRenderer;
+import ratpack.render.internal.PublisherRenderer;
+import ratpack.render.internal.RenderableRenderer;
+import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
+import ratpack.server.internal.DefaultPublicAddress;
 
 /**
  * Creates and configures a Ratpack application.
@@ -35,6 +57,7 @@ import ratpack.server.RatpackServerBuilder;
  * import ratpack.handling.Context;
  * import ratpack.server.RatpackServer;
  * import ratpack.launch.RatpackLauncher;
+ * import ratpack.launch.ServerConfigBuilder;
  *
  * public class Example {
  *  public static class MyHandler implements Handler {
@@ -43,13 +66,12 @@ import ratpack.server.RatpackServerBuilder;
  *  }
  *
  *  public static void main(String[] args) throws Exception {
- *    RatpackServer server = RatpackLauncher.launcher(r -> {
- *      r.add(MyHandler.class, new MyHandler());
- *    }).configure( c -> {
- *      c.port(5060);
- *    }).build(registry -> {
- *      return registry.get(MyHandler.class);
- *    });
+ *    RatpackServer server = RatpackLauncher.with(ServerConfigBuilder.noBaseDir().port(5060).build())
+ *      .bindings(r -> {
+ *        r.add(MyHandler.class, new MyHandler());
+ *      }).build(registry -> {
+ *        return registry.get(MyHandler.class);
+ *      });
  *    server.start();
  *
  *    assert server.isRunning();
@@ -63,96 +85,108 @@ import ratpack.server.RatpackServerBuilder;
 public abstract class RatpackLauncher {
 
   /**
-   * Create a RatpackLauncher instance by configuring the root registry  with the supplied action.
+   * Create a RatpackLauncher instance with the supplied configuration.
    *
-   * @param action the action to configure the root application registry
+   * @param config the server configuration for the application
    *
    * @return a launcher instance that can be used to build a {@link ratpack.server.RatpackServer}.
    */
-  public static RatpackLauncher launcher(Action<? super RegistrySpec> action) {
-    try {
-      Registry baseRegistry = baseRegistry();
-      RegistryBuilder builder = Registries.registry();
-      action.execute(builder);
-      return new DefaultRatpackLauncher(baseRegistry.join(builder.build()));
-    } catch (Exception e) {
-      throw uncheck(e);
+  public static RatpackLauncher with(ServerConfig config) {
+      return new DefaultRatpackLauncher(config);
+  }
+
+  /**
+   * Create a RatpackLauncher instance configured with default options.
+   *
+   * @return a launcher instance that can be used to build a {@link ratpack.server.RatpackServer}.
+   */
+  public static RatpackLauncher withDefaults() {
+    return with(ServerConfigBuilder.noBaseDir().build());
+  }
+
+  /**
+   * Create a base registry for an application using the specified server configuration and user define overrides.
+   *
+   * @param serverConfig the server configuration for this application
+   * @param userRegistry the user defined registry contents that will override any default registry entries
+   * @return a fully defined registry that can be used to launch an application
+   *
+   * @throws Exception if there is an error creating the registry.
+   */
+  public static Registry baseRegistry(ServerConfig serverConfig, Registry userRegistry) throws Exception {
+    ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
+
+    Registry baseRegistry = Registries.registry()
+      .add(ServerConfig.class, serverConfig)
+      .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
+      .add(ExecController.class, new DefaultExecController(serverConfig.getThreads()))
+      .build();
+
+    RegistryBuilder registryBuilder = Registries.registry()
+      .add(MimeTypes.class, new ActivationBackedMimeTypes())
+      .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+      .add(Redirector.class, new DefaultRedirector())
+      .add(ClientErrorHandler.class, errorHandler)
+      .add(ServerErrorHandler.class, errorHandler)
+      .with(new DefaultFileRenderer().register())
+      .with(new PromiseRenderer().register())
+      .with(new PublisherRenderer().register())
+      .with(new RenderableRenderer().register())
+      .with(new CharSequenceRenderer().register())
+      .add(FormParser.class, FormParser.multiPart())
+      .add(FormParser.class, FormParser.urlEncoded())
+      .add(HttpClient.class, HttpClients.httpClient(serverConfig, baseRegistry.join(userRegistry)));
+
+    if (serverConfig.isHasBaseDir()) {
+      registryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
-  }
 
-  /**
-   * Create a RatpackLauncher instance with the default root registry.
-   *
-   * @return a launcher instance that can be used to a build a {@link ratpack.server.RatpackServer}.
-   */
-  public static RatpackLauncher launcher() {
-    return launcher(r -> {});
-  }
-
-  /**
-   * Create a default root registry for the application.
-   *
-   * @return a {@link ratpack.registry.Registry} that contains the minimum configuration elements for a Ratpack application.
-   */
-  public static Registry baseRegistry() {
-    RegistryBuilder builder = Registries.registry();
-    builder.add(ServerConfig.class, ServerConfigBuilder.noBaseDir().build());
-    builder.add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT);
-
-    //TODO-JOHN this is ugly and also how do this respond to someone changing the # of threads using the config method below?
-    Registry registry = builder.build();
-    builder.add(ExecController.class, new DefaultExecController(registry.get(ServerConfig.class).getThreads()));
-
-    return builder.build();
+    return baseRegistry.join(registryBuilder.build()).join(userRegistry);
   }
 
   /**
    * Builds a {@link ratpack.server.RatpackServer} with the supplied root handler and backed by the configured root registry.
    *
-   * @param handlerFactory the root handler for the application.
+   * @param factory a function that generates the root handler for the application
    *
    * @return a new, not yet started Ratpack server.
    */
-  public abstract RatpackServer build(HandlerFactory handlerFactory);
+  public abstract RatpackServer build(HandlerFactory factory);
 
   /**
-   * Convenience method for setting the server configuration.
-   * <p>
-   * Calling this method will generate a new {@link ServerConfig} in the root registry, replacing any instance previously added to the registry.
+   * Configure the contents of the base registry for the application. Any values specified here will superseed any defaults.
    *
-   * @param action the spec to configure the application's ServerConfig.
+   * @param action the configuration applied to the registry
    *
    * @return this
+   * @throws Exception if the spec errors when being applied.
    */
-  public abstract RatpackLauncher configure(Action<? super ServerConfigSpec> action);
+  public abstract RatpackLauncher bindings(Action<? super RegistrySpec> action) throws Exception;
 
   private static class DefaultRatpackLauncher extends RatpackLauncher {
 
-    private Registry baseRegistry;
+    private ServerConfig serverConfig;
+    private Registry userRegistry;
 
-    DefaultRatpackLauncher(Registry baseRegistry) {
-      this.baseRegistry = baseRegistry;
+    DefaultRatpackLauncher(ServerConfig serverConfig) {
+      this.serverConfig = serverConfig;
+      this.userRegistry = Registries.empty();
     }
 
     @Override
-    public RatpackServer build(HandlerFactory handlerFactory) {
+    public RatpackServer build(HandlerFactory factory) {
       try {
-        return RatpackServerBuilder.build(baseRegistry, handlerFactory);
+        Registry baseRegistry = baseRegistry(serverConfig, userRegistry);
+        return RatpackServerBuilder.build(baseRegistry, factory);
       } catch (Exception e) {
         throw uncheck(e);
       }
     }
 
     @Override
-    public RatpackLauncher configure(Action<? super ServerConfigSpec> action) {
-      try {
-        ServerConfigBuilder builder = ServerConfigBuilder.noBaseDir();
-        action.execute(builder);
-        baseRegistry = baseRegistry.join(Registries.just(ServerConfig.class, builder.build()));
-        return this;
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
+    public RatpackLauncher bindings(Action<? super RegistrySpec> action) throws Exception {
+      userRegistry = Registries.registry(action);
+      return this;
     }
 
   }

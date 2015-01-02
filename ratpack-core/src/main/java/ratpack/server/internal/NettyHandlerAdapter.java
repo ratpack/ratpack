@@ -26,25 +26,15 @@ import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.error.ClientErrorHandler;
-import ratpack.error.ServerErrorHandler;
-import ratpack.error.internal.DefaultDevelopmentErrorHandler;
-import ratpack.error.internal.DefaultProductionErrorHandler;
-import ratpack.error.internal.ErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.file.FileSystemBinding;
-import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
-import ratpack.file.internal.DefaultFileRenderer;
 import ratpack.file.internal.ShouldCompressPredicate;
-import ratpack.form.internal.FormParser;
 import ratpack.func.Action;
 import ratpack.func.Pair;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.handling.Redirector;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
@@ -52,24 +42,17 @@ import ratpack.handling.internal.*;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
 import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.*;
-import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
-import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -97,7 +80,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
 
     this.handlers = ChainHandler.unpack(handler);
-    this.rootRegistry = buildBaseRegistry(stopper, serverConfig, rootRegistry);
+    this.rootRegistry = rootRegistry.join(Registries.just(Stopper.class, stopper));
     this.addResponseTimeHeader = serverConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = rootRegistry.get(ExecController.class);
@@ -224,39 +207,4 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     // Close the connection as soon as the error message is sent.
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);
   }
-
-  public static Registry buildBaseRegistry(Stopper stopper, ServerConfig serverConfig, Registry defaultRegistry) throws Exception {
-    return buildBaseRegistry(stopper, serverConfig, defaultRegistry, null);
-  }
-
-  public static Registry buildBaseRegistry(Stopper stopper, ServerConfig serverConfig, Registry defaultRegistry, Registry userRegistry) throws Exception {
-    ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
-
-    RegistryBuilder registryBuilder = Registries.registry()
-      .add(Stopper.class, stopper)
-      .add(MimeTypes.class, new ActivationBackedMimeTypes())
-      .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
-      .add(Redirector.class, new DefaultRedirector())
-      .add(ClientErrorHandler.class, errorHandler)
-      .add(ServerErrorHandler.class, errorHandler)
-      .with(new DefaultFileRenderer().register())
-      .with(new PromiseRenderer().register())
-      .with(new PublisherRenderer().register())
-      .with(new RenderableRenderer().register())
-      .with(new CharSequenceRenderer().register())
-      .add(FormParser.class, FormParser.multiPart())
-      .add(FormParser.class, FormParser.urlEncoded())
-      .add(HttpClient.class, HttpClients.httpClient(serverConfig, defaultRegistry));
-
-    if (serverConfig.isHasBaseDir()) {
-      registryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
-    }
-
-    Registry effectiveRegistry = registryBuilder.build();
-    if (userRegistry != null) {
-      effectiveRegistry = effectiveRegistry.join(userRegistry);
-    }
-    return effectiveRegistry.join(defaultRegistry);
-  }
-
 }

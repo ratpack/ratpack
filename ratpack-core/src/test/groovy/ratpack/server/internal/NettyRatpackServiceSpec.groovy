@@ -35,16 +35,14 @@ class NettyRatpackServiceSpec extends Specification {
   def "throws exception if can't bind to port"() {
     given:
     def config1 = ServerConfigBuilder.baseDir(temporaryFolder.root).port(0).build()
-    def server1 = RatpackLauncher.launcher {r ->
-      r.add(ServerConfig, config1)
-    }.build({} as HandlerFactory)
+    def server1 = RatpackLauncher.with(config1)
+      .build({} as HandlerFactory)
     server1.start()
 
     when:
     def config2 = ServerConfigBuilder.baseDir(temporaryFolder.root).port(server1.bindPort).build()
-    def server2 = RatpackLauncher.launcher { r ->
-      r.add(ServerConfig, config2)
-    }.build({} as HandlerFactory)
+    def server2 = RatpackLauncher.with(config2)
+      .build({} as HandlerFactory)
     server2.start()
 
     then:

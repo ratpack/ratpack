@@ -37,14 +37,13 @@ class ServerConfigBuilderSpec extends Specification {
     given:
     def e = new Error("e")
     def config = ServerConfigBuilder.noBaseDir().build()
-    def server = RatpackLauncher.launcher {r ->
-      r.add(ServerConfig, config)
-    }.build(new HandlerFactory() {
-      @Override
-      Handler create(Registry rootRegistry) throws Exception {
-        throw e
-      }
-    })
+    def server = RatpackLauncher.with(config)
+      .build(new HandlerFactory() {
+        @Override
+        Handler create(Registry rootRegistry) throws Exception {
+          throw e
+        }
+      })
 
     when:
     server.start()

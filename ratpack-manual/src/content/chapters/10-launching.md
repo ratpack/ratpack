@@ -4,20 +4,18 @@ This chapter introduces how to launch a Ratpack application, and the associated 
 
 ## Configuring and starting a Ratpack application
 
-A Ratpack application is configured and started via the [`RatpackLauncher`](api/ratpack/launch/RatpackLauncher.html). The [`launcher`][api/ratpack/launch/RatpackLauncher.html#launcher-ratpack.func.Action`]
-provides access to the base [`Registry`][api/ratpack/registry/Registry.html] that is used to configure the Ratpack application.
+A Ratpack application is configured and started via the [`RatpackLauncher`](api/ratpack/launch/RatpackLauncher.html). The 
+[`with`][api/ratpack/launch/RatpackLauncher.html#with-ratpack.launch.ServerConfig`] methods creates an instance of the launcher that is backed with the provided server configuration. 
 
-The base registry must provide the [`ServerConfig`][api/ratpack/launch/ServerConfig.html], the [`ExecController`][api/ratpack/exec/ExecController.html], and the default Netty `ByteBufAllocator`. 
-If not provided, defaults will be added to the Registry. All subsequent Registries will inherit from this base registry.
-
-The `launcher` method will return an instance of `RatpackLauncher`. This instance provides the [`config`][api/ratpack/launch/RatpackLauncher.html#config-ratpack.func.action] convenience method to
-configure the default `ServerConfig`.
+The launcher then provides access to configure the user [`Registry`][api/ratpack/registry/Registry.html] that is used to configure the Ratpack application via 
+the [`bindings`][api/ratpack/launch/RatpackLauncher.html#bindings-ratpack.func.Function] method. The launcher adds the necessary default objects to the registry 
+before building the server instance. Objects in the user registry will take supersede the defaults items.
 
 Calling the [`build`](api/ratpack/launch/RatpackLauncher.html#build-ratpack.launch.HandlerFactory] will construct a [`RatpackServer`][api/ratpack/server/RatpackServer.html] that can be started.
 Note that the `build` method accepts a [`HandlerFactory`][api/ratpack/launch/HandlerFactory.html]. This factory is responsible for create the handler that is effectively the Ratpack application.
 See the [chapter on handlers](handlers.html) for more details.
 
-The Ratpack application can be customized by adding a custom `ServerConfig` object to the `Registry. This instance can be constructed using the [`ServerConfigBuilder`][api/ratpack/launch/ServerConfigBuilder.html].
+The Ratpack application can be customized by configuring the `ServerConfig` object used to create the launcher. This instance can be constructed using the [`ServerConfigBuilder`][api/ratpack/launch/ServerConfigBuilder.html].
 For example, 
 
 ```language-java
@@ -30,10 +28,8 @@ import ratpack.server.RatpackServer;
 
 public class ApplicationMain {
     public static void main(String[] args) {
-        RatpackServer server = RatpackLauncher.launcher(r -> {
-            ServerConfig config = ServerConfigBuilder.noBaseDir().port(6060).build();
-            r.add(ServerConfig.class, config);
-        }).build(r -> new HelloWorld());
+        RatpackServer server = RatpackLauncher.with(ServerConfigBuilder.noBaseDir().port(6060).build())
+          .build(r -> new HelloWorld());
     }
     
     private static class HelloWorld implements Handler {
@@ -43,6 +39,8 @@ public class ApplicationMain {
     }
 }
 ```
+
+Alternatively, if you wish to use the default server configuration for your application, call the [`withDefaults`][api/ratpack/launch/RatpackLauncher.html#withDefaults] method.
 
 ## RatpackMain
 

@@ -35,9 +35,8 @@ public class Application {
     try {
       //TODO-JOHN
       LaunchConfig launchConfig = buildLaunchConfig();
-      RatpackLauncher.launcher(r -> {
-        r.add(ServerConfig.class, ServerConfigBuilder.launchConfig(launchConfig).build());
-      }).build(launchConfig.getHandlerFactory()).start();
+      RatpackLauncher.with(ServerConfigBuilder.launchConfig(launchConfig).build())
+        .build(launchConfig.getHandlerFactory()).start();
     } catch (ConfigurationException ex) {
       throw new LaunchException("Failed to launch application", ex);
     }

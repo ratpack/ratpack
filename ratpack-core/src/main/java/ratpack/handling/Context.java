@@ -370,7 +370,6 @@ public interface Context extends ExecControl, Registry {
    *     public void handle(final Context context) {
    *       final int numJobs = 3;
    *       final Integer failOnIteration = context.getPathTokens().asInt("failOn");
-   *
    *       context.promise(new Action<Fulfiller<Integer>>() {
    *         private final AtomicInteger counter = new AtomicInteger();
    *         private final AtomicReference<Throwable> error = new AtomicReference<>();

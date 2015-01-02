@@ -64,7 +64,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
     return new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        return uncheck(() -> RatpackLauncher.launcher(r -> r.add(ServerConfig.class, function.apply(ServerConfigBuilder.noBaseDir().development(true).port(0)))).build(handlerFactory));
+        return uncheck(() -> RatpackLauncher.with(function.apply(ServerConfigBuilder.noBaseDir().development(true).port(0))).build(handlerFactory::create));
       }
     };
   }
@@ -83,7 +83,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
     return new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        return uncheck(() -> RatpackLauncher.launcher(r -> r.add(ServerConfig.class, function.apply(ServerConfigBuilder.baseDir(baseDir).development(true).port(0)))).build(handlerFactory));
+        return uncheck(() -> RatpackLauncher.with(function.apply(ServerConfigBuilder.baseDir(baseDir).development(true).port(0))).build(handlerFactory));
       }
     };
   }

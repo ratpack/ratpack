@@ -39,11 +39,10 @@ import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
-import ratpack.launch.ServerConfig;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.Stopper;
-import ratpack.server.internal.NettyHandlerAdapter;
 import ratpack.test.handling.HandlerExceptionNotThrownException;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
@@ -68,7 +67,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private ResultsHolder results;
 
-  public DefaultHandlingResult(final Request request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, ServerConfig serverConfig, final Handler handler) throws Exception {
+  public DefaultHandlingResult(final Request request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -120,7 +119,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
-    Registry effectiveRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, serverConfig, registry);
+    Registry effectiveRegistry = registry.join(Registries.just(Stopper.class, stopper));
     Response response = new DefaultResponse(execControl, responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(

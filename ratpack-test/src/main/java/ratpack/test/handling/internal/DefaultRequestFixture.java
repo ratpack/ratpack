@@ -122,7 +122,6 @@ public class DefaultRequestFixture implements RequestFixture {
         responseHeaders,
         registry,
         timeout,
-        serverConfig,
         handler
       );
     } catch (Exception e) {
@@ -234,6 +233,6 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return RatpackLauncher.baseRegistry().join(userRegistry).join(registryBuilder.build());
+    return ExceptionUtils.uncheck(() -> RatpackLauncher.baseRegistry(serverConfigBuilder.build(), userRegistry.join(registryBuilder.build())));
   }
 }
