@@ -24,6 +24,7 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigurationSource;
+import ratpack.config.internal.util.PathUtil;
 import ratpack.util.ExceptionUtils;
 
 import java.io.IOException;
@@ -32,29 +33,33 @@ import java.net.URL;
 import java.nio.file.Path;
 
 public abstract class JacksonConfigurationSource implements ConfigurationSource {
-    private final ByteSource byteSource;
+  private final ByteSource byteSource;
 
-    public JacksonConfigurationSource(Path path) {
-        this(Files.asByteSource(path.toFile()));
+  public JacksonConfigurationSource(Path path) {
+    this(Files.asByteSource(path.toFile()));
+  }
+
+  public JacksonConfigurationSource(String pathOrUrl) {
+    this(PathUtil.asByteSource(pathOrUrl));
+  }
+
+  public JacksonConfigurationSource(URL url) {
+    this(Resources.asByteSource(url));
+  }
+
+  public JacksonConfigurationSource(ByteSource byteSource) {
+    this.byteSource = byteSource;
+  }
+
+  @Override
+  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) {
+    try (InputStream inputStream = byteSource.openStream()) {
+      JsonParser parser = getFactory(objectMapper).createParser(inputStream);
+      return objectMapper.readTree(parser);
+    } catch (IOException ex) {
+      throw ExceptionUtils.uncheck(ex);
     }
+  }
 
-    public JacksonConfigurationSource(URL url) {
-        this(Resources.asByteSource(url));
-    }
-
-    public JacksonConfigurationSource(ByteSource byteSource) {
-        this.byteSource = byteSource;
-    }
-
-    @Override
-    public ObjectNode loadConfigurationData(ObjectMapper objectMapper) {
-        try (InputStream inputStream = byteSource.openStream()) {
-            JsonParser parser = getFactory(objectMapper).createParser(inputStream);
-            return objectMapper.readTree(parser);
-        } catch (IOException ex) {
-            throw ExceptionUtils.uncheck(ex);
-        }
-    }
-
-    protected abstract JsonFactory getFactory(ObjectMapper objectMapper);
+  protected abstract JsonFactory getFactory(ObjectMapper objectMapper);
 }

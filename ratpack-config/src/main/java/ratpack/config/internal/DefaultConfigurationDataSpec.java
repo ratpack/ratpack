@@ -92,6 +92,12 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   }
 
   @Override
+  public ConfigurationDataSpec json(String pathOrUrl) {
+    add(new JsonConfigurationSource(pathOrUrl));
+    return this;
+  }
+
+  @Override
   public ConfigurationDataSpec json(URL url) {
     add(new JsonConfigurationSource(url));
     return this;
@@ -106,6 +112,12 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   @Override
   public ConfigurationDataSpec props(Path path) {
     add(new PropertiesConfigurationSource(path));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec props(String pathOrUrl) {
+    add(new PropertiesConfigurationSource(pathOrUrl));
     return this;
   }
 
@@ -142,6 +154,12 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   @Override
   public ConfigurationDataSpec yaml(Path path) {
     add(new YamlConfigurationSource(path));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec yaml(String pathOrUrl) {
+    add(new YamlConfigurationSource(pathOrUrl));
     return this;
   }
 

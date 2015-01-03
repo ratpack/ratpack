@@ -29,6 +29,10 @@ public class YamlConfigurationSource extends JacksonConfigurationSource {
     super(path);
   }
 
+  public YamlConfigurationSource(String pathOrUrl) {
+    super(pathOrUrl);
+  }
+
   public YamlConfigurationSource(URL url) {
     super(url);
   }

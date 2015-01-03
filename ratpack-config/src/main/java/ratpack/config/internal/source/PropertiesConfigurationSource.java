@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import ratpack.config.internal.util.PathUtil;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.util.ExceptionUtils;
@@ -53,6 +54,10 @@ public class PropertiesConfigurationSource extends FlatToNestedConfigurationSour
 
   public PropertiesConfigurationSource(Path path) {
     this(null, Files.asByteSource(path.toFile()));
+  }
+
+  public PropertiesConfigurationSource(String pathOrUrl) {
+    this(null, PathUtil.asByteSource(pathOrUrl));
   }
 
   public PropertiesConfigurationSource(Properties properties) {

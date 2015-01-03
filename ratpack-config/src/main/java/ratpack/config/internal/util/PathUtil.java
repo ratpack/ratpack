@@ -14,34 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.source;
+package ratpack.config.internal.util;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
 
-public class JsonConfigurationSource extends JacksonConfigurationSource {
-  public JsonConfigurationSource(Path path) {
-    super(path);
-  }
-
-  public JsonConfigurationSource(String pathOrUrl) {
-    super(pathOrUrl);
-  }
-
-  public JsonConfigurationSource(URL url) {
-    super(url);
-  }
-
-  public JsonConfigurationSource(ByteSource byteSource) {
-    super(byteSource);
-  }
-
-  @Override
-  protected JsonFactory getFactory(ObjectMapper objectMapper) {
-    return objectMapper.getFactory();
+public class PathUtil {
+  public static ByteSource asByteSource(String pathOrUrl) {
+    try {
+      return Resources.asByteSource(new URL(pathOrUrl));
+    } catch (MalformedURLException ex) {
+      return Files.asByteSource(new File(pathOrUrl));
+    }
   }
 }
