@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 public class PropertiesConfigurationSource extends FlatToNestedConfigurationSource {
+  public static final String DEFAULT_PREFIX = "ratpack.";
   private final Properties properties;
 
   public PropertiesConfigurationSource(String prefix, Properties properties) {

@@ -143,7 +143,7 @@ public interface ConfigurationDataSpec {
   ConfigurationDataSpec props(URL url);
 
   /**
-   * Adds a configuration source for system properties starting with the prefix {@value ratpack.config.internal.source.SystemPropertiesConfigurationSource#DEFAULT_PREFIX}.
+   * Adds a configuration source for system properties starting with the prefix {@value ratpack.config.internal.source.PropertiesConfigurationSource#DEFAULT_PREFIX}.
    *
    * @return this
    */

@@ -1,0 +1,81 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.config.internal.source
+
+import ratpack.config.internal.DefaultConfigurationDataSpec
+import spock.lang.Specification
+import spock.lang.Unroll
+
+import static ratpack.config.internal.source.PropertiesConfigurationSource.DEFAULT_PREFIX
+
+class PropertiesConfigurationSourceSpec extends Specification {
+  private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
+  def mapper = DefaultConfigurationDataSpec.newDefaultObjectMapper()
+
+  @Unroll
+  def "supports no prefix (#prefix)"() {
+    def source = propsSource(prefix, [port: "8080", threads: "10"])
+
+    when:
+    def rootNode = source.loadConfigurationData(mapper)
+
+    then:
+    rootNode.path("port").asText() == "8080"
+    rootNode.path("threads").asText() == "10"
+    rootNode.size() == 2
+
+    where:
+    prefix << [null, ""]
+  }
+
+  @Unroll
+  def "when prefix provided, only matched elements are included, minus prefix: #prefix"() {
+    def source = propsSource(prefix, input)
+
+    when:
+    def rootNode = source.loadConfigurationData(mapper)
+
+    then:
+    rootNode.path("port").asText() == "8080"
+    rootNode.path("threads").asText() == "10"
+    rootNode.size() == 2
+
+    where:
+    prefix         | input
+    DEFAULT_PREFIX | SAMPLE_SYS_PROPS + [(DEFAULT_PREFIX + "port"): "8080", (DEFAULT_PREFIX + "threads"): "10"]
+    "app."         | SAMPLE_SYS_PROPS + ["app.port": "8080", "app.threads": "10"]
+  }
+
+  def "entries are broken into sub-objects based on dot delimiter"() {
+    def source = propsSource(null, ["server.port": "8080", "server.threads": "10", "db.jdbcUrl": "jdbc:h2:mem:"])
+
+    when:
+    def rootNode = source.loadConfigurationData(mapper)
+
+    then:
+    rootNode.path("server").path("port").asText() == "8080"
+    rootNode.path("server").path("threads").asText() == "10"
+    rootNode.path("db").path("jdbcUrl").asText() == "jdbc:h2:mem:"
+    rootNode.size() == 2
+  }
+
+  private static PropertiesConfigurationSource propsSource(String prefix, Map<String, String> input) {
+    def props = new Properties()
+    props.putAll(input)
+    return new PropertiesConfigurationSource(prefix, props)
+  }
+}

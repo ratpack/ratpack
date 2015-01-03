@@ -169,7 +169,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
     return this;
   }
 
-  private static ObjectMapper newDefaultObjectMapper() {
+  public static ObjectMapper newDefaultObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new ConfigurationModule());
