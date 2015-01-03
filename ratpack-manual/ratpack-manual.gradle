@@ -246,6 +246,8 @@ compass {
   fontsDir = file('../ratpack-stylesheets/fonts')
   relativeAssets = true
   quiet = true
+  debugInfo = false
+  environment = 'production'
 }
 
 combineJs {
