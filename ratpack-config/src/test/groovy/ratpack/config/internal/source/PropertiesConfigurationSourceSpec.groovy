@@ -16,6 +16,7 @@
 
 package ratpack.config.internal.source
 
+import groovy.transform.NotYetImplemented
 import ratpack.config.internal.DefaultConfigurationDataSpec
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -28,7 +29,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
 
   @Unroll
   def "supports no prefix (#prefix)"() {
-    def source = propsSource(prefix, [port: "8080", threads: "10"])
+    def source = propsSource(prefix, port: "8080", threads: "10")
 
     when:
     def rootNode = source.loadConfigurationData(mapper)
@@ -44,7 +45,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
 
   @Unroll
   def "when prefix provided, only matched elements are included, minus prefix: #prefix"() {
-    def source = propsSource(prefix, input)
+    def source = propsSource(input, prefix)
 
     when:
     def rootNode = source.loadConfigurationData(mapper)
@@ -61,7 +62,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
   }
 
   def "entries are broken into sub-objects based on dot delimiter"() {
-    def source = propsSource(null, ["server.port": "8080", "server.threads": "10", "db.jdbcUrl": "jdbc:h2:mem:"])
+    def source = propsSource("server.port": "8080", "server.threads": "10", "db.jdbcUrl": "jdbc:h2:mem:")
 
     when:
     def rootNode = source.loadConfigurationData(mapper)
@@ -73,9 +74,85 @@ class PropertiesConfigurationSourceSpec extends Specification {
     rootNode.size() == 2
   }
 
-  private static PropertiesConfigurationSource propsSource(String prefix, Map<String, String> input) {
+  @NotYetImplemented
+  def "indexed elements are handled as arrays (values)"() {
+    def source = propsSource('''
+    |users[0]=alice
+    |users[1]=bob
+    |users[2]=chuck
+    '''.stripMargin())
+
+    when:
+    def rootNode = source.loadConfigurationData(mapper)
+
+    then:
+    def users = rootNode.path("users")
+    users.path(0).asText() == "alice"
+    users.path(1).asText() == "bob"
+    users.path(2).asText() == "chuck"
+    rootNode.size() == 1
+  }
+
+  @NotYetImplemented
+  def "indexed elements are handled as arrays (objects)"() {
+    def source = propsSource('''
+    |dbs[0].name=test
+    |dbs[0].url=jdbc:mysql://test/test
+    |dbs[1].name=prod
+    |dbs[1].url=jdbc:mysql://prod/prod
+    '''.stripMargin())
+
+    when:
+    def rootNode = source.loadConfigurationData(mapper)
+
+    then:
+    def dbConfigs = rootNode.path("dbConfigs")
+    dbConfigs.path(0).path("name").asText() == "test"
+    dbConfigs.path(0).path("url").asText() == "jdbc:mysql://test/test"
+    dbConfigs.path(1).path("name").asText() == "prod"
+    dbConfigs.path(1).path("url").asText() == "jdbc:mysql://prod/prod"
+    dbConfigs.size() == 2
+    rootNode.size() == 1
+  }
+
+  @NotYetImplemented
+  def "out of order or interleaved arrays should be indexed properly"() {
+    def source = propsSource('''
+    |users[1]=bob
+    |users[0]=alice
+    |users[2]=chuck
+    |dbs[0].name=test
+    |dbs[1].name=prod
+    |dbs[0].url=jdbc:mysql://test/test
+    |dbs[1].url=jdbc:mysql://prod/prod
+    '''.stripMargin())
+
+    when:
+    def rootNode = source.loadConfigurationData(mapper)
+
+    then:
+    def users = rootNode.path("users")
+    users.path(0).asText() == "alice"
+    users.path(1).asText() == "bob"
+    users.path(2).asText() == "chuck"
+    def dbConfigs = rootNode.path("dbConfigs")
+    dbConfigs.path(0).path("name").asText() == "test"
+    dbConfigs.path(0).path("url").asText() == "jdbc:mysql://test/test"
+    dbConfigs.path(1).path("name").asText() == "prod"
+    dbConfigs.path(1).path("url").asText() == "jdbc:mysql://prod/prod"
+    dbConfigs.size() == 2
+    rootNode.size() == 2
+  }
+
+  private static PropertiesConfigurationSource propsSource(String input, String prefix = null) {
+    def props = new Properties()
+    props.load(new StringReader(input))
+    new PropertiesConfigurationSource(prefix, props)
+  }
+
+  private static PropertiesConfigurationSource propsSource(Map<String, String> input, String prefix = null) {
     def props = new Properties()
     props.putAll(input)
-    return new PropertiesConfigurationSource(prefix, props)
+    new PropertiesConfigurationSource(prefix, props)
   }
 }
