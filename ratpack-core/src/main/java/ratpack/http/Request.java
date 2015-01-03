@@ -130,6 +130,12 @@ public interface Request extends MutableRegistry {
   HostAndPort getLocalAddress();
 
   /**
+   * A flag representing whether or not the request originated via AJAX.
+   * @return A flag representing whether or not the request originated via AJAX.
+   */
+  boolean isAjaxRequest();
+
+  /**
    * {@inheritDoc}
    */
   @Override

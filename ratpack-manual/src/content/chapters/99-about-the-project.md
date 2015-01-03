@@ -54,6 +54,7 @@ The following people have provided significant contributions.
 * [Jörn Huxhorn](https://github.com/huxi)
 * [Robert Zakrzewski](https://github.com/zedar)
 * [Glenn Saqui](https://github.com/gsaqui)
+* [Jeff Blaisdell](https://github.com/jeff-blaisdell)
 
 ### Past project members
 

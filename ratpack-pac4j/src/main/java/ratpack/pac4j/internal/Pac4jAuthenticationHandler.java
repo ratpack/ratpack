@@ -66,7 +66,7 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
     final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(() -> {
-      clients.findClient(name).redirect(webContext, true, false);
+      clients.findClient(name).redirect(webContext, true, request.isAjaxRequest());
       return null;
     }).onError(ex -> {
       if (ex instanceof RequiresHttpAction) {
@@ -76,4 +76,5 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
       }
     }).then(ignored -> webContext.sendResponse());
   }
+
 }

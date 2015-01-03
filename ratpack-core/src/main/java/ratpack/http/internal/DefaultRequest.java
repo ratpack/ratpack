@@ -185,6 +185,10 @@ public class DefaultRequest implements Request {
     }
   }
 
+  public boolean isAjaxRequest() {
+    return HttpHeaderConstants.XML_HTTP_REQUEST.equalsIgnoreCase(headers.get(HttpHeaderConstants.X_REQUESTED_WITH));
+  }
+
   @Override
   public TypedData getBody() {
     if (body == null) {

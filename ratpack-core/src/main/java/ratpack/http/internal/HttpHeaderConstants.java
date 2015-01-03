@@ -51,6 +51,7 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence X_FORWARDED_HOST = new AsciiString("X-Forwarded-Host");
   public static final CharSequence X_FORWARDED_PROTO = new AsciiString("X-Forwarded-Proto");
   public static final CharSequence X_FORWARDED_SSL = new AsciiString("X-Forwarded-Ssl");
+  public static final CharSequence X_REQUESTED_WITH = new AsciiString("X-Requested-With");
 
   public static final CharSequence PLAIN_TEXT_UTF8 = new AsciiString("text/plain;charset=UTF-8");
   public static final CharSequence OCTET_STREAM = new AsciiString("application/octet-stream");
@@ -59,4 +60,6 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence ON = new AsciiString("on");
 
   public static final CharSequence TEXT_EVENT_STREAM_CHARSET_UTF_8 = new AsciiString("text/event-stream;charset=UTF-8");
+
+  public static final String XML_HTTP_REQUEST = "XMLHttpRequest";
 }
