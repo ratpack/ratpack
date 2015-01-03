@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteSource;
 import ratpack.config.ConfigurationData;
 import ratpack.config.ConfigurationDataSpec;
 import ratpack.config.ConfigurationSource;
@@ -73,6 +74,18 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   }
 
   @Override
+  public ConfigurationDataSpec env(String prefix) {
+    add(new EnvironmentVariablesConfigurationSource(prefix));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec json(ByteSource byteSource) {
+    add(new JsonConfigurationSource(byteSource));
+    return this;
+  }
+
+  @Override
   public ConfigurationDataSpec json(Path path) {
     add(new JsonConfigurationSource(path));
     return this;
@@ -84,7 +97,12 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
     return this;
   }
 
-  // TODO: support specifying a prefix?
+  @Override
+  public ConfigurationDataSpec props(ByteSource byteSource) {
+    add(new PropertiesConfigurationSource(byteSource));
+    return this;
+  }
+
   @Override
   public ConfigurationDataSpec props(Path path) {
     add(new PropertiesConfigurationSource(path));
@@ -93,7 +111,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec props(Properties properties) {
-    add(new PropertiesConfigurationSource(null, properties));
+    add(new PropertiesConfigurationSource(properties));
     return this;
   }
 
@@ -103,10 +121,21 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
     return this;
   }
 
-  // TODO: support specifying a prefix?
   @Override
   public ConfigurationDataSpec sysProps() {
     add(new SystemPropertiesConfigurationSource());
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec sysProps(String prefix) {
+    add(new SystemPropertiesConfigurationSource(prefix));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec yaml(ByteSource byteSource) {
+    add(new YamlConfigurationSource(byteSource));
     return this;
   }
 

@@ -33,7 +33,11 @@ public class EnvironmentVariablesConfigurationSource extends FlatToNestedConfigu
   private final ImmutableMap<String, String> data;
 
   public EnvironmentVariablesConfigurationSource() {
-    this(DEFAULT_PREFIX, System.getenv());
+    this(DEFAULT_PREFIX);
+  }
+
+  public EnvironmentVariablesConfigurationSource(String prefix) {
+    this(prefix, System.getenv());
   }
 
   public EnvironmentVariablesConfigurationSource(String prefix, Map<String, String> data) {

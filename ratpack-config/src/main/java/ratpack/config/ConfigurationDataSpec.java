@@ -17,6 +17,7 @@
 package ratpack.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.ByteSource;
 import ratpack.func.Action;
 
 import java.net.URL;
@@ -32,11 +33,15 @@ public interface ConfigurationDataSpec {
 
   ConfigurationDataSpec env();
 
-  // TODO: consider adding support for ByteSource arguments
+  ConfigurationDataSpec env(String prefix);
+
+  ConfigurationDataSpec json(ByteSource byteSource);
 
   ConfigurationDataSpec json(Path path);
 
   ConfigurationDataSpec json(URL url);
+
+  ConfigurationDataSpec props(ByteSource byteSource);
 
   ConfigurationDataSpec props(Path path);
 
@@ -45,6 +50,10 @@ public interface ConfigurationDataSpec {
   ConfigurationDataSpec props(URL url);
 
   ConfigurationDataSpec sysProps();
+
+  ConfigurationDataSpec sysProps(String prefix);
+
+  ConfigurationDataSpec yaml(ByteSource byteSource);
 
   ConfigurationDataSpec yaml(Path path);
 

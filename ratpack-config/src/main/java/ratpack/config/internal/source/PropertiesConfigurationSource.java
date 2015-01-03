@@ -43,12 +43,20 @@ public class PropertiesConfigurationSource extends FlatToNestedConfigurationSour
     this(prefix, load(byteSource));
   }
 
+  public PropertiesConfigurationSource(ByteSource byteSource) {
+    this(null, byteSource);
+  }
+
   public PropertiesConfigurationSource(URL url) {
     this(null, Resources.asByteSource(url));
   }
 
   public PropertiesConfigurationSource(Path path) {
     this(null, Files.asByteSource(path.toFile()));
+  }
+
+  public PropertiesConfigurationSource(Properties properties) {
+    this(null, properties);
   }
 
   @Override
