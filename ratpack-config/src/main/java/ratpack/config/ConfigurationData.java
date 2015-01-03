@@ -16,8 +16,28 @@
 
 package ratpack.config;
 
+/**
+ * Provides access to configuration data bound to arbitrary objects.
+ */
 public interface ConfigurationData {
+  /**
+   * Binds a segment of the configuration data to the specified type.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying
+   * the point in the configuration data to bind from
+   * @param type the class of the type to bind to
+   * @param <O> the type to bind to
+   * @return an instance of the specified type with bound configuration data
+   */
   <O> O get(String pointer, Class<O> type);
+
+  /**
+   * Binds the root of the configuraiton data to the specified type.
+   *
+   * @param type the class of the type to bind to
+   * @param <O> the type to bind to
+   * @return an instance of the specified type with bound configuration data
+   */
   default <O> O get(Class<O> type) {
     return get(null, type);
   }
