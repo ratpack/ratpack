@@ -81,9 +81,6 @@
 	}
 }
 
-/**
- * Workaround for https://github.com/chriseppstein/compass/issues/1092
- */
 @function simple-image-url($image-path) {
-  @return generated-image-url($image-path, true);
+  @return image-url($image-path, false, true);
 }
