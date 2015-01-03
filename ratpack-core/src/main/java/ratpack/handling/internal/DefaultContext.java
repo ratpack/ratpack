@@ -73,13 +73,13 @@ public class DefaultContext implements Context {
 
   public static class ApplicationConstants {
     private final RenderController renderController;
-    private final Registry registry;
+    private final ServerConfig serverConfig;
     private final ExecControl execControl;
     private final Handler end;
 
     public ApplicationConstants(Registry registry, RenderController renderController, Handler end) {
       this.renderController = renderController;
-      this.registry = registry;
+      this.serverConfig = registry.get(ServerConfig.class);
       this.execControl = registry.get(ExecController.class).getControl();
       this.end = end;
     }
@@ -204,7 +204,7 @@ public class DefaultContext implements Context {
 
   @Override
   public ServerConfig getServerConfig() {
-    return get(ServerConfig.class);
+    return requestConstants.applicationConstants.serverConfig;
   }
 
   public Request getRequest() {
