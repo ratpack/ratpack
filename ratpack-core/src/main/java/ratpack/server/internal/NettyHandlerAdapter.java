@@ -46,6 +46,7 @@ import ratpack.http.internal.*;
 import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
+import ratpack.registry.internal.CachingRegistry;
 import ratpack.render.internal.*;
 import ratpack.server.Stopper;
 
@@ -80,7 +81,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
 
     this.handlers = ChainHandler.unpack(handler);
-    this.rootRegistry = rootRegistry.join(Registries.just(Stopper.class, stopper));
+    this.rootRegistry = new CachingRegistry(rootRegistry.join(Registries.just(Stopper.class, stopper)));
     this.addResponseTimeHeader = serverConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = rootRegistry.get(ExecController.class);

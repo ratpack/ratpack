@@ -40,7 +40,6 @@ import ratpack.handling.internal.DefaultRedirector;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.registry.*;
-import ratpack.registry.internal.CachingRegistry;
 import ratpack.render.internal.CharSequenceRenderer;
 import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
@@ -142,7 +141,7 @@ public abstract class RatpackLauncher {
       registryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
 
-    return new CachingRegistry(baseRegistry.join(registryBuilder.build()).join(userRegistry));
+    return baseRegistry.join(registryBuilder.build()).join(userRegistry);
   }
 
   /**
