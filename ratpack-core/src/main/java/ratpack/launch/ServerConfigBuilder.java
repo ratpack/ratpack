@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Builds ServerConfig objects.
+ * Builder for ServerConfig objects.
  */
-public class ServerConfigBuilder implements ServerConfigSpec {
+public class ServerConfigBuilder {
 
   private FileSystemBinding baseDir;
 
@@ -115,7 +115,6 @@ public class ServerConfigBuilder implements ServerConfigSpec {
     return new ServerConfigBuilder(baseDir.toAbsolutePath().normalize());
   }
 
-  @Override
   public ServerConfigBuilder port(int port) {
     this.port = port;
     return this;
