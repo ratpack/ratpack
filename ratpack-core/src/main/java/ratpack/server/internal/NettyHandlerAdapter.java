@@ -81,7 +81,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
 
     this.handlers = ChainHandler.unpack(handler);
-    this.rootRegistry = new CachingRegistry(rootRegistry.join(Registries.just(Stopper.class, stopper)));
+    this.rootRegistry = new CachingRegistry(Registries.just(Stopper.class, stopper).join(rootRegistry));
     this.addResponseTimeHeader = serverConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = rootRegistry.get(ExecController.class);
