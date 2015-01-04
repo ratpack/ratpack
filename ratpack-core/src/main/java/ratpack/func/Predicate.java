@@ -56,6 +56,23 @@ public interface Predicate<T> {
   }
 
   /**
+   * Creates a Guava {@link com.google.common.base.Predicate} from this predicate.
+   * <p>
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   *
+   * @return this function as a Guava style predicate.
+   */
+  default com.google.common.base.Predicate<T> toGuavaPredicate() {
+    return t -> {
+      try {
+        return apply(t);
+      } catch (Exception e) {
+        throw ExceptionUtils.uncheck(e);
+      }
+    };
+  }
+
+  /**
    * Creates a predicate from a JDK predicate.
    *
    * @param predicate the JDK predicate
@@ -64,6 +81,17 @@ public interface Predicate<T> {
    */
   static <T> Predicate<T> from(java.util.function.Predicate<T> predicate) {
     return predicate::test;
+  }
+
+  /**
+   * Creates a predicate from a Guava predicate.
+   *
+   * @param predicate the Guava predicate
+   * @param <T> the type of object this predicate tests
+   * @return the given Guava predicate as a predicate
+   */
+  static <T> Predicate<T> from(com.google.common.base.Predicate<T> predicate) {
+    return predicate::apply;
   }
 
 }
