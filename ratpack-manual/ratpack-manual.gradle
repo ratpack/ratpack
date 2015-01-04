@@ -270,7 +270,14 @@ minifyJs {
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
-  from compassCompile
+  from (compassCompile) {
+    exclude 'bin/'
+    exclude 'build_info/'
+    exclude 'cache/'
+    exclude 'doc/'
+    exclude 'gems/'
+    exclude 'specifications/'
+  }
   from minifyJs
 }
 
