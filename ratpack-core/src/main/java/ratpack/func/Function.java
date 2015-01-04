@@ -114,6 +114,23 @@ public interface Function<I, O> {
   }
 
   /**
+   * Converts {@code this} function into the equivalent Guava type.
+   * <p>
+   * Any exceptions thrown by {@code this} function will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   *
+   * @return this function as a Guava style function.
+   */
+  default com.google.common.base.Function<I, O> toGuavaFunction() {
+    return (t) -> {
+      try {
+        return apply(t);
+      } catch (Exception e) {
+        throw ExceptionUtils.uncheck(e);
+      }
+    };
+  }
+
+  /**
    * Creates a function of this type from a JDK style function.
    *
    * @param function a JDK style function
@@ -126,4 +143,16 @@ public interface Function<I, O> {
     return function::apply;
   }
 
+  /**
+   * Creates a function of this type from a Guava style function.
+   *
+   * @param function a Guava style function
+   * @param <I> the input type
+   * @param <O> the output type
+   * @return a Ratpack style function wrapping the given Guava function
+   */
+  static <I, O> Function<I, O> fromGuava(com.google.common.base.Function<I, O> function) {
+    Objects.requireNonNull(function);
+    return function::apply;
+  }
 }
