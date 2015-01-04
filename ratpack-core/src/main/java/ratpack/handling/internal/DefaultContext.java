@@ -147,7 +147,7 @@ public class DefaultContext implements Context {
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .eventLoop(eventLoop)
-      .start(e -> context.next());
+      .start(context::next);
   }
 
   public DefaultContext(RequestConstants requestConstants) {
