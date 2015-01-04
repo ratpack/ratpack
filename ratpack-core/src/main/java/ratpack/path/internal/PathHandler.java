@@ -17,6 +17,9 @@
 package ratpack.path.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -29,23 +32,50 @@ import ratpack.util.Types;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 public class PathHandler implements Handler {
 
   private static final TypeToken<PathBinding> TYPE = TypeToken.of(PathBinding.class);
 
-  private final PathBinder binding;
+  private static LoadingCache<CacheKey, Optional<Registry>> cache = CacheBuilder.newBuilder()
+    .maximumSize(2048) // TODO - make this tuneable
+    .build(new CacheLoader<CacheKey, Optional<Registry>>() {
+      @Override
+      public Optional<Registry> load(CacheKey key) throws Exception {
+        Optional<PathBinding> binding = key.pathBinder.bind(key.path, key.parentBinding);
+        if (binding.isPresent()) {
+          return Optional.of(new PathBindingRegistry(binding));
+        } else {
+          return Optional.empty();
+        }
+      }
+    });
+
+  private static class CacheKey {
+    private final PathBinder pathBinder;
+    private final String path;
+    private final Optional<PathBinding> parentBinding;
+
+    public CacheKey(PathBinder pathBinder, String path, Optional<PathBinding> parentBinding) {
+      this.pathBinder = pathBinder;
+      this.path = path;
+      this.parentBinding = parentBinding;
+    }
+  }
+
+  private final PathBinder binder;
   private final Handler handler;
 
-  public PathHandler(PathBinder binding, Handler handler) {
-    this.binding = binding;
+  public PathHandler(PathBinder binder, Handler handler) {
+    this.binder = binder;
     this.handler = handler;
   }
 
-  public void handle(Context context) {
-    Optional<PathBinding> childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
-    if (childBinding.isPresent()) {
-      context.insert(new PathBindingRegistry(childBinding), handler);
+  public void handle(Context context) throws ExecutionException {
+    Optional<Registry> registry = cache.get(new CacheKey(binder, context.getRequest().getPath(), context.maybeGet(PathBinding.class)));
+    if (registry.isPresent()) {
+      context.insert(registry.get(), handler);
     } else {
       context.next();
     }
