@@ -18,6 +18,7 @@ package ratpack.launch;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -407,7 +408,18 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder env(String prefix) {
-    return this;
+    return env(prefix, System.getenv());
+  }
+
+  private ServerConfigBuilder env(String prefix, Map<String, String> envvars) {
+    Map<String, String> filteredEnvVars = envvars.entrySet().stream()
+      .filter(entry -> entry.getKey().startsWith(prefix))
+      .collect(Collectors.toMap(
+        entry -> CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, entry.getKey().replace(prefix, "")),
+        Map.Entry::getValue));
+    Properties properties = new Properties();
+    properties.putAll(filteredEnvVars);
+    return props(properties);
   }
 
   /**

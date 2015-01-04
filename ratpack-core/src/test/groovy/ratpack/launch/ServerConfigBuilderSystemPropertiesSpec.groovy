@@ -137,6 +137,9 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
     then:
     !config.development
+
+    cleanup:
+    System.clearProperty('ratpack.development')
   }
 
   def "set threads"() {
