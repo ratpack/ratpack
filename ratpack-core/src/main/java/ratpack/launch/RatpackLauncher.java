@@ -71,7 +71,7 @@ import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
  *
  *  public static void main(String[] args) throws Exception {
  *    RatpackServer server = RatpackLauncher.with(ServerConfigBuilder.noBaseDir().port(5060).build())
- *      .bindings(r -> {
+ *      .registry(r -> {
  *        r.add(MyHandler.class, new MyHandler());
  *      }).build(registry -> {
  *        return registry.get(MyHandler.class);
@@ -164,7 +164,7 @@ public abstract class RatpackLauncher {
    * @return this
    * @throws Exception if the spec errors when being applied.
    */
-  public abstract RatpackLauncher bindings(Action<? super RegistrySpec> action) throws Exception;
+  public abstract RatpackLauncher registry(Action<? super RegistrySpec> action) throws Exception;
 
   private static class DefaultRatpackLauncher extends RatpackLauncher {
 
@@ -187,7 +187,7 @@ public abstract class RatpackLauncher {
     }
 
     @Override
-    public RatpackLauncher bindings(Action<? super RegistrySpec> action) throws Exception {
+    public RatpackLauncher registry(Action<? super RegistrySpec> action) throws Exception {
       userRegistry = Registries.registry(action);
       return this;
     }

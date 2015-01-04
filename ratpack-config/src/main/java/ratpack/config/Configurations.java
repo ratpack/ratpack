@@ -57,7 +57,7 @@ import ratpack.config.internal.DefaultConfigurationDataSpec;
  *     myData.put("app.name", "Luke");
  *     ConfigurationData configData = Configurations.config().props(myData).sysProps().build();
  *     RatpackServer server = RatpackLauncher.with(configData.get("/server", ServerConfig.class))
- *       .bindings(r -> {
+ *       .registry(r -> {
  *         r.add(MyAppConfig.class, configData.get("/app", MyAppConfig.class));
  *       }).build(registry -> new MyHandler());
  *     server.start();
