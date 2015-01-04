@@ -23,6 +23,7 @@ import ratpack.path.PathBinding;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Optional;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,9 +38,9 @@ public class TokenPathBinder implements PathBinder {
     this.regex = regex;
   }
 
-  public PathBinding bind(String path, PathBinding parentBinding) {
-    if (parentBinding != null) {
-      path = parentBinding.getPastBinding();
+  public Optional<PathBinding> bind(String path, Optional<PathBinding> parentBinding) {
+    if (parentBinding.isPresent()) {
+      path = parentBinding.get().getPastBinding();
     }
     Matcher matcher = regex.matcher(path);
     if (matcher.matches()) {
@@ -54,9 +55,9 @@ public class TokenPathBinder implements PathBinder {
         }
       }
 
-      return new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding);
+      return Optional.of(new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 

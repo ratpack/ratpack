@@ -21,6 +21,8 @@ import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.util.internal.Validations;
 
+import java.util.Optional;
+
 public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
@@ -30,15 +32,15 @@ public class DefaultPathBinding implements PathBinding {
   private final PathTokens tokens;
   private final PathTokens allTokens;
 
-  public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
+  public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, Optional<PathBinding> parent) {
     this.binding = binding;
     this.bindingWithSlash = binding.concat("/");
     this.tokens = new DefaultPathTokens(tokens);
 
-    if (parent == null) {
-      allTokens = new DefaultPathTokens(tokens);
+    if (parent.isPresent()) {
+      allTokens = new DefaultPathTokens(ImmutableMap.<String, String>builder().putAll(parent.get().getAllTokens()).putAll(tokens).build());
     } else {
-      allTokens = new DefaultPathTokens(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
+      allTokens = new DefaultPathTokens(tokens);
     }
 
     if (path.equals(binding)) {

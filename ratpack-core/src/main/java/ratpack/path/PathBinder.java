@@ -16,7 +16,7 @@
 
 package ratpack.path;
 
-import ratpack.api.Nullable;
+import java.util.Optional;
 
 /**
  * A path binder binds to a request path, extracting information from it.
@@ -37,9 +37,8 @@ public interface PathBinder {
    *
    * @param path The path to maybe create a binding for
    * @param parentBinding The most recent upstream binding for this path, or null if there is no upstream binding
-   * @return A binding if one could be created, otherwise null.
+   * @return A binding if one could be created
    */
-  @Nullable
-  PathBinding bind(String path, @Nullable PathBinding parentBinding);
+  Optional<PathBinding> bind(String path, Optional<PathBinding> parentBinding);
 
 }

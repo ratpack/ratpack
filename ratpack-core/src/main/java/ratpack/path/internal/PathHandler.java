@@ -43,8 +43,8 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Context context) {
-    PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class).orElse(null));
-    if (childBinding != null) {
+    Optional<PathBinding> childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
+    if (childBinding.isPresent()) {
       context.insert(new PathBindingRegistry(childBinding), handler);
     } else {
       context.next();
@@ -53,16 +53,14 @@ public class PathHandler implements Handler {
 
   private static class PathBindingRegistry implements Registry {
 
-    private final PathBinding pathBinding;
     private final Optional<PathBinding> pathBindingOptional;
 
-    public PathBindingRegistry(PathBinding pathBinding) {
-      this.pathBinding = pathBinding;
-      this.pathBindingOptional = Optional.of(pathBinding);
+    public PathBindingRegistry(Optional<PathBinding> pathBindingOptional) {
+      this.pathBindingOptional = pathBindingOptional;
     }
 
     private <O> Set<? extends O> asSet() {
-      return Types.cast(Collections.singleton(pathBinding));
+      return Types.cast(Collections.singleton(pathBindingOptional.orElse(null)));
     }
 
     @Override
@@ -87,11 +85,7 @@ public class PathHandler implements Handler {
 
     @Override
     public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-      if (TYPE.isAssignableFrom(type) && predicate.apply(Types.<T>cast(pathBinding))) {
-        return Types.cast(pathBindingOptional);
-      } else {
-        return Optional.empty();
-      }
+      return Types.cast(pathBindingOptional.filter(p -> TYPE.isAssignableFrom(type) && predicate.apply(Types.<T>cast(p))));
     }
 
     @Override
