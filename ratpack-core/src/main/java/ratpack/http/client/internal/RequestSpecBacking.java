@@ -19,6 +19,7 @@ package ratpack.http.client.internal;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
@@ -26,7 +27,6 @@ import ratpack.func.Action;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import java.io.OutputStream;
 import java.net.URI;
@@ -127,7 +127,7 @@ class RequestSpecBacking {
       @Override
       public Body stream(Action<? super OutputStream> action) throws Exception {
         ByteBuf byteBuf = byteBufAllocator.buffer();
-        try (OutputStream outputStream = new ByteBufWriteThroughOutputStream(byteBuf)) {
+        try (OutputStream outputStream = new ByteBufOutputStream(byteBuf)) {
           action.execute(outputStream);
         } catch (Throwable t) {
           byteBuf.release();

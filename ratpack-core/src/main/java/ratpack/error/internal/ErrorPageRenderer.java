@@ -22,10 +22,10 @@ import com.google.common.html.HtmlEscapers;
 import com.google.common.io.CharStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.util.CharsetUtil;
 import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import java.io.*;
 import java.util.Map;
@@ -150,7 +150,7 @@ public abstract class ErrorPageRenderer {
 
   protected void render(Context context, String pageTitle, Consumer<? super BodyWriter> body) {
     ByteBuf buffer = context.get(ByteBufAllocator.class).buffer();
-    OutputStream out = new ByteBufWriteThroughOutputStream(buffer);
+    OutputStream out = new ByteBufOutputStream(buffer);
     PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(out, CharsetUtil.UTF_8));
     BodyWriter writer = new BodyWriter(printWriter);
 
