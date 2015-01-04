@@ -70,4 +70,25 @@ public class TokenPathBinder implements PathBinder {
     }
     return str;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    TokenPathBinder that = (TokenPathBinder) o;
+
+    return regex.equals(that.regex) && tokenNames.equals(that.tokenNames);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = tokenNames.hashCode();
+    result = 31 * result + regex.hashCode();
+    return result;
+  }
 }

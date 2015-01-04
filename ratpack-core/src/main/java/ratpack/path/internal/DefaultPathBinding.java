@@ -32,6 +32,28 @@ public class DefaultPathBinding implements PathBinding {
   private final PathTokens tokens;
   private final PathTokens allTokens;
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultPathBinding that = (DefaultPathBinding) o;
+
+    return allTokens.equals(that.allTokens) && binding.equals(that.binding) && pastBinding.equals(that.pastBinding);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = binding.hashCode();
+    result = 31 * result + pastBinding.hashCode();
+    result = 31 * result + allTokens.hashCode();
+    return result;
+  }
+
   public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, Optional<PathBinding> parent) {
     this.binding = binding;
     this.bindingWithSlash = binding.concat("/");
@@ -40,7 +62,7 @@ public class DefaultPathBinding implements PathBinding {
     if (parent.isPresent()) {
       allTokens = new DefaultPathTokens(ImmutableMap.<String, String>builder().putAll(parent.get().getAllTokens()).putAll(tokens).build());
     } else {
-      allTokens = new DefaultPathTokens(tokens);
+      allTokens = this.tokens;
     }
 
     if (path.equals(binding)) {

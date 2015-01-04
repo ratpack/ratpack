@@ -38,7 +38,7 @@ public class PathHandler implements Handler {
 
   private static final TypeToken<PathBinding> TYPE = TypeToken.of(PathBinding.class);
 
-  private static LoadingCache<CacheKey, Optional<Registry>> cache = CacheBuilder.newBuilder()
+  private static final LoadingCache<CacheKey, Optional<Registry>> CACHE = CacheBuilder.newBuilder()
     .maximumSize(2048) // TODO - make this tuneable
     .build(new CacheLoader<CacheKey, Optional<Registry>>() {
       @Override
@@ -62,6 +62,28 @@ public class PathHandler implements Handler {
       this.path = path;
       this.parentBinding = parentBinding;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      CacheKey cacheKey = (CacheKey) o;
+
+      return parentBinding.equals(cacheKey.parentBinding) && path.equals(cacheKey.path) && pathBinder.equals(cacheKey.pathBinder);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = pathBinder.hashCode();
+      result = 31 * result + path.hashCode();
+      result = 31 * result + parentBinding.hashCode();
+      return result;
+    }
   }
 
   private final PathBinder binder;
@@ -73,7 +95,7 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Context context) throws ExecutionException {
-    Optional<Registry> registry = cache.get(new CacheKey(binder, context.getRequest().getPath(), context.maybeGet(PathBinding.class)));
+    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.maybeGet(PathBinding.class)));
     if (registry.isPresent()) {
       context.insert(registry.get(), handler);
     } else {
