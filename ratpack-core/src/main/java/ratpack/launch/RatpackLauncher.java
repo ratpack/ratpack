@@ -16,10 +16,6 @@
 
 package ratpack.launch;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
-import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
-
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.error.ClientErrorHandler;
@@ -39,7 +35,10 @@ import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
-import ratpack.registry.*;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 import ratpack.registry.internal.CachingRegistry;
 import ratpack.render.internal.CharSequenceRenderer;
 import ratpack.render.internal.PromiseRenderer;
@@ -49,6 +48,10 @@ import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 import ratpack.server.internal.DefaultPublicAddress;
+
+import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
+import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 /**
  * Creates and configures a Ratpack application.
@@ -93,7 +96,7 @@ public abstract class RatpackLauncher {
    * @return a launcher instance that can be used to build a {@link ratpack.server.RatpackServer}.
    */
   public static RatpackLauncher with(ServerConfig config) {
-      return new DefaultRatpackLauncher(config);
+    return new DefaultRatpackLauncher(config);
   }
 
   /**
@@ -116,14 +119,13 @@ public abstract class RatpackLauncher {
    */
   public static Registry baseRegistry(ServerConfig serverConfig, Registry userRegistry) throws Exception {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
+    ExecController execController = new DefaultExecController(serverConfig.getThreads());
+    PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
 
-    Registry baseRegistry = Registries.registry()
+    RegistryBuilder baseRegistry = Registries.registry()
       .add(ServerConfig.class, serverConfig)
-      .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
-      .add(ExecController.class, new DefaultExecController(serverConfig.getThreads()))
-      .build();
-
-    RegistryBuilder registryBuilder = Registries.registry()
+      .add(ByteBufAllocator.class, byteBufAllocator)
+      .add(ExecController.class, execController)
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
       .add(Redirector.class, new DefaultRedirector())
@@ -136,13 +138,13 @@ public abstract class RatpackLauncher {
       .with(new CharSequenceRenderer().register())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())
-      .add(HttpClient.class, HttpClients.httpClient(serverConfig, baseRegistry.join(userRegistry)));
+      .add(HttpClient.class, HttpClients.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength()));
 
     if (serverConfig.isHasBaseDir()) {
-      registryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
+      baseRegistry.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
 
-    return new CachingRegistry(baseRegistry.join(registryBuilder.build()).join(userRegistry));
+    return new CachingRegistry(baseRegistry.build().join(userRegistry));
   }
 
   /**
