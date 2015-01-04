@@ -23,6 +23,8 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.credentials.OpenIdCredentials
 import org.pac4j.openid.profile.google.GoogleOpenIdProfile
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.http.client.RequestSpec
+import ratpack.http.internal.HttpHeaderConstants
 import ratpack.pac4j.InjectedPac4jModule
 import ratpack.pac4j.Pac4jModule
 import ratpack.session.SessionModule
@@ -36,6 +38,7 @@ import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
 
 /**
  * Tests OpenID Relying Party support.
@@ -173,6 +176,29 @@ class OpenIdRpSpec extends Specification {
 
     then: "authentication information is still available"
     response5.body.text == "noauth:${EMAIL}:${EMAIL}"
+
+    where:
+    aut << [autConstructed, autInjected]
+  }
+
+  @Unroll
+  def "it should not redirect ajax requests"(EmbeddedApp aut) {
+    setup:
+    def client = aut.httpClient
+
+    // Set AJAX request header.
+    client.requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add(
+        HttpHeaderConstants.X_REQUESTED_WITH,
+        HttpHeaderConstants.XML_HTTP_REQUEST
+      )
+    }
+
+    when: "make a request that requires authentication"
+    def response = client.get("auth")
+
+    then: "a 401 response is returned and no redirect is made"
+    assert response.statusCode == UNAUTHORIZED.code()
 
     where:
     aut << [autConstructed, autInjected]

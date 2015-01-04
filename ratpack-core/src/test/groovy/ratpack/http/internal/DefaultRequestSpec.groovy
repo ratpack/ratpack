@@ -55,4 +55,26 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     "https://example.com:8443/user?name=fred" | "/user?name=fred" | "name=fred" | "user"
   }
 
+  @Unroll
+  def "It should detect an AJAX request"() {
+    given:
+    def headers = Mock(Headers)
+    def content = Unpooled.buffer()
+
+    when:
+    def request = new DefaultRequest(headers, HttpMethod.GET, '/user/12345', new InetSocketAddress('localhost', 45678), new InetSocketAddress('localhost', 5050), content)
+    Boolean result = request.isAjaxRequest()
+
+    then:
+    1 * headers.get(HttpHeaderConstants.X_REQUESTED_WITH) >> requestedWithHeaderValue
+    assert result == isAjaxRequest
+
+    where:
+    requestedWithHeaderValue                            | isAjaxRequest
+    HttpHeaderConstants.XML_HTTP_REQUEST                | true
+    HttpHeaderConstants.XML_HTTP_REQUEST.toLowerCase()  | true
+    null                                                | false
+    ''                                                  | false
+  }
+
 }
