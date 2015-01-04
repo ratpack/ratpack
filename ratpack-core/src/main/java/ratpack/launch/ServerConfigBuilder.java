@@ -16,25 +16,35 @@
 
 package ratpack.launch;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteSource;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
+import ratpack.func.Action;
+import ratpack.func.Predicate;
 import ratpack.launch.internal.DefaultServerConfig;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Builder for ServerConfig objects.
  */
 public class ServerConfigBuilder {
+
+  public static final String DEFAULT_ENV_PREFIX = "RATPACK_";
+  public static final String DEFAULT_PROP_PREFIX = "ratpack.";
 
   private FileSystemBinding baseDir;
 
@@ -54,9 +64,20 @@ public class ServerConfigBuilder {
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
   private ServerConfigBuilder() {
+    builderActions = new HashMap<>();
+    builderActions.put("port", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::port));
+    builderActions.put("address", new BuilderAction<>(s -> uncheck(() -> InetAddress.getByName(s)), ServerConfigBuilder.this::address));
+    builderActions.put("development", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::development));
+    builderActions.put("threads", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::threads));
+    builderActions.put("publicAddress", new BuilderAction<>(URI::create, ServerConfigBuilder.this::publicAddress));
+    builderActions.put("maxContentLength", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::maxContentLength));
+    builderActions.put("timeResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::timeResponses));
+    builderActions.put("compressResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::compressResponses));
+    builderActions.put("compressionMinSize", new BuilderAction<>(Long::parseLong, ServerConfigBuilder.this::compressionMinSize));
   }
 
   private ServerConfigBuilder(Path baseDir) {
+    this();
     this.baseDir = new DefaultFileSystemBinding(baseDir);
   }
 
@@ -352,5 +373,125 @@ public class ServerConfigBuilder {
       compressionMimeTypeWhiteList.build(), compressionMimeTypeBlackList.build());
   }
 
+  /**
+   * Adds a configuration source for environment variables starting with the prefix {@value ServerConfigBuilder#DEFAULT_ENV_PREFIX}.
+   *
+   * @return this
+   */
+  ServerConfigBuilder env() {
+    return env(DEFAULT_ENV_PREFIX);
+  }
 
+  /**
+   * Adds a configuration source for environment variables starting with the specified prefix.
+   *
+   * @param prefix the prefix which should be used to identify relevant environment variables;
+   * the prefix will be removed before loading the data
+   * @return this
+   */
+  ServerConfigBuilder env(String prefix) {
+    return this;
+  }
+
+  /**
+   * Adds a configuration source for a properties file.
+   *
+   * @param byteSource the source of the properties data
+   * @return this
+   */
+  ServerConfigBuilder props(ByteSource byteSource) {
+    return this;
+  }
+
+  /**
+   * Adds a configuration source for a properties file.
+   *
+   * @param path the source of the properties data
+   * @return this
+   */
+  ServerConfigBuilder props(Path path) {
+    return this;
+  }
+
+  /**
+   * Adds a configuration source for a properties object.
+   *
+   * @param properties the properties object
+   * @return this
+   */
+  ServerConfigBuilder props(Properties properties) {
+    return this;
+  }
+
+  /**
+   * Adds a configuration source for a properties file.
+   *
+   * @param pathOrUrl the source of the properties data; may be either a file path or URL
+   * @return this
+   */
+  ServerConfigBuilder props(String pathOrUrl) {
+    return this;
+  }
+
+  /**
+   * Adds a configuration source for a properties file.
+   *
+   * @param url the source of the properties data
+   * @return this
+   */
+  ServerConfigBuilder props(URL url) {
+    return this;
+  }
+
+  /**
+   * Adds a configuration source for system properties starting with the prefix {@value ServerConfigBuilder#DEFAULT_PROP_PREFIX}
+   *
+   * @return this
+   */
+  ServerConfigBuilder sysProps() {
+    return sysProps(DEFAULT_PROP_PREFIX);
+  }
+
+  /**
+   * Adds a configuration source for system properties starting with the specified prefix.
+   *
+   * @param prefix the prefix which should be used to identify relevant system properties;
+   * the prefix will be removed before loading the data
+   * @return this
+   */
+  ServerConfigBuilder sysProps(String prefix) {
+    Stream<Map.Entry<Object, Object>> filteredProperties = filter(System.getProperties().entrySet(), entry -> entry.getKey().toString().startsWith(prefix));
+    filteredProperties.forEach(entry -> {
+      String key = entry.getKey().toString().replace(prefix, "");
+      String value = entry.getValue().toString();
+      BuilderAction<?> mapping = builderActions.get(key);
+      try {
+        mapping.apply(value);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    });
+    return this;
+  }
+
+  private <E> Stream<E> filter(Collection<E> collection, Predicate<E> predicate) {
+    return collection.stream().filter(predicate.toPredicate());
+  }
+
+  private final Map<String, BuilderAction<?>> builderActions;
+
+  private static class BuilderAction<T> {
+
+    private final Function<String, T> converter;
+    private final Action<T> action;
+
+    public BuilderAction(Function<String, T> converter, Action<T> action) {
+      this.converter = converter;
+      this.action = action;
+    }
+
+    public void apply(String value) throws Exception {
+      action.execute(converter.apply(value));
+    }
+  }
 }
