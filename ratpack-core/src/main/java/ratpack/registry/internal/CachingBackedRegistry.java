@@ -16,28 +16,20 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.func.Action;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBacking;
+import ratpack.util.Types;
 
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import static ratpack.util.ExceptionUtils.toException;
-import static ratpack.util.ExceptionUtils.uncheck;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class CachingBackedRegistry implements Registry {
   private final RegistryBacking registryBacking;
@@ -46,29 +38,8 @@ public class CachingBackedRegistry implements Registry {
     this.registryBacking = registryBacking;
   }
 
-  private final LoadingCache<TypeToken<?>, Iterable<? extends Supplier<?>>> supplierCache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, Iterable<? extends Supplier<?>>>() {
-    @Override
-    public Iterable<? extends Supplier<?>> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
-      return Objects.firstNonNull(registryBacking.provide(key), ImmutableList.<Supplier<?>>of());
-    }
-  });
-
-  private final LoadingCache<PredicateCacheability.CacheKey<?>, Iterable<? extends Supplier<?>>> predicateCache = CacheBuilder.newBuilder().build(new CacheLoader<PredicateCacheability.CacheKey<?>, Iterable<? extends Supplier<?>>>() {
-    @Override
-    public Iterable<? extends Supplier<?>> load(@SuppressWarnings("NullableProblems") PredicateCacheability.CacheKey<?> key) throws Exception {
-      return get(key);
-    }
-
-    private <T> Iterable<? extends Supplier<T>> get(final PredicateCacheability.CacheKey<T> key) throws ExecutionException {
-      Iterable<? extends Supplier<T>> suppliers = getSuppliers(key.type);
-      return FluentIterable.from(suppliers).filter(new Predicate<Supplier<T>>() {
-        @Override
-        public boolean apply(Supplier<T> input) {
-          return key.predicate.apply(input.get());
-        }
-      }).toList();
-    }
-  });
+  private final ConcurrentMap<TypeToken<?>, Iterable<? extends Supplier<?>>> supplierCache = new ConcurrentHashMap<>();
+  private final ConcurrentMap<PredicateCacheability.CacheKey<?>, Iterable<? extends Supplier<?>>> predicateCache = new ConcurrentHashMap<>();
 
   public <T> Optional<T> maybeGet(TypeToken<T> type) {
     Iterator<? extends Supplier<T>> suppliers = getSuppliers(type).iterator();
@@ -90,21 +61,20 @@ public class CachingBackedRegistry implements Registry {
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {
-    try {
-      @SuppressWarnings("unchecked") Iterable<? extends Supplier<T>> suppliers = (Iterable<? extends Supplier<T>>) supplierCache.get(type);
-      return Objects.firstNonNull(suppliers, ImmutableList.<Supplier<T>>of());
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw uncheck(toException(e.getCause()));
-    }
+    return Types.cast(supplierCache.computeIfAbsent(type, t -> registryBacking.provide(type)));
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type, Predicate<? super T> predicate) {
-    try {
-      @SuppressWarnings("unchecked") Iterable<? extends Supplier<T>> suppliers = (Iterable<? extends Supplier<T>>) predicateCache.get(new PredicateCacheability.CacheKey<>(type, predicate));
-      return Objects.firstNonNull(suppliers, ImmutableList.<Supplier<T>>of());
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw uncheck(toException(e.getCause()));
-    }
+    return Types.cast(
+      predicateCache.computeIfAbsent(new PredicateCacheability.CacheKey<>(type, predicate), key ->
+          Iterables.filter(getSuppliers(type), new Predicate<Supplier<T>>() {
+            @Override
+            public boolean apply(Supplier<T> input) {
+              return predicate.apply(input.get());
+            }
+          })
+      )
+    );
   }
 
   @Override
