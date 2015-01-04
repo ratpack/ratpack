@@ -24,9 +24,11 @@ import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 import ratpack.util.Types;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 public class CachingRegistry implements Registry {
 
@@ -40,18 +42,27 @@ public class CachingRegistry implements Registry {
     this.delegate = delegate;
   }
 
+  private static <K, V> V compute(Map<K, V> map, K key, Function<? super K, ? extends V> supplier) {
+    V value = map.get(key);
+    if (value == null) {
+      value = supplier.apply(key);
+      map.put(key, value);
+    }
+    return value;
+  }
+
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return Types.cast(cache.computeIfAbsent(type, delegate::maybeGet));
+    return Types.cast(compute(cache, type, delegate::maybeGet));
   }
 
   @Override
   public <O> Iterable<O> getAll(TypeToken<O> type) {
-    return Types.cast(allCache.computeIfAbsent(type, delegate::getAll));
+    return Types.cast(compute(allCache, type, delegate::getAll));
   }
 
   private <T> Iterable<? extends T> getFromPredicateCache(TypeToken<T> type, Predicate<? super T> predicate) {
-    return Types.cast(predicateCache.computeIfAbsent(new PredicateCacheability.CacheKey<>(type, predicate), k -> delegate.all(type, predicate)));
+    return Types.cast(compute(predicateCache, new PredicateCacheability.CacheKey<>(type, predicate), k -> delegate.all(type, predicate)));
   }
 
   @Override

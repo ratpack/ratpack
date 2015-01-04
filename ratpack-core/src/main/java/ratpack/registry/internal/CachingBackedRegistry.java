@@ -27,9 +27,11 @@ import ratpack.registry.RegistryBacking;
 import ratpack.util.Types;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 public class CachingBackedRegistry implements Registry {
   private final RegistryBacking registryBacking;
@@ -50,6 +52,15 @@ public class CachingBackedRegistry implements Registry {
     }
   }
 
+  private static <K, V> V compute(Map<K, V> map, K key, Function<? super K, ? extends V> supplier) {
+    V value = map.get(key);
+    if (value == null) {
+      value = supplier.apply(key);
+      map.put(key, value);
+    }
+    return value;
+  }
+
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     return transformToInstances(getSuppliers(type));
@@ -61,12 +72,12 @@ public class CachingBackedRegistry implements Registry {
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {
-    return Types.cast(supplierCache.computeIfAbsent(type, t -> registryBacking.provide(type)));
+    return Types.cast(compute(supplierCache, type, t -> registryBacking.provide(type)));
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type, Predicate<? super T> predicate) {
     return Types.cast(
-      predicateCache.computeIfAbsent(new PredicateCacheability.CacheKey<>(type, predicate), key ->
+      compute(predicateCache, new PredicateCacheability.CacheKey<>(type, predicate), key ->
           Iterables.filter(getSuppliers(type), new Predicate<Supplier<T>>() {
             @Override
             public boolean apply(Supplier<T> input) {
