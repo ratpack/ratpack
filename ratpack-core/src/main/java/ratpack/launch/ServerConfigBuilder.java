@@ -30,12 +30,17 @@ import ratpack.launch.internal.DefaultServerConfig;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -77,7 +82,7 @@ public class ServerConfigBuilder {
     builderActions.put("compressionWhiteListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionWhiteListMimeTypes));
     builderActions.put("compressionBlackListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionBlackListMimeTypes));
     builderActions.put("indexFiles", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::indexFiles));
-    //TODO add support for SSLContext somehow
+    //TODO-JOHN add support for SSLContext somehow
   }
 
   private ServerConfigBuilder(Path baseDir) {
@@ -412,7 +417,13 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder props(ByteSource byteSource) {
-    return this;
+    Properties properties = new Properties();
+    try(InputStream is = byteSource.openStream()) {
+      properties.load(is);
+    } catch (IOException e) {
+      throw uncheck(e);
+    }
+    return props(properties);
   }
 
   /**
@@ -422,7 +433,13 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder props(Path path) {
-    return this;
+    Properties properties = new Properties();
+    try(InputStream is = Files.newInputStream(path)) {
+      properties.load(is);
+    } catch (IOException e) {
+      throw uncheck(e);
+    }
+    return props(properties);
   }
 
   /**
@@ -432,6 +449,16 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder props(Properties properties) {
+    properties.entrySet().forEach(entry -> {
+      String key = entry.getKey().toString();
+      String value = entry.getValue().toString();
+      BuilderAction<?> mapping = builderActions.get(key);
+      try {
+        mapping.apply(value);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    });
     return this;
   }
 
@@ -442,7 +469,14 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder props(String pathOrUrl) {
-    return this;
+    //TODO-JOHN add test
+    try {
+      URL url = new URL(pathOrUrl);
+      return props(url);
+    } catch (MalformedURLException ex) {
+      File file = new File(pathOrUrl);
+      return props(file.toPath());
+    }
   }
 
   /**
@@ -452,7 +486,14 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder props(URL url) {
-    return this;
+    //TODO-JOHN add test
+    Properties properties = new Properties();
+    try(InputStream is = url.openStream()) {
+      properties.load(is);
+    } catch (IOException e) {
+      throw uncheck(e);
+    }
+    return props(properties);
   }
 
   /**
@@ -472,18 +513,18 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder sysProps(String prefix) {
-    Stream<Map.Entry<Object, Object>> filteredProperties = filter(System.getProperties().entrySet(), entry -> entry.getKey().toString().startsWith(prefix));
-    filteredProperties.forEach(entry -> {
-      String key = entry.getKey().toString().replace(prefix, "");
-      String value = entry.getValue().toString();
-      BuilderAction<?> mapping = builderActions.get(key);
-      try {
-        mapping.apply(value);
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
-    });
-    return this;
+    Map<String, String> filteredProperties = filter(
+      System.getProperties().entrySet(),
+      entry -> entry.getKey().toString().startsWith(prefix)
+    ).collect(
+      Collectors.toMap(
+        p -> p.getKey().toString().replace(prefix, ""),
+        p -> p.getValue().toString()
+      )
+    );
+    Properties properties = new Properties();
+    properties.putAll(filteredProperties);
+    return props(properties);
   }
 
   private <E> Stream<E> filter(Collection<E> collection, Predicate<E> predicate) {
