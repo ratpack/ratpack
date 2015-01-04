@@ -90,7 +90,7 @@ public interface Predicate<T> {
    * @param <T> the type of object this predicate tests
    * @return the given Guava predicate as a predicate
    */
-  static <T> Predicate<T> from(com.google.common.base.Predicate<T> predicate) {
+  static <T> Predicate<T> fromGuava(com.google.common.base.Predicate<T> predicate) {
     return predicate::apply;
   }
 
