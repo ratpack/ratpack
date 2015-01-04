@@ -66,7 +66,7 @@ public class ServerConfigBuilder {
   private ServerConfigBuilder() {
     builderActions = new HashMap<>();
     builderActions.put("port", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::port));
-    builderActions.put("address", new BuilderAction<>(s -> uncheck(() -> InetAddress.getByName(s)), ServerConfigBuilder.this::address));
+    builderActions.put("address", new BuilderAction<>(ServerConfigBuilder::inetAddress, ServerConfigBuilder.this::address));
     builderActions.put("development", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::development));
     builderActions.put("threads", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::threads));
     builderActions.put("publicAddress", new BuilderAction<>(URI::create, ServerConfigBuilder.this::publicAddress));
@@ -74,11 +74,22 @@ public class ServerConfigBuilder {
     builderActions.put("timeResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::timeResponses));
     builderActions.put("compressResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::compressResponses));
     builderActions.put("compressionMinSize", new BuilderAction<>(Long::parseLong, ServerConfigBuilder.this::compressionMinSize));
+    builderActions.put("compressionWhiteListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionWhiteListMimeTypes));
+    builderActions.put("compressionBlackListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionBlackListMimeTypes));
+    builderActions.put("indexFiles", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::indexFiles));
   }
 
   private ServerConfigBuilder(Path baseDir) {
     this();
     this.baseDir = new DefaultFileSystemBinding(baseDir);
+  }
+
+  public static String[] split(String s) {
+    return Arrays.stream(s.split(",")).map(String::trim).toArray(String[]::new);
+  }
+
+  public static InetAddress inetAddress(String s) {
+    return uncheck(() -> InetAddress.getByName(s));
   }
 
   public static ServerConfigBuilder noBaseDir() {

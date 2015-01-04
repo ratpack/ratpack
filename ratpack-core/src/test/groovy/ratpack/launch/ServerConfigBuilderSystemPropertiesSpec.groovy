@@ -292,4 +292,60 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     cleanup:
     System.clearProperty('ratpack.compressionMinSize')
   }
+
+  def "set compression white list"() {
+    given:
+    System.setProperty('ratpack.compressionWhiteListMimeTypes', 'json,xml')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.compressionMimeTypeWhiteList == ['json', 'xml'] as Set
+
+    cleanup:
+    System.clearProperty('ratpack.compressionWhiteListMimeTypes')
+  }
+
+  def "set compression black list"() {
+    given:
+    System.setProperty('ratpack.compressionBlackListMimeTypes', 'json,xml')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.compressionMimeTypeBlackList == ['json', 'xml'] as Set
+
+    cleanup:
+    System.clearProperty('ratpack.compressionBlackListMimeTypes')
+  }
+
+  def "set index files"() {
+    given:
+    System.setProperty('ratpack.indexFiles', 'home.html,index.html')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.indexFiles == ['home.html', 'index.html']
+
+    cleanup:
+    System.clearProperty('ratpack.indexFiles')
+  }
+
+  def "trim white space in comma separated lists"() {
+    given:
+    System.setProperty('ratpack.indexFiles', 'home.html , index.html')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.indexFiles == ['home.html', 'index.html']
+
+    cleanup:
+    System.clearProperty('ratpack.indexFiles')
+  }
 }
