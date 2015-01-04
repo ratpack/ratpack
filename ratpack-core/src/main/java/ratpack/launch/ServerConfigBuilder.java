@@ -77,6 +77,7 @@ public class ServerConfigBuilder {
     builderActions.put("compressionWhiteListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionWhiteListMimeTypes));
     builderActions.put("compressionBlackListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionBlackListMimeTypes));
     builderActions.put("indexFiles", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::indexFiles));
+    //TODO add support for SSLContext somehow
   }
 
   private ServerConfigBuilder(Path baseDir) {
