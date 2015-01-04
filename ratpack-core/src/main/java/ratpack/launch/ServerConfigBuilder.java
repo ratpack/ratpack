@@ -69,6 +69,9 @@ public class ServerConfigBuilder {
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
+
+  private final Map<String, BuilderAction<?>> builderActions;
+
   private ServerConfigBuilder() {
     builderActions = new HashMap<>();
     builderActions.put("port", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::port));
@@ -542,8 +545,6 @@ public class ServerConfigBuilder {
   private <E> Stream<E> filter(Collection<E> collection, Predicate<E> predicate) {
     return collection.stream().filter(predicate.toPredicate());
   }
-
-  private final Map<String, BuilderAction<?>> builderActions;
 
   private static class BuilderAction<T> {
 
