@@ -23,26 +23,21 @@ import ratpack.config.internal.DefaultConfigurationDataSpec;
  * Builder class for creating application configuration by composing multiple sources.
  *
  * <pre class="java">{@code
- * import com.google.common.base.Charsets;
- * import com.google.common.io.Resources;
  * import ratpack.config.ConfigurationData;
  * import ratpack.config.Configurations;
- * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
  * import ratpack.launch.RatpackLauncher;
  * import ratpack.launch.ServerConfig;
  * import ratpack.server.RatpackServer;
+ *
+ * import ratpack.test.ServerBackedApplicationUnderTest;
+ * import ratpack.test.http.TestHttpClients;
+ * import ratpack.test.http.TestHttpClient;
+ * import static org.junit.Assert.*;
  *
  * import java.net.URL;
  * import java.util.Properties;
  *
  * public class Example {
- *   public static class MyHandler implements Handler {
- *     public void handle(Context context) {
- *       context.getResponse().send("Hi, my name is " + context.get(MyAppConfig.class).getName());
- *     }
- *   }
- *
  *   public static class MyAppConfig {
  *     private String name;
  *
@@ -54,18 +49,24 @@ import ratpack.config.internal.DefaultConfigurationDataSpec;
  *   public static void main(String[] args) throws Exception {
  *     Properties myData = new Properties();
  *     myData.put("server.port", "5060");
- *     myData.put("app.name", "Luke");
+ *     myData.put("app.name", "Ratpack");
+ *
  *     ConfigurationData configData = Configurations.config().props(myData).sysProps().build();
+ *
  *     RatpackServer server = RatpackLauncher.with(configData.get("/server", ServerConfig.class))
- *       .registry(r -> {
- *         r.add(MyAppConfig.class, configData.get("/app", MyAppConfig.class));
- *       }).build(registry -> new MyHandler());
+ *       .registry(r -> r
+ *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
+ *       ).build(registry ->
+ *         (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName())
+ *       );
  *     server.start();
- *     System.out.println(server.getBindPort());
- *     System.out.println(Resources.toString(new URL("http://localhost:5060"), Charsets.UTF_8));
- *     assert server.isRunning();
- *     assert server.getBindPort() == 5060;
- *     assert "Hi, my name is Luke".equals(Resources.toString(new URL("http://localhost:5060"), Charsets.UTF_8));
+ *
+ *     assertTrue(server.isRunning());
+ *     assertEquals(5060, server.getBindPort());
+ *
+ *     TestHttpClient httpClient = TestHttpClients.testHttpClient(new ServerBackedApplicationUnderTest(() -> server));
+ *     assertEquals("Hi, my name is Ratpack", httpClient.getText());
+ *
  *     server.stop();
  *   }
  * }
