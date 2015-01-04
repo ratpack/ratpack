@@ -155,4 +155,14 @@ public interface Function<I, O> {
     Objects.requireNonNull(function);
     return function::apply;
   }
+
+  /**
+   * Returns an identity function (return value always same as input).
+   *
+   * @param <T> the type of the input and output objects to the function
+   * @return a function that always returns its input argument
+   */
+  static <T> Function<T, T> identity() {
+    return t -> t;
+  }
 }
