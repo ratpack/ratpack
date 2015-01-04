@@ -81,7 +81,7 @@ sourceSets {
 }
 
 dependencies {
-  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
+//  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
   compile project(":ratpack-groovy")
   compile project(":ratpack-codahale-metrics")
   compile project(":ratpack-jackson")
