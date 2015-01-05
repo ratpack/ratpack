@@ -19,7 +19,18 @@ package ratpack.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Allows providing custom sources of configuration data.
+ *
+ * @see ConfigurationDataSpec#add(ConfigurationSource)
+ */
 public interface ConfigurationSource {
-  // TODO... does this signature make sense?  It exposes a jackson types
+  /**
+   * Loads the configuration data from this data source.
+   *
+   * @param objectMapper the Jackson ObjectMapper to use to build objects.
+   * @return the root node of the configuration data loaded
+   * @throws Exception any
+   */
   ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception;
 }
