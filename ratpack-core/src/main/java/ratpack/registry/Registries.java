@@ -84,7 +84,7 @@ public abstract class Registries {
    * @return an empty registry
    */
   public static Registry empty() {
-    return new EmptyRegistry();
+    return EmptyRegistry.INSTANCE;
   }
 
   /**

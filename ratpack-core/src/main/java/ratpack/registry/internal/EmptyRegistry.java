@@ -26,6 +26,11 @@ import java.util.Optional;
 
 public final class EmptyRegistry implements Registry {
 
+  public static final Registry INSTANCE = new EmptyRegistry();
+
+  private EmptyRegistry() {
+  }
+
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return Optional.empty();

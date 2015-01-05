@@ -155,5 +155,24 @@ public class PathHandler implements Handler {
         return false;
       }
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      PathBindingRegistry that = (PathBindingRegistry) o;
+
+      return pathBindingOptional.equals(that.pathBindingOptional);
+    }
+
+    @Override
+    public int hashCode() {
+      return pathBindingOptional.hashCode();
+    }
   }
 }

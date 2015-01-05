@@ -38,7 +38,10 @@ import ratpack.handling.Handlers;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
-import ratpack.handling.internal.*;
+import ratpack.handling.internal.ChainHandler;
+import ratpack.handling.internal.DefaultContext;
+import ratpack.handling.internal.DescribingHandler;
+import ratpack.handling.internal.DescribingHandlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -46,8 +49,7 @@ import ratpack.http.internal.*;
 import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.internal.CachingRegistry;
-import ratpack.render.internal.*;
+import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.Stopper;
 
 import java.io.IOException;
@@ -81,7 +83,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
 
     this.handlers = ChainHandler.unpack(handler);
-    this.rootRegistry = new CachingRegistry(Registries.just(Stopper.class, stopper).join(rootRegistry));
+    this.rootRegistry = Registries.just(Stopper.class, stopper).join(rootRegistry);
     this.addResponseTimeHeader = serverConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = rootRegistry.get(ExecController.class);

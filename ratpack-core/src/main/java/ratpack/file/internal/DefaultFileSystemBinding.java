@@ -18,6 +18,8 @@ package ratpack.file.internal;
 
 import ratpack.file.FileSystemBinding;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class DefaultFileSystemBinding implements FileSystemBinding {
@@ -76,5 +78,28 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
   @Override
   public String toString() {
     return "FileSystemBinding[" + binding + ']';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultFileSystemBinding that = (DefaultFileSystemBinding) o;
+
+    try {
+      return Files.isSameFile(binding, that.binding);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return binding.hashCode();
   }
 }

@@ -19,7 +19,8 @@ package ratpack.registry;
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
-import ratpack.registry.internal.HierarchicalRegistry;
+import ratpack.registry.internal.EmptyRegistry;
+import ratpack.registry.internal.HierarchicalRegistryCaching;
 
 import java.util.Optional;
 
@@ -221,6 +222,12 @@ public interface Registry {
    * @return a registry which is the combination of the {@code this} and the given child
    */
   default Registry join(Registry child) {
-    return new HierarchicalRegistry(this, child);
+    if (this == EmptyRegistry.INSTANCE) {
+      return child;
+    } else if (child == EmptyRegistry.INSTANCE) {
+      return this;
+    } else {
+      return HierarchicalRegistryCaching.join(this, child);
+    }
   }
 }

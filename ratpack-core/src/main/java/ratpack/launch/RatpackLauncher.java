@@ -39,7 +39,6 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
-import ratpack.registry.internal.CachingRegistry;
 import ratpack.render.internal.CharSequenceRenderer;
 import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
@@ -144,7 +143,7 @@ public abstract class RatpackLauncher {
       baseRegistry.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
 
-    return new CachingRegistry(baseRegistry.build().join(userRegistry));
+    return baseRegistry.build().join(userRegistry);
   }
 
   /**

@@ -42,4 +42,25 @@ public class DefaultRegistryEntry<T> implements RegistryEntry<T> {
   public String toString() {
     return "RegistryEntry{type=" + type.toString() + ", value=" + object + '}';
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultRegistryEntry<?> that = (DefaultRegistryEntry<?>) o;
+
+    return object.equals(that.object) && type.equals(that.type);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = type.hashCode();
+    result = 31 * result + object.hashCode();
+    return result;
+  }
 }

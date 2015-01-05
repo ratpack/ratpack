@@ -16,17 +16,32 @@
 
 package ratpack.file.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.launch.ServerConfig;
 import ratpack.registry.Registries;
+import ratpack.registry.Registry;
+
+import java.util.concurrent.ExecutionException;
 
 public class FileSystemBindingHandler implements Handler {
 
   private final String path;
   private final Handler handler;
+
+  private final static LoadingCache<FileSystemBinding, Registry> CACHE = CacheBuilder.newBuilder()
+    .maximumSize(1024)
+    .build(new CacheLoader<FileSystemBinding, Registry>() {
+      @Override
+      public Registry load(FileSystemBinding key) throws Exception {
+        return Registries.just(FileSystemBinding.class, key);
+      }
+    });
 
   public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
     if (serverConfig.isHasBaseDir()) {
@@ -39,13 +54,13 @@ public class FileSystemBindingHandler implements Handler {
     // TODO - validate the path isn't escaping up with ../
   }
 
-  public void handle(Context context) {
+  public void handle(Context context) throws ExecutionException {
     FileSystemBinding parentBinding = context.get(FileSystemBinding.class);
     FileSystemBinding binding = parentBinding.binding(path);
     if (binding == null) {
       context.clientError(404);
     } else {
-      context.insert(Registries.just(FileSystemBinding.class, binding), handler);
+      context.insert(CACHE.get(binding), handler);
     }
   }
 }

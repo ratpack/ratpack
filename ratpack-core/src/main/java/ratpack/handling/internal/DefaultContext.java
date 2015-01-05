@@ -143,11 +143,12 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
+    //noinspection Convert2MethodRef
     execControl.exec()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .eventLoop(eventLoop)
-      .start(context::next);
+      .start(e -> context.next());
   }
 
   public DefaultContext(RequestConstants requestConstants) {

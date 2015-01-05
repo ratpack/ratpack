@@ -38,7 +38,15 @@ public class CachingRegistry implements Registry {
   private final ConcurrentMap<TypeToken<?>, Iterable<?>> allCache = new ConcurrentHashMap<>();
   private ConcurrentMap<PredicateCacheability.CacheKey<?>, Iterable<?>> predicateCache = new ConcurrentHashMap<>();
 
-  public CachingRegistry(Registry delegate) {
+  public static Registry of(Registry registry) {
+    if (registry instanceof CachingRegistry) {
+      return registry;
+    } else {
+      return new CachingRegistry(registry);
+    }
+  }
+
+  private CachingRegistry(Registry delegate) {
     this.delegate = delegate;
   }
 
@@ -99,5 +107,24 @@ public class CachingRegistry implements Registry {
   @Override
   public String toString() {
     return "CachingRegistry{delegate=" + delegate + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    CachingRegistry that = (CachingRegistry) o;
+
+    return delegate.equals(that.delegate);
+  }
+
+  @Override
+  public int hashCode() {
+    return delegate.hashCode();
   }
 }
