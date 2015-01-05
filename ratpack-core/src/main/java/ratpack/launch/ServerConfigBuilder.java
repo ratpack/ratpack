@@ -16,8 +16,6 @@
 
 package ratpack.launch;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -44,6 +42,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 /**
  * Builder for ServerConfig objects.
  */
@@ -69,37 +69,11 @@ public class ServerConfigBuilder {
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
-
-  private final Map<String, BuilderAction<?>> builderActions;
-
   private ServerConfigBuilder() {
-    builderActions = new HashMap<>();
-    builderActions.put("port", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::port));
-    builderActions.put("address", new BuilderAction<>(ServerConfigBuilder::inetAddress, ServerConfigBuilder.this::address));
-    builderActions.put("development", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::development));
-    builderActions.put("threads", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::threads));
-    builderActions.put("publicAddress", new BuilderAction<>(URI::create, ServerConfigBuilder.this::publicAddress));
-    builderActions.put("maxContentLength", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::maxContentLength));
-    builderActions.put("timeResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::timeResponses));
-    builderActions.put("compressResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::compressResponses));
-    builderActions.put("compressionMinSize", new BuilderAction<>(Long::parseLong, ServerConfigBuilder.this::compressionMinSize));
-    builderActions.put("compressionWhiteListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionWhiteListMimeTypes));
-    builderActions.put("compressionBlackListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionBlackListMimeTypes));
-    builderActions.put("indexFiles", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::indexFiles));
-    //TODO-JOHN add support for SSLContext somehow
   }
 
   private ServerConfigBuilder(Path baseDir) {
-    this();
     this.baseDir = new DefaultFileSystemBinding(baseDir);
-  }
-
-  public static String[] split(String s) {
-    return Arrays.stream(s.split(",")).map(String::trim).toArray(String[]::new);
-  }
-
-  public static InetAddress inetAddress(String s) {
-    return uncheck(() -> InetAddress.getByName(s));
   }
 
   public static ServerConfigBuilder noBaseDir() {
@@ -433,7 +407,7 @@ public class ServerConfigBuilder {
    */
   ServerConfigBuilder props(ByteSource byteSource) {
     Properties properties = new Properties();
-    try(InputStream is = byteSource.openStream()) {
+    try (InputStream is = byteSource.openStream()) {
       properties.load(is);
     } catch (IOException e) {
       throw uncheck(e);
@@ -449,7 +423,7 @@ public class ServerConfigBuilder {
    */
   ServerConfigBuilder props(Path path) {
     Properties properties = new Properties();
-    try(InputStream is = Files.newInputStream(path)) {
+    try (InputStream is = Files.newInputStream(path)) {
       properties.load(is);
     } catch (IOException e) {
       throw uncheck(e);
@@ -464,10 +438,11 @@ public class ServerConfigBuilder {
    * @return this
    */
   ServerConfigBuilder props(Properties properties) {
+    Map<String, BuilderAction<?>> propertyCoercions = createPropertyCoercions();
     properties.entrySet().forEach(entry -> {
       String key = entry.getKey().toString();
       String value = entry.getValue().toString();
-      BuilderAction<?> mapping = builderActions.get(key);
+      BuilderAction<?> mapping = propertyCoercions.get(key);
       try {
         mapping.apply(value);
       } catch (Exception e) {
@@ -503,7 +478,7 @@ public class ServerConfigBuilder {
   ServerConfigBuilder props(URL url) {
     //TODO-JOHN add test
     Properties properties = new Properties();
-    try(InputStream is = url.openStream()) {
+    try (InputStream is = url.openStream()) {
       properties.load(is);
     } catch (IOException e) {
       throw uncheck(e);
@@ -549,6 +524,7 @@ public class ServerConfigBuilder {
   private static class BuilderAction<T> {
 
     private final Function<String, T> converter;
+
     private final Action<T> action;
 
     public BuilderAction(Function<String, T> converter, Action<T> action) {
@@ -559,5 +535,32 @@ public class ServerConfigBuilder {
     public void apply(String value) throws Exception {
       action.execute(converter.apply(value));
     }
+
+  }
+
+  private static String[] split(String s) {
+    return Arrays.stream(s.split(",")).map(String::trim).toArray(String[]::new);
+  }
+
+  private static InetAddress inetAddress(String s) {
+    return uncheck(() -> InetAddress.getByName(s));
+  }
+
+  private Map<String, BuilderAction<?>> createPropertyCoercions() {
+    return ImmutableMap.<String, BuilderAction<?>>builder()
+      .put("port", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::port))
+      .put("address", new BuilderAction<>(ServerConfigBuilder::inetAddress, ServerConfigBuilder.this::address))
+      .put("development", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::development))
+      .put("threads", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::threads))
+      .put("publicAddress", new BuilderAction<>(URI::create, ServerConfigBuilder.this::publicAddress))
+      .put("maxContentLength", new BuilderAction<>(Integer::parseInt, ServerConfigBuilder.this::maxContentLength))
+      .put("timeResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::timeResponses))
+      .put("compressResponses", new BuilderAction<>(Boolean::parseBoolean, ServerConfigBuilder.this::compressResponses))
+      .put("compressionMinSize", new BuilderAction<>(Long::parseLong, ServerConfigBuilder.this::compressionMinSize))
+      .put("compressionWhiteListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionWhiteListMimeTypes))
+      .put("compressionBlackListMimeTypes", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::compressionBlackListMimeTypes))
+      .put("indexFiles", new BuilderAction<>(ServerConfigBuilder::split, ServerConfigBuilder.this::indexFiles))
+        //TODO-JOHN add support for SSLContext somehow
+      .build();
   }
 }
