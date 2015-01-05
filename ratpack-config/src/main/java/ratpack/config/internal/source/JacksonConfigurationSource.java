@@ -25,9 +25,7 @@ import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigurationSource;
 import ratpack.config.internal.util.PathUtil;
-import ratpack.util.ExceptionUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
@@ -52,12 +50,10 @@ public abstract class JacksonConfigurationSource implements ConfigurationSource 
   }
 
   @Override
-  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) {
+  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
     try (InputStream inputStream = byteSource.openStream()) {
       JsonParser parser = getFactory(objectMapper).createParser(inputStream);
       return objectMapper.readTree(parser);
-    } catch (IOException ex) {
-      throw ExceptionUtils.uncheck(ex);
     }
   }
 

@@ -16,7 +16,8 @@
 
 package ratpack.config
 
-import ratpack.config.internal.source.EnvironmentVariablesConfigurationSource
+import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.source.env.MapEnvironment
 import ratpack.launch.ServerConfig
 import spock.lang.Unroll
 
@@ -25,8 +26,7 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def envSource = new EnvironmentVariablesConfigurationSource(EnvironmentVariablesConfigurationSource.DEFAULT_PREFIX, envData)
-    def serverConfig = Configurations.config().add(envSource).build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).env().build().get(ServerConfig)
 
     then:
     serverConfig.port == expectedPort
@@ -34,8 +34,8 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
     where:
     expectedPort | envData
     5432         | [PORT: "5432"]
-    8080         | [PORT: "5432", ratpack_port: "8080"]
-    8080         | [ratpack_port: "8080"]
+    8080         | [PORT: "5432", RATPACK_PORT: "8080"]
+    8080         | [RATPACK_PORT: "8080"]
   }
 
   def "supports environment variables"() {
@@ -44,25 +44,24 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
     def envData = [
-      ratpack_baseDir: baseDir.toString(),
-      ratpack_port: "8080",
-      ratpack_address: "localhost",
-      ratpack_development: "true",
-      ratpack_threads: "3",
-      ratpack_publicAddress: "http://localhost:8080",
-      ratpack_maxContentLength: "50000",
-      ratpack_timeResponses: "true",
-      ratpack_compressResponses: "true",
-      ratpack_compressionMinSize: "100",
-      ratpack_ssl_keyStorePath: keyStoreFile.toString(),
-      ratpack_ssl_keyStorePassword: keyStorePassword,
-      ratpack_other_a: "1",
-      ratpack_other_b: "2",
+      RATPACK_BASE_DIR: baseDir.toString(),
+      RATPACK_PORT: "8080",
+      RATPACK_ADDRESS: "localhost",
+      RATPACK_DEVELOPMENT: "true",
+      RATPACK_THREADS: "3",
+      RATPACK_PUBLIC_ADDRESS: "http://localhost:8080",
+      RATPACK_MAX_CONTENT_LENGTH: "50000",
+      RATPACK_TIME_RESPONSES: "true",
+      RATPACK_COMPRESS_RESPONSES: "true",
+      RATPACK_COMPRESSION_MIN_SIZE: "100",
+      RATPACK_SSL__KEY_STORE_PATH: keyStoreFile.toString(),
+      RATPACK_SSL__KEY_STORE_PASSWORD: keyStorePassword,
+      RATPACK_OTHER__A: "1",
+      RATPACK_OTHER__B: "2",
     ]
 
     when:
-    def envSource = new EnvironmentVariablesConfigurationSource(EnvironmentVariablesConfigurationSource.DEFAULT_PREFIX, envData)
-    def serverConfig = Configurations.config().add(envSource).build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).env().build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir

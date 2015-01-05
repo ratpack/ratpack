@@ -19,6 +19,7 @@ package ratpack.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
 import ratpack.func.Action;
+import ratpack.func.Function;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -55,7 +56,11 @@ public interface ConfigurationDataSpec {
   ConfigurationData build();
 
   /**
-   * Adds a configuration source for environment variables starting with the prefix {@value ratpack.config.internal.source.EnvironmentVariablesConfigurationSource#DEFAULT_PREFIX}.
+   * Adds a configuration source for environment variables starting with the prefix
+   * {@value ratpack.launch.ServerConfigBuilder#DEFAULT_ENV_PREFIX}.
+   * The prefix will be removed before loading the data.
+   * The environment variable name is split into per-object segments using double underscore as an object boundary.
+   * Segments are transformed into camel-case field names using a single underscore as a word boundary.
    *
    * @return this
    */
@@ -63,12 +68,34 @@ public interface ConfigurationDataSpec {
 
   /**
    * Adds a configuration source for environment variables starting with the specified prefix.
+   * The prefix will be removed before loading the data.
+   * The environment variable name is split into per-object segments using double underscore as an object boundary.
+   * Segments are transformed into camel-case field names using a single underscore as a word boundary.
    *
-   * @param prefix the prefix which should be used to identify relevant environment variables;
-   * the prefix will be removed before loading the data
+   * @param prefix the prefix which should be used to identify relevant environment variables
    * @return this
    */
   ConfigurationDataSpec env(String prefix);
+
+  /**
+   * Adds a configuration source for environment variables starting with the specified prefix.
+   * The prefix will be removed before loading the data.
+   * The environment variable name is split into per-object segments using double underscore as an object boundary.
+   * Segments are transformed into field names using the specified transformation function rather than the default function.
+   *
+   * @param prefix the prefix which should be used to identify relevant environment variables
+   * @param mapFunc the function to transform segments into field names
+   * @return this
+   */
+  ConfigurationDataSpec env(String prefix, Function<String, String> mapFunc);
+
+  /**
+   * Adds a configuration source for environment variables using custom parsing logic.
+   *
+   * @param environmentParser the parser to use to interpret environment variables
+   * @return this
+   */
+  ConfigurationDataSpec env(EnvironmentParser environmentParser);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -143,7 +170,7 @@ public interface ConfigurationDataSpec {
   ConfigurationDataSpec props(URL url);
 
   /**
-   * Adds a configuration source for system properties starting with the prefix {@value ratpack.config.internal.source.PropertiesConfigurationSource#DEFAULT_PREFIX}.
+   * Adds a configuration source for system properties starting with the prefix {@value ratpack.launch.ServerConfigBuilder#DEFAULT_PROP_PREFIX}.
    *
    * @return this
    */

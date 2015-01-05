@@ -22,8 +22,10 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import ratpack.config.internal.source.env.Environment;
 import ratpack.launch.ServerConfig;
 import ratpack.launch.ServerConfigBuilder;
 
@@ -34,13 +36,22 @@ import java.net.URI;
 import java.nio.file.Paths;
 
 public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
+  private final Environment environment;
+
+  public ServerConfigDeserializer(Environment environment) {
+    this.environment = environment;
+  }
+
   @Override
   public ServerConfig deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    String portEnv = Strings.emptyToNull(environment.getenv("PORT"));
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
     ServerConfigBuilder builder = builderForBasedir(serverNode, ctxt);
     if (serverNode.hasNonNull("port")) {
       builder.port(serverNode.get("port").asInt());
+    } else if (portEnv != null) {
+      builder.port(Integer.parseInt(portEnv));
     }
     if (serverNode.hasNonNull("address")) {
       builder.address(codec.treeToValue(serverNode.get("address"), InetAddress.class));

@@ -25,9 +25,12 @@ import com.google.common.io.ByteSource;
 import ratpack.config.ConfigurationData;
 import ratpack.config.ConfigurationDataSpec;
 import ratpack.config.ConfigurationSource;
+import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.module.ConfigurationModule;
 import ratpack.config.internal.source.*;
+import ratpack.config.internal.source.env.Environment;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.util.ExceptionUtils;
 
 import java.net.URL;
@@ -35,14 +38,16 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
-  private final ObjectMapper objectMapper;
   private final ImmutableList.Builder<ConfigurationSource> sources = ImmutableList.builder();
+  private final Environment environment;
+  private final ObjectMapper objectMapper;
 
-  public DefaultConfigurationDataSpec() {
-    this(newDefaultObjectMapper());
+  public DefaultConfigurationDataSpec(Environment environment) {
+    this(environment, newDefaultObjectMapper(environment));
   }
 
-  public DefaultConfigurationDataSpec(ObjectMapper objectMapper) {
+  public DefaultConfigurationDataSpec(Environment environment, ObjectMapper objectMapper) {
+    this.environment = environment;
     this.objectMapper = objectMapper;
   }
 
@@ -69,13 +74,25 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec env() {
-    add(new EnvironmentVariablesConfigurationSource());
+    add(new EnvironmentConfigurationSource(environment));
     return this;
   }
 
   @Override
   public ConfigurationDataSpec env(String prefix) {
-    add(new EnvironmentVariablesConfigurationSource(prefix));
+    add(new EnvironmentConfigurationSource(environment, prefix));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec env(String prefix, Function<String, String> mapFunc) {
+    add(new EnvironmentConfigurationSource(environment, prefix, mapFunc));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec env(EnvironmentParser environmentParser) {
+    add(new EnvironmentConfigurationSource(environment, environmentParser));
     return this;
   }
 
@@ -169,10 +186,10 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
     return this;
   }
 
-  public static ObjectMapper newDefaultObjectMapper() {
+  public static ObjectMapper newDefaultObjectMapper(Environment environment) {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new GuavaModule());
-    objectMapper.registerModule(new ConfigurationModule());
+    objectMapper.registerModule(new ConfigurationModule(environment));
     JsonFactory factory = objectMapper.getFactory();
     factory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);

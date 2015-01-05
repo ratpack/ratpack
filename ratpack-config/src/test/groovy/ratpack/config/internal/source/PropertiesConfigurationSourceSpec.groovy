@@ -21,7 +21,7 @@ import ratpack.config.internal.DefaultConfigurationDataSpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.config.internal.source.PropertiesConfigurationSource.DEFAULT_PREFIX
+import static ratpack.launch.ServerConfigBuilder.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigurationSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
@@ -56,9 +56,9 @@ class PropertiesConfigurationSourceSpec extends Specification {
     rootNode.size() == 2
 
     where:
-    prefix         | input
-    DEFAULT_PREFIX | SAMPLE_SYS_PROPS + [(DEFAULT_PREFIX + "port"): "8080", (DEFAULT_PREFIX + "threads"): "10"]
-    "app."         | SAMPLE_SYS_PROPS + ["app.port": "8080", "app.threads": "10"]
+    prefix              | input
+    DEFAULT_PROP_PREFIX | SAMPLE_SYS_PROPS + [(DEFAULT_PROP_PREFIX + "port"): "8080", (DEFAULT_PROP_PREFIX + "threads"): "10"]
+    "app."              | SAMPLE_SYS_PROPS + ["app.port": "8080", "app.threads": "10"]
   }
 
   def "entries are broken into sub-objects based on dot delimiter"() {

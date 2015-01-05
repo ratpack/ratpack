@@ -35,8 +35,12 @@ public class DefaultConfigurationData implements ConfigurationData {
   public DefaultConfigurationData(ObjectMapper objectMapper, ImmutableList<ConfigurationSource> configurationSources) {
     this.objectMapper = objectMapper;
     rootNode = objectMapper.createObjectNode();
-    for (ConfigurationSource source : configurationSources) {
-      merge(source.loadConfigurationData(objectMapper), rootNode);
+    try {
+      for (ConfigurationSource source : configurationSources) {
+        merge(source.loadConfigurationData(objectMapper), rootNode);
+      }
+    } catch (Exception ex) {
+      throw ExceptionUtils.uncheck(ex);
     }
   }
 

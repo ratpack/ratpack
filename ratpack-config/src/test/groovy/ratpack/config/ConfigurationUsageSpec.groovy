@@ -17,7 +17,8 @@
 package ratpack.config
 
 import com.fasterxml.jackson.databind.JsonNode
-import ratpack.config.internal.source.EnvironmentVariablesConfigurationSource
+import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.source.env.MapEnvironment
 import ratpack.launch.ServerConfig
 
 class ConfigurationUsageSpec extends BaseConfigurationSpec {
@@ -51,11 +52,10 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     def yamlFile = tempFolder.newFile("file.yaml").toPath()
     yamlFile.text = 'publicAddress: http://localhost:8080'
     System.setProperty("ratpack.threads", "3")
-    def envData = [ratpack_address: "localhost"]
+    def envData = [RATPACK_ADDRESS: "localhost"]
 
     when:
-    def envSource = new EnvironmentVariablesConfigurationSource(EnvironmentVariablesConfigurationSource.DEFAULT_PREFIX, envData)
-    def serverConfig = Configurations.config().json(jsonFile).yaml(yamlFile).props(propsFile).add(envSource).sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.port == 8080
@@ -92,11 +92,10 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     def yamlFile = tempFolder.newFile("file.yaml").toPath()
     yamlFile.text = 'port: 234'
     System.setProperty("ratpack.port", "567")
-    def envData = [ratpack_port: "456"]
+    def envData = [RATPACK_PORT: "456"]
 
     when:
-    def envSource = new EnvironmentVariablesConfigurationSource(EnvironmentVariablesConfigurationSource.DEFAULT_PREFIX, envData)
-    def serverConfig = Configurations.config().json(jsonFile).yaml(yamlFile).props(propsFile).add(envSource).sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.port == 567

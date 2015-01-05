@@ -42,33 +42,28 @@ public abstract class FlatToNestedConfigurationSource implements ConfigurationSo
     // TODO: pull in richer impl from https://github.com/danveloper/config-binding/blob/master/src/main/java/config/PropertiesConfigurationSource.java
   }
 
-  private void putValue(ObjectMapper objectMapper, Iterable<String> keyParts, String value, ObjectNode node) {
+  private void putValue(Iterable<String> keyParts, String value, ObjectNode node) {
     String curPart = Iterables.getFirst(keyParts, null);
     if (Iterables.size(keyParts) == 1) {
       node.set(curPart, TextNode.valueOf(value));
     } else {
       ObjectNode childNode = (ObjectNode) node.get(curPart);
       if (childNode == null) {
-        childNode = objectMapper.createObjectNode();
-        node.set(curPart, childNode);
+        childNode = node.putObject(curPart);
       }
-      putValue(objectMapper, Iterables.skip(keyParts, 1), value, childNode);
+      putValue(Iterables.skip(keyParts, 1), value, childNode);
     }
   }
 
   @Override
-  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) {
-    try {
-      Function<String, Iterable<String>> keyTokenizer = getKeyTokenizer();
-      ObjectNode rootNode = objectMapper.createObjectNode();
-      for (Pair<String, String> entry : transformData().apply(loadRawData())) {
-        Iterable<String> keyParts = keyTokenizer.apply(entry.left);
-        putValue(objectMapper, keyParts, entry.right, rootNode);
-      }
-      return rootNode;
-    } catch (Exception ex) {
-      throw ExceptionUtils.uncheck(ex);
+  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
+    Function<String, Iterable<String>> keyTokenizer = getKeyTokenizer();
+    ObjectNode rootNode = objectMapper.createObjectNode();
+    for (Pair<String, String> entry : transformData().apply(loadRawData())) {
+      Iterable<String> keyParts = keyTokenizer.apply(entry.left);
+      putValue(keyParts, entry.right, rootNode);
     }
+    return rootNode;
   }
 
   private static Properties load(ByteSource byteSource) {

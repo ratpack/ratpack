@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.module;
+package ratpack.config.internal.source.env;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import ratpack.config.internal.source.env.Environment;
-import ratpack.launch.ServerConfig;
+import java.util.Map;
 
-import javax.net.ssl.SSLContext;
-
-public class ConfigurationModule extends SimpleModule {
-  public ConfigurationModule(Environment environment) {
-    super("ratpack-config");
-    addDeserializer(ServerConfig.class, new ServerConfigDeserializer(environment));
-    addDeserializer(SSLContext.class, new SSLContextDeserializer());
-  }
+public interface Environment {
+  Map<String, String> getenv();
+  String getenv(String name);
 }

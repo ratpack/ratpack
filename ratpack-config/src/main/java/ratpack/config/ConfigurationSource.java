@@ -21,5 +21,5 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface ConfigurationSource {
   // TODO... does this signature make sense?  It exposes a jackson types
-  ObjectNode loadConfigurationData(ObjectMapper objectMapper);
+  ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception;
 }

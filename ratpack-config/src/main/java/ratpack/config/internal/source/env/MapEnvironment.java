@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.module;
+package ratpack.config.internal.source.env;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import ratpack.config.internal.source.env.Environment;
-import ratpack.launch.ServerConfig;
+import com.google.common.collect.ImmutableMap;
 
-import javax.net.ssl.SSLContext;
+import java.util.Map;
 
-public class ConfigurationModule extends SimpleModule {
-  public ConfigurationModule(Environment environment) {
-    super("ratpack-config");
-    addDeserializer(ServerConfig.class, new ServerConfigDeserializer(environment));
-    addDeserializer(SSLContext.class, new SSLContextDeserializer());
+public class MapEnvironment implements Environment {
+  private final ImmutableMap<String, String> data;
+
+  public MapEnvironment(Map<String, String> data) {
+    this.data = ImmutableMap.copyOf(data);
+  }
+
+  @Override
+  public Map<String, String> getenv() {
+    return data;
+  }
+
+  @Override
+  public String getenv(String name) {
+    return data.get(name);
   }
 }
