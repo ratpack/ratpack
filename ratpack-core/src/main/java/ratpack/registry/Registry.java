@@ -20,7 +20,7 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.registry.internal.EmptyRegistry;
-import ratpack.registry.internal.HierarchicalRegistry;
+import ratpack.registry.internal.HierarchicalRegistryCaching;
 
 import java.util.Optional;
 
@@ -227,7 +227,7 @@ public interface Registry {
     } else if (child == EmptyRegistry.INSTANCE) {
       return this;
     } else {
-      return new HierarchicalRegistry(this, child); // HierarchicalRegistryCaching.join(this, child);
+      return HierarchicalRegistryCaching.join(this, child);
     }
   }
 }
