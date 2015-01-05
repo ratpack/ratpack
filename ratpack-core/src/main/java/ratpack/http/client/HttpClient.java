@@ -22,7 +22,59 @@ import ratpack.func.Action;
 import java.net.URI;
 
 /**
- * An asynchronous HttpClient.
+ * A http client that makes all HTTP requests asynchronous and returns a {@link ratpack.exec.Promise}.
+ * <p>
+ * All details of the request are configured by the {@link ratpack.func.Action} acting on the {@link ratpack.http.client.RequestSpec}.
+ * <p>
+ * Example of a simple GET and POST request.
+ *
+ * <pre class="java">{@code
+ *
+ * import ratpack.server.PublicAddress;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import java.net.URI;
+ *
+ * public class ExampleHttpClient {
+ *
+ *   public static void main(String[] args) throws Exception {
+ *     EmbeddedApp.fromChain(chain -> {
+ *         chain
+ *           .get("/simpleGet", context -> {
+ *             PublicAddress address = context.get(PublicAddress.class);         //find local ip address
+ *             HttpClient httpClient = context.get(HttpClient.class);            //get httpClient
+ *
+ *             httpClient.get(new URI(address.getAddress(context).toString() + "/httpClientGet")).then(response -> {
+ *                 context.render(response.getBody().getText());  //Render the response from the httpClient GET request
+ *               }
+ *             );
+ *           })
+ *           .get("/simplePost", context -> {
+ *             PublicAddress address = context.get(PublicAddress.class);  //find local ip address
+ *             HttpClient httpClient = context.get(HttpClient.class);     //get httpClient
+ *
+ *             httpClient.post(new URI(address.getAddress(context).toString() + "/httpClientPost"), (action -> {
+ *               action.body((body -> {
+ *                 body.text("foo");   //Configure the POST body
+ *               }));
+ *             })).then(response -> {
+ *               context.render(response.getBody().getText());   //Render the response from the httpClient POST request
+ *             });
+ *           })
+ *           .get("httpClientGet", context -> {
+ *             context.render("httpClientGet");
+ *           })
+ *           .post("httpClientPost", context -> {
+ *             context.render(context.getRequest().getBody().getText().toUpperCase());
+ *           });
+ *       }
+ *     ).test(testHttpClient -> {
+ *       assert testHttpClient.get("/simpleGet").getBody().getText().equals("httpClientGet");
+ *       assert testHttpClient.get("/simplePost").getBody().getText().equals("FOO");
+ *     });
+ *   }
+ * }
+ * }</pre>
  */
 public interface HttpClient {
 
