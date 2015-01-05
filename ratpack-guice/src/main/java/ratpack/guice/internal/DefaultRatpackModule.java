@@ -26,7 +26,7 @@ import ratpack.exec.Execution;
 import ratpack.exec.ExecutionException;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 
 public class DefaultRatpackModule extends AbstractModule {

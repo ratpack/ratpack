@@ -25,7 +25,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import ratpack.handling.Handler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.server.Stopper;
 

@@ -33,6 +33,7 @@ import com.github.jknack.handlebars.Helper;
  * import java.nio.file.Path;
  *
  * import static ratpack.handlebars.Template.handlebarsTemplate;
+ * import static org.junit.Assert.*;
  *
  * public class Example {
  *
@@ -50,8 +51,8 @@ import com.github.jknack.handlebars.Helper;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "{{hello \"ratpack\"}}")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
+ *         Guice.builder(registry)
  *           .bindings(b -> b
  *               .add(new HandlebarsModule())
  *               .bind(HelloHelper.class)
@@ -60,7 +61,7 @@ import com.github.jknack.handlebars.Helper;
  *               .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html")))
  *           )
  *     ).test(httpClient -> {
- *       assert httpClient.getText().equals("Hello RATPACK!");
+ *       assertEquals("Hello RATPACK!", httpClient.getText());
  *     });
  *   }
  * }

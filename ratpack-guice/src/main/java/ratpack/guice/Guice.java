@@ -27,7 +27,7 @@ import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 
@@ -61,6 +61,8 @@ import static com.google.inject.Guice.createInjector;
  *
  * import javax.inject.Inject;
  * import javax.inject.Singleton;
+ *
+ * import static org.junit.Assert.*;
  *
  * public class Example {
  *
@@ -119,7 +121,7 @@ import static com.google.inject.Guice.createInjector;
  *             chain.get("some/path", InjectedHandler.class);
  *           })
  *     ).test(httpClient -> {
- *       assert httpClient.get("some/path").getBody().getText().equals("foo-bar");
+ *       assertEquals("foo-bar", httpClient.get("some/path").getBody().getText());
  *     });
  *   }
  *

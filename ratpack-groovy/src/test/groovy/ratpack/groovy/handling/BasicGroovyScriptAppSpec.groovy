@@ -19,10 +19,8 @@ package ratpack.groovy.handling
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigs
-import ratpack.launch.RatpackLauncher
-import ratpack.launch.ServerConfig
-import ratpack.launch.ServerConfigBuilder
 import ratpack.server.RatpackServer
+import ratpack.server.ServerConfigBuilder
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -42,7 +40,7 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
       @Override
       protected RatpackServer createServer() {
-        RatpackLauncher.with(ServerConfigBuilder.launchConfig(createLaunchConfig()).port(0).build())
+        RatpackServer.with(ServerConfigBuilder.launchConfig(createLaunchConfig()).port(0).build())
           .build(new GroovyScriptFileHandlerFactory().&create)
       }
     }

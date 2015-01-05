@@ -23,7 +23,7 @@ import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 

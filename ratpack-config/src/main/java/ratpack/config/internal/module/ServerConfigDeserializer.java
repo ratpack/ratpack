@@ -26,8 +26,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ratpack.config.internal.source.env.Environment;
-import ratpack.launch.ServerConfig;
-import ratpack.launch.ServerConfigBuilder;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -98,9 +98,9 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
   private static ServerConfigBuilder builderForBasedir(ObjectNode serverNode, DeserializationContext ctxt) throws IOException {
     JsonNode baseDirNode = serverNode.get("baseDir");
     if (baseDirNode == null) {
-      return ServerConfigBuilder.noBaseDir();
+      return ServerConfig.noBaseDir();
     } else if (baseDirNode.isTextual()) {
-      return ServerConfigBuilder.baseDir(Paths.get(baseDirNode.asText()));
+      return ServerConfig.baseDir(Paths.get(baseDirNode.asText()));
     }
     throw ctxt.mappingException(ServerConfig.class, baseDirNode.asToken());
   }

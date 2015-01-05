@@ -30,7 +30,7 @@ class JavaChainDslFixture extends GroovyScriptFixture {
   public String pre() {
     """
 import ratpack.func.Action;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Context;

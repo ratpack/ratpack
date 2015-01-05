@@ -24,7 +24,7 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.test.handling.GroovyRequestFixture;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.launch.ServerConfigBuilder;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.HandlingResult;

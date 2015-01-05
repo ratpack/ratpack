@@ -16,11 +16,13 @@
 
 package ratpack.launch;
 
-import ratpack.server.RatpackServer;
-
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
+
+import java.util.Properties;
 
 /**
  * An application entry point for starting a Ratpack application.
@@ -55,7 +57,7 @@ public class RatpackMain {
     //TODO-JOHN
     LaunchConfig launchConfig = LaunchConfigs.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);
     ServerConfig serverConfig = ServerConfigBuilder.launchConfig(launchConfig).build();
-    return RatpackLauncher.with(serverConfig).build(launchConfig.getHandlerFactory());
+    return RatpackServer.with(serverConfig).build(r -> launchConfig.getHandlerFactory().create(r));
   }
 
   /**

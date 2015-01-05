@@ -91,8 +91,8 @@ import javax.inject.Singleton;
  *
  * public class ClientSideSessionsModuleConfigExample {
  *   public static void main(String[] args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *       Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *       Guice.builder(registry)
  *         .bindings(b -> b.add(ClientSideSessionsModule.class, config -> {
  *           config.setSessionName("session-name");
  *           config.setSecretToken("your token for signing");

@@ -24,7 +24,7 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.pac4j.Authorizer;
 import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
 

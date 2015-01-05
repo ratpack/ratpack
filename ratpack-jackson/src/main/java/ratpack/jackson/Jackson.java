@@ -71,8 +71,8 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *       Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *       Guice.builder(registry)
  *         .bindings(b ->
  *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
  *         )
@@ -123,8 +123,8 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *       Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *       Guice.builder(registry)
  *         .bindings(b ->
  *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
  *         )
@@ -189,8 +189,8 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *       Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *       Guice.builder(registry)
  *         .bindings(b ->
  *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
  *         )
@@ -256,8 +256,8 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *       Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *       Guice.builder(registry)
  *         .bindings(b ->
  *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
  *         )
@@ -449,8 +449,8 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) {
-   *     EmbeddedApp.fromHandlerFactory(launchConfig ->
-   *       Guice.builder(launchConfig)
+   *     EmbeddedApp.fromHandlerFactory(registry ->
+   *       Guice.builder(registry)
    *         .bindings(b -> b.add(JacksonModule.class))
    *         .build(chain ->
    *           chain.get(ctx -> {
@@ -556,8 +556,8 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) {
-   *     EmbeddedApp.fromHandlerFactory(launchConfig ->
-   *       Guice.builder(launchConfig)
+   *     EmbeddedApp.fromHandlerFactory(registry ->
+   *       Guice.builder(registry)
    *         .bindings(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false)))
    *         .build(chain -> chain
    *           .get(ctx -> ctx

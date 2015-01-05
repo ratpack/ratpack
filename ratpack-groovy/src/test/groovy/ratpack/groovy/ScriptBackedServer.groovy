@@ -18,7 +18,7 @@ package ratpack.groovy
 
 import ratpack.groovy.internal.StandaloneScriptBacking
 import ratpack.launch.LaunchException
-import ratpack.launch.ServerConfig
+import ratpack.server.ServerConfig
 import ratpack.server.RatpackServer
 
 class ScriptBackedServer implements RatpackServer {

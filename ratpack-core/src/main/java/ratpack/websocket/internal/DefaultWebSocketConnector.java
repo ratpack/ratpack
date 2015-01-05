@@ -19,7 +19,7 @@ package ratpack.websocket.internal;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Context;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.websocket.*;
 
 public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {

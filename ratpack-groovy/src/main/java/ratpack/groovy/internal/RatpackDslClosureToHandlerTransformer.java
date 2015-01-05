@@ -26,7 +26,7 @@ import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 public class RatpackDslClosureToHandlerTransformer implements Function<Closure<?>, Handler> {
 

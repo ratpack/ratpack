@@ -84,8 +84,8 @@ import java.util.function.Consumer;
  *   }
  *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *       Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *       Guice.builder(registry)
  *         .bindings(b ->
  *           b.add(JacksonModule.class, c -> c
  *             .modules(new Jdk8Module()) // register the Jackson module

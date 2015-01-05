@@ -24,7 +24,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.groovy.template.internal.TextTemplateRenderingEngine;
 import ratpack.groovy.template.internal.TextTemplateRenderer;
 import ratpack.guice.ConfigurableModule;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 @SuppressWarnings("UnusedDeclaration")
 public class TextTemplateModule extends ConfigurableModule<TextTemplateModule.Config> {

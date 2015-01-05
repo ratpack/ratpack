@@ -17,13 +17,15 @@
 package ratpack.launch
 
 import ratpack.handling.Handler
+import ratpack.server.RatpackServer
+import ratpack.server.ServerConfig
 import spock.lang.Specification
 
-class RatpackLauncherSpec extends Specification {
+class RatpackLaunchingSpec extends Specification {
 
   def "start default server"() {
     given:
-    def server = RatpackLauncher.withDefaults().build {
+    def server = RatpackServer.withDefaults().build {
       return {} as Handler
     }
 
@@ -42,10 +44,10 @@ class RatpackLauncherSpec extends Specification {
 
   def "start server on port"() {
     given:
-    def server = RatpackLauncher.with(ServerConfigBuilder.noBaseDir().port(5060).build())
+    def server = RatpackServer.with(ServerConfig.noBaseDir().port(5060).build())
       .build {
-        return {} as Handler
-      }
+      return {} as Handler
+    }
 
     when:
     server.start()

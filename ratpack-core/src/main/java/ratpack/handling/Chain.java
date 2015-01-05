@@ -17,7 +17,7 @@
 package ratpack.handling;
 
 import ratpack.func.Action;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
@@ -28,7 +28,7 @@ import ratpack.registry.RegistrySpec;
  * For example, from a {@link ratpack.launch.HandlerFactory} implementation…
  * <pre class="tested">
  * import ratpack.launch.HandlerFactory;
- * import ratpack.launch.ServerConfig;
+ * import ratpack.server.ServerConfig;
  * import ratpack.handling.Chain;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Handlers;

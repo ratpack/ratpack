@@ -22,8 +22,9 @@ import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.*;
+import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
 import ratpack.test.http.TestHttpClient;
@@ -52,102 +53,91 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
 
   /**
-   * Creates an embedded application by building a {@link ServerConfig}.
-   * <p>
-   * The given {@link ratpack.launch.ServerConfigBuilder} will be configured to not have base dir, and to use an ephemeral port.
+   * Creates an embedded application for the given server.
    *
-   * @param function a function that builds a launch config from a launch config builder
-   * @param handlerFactory the application's root handler
+   * @param server the server to embed
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromServerConfigBuilder(Function<? super ServerConfigBuilder, ? extends ServerConfig> function, HandlerFactory handlerFactory) {
+  static EmbeddedApp fromServer(RatpackServer server) {
     return new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        return uncheck(() -> RatpackLauncher.with(function.apply(ServerConfigBuilder.noBaseDir().development(true).port(0))).build(handlerFactory::create));
+        return server;
       }
     };
   }
 
   /**
-   * Creates an embedded application by building a {@link ServerConfig} with the given base dir.
-   * <p>
-   * The given {@link ratpack.launch.ServerConfigBuilder} will be configured to use an ephemeral port.
+   * Creates an embedded application using the given server config, and server creating function.
    *
-   * @param baseDir the base dir for the embedded app
-   * @param function a function that builds a server config from a server config builder
-   * @param handlerFactory the application's root handler
+   * @param serverConfig the server configuration
+   * @param builder a function to create the server to embed
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromServerConfigBuilder(Path baseDir, Function<? super ServerConfigBuilder, ? extends ServerConfig> function, HandlerFactory handlerFactory) {
-    return new EmbeddedAppSupport() {
-      @Override
-      protected RatpackServer createServer() {
-        return uncheck(() -> RatpackLauncher.with(function.apply(ServerConfigBuilder.baseDir(baseDir).development(true).port(0))).build(handlerFactory));
-      }
-    };
+  static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super RatpackServer.Builder, ? extends RatpackServer> builder) {
+    return fromServer(uncheck(() -> builder.apply(RatpackServer.with(serverConfig))));
   }
 
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Path, Function, ratpack.launch.HandlerFactory)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
    *
    * @param handlerFactory a handler factory
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromHandlerFactory(HandlerFactory handlerFactory) {
-    return fromServerConfigBuilder(ServerConfigBuilder::build, handlerFactory);
+  static EmbeddedApp fromHandlerFactory(Function<? super Registry, ? extends Handler> handlerFactory) {
+    return fromServer(ServerConfig.embedded().build(), b -> b.build(handlerFactory));
   }
 
   /**
    * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Path, Function, ratpack.launch.HandlerFactory)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
    *
    * @param baseDir the base dir for the embedded app
    * @param handlerFactory a handler factory
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromHandlerFactory(Path baseDir, HandlerFactory handlerFactory) {
-    return fromServerConfigBuilder(baseDir, ServerConfigBuilder::build, handlerFactory);
+  static EmbeddedApp fromHandlerFactory(Path baseDir, Function<? super Registry, ? extends Handler> handlerFactory) {
+    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.build(handlerFactory));
   }
 
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Function, ratpack.launch.HandlerFactory)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
    *
    * @param handler the application handler
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandler(Handler handler) {
-    return fromServerConfigBuilder(ServerConfigBuilder::build, r -> handler);
+    return fromServer(ServerConfig.embedded().build(), b -> b.build(r -> handler));
   }
 
   /**
    * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Path, Function, ratpack.launch.HandlerFactory)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
    *
    * @param baseDir the base dir for the embedded app
    * @param handler the application handler
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandler(Path baseDir, Handler handler) {
-    return fromServerConfigBuilder(baseDir, ServerConfigBuilder::build, r -> handler);
+    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.build(r -> handler));
   }
 
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler chain.
    * <p>
-   * If you need to tweak the launch config, use {@link #fromServerConfigBuilder(Function, ratpack.launch.HandlerFactory)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
    *
    * @param action the handler chain definition
    * @return a newly created embedded application
    */
   static EmbeddedApp fromChain(Action<? super Chain> action) {
-    return fromServerConfigBuilder(ServerConfigBuilder::build, r -> Handlers.chain(r.get(ServerConfig.class), r, action));
+    return fromServer(ServerConfig.embedded().build(), b -> b.build(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
   }
 
   /**

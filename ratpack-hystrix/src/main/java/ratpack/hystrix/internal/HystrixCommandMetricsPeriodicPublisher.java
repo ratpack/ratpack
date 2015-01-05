@@ -19,7 +19,7 @@ package ratpack.hystrix.internal;
 import com.google.inject.Inject;
 import com.netflix.hystrix.HystrixCommandMetrics;
 import ratpack.exec.ExecController;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.stream.internal.PeriodicPublisher;
 
 import java.time.Duration;

@@ -16,7 +16,7 @@
 
 package ratpack.handling;
 
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 @SuppressWarnings({"UnusedParameters", "UnusedDeclaration"})
 public class TestInjectionHandlers {

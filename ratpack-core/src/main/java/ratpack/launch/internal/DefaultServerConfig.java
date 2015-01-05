@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.NoBaseDirException;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;

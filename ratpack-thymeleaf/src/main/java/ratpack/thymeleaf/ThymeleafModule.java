@@ -27,7 +27,7 @@ import org.thymeleaf.dialect.IDialect;
 import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.thymeleaf.internal.FileSystemBindingThymeleafResourceResolver;
 import ratpack.thymeleaf.internal.ThymeleafTemplateRenderer;
 
@@ -58,6 +58,7 @@ import java.util.Set;
  * import java.nio.file.Path;
  *
  * import static ratpack.thymeleaf.Template.thymeleafTemplate;
+ * import static org.junit.Assert.*;
  *
  * public class Example {
  *
@@ -65,14 +66,14 @@ import java.util.Set;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
+ *       Guice.builder(registry)
  *           .bindings(b -> b.add(new ThymeleafModule()))
  *           .build(chain -> chain
  *               .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
  *           )
  *     ).test(httpClient -> {
- *       assert httpClient.getText().equals("<span>Hello Ratpack!</span>");
+ *       assertEquals("<span>Hello Ratpack!</span>", httpClient.getText());
  *     });
  *   }
  * }

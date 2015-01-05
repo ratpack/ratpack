@@ -22,7 +22,7 @@ import groovy.text.markup.TemplateConfiguration;
 import ratpack.groovy.template.internal.CachingTemplateResolver;
 import ratpack.groovy.template.internal.MarkupTemplateRenderer;
 import ratpack.guice.ConfigurableModule;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.render.Renderer;
 
 import javax.inject.Singleton;
@@ -55,6 +55,7 @@ import java.nio.file.Path;
  * import java.nio.file.Path;
  *
  * import static ratpack.groovy.Groovy.groovyMarkupTemplate;
+ * import static org.junit.Assert.*;
  *
  * public class Example {
  *
@@ -62,14 +63,14 @@ import java.nio.file.Path;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("templates/myTemplate.gtpl", "html { body { p(value) } }")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
+ *         Guice.builder(registry)
  *           .bindings(b -> b.add(MarkupTemplateModule.class))
  *           .build(chain -> chain
  *               .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
  *           )
  *     ).test(httpClient -> {
- *       assert httpClient.get().getBody().getText().equals("<html><body><p>hello!</p></body></html>");
+ *       assertEquals("<html><body><p>hello!</p></body></html>", httpClient.get().getBody().getText());
  *     });
  *   }
  * }

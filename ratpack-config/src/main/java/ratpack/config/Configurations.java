@@ -26,8 +26,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  * <pre class="java">{@code
  * import ratpack.config.ConfigurationData;
  * import ratpack.config.Configurations;
- * import ratpack.launch.RatpackLauncher;
- * import ratpack.launch.ServerConfig;
+ * import ratpack.server.ServerConfig;
  * import ratpack.server.RatpackServer;
  *
  * import ratpack.test.ServerBackedApplicationUnderTest;
@@ -54,7 +53,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  *
  *     ConfigurationData configData = Configurations.config().props(myData).sysProps().build();
  *
- *     RatpackServer server = RatpackLauncher.with(configData.get("/server", ServerConfig.class))
+ *     RatpackServer server = RatpackServer.with(configData.get("/server", ServerConfig.class))
  *       .registry(r -> r
  *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
  *       ).build(registry ->

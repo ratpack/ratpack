@@ -20,7 +20,7 @@ import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import javax.inject.Inject;
 import java.io.File;

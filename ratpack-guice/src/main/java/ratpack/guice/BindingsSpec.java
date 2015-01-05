@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import ratpack.func.Action;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import java.util.function.Consumer;
 

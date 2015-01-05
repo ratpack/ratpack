@@ -31,7 +31,7 @@ import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
 import ratpack.handlebars.internal.RatpackTemplateCache;
 import ratpack.handlebars.internal.TemplateKey;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 /**
  * An extension module that provides support for Handlebars.java templating engine.
@@ -59,10 +59,10 @@ import ratpack.launch.ServerConfig;
  * import ratpack.handlebars.HandlebarsModule;
  * import ratpack.test.embed.BaseDirBuilder;
  * import ratpack.test.embed.EmbeddedApp;
- *
  * import java.nio.file.Path;
  *
  * import static ratpack.handlebars.Template.handlebarsTemplate;
+ * import static org.junit.Assert.*;
  *
  * public class Example {
  *
@@ -70,14 +70,14 @@ import ratpack.launch.ServerConfig;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "Hello {{name}}!")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
+ *         Guice.builder(registry)
  *           .bindings(b -> b.add(new HandlebarsModule()))
  *           .build(chain -> chain
  *               .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
  *           )
  *     ).test(httpClient -> {
- *       assert httpClient.getText().equals("Hello Ratpack!");
+ *       assertEquals("Hello Ratpack!", httpClient.getText());
  *     });
  *   }
  * }

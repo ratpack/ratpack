@@ -19,6 +19,8 @@ package ratpack.launch
 import com.google.common.io.Files
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.server.ServerConfig
+import ratpack.server.ServerConfigBuilder
 import spock.lang.Specification
 
 class ServerConfigBuilderPropertiesSpec extends Specification {
@@ -29,7 +31,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   ServerConfigBuilder builder
 
   def setup() {
-    builder = ServerConfigBuilder.noBaseDir()
+    builder = ServerConfig.noBaseDir()
   }
 
   def "load from properties object"() {

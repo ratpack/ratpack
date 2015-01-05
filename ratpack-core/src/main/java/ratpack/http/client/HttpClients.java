@@ -19,7 +19,7 @@ package ratpack.http.client;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecController;
 import ratpack.http.client.internal.DefaultHttpClient;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 
 public abstract class HttpClients {

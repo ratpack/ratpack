@@ -57,7 +57,7 @@ public interface ConfigurationDataSpec {
 
   /**
    * Adds a configuration source for environment variables starting with the prefix
-   * {@value ratpack.launch.ServerConfigBuilder#DEFAULT_ENV_PREFIX}.
+   * {@value ratpack.server.ServerConfigBuilder#DEFAULT_ENV_PREFIX}.
    * The prefix will be removed before loading the data.
    * The environment variable name is split into per-object segments using double underscore as an object boundary.
    * Segments are transformed into camel-case field names using a single underscore as a word boundary.
@@ -170,7 +170,7 @@ public interface ConfigurationDataSpec {
   ConfigurationDataSpec props(URL url);
 
   /**
-   * Adds a configuration source for system properties starting with the prefix {@value ratpack.launch.ServerConfigBuilder#DEFAULT_PROP_PREFIX}.
+   * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.ServerConfigBuilder#DEFAULT_PROP_PREFIX}.
    *
    * @return this
    */

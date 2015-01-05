@@ -5,7 +5,7 @@ This chapter introduces how to launch a Ratpack application, and the associated 
 ## Configuring and starting a Ratpack application
 
 A Ratpack application is configured and started via the [`RatpackLauncher`](api/ratpack/launch/RatpackLauncher.html). The 
-[`with`][api/ratpack/launch/RatpackLauncher.html#with-ratpack.launch.ServerConfig`] methods creates an instance of the launcher that is backed with the provided server configuration. 
+[`with`][api/ratpack/launch/RatpackLauncher.html#with-ratpack.server.ServerConfig`] methods creates an instance of the launcher that is backed with the provided server configuration. 
 
 The launcher then provides access to configure the user [`Registry`][api/ratpack/registry/Registry.html] that is used to configure the Ratpack application via 
 the [`bindings`][api/ratpack/launch/RatpackLauncher.html#bindings-ratpack.func.Function] method. The launcher adds the necessary default objects to the registry 
@@ -21,14 +21,12 @@ For example,
 ```language-java
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-import ratpack.launch.RatpackLauncher;
-import ratpack.launch.ServerConfig;
-import ratpack.launch.ServerConfigBuilder;
+import ratpack.server.ServerConfig;
 import ratpack.server.RatpackServer;
 
 public class ApplicationMain {
     public static void main(String[] args) {
-        RatpackServer server = RatpackLauncher.with(ServerConfigBuilder.noBaseDir().port(6060).build())
+        RatpackServer server = RatpackServer.with(ServerConfig.noBaseDir().port(6060).build())
           .build(r -> new HelloWorld());
     }
     

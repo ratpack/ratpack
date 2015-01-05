@@ -22,7 +22,7 @@ import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
 import ratpack.handling.internal.*;
 import ratpack.http.internal.*;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinders;
 import ratpack.path.internal.PathHandler;

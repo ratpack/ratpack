@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.launch;
+package ratpack.server;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
@@ -25,6 +25,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Predicate;
+import ratpack.launch.LaunchConfig;
 import ratpack.launch.internal.DefaultServerConfig;
 
 import javax.net.ssl.SSLContext;
@@ -69,15 +70,11 @@ public class ServerConfigBuilder {
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
-  private ServerConfigBuilder() {
+  ServerConfigBuilder() {
   }
 
-  private ServerConfigBuilder(Path baseDir) {
+  ServerConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
-  }
-
-  public static ServerConfigBuilder noBaseDir() {
-    return new ServerConfigBuilder();
   }
 
   /**
@@ -85,10 +82,10 @@ public class ServerConfigBuilder {
    *
    * @param baseDir The base dir of the launch config
    * @return A new server config builder
-   * @see LaunchConfig#getBaseDir()
+   * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
   public static ServerConfigBuilder baseDir(File baseDir) {
-    return baseDir(baseDir.toPath());
+    return ServerConfig.baseDir(baseDir.toPath());
   }
 
   /**
@@ -99,9 +96,9 @@ public class ServerConfigBuilder {
   public static ServerConfigBuilder launchConfig(LaunchConfig launchConfig) {
     ServerConfigBuilder builder;
     if (launchConfig.isHasBaseDir()) {
-      builder = baseDir(launchConfig.getBaseDir().getFile());
+      builder = ServerConfig.baseDir(launchConfig.getBaseDir().getFile());
     } else {
-      builder = noBaseDir();
+      builder = ServerConfig.noBaseDir();
     }
     builder.port(launchConfig.getPort());
     builder.address(launchConfig.getAddress());
@@ -118,17 +115,6 @@ public class ServerConfigBuilder {
     builder.ssl(launchConfig.getSSLContext());
     builder.other(launchConfig.getOtherPrefixedWith(""));
     return builder;
-  }
-
-  /**
-   * Create a new builder, using the given file as the base dir.
-   *
-   * @param baseDir The base dir of the launch config
-   * @return A new server config builder
-   * @see LaunchConfig#getBaseDir()
-   */
-  public static ServerConfigBuilder baseDir(Path baseDir) {
-    return new ServerConfigBuilder(baseDir.toAbsolutePath().normalize());
   }
 
   public ServerConfigBuilder port(int port) {

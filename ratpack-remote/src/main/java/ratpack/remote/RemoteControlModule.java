@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 import ratpack.guice.Guice;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.remote.internal.RemoteControlHandler;
 
 /**

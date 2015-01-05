@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-
-
-package ratpack.launch
-
-import static ratpack.launch.ServerConfigBuilder.DEFAULT_ENV_PREFIX
+package ratpack.server
 
 import spock.lang.Specification
+
+import static ratpack.server.ServerConfigBuilder.DEFAULT_ENV_PREFIX
 
 class ServerConfigBuilderEnvVarsSpec extends Specification {
 
@@ -28,7 +26,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
   Map<String, String> source
 
   def setup() {
-    builder = ServerConfigBuilder.noBaseDir()
+    builder = ServerConfig.noBaseDir()
     source = [:]
   }
 

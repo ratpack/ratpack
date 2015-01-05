@@ -27,8 +27,9 @@ import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
-import ratpack.launch.*;
 import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
@@ -149,16 +150,16 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         if (spec.baseDirSupplier != null) {
           Path baseDirPath = spec.baseDirSupplier.get();
-          serverConfigBuilder = ServerConfigBuilder.baseDir(baseDirPath);
+          serverConfigBuilder = ServerConfig.baseDir(baseDirPath);
         } else {
-          serverConfigBuilder = ServerConfigBuilder.noBaseDir();
+          serverConfigBuilder = ServerConfig.noBaseDir();
         }
 
         configureDelegateFirst(serverConfigBuilder.port(0), spec.serverConfig);
 
         final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
 
-        return RatpackLauncher.with(serverConfigBuilder.build()).build(r -> {
+        return RatpackServer.with(serverConfigBuilder.build()).build(r -> {
           Guice.Builder builder = Guice.builder(r);
           if (spec.parentInjector != null) {
             builder.parent(spec.parentInjector);

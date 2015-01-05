@@ -18,7 +18,7 @@ package ratpack.config.internal.module;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import ratpack.config.internal.source.env.Environment;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import javax.net.ssl.SSLContext;
 

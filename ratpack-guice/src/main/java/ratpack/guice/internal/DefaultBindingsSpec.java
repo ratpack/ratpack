@@ -24,7 +24,7 @@ import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.NoSuchModuleException;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import java.util.List;
 import java.util.function.Consumer;

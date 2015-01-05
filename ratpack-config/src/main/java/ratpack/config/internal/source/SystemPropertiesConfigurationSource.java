@@ -16,7 +16,7 @@
 
 package ratpack.config.internal.source;
 
-import ratpack.launch.ServerConfigBuilder;
+import ratpack.server.ServerConfigBuilder;
 
 public final class SystemPropertiesConfigurationSource extends PropertiesConfigurationSource {
 

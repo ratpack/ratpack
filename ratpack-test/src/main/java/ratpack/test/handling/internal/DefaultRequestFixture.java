@@ -34,15 +34,15 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.launch.RatpackLauncher;
-import ratpack.launch.ServerConfig;
-import ratpack.launch.ServerConfigBuilder;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.internal.NettyRatpackServer;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -74,7 +74,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private RegistryBuilder registryBuilder = Registries.registry();
 
-  private ServerConfigBuilder serverConfigBuilder = ServerConfigBuilder.noBaseDir();
+  private ServerConfigBuilder serverConfigBuilder = ServerConfig.noBaseDir();
 
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
@@ -140,14 +140,14 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
-    serverConfigBuilder = ServerConfigBuilder.noBaseDir();
+    serverConfigBuilder = ServerConfig.noBaseDir();
     action.execute(serverConfigBuilder);
     return this;
   }
 
   @Override
   public RequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception {
-    serverConfigBuilder = ServerConfigBuilder.baseDir(baseDir);
+    serverConfigBuilder = ServerConfig.baseDir(baseDir);
     action.execute(serverConfigBuilder);
     return this;
   }
@@ -234,6 +234,6 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> RatpackLauncher.baseRegistry(serverConfigBuilder.build(), userRegistry.join(registryBuilder.build())));
+    return ExceptionUtils.uncheck(() -> NettyRatpackServer.baseRegistry(serverConfigBuilder.build(), userRegistry.join(registryBuilder.build())));
   }
 }

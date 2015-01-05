@@ -19,7 +19,7 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Provider;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;

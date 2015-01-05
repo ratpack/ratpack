@@ -19,7 +19,7 @@ package ratpack.config
 import com.fasterxml.jackson.databind.JsonNode
 import ratpack.config.internal.DefaultConfigurationDataSpec
 import ratpack.config.internal.source.env.MapEnvironment
-import ratpack.launch.ServerConfig
+import ratpack.server.ServerConfig
 
 class ConfigurationUsageSpec extends BaseConfigurationSpec {
   def "properly loads ServerConfig defaults"() {

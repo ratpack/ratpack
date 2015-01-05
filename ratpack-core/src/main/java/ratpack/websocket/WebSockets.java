@@ -23,7 +23,7 @@ import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.func.Function;
 import ratpack.handling.Context;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.stream.Streams;
 import ratpack.websocket.internal.DefaultWebSocketConnector;
 import ratpack.websocket.internal.WebSocketEngine;

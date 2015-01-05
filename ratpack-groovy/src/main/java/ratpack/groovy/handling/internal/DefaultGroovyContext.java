@@ -31,7 +31,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;

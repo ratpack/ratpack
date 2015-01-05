@@ -22,7 +22,7 @@ import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.guice.Guice;
 import ratpack.handling.Handler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 
 public class InjectorHandlerTransformer implements Function<Injector, Handler> {

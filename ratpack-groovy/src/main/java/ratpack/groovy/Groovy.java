@@ -41,7 +41,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 
 import java.nio.charset.Charset;

@@ -18,7 +18,7 @@ package ratpack.config
 
 import ratpack.config.internal.DefaultConfigurationDataSpec
 import ratpack.config.internal.source.env.MapEnvironment
-import ratpack.launch.ServerConfig
+import ratpack.server.ServerConfig
 import spock.lang.Unroll
 
 class EnvVarConfigurationSpec extends BaseConfigurationSpec {

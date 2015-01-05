@@ -32,7 +32,7 @@ import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.internal.FactoryHandler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;

@@ -22,7 +22,7 @@ import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileSystemBinding
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.launch.ServerConfig
+import ratpack.server.ServerConfig
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll

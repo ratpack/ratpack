@@ -19,7 +19,7 @@ package ratpack.file;
 import ratpack.file.internal.DefaultFileSystemChecksumService;
 import ratpack.file.internal.FileSystemChecksumServicePopulater;
 import ratpack.func.Function;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 
 import java.io.InputStream;
 import java.util.concurrent.Executors;

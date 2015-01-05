@@ -21,7 +21,7 @@ import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;

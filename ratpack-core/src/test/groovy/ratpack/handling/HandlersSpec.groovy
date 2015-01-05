@@ -21,7 +21,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
-import ratpack.launch.ServerConfig
+import ratpack.server.ServerConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.handling.Handlers.chain

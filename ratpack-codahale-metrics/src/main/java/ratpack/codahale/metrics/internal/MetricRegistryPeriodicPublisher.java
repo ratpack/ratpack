@@ -20,7 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import ratpack.exec.ExecController;
 import ratpack.func.Function;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.stream.internal.PeriodicPublisher;
 
 import java.time.Duration;

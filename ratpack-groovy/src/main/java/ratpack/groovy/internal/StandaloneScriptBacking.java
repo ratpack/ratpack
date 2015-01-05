@@ -25,9 +25,12 @@ import ratpack.func.Action;
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
-import ratpack.launch.*;
+import ratpack.launch.HandlerFactory;
+import ratpack.launch.LaunchConfig;
+import ratpack.launch.LaunchConfigs;
 import ratpack.launch.internal.DelegatingLaunchConfig;
 import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfigBuilder;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -74,8 +77,8 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
 
     final LaunchConfig effectiveLaunchConfig = launchConfig;
-    RatpackServer server = RatpackLauncher.with(ServerConfigBuilder.launchConfig(effectiveLaunchConfig).build())
-      .build(launchConfig.getHandlerFactory());
+    RatpackServer server = RatpackServer.with(ServerConfigBuilder.launchConfig(effectiveLaunchConfig).build())
+      .build(r -> effectiveLaunchConfig.getHandlerFactory().create(r));
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {

@@ -40,10 +40,12 @@ import javax.sql.DataSource;
  * import java.sql.PreparedStatement;
  * import java.sql.ResultSet;
  *
+ * import static org.junit.Assert.*;
+ *
  * public class Example {
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig ->
- *         Guice.builder(launchConfig)
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *         Guice.builder(registry)
  *           .bindings(b ->
  *               b.add(HikariModule.class, hikariConfig -> {
  *                 hikariConfig.setDataSourceClassName("org.h2.jdbcx.JdbcDataSource");
@@ -83,7 +85,7 @@ import javax.sql.DataSource;
  *           })
  *     ).test(httpClient -> {
  *       httpClient.post("set/foo");
- *       assert httpClient.getText("get").equals("foo");
+ *       assertEquals("foo", httpClient.getText("get"));
  *     });
  *   }
  * }

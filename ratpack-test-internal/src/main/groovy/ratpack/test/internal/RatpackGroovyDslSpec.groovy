@@ -22,7 +22,7 @@ import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.launch.ServerConfigBuilder
+import ratpack.server.ServerConfigBuilder
 import ratpack.test.embed.EmbeddedApp
 
 abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {

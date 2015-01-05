@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.launch;
+package ratpack.server;
 
 import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
+import ratpack.launch.NoBaseDirException;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +54,29 @@ public interface ServerConfig {
    * The default compression minimum size in bytes, {@value}.
    */
   public long DEFAULT_COMPRESSION_MIN_SIZE = 1024;
+
+  static ServerConfigBuilder embedded() {
+    return noBaseDir().development(true).port(0);
+  }
+
+  static ServerConfigBuilder embedded(Path baseDir) {
+    return baseDir(baseDir).development(true).port(0);
+  }
+
+  static ServerConfigBuilder noBaseDir() {
+    return new ServerConfigBuilder();
+  }
+
+  /**
+   * Create a new builder, using the given file as the base dir.
+   *
+   * @param baseDir The base dir of the launch config
+   * @return A new server config builder
+   * @see ratpack.launch.LaunchConfig#getBaseDir()
+   */
+  static ServerConfigBuilder baseDir(Path baseDir) {
+    return new ServerConfigBuilder(baseDir.toAbsolutePath().normalize());
+  }
 
   /**
    * The port that the application should listen to requests on.
@@ -178,7 +203,7 @@ public interface ServerConfig {
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
    *
    * @return The base dir of the application.
-   * @throws NoBaseDirException if this launch config has no base dir set.
+   * @throws ratpack.launch.NoBaseDirException if this launch config has no base dir set.
    */
   public FileSystemBinding getBaseDir() throws NoBaseDirException;
 

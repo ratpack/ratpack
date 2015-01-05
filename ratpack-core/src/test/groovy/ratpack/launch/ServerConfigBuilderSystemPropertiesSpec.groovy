@@ -16,6 +16,8 @@
 
 package ratpack.launch
 
+import ratpack.server.ServerConfig
+import ratpack.server.ServerConfigBuilder
 import spock.lang.Specification
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {
@@ -23,7 +25,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
   ServerConfigBuilder builder
 
   def setup() {
-    builder = ServerConfigBuilder.noBaseDir()
+    builder = ServerConfig.noBaseDir()
   }
 
   def "set port"() {

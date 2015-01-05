@@ -16,8 +16,9 @@
 
 package ratpack.launch
 
-import ratpack.handling.Handler
-import ratpack.registry.Registry
+import ratpack.server.RatpackServer
+import ratpack.server.ServerConfig
+import ratpack.server.ServerConfigBuilder
 import spock.lang.Specification
 
 class ServerConfigBuilderSpec extends Specification {
@@ -25,7 +26,7 @@ class ServerConfigBuilderSpec extends Specification {
   ServerConfigBuilder builder
 
   def setup() {
-    builder = ServerConfigBuilder.noBaseDir()
+    builder = ServerConfig.noBaseDir()
   }
 
   def "no base dir"() {
@@ -43,13 +44,7 @@ class ServerConfigBuilderSpec extends Specification {
     given:
     def e = new Error("e")
     def config = builder.build()
-    def server = RatpackLauncher.with(config)
-      .build(new HandlerFactory() {
-        @Override
-        Handler create(Registry rootRegistry) throws Exception {
-          throw e
-        }
-      })
+    def server = RatpackServer.with(config).build { throw e }
 
     when:
     server.start()

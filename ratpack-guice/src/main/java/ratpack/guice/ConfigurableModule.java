@@ -22,7 +22,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.util.ExceptionUtils;
 
 import javax.inject.Singleton;
@@ -34,94 +34,94 @@ import java.lang.reflect.Constructor;
  * A configurable module provides a single, mutable, “config object” (type parameter {@code C}).
  * The {@link ratpack.guice.BindingsSpec#add(Class, Action)} method can be used to add the module and configure it at the same time.
  * It is conventional, but not required, for the config type to be a nested static class named {@code Config} of the module class.
- * <pre class="java">
+ * <pre class="java">{@code
  * import com.google.inject.Provides;
  * import ratpack.guice.ConfigurableModule;
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * 
+ *
+ * import static org.junit.Assert.*;
+ *
  * public class Example {
- * 
- *   public static class StringModule extends ConfigurableModule&lt;StringModule.Config&gt; {
+ *
+ *   public static class StringModule extends ConfigurableModule<StringModule.Config> {
  *     public static class Config {
  *       private String value;
- * 
+ *
  *       public void value(String value) {
  *         this.value = value;
  *       }
  *     }
- * 
+ *
  *     protected void configure() {}
- * 
+ *
  *     {@literal @}Provides
  *     String provideString(Config config) {
  *       return config.value;
  *     }
  *   }
- * 
+ *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(launchConfig -&gt;
- *         Guice.builder(launchConfig)
- *           .bindings(b -&gt;
- *               b.add(StringModule.class, c -&gt; c.value("foo"))
+ *     EmbeddedApp.fromHandlerFactory(registry ->
+ *         Guice.builder(registry)
+ *           .bindings(b -> b
+ *               .add(StringModule.class, c -> c.value("foo"))
  *           )
- *           .build(chain -&gt; chain
- *               .get(ctx -&gt;
- *                   ctx.render(ctx.get(String.class))
- *               )
+ *           .build(chain -> chain
+ *               .get(ctx -> ctx.render(ctx.get(String.class)))
  *           )
- *     ).test(httpClient -&gt; {
- *       assert httpClient.getText().equals("foo");
+ *     ).test(httpClient -> {
+ *       assertEquals("foo", httpClient.getText());
  *     });
  *   }
  * }
- * </pre>
+ * }</pre>
  * <p>
  * Alternatively, the config object can be provided as a separate binding.
- * <pre class="java">
+ * <pre class="java">{@code
  * import com.google.inject.Provides;
  * import ratpack.guice.ConfigurableModule;
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * 
+ *
+ * import static org.junit.Assert.*;
+ *
  * public class Example {
- *   public static class StringModule extends ConfigurableModule&lt;StringModule.Config&gt; {
+ *   public static class StringModule extends ConfigurableModule<StringModule.Config> {
  *     public static class Config {
  *       private String value;
- * 
+ *
  *       public Config value(String value) {
  *         this.value = value;
  *         return this;
  *       }
  *     }
- * 
+ *
  *     protected void configure() {
  *     }
- * 
+ *
  *     {@literal @}Provides
  *     String provideString(Config config) {
  *       return config.value;
  *     }
  *   }
- * 
+ *
  *   public static void main(String... args) {
- *     EmbeddedApp.fromHandlerFactory(registry -&gt;
+ *     EmbeddedApp.fromHandlerFactory(registry ->
  *         Guice.builder(registry)
- *           .bindings(b -&gt; b
+ *           .bindings(b -> b
  *               .add(StringModule.class)
  *               .bindInstance(new StringModule.Config().value("bar"))
  *           )
- *           .build(chain -&gt; chain
- *               .get(ctx -&gt;
- *                   ctx.render(ctx.get(String.class))
- *               )
+ *           .build(chain -> chain
+ *               .get(ctx -> ctx.render(ctx.get(String.class)))
  *           )
- *     ).test(httpClient -&gt; {
- *       assert httpClient.getText().equals("bar");
+ *     ).test(httpClient -> {
+ *       assertEquals("bar", httpClient.getText());
  *     });
  *   }
  * }
- * </pre>
+ * }</pre>
  *
  * @param <T> the type of the config object
  */

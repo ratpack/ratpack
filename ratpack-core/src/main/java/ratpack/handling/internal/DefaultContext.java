@@ -38,7 +38,7 @@ import ratpack.http.Response;
 import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.MultiMethodHandler;
-import ratpack.launch.ServerConfig;
+import ratpack.server.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;

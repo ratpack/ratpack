@@ -29,7 +29,7 @@ class GroovyChainDslFixture extends GroovyScriptFixture {
   @Override
   public String pre() {
     """
-import ratpack.launch.ServerConfig
+import ratpack.server.ServerConfig
 
 ratpack.groovy.Groovy.chain([isDevelopment: { false }] as ServerConfig, null) {
 """
