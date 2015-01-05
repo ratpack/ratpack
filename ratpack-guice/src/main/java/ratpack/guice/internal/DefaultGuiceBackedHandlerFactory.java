@@ -102,7 +102,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     Registry registry = Guice.registry(injector);
-    return Handlers.chain(Handlers.register(rootRegistry.join(registry)), handler);
+    return Handlers.chain(Handlers.register(registry), handler);
   }
 
   protected void registerDefaultModules(BindingsSpec bindingsSpec) {
