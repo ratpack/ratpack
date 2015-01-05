@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled
 import io.netty.buffer.UnpooledByteBufAllocator
 import io.netty.util.CharsetUtil
 import ratpack.groovy.script.internal.ScriptEngine
-import ratpack.util.internal.IoUtils
 import spock.lang.Specification
 
 class TemplateCompilerSpec extends Specification {
@@ -29,7 +28,7 @@ class TemplateCompilerSpec extends Specification {
   def compiler = new TextTemplateCompiler(new ScriptEngine<DefaultTextTemplateScript>(getClass().classLoader, true, DefaultTextTemplateScript), true, UnpooledByteBufAllocator.DEFAULT)
 
   CompiledTextTemplate compile(String source) {
-    compiler.compile(IoUtils.utf8Buffer(source), "test")
+    compiler.compile(Unpooled.copiedBuffer(source, CharsetUtil.UTF_8), "test")
   }
 
   class StubNestedRenderer implements NestedRenderer {
@@ -37,7 +36,7 @@ class TemplateCompilerSpec extends Specification {
 
     @Override
     void render(String templateName, Map<String, ?> model) {
-      buffer.writeBytes(IoUtils.utf8Bytes("render:${[templateName: templateName, model: model]}"))
+      buffer.writeBytes("render:${[templateName: templateName, model: model]}".getBytes(CharsetUtil.UTF_8))
     }
   }
 

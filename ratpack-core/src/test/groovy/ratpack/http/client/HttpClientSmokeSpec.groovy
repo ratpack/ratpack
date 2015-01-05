@@ -16,11 +16,12 @@
 
 package ratpack.http.client
 
+import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.util.CharsetUtil
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.stream.Streams
-import ratpack.util.internal.IoUtils
 
 import java.time.Duration
 
@@ -230,7 +231,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.post(otherAppUrl()) {
           it.body {
-            it.buffer(IoUtils.utf8Buffer("foo"))
+            it.buffer(Unpooled.copiedBuffer("foo", CharsetUtil.UTF_8))
           }
         } then {
           render it.body.text
@@ -255,7 +256,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.post(otherAppUrl()) {
           it.body {
-            it.bytes(IoUtils.utf8Bytes("foo"))
+            it.bytes("foo".getBytes(CharsetUtil.UTF_8))
           }
         } then {
           render it.body.text
@@ -364,7 +365,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
   def "500 Error when RequestSpec throws an exception"() {
     given:
-    otherApp { }
+    otherApp {}
 
     and:
     handlers {
@@ -466,8 +467,8 @@ bar
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse stream ->
           render stringChunks(
-            stream.body.map{
-              IoUtils.utf8String(it).toUpperCase()
+            stream.body.map {
+              it.toString(CharsetUtil.UTF_8).toUpperCase()
             }
           )
         }

@@ -72,7 +72,7 @@ public class TextTemplateRenderingEngine {
 
   private TextTemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
     String id = templateId + (reloadable ? Files.getLastModifiedTime(templateFile) : "0");
-    return new TextTemplateSource(id, templateFile, templateId);
+    return new TextTemplateSource(byteBufAllocator, id, templateFile, templateId);
   }
 
   private Promise<ByteBuf> render(final TextTemplateSource templateSource, Map<String, ?> model) throws Exception {

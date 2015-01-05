@@ -17,6 +17,7 @@
 package ratpack.reload.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.func.Factory;
 import ratpack.util.internal.IoUtils;
 
@@ -118,7 +119,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
         return false;
       }
 
-      return IoUtils.read(file).equals(existing);
+      return IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file).equals(existing);
     } finally {
       lock.unlock();
     }
@@ -132,7 +133,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     lock.lock();
     try {
       FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      ByteBuf bytes = IoUtils.read(file);
+      ByteBuf bytes = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file);
 
       if (lastModifiedTime.equals(lastModifiedHolder.get()) && bytes.equals(contentHolder.get())) {
         return;

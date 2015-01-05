@@ -19,7 +19,6 @@ package ratpack.groovy.template.internal
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
-import ratpack.util.internal.IoUtils
 import spock.lang.Specification
 
 class TemplateParserSpec extends Specification {
@@ -27,7 +26,7 @@ class TemplateParserSpec extends Specification {
   private final TextTemplateParser parser = new TextTemplateParser()
 
   String parse(String source) {
-    ByteBuf sourceBuffer = IoUtils.utf8Buffer(source)
+    ByteBuf sourceBuffer = Unpooled.copiedBuffer(source, CharsetUtil.UTF_8)
     ByteBuf scriptBuffer = Unpooled.buffer(source.length())
     parser.parse(sourceBuffer, scriptBuffer)
     scriptBuffer.toString(CharsetUtil.UTF_8)

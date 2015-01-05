@@ -17,6 +17,7 @@
 package ratpack.groovy.template.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.util.internal.IoUtils;
 
 import java.io.IOException;
@@ -25,10 +26,12 @@ import java.nio.file.Path;
 public class TextTemplateSource {
 
   private final String id;
+  private final ByteBufAllocator byteBufAllocator;
   private final Path path;
   private final String name;
 
-  public TextTemplateSource(String id, Path path, String name) {
+  public TextTemplateSource(ByteBufAllocator byteBufAllocator, String id, Path path, String name) {
+    this.byteBufAllocator = byteBufAllocator;
     this.path = path;
     this.name = name;
     this.id = id;
@@ -39,7 +42,7 @@ public class TextTemplateSource {
   }
 
   public ByteBuf getContent() throws IOException {
-    return IoUtils.read(path);
+    return IoUtils.read(byteBufAllocator, path);
   }
 
   @Override

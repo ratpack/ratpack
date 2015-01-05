@@ -17,6 +17,7 @@
 package ratpack.stream.tck
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.FullHttpRequest
@@ -29,7 +30,6 @@ import ratpack.event.internal.DefaultEventController
 import ratpack.func.Function
 import ratpack.handling.RequestOutcome
 import ratpack.server.internal.DefaultResponseTransmitter
-import ratpack.util.internal.IoUtils
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -82,7 +82,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
   def integerToByteBuf = new Function<Integer, ByteBuf>() {
     @Override
     ByteBuf apply(Integer i) throws Exception {
-      IoUtils.byteBuf(i.byteValue())
+      Unpooled.wrappedBuffer([i.byteValue()] as byte[])
     }
   }
 

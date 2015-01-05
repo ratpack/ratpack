@@ -21,10 +21,12 @@ import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.util.CharsetUtil;
 import ratpack.groovy.template.TextTemplateModel;
 import ratpack.groovy.template.TextTemplateScript;
-import ratpack.util.internal.IoUtils;
 
+import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Map;
 
@@ -76,7 +78,9 @@ public abstract class DefaultTextTemplateScript extends Script implements TextTe
   @SuppressWarnings("UnusedDeclaration")
   public void $(CharSequence charSequence) {
     //CHECKSTYLE:ON
-    buffer.writeBytes(IoUtils.utf8Bytes(charSequence.toString()));
+    ByteBuf byteBuf = ByteBufUtil.encodeString(buffer.alloc(), CharBuffer.wrap(charSequence.toString()), CharsetUtil.UTF_8);
+    buffer.writeBytes(byteBuf);
+    byteBuf.release();
   }
 
 }

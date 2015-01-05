@@ -16,9 +16,9 @@
 
 package ratpack.http.internal
 
+import io.netty.buffer.Unpooled
 import ratpack.http.ResponseMetaData
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.util.internal.IoUtils
 
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -116,7 +116,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can send bytes"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -139,7 +139,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can set content type and override with send bytes"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -163,7 +163,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can send bytes with default content type"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -186,7 +186,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can set content type and not override with send bytes"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -226,21 +226,6 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
       !headers.get(CONTENT_TYPE)
       headers.get(CONTENT_LENGTH).toInteger() == 0
     }
-  }
-
-  def "can send input streams"() {
-    when:
-    def string = "a" * 1024 * 10
-    def bytes = string.getBytes("utf8")
-
-    handlers {
-      handler {
-        response.send "text/plain;charset=UTF-8", new ByteArrayInputStream(bytes)
-      }
-    }
-
-    then:
-    text == string
   }
 
   def "can send files"() {

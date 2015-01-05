@@ -20,8 +20,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecControl;
@@ -30,10 +32,8 @@ import ratpack.func.Action;
 import ratpack.http.*;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.MultiValueMap;
-import ratpack.util.internal.IoUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.CharBuffer;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
@@ -232,7 +232,8 @@ public class DefaultResponse implements Response {
   }
 
   public void send(String text) {
-    contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8).send(IoUtils.utf8Bytes(text));
+    ByteBuf byteBuf = ByteBufUtil.encodeString(byteBufAllocator, CharBuffer.wrap(text), CharsetUtil.UTF_8);
+    contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8).send(byteBuf);
   }
 
   public void send(CharSequence contentType, String body) {
@@ -247,16 +248,6 @@ public class DefaultResponse implements Response {
 
   public void send(CharSequence contentType, byte[] bytes) {
     contentType(contentType).send(bytes);
-  }
-
-  @Override
-  public void send(InputStream inputStream) throws IOException {
-    commit(IoUtils.writeTo(inputStream, byteBufAllocator.buffer()));
-  }
-
-  @Override
-  public void send(CharSequence contentType, InputStream inputStream) throws IOException {
-    contentType(contentType).send(inputStream);
   }
 
   public void send(CharSequence contentType, ByteBuf buffer) {

@@ -21,8 +21,6 @@ import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Supplier;
@@ -88,26 +86,6 @@ public interface Response extends ResponseMetaData {
    */
   @NonBlocking
   void send(CharSequence contentType, byte[] bytes);
-
-  /**
-   * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
-   * already been set) and the contents of the given input stream as the response body.
-   *
-   * @param inputStream The response body
-   * @throws IOException if the input stream cannot be consumed
-   */
-  @NonBlocking
-  void send(InputStream inputStream) throws IOException;
-
-  /**
-   * Sends the response, using the given content type and the content of the given input stream as the response body.
-   *
-   * @param contentType The value of the {@code Content-Type} header
-   * @param inputStream response body
-   * @throws IOException if the input stream cannot be consumed
-   */
-  @NonBlocking
-  void send(CharSequence contentType, InputStream inputStream) throws IOException;
 
   /**
    * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't

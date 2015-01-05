@@ -19,6 +19,7 @@ package ratpack.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
@@ -26,7 +27,6 @@ import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.util.internal.IoUtils;
 
 import java.nio.file.Path;
 
@@ -42,7 +42,7 @@ public class ScriptBackedApp implements Handler {
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Producer<Handler>() {
       public Handler produce(final Path file, final ByteBuf bytes) {
         try {
-          final String string = IoUtils.utf8String(bytes);
+          final String string = bytes.toString(CharsetUtil.UTF_8);
           final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
 
           Runnable runScript = new Runnable() {
