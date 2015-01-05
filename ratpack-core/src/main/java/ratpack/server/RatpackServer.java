@@ -16,19 +16,17 @@
 
 package ratpack.server;
 
-import com.google.common.base.Throwables;
-import ratpack.file.BaseDirRequiredException;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.FactoryHandler;
-import ratpack.launch.LaunchException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
+import ratpack.server.internal.BaseRegistry;
 import ratpack.server.internal.NettyRatpackServer;
 import ratpack.server.internal.RatpackChannelInitializer;
 
@@ -76,7 +74,7 @@ public interface RatpackServer {
      * @return a new, not yet started, Ratpack server
      */
     public RatpackServer build(Function<? super Registry, ? extends Handler> handlerFactory) {
-      Registry baseRegistry = NettyRatpackServer.baseRegistry(serverConfig, userRegistry);
+      Registry baseRegistry = BaseRegistry.baseRegistry(serverConfig, userRegistry);
 
       return new NettyRatpackServer(baseRegistry, stopper -> {
         Handler handler = null;
@@ -84,26 +82,17 @@ public interface RatpackServer {
         if (serverConfig.isDevelopment()) {
           File classFile = ClassUtil.getClassFile(handlerFactory);
           if (classFile != null) {
-            Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> createHandler(baseRegistry, handlerFactory));
+            Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> handlerFactory.apply(baseRegistry));
             handler = new FactoryHandler(factory);
           }
         }
 
         if (handler == null) {
-          handler = createHandler(baseRegistry, handlerFactory);
+          handler = handlerFactory.apply(baseRegistry);
         }
 
         return new RatpackChannelInitializer(baseRegistry, handler, stopper);
       });
-    }
-
-    private static Handler createHandler(Registry rootRegistry, Function<? super Registry, ? extends Handler> handlerFactory) {
-      try {
-        return handlerFactory.apply(rootRegistry);
-      } catch (Exception e) {
-        Throwables.propagateIfInstanceOf(e, BaseDirRequiredException.class);
-        throw new LaunchException("Could not create handler via handler factory: " + handlerFactory.getClass().getName(), e);
-      }
     }
 
     /**

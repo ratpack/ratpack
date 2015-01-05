@@ -17,7 +17,6 @@
 package ratpack.http.internal
 
 import ratpack.http.client.RequestSpec
-import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectionHandleSpec extends RatpackGroovyDslSpec {
@@ -51,8 +50,7 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    def launchException = thrown LaunchException
-    launchException.cause instanceof IllegalArgumentException
+    thrown IllegalArgumentException
 
     where:
     statusCode << [299, 400]

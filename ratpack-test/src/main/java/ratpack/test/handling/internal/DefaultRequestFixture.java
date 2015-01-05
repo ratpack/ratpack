@@ -42,7 +42,7 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
-import ratpack.server.internal.NettyRatpackServer;
+import ratpack.server.internal.BaseRegistry;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -234,6 +234,6 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> NettyRatpackServer.baseRegistry(serverConfigBuilder.build(), userRegistry.join(registryBuilder.build())));
+    return ExceptionUtils.uncheck(() -> BaseRegistry.baseRegistry(serverConfigBuilder.build(), userRegistry.join(registryBuilder.build())));
   }
 }

@@ -16,10 +16,8 @@
 
 package ratpack.server.internal;
 
-import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -27,35 +25,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.error.ClientErrorHandler;
-import ratpack.error.ServerErrorHandler;
-import ratpack.error.internal.DefaultDevelopmentErrorHandler;
-import ratpack.error.internal.DefaultProductionErrorHandler;
-import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
-import ratpack.exec.internal.DefaultExecController;
-import ratpack.file.BaseDirRequiredException;
-import ratpack.file.FileSystemBinding;
-import ratpack.file.MimeTypes;
-import ratpack.file.internal.ActivationBackedMimeTypes;
-import ratpack.file.internal.DefaultFileRenderer;
-import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
-import ratpack.handling.Redirector;
-import ratpack.handling.internal.DefaultRedirector;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClients;
-import ratpack.launch.LaunchException;
-import ratpack.server.ServerConfig;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
-import ratpack.render.internal.CharSequenceRenderer;
-import ratpack.render.internal.PromiseRenderer;
-import ratpack.render.internal.PublisherRenderer;
-import ratpack.render.internal.RenderableRenderer;
-import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
 import ratpack.server.Stopper;
 import ratpack.util.internal.ChannelImplDetector;
 
@@ -65,8 +39,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static ratpack.util.ExceptionUtils.uncheck;
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
-import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public class NettyRatpackServer implements RatpackServer {
 
@@ -88,50 +60,13 @@ public class NettyRatpackServer implements RatpackServer {
     this.channelInitializerTransformer = channelInitializerTransformer;
   }
 
-  // TODO find better home for this
-  public static Registry baseRegistry(ServerConfig serverConfig, Registry userRegistry) {
-    ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
-    ExecController execController = new DefaultExecController(serverConfig.getThreads());
-    PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-
-    RegistryBuilder baseRegistry;
-    try {
-      baseRegistry = Registries.registry()
-        .add(ServerConfig.class, serverConfig)
-        .add(ByteBufAllocator.class, byteBufAllocator)
-        .add(ExecController.class, execController)
-        .add(MimeTypes.class, new ActivationBackedMimeTypes())
-        .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
-        .add(Redirector.class, new DefaultRedirector())
-        .add(ClientErrorHandler.class, errorHandler)
-        .add(ServerErrorHandler.class, errorHandler)
-        .with(new DefaultFileRenderer().register())
-        .with(new PromiseRenderer().register())
-        .with(new PublisherRenderer().register())
-        .with(new RenderableRenderer().register())
-        .with(new CharSequenceRenderer().register())
-        .add(FormParser.class, FormParser.multiPart())
-        .add(FormParser.class, FormParser.urlEncoded())
-        .add(HttpClient.class, HttpClients.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength()));
-    } catch (Exception e) {
-      // Uncheck because it really shouldn't happen
-      throw uncheck(e);
-    }
-
-    if (serverConfig.isHasBaseDir()) {
-      baseRegistry.add(FileSystemBinding.class, serverConfig.getBaseDir());
-    }
-
-    return baseRegistry.build().join(userRegistry);
-  }
-
   @Override
   public ServerConfig getServerConfig() {
     return serverConfig;
   }
 
   @Override
-  public void start() throws LaunchException {
+  public void start() throws Exception {
     lifecycleLock.lock();
     try {
       if (isRunning()) {
@@ -151,9 +86,9 @@ public class NettyRatpackServer implements RatpackServer {
 
       bootstrap
         .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
-          .childHandler(channelInitializer)
+        .childHandler(channelInitializer)
         .channel(ChannelImplDetector.getServerSocketChannelImpl())
-          .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class));
+        .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class));
 
       if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
@@ -167,10 +102,6 @@ public class NettyRatpackServer implements RatpackServer {
         logger.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
       }
       running.set(true);
-    } catch (Exception e) {
-      Throwables.propagateIfInstanceOf(e, BaseDirRequiredException.class);
-      Throwables.propagateIfInstanceOf(e, LaunchException.class);
-      throw new LaunchException("Unable to launch due to exception", e);
     } finally {
       lifecycleLock.unlock();
     }
