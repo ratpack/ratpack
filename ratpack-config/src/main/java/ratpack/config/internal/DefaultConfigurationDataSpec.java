@@ -35,6 +35,7 @@ import ratpack.util.ExceptionUtils;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Properties;
 
 public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
@@ -158,7 +159,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec sysProps(String prefix) {
-    add(new SystemPropertiesConfigurationSource(prefix));
+    add(new SystemPropertiesConfigurationSource(Optional.of(prefix)));
     return this;
   }
 

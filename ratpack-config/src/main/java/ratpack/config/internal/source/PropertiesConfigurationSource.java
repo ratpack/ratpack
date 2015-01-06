@@ -16,10 +16,14 @@
 
 package ratpack.config.internal.source;
 
-import com.google.common.collect.Iterables;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import ratpack.config.ConfigurationSource;
 import ratpack.config.internal.util.PathUtil;
 import ratpack.func.Function;
 import ratpack.func.Pair;
@@ -29,49 +33,96 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 
-public class PropertiesConfigurationSource extends FlatToNestedConfigurationSource {
+public class PropertiesConfigurationSource implements ConfigurationSource {
+  private final Optional<String> prefix;
   private final Properties properties;
 
-  public PropertiesConfigurationSource(String prefix, Properties properties) {
-    super(prefix);
+  public PropertiesConfigurationSource(Optional<String> prefix, Properties properties) {
+    this.prefix = prefix;
     this.properties = properties;
-    // TODO: pull in richer impl from https://github.com/danveloper/config-binding/blob/master/src/main/java/config/PropertiesConfigurationSource.java
   }
 
-  public PropertiesConfigurationSource(String prefix, ByteSource byteSource) {
+  public PropertiesConfigurationSource(Optional<String> prefix, ByteSource byteSource) {
     this(prefix, load(byteSource));
   }
 
   public PropertiesConfigurationSource(ByteSource byteSource) {
-    this(null, byteSource);
+    this(Optional.empty(), byteSource);
   }
 
   public PropertiesConfigurationSource(URL url) {
-    this(null, Resources.asByteSource(url));
+    this(Optional.empty(), Resources.asByteSource(url));
   }
 
   public PropertiesConfigurationSource(Path path) {
-    this(null, Files.asByteSource(path.toFile()));
+    this(Optional.empty(), Files.asByteSource(path.toFile()));
   }
 
   public PropertiesConfigurationSource(String pathOrUrl) {
-    this(null, PathUtil.asByteSource(pathOrUrl));
+    this(Optional.empty(), PathUtil.asByteSource(pathOrUrl));
   }
 
   public PropertiesConfigurationSource(Properties properties) {
-    this(null, properties);
+    this(Optional.empty(), properties);
   }
 
   @Override
-  Iterable<Pair<String, String>> loadRawData() {
-    return Iterables.transform(properties.stringPropertyNames(), key -> Pair.of(key, properties.getProperty(key)));
+  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
+    ObjectNode rootNode = objectMapper.createObjectNode();
+    Stream<Pair<String, String>> pairs = properties.stringPropertyNames().stream().map(key -> Pair.of(key, properties.getProperty(key)));
+    if (prefix.isPresent()) {
+      pairs = pairs
+        .filter(p -> p.left.startsWith(prefix.get()))
+        .map(((Function<Pair<String, String>, Pair<String, String>>) p -> p.mapLeft(s -> s.substring(prefix.get().length()))).toFunction());
+    }
+    pairs.forEach(p -> populate(rootNode, p.left, p.right));
+    return rootNode;
   }
 
-  @Override
-  Function<String, Iterable<String>> getKeyTokenizer() {
-    return splitByDelimiter(".");
+  private void populate(ObjectNode node, String key, String value) {
+    int nextDot = key.indexOf('.');
+    int nextOpenBracket = key.indexOf('[');
+    boolean hasDelimiter = nextDot != -1;
+    boolean hasIndexing = nextOpenBracket != -1;
+    if (hasDelimiter && (!hasIndexing || (nextDot < nextOpenBracket))) {
+      String fieldName = key.substring(0, nextDot);
+      String remainingKey = key.substring(nextDot + 1);
+      ObjectNode childNode = (ObjectNode) node.get(fieldName);
+      if (childNode == null) {
+        childNode = node.putObject(fieldName);
+      }
+      populate(childNode, remainingKey, value);
+    } else if (hasIndexing) {
+      int nextCloseBracket = key.indexOf(']', nextOpenBracket + 1);
+      if (nextCloseBracket == -1) {
+        throw new IllegalArgumentException("Invalid remaining key: " + key);
+      }
+      String fieldName = key.substring(0, nextOpenBracket);
+      int index = Integer.valueOf(key.substring(nextOpenBracket + 1, nextCloseBracket));
+      String remainingKey = key.substring(nextCloseBracket + 1);
+      ArrayNode arrayNode = (ArrayNode) node.get(fieldName);
+      if (arrayNode == null) {
+        arrayNode = node.putArray(fieldName);
+      }
+      if (remainingKey.isEmpty()) {
+        arrayNode.add(value);
+      } else if (remainingKey.startsWith(".")) {
+        remainingKey = remainingKey.substring(1);
+        ObjectNode childNode = (ObjectNode) arrayNode.get(index);
+        if (childNode == null) {
+          childNode = arrayNode.addObject();
+        }
+        populate(childNode, remainingKey, value);
+      } else {
+        throw new IllegalArgumentException("Unknown key format: " + key);
+      }
+    } else {
+      node.set(key, TextNode.valueOf(value));
+    }
   }
 
   private static Properties load(ByteSource byteSource) {

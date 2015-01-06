@@ -16,7 +16,6 @@
 
 package ratpack.config.internal.source
 
-import groovy.transform.NotYetImplemented
 import ratpack.config.internal.DefaultConfigurationDataSpec
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -74,7 +73,6 @@ class PropertiesConfigurationSourceSpec extends Specification {
     rootNode.size() == 2
   }
 
-  @NotYetImplemented
   def "indexed elements are handled as arrays (values)"() {
     def source = propsSource('''
     |users[0]=alice
@@ -93,7 +91,6 @@ class PropertiesConfigurationSourceSpec extends Specification {
     rootNode.size() == 1
   }
 
-  @NotYetImplemented
   def "indexed elements are handled as arrays (objects)"() {
     def source = propsSource('''
     |dbs[0].name=test
@@ -106,7 +103,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     def rootNode = source.loadConfigurationData(mapper)
 
     then:
-    def dbConfigs = rootNode.path("dbConfigs")
+    def dbConfigs = rootNode.path("dbs")
     dbConfigs.path(0).path("name").asText() == "test"
     dbConfigs.path(0).path("url").asText() == "jdbc:mysql://test/test"
     dbConfigs.path(1).path("name").asText() == "prod"
@@ -115,7 +112,6 @@ class PropertiesConfigurationSourceSpec extends Specification {
     rootNode.size() == 1
   }
 
-  @NotYetImplemented
   def "out of order or interleaved arrays should be indexed properly"() {
     def source = propsSource('''
     |users[1]=bob
@@ -135,7 +131,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     users.path(0).asText() == "alice"
     users.path(1).asText() == "bob"
     users.path(2).asText() == "chuck"
-    def dbConfigs = rootNode.path("dbConfigs")
+    def dbConfigs = rootNode.path("dbs")
     dbConfigs.path(0).path("name").asText() == "test"
     dbConfigs.path(0).path("url").asText() == "jdbc:mysql://test/test"
     dbConfigs.path(1).path("name").asText() == "prod"
@@ -147,12 +143,12 @@ class PropertiesConfigurationSourceSpec extends Specification {
   private static PropertiesConfigurationSource propsSource(String input, String prefix = null) {
     def props = new Properties()
     props.load(new StringReader(input))
-    new PropertiesConfigurationSource(prefix, props)
+    new PropertiesConfigurationSource(Optional.ofNullable(prefix), props)
   }
 
   private static PropertiesConfigurationSource propsSource(Map<String, String> input, String prefix = null) {
     def props = new Properties()
     props.putAll(input)
-    new PropertiesConfigurationSource(prefix, props)
+    new PropertiesConfigurationSource(Optional.ofNullable(prefix), props)
   }
 }
