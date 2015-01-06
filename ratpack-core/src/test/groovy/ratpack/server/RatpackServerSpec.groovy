@@ -63,4 +63,23 @@ class RatpackServerSpec extends Specification {
       server.stop()
     }
   }
+
+  def "reload server"() {
+    given:
+    def server = RatpackServer.of { it.build { return {} as Handler }}
+
+    when:
+    server.start()
+
+    then:
+    server.isRunning()
+
+    when:
+    def server2 = server.reload()
+
+    then:
+    !server.isRunning()
+    server2.isRunning()
+    server != server2
+  }
 }

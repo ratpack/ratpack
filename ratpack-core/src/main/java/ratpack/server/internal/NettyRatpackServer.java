@@ -125,6 +125,20 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   @Override
+  public RatpackServer reload() throws Exception {
+    boolean start = false;
+    if (this.isRunning()) {
+      start = true;
+      this.stop();
+    }
+    RatpackServer server = definition.build();
+    if (start) {
+      server.start();
+    }
+    return server;
+  }
+
+  @Override
   public boolean isRunning() {
     return running.get();
   }

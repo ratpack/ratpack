@@ -208,4 +208,13 @@ public interface RatpackServer {
    */
   void stop() throws Exception;
 
+  /**
+   * Reloads the server from its definition.
+   *
+   * @return a new Ratpack server in the same state as the current server.
+   *
+   * @throws Exception any exceptions from constructing or starting the server
+   */
+  RatpackServer reload() throws Exception;
+
 }

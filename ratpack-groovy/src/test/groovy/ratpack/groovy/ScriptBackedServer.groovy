@@ -63,6 +63,11 @@ class ScriptBackedServer implements RatpackServer {
   }
 
   @Override
+  RatpackServer reload() throws Exception {
+    return nestedServer?.reload()
+  }
+
+  @Override
   boolean isRunning() {
     nestedServer != null && nestedServer.running
   }
