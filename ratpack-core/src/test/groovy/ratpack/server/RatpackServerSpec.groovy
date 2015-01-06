@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.launch
+package ratpack.server
 
 import ratpack.handling.Handler
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import spock.lang.Specification
 
-class RatpackLaunchingSpec extends Specification {
+class RatpackServerSpec extends Specification {
 
   def "start default server"() {
     given:

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.launch
+package ratpack.server
 
+import ratpack.launch.NoBaseDirException
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import ratpack.server.ServerConfigBuilder

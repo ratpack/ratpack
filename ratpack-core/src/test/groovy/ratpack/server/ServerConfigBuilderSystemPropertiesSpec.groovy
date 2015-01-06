@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.launch
+package ratpack.server
 
 import ratpack.server.ServerConfig
 import ratpack.server.ServerConfigBuilder
