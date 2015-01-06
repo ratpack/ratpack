@@ -18,7 +18,6 @@ package ratpack.guice
 
 import com.google.inject.AbstractModule
 import com.google.inject.CreationException
-import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static com.google.inject.Guice.createInjector
