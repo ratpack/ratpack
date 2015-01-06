@@ -71,9 +71,7 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
     server.start()
 
     then:
-    def e = thrown LaunchException
-    e.cause instanceof CreationException
-    def creationException = e.cause as CreationException
+    def creationException = thrown CreationException
     creationException.errorMessages.first().message.contains "A binding to $ServiceOne.name was already configured"
   }
 
