@@ -75,13 +75,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> builder) {
-    return fromServer(uncheck(() -> {
-      RatpackServer.Definition definition = new RatpackServer.Definition();
-      RatpackServer.Definition.Builder appBuilder = definition.builder();
-      builder.apply(appBuilder);
-      appBuilder.config(serverConfig);
-      return definition.build();
-    }));
+    return fromServer(RatpackServer.of(b -> builder.apply(b.config(serverConfig))));
   }
 
   /**

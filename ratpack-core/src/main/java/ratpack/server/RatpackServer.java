@@ -46,7 +46,7 @@ public interface RatpackServer {
    * @return a new, non started Ratpack server.
    */
   public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> app) {
-    return uncheck(() -> app.apply(new Definition().builder()).build());
+    return uncheck(() -> app.apply(Definition.builder()).build());
   }
 
   /**
@@ -59,19 +59,39 @@ public interface RatpackServer {
     of(app).start();
   }
 
-  final class Definition {
+  public final class Definition {
+    private final ServerConfig serverConfig;
+    private final Registry userRegistry;
+    private final Function<? super Registry, ? extends Handler> handlerFactory;
 
-    private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
-    private Registry userRegistry = Registries.empty();
-    private Function<? super Registry, ? extends Handler> handlerFactory;
+    private Definition(ServerConfig serverConfig, Registry userRegistry, Function<? super Registry, ? extends Handler> handlerFactory) {
+      this.serverConfig = serverConfig;
+      this.userRegistry = userRegistry;
+      this.handlerFactory = handlerFactory;
+    }
 
-    //TODO is this the correct signature? I couldn't access the method on Builder without adding public here.
-    public final class Builder {
+    public static Builder builder() {
+      return new Builder();
+    }
 
-      private final Definition definition;
+    public ServerConfig getServerConfig() {
+      return serverConfig;
+    }
 
-      private Builder(Definition definition) {
-        this.definition = definition;
+    public Registry getUserRegistry() {
+      return userRegistry;
+    }
+
+    public Function<? super Registry, ? extends Handler> getHandlerFactory() {
+      return handlerFactory;
+    }
+
+    public static final class Builder {
+
+      private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
+      private Registry userRegistry = Registries.empty();
+
+      private Builder() {
       }
 
       /**
@@ -97,7 +117,7 @@ public interface RatpackServer {
        * @return this
        */
       public Builder registry(Registry registry) {
-        this.definition.userRegistry = registry;
+        this.userRegistry = registry;
         return this;
       }
 
@@ -108,7 +128,7 @@ public interface RatpackServer {
        * @return this
        */
       public Builder config(ServerConfig serverConfig) {
-        this.definition.serverConfig = serverConfig;
+        this.serverConfig = serverConfig;
         return this;
       }
 
@@ -119,13 +139,8 @@ public interface RatpackServer {
        * @return a definition for the Ratpack server
        */
       public Definition build(Function<? super Registry, ? extends Handler> handlerFactory) {
-        this.definition.handlerFactory = handlerFactory;
-        return this.definition;
+        return new Definition(serverConfig, userRegistry, handlerFactory);
       }
-    }
-
-    public Builder builder() {
-      return new Builder(this);
     }
 
     /**
