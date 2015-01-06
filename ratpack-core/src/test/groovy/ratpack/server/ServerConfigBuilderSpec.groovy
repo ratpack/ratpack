@@ -17,9 +17,6 @@
 package ratpack.server
 
 import ratpack.launch.NoBaseDirException
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
-import ratpack.server.ServerConfigBuilder
 import spock.lang.Specification
 
 class ServerConfigBuilderSpec extends Specification {
@@ -45,7 +42,7 @@ class ServerConfigBuilderSpec extends Specification {
     given:
     def e = new Error("e")
     def config = builder.build()
-    def server = RatpackServer.of().config(config).build { throw e }
+    def server = RatpackServer.of { spec -> spec.config(config).build { throw e } }
 
     when:
     server.start()

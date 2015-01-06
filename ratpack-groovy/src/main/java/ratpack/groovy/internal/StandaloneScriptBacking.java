@@ -77,8 +77,9 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
 
     final LaunchConfig effectiveLaunchConfig = launchConfig;
-    RatpackServer server = RatpackServer.of().config(ServerConfigBuilder.launchConfig(effectiveLaunchConfig).build())
-      .build(r -> effectiveLaunchConfig.getHandlerFactory().create(r));
+    RatpackServer server = RatpackServer.of(spec -> spec
+      .config(ServerConfigBuilder.launchConfig(effectiveLaunchConfig).build())
+      .build(r -> effectiveLaunchConfig.getHandlerFactory().create(r)));
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {

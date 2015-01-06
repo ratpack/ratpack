@@ -19,8 +19,6 @@ package ratpack.server
 import com.google.common.io.Files
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.server.ServerConfig
-import ratpack.server.ServerConfigBuilder
 import spock.lang.Specification
 
 class ServerConfigBuilderPropertiesSpec extends Specification {

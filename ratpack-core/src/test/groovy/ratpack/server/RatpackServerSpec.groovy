@@ -17,16 +17,16 @@
 package ratpack.server
 
 import ratpack.handling.Handler
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
 import spock.lang.Specification
 
 class RatpackServerSpec extends Specification {
 
   def "start default server"() {
     given:
-    def server = RatpackServer.of().build {
-      return {} as Handler
+    def server = RatpackServer.of { spec -> spec
+      .build {
+        return {} as Handler
+      }
     }
 
     when:
@@ -44,9 +44,11 @@ class RatpackServerSpec extends Specification {
 
   def "start server on port"() {
     given:
-    def server = RatpackServer.of().config(ServerConfig.noBaseDir().port(5060).build())
+    def server = RatpackServer.of { spec -> spec
+      .config(ServerConfig.noBaseDir().port(5060).build())
       .build {
-      return {} as Handler
+        return {} as Handler
+      }
     }
 
     when:

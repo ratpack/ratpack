@@ -74,8 +74,14 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @param builder a function to create the server to embed
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super RatpackServer.Builder, ? extends RatpackServer> builder) {
-    return fromServer(uncheck(() -> builder.apply(RatpackServer.of().config(serverConfig))));
+  static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> builder) {
+    return fromServer(uncheck(() -> {
+      RatpackServer.Definition definition = new RatpackServer.Definition();
+      RatpackServer.Definition.Builder appBuilder = definition.builder();
+      builder.apply(appBuilder);
+      appBuilder.config(serverConfig);
+      return definition.build();
+    }));
   }
 
   /**

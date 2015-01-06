@@ -57,7 +57,9 @@ public class RatpackMain {
     //TODO-JOHN
     LaunchConfig launchConfig = LaunchConfigs.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);
     ServerConfig serverConfig = ServerConfigBuilder.launchConfig(launchConfig).build();
-    return RatpackServer.of().config(serverConfig).build(r -> launchConfig.getHandlerFactory().create(r));
+    return RatpackServer.of(spec -> spec
+      .config(serverConfig)
+      .build(r -> launchConfig.getHandlerFactory().create(r)));
   }
 
   /**

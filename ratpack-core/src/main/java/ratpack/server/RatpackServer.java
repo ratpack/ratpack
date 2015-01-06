@@ -32,6 +32,8 @@ import ratpack.server.internal.RatpackChannelInitializer;
 
 import java.io.File;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 /**
  * A Ratpack server.
  */
@@ -39,28 +41,99 @@ public interface RatpackServer {
 
   /**
    * Creates a builder of ratpack servers.
-   * @return a builder of ratpack servers
+   *
+   * @param app a function that builds the definition for this server.
+   * @return a new, non started Ratpack server.
    */
-  public static Builder of() {
-    return new Builder();
+  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> app) {
+    return uncheck(() -> app.apply(new Definition().builder()).build());
   }
 
   /**
-   * A builder for a Ratpack server.
+   * Convenience method to {@link #of(Function)} and {@link #start()} the server in one go.
+   *
+   * @param app a factory function that defines the server
+   * @throws Exception any thrown by {@link #start()}
    */
-  final class Builder {
+  public static void start(Function<? super Definition.Builder, ? extends Definition> app) throws Exception {
+    of(app).start();
+  }
+
+  final class Definition {
+
     private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
     private Registry userRegistry = Registries.empty();
+    private Function<? super Registry, ? extends Handler> handlerFactory;
 
-    private Builder() { }
+    //TODO is this the correct signature? I couldn't access the method on Builder without adding public here.
+    public final class Builder {
+
+      private final Definition definition;
+
+      private Builder(Definition definition) {
+        this.definition = definition;
+      }
+
+      /**
+       * Specifies the “base” registry.
+       * <p>
+       * Builds a registry from the given spec, and delegates to {@link #registry(Registry)}.
+       *
+       * @param action the definition of the base registry
+       * @return this
+       * @throws Exception any thrown by {@code action}
+       */
+      public Builder registry(Action<? super RegistrySpec> action) throws Exception {
+        return registry(Registries.registry(action));
+      }
+
+      /**
+       * Specifies the “base” registry.
+       * <p>
+       * This method is not additive.
+       * That is, there is only one “base” registry and subsequent calls to this method override the previous.
+       *
+       * @param registry the base registry
+       * @return this
+       */
+      public Builder registry(Registry registry) {
+        this.definition.userRegistry = registry;
+        return this;
+      }
+
+      /**
+       * Specify the server configuration for the application
+       *
+       * @param serverConfig the server configuration
+       * @return this
+       */
+      public Builder config(ServerConfig serverConfig) {
+        this.definition.serverConfig = serverConfig;
+        return this;
+      }
+
+      /**
+       * Builds a server definition from the given factory, supplying the {@link Registry#join(Registry) joining} of the root and base registries (if one was specified).
+       *
+       * @param handlerFactory a factory function for the root handler
+       * @return a definition for the Ratpack server
+       */
+      public Definition build(Function<? super Registry, ? extends Handler> handlerFactory) {
+        this.definition.handlerFactory = handlerFactory;
+        return this.definition;
+      }
+    }
+
+    public Builder builder() {
+      return new Builder(this);
+    }
 
     /**
-     * Builds a server from the given factory, supplying the {@link Registry#join(Registry) joining} of the root and base registries (if one was specified).
+     * Constructs a RatpackServer instance from this definition.
      *
-     * @param handlerFactory a factory function for the root handler
-     * @return a new, not yet started, Ratpack server
+     * @return a new, not yet started Ratpack server
      */
-    public RatpackServer build(Function<? super Registry, ? extends Handler> handlerFactory) {
+    public RatpackServer build() {
       Registry baseRegistry = BaseRegistry.baseRegistry(serverConfig, userRegistry);
 
       return new NettyRatpackServer(baseRegistry, stopper -> {
@@ -80,54 +153,6 @@ public interface RatpackServer {
 
         return new RatpackChannelInitializer(baseRegistry, handler, stopper);
       });
-    }
-
-    /**
-     * Convenience method to {@link #build(Function)} and {@link #start()} the server in one go.
-     *
-     * @param handlerFactory a factory function for the root handler
-     * @throws Exception any thrown by {@link #start()}
-     */
-    public void start(Function<? super Registry, ? extends Handler> handlerFactory) throws Exception {
-      build(handlerFactory).start();
-    }
-
-    /**
-     * Specifies the “base” registry.
-     * <p>
-     * Builds a registry from the given spec, and delegates to {@link #registry(Registry)}.
-     *
-     * @param action the definition of the base registry
-     * @return this
-     * @throws Exception any thrown by {@code action}
-     */
-    public Builder registry(Action<? super RegistrySpec> action) throws Exception {
-      return registry(Registries.registry(action));
-    }
-
-    /**
-     * Specifies the “base” registry.
-     * <p>
-     * This method is not additive.
-     * That is, there is only one “base” registry and subsequent calls to this method override the previous.
-     *
-     * @param registry the base registry
-     * @return this
-     */
-    public Builder registry(Registry registry) {
-      this.userRegistry = registry;
-      return this;
-    }
-
-    /**
-     * Specify the server configuration for the application
-     *
-     * @param serverConfig the server configuration
-     * @return this
-     */
-    public Builder config(ServerConfig serverConfig) {
-      this.serverConfig = serverConfig;
-      return this;
     }
 
   }

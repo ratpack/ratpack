@@ -16,8 +16,6 @@
 
 package ratpack.server
 
-import ratpack.server.ServerConfig
-import ratpack.server.ServerConfigBuilder
 import spock.lang.Specification
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {

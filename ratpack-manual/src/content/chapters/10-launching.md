@@ -5,20 +5,20 @@ This chapter introduces how to launch a Ratpack application, and the associated 
 ## Configuring and starting a Ratpack application
 
 A Ratpack application is configured and started via the [`RatpackServer`](api/ratpack/server/RatpackServer.html). The 
-[`of`](api/ratpack/server/RatpackServer.html#of--) method creates an instance of a [`Builder`](api/ratpack/server/RatpackServer.Builder.html) that is used to configure settings for the
- application.
+[`of`](api/ratpack/server/RatpackServer.html#of-ratpack.func.Function-) method is passed a function that takes an instance of a [`Builder`](api/ratpack/server/RatpackServer.Definition.Builder.html) 
+that is used to configure settings for the application a returns a [`Definition`](api/ratpack/server/RatpackServer.Definition.html).
 
 The builder provides access to configure the user [`Registry`](api/ratpack/registry/Registry.html) that is used to configure the Ratpack application via 
-the [`registry`](api/ratpack/server/RatpackServer.Builder.html#registry-ratpack.func.Action-) method. The builder adds the necessary default objects to the registry 
+the [`registry`](api/ratpack/server/RatpackServer.Definition.Builder.html#registry-ratpack.func.Action-) method. The builder adds the necessary default objects to the registry 
 before building the server instance. Objects in the user registry will supersede the default items.
 
-Calling the [`build`](api/ratpack/server/RatpackServer.Builder.html#build-ratpack.func.Function-) will construct a [`RatpackServer`](api/ratpack/server/RatpackServer.html) that can be started.
+Calling the [`build`](api/ratpack/server/RatpackServer.Definition.Builder.html#build-ratpack.func.Function-) will construct a [`RatpackServer`](api/ratpack/server/RatpackServer.html) that can be started.
 The function passed to the `build` method is responsible for creating the handler that is effectively the Ratpack application.
 See the [chapter on handlers](handlers.html) for more details.
 
 The Ratpack application can be customized by configuring the `ServerConfig` object used to create the server. 
 This instance can be constructed using the [`ServerConfigBuilder`](api/ratpack/server/ServerConfigBuilder.html) and is passed to the 
-[`config`](api/ratpack/server/RatpackServer.Builder.html#config-ratpack.server.ServerConfig-) method on the builder.
+[`config`](api/ratpack/server/RatpackServer.Definition.Builder.html#config-ratpack.server.ServerConfig-) method on the builder.
 
 ```language-java
 import ratpack.handling.Handler;
@@ -28,8 +28,9 @@ import ratpack.server.RatpackServer;
 
 public class ApplicationMain {
     public static void main(String[] args) {
-        RatpackServer server = RatpackServer.of().config(ServerConfig.noBaseDir().port(6060).build())
-          .build(r -> new HelloWorld());
+        RatpackServer server = RatpackServer.of(spec -> spec
+          .config(ServerConfig.noBaseDir().port(6060).build())
+          .build(r -> new HelloWorld()));
     }
     
     private static class HelloWorld implements Handler {

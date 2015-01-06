@@ -53,12 +53,14 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  *
  *     ConfigurationData configData = Configurations.config().props(myData).sysProps().build();
  *
- *     RatpackServer server = RatpackServer.of().config(configData.get("/server", ServerConfig.class))
+ *     RatpackServer server = RatpackServer.of(spec -> spec
+ *       .config(configData.get("/server", ServerConfig.class))
  *       .registry(r -> r
  *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
- *       ).build(registry ->
+ *       )
+ *       .build(registry ->
  *         (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName())
- *       );
+ *       ));
  *     server.start();
  *
  *     assertTrue(server.isRunning());
