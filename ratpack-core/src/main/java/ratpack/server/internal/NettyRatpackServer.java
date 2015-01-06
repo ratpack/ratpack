@@ -44,6 +44,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
+  private final Definition definition;
   private final Registry rootRegistry;
   private final ServerConfig serverConfig;
   private final Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
@@ -54,7 +55,8 @@ public class NettyRatpackServer implements RatpackServer {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackServer(Registry rootRegistry, Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+  public NettyRatpackServer(RatpackServer.Definition definition, Registry rootRegistry, Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+    this.definition = definition;
     this.rootRegistry = rootRegistry;
     this.serverConfig = rootRegistry.get(ServerConfig.class);
     this.channelInitializerTransformer = channelInitializerTransformer;

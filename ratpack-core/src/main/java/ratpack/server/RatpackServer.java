@@ -136,7 +136,7 @@ public interface RatpackServer {
     public RatpackServer build() {
       Registry baseRegistry = BaseRegistry.baseRegistry(serverConfig, userRegistry);
 
-      return new NettyRatpackServer(baseRegistry, stopper -> {
+      return new NettyRatpackServer(this, baseRegistry, stopper -> {
         Handler handler = null;
 
         if (serverConfig.isDevelopment()) {
