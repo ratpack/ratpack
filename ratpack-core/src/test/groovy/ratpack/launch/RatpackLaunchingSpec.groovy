@@ -25,7 +25,7 @@ class RatpackLaunchingSpec extends Specification {
 
   def "start default server"() {
     given:
-    def server = RatpackServer.withDefaults().build {
+    def server = RatpackServer.of().build {
       return {} as Handler
     }
 
@@ -44,7 +44,7 @@ class RatpackLaunchingSpec extends Specification {
 
   def "start server on port"() {
     given:
-    def server = RatpackServer.with(ServerConfig.noBaseDir().port(5060).build())
+    def server = RatpackServer.of().config(ServerConfig.noBaseDir().port(5060).build())
       .build {
       return {} as Handler
     }

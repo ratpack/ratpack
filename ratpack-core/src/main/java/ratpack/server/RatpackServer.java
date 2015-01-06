@@ -38,34 +38,21 @@ import java.io.File;
 public interface RatpackServer {
 
   /**
-   * Create a server builder with the given server config.
-   *
-   * @param config the server configuration
-   * @return a server builder
+   * Creates a builder of ratpack servers.
+   * @return a builder of ratpack servers
    */
-  public static Builder with(ServerConfig config) {
-    return new Builder(config);
-  }
-
-  /**
-   * Create a server builder with a default {@link ServerConfig}.
-   *
-   * @return a server builder
-   */
-  public static Builder withDefaults() {
-    return with(ServerConfig.noBaseDir().build());
+  public static Builder of() {
+    return new Builder();
   }
 
   /**
    * A builder for a Ratpack server.
    */
   final class Builder {
-    private final ServerConfig serverConfig;
+    private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
     private Registry userRegistry = Registries.empty();
 
-    private Builder(ServerConfig serverConfig) {
-      this.serverConfig = serverConfig;
-    }
+    private Builder() { }
 
     /**
      * Builds a server from the given factory, supplying the {@link Registry#join(Registry) joining} of the root and base registries (if one was specified).
@@ -131,6 +118,18 @@ public interface RatpackServer {
       this.userRegistry = registry;
       return this;
     }
+
+    /**
+     * Specify the server configuration for the application
+     *
+     * @param serverConfig the server configuration
+     * @return this
+     */
+    public Builder config(ServerConfig serverConfig) {
+      this.serverConfig = serverConfig;
+      return this;
+    }
+
   }
 
   /**

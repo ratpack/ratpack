@@ -159,7 +159,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
 
-        return RatpackServer.with(serverConfigBuilder.build()).build(r -> {
+        return RatpackServer.of().config(serverConfigBuilder.build()).build(r -> {
           Guice.Builder builder = Guice.builder(r);
           if (spec.parentInjector != null) {
             builder.parent(spec.parentInjector);

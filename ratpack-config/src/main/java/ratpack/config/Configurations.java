@@ -53,7 +53,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  *
  *     ConfigurationData configData = Configurations.config().props(myData).sysProps().build();
  *
- *     RatpackServer server = RatpackServer.with(configData.get("/server", ServerConfig.class))
+ *     RatpackServer server = RatpackServer.of().config(configData.get("/server", ServerConfig.class))
  *       .registry(r -> r
  *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
  *       ).build(registry ->

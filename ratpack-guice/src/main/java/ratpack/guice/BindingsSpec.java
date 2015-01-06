@@ -102,7 +102,7 @@ public interface BindingsSpec {
   /**
    * Retrieves the module that has been added with the given type for configuration.
    * <p>
-   * This can be used to configure modules that have already been added by some other mechanism.
+   * This can be used to config modules that have already been added by some other mechanism.
    *
    * @param moduleClass the type of the module to retrieve
    * @param configurer the configurer of the module
