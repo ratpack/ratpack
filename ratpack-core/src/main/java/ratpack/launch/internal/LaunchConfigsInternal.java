@@ -26,6 +26,8 @@ import ratpack.launch.LaunchConfigBuilder;
 import ratpack.launch.LaunchConfigs.*;
 import ratpack.launch.LaunchException;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.ssl.SSLContexts;
 import ratpack.util.internal.PropertiesUtil;
 import ratpack.util.internal.TypeCoercingProperties;
@@ -37,7 +39,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import static ratpack.launch.LaunchConfig.*;
 import static ratpack.launch.LaunchConfigs.*;
@@ -245,4 +250,29 @@ public class LaunchConfigsInternal {
       throw new LaunchException("Could not convert URL '" + url + "' to URI", e);
     }
   }
+
+  public static ServerConfigBuilder launchConfig(LaunchConfig launchConfig) {
+    ServerConfigBuilder builder;
+    if (launchConfig.isHasBaseDir()) {
+      builder = ServerConfig.baseDir(launchConfig.getBaseDir().getFile());
+    } else {
+      builder = ServerConfig.noBaseDir();
+    }
+    builder.port(launchConfig.getPort());
+    builder.address(launchConfig.getAddress());
+    builder.development(launchConfig.isDevelopment());
+    builder.threads(launchConfig.getThreads());
+    builder.publicAddress(launchConfig.getPublicAddress());
+    builder.maxContentLength(launchConfig.getMaxContentLength());
+    builder.timeResponses(launchConfig.isTimeResponses());
+    builder.compressResponses(launchConfig.isCompressResponses());
+    builder.compressionMinSize(launchConfig.getCompressionMinSize());
+    builder.compressionWhiteListMimeTypes(launchConfig.getCompressionMimeTypeWhiteList().asList());
+    builder.compressionBlackListMimeTypes(launchConfig.getCompressionMimeTypeBlackList().asList());
+    builder.indexFiles(launchConfig.getIndexFiles());
+    builder.ssl(launchConfig.getSSLContext());
+    builder.other(launchConfig.getOtherPrefixedWith(""));
+    return builder;
+  }
+
 }

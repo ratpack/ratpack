@@ -25,7 +25,6 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Predicate;
-import ratpack.launch.LaunchConfig;
 import ratpack.launch.internal.DefaultServerConfig;
 
 import javax.net.ssl.SSLContext;
@@ -73,35 +72,6 @@ public class ServerConfigBuilder {
 
   ServerConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
-  }
-
-  /**
-   * Initialize a ServerConfigBuilder from the legacy launch config.
-   * @param launchConfig the launch config data to initialize the builder
-   * @return A new server config builder
-   */
-  public static ServerConfigBuilder launchConfig(LaunchConfig launchConfig) {
-    ServerConfigBuilder builder;
-    if (launchConfig.isHasBaseDir()) {
-      builder = ServerConfig.baseDir(launchConfig.getBaseDir().getFile());
-    } else {
-      builder = ServerConfig.noBaseDir();
-    }
-    builder.port(launchConfig.getPort());
-    builder.address(launchConfig.getAddress());
-    builder.development(launchConfig.isDevelopment());
-    builder.threads(launchConfig.getThreads());
-    builder.publicAddress(launchConfig.getPublicAddress());
-    builder.maxContentLength(launchConfig.getMaxContentLength());
-    builder.timeResponses(launchConfig.isTimeResponses());
-    builder.compressResponses(launchConfig.isCompressResponses());
-    builder.compressionMinSize(launchConfig.getCompressionMinSize());
-    builder.compressionWhiteListMimeTypes(launchConfig.getCompressionMimeTypeWhiteList().asList());
-    builder.compressionBlackListMimeTypes(launchConfig.getCompressionMimeTypeBlackList().asList());
-    builder.indexFiles(launchConfig.getIndexFiles());
-    builder.ssl(launchConfig.getSSLContext());
-    builder.other(launchConfig.getOtherPrefixedWith(""));
-    return builder;
   }
 
   public ServerConfigBuilder port(int port) {
