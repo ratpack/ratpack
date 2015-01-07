@@ -441,23 +441,6 @@ public class ServerConfigBuilder {
   /**
    * Adds a configuration source for a properties file.
    *
-   * @param pathOrUrl the source of the properties data; may be either a file path or URL
-   * @return this
-   */
-  ServerConfigBuilder props(String pathOrUrl) {
-    //TODO-JOHN add test
-    try {
-      URL url = new URL(pathOrUrl);
-      return props(url);
-    } catch (MalformedURLException ex) {
-      File file = new File(pathOrUrl);
-      return props(file.toPath());
-    }
-  }
-
-  /**
-   * Adds a configuration source for a properties file.
-   *
    * @param url the source of the properties data
    * @return this
    */
