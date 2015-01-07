@@ -43,7 +43,7 @@ import javax.sql.DataSource;
  * import static org.junit.Assert.*;
  *
  * public class Example {
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *         Guice.builder(registry)
  *           .bindings(b ->

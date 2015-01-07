@@ -124,7 +124,7 @@ It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise t
 import ratpack.test.embed.EmbeddedApp;
 
 public class Example {
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandler(ctx ->
         ctx.promise((f) ->
             new Thread(() -> f.success("hello world")).start()

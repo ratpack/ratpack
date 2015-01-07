@@ -70,7 +70,7 @@ import java.io.OutputStream;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *       Guice.builder(registry)
  *         .bindings(b ->
@@ -122,7 +122,7 @@ import java.io.OutputStream;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *       Guice.builder(registry)
  *         .bindings(b ->
@@ -188,7 +188,7 @@ import java.io.OutputStream;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *       Guice.builder(registry)
  *         .bindings(b ->
@@ -255,7 +255,7 @@ import java.io.OutputStream;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *       Guice.builder(registry)
  *         .bindings(b ->
@@ -448,7 +448,7 @@ public abstract class Jackson {
    * import static org.junit.Assert.*;
    *
    * public class Example {
-   *   public static void main(String... args) {
+   *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlerFactory(registry ->
    *       Guice.builder(registry)
    *         .bindings(b -> b.add(JacksonModule.class))
@@ -555,7 +555,7 @@ public abstract class Jackson {
    * import static org.junit.Assert.*;
    *
    * public class Example {
-   *   public static void main(String... args) {
+   *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlerFactory(registry ->
    *       Guice.builder(registry)
    *         .bindings(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false)))

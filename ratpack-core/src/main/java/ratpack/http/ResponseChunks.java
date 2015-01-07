@@ -47,7 +47,7 @@ import java.nio.charset.Charset;
  * import static ratpack.http.ResponseChunks.stringChunks;
  *
  * public class Example {
- *   public static void main(String[] args) {
+ *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(ctx -> {
  *       Publisher<String> strings = Streams.periodically(ctx, Duration.ofMillis(5),
  *         i -> i < 5 ? i.toString() : null

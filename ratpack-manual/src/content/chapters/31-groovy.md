@@ -176,13 +176,6 @@ Settings settings(@DelegatesTo(Settings) Closure dsl)  {
 Ratpack uses `@DelegatesTo` wherever `Closure` method parameters are used. This does not only serve better code completion or the static
 type checker, but also for documentation purposes.
 
-
-## GroovyRatpackMain
-
-The `ratpack-groovy` library provides the [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) application entry point that bootstraps the Groovy support.
-This extends from [`RatpackMain`](launching.html#ratpackmain), but forces the [handler factory](api/ratpack/launch/LaunchConfig.html\#getHandlerFactory--) to be an instance of
-[GroovyScriptFileHandlerFactory](api/ratpack/groovy/launch/GroovyScriptFileHandlerFactory.html).
-
 ## ratpack.groovy script
 
 > TODO: introduce DSL used in this file, discuss reloading when in development mode

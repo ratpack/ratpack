@@ -58,7 +58,7 @@ import java.util.Arrays;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromChain(c -> c
  *       .register(r -> r.add(new ThingRenderer()))
  *       .handler(ctx -> ctx.render(new Thing("foo")))

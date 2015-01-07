@@ -27,7 +27,7 @@ class RatpackServerSpec extends Specification {
     given:
     def server = RatpackServer.of { spec ->
       spec
-        .build {
+        .handler {
         return {} as Handler
       }
     }
@@ -49,8 +49,8 @@ class RatpackServerSpec extends Specification {
     given:
     def server = RatpackServer.of { spec ->
       spec
-        .config(ServerConfig.noBaseDir().port(5060).build())
-        .build {
+        .config(ServerConfig.noBaseDir().port(5060))
+        .handler {
         return {} as Handler
       }
     }
@@ -74,7 +74,7 @@ class RatpackServerSpec extends Specification {
     def server = RatpackServer.of {
       it
         .registry { it.add(String, value) }
-        .build { return { it.render it.get(String) } as Handler }
+        .handler { return { it.render it.get(String) } as Handler }
     }
     def client = TestHttpClients.testHttpClient(new ServerBackedApplicationUnderTest({ server }))
 

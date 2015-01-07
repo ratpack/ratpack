@@ -59,7 +59,7 @@ public class RatpackMain {
     ServerConfig serverConfig = ServerConfigBuilder.launchConfig(launchConfig).build();
     return RatpackServer.of(spec -> spec
       .config(serverConfig)
-      .build(r -> launchConfig.getHandlerFactory().create(r)));
+      .handler(r -> launchConfig.getHandlerFactory().create(r)));
   }
 
   /**

@@ -37,7 +37,7 @@ import ratpack.handling.Context;
  *     }
  *   }
  *
- *   static void main(String... args) {
+ *   static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandler(ctx ->
  *       ctx.render(new Thing())
  *     ).test(httpClient ->

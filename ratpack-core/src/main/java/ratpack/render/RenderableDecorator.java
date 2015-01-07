@@ -43,7 +43,7 @@ import java.util.function.BiFunction;
  * import static org.junit.Assert.*;
  *
  * public class Example {
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromChain(chain -> chain
  *       .register(registry -> registry
  *         .add(Renderer.of(Integer.class, (ctx, i) -> ctx.render(i.toString())))

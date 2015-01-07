@@ -42,7 +42,7 @@ class ServerConfigBuilderSpec extends Specification {
     given:
     def e = new Error("e")
     def config = builder.build()
-    def server = RatpackServer.of { spec -> spec.config(config).build { throw e } }
+    def server = RatpackServer.of { spec -> spec.config(config).handler { throw e } }
 
     when:
     server.start()

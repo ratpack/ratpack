@@ -62,7 +62,7 @@ import java.util.Set;
  *
  * public class Example {
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
  *     );

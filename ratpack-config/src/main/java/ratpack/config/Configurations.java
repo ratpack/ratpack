@@ -58,7 +58,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  *       .registry(r -> r
  *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
  *       )
- *       .build(registry ->
+ *       .handler(registry ->
  *         (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName())
  *       ));
  *     server.start();

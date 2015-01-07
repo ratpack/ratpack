@@ -16,6 +16,10 @@
 
 package ratpack.test;
 
+import ratpack.server.RatpackServer;
+import ratpack.test.http.TestHttpClient;
+import ratpack.test.http.TestHttpClients;
+
 import java.net.URI;
 
 /**
@@ -28,11 +32,24 @@ import java.net.URI;
  */
 public interface ApplicationUnderTest {
 
+  static CloseableApplicationUnderTest of(RatpackServer ratpackServer) {
+    return new ServerBackedApplicationUnderTest(ratpackServer);
+  }
+
   /**
    * The address of the application under test, which is guaranteed to be accepting requests.
    *
    * @return The address of the application under test, which is guaranteed to be accepting requests
    */
   URI getAddress();
+
+  /**
+   * Creates a new test HTTP client that tests this application.
+   *
+   * @return a new test HTTP client that tests this application
+   */
+  default TestHttpClient getHttpClient() {
+    return TestHttpClients.testHttpClient(this);
+  }
 
 }

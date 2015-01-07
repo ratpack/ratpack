@@ -68,7 +68,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromChain(chain -> chain
  *         .register(r -> r.add(new Thing("foo")))
  *         .get("verbose", new VerboseHandler())
@@ -99,7 +99,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromChain(chain -> chain
  *         .register(r -> r.add("foo")) // no Integer in registry
  *         .get(new OptionalInjectingHandler())

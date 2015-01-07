@@ -66,7 +66,7 @@ import ratpack.server.ServerConfig;
  *
  * public class Example {
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "Hello {{name}}!")
  *     );

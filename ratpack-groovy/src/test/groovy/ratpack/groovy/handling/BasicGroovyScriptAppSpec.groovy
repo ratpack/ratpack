@@ -42,8 +42,8 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       protected RatpackServer createServer() {
         RatpackServer.of { spec ->
           spec
-            .config(ServerConfigBuilder.launchConfig(createLaunchConfig()).port(0).build())
-            .build(new GroovyScriptFileHandlerFactory().&create)
+            .config(ServerConfigBuilder.launchConfig(createLaunchConfig()).port(0))
+            .handler(new GroovyScriptFileHandlerFactory().&create)
         }
       }
     }

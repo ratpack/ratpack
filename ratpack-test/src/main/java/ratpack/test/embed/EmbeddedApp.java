@@ -25,14 +25,12 @@ import ratpack.handling.Handlers;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.test.ApplicationUnderTest;
+import ratpack.server.internal.DefaultServerDefinition;
+import ratpack.test.CloseableApplicationUnderTest;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
-import ratpack.test.http.TestHttpClient;
-import ratpack.test.http.TestHttpClients;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -50,7 +48,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  * @see ratpack.test.embed.internal.EmbeddedAppSupport
  */
-public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
+public interface EmbeddedApp extends CloseableApplicationUnderTest {
 
   /**
    * Creates an embedded application for the given server.
@@ -74,7 +72,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @param builder a function to create the server to embed
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> builder) {
+  static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super DefaultServerDefinition.Builder, ? extends RatpackServer.Definition> builder) {
     return fromServer(uncheck(() -> RatpackServer.of(b -> builder.apply(b.config(serverConfig)))));
   }
 
@@ -87,7 +85,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandlerFactory(Function<? super Registry, ? extends Handler> handlerFactory) {
-    return fromServer(ServerConfig.embedded().build(), b -> b.build(handlerFactory));
+    return fromServer(ServerConfig.embedded().build(), b -> b.handler(handlerFactory));
   }
 
   /**
@@ -100,7 +98,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandlerFactory(Path baseDir, Function<? super Registry, ? extends Handler> handlerFactory) {
-    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.build(handlerFactory));
+    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.handler(handlerFactory));
   }
 
   /**
@@ -112,7 +110,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandler(Handler handler) {
-    return fromServer(ServerConfig.embedded().build(), b -> b.build(r -> handler));
+    return fromServer(ServerConfig.embedded().build(), b -> b.handler(r -> handler));
   }
 
   /**
@@ -125,7 +123,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromHandler(Path baseDir, Handler handler) {
-    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.build(r -> handler));
+    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.handler(r -> handler));
   }
 
   /**
@@ -137,35 +135,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromChain(Action<? super Chain> action) {
-    return fromServer(ServerConfig.embedded().build(), b -> b.build(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
-  }
-
-  /**
-   * Provides the given consumer with a {@link #getHttpClient() test http client} for this application, then closes this application.
-   * <p>
-   * The application will be closed regardless of whether the given consumer throws an exception.
-   * <pre class="java">{@code
-   *
-   * import ratpack.test.embed.EmbeddedApp;
-   *
-   * public class Example {
-   *   public static void main(String... args) {
-   *     EmbeddedApp.fromHandler(ctx -> ctx.render("ok"))
-   *       .test(httpClient -> {
-   *         assert httpClient.get().getBody().getText().equals("ok");
-   *       });
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param consumer a consumer that tests this embedded application
-   */
-  default void test(Consumer<? super TestHttpClient> consumer) {
-    try {
-      consumer.accept(getHttpClient());
-    } finally {
-      close();
-    }
+    return fromServer(ServerConfig.embedded().build(), b -> b.handler(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
   }
 
   /**
@@ -176,15 +146,6 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * @return The server for the application
    */
   RatpackServer getServer();
-
-  /**
-   * Creates a new test HTTP client that tests this embedded application.
-   *
-   * @return a new test HTTP client that tests this embedded application
-   */
-  default TestHttpClient getHttpClient() {
-    return TestHttpClients.testHttpClient(this);
-  }
 
   /**
    * {@inheritDoc}

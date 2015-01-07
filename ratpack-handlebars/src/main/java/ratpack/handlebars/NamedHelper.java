@@ -47,7 +47,7 @@ import com.github.jknack.handlebars.Helper;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "{{hello \"ratpack\"}}")
  *     );

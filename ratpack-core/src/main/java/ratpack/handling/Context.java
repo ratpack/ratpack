@@ -127,7 +127,7 @@ public interface Context extends ExecControl, Registry {
    *
    * public class Example {
    *
-   *   public static void main(String... args) {
+   *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromChain(chain -> chain
    *         .handler(ctx -> ctx.next(Registries.just("foo")))
    *         .handler(ctx -> ctx.render(ctx.get(String.class)))
@@ -289,7 +289,7 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.test.embed.EmbeddedApp;
    *
    * public class Example {
-   *   public static void main(String... args) {
+   *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandler(ctx ->
    *         ctx.blocking(() ->
    *             // ok to perform blocking operations in here
@@ -326,7 +326,7 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.test.embed.EmbeddedApp;
    *
    * public class Example {
-   *   public static void main(String... args) {
+   *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandler(ctx ->
    *         ctx.promise((f) ->
    *             new Thread(() -> f.success("hello world")).start()

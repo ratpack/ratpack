@@ -26,7 +26,7 @@ package ratpack.func;
  *
  * public class Example {
  *
- *   public static void main(String[] args) {
+ *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(ctx -> {
  *       int id = 1;
  *       int age = 21;
@@ -72,7 +72,7 @@ public final class Pair<L, R> {
 
   /**
    * The left item of the pair.
-   * 
+   *
    * @return the left item of the pair
    */
   public L getLeft() {
@@ -108,7 +108,7 @@ public final class Pair<L, R> {
 
   /**
    * Creates a new pair.
-   * 
+   *
    * @param left the left item
    * @param right the right item
    * @param <L> the type of the left item

@@ -50,9 +50,9 @@ import static ratpack.util.ExceptionUtils.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
-public abstract class BaseRegistry {
+public abstract class ServerRegistry {
 
-  public static Registry baseRegistry(ServerConfig serverConfig, RatpackServer ratpackServer, Registry userRegistry) {
+  public static Registry serverRegistry(ServerConfig serverConfig, RatpackServer ratpackServer, Registry userRegistry) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
     ExecController execController = new DefaultExecController(serverConfig.getThreads());
     PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;

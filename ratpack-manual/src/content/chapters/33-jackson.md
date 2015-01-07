@@ -42,7 +42,7 @@ public class Example {
     }
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandlerFactory(launchConfig ->
       Guice.builder(launchConfig)
         .bindings(b ->
@@ -96,7 +96,7 @@ public class Example {
     }
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandlerFactory(launchConfig ->
       Guice.builder(launchConfig)
         .bindings(b ->
@@ -163,7 +163,7 @@ public class Example {
     }
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandlerFactory(launchConfig ->
       Guice.builder(launchConfig)
         .bindings(b ->
@@ -225,7 +225,7 @@ public class Example {
     }
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandlerFactory(launchConfig ->
       Guice.builder(launchConfig)
         .bindings(b ->

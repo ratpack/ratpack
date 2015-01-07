@@ -61,7 +61,7 @@ import java.lang.reflect.Constructor;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *         Guice.builder(registry)
  *           .bindings(b -> b
@@ -106,7 +106,7 @@ import java.lang.reflect.Constructor;
  *     }
  *   }
  *
- *   public static void main(String... args) {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlerFactory(registry ->
  *         Guice.builder(registry)
  *           .bindings(b -> b

@@ -34,7 +34,7 @@ import ratpack.spring.internal.SpringRegistryBacking;
  * import static ratpack.spring.Spring.spring;
  *
  * public class Example {
- *   public static void main(String[] args) {
+ *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromChain(chain -&gt; chain
  *       .register(spring(ExampleSpringBootApp.class))
  *       .handler(context -&gt; {

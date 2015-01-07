@@ -162,8 +162,8 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         try {
           return RatpackServer.of(serverSpec -> serverSpec
-            .config(serverConfigBuilder.build())
-            .build(r -> {
+            .config(serverConfigBuilder)
+            .handler(r -> {
               Guice.Builder builder = Guice.builder(r);
               if (spec.parentInjector != null) {
                 builder.parent(spec.parentInjector);

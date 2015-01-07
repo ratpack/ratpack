@@ -63,7 +63,7 @@ public class Example {
     }
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp
       .fromChain(chain -> chain
           .prefix("person/:id", (personChain) -> personChain
@@ -140,7 +140,7 @@ import ratpack.test.embed.EmbeddedApp;
 
 public class Example {
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     EmbeddedApp.fromChain(chain -> chain
         .prefix("api", api -> api
             .register(r -> r.add(ServerErrorHandler.class, (context, throwable) ->
