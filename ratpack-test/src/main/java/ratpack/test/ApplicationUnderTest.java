@@ -16,9 +16,11 @@
 
 package ratpack.test;
 
+import ratpack.func.Factory;
 import ratpack.server.RatpackServer;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.http.TestHttpClients;
+import ratpack.test.internal.ServerBackedApplicationUnderTest;
 
 import java.net.URI;
 
@@ -33,6 +35,10 @@ import java.net.URI;
 public interface ApplicationUnderTest {
 
   static CloseableApplicationUnderTest of(RatpackServer ratpackServer) {
+    return of(() -> ratpackServer);
+  }
+
+  static CloseableApplicationUnderTest of(Factory<? extends RatpackServer> ratpackServer) {
     return new ServerBackedApplicationUnderTest(ratpackServer);
   }
 

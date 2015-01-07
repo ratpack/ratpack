@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.test;
+package ratpack.test.internal;
 
 import ratpack.func.Factory;
 import ratpack.server.RatpackServer;
+import ratpack.test.CloseableApplicationUnderTest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,13 +28,9 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class ServerBackedApplicationUnderTest implements CloseableApplicationUnderTest {
 
   private RatpackServer server;
-  private final Factory<RatpackServer> serverFactory;
+  private final Factory<? extends RatpackServer> serverFactory;
 
-  public ServerBackedApplicationUnderTest(RatpackServer server) {
-    this(() -> server);
-  }
-
-  public ServerBackedApplicationUnderTest(Factory<RatpackServer> serverFactory) {
+  public ServerBackedApplicationUnderTest(Factory<? extends RatpackServer> serverFactory) {
     this.serverFactory = serverFactory;
   }
 

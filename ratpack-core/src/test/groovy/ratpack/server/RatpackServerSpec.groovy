@@ -17,8 +17,7 @@
 package ratpack.server
 
 import ratpack.handling.Handler
-import ratpack.test.ServerBackedApplicationUnderTest
-import ratpack.test.http.TestHttpClients
+import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
 class RatpackServerSpec extends Specification {
@@ -76,7 +75,7 @@ class RatpackServerSpec extends Specification {
         .registry { it.add(String, value) }
         .handler { return { it.render it.get(String) } as Handler }
     }
-    def client = TestHttpClients.testHttpClient(new ServerBackedApplicationUnderTest({ server }))
+    def client = ApplicationUnderTest.of(server).httpClient
 
     when:
     server.start()

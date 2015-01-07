@@ -19,6 +19,9 @@ package ratpack.test;
 import ratpack.func.Action;
 import ratpack.test.http.TestHttpClient;
 
+/**
+ * An application under test that is able to be shut down.
+ */
 public interface CloseableApplicationUnderTest extends ApplicationUnderTest, AutoCloseable {
 
   /**
@@ -50,6 +53,11 @@ public interface CloseableApplicationUnderTest extends ApplicationUnderTest, Aut
     }
   }
 
+  /**
+   * Shuts down the application under test.
+   * <p>
+   * The exact meaning of invoking this method is implementation dependent.
+   */
   @Override
   void close();
 

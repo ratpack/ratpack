@@ -24,8 +24,7 @@ import ratpack.registry.Registry
 import ratpack.registry.RegistrySpec
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
-import ratpack.test.ServerBackedApplicationUnderTest
-import ratpack.test.http.TestHttpClients
+import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
 class ConfigurationsSpec extends Specification {
@@ -45,13 +44,13 @@ class ConfigurationsSpec extends Specification {
       def configData = Configurations.config().props(propsFile).build()
       serverDef.config(configData.get("/server", ServerConfig)).registry({ RegistrySpec registrySpec ->
         registrySpec.add(MyAppConfig, configData.get("/app", MyAppConfig))
-      }).build { Registry registry ->
+      }).handler { Registry registry ->
         { Context ctx ->
           ctx.render("Hi, my name is ${ctx.get(MyAppConfig).name}")
         } as Handler
       }
     }
-    def client = TestHttpClients.testHttpClient(new ServerBackedApplicationUnderTest({ server }))
+    def client = ApplicationUnderTest.of(server).httpClient
     server.start()
 
     then:
