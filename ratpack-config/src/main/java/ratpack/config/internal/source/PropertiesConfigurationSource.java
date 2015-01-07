@@ -108,13 +108,17 @@ public class PropertiesConfigurationSource implements ConfigurationSource {
       if (arrayNode == null) {
         arrayNode = node.putArray(fieldName);
       }
+      padToLength(arrayNode, index + 1);
       if (remainingKey.isEmpty()) {
-        arrayNode.add(value);
+        arrayNode.set(index, TextNode.valueOf(value));
       } else if (remainingKey.startsWith(".")) {
         remainingKey = remainingKey.substring(1);
-        ObjectNode childNode = (ObjectNode) arrayNode.get(index);
-        if (childNode == null) {
-          childNode = arrayNode.addObject();
+        ObjectNode childNode;
+        if (arrayNode.hasNonNull(index)) {
+          childNode = (ObjectNode) arrayNode.get(index);
+        } else {
+          childNode = arrayNode.objectNode();
+          arrayNode.set(index, childNode);
         }
         populate(childNode, remainingKey, value);
       } else {
@@ -122,6 +126,12 @@ public class PropertiesConfigurationSource implements ConfigurationSource {
       }
     } else {
       node.set(key, TextNode.valueOf(value));
+    }
+  }
+
+  private static void padToLength(ArrayNode arrayNode, int length) {
+    while (arrayNode.size() < length) {
+      arrayNode.addNull();
     }
   }
 

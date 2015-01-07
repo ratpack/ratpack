@@ -17,6 +17,7 @@
 package ratpack.config.internal.source
 
 import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.source.env.MapEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,7 +25,7 @@ import static ratpack.server.ServerConfigBuilder.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigurationSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
-  def mapper = DefaultConfigurationDataSpec.newDefaultObjectMapper()
+  def mapper = DefaultConfigurationDataSpec.newDefaultObjectMapper(new MapEnvironment([:]))
 
   @Unroll
   def "supports no prefix (#prefix)"() {
@@ -114,6 +115,27 @@ class PropertiesConfigurationSourceSpec extends Specification {
 
   def "out of order or interleaved arrays should be indexed properly"() {
     def source = propsSource('''
+    |nums[20]=20
+    |nums[0]=0
+    |nums[19]=19
+    |nums[1]=1
+    |nums[18]=18
+    |nums[2]=2
+    |nums[17]=17
+    |nums[3]=3
+    |nums[16]=16
+    |nums[4]=4
+    |nums[15]=15
+    |nums[5]=5
+    |nums[14]=14
+    |nums[6]=6
+    |nums[13]=13
+    |nums[7]=7
+    |nums[12]=12
+    |nums[8]=8
+    |nums[11]=11
+    |nums[9]=9
+    |nums[10]=10
     |users[1]=bob
     |users[0]=alice
     |users[2]=chuck
@@ -127,6 +149,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     def rootNode = source.loadConfigurationData(mapper)
 
     then:
+    rootNode.path("nums").elements().collect { it.asText() } == (0..20).collect { it.toString() }
     def users = rootNode.path("users")
     users.path(0).asText() == "alice"
     users.path(1).asText() == "bob"
@@ -137,7 +160,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     dbConfigs.path(1).path("name").asText() == "prod"
     dbConfigs.path(1).path("url").asText() == "jdbc:mysql://prod/prod"
     dbConfigs.size() == 2
-    rootNode.size() == 2
+    rootNode.size() == 3
   }
 
   private static PropertiesConfigurationSource propsSource(String input, String prefix = null) {
