@@ -34,14 +34,15 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.server.internal.BaseRegistry;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
@@ -234,6 +235,49 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> BaseRegistry.baseRegistry(serverConfigBuilder.build(), userRegistry.join(registryBuilder.build())));
+    return ExceptionUtils.uncheck(() -> BaseRegistry.baseRegistry(serverConfigBuilder.build(), new TestServer(), userRegistry.join(registryBuilder.build())));
+  }
+
+  // TODO some kind of impl here
+  private static class TestServer implements RatpackServer {
+    @Override
+    public ServerConfig getServerConfig() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getScheme() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getBindPort() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getBindHost() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isRunning() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void start() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void stop() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RatpackServer reload() throws Exception {
+      throw new UnsupportedOperationException();
+    }
   }
 }

@@ -42,7 +42,9 @@ import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
 import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.PublicAddress;
+import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
+import ratpack.server.Stopper;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
@@ -50,7 +52,7 @@ import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class BaseRegistry {
 
-  public static Registry baseRegistry(ServerConfig serverConfig, Registry userRegistry) {
+  public static Registry baseRegistry(ServerConfig serverConfig, RatpackServer ratpackServer, Registry userRegistry) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
     ExecController execController = new DefaultExecController(serverConfig.getThreads());
     PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
@@ -73,6 +75,12 @@ public abstract class BaseRegistry {
         .with(new CharSequenceRenderer().register())
         .add(FormParser.class, FormParser.multiPart())
         .add(FormParser.class, FormParser.urlEncoded())
+        .add(RatpackServer.class, ratpackServer)
+          // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
+        .add(Stopper.class, () -> uncheck(() -> {
+          ratpackServer.stop();
+          return null;
+        }))
         .add(HttpClient.class, HttpClients.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength()));
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen

@@ -21,24 +21,34 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
-import ratpack.func.Function;
+import ratpack.func.Factory;
+import ratpack.handling.Handler;
+import ratpack.handling.internal.FactoryHandler;
 import ratpack.registry.Registry;
+import ratpack.reload.internal.ClassUtil;
+import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.server.Stopper;
 import ratpack.util.internal.ChannelImplDetector;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static ratpack.util.ExceptionUtils.uncheck;
 
 public class NettyRatpackServer implements RatpackServer {
 
@@ -46,8 +56,6 @@ public class NettyRatpackServer implements RatpackServer {
 
   private final Definition definition;
   private final Registry rootRegistry;
-  private final ServerConfig serverConfig;
-  private final Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
 
   private InetSocketAddress boundAddress;
   private Channel channel;
@@ -55,16 +63,14 @@ public class NettyRatpackServer implements RatpackServer {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackServer(RatpackServer.Definition definition, Registry rootRegistry, Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+  public NettyRatpackServer(RatpackServer.Definition definition) {
     this.definition = definition;
-    this.rootRegistry = rootRegistry;
-    this.serverConfig = rootRegistry.get(ServerConfig.class);
-    this.channelInitializerTransformer = channelInitializerTransformer;
+    this.rootRegistry = BaseRegistry.baseRegistry(definition.getServerConfig(), this, definition.getUserRegistry());
   }
 
   @Override
   public ServerConfig getServerConfig() {
-    return serverConfig;
+    return definition.getServerConfig();
   }
 
   @Override
@@ -74,29 +80,49 @@ public class NettyRatpackServer implements RatpackServer {
       if (isRunning()) {
         return;
       }
-      Stopper stopper = () -> {
-        try {
-          NettyRatpackServer.this.stop();
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
-      };
-
-      ServerBootstrap bootstrap = new ServerBootstrap();
-
-      ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.apply(stopper);
-
-      bootstrap
-        .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
-        .childHandler(channelInitializer)
-        .channel(ChannelImplDetector.getServerSocketChannelImpl())
-        .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class));
 
       if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
       }
 
-      channel = bootstrap.bind(buildSocketAddress()).sync().channel();
+      Handler rootHandler = buildRootHandler();
+      NettyHandlerAdapter handlerAdapter = new NettyHandlerAdapter(getServerConfig(), rootRegistry, rootHandler);
+
+      SSLContext sslContext = getServerConfig().getSSLContext();
+      SSLEngine sslEngine = null;
+      if (sslContext != null) {
+        sslEngine = sslContext.createSSLEngine();
+        sslEngine.setUseClientMode(false);
+      }
+
+      final SSLEngine finalSslEngine = sslEngine;
+
+      channel = new ServerBootstrap()
+        .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
+        .channel(ChannelImplDetector.getServerSocketChannelImpl())
+        .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class))
+        .childHandler(new ChannelInitializer<SocketChannel>() {
+          @Override
+          protected void initChannel(SocketChannel ch) throws Exception {
+            ChannelPipeline pipeline = ch.pipeline();
+
+            if (finalSslEngine != null) {
+              pipeline.addLast("ssl", new SslHandler(finalSslEngine));
+            }
+
+            pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
+            pipeline.addLast("aggregator", new HttpObjectAggregator(getServerConfig().getMaxContentLength()));
+            pipeline.addLast("encoder", new HttpResponseEncoder());
+            if (getServerConfig().isCompressResponses()) {
+              pipeline.addLast("deflater", new SmartHttpContentCompressor());
+            }
+            pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+            pipeline.addLast("rootHandler", handlerAdapter);
+          }
+        })
+        .bind(buildSocketAddress())
+        .sync()
+        .channel();
 
       boundAddress = (InetSocketAddress) channel.localAddress();
 
@@ -107,6 +133,18 @@ public class NettyRatpackServer implements RatpackServer {
     } finally {
       lifecycleLock.unlock();
     }
+  }
+
+  private Handler buildRootHandler() throws Exception {
+    if (getServerConfig().isDevelopment()) {
+      File classFile = ClassUtil.getClassFile(definition.getHandlerFactory());
+      if (classFile != null) {
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> definition.getHandlerFactory().apply(rootRegistry));
+        return new FactoryHandler(factory);
+      }
+    }
+
+    return definition.getHandlerFactory().apply(rootRegistry);
   }
 
   @Override
@@ -149,7 +187,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   @Override
   public String getScheme() {
-    return serverConfig.getSSLContext() == null ? "http" : "https";
+    return getServerConfig().getSSLContext() == null ? "http" : "https";
   }
 
   public int getBindPort() {
@@ -165,6 +203,7 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private InetSocketAddress buildSocketAddress() {
+    ServerConfig serverConfig = getServerConfig();
     return (serverConfig.getAddress() == null) ? new InetSocketAddress(serverConfig.getPort()) : new InetSocketAddress(serverConfig.getAddress(), serverConfig.getPort());
   }
 

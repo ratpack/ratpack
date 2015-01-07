@@ -17,20 +17,12 @@
 package ratpack.server;
 
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
-import ratpack.handling.internal.FactoryHandler;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
-import ratpack.reload.internal.ClassUtil;
-import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.server.internal.BaseRegistry;
 import ratpack.server.internal.NettyRatpackServer;
-import ratpack.server.internal.RatpackChannelInitializer;
-
-import java.io.File;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -149,25 +141,7 @@ public interface RatpackServer {
      * @return a new, not yet started Ratpack server
      */
     public RatpackServer build() {
-      Registry baseRegistry = BaseRegistry.baseRegistry(serverConfig, userRegistry);
-
-      return new NettyRatpackServer(this, baseRegistry, stopper -> {
-        Handler handler = null;
-
-        if (serverConfig.isDevelopment()) {
-          File classFile = ClassUtil.getClassFile(handlerFactory);
-          if (classFile != null) {
-            Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> handlerFactory.apply(baseRegistry));
-            handler = new FactoryHandler(factory);
-          }
-        }
-
-        if (handler == null) {
-          handler = handlerFactory.apply(baseRegistry);
-        }
-
-        return new RatpackChannelInitializer(baseRegistry, handler, stopper);
-      });
+      return new NettyRatpackServer(this);
     }
 
   }

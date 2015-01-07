@@ -46,11 +46,9 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.internal.*;
-import ratpack.server.ServerConfig;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.DefaultRenderController;
-import ratpack.server.Stopper;
+import ratpack.server.ServerConfig;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -77,16 +75,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final boolean addResponseTimeHeader;
   private final ExecControl execControl;
 
-  public NettyHandlerAdapter(Stopper stopper, Handler handler, Registry rootRegistry) throws Exception {
+  public NettyHandlerAdapter(ServerConfig serverConfig, Registry registry, Handler handler) throws Exception {
     super(false);
 
-    ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
-
     this.handlers = ChainHandler.unpack(handler);
-    this.rootRegistry = Registries.just(Stopper.class, stopper).join(rootRegistry);
+    this.rootRegistry = registry;
     this.addResponseTimeHeader = serverConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
-    this.execController = rootRegistry.get(ExecController.class);
+    this.execController = registry.get(ExecController.class);
     this.execControl = execController.getControl();
 
     if (serverConfig.isCompressResponses()) {
