@@ -52,7 +52,7 @@ public class RatpackMain {
    * @param defaultProperties The default properties
    * @return A ratpack server, built from the launch config
    */
-  public RatpackServer server(Properties overrideProperties, Properties defaultProperties) {
+  public RatpackServer server(Properties overrideProperties, Properties defaultProperties) throws Exception {
     addImpliedDefaults(defaultProperties);
     //TODO-JOHN
     LaunchConfig launchConfig = LaunchConfigs.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);

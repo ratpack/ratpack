@@ -17,14 +17,17 @@
 package ratpack.server
 
 import ratpack.handling.Handler
+import ratpack.test.ServerBackedApplicationUnderTest
+import ratpack.test.http.TestHttpClients
 import spock.lang.Specification
 
 class RatpackServerSpec extends Specification {
 
   def "start default server"() {
     given:
-    def server = RatpackServer.of { spec -> spec
-      .build {
+    def server = RatpackServer.of { spec ->
+      spec
+        .build {
         return {} as Handler
       }
     }
@@ -44,9 +47,10 @@ class RatpackServerSpec extends Specification {
 
   def "start server on port"() {
     given:
-    def server = RatpackServer.of { spec -> spec
-      .config(ServerConfig.noBaseDir().port(5060).build())
-      .build {
+    def server = RatpackServer.of { spec ->
+      spec
+        .config(ServerConfig.noBaseDir().port(5060).build())
+        .build {
         return {} as Handler
       }
     }
@@ -66,20 +70,27 @@ class RatpackServerSpec extends Specification {
 
   def "reload server"() {
     given:
-    def server = RatpackServer.of { it.build { return {} as Handler }}
+    def value = "foo"
+    def server = RatpackServer.of {
+      it
+        .registry { it.add(String, value) }
+        .build { return { it.render it.get(String) } as Handler }
+    }
+    def client = TestHttpClients.testHttpClient(new ServerBackedApplicationUnderTest({ server }))
 
     when:
     server.start()
 
     then:
     server.isRunning()
+    client.text == "foo"
 
     when:
-    def server2 = server.reload()
+    value = "bar"
+    server.reload()
 
     then:
-    !server.isRunning()
-    server2.isRunning()
-    server != server2
+    server.isRunning()
+    client.text == "bar"
   }
 }

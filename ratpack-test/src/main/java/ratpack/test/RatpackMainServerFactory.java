@@ -16,9 +16,9 @@
 
 package ratpack.test;
 
+import ratpack.func.Factory;
 import ratpack.launch.RatpackMain;
 import ratpack.server.RatpackServer;
-import ratpack.func.Factory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class RatpackMainServerFactory implements Factory<RatpackServer> {
   }
 
   @Override
-  public RatpackServer create() {
+  public RatpackServer create() throws Exception {
     Properties systemProperties = new Properties(System.getProperties());
     systemProperties.setProperty("ratpack.port", systemProperties.getProperty("ratpack.port", "0"));
     for (Map.Entry<String, String> property : overriddenProperties.entrySet()) {

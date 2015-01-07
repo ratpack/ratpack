@@ -24,8 +24,6 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.internal.NettyRatpackServer;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 /**
  * A Ratpack server.
  */
@@ -37,8 +35,8 @@ public interface RatpackServer {
    * @param app a function that builds the definition for this server.
    * @return a new, non started Ratpack server.
    */
-  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> app) {
-    return uncheck(() -> app.apply(Definition.builder()).build());
+  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> app) throws Exception {
+    return new NettyRatpackServer(app);
   }
 
   /**
@@ -135,15 +133,6 @@ public interface RatpackServer {
       }
     }
 
-    /**
-     * Constructs a RatpackServer instance from this definition.
-     *
-     * @return a new, not yet started Ratpack server
-     */
-    public RatpackServer build() {
-      return new NettyRatpackServer(this);
-    }
-
   }
 
   /**
@@ -200,9 +189,9 @@ public interface RatpackServer {
   /**
    * Reloads the server from its definition.
    *
-   * @return a new Ratpack server in the same state as the current server.
+   * @return this
    *
-   * @throws Exception any exceptions from constructing or starting the server
+   * @throws Exception any exceptions from constructing the server definition or starting the server
    */
   RatpackServer reload() throws Exception;
 

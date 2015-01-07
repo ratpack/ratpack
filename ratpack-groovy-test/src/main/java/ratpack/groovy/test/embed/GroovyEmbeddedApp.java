@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
  * A highly configurable {@link ratpack.test.embed.EmbeddedApp} implementation that allows the application to be defined in code at runtime.
@@ -159,15 +160,19 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
 
-        return RatpackServer.of(serverSpec -> serverSpec
-          .config(serverConfigBuilder.build())
-          .build(r -> {
-            Guice.Builder builder = Guice.builder(r);
-            if (spec.parentInjector != null) {
-              builder.parent(spec.parentInjector);
-            }
-            return builder.bindings(bindingsAction).build(chain -> Groovy.chain(chain, spec.handlers));
-          }));
+        try {
+          return RatpackServer.of(serverSpec -> serverSpec
+            .config(serverConfigBuilder.build())
+            .build(r -> {
+              Guice.Builder builder = Guice.builder(r);
+              if (spec.parentInjector != null) {
+                builder.parent(spec.parentInjector);
+              }
+              return builder.bindings(bindingsAction).build(chain -> Groovy.chain(chain, spec.handlers));
+            }));
+        } catch (Exception e) {
+          throw uncheck(e);
+        }
       }
     };
   }

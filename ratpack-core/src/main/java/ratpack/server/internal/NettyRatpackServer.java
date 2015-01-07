@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
 import ratpack.func.Factory;
+import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.registry.Registry;
@@ -54,8 +55,9 @@ public class NettyRatpackServer implements RatpackServer {
 
   private final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
-  private final Definition definition;
-  private final Registry rootRegistry;
+  private final Function<? super Definition.Builder, ? extends Definition> definitionFactory;
+  private Definition definition;
+  private Registry rootRegistry;
 
   private InetSocketAddress boundAddress;
   private Channel channel;
@@ -63,76 +65,76 @@ public class NettyRatpackServer implements RatpackServer {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackServer(RatpackServer.Definition definition) {
-    this.definition = definition;
-    this.rootRegistry = BaseRegistry.baseRegistry(definition.getServerConfig(), this, definition.getUserRegistry());
+  public NettyRatpackServer(Function<? super Definition.Builder, ? extends Definition> definitionFactory) throws Exception {
+    this.definitionFactory = definitionFactory;
+    define();
+  }
+
+  private void define() throws Exception {
+    definition = definitionFactory.apply(RatpackServer.Definition.builder());
+    rootRegistry = BaseRegistry.baseRegistry(definition.getServerConfig(), this, definition.getUserRegistry());
   }
 
   @Override
-  public ServerConfig getServerConfig() {
+  public synchronized ServerConfig getServerConfig() {
     return definition.getServerConfig();
   }
 
   @Override
-  public void start() throws Exception {
-    lifecycleLock.lock();
-    try {
-      if (isRunning()) {
-        return;
-      }
-
-      if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
-      }
-
-      Handler rootHandler = buildRootHandler();
-      NettyHandlerAdapter handlerAdapter = new NettyHandlerAdapter(getServerConfig(), rootRegistry, rootHandler);
-
-      SSLContext sslContext = getServerConfig().getSSLContext();
-      SSLEngine sslEngine = null;
-      if (sslContext != null) {
-        sslEngine = sslContext.createSSLEngine();
-        sslEngine.setUseClientMode(false);
-      }
-
-      final SSLEngine finalSslEngine = sslEngine;
-
-      channel = new ServerBootstrap()
-        .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
-        .channel(ChannelImplDetector.getServerSocketChannelImpl())
-        .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class))
-        .childHandler(new ChannelInitializer<SocketChannel>() {
-          @Override
-          protected void initChannel(SocketChannel ch) throws Exception {
-            ChannelPipeline pipeline = ch.pipeline();
-
-            if (finalSslEngine != null) {
-              pipeline.addLast("ssl", new SslHandler(finalSslEngine));
-            }
-
-            pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-            pipeline.addLast("aggregator", new HttpObjectAggregator(getServerConfig().getMaxContentLength()));
-            pipeline.addLast("encoder", new HttpResponseEncoder());
-            if (getServerConfig().isCompressResponses()) {
-              pipeline.addLast("deflater", new SmartHttpContentCompressor());
-            }
-            pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-            pipeline.addLast("rootHandler", handlerAdapter);
-          }
-        })
-        .bind(buildSocketAddress())
-        .sync()
-        .channel();
-
-      boundAddress = (InetSocketAddress) channel.localAddress();
-
-      if (logger.isInfoEnabled()) {
-        logger.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
-      }
-      running.set(true);
-    } finally {
-      lifecycleLock.unlock();
+  public synchronized void start() throws Exception {
+    if (isRunning()) {
+      return;
     }
+
+    if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
+      ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
+    }
+
+    Handler rootHandler = buildRootHandler();
+    NettyHandlerAdapter handlerAdapter = new NettyHandlerAdapter(getServerConfig(), rootRegistry, rootHandler);
+
+    SSLContext sslContext = getServerConfig().getSSLContext();
+    SSLEngine sslEngine = null;
+    if (sslContext != null) {
+      sslEngine = sslContext.createSSLEngine();
+      sslEngine.setUseClientMode(false);
+    }
+
+    final SSLEngine finalSslEngine = sslEngine;
+
+    channel = new ServerBootstrap()
+      .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
+      .channel(ChannelImplDetector.getServerSocketChannelImpl())
+      .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class))
+      .childHandler(new ChannelInitializer<SocketChannel>() {
+        @Override
+        protected void initChannel(SocketChannel ch) throws Exception {
+          ChannelPipeline pipeline = ch.pipeline();
+
+          if (finalSslEngine != null) {
+            pipeline.addLast("ssl", new SslHandler(finalSslEngine));
+          }
+
+          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
+          pipeline.addLast("aggregator", new HttpObjectAggregator(getServerConfig().getMaxContentLength()));
+          pipeline.addLast("encoder", new HttpResponseEncoder());
+          if (getServerConfig().isCompressResponses()) {
+            pipeline.addLast("deflater", new SmartHttpContentCompressor());
+          }
+          pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+          pipeline.addLast("rootHandler", handlerAdapter);
+        }
+      })
+      .bind(buildSocketAddress())
+      .sync()
+      .channel();
+
+    boundAddress = (InetSocketAddress) channel.localAddress();
+
+    if (logger.isInfoEnabled()) {
+      logger.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
+    }
+    running.set(true);
   }
 
   private Handler buildRootHandler() throws Exception {
@@ -148,7 +150,7 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   @Override
-  public void stop() throws Exception {
+  public synchronized void stop() throws Exception {
     lifecycleLock.lock();
     try {
       if (!isRunning()) {
@@ -163,21 +165,24 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   @Override
-  public RatpackServer reload() throws Exception {
+  public synchronized RatpackServer reload() throws Exception {
     boolean start = false;
     if (this.isRunning()) {
       start = true;
       this.stop();
     }
-    RatpackServer server = definition.build();
+
+    define();
+
     if (start) {
-      server.start();
+      start();
     }
-    return server;
+
+    return this;
   }
 
   @Override
-  public boolean isRunning() {
+  public synchronized boolean isRunning() {
     return running.get();
   }
 
@@ -186,15 +191,15 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   @Override
-  public String getScheme() {
+  public synchronized String getScheme() {
     return getServerConfig().getSSLContext() == null ? "http" : "https";
   }
 
-  public int getBindPort() {
+  public synchronized int getBindPort() {
     return boundAddress == null ? -1 : boundAddress.getPort();
   }
 
-  public String getBindHost() {
+  public synchronized String getBindHost() {
     if (boundAddress == null) {
       return null;
     } else {

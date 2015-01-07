@@ -27,7 +27,7 @@ import ratpack.server.ServerConfig;
 import ratpack.server.RatpackServer;
 
 public class ApplicationMain {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         RatpackServer server = RatpackServer.of(spec -> spec
           .config(ServerConfig.noBaseDir().port(6060).build())
           .build(r -> new HelloWorld()));
