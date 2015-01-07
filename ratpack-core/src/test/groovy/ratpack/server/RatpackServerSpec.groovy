@@ -22,9 +22,17 @@ import spock.lang.Specification
 
 class RatpackServerSpec extends Specification {
 
+  RatpackServer server
+
+  def cleanup() {
+    if (server.isRunning()) {
+      server.stop()
+    }
+  }
+
   def "start default server"() {
     given:
-    def server = RatpackServer.of { spec ->
+    server = RatpackServer.of { spec ->
       spec
         .handler {
         return {} as Handler
@@ -37,16 +45,11 @@ class RatpackServerSpec extends Specification {
     then:
     server.running
     server.bindPort == 5050
-
-    cleanup:
-    if (server.running) {
-      server.stop()
-    }
   }
 
   def "start server on port"() {
     given:
-    def server = RatpackServer.of { spec ->
+    server = RatpackServer.of { spec ->
       spec
         .config(ServerConfig.noBaseDir().port(5060))
         .handler {
@@ -60,17 +63,12 @@ class RatpackServerSpec extends Specification {
     then:
     server.running
     server.bindPort == 5060
-
-    cleanup:
-    if (server.running) {
-      server.stop()
-    }
   }
 
-  def "reload server"() {
+  def "registry changes are applied on reload"() {
     given:
     def value = "foo"
-    def server = RatpackServer.of {
+    server = RatpackServer.of {
       it
         .registryOf { it.add(String, value) }
         .handler { return { it.render it.get(String) } as Handler }
@@ -93,4 +91,59 @@ class RatpackServerSpec extends Specification {
     client.text == "bar"
   }
 
+  def "configuration changes are applied up on reload"() {
+    given:
+    def config = ServerConfig.noBaseDir().build()
+
+    server = RatpackServer.of {
+      it
+        .config(config)
+        .handler { return {} as Handler }
+    }
+
+    when:
+    server.start()
+
+    then:
+    server.running
+    server.bindPort == 5050
+
+    when:
+    config = ServerConfig.noBaseDir().port(6060).build()
+    server.reload()
+
+    then:
+    server.running
+    server.bindPort == 6060
+  }
+
+  def "handler changes are applied on reload"() {
+    def handler = {
+      it.render 'foo'
+    } as Handler
+
+    server = RatpackServer.of {
+      it
+        .handler { return handler }
+    }
+    def client = ApplicationUnderTest.of(server).httpClient
+
+    when:
+    server.start()
+
+    then:
+    server.running
+    client.text == 'foo'
+
+    when:
+    handler = {
+      it.render 'bar'
+    } as Handler
+
+    server.reload()
+
+    then:
+    server.running
+    client.text == 'bar'
+  }
 }
