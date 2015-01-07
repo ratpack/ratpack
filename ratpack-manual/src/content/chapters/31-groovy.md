@@ -184,10 +184,6 @@ type checker, but also for documentation purposes.
 
 > TODO: introduce the `GroovyChain` DSL, and closures as handlers
 
-## GroovyChainAction
-
-> TODO: Point out the existence of [GroovyChainAction](api/ratpack/groovy/handling/GroovyChainAction.html)
-
 ## Testing
 
 Groovy comes with built-in support for writing tests. Besides integrated support for JUnit, the programming language comes with
