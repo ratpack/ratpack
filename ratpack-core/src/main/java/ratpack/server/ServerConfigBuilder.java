@@ -29,11 +29,9 @@ import ratpack.launch.LaunchConfig;
 import ratpack.launch.internal.DefaultServerConfig;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
@@ -75,17 +73,6 @@ public class ServerConfigBuilder {
 
   ServerConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
-  }
-
-  /**
-   * Create a new builder, using the given file as the base dir.
-   *
-   * @param baseDir The base dir of the launch config
-   * @return A new server config builder
-   * @see ratpack.launch.LaunchConfig#getBaseDir()
-   */
-  public static ServerConfigBuilder baseDir(File baseDir) {
-    return ServerConfig.baseDir(baseDir.toPath());
   }
 
   /**

@@ -22,6 +22,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.launch.NoBaseDirException;
 
 import javax.net.ssl.SSLContext;
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.file.Path;
@@ -76,6 +77,17 @@ public interface ServerConfig {
    */
   static ServerConfigBuilder baseDir(Path baseDir) {
     return new ServerConfigBuilder(baseDir.toAbsolutePath().normalize());
+  }
+
+  /**
+   * Create a new builder, using the given file as the base dir.
+   *
+   * @param baseDir The base dir of the launch config
+   * @return A new server config builder
+   * @see ratpack.launch.LaunchConfig#getBaseDir()
+   */
+  static ServerConfigBuilder baseDir(File baseDir) {
+    return baseDir(baseDir.toPath());
   }
 
   /**
