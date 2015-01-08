@@ -16,19 +16,30 @@
 
 package ratpack.config.internal.source;
 
+import com.google.common.io.ByteSource;
+import ratpack.util.ExceptionUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 
-public class PropertiesConfigurationSource extends AbstractPropertiesConfigurationSource {
-  private final Properties properties;
+public class ByteSourcePropertiesConfigurationSource extends AbstractPropertiesConfigurationSource {
+  private final ByteSource byteSource;
 
-  public PropertiesConfigurationSource(Optional<String> prefix, Properties properties) {
+  public ByteSourcePropertiesConfigurationSource(Optional<String> prefix, ByteSource byteSource) {
     super(prefix);
-    this.properties = properties;
+    this.byteSource = byteSource;
   }
 
   @Override
   protected Properties loadProperties() throws Exception {
+    Properties properties = new Properties();
+    try (InputStream inputStream = byteSource.openStream()) {
+      properties.load(inputStream);
+    } catch (IOException ex) {
+      throw ExceptionUtils.uncheck(ex);
+    }
     return properties;
   }
 }

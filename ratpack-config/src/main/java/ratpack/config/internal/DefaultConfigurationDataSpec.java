@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import ratpack.config.ConfigurationData;
 import ratpack.config.ConfigurationDataSpec;
 import ratpack.config.ConfigurationSource;
@@ -29,6 +31,7 @@ import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.module.ConfigurationModule;
 import ratpack.config.internal.source.*;
 import ratpack.config.internal.source.env.Environment;
+import ratpack.config.internal.util.PathUtil;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.util.ExceptionUtils;
@@ -123,31 +126,31 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec props(ByteSource byteSource) {
-    add(new PropertiesConfigurationSource(byteSource));
+    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), byteSource));
     return this;
   }
 
   @Override
   public ConfigurationDataSpec props(Path path) {
-    add(new PropertiesConfigurationSource(path));
+    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Files.asByteSource(path.toFile())));
     return this;
   }
 
   @Override
   public ConfigurationDataSpec props(String pathOrUrl) {
-    add(new PropertiesConfigurationSource(pathOrUrl));
+    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), PathUtil.asByteSource(pathOrUrl)));
     return this;
   }
 
   @Override
   public ConfigurationDataSpec props(Properties properties) {
-    add(new PropertiesConfigurationSource(properties));
+    add(new PropertiesConfigurationSource(Optional.empty(), properties));
     return this;
   }
 
   @Override
   public ConfigurationDataSpec props(URL url) {
-    add(new PropertiesConfigurationSource(url));
+    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Resources.asByteSource(url)));
     return this;
   }
 
