@@ -18,9 +18,9 @@ package ratpack.launch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.launch.internal.LaunchConfigsInternal;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 
 import java.util.Properties;
 
@@ -56,7 +56,7 @@ public class RatpackMain {
     addImpliedDefaults(defaultProperties);
     //TODO-JOHN
     LaunchConfig launchConfig = LaunchConfigs.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);
-    ServerConfig serverConfig = ServerConfigBuilder.launchConfig(launchConfig).build();
+    ServerConfig serverConfig = LaunchConfigsInternal.toServerConfig(launchConfig).build();
     return RatpackServer.of(spec -> spec
       .config(serverConfig)
       .handler(r -> launchConfig.getHandlerFactory().create(r)));

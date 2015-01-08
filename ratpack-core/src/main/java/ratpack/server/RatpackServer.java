@@ -40,7 +40,7 @@ import ratpack.server.internal.NettyRatpackServer;
  * public class Example {
  *   public static void main(String... args) throws Exception {
  *     RatpackServer server = RatpackServer.of(b -> b
- *       .config(ServerConfig.noBaseDir())           // base server configuration (e.g. port) - optional
+ *       .config(ServerConfig.embedded())            // base server configuration (e.g. port) - optional
  *       .registry(r -> r.add(String.class, "foo"))  // registry of supporting objects - optional
  *       .handlers(chain -> chain                    // request handlers - required
  *         .get("a", ctx -> ctx.render(ctx.get(String.class) + " 1"))
@@ -163,7 +163,7 @@ public interface RatpackServer {
    * The server definition will be rebuilt by executing the function used to create the server.
    * Depending on the function's implementation, a different definition may result.
    * This is effectively configuration reloading mechanism.
-   * <pre class="java">{@code
+   * <pre>{@code
    * import ratpack.server.RatpackServer;
    * import ratpack.test.ApplicationUnderTest;
    * import static org.junit.Assert.*;
@@ -173,6 +173,7 @@ public interface RatpackServer {
    *     String[] holder = new String[]{"foo"};
    *
    *     RatpackServer server = RatpackServer.of(b -> b
+   *       .config(ServerConfig.embedded())
    *       .registry(r -> r.add(String.class, holder[0]))
    *       .handler(registry -> (ctx) -> ctx.render(ctx.get(String.class)))
    *     );
@@ -286,12 +287,12 @@ public interface RatpackServer {
       Builder config(ServerConfig serverConfig);
 
       /**
-       * Convenience function that {@link ServerConfigBuilder#build() builds} the config from the given builder and delegates to {@link #config(ServerConfig)}.
+       * Convenience function that {@link ratpack.server.ServerConfig.Builder#build() builds} the config from the given builder and delegates to {@link #config(ServerConfig)}.
        *
        * @param serverConfigBuilder the server configuration (as a builder)
        * @return {@code this}
        */
-      default Builder config(ServerConfigBuilder serverConfigBuilder) {
+      default Builder config(ServerConfig.Builder serverConfigBuilder) {
         return config(serverConfigBuilder.build());
       }
 

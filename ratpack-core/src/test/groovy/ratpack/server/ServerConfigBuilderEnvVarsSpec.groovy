@@ -18,11 +18,11 @@ package ratpack.server
 
 import spock.lang.Specification
 
-import static ratpack.server.ServerConfigBuilder.DEFAULT_ENV_PREFIX
+import static ratpack.server.ServerConfig.Builder.DEFAULT_ENV_PREFIX
 
 class ServerConfigBuilderEnvVarsSpec extends Specification {
 
-  ServerConfigBuilder builder
+  ServerConfig.Builder builder
   Map<String, String> source
 
   def setup() {

@@ -20,8 +20,8 @@ import com.google.common.net.HostAndPort;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.server.ServerConfigBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.ServerConfig;
 import ratpack.test.handling.internal.DefaultRequestFixture;
 
 import java.nio.file.Path;
@@ -83,6 +83,7 @@ public interface RequestFixture {
     action.execute(requestFixture);
     return requestFixture.handle(handler);
   }
+
   /**
    * Unit test a {@link Handler} chain.
    *
@@ -228,25 +229,25 @@ public interface RequestFixture {
   /**
    * Configures the server config to have the given base dir and given configuration.
    * <p>
-   * By default the server config is equivalent to {@link ratpack.server.ServerConfig#noBaseDir() ServerConfigBuilder.noBaseDir()}.{@link ratpack.server.ServerConfigBuilder#build() build()}.
+   * By default the server config is equivalent to {@link ratpack.server.ServerConfig#noBaseDir() ServerConfigBuilder.noBaseDir()}.{@link ratpack.server.ServerConfig.Builder#build() build()}.
    *
    * @param baseDir the server config base dir
    * @param action configuration of the server config
    * @return this
    * @throws Exception any thrown by {@code action}
    */
-  RequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception;
+  RequestFixture serverConfig(Path baseDir, Action<? super ServerConfig.Builder> action) throws Exception;
 
   /**
    * Configures the server config to have no base dir and given configuration.
    * <p>
-   * By default the server config is equivalent to {@link ratpack.server.ServerConfig#noBaseDir() ServerConfigBuilder.noBaseDir()}.{@link ratpack.server.ServerConfigBuilder#build() build()}.
+   * By default the server config is equivalent to {@link ratpack.server.ServerConfig#noBaseDir() ServerConfigBuilder.noBaseDir()}.{@link ratpack.server.ServerConfig.Builder#build() build()}.
    *
    * @param action configuration of the server config
    * @return this
    * @throws Exception any thrown by {@code action}
    */
-  RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception;
+  RequestFixture serverConfig(Action<? super ServerConfig.Builder> action) throws Exception;
 
   /**
    * Set the request method (case insensitive).

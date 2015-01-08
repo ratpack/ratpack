@@ -22,7 +22,7 @@ import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.server.ServerConfigBuilder
+import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 
 abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
@@ -61,7 +61,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     _bindings = configurer
   }
 
-  void serverConfig(@DelegatesTo(value = ServerConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void serverConfig(@DelegatesTo(value = ServerConfig.Builder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     _serverConfig = configurer
   }
 

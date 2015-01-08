@@ -16,14 +16,14 @@
 
 package ratpack.config.internal.source;
 
-import ratpack.server.ServerConfigBuilder;
+import ratpack.server.ServerConfig;
 
 import java.util.Optional;
 
 public final class SystemPropertiesConfigurationSource extends PropertiesConfigurationSource {
 
   public SystemPropertiesConfigurationSource() {
-    this(Optional.of(ServerConfigBuilder.DEFAULT_PROP_PREFIX));
+    this(Optional.of(ServerConfig.Builder.DEFAULT_PROP_PREFIX));
   }
 
   public SystemPropertiesConfigurationSource(Optional<String> prefix) {

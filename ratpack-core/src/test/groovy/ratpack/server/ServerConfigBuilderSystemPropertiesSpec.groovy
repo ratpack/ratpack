@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
-  ServerConfigBuilder builder
+  ServerConfig.Builder builder
 
   def setup() {
     builder = ServerConfig.noBaseDir()

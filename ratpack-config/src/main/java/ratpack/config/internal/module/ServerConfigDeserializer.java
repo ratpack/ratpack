@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ratpack.config.internal.source.env.Environment;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -47,7 +46,7 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     String portEnv = Strings.emptyToNull(environment.getenv("PORT"));
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
-    ServerConfigBuilder builder = builderForBasedir(serverNode, ctxt);
+    ServerConfig.Builder builder = builderForBasedir(serverNode, ctxt);
     if (serverNode.hasNonNull("port")) {
       builder.port(serverNode.get("port").asInt());
     } else if (portEnv != null) {
@@ -95,7 +94,7 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     return builder.build();
   }
 
-  private static ServerConfigBuilder builderForBasedir(ObjectNode serverNode, DeserializationContext ctxt) throws IOException {
+  private static ServerConfig.Builder builderForBasedir(ObjectNode serverNode, DeserializationContext ctxt) throws IOException {
     JsonNode baseDirNode = serverNode.get("baseDir");
     if (baseDirNode == null) {
       return ServerConfig.noBaseDir();

@@ -17,17 +17,21 @@
 package ratpack.server;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.NoBaseDirException;
+import ratpack.server.internal.DefaultServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Server configuration holder
@@ -56,16 +60,16 @@ public interface ServerConfig {
    */
   public long DEFAULT_COMPRESSION_MIN_SIZE = 1024;
 
-  static ServerConfigBuilder embedded() {
+  static Builder embedded() {
     return noBaseDir().development(true).port(0);
   }
 
-  static ServerConfigBuilder embedded(Path baseDir) {
+  static Builder embedded(Path baseDir) {
     return baseDir(baseDir).development(true).port(0);
   }
 
-  static ServerConfigBuilder noBaseDir() {
-    return new ServerConfigBuilder();
+  static Builder noBaseDir() {
+    return new DefaultServerConfigBuilder();
   }
 
   /**
@@ -75,8 +79,8 @@ public interface ServerConfig {
    * @return A new server config builder
    * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
-  static ServerConfigBuilder baseDir(Path baseDir) {
-    return new ServerConfigBuilder(baseDir.toAbsolutePath().normalize());
+  static Builder baseDir(Path baseDir) {
+    return new DefaultServerConfigBuilder(baseDir.toAbsolutePath().normalize());
   }
 
   /**
@@ -86,7 +90,7 @@ public interface ServerConfig {
    * @return A new server config builder
    * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
-  static ServerConfigBuilder baseDir(File baseDir) {
+  static Builder baseDir(File baseDir) {
     return baseDir(baseDir.toPath());
   }
 
@@ -240,4 +244,249 @@ public interface ServerConfig {
    * @return A map of all "other" properties whose name starts with the prefix with the prefix removed from key names
    */
   public Map<String, String> getOtherPrefixedWith(String prefix);
+
+  interface Builder {
+
+    String DEFAULT_ENV_PREFIX = "RATPACK_";
+    String DEFAULT_PROP_PREFIX = "ratpack.";
+
+    Builder port(int port);
+
+    /**
+     * Sets the address to bind to.
+     * <p>
+     * Default value is {@code null}.
+     *
+     * @param address The address to bind to
+     * @return this
+     * @see ServerConfig#getAddress()
+     */
+    Builder address(InetAddress address);
+
+    /**
+     * Whether or not the application is "development".
+     * <p>
+     * Default value is {@code false}.
+     *
+     * @param development Whether or not the application is "development".
+     * @return this
+     * @see ServerConfig#isDevelopment()
+     */
+    Builder development(boolean development);
+
+    /**
+     * The number of threads to use.
+     * <p>
+     * Defaults to {@link ServerConfig#DEFAULT_THREADS}
+     *
+     * @param threads the size of the event loop thread pool
+     * @return this
+     * @see ServerConfig#getThreads()
+     */
+    Builder threads(int threads);
+
+    /**
+     * The public address of the application.
+     * <p>
+     * Default value is {@code null}.
+     *
+     * @param publicAddress The public address of the application
+     * @return this
+     * @see ServerConfig#getPublicAddress()
+     */
+    Builder publicAddress(URI publicAddress);
+
+    /**
+     * The max number of bytes a request body can be.
+     *
+     * Default value is {@code 1048576} (1 megabyte).
+     *
+     * @param maxContentLength The max content length to accept.
+     * @return this
+     * @see ServerConfig#getMaxContentLength()
+     */
+    Builder maxContentLength(int maxContentLength);
+
+    /**
+     * Whether to time responses.
+     *
+     * Default value is {@code false}.
+     *
+     * @param timeResponses Whether to time responses
+     * @return this
+     * @see ServerConfig#isTimeResponses()
+     */
+    Builder timeResponses(boolean timeResponses);
+
+    /**
+     * Whether to compress responses.
+     *
+     * Default value is {@code false}.
+     *
+     * @param compressResponses Whether to compress responses
+     * @return this
+     * @see ServerConfig#isCompressResponses()
+     */
+    Builder compressResponses(boolean compressResponses);
+
+    /**
+     * The minimum size at which responses should be compressed, in bytes.
+     *
+     * @param compressionMinSize The minimum size at which responses should be compressed, in bytes
+     * @return this
+     * @see ServerConfig#getCompressionMinSize()
+     */
+    Builder compressionMinSize(long compressionMinSize);
+
+    /**
+     * Adds the given values as compressible mime types.
+     *
+     * @param mimeTypes the compressible mime types.
+     * @return this
+     * @see ServerConfig#getCompressionMimeTypeWhiteList()
+     */
+    Builder compressionWhiteListMimeTypes(String... mimeTypes);
+
+    /**
+     * Adds the given values as compressible mime types.
+     *
+     * @param mimeTypes the compressible mime types.
+     * @return this
+     * @see ServerConfig#getCompressionMimeTypeWhiteList()
+     */
+    Builder compressionWhiteListMimeTypes(List<String> mimeTypes);
+
+    /**
+     * Adds the given values as non-compressible mime types.
+     *
+     * @param mimeTypes the non-compressible mime types.
+     * @return this
+     * @see ServerConfig#getCompressionMimeTypeBlackList()
+     */
+    Builder compressionBlackListMimeTypes(String... mimeTypes);
+
+    /**
+     * Adds the given values as non-compressible mime types.
+     *
+     * @param mimeTypes the non-compressible mime types.
+     * @return this
+     * @see ServerConfig#getCompressionMimeTypeBlackList()
+     */
+    Builder compressionBlackListMimeTypes(List<String> mimeTypes);
+
+    /**
+     * Adds the given values as potential index file names.
+     *
+     * @param indexFiles the potential index file names.
+     * @return this
+     * @see ServerConfig#getIndexFiles()
+     */
+    Builder indexFiles(String... indexFiles);
+
+    /**
+     * Adds the given values as potential index file names.
+     *
+     * @param indexFiles the potential index file names.
+     * @return this
+     * @see ServerConfig#getIndexFiles()
+     */
+    Builder indexFiles(List<String> indexFiles);
+
+    /**
+     * The SSL context to use if the application serves content over HTTPS.
+     *
+     * @param sslContext the SSL context.
+     * @return this
+     * @see ratpack.ssl.SSLContexts
+     * @see ServerConfig#getSSLContext()
+     */
+    Builder ssl(SSLContext sslContext);
+
+    /**
+     * Add an "other" property.
+     *
+     * @param key The key of the property
+     * @param value The value of the property
+     * @return this
+     * @see ServerConfig#getOther(String, String)
+     */
+    Builder other(String key, String value);
+
+    /**
+     * Add some "other" properties.
+     *
+     * @param other A map of properties to add to the launch config other properties
+     * @return this
+     * @see ServerConfig#getOther(String, String)
+     */
+    Builder other(Map<String, String> other);
+
+    /**
+     * Adds a configuration source for environment variables starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_ENV_PREFIX}.
+     *
+     * @return this
+     */
+    Builder env();
+
+    /**
+     * Adds a configuration source for environment variables starting with the specified prefix.
+     *
+     * @param prefix the prefix which should be used to identify relevant environment variables;
+     * the prefix will be removed before loading the data
+     * @return this
+     */
+    Builder env(String prefix);
+
+    Builder env(String prefix, Map<String, String> envvars);
+
+    /**
+     * Adds a configuration source for a properties file.
+     *
+     * @param byteSource the source of the properties data
+     * @return this
+     */
+    Builder props(ByteSource byteSource);
+
+    /**
+     * Adds a configuration source for a properties file.
+     *
+     * @param path the source of the properties data
+     * @return this
+     */
+    Builder props(Path path);
+
+    /**
+     * Adds a configuration source for a properties object.
+     *
+     * @param properties the properties object
+     * @return this
+     */
+    Builder props(Properties properties);
+
+    /**
+     * Adds a configuration source for a properties file.
+     *
+     * @param url the source of the properties data
+     * @return this
+     */
+    Builder props(URL url);
+
+    /**
+     * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_PROP_PREFIX}
+     *
+     * @return this
+     */
+    Builder sysProps();
+
+    /**
+     * Adds a configuration source for system properties starting with the specified prefix.
+     *
+     * @param prefix the prefix which should be used to identify relevant system properties;
+     * the prefix will be removed before loading the data
+     * @return this
+     */
+    Builder sysProps(String prefix);
+
+    ServerConfig build();
+  }
 }

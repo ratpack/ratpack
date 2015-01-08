@@ -29,7 +29,7 @@ import ratpack.config.internal.source.env.Environment;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.func.Predicate;
-import ratpack.server.ServerConfigBuilder;
+import ratpack.server.ServerConfig;
 
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class EnvironmentConfigurationSource implements ConfigurationSource {
   private final EnvironmentParser parser;
 
   public EnvironmentConfigurationSource(Environment environment) {
-    this(environment, ServerConfigBuilder.DEFAULT_ENV_PREFIX);
+    this(environment, ServerConfig.Builder.DEFAULT_ENV_PREFIX);
   }
 
   public EnvironmentConfigurationSource(Environment environment, String prefix) {

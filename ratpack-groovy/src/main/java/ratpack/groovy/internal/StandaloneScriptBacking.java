@@ -29,8 +29,8 @@ import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigs;
 import ratpack.launch.internal.DelegatingLaunchConfig;
+import ratpack.launch.internal.LaunchConfigsInternal;
 import ratpack.server.RatpackServer;
-import ratpack.server.ServerConfigBuilder;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -78,7 +78,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     final LaunchConfig effectiveLaunchConfig = launchConfig;
     RatpackServer server = RatpackServer.of(spec -> spec
-      .config(ServerConfigBuilder.launchConfig(effectiveLaunchConfig))
+      .config(LaunchConfigsInternal.toServerConfig(effectiveLaunchConfig))
       .handler(r -> effectiveLaunchConfig.getHandlerFactory().create(r)));
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);

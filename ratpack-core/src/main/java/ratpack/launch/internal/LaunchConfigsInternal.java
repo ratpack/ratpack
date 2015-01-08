@@ -27,7 +27,6 @@ import ratpack.launch.LaunchConfigs.*;
 import ratpack.launch.LaunchException;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 import ratpack.ssl.SSLContexts;
 import ratpack.util.internal.PropertiesUtil;
 import ratpack.util.internal.TypeCoercingProperties;
@@ -50,7 +49,7 @@ import static ratpack.launch.LaunchConfigs.Property.*;
 import static ratpack.util.ExceptionUtils.uncheck;
 import static ratpack.util.internal.PropertiesUtil.extractProperties;
 
-public class LaunchConfigsInternal {
+public class  LaunchConfigsInternal {
   private LaunchConfigsInternal() {}
 
   public static TypeCoercingProperties consolidatePropertiesFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
@@ -251,8 +250,8 @@ public class LaunchConfigsInternal {
     }
   }
 
-  public static ServerConfigBuilder launchConfig(LaunchConfig launchConfig) {
-    ServerConfigBuilder builder;
+  public static ServerConfig.Builder toServerConfig(LaunchConfig launchConfig) {
+    ServerConfig.Builder builder;
     if (launchConfig.isHasBaseDir()) {
       builder = ServerConfig.baseDir(launchConfig.getBaseDir().getFile());
     } else {

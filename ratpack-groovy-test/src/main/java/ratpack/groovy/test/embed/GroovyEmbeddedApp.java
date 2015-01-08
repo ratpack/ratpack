@@ -29,7 +29,6 @@ import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
@@ -124,7 +123,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
      * @param closure The definition of the application handlers
      * @return {@code this}
      */
-    Spec serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+    Spec serverConfig(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
     Spec parentInjector(Injector parentInjector);
 
@@ -147,7 +146,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
       protected RatpackServer createServer() {
         final SpecWrapper spec = new SpecWrapper();
         configureDelegateFirst(spec.getSpec(), closure);
-        ServerConfigBuilder serverConfigBuilder;
+        ServerConfig.Builder serverConfigBuilder;
 
         if (spec.baseDirSupplier != null) {
           Path baseDirPath = spec.baseDirSupplier.get();
