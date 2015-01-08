@@ -21,7 +21,6 @@ import ratpack.server.ServerConfigBuilder;
 import java.util.Optional;
 
 public final class SystemPropertiesConfigurationSource extends PropertiesConfigurationSource {
-
   public SystemPropertiesConfigurationSource() {
     this(Optional.of(ServerConfigBuilder.DEFAULT_PROP_PREFIX));
   }
