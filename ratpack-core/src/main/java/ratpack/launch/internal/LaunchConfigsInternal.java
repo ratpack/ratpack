@@ -49,24 +49,8 @@ import static ratpack.launch.LaunchConfigs.Property.*;
 import static ratpack.util.ExceptionUtils.uncheck;
 import static ratpack.util.internal.PropertiesUtil.extractProperties;
 
-public class  LaunchConfigsInternal {
+public class LaunchConfigsInternal {
   private LaunchConfigsInternal() {}
-
-  public static TypeCoercingProperties consolidatePropertiesFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
-    Properties overrideProperties = deprefixGlobalProperties(globalProperties);
-    String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
-    URL configResourceUrl = classLoader.getResource(configResourceValue);
-    Path configPath = determineConfigPath(workingDir, configResourceValue, configResourceUrl);
-    Properties fileProperties = consolidateProperties(configPath, overrideProperties, defaultProperties);
-    return new TypeCoercingProperties(fileProperties, classLoader);
-  }
-
-  public static Properties deprefixGlobalProperties(Properties globalProperties) {
-    String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
-    Properties deprefixed = new Properties();
-    extractProperties(propertyPrefix, globalProperties, deprefixed);
-    return deprefixed;
-  }
 
   public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties, Registry defaultRegistry) {
     String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
