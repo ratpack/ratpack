@@ -31,9 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Default Server Configuration holder
- */
 public class DefaultServerConfig implements ServerConfig {
 
   private final FileSystemBinding baseDir;
@@ -52,10 +49,23 @@ public class DefaultServerConfig implements ServerConfig {
   private final ImmutableSet<String> compressionMimeTypeWhiteList;
   private final ImmutableSet<String> compressionMimeTypeBlackList;
 
-  public DefaultServerConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean development, int threads,
-                              URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext,
-                              int maxContentLength, boolean timeResponses, boolean compressResponses, long compressionMinSize,
-                              ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList) {
+  public DefaultServerConfig(
+    FileSystemBinding baseDir,
+    int port,
+    InetAddress address,
+    boolean development,
+    int threads,
+    URI publicAddress,
+    ImmutableList<String> indexFiles,
+    ImmutableMap<String, String> other,
+    SSLContext sslContext,
+    int maxContentLength,
+    boolean timeResponses,
+    boolean compressResponses,
+    long compressionMinSize,
+    ImmutableSet<String> compressionMimeTypeWhiteList,
+    ImmutableSet<String> compressionMimeTypeBlackList
+  ) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
