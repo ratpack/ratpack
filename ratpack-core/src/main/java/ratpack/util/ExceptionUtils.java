@@ -17,6 +17,8 @@
 package ratpack.util;
 
 import ratpack.api.UncheckedException;
+import ratpack.func.Action;
+import ratpack.func.BiConsumer;
 import ratpack.func.Factory;
 
 /**
@@ -93,6 +95,22 @@ public abstract class ExceptionUtils {
   public static <T> T uncheck(Factory<T> factory) {
     try {
       return factory.create();
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+  }
+
+  public static <T> void uncheck(T input, Action<T> action) {
+    try {
+      action.execute(input);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+  }
+
+  public static <T, U> void uncheck(T t, U u, BiConsumer<T, U> consumer) {
+    try {
+      consumer.accept(t, u);
     } catch (Exception e) {
       throw uncheck(e);
     }

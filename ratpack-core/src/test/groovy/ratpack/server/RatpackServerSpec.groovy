@@ -17,6 +17,7 @@
 package ratpack.server
 
 import ratpack.handling.Handler
+import ratpack.registry.Registry
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
@@ -118,6 +119,7 @@ class RatpackServerSpec extends Specification {
   }
 
   def "handler changes are applied on reload"() {
+    given:
     def handler = {
       it.render 'foo'
     } as Handler
@@ -145,5 +147,58 @@ class RatpackServerSpec extends Specification {
     then:
     server.running
     client.text == 'bar'
+  }
+
+  def "managed registry entries are executed"() {
+    given:
+    def managed1 = 0
+    def managed2 = 0
+
+    server = RatpackServer.of {
+      it.registry {
+        it.add(Integer, 3)
+        it.add(ServerLifecycleListener, new ServerLifecycleListener() {
+
+          @Override
+          void onStart(Registry registry) throws Exception {
+            managed1 = registry.get(Integer)
+          }
+
+          @Override
+          void onStop(Registry registry) throws Exception {
+            managed1++
+          }
+        })
+        it.add(ServerLifecycleListener, new ServerLifecycleListener() {
+
+          @Override
+          void onStart(Registry registry) throws Exception {
+            managed2 = registry.get(Integer) * 2
+          }
+
+          @Override
+          void onStop(Registry registry) throws Exception {
+            managed2++
+          }
+        })
+      }
+      it.handler { return {} as Handler }
+    }
+
+    when:
+    server.start()
+
+    then:
+    server.running
+    managed1 == 3
+    managed2 == 6
+
+    when:
+    server.stop()
+
+    then:
+    !server.running
+    managed1 == 4
+    managed2 == 7
   }
 }
