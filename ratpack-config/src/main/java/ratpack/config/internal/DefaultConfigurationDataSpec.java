@@ -18,6 +18,7 @@ package ratpack.config.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
@@ -192,6 +193,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   public static ObjectMapper newDefaultObjectMapper(Environment environment) {
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new ConfigurationModule(environment));
     JsonFactory factory = objectMapper.getFactory();
