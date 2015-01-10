@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package ratpack.func;
+package ratpack.server;
+
+import ratpack.registry.Registry;
 
 /**
- * A 2 argument consumer. Does not return a value.
- *
- * Reimplements {@link java.util.function.BiConsumer} to allow for checked exceptions
- *
- * @param <T> first function argument
- * @param <U> second function argument
+ * Meta information about a server stop event.
  */
-@FunctionalInterface
-public interface BiConsumer<T, U> {
+public class StopEvent {
 
-  /**
-   * Consumer the 2 input values.
-   *
-   * @param t the first input to the consumer.
-   * @param u the second input to the consumer.
-   * @throws Exception any
-   */
-  void accept(T t, U u) throws Exception;
+  private final Registry registry;
+  private final boolean reload;
+
+  private StopEvent(Registry registry, boolean reload) {
+    this.registry = registry;
+    this.reload = reload;
+  }
+
+  public Registry getRegistry() {
+    return registry;
+  }
+
+  public boolean isReload() {
+    return reload;
+  }
+
+  public static StopEvent build(Registry registry, boolean reload) {
+    return new StopEvent(registry, reload);
+  }
 }

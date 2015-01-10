@@ -33,7 +33,7 @@ import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
-import ratpack.func.BiConsumer;
+import ratpack.func.BiAction;
 import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
@@ -42,9 +42,7 @@ import ratpack.handling.internal.FactoryHandler;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.server.ServerLifecycleListener;
-import ratpack.server.RatpackServer;
-import ratpack.server.ServerConfig;
+import ratpack.server.*;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
@@ -71,6 +69,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
+  private final AtomicBoolean reloading = new AtomicBoolean();
 
   public NettyRatpackServer(Function<? super Definition.Builder, ? extends Definition> definitionFactory) throws Exception {
     this.definitionFactory = definitionFactory;
@@ -99,7 +98,7 @@ public class NettyRatpackServer implements RatpackServer {
       ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
     }
 
-    executeEvents(rootRegistry, ServerLifecycleListener::onStart);
+    executeEvents(serverRegistry, StartEvent.build(serverRegistry, reloading.get()), ServerLifecycleListener::onStart);
 
     Handler rootHandler = buildRootHandler();
     Handler decorateHandler = decorateHandler(rootHandler, serverRegistry);
@@ -175,7 +174,7 @@ public class NettyRatpackServer implements RatpackServer {
       if (!isRunning()) {
         return;
       }
-      executeEvents(rootRegistry, ServerLifecycleListener::onStop);
+      executeEvents(serverRegistry, StopEvent.build(serverRegistry, reloading.get()), ServerLifecycleListener::onStop);
       channel.close();
       partialShutdown();
       running.set(false);
@@ -186,6 +185,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   @Override
   public synchronized RatpackServer reload() throws Exception {
+    reloading.set(true);
     boolean start = false;
     if (this.isRunning()) {
       start = true;
@@ -197,7 +197,7 @@ public class NettyRatpackServer implements RatpackServer {
     if (start) {
       start();
     }
-
+    reloading.set(false);
     return this;
   }
 
@@ -232,8 +232,8 @@ public class NettyRatpackServer implements RatpackServer {
     return (serverConfig.getAddress() == null) ? new InetSocketAddress(serverConfig.getPort()) : new InetSocketAddress(serverConfig.getAddress(), serverConfig.getPort());
   }
 
-  private void executeEvents(Registry rootRegistry, BiConsumer<ServerLifecycleListener, Registry> biConsumer) throws Exception {
-    rootRegistry.getAll(ServerLifecycleListener.class).forEach(listener -> uncheck(listener, rootRegistry, biConsumer));
+  private <E> void executeEvents(Registry registry, E event, BiAction<ServerLifecycleListener, E> action) throws Exception {
+    registry.getAll(ServerLifecycleListener.class).forEach(listener -> uncheck(listener, event, action));
   }
 
 }

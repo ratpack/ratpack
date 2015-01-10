@@ -18,7 +18,7 @@ package ratpack.util;
 
 import ratpack.api.UncheckedException;
 import ratpack.func.Action;
-import ratpack.func.BiConsumer;
+import ratpack.func.BiAction;
 import ratpack.func.Factory;
 
 /**
@@ -100,6 +100,15 @@ public abstract class ExceptionUtils {
     }
   }
 
+  /**
+   * Executes the given action with the provided input argument, unchecking any exceptions it throws.
+   * <p>
+   * If the factory throws an exception, it will be thrown via {@link #uncheck(Throwable)}.
+   *
+   * @param input the input argument to the action
+   * @param action the work to perform against the input
+   * @param <T> the type of the input argument
+   */
   public static <T> void uncheck(T input, Action<T> action) {
     try {
       action.execute(input);
@@ -108,9 +117,20 @@ public abstract class ExceptionUtils {
     }
   }
 
-  public static <T, U> void uncheck(T t, U u, BiConsumer<T, U> consumer) {
+  /**
+   * Executes the given action with the provided input arguments, unchecking any exceptions it throws.
+   * <p>
+   * If the factory throws an exception, it will be thrown via {@link #uncheck(Throwable)}.
+   *
+   * @param input1 the first input argument to the action
+   * @param input2 the second input argument to the action
+   * @param action the work to perform against the input
+   * @param <T> the type of the first input argument
+   * @param <U> the type of the second input argument
+   */
+  public static <T, U> void uncheck(T input1, U input2, BiAction<T, U> action) {
     try {
-      consumer.accept(t, u);
+      action.execute(input1, input2);
     } catch (Exception e) {
       throw uncheck(e);
     }

@@ -17,7 +17,6 @@
 package ratpack.server
 
 import ratpack.handling.Handler
-import ratpack.registry.Registry
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
@@ -155,29 +154,29 @@ class RatpackServerSpec extends Specification {
     def managed2 = 0
 
     server = RatpackServer.of {
-      it.registry {
+      it.registryOf {
         it.add(Integer, 3)
         it.add(ServerLifecycleListener, new ServerLifecycleListener() {
 
           @Override
-          void onStart(Registry registry) throws Exception {
-            managed1 = registry.get(Integer)
+          void onStart(StartEvent event) throws Exception {
+            managed1 = event.registry.get(Integer)
           }
 
           @Override
-          void onStop(Registry registry) throws Exception {
+          void onStop(StopEvent event) throws Exception {
             managed1++
           }
         })
         it.add(ServerLifecycleListener, new ServerLifecycleListener() {
 
           @Override
-          void onStart(Registry registry) throws Exception {
-            managed2 = registry.get(Integer) * 2
+          void onStart(StartEvent event) throws Exception {
+            managed2 = event.registry.get(Integer) * 2
           }
 
           @Override
-          void onStop(Registry registry) throws Exception {
+          void onStop(StopEvent event) throws Exception {
             managed2++
           }
         })

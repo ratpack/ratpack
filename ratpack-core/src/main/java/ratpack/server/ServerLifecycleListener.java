@@ -16,8 +16,6 @@
 
 package ratpack.server;
 
-import ratpack.registry.Registry;
-
 /**
  * Defines an object that participates in server lifecycle events.
  */
@@ -27,17 +25,17 @@ public interface ServerLifecycleListener {
    * Server startup event.
    * Executed after the root registry and server instance are constructed and before the server begins accepting requests.
    *
-   * @param registry the server's root registry.
+   * @param event meta information about the startup event.
    * @throws Exception any exception thrown from this method
    */
-  default void onStart(Registry registry) throws Exception { }
+  default void onStart(StartEvent event) throws Exception { }
 
   /**
    * Server stop event.
    * Executed after the root handler stops accepting requests and before the server closes the channel and thread pool.
    *
-   * @param registry the server's root registry.
+   * @param event meta information about the stop event.
    * @throws Exception any exception thrown from this method
    */
-  default void onStop(Registry registry) throws Exception { }
+  default void onStop(StopEvent event) throws Exception { }
 }
