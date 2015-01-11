@@ -150,34 +150,34 @@ Play follows the traditional MVC approach of handling requests, i.e. an incoming
 which then processes your request and sends back a response.
 
 Ratpack has no concept of controllers. All of Ratpack's request handling is processed via a [chain](api/ratpack/handling/Chain.html)
-of [handlers](api/ratpack/handling/Handler.html)
+of [handlers](api/ratpack/handling/Handler.html).
 
 #### SDK
 Play requires you to download an SDK to develop Play apps.
-Two active Play distributions are maintained
+Two active Play distributions are maintained.
 
-* Play 1.X Java core - uses python script to execute sdk commands
+* Play 1.X Java core - uses python script to execute SDK commands
 * Play 2.X Scala core with optional Java API - requires sbt
 
 You do not need to download any SDK to develop Ratpack apps. In fact a Ratpack app can be as simple as a 
 [standalone groovy script](https://github.com/ratpack/example-ratpack-standalone-groovy-script/blob/master/ratpack.groovy).
 
-Ratpack is purely Java 8 based with first class Groovy support.
+Ratpack is 100% Java 8 based with optional first class Groovy API.
 
 
 #### Netty 3.9 vs 4.X
 Trustin Lee, a core Netty developer at Twitter, wrote an article about performance increase [migrating from Netty 3.X to 4.X](https://blog.twitter.com/2013/netty-4-at-twitter-reduced-gc-overhead).
-To summarize Netty 4 has significantly less garbage production and less frequent GC pauses.
-[More indepth summary of Netty 4 vs Netty 3 can be found here](http://netty.io/wiki/new-and-noteworthy-in-4.0.html).
+Netty 4 has significantly less garbage production and less frequent GC pauses.
+[A more in-depth summary of Netty 3 and Netty 4 can be found here](http://netty.io/wiki/new-and-noteworthy-in-4.0.html).
 
 
 #### Async Execution
 When working with an asynchronous framework, you need to be able to reason about the application's execution.
 You also need to be aware of the execution model so that you are not misusing the framework's resources.
 Most libraries, e.g. JDBC, are blocking and need to be integrated into a non-blocking world. How this is accomplished
-is a detail of the framework.
+is up to the framework.
 
-You'll need some way to hook into the framework's non-cpu bound thread pool to execute long running tasks.
+Because async frameworks require their main threads to be non-blocking, you need some mechanism to perform non-cpu bound work.
 
 This is [non-trivial in Play](https://playframework.com/documentation/2.3.x/ThreadPools) and requires that you
 understand what each provided thread pool does so that you are using the Play's resources optimally.
@@ -191,12 +191,12 @@ each provided thread pool.
 To drive the point home, [Play's documentation states](https://playframework.com/documentation/2.3.x/JavaAsync)
 > You can’t magically turn synchronous IO into asynchronous by wrapping it in a Promise.
 
-In Ratpack you can via the [ExecController](api/ratpack/exec/ExecControl.html#promise-ratpack.func.Action-).
+In Ratpack you can accomplish exactly that via the [ExecController](api/ratpack/exec/ExecControl.html#promise-ratpack.func.Action-).
 
-In an async world, you do not know when various asynchronous tasks will complete. This leads to debugging induced
-headaches.
+The price you pay for using an asynchronous framework is the mental overhead of tracking execution. The thesis of Ratpack is to 
+provide the benefits of leveraging an asynchronous framework while keeping user code sane and easy to follow.
 
-Compare these two code samples
+Compare these two code samples:
 
 Play async code example
 
@@ -251,7 +251,7 @@ to resolve.
 
 #### Deployment
 Deployment: Play suggests to use the Play SDK to run the application in production, Ratpack does not force you to use anything.
-Standard way of distributing and deploying Ratpack apps is a fatjar. It should be noted that Play offers a way to [create a standalone distribution](https://www.playframework.com/documentation/2.3.x/ProductionDist).
+A standard way of distributing and deploying Ratpack apps is as a self executing fat-jar. It should be noted that Play offers a way to [create a standalone distribution](https://www.playframework.com/documentation/2.3.x/ProductionDist).
 
 
 ## How to read the documentation
