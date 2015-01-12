@@ -30,7 +30,6 @@ import java.net.URI;
  *
  * <pre class="java">{@code
  *
- * import ratpack.http.client.HttpClient;
  * import ratpack.server.PublicAddress;
  * import ratpack.test.embed.EmbeddedApp;
  *
@@ -54,11 +53,11 @@ import java.net.URI;
  *             PublicAddress address = context.get(PublicAddress.class);  //find local ip address
  *             HttpClient httpClient = context.get(HttpClient.class);     //get httpClient
  *
- *             httpClient.post(new URI(address.getAddress(context).toString() + "/httpClientPost"), action ->
- *               action.body(body ->
- *                 body.text("foo")   //Configure the POST body
- *               )
- *             ).then(response -> {
+ *             httpClient.post(new URI(address.getAddress(context).toString() + "/httpClientPost"), (action -> {
+ *               action.body((body -> {
+ *                 body.text("foo");   //Configure the POST body
+ *               }));
+ *             })).then(response -> {
  *               context.render(response.getBody().getText());   //Render the response from the httpClient POST request
  *             });
  *           })
@@ -75,7 +74,6 @@ import java.net.URI;
  *     });
  *   }
  * }
- *
  * }</pre>
  */
 public interface HttpClient {
