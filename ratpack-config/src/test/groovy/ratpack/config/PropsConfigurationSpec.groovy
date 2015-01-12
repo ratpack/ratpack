@@ -27,7 +27,7 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     def configFile = tempFolder.newFile("file.properties").toPath()
     configFile.text = """
     |# This is a comment
-    |baseDir: ${baseDir.toString()}
+    |baseDir: ${baseDir.toString().replaceAll("\\\\", "/")}
     |port: 8080
     |address: localhost
     |development: true
@@ -37,7 +37,7 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     |timeResponses: true
     |compressResponses: true
     |compressionMinSize: 100
-    |ssl.keyStorePath: ${keyStoreFile.toString()}
+    |ssl.keyStorePath: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
     |ssl.keyStorePassword: ${keyStorePassword}
     |other.a: 1
     |other.b: 2

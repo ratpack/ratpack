@@ -16,6 +16,7 @@
 
 package ratpack.jackson
 
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.reflect.TypeToken
 import ratpack.http.client.RequestSpec
@@ -47,6 +48,38 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
     then:
     postText() == "3"
+  }
+
+  @Unroll
+  def "can parse #requestBody with #jsonParserFeature enabled"() {
+    given:
+    modules.first().configure { config ->
+      config.withMapper { objectMapper ->
+        objectMapper.configure(jsonParserFeature, true)
+      }
+    }
+
+    and:
+    handlers {
+      post {
+        def node = parse jsonNode()
+        response.send node.get("value").toString()
+      }
+    }
+
+    and:
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.body.stream({ it << requestBody })
+      requestSpec.body.type("application/json")
+    }
+
+    expect:
+    postText() == "3"
+
+    where:
+    jsonParserFeature                             | requestBody
+    JsonParser.Feature.ALLOW_SINGLE_QUOTES        | /{'value': 3}/
+    JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES | /{value: 3}/
   }
 
   static class Pogo {

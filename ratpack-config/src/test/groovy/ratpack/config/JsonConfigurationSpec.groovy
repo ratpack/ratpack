@@ -28,7 +28,7 @@ class JsonConfigurationSpec extends BaseConfigurationSpec {
         configFile.text =
 """
 {
-    "baseDir": "${baseDir.toString()}",
+    "baseDir": "${baseDir.toString().replaceAll("\\\\", "/")}",
     "port": 8080,
     "address": "localhost",
     "development": true,
@@ -42,7 +42,7 @@ class JsonConfigurationSpec extends BaseConfigurationSpec {
     "compressionMimeTypeBlackList": ["image/png", "image/gif"],
     "indexFiles": ["index.html", "index.htm"],
     "ssl": {
-        "keyStorePath": "${keyStoreFile.toString()}",
+        "keyStorePath": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
         "keyStorePassword": "${keyStorePassword}"
     },
     "other": {

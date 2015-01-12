@@ -16,8 +16,11 @@
 
 package ratpack.config
 
+import com.google.common.base.Charsets
+import com.google.common.io.ByteSource
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.func.Action
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.registry.Registry
@@ -44,7 +47,7 @@ class ConfigurationsSpec extends Specification {
       def configData = Configurations.config().props(propsFile).build()
       serverDef.config(configData.get("/server", ServerConfig)).registry({ RegistrySpec registrySpec ->
         registrySpec.add(MyAppConfig, configData.get("/app", MyAppConfig))
-      }).handler { Registry registry ->
+      } as Action<RegistrySpec>).handler { Registry registry ->
         { Context ctx ->
           ctx.render("Hi, my name is ${ctx.get(MyAppConfig).name}")
         } as Handler
@@ -70,7 +73,45 @@ class ConfigurationsSpec extends Specification {
     client.text == "Hi, my name is Ratpack!"
   }
 
+  def "supports initially null children config objects"() {
+    def configInput = """
+    |service:
+    |  url: http://example.com
+    |""".stripMargin()
+
+    when:
+    def configData = Configurations.config().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def config = configData.get(MyAppConfig)
+
+    then:
+    config.service.url == "http://example.com"
+  }
+
+  def "by default, doesn't fail on unexpected properties"() {
+    def configInput = """
+    |name: Ratpack
+    |port: 8080
+    |url: http://example.com
+    |""".stripMargin()
+
+    when:
+    def configData = Configurations.config().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def appConfig = configData.get(MyAppConfig)
+    def serverConfig = configData.get(ServerConfig)
+    def serviceConfig = configData.get(ServiceConfig)
+
+    then:
+    appConfig.name == "Ratpack"
+    serverConfig.port == 8080
+    serviceConfig.url == "http://example.com"
+  }
+
   static class MyAppConfig {
     String name
+    ServiceConfig service
+  }
+
+  private static class ServiceConfig {
+    String url
   }
 }
