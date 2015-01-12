@@ -22,7 +22,7 @@ import ratpack.func.Action;
 import java.net.URI;
 
 /**
- * A http client that makes all HTTP requests asynchronously and returns a {@link ratpack.exec.Promise}.
+ * A http client that makes all HTTP requests asynchronous and returns a {@link ratpack.exec.Promise}.
  * <p>
  * All details of the request are configured by the {@link ratpack.func.Action} acting on the {@link ratpack.http.client.RequestSpec}.
  * <p>
