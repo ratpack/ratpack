@@ -66,4 +66,13 @@ public interface ByContentSpec {
    */
   ByContentSpec xml(NoArgAction handler);
 
+  /**
+   * Specifies that the given handler should be used as a fall-back if another type doesn't match more closely.
+   * This is equivalent to calling {@link #type(String, ratpack.func.NoArgAction)} with a {@code mimeType} of {@code *\/*}.
+   *
+   * @param handler The handler to invoke if the content type matches
+   * @return this
+   */
+  ByContentSpec allTypes(NoArgAction handler);
+
 }
