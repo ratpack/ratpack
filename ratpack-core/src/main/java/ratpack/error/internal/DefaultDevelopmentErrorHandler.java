@@ -64,6 +64,9 @@ public class DefaultDevelopmentErrorHandler implements ErrorHandler {
               }
             }
         )
+        .allTypes(() ->
+            ctx.getResponse().send()
+        )
     );
 
   }
@@ -100,6 +103,9 @@ public class DefaultDevelopmentErrorHandler implements ErrorHandler {
                 );
               }
             }
+        )
+        .allTypes(() ->
+          ctx.getResponse().send()
         )
     );
   }
