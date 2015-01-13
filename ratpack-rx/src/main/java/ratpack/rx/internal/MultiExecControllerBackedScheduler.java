@@ -51,11 +51,6 @@ public class MultiExecControllerBackedScheduler extends Scheduler {
   }
 
   @Override
-  public int parallelism() {
-    return getDelegateScheduler().parallelism();
-  }
-
-  @Override
   public long now() {
     return getDelegateScheduler().now();
   }

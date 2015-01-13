@@ -35,11 +35,6 @@ public class ExecControllerBackedScheduler extends Scheduler {
   }
 
   @Override
-  public int parallelism() {
-    return execController.getNumThreads();
-  }
-
-  @Override
   public long now() {
     return delegateScheduler.now();
   }
