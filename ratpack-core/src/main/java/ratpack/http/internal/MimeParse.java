@@ -20,6 +20,8 @@ import java.util.*;
 
 public final class MimeParse {
 
+  public static final String MIME_ANY = "*/*";
+
   protected static class ParseResults {
     String type;
 
@@ -56,7 +58,7 @@ public final class MimeParse {
     // Java URLConnection class sends an Accept header that includes a
     // single "*" - Turn it into a legal wildcard.
     if (fullType.equals("*")) {
-      fullType = "*/*";
+      fullType = MIME_ANY;
     }
     String[] types = fullType.split("/", 2);
     results.type = types[0].trim();
