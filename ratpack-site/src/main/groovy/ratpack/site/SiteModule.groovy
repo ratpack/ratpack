@@ -7,12 +7,9 @@ import groovy.util.logging.Slf4j
 import ratpack.file.FileSystemChecksumServices
 import ratpack.groovy.template.MarkupTemplate
 import ratpack.http.client.HttpClient
-import ratpack.server.ServerConfig
 import ratpack.render.RenderableDecorator
-import ratpack.site.github.ApiBackedGitHubData
-import ratpack.site.github.GitHubApi
-import ratpack.site.github.GitHubData
-import ratpack.site.github.RatpackVersions
+import ratpack.server.ServerConfig
+import ratpack.site.github.*
 
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
 class SiteModule extends AbstractModule {
@@ -39,7 +36,6 @@ class SiteModule extends AbstractModule {
     if (enableGithub) {
       install(new ApiModule())
       bind(RatpackVersions)
-      bind(GitHubData).to(ApiBackedGitHubData)
     }
   }
 
@@ -47,6 +43,17 @@ class SiteModule extends AbstractModule {
   @com.google.inject.Singleton
   AssetLinkService assetLinkService() {
     new AssetLinkService(FileSystemChecksumServices.service(serverConfig))
+  }
+
+  @Provides
+  @com.google.inject.Singleton
+  GitHubData gitHubData() {
+    def data = new MockGithubData()
+    (0..12).eachWithIndex { version, index ->
+      data.released.add(new RatpackVersion("0.9.$version", index + 1, "«description temporarily unavailable»", new Date(), true))
+    }
+    data.unreleased.add(new RatpackVersion("0.9.13", 13, "«description temporarily unavailable»", new Date(), false))
+    data
   }
 
   @Slf4j
