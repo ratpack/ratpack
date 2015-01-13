@@ -177,22 +177,6 @@ You also need to be aware of the execution model so that you are not misusing th
 Most libraries, e.g. JDBC, are blocking and need to be integrated into a non-blocking world. How this is accomplished
 is up to the framework.
 
-Because async frameworks require their main threads to be non-blocking, you need some mechanism to perform non-cpu bound work.
-
-This is [non-trivial in Play](https://playframework.com/documentation/2.3.x/ThreadPools) and requires that you
-understand what each provided thread pool does so that you are using the Play's resources optimally.
-
-Play also warns:
-> Note that you may be tempted to therefore wrap your blocking code in Futures. This does not make it non blocking, it just means the blocking will happen in a different thread. You still need to make sure that the thread pool that you are using there has enough threads to handle the blocking.
-
-In order to integrate traditional blocking APIs into your app, you'll need to understand the nature of
-each provided thread pool.
-
-To drive the point home, [Play's documentation states](https://playframework.com/documentation/2.3.x/JavaAsync)
-> You can’t magically turn synchronous IO into asynchronous by wrapping it in a Promise.
-
-In Ratpack you can accomplish exactly that via the [ExecController](api/ratpack/exec/ExecControl.html#promise-ratpack.func.Action-).
-
 The price you pay for using an asynchronous framework is the mental overhead of tracking execution. The thesis of Ratpack is to 
 provide the benefits of leveraging an asynchronous framework while keeping user code sane and easy to follow.
 
