@@ -31,12 +31,49 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public abstract class BaseDirFinder {
 
   public static class Result {
-    final Path baseDir;
-    final Path resource;
+    private final Path baseDir;
+    private final Path resource;
 
     private Result(Path baseDir, Path resource) {
       this.baseDir = baseDir;
       this.resource = resource;
+    }
+
+    public Path getBaseDir() {
+      return baseDir;
+    }
+
+    public Path getResource() {
+      return resource;
+    }
+
+    @Override
+    public String toString() {
+      return "Result{" +
+        "baseDir=" + baseDir +
+        ", resource=" + resource +
+        '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Result result = (Result) o;
+
+      return baseDir.equals(result.baseDir) && resource.equals(result.resource);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = baseDir.hashCode();
+      result = 31 * result + resource.hashCode();
+      return result;
     }
   }
 

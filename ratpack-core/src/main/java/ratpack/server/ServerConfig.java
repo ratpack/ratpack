@@ -16,11 +16,13 @@
 
 package ratpack.server;
 
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.NoBaseDirException;
+import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
@@ -70,6 +72,18 @@ public interface ServerConfig {
 
   static Builder noBaseDir() {
     return new DefaultServerConfigBuilder();
+  }
+
+  static Builder findBaseDirProps() {
+    return findBaseDirProps(Builder.DEFAULT_PROPERTIES_FILE_NAME);
+  }
+
+  static Builder findBaseDirProps(String propertiesPath) {
+    String workingDir = StandardSystemProperty.USER_DIR.value();
+    BaseDirFinder.Result result = BaseDirFinder.find(workingDir, Thread.currentThread().getContextClassLoader(), propertiesPath)
+      .orElseThrow(() -> new IllegalStateException("Could not find properties file '" + propertiesPath + "' in working dir '" + workingDir + "' or context class loader classpath"));
+
+    return baseDir(result.getBaseDir()).props(result.getResource());
   }
 
   /**
@@ -249,6 +263,7 @@ public interface ServerConfig {
 
     String DEFAULT_ENV_PREFIX = "RATPACK_";
     String DEFAULT_PROP_PREFIX = "ratpack.";
+    String DEFAULT_PROPERTIES_FILE_NAME = "ratpack.properties";
 
     Builder port(int port);
 

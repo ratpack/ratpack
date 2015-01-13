@@ -241,10 +241,12 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
       String key = entry.getKey().toString();
       String value = entry.getValue().toString();
       BuilderAction<?> mapping = propertyCoercions.get(key);
-      try {
-        mapping.apply(value);
-      } catch (Exception e) {
-        throw uncheck(e);
+      if (mapping != null) {
+        try {
+          mapping.apply(value);
+        } catch (Exception e) {
+          throw uncheck(e);
+        }
       }
     });
     return this;
