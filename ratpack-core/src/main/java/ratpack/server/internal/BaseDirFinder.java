@@ -49,10 +49,7 @@ public abstract class BaseDirFinder {
 
     @Override
     public String toString() {
-      return "Result{"
-        + "baseDir=" + baseDir
-        + ", resource=" + resource
-        + '}';
+      return "Result{baseDir=" + baseDir + ", resource=" + resource + '}';
     }
 
     @Override
