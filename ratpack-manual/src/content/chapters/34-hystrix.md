@@ -5,26 +5,26 @@ with [Hystrix](https://github.com/Netflix/Hystrix/wiki). Part of the [Netflix OS
 increased responsiveness and resilience for your application.  See the [Hystrix Wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#Common-Patterns) for common usage patterns.
   
 Hystrix can also help you reduce the number of external network calls your application makes by de-duping (Request Caching) and batching (Request Collapsing) your requests within a request context.  The `ratpack-hystrix` JAR provides and registers
-a [Hystrix Concurrency Strategy](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixConcurrencyStrategy.html) with Hystrix that allows the [Ratpack Registry](http://www.ratpack.io/manual/current/api/ratpack/registry/Registry.html) 
+a [Hystrix Concurrency Strategy](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixConcurrencyStrategy.html) with Hystrix that allows the [Ratpack Registry](api/ratpack/registry/Registry.html) 
 to be used for managing the [Hystrix Request Context](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixRequestContext.html).  What all that means is that you **do not** need to initialise a Hystrix Request Context
 (`HystrixRequestContext context = HystrixRequestContext.initializeContext();`) before a request begins as detailed in the [Hystrix wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#RequestContextSetup).
 
 One of the best features of Hystrix is the metrics that are captured and the [dashboard](https://github.com/Netflix/Hystrix/wiki/Dashboard) provided for viewing them real-time.  This is achieved by streaming metrics out of your application over SSE and 
-the `ratpack-hystrix` JAR provides a [handler](http://www.ratpack.io/manual/current/api/ratpack/hystrix/HystrixMetricsEventStreamHandler.html) that will do this for you.
+the `ratpack-hystrix` JAR provides a [handler](api/ratpack/hystrix/HystrixMetricsEventStreamHandler.html) that will do this for you.
     
 The `ratpack-hystrix` module as of @ratpack-version@ is built against (and depends on) RxJava @versions-hystrix@.
 
 ## Initialization
 
 If you do not need to use any Hystrix request scoped features (request caching, request collapsing, request log) or the Ratpack handler for streaming metrics then you can just include Hystrix as a dependency and there is no initialization required.  If you do
-want to use these features however, then your application should depend on the `ratpack-hystrix` module and simply register the Guice module, [HystrixModule](http://www.ratpack.io/manual/current/api/ratpack/hystrix/HystrixModule.html).
+want to use these features however, then your application should depend on the `ratpack-hystrix` module and simply register the Guice module, [HystrixModule](api/ratpack/hystrix/HystrixModule.html).
  
 ## Which Command execution to use
 
 Hystrix provides three types of Command execution, [synchronous](https://github.com/Netflix/Hystrix/wiki/How-To-Use#Synchronous-Execution), [asynchronous](https://github.com/Netflix/Hystrix/wiki/How-To-Use#asynchronous-execution) and [reactive](https://github.com/Netflix/Hystrix/wiki/How-To-Use#reactive-execution).
 Out of the three only reactive is actually non-blocking.  Synchronous and asynchronous command execution will work with Ratpack, as is demonstrated in the [integration tests](https://github.com/ratpack/ratpack/blob/master/ratpack-hystrix/src/test/groovy/ratpack/hystrix/HystrixRequestCachingSpec.groovy#L128), 
-but for maximum performance only reactive execution is recommended.  If you do not wish to use Observables however, then you can convert them to Ratpack Promises instead using [RxRatpack#asPromise](http://www.ratpack.io/manual/current/api/ratpack/rx/RxRatpack.html#asPromise-rx.Observable-)
-or [RxRatpack#asPromiseSingle](http://www.ratpack.io/manual/current/api/ratpack/rx/RxRatpack.html#asPromiseSingle-rx.Observable-).
+but for maximum performance only reactive execution is recommended.  If you do not wish to use Observables however, then you can convert them to Ratpack Promises instead using [RxRatpack#asPromise](api/ratpack/rx/RxRatpack.html#asPromise-rx.Observable-)
+or [RxRatpack#asPromiseSingle](api/ratpack/rx/RxRatpack.html#asPromiseSingle-rx.Observable-).
 
 ```language-java
 import com.netflix.hystrix.HystrixCommandGroupKey;
