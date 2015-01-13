@@ -33,6 +33,7 @@ import rx.plugins.RxJavaPlugins;
 import rx.plugins.RxJavaSchedulersHook;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.ExceptionUtils.toException;
@@ -376,42 +377,44 @@ public abstract class RxRatpack {
     return downstream -> new Subscriber<T>(downstream) {
 
       private final AtomicInteger wip = new AtomicInteger(1);
-
-      private volatile Runnable onDone;
+      private final AtomicBoolean closed = new AtomicBoolean();
 
       @Override
       public void onCompleted() {
-        onDone = downstream::onCompleted;
         maybeDone();
       }
 
       @Override
       public void onError(final Throwable e) {
-        onDone = () -> downstream.onError(e);
-        maybeDone();
+        terminate(() -> downstream.onError(e));
       }
 
       private void maybeDone() {
         if (wip.decrementAndGet() == 0) {
-          onDone.run();
+          terminate(downstream::onCompleted);
+        }
+      }
+
+      private void terminate(Runnable runnable) {
+        if (closed.compareAndSet(false, true)) {
+          runnable.run();
         }
       }
 
       @Override
       public void onNext(final T t) {
         // Avoid the overhead of creating executions if downstream is no longer interested
-        if (isUnsubscribed()) {
+        if (isUnsubscribed() || closed.get()) {
           return;
         }
 
         wip.incrementAndGet();
         execControl.exec()
+          .onComplete(e -> this.maybeDone())
           .onError(this::onError)
-          .start(execution -> {
-            try {
+          .start(e -> {
+            if (!closed.get()) {
               downstream.onNext(t);
-            } finally {
-              maybeDone();
             }
           });
       }
