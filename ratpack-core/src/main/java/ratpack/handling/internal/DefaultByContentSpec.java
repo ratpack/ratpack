@@ -39,6 +39,10 @@ public class DefaultByContentSpec implements ByContentSpec {
       throw new IllegalArgumentException("mimeType cannot be a blank string");
     }
 
+    if (trimmed.contains("*")) {
+      throw new IllegalArgumentException("mimeType cannot include wildcards");
+    }
+
     map.put(trimmed, handler);
     return this;
   }

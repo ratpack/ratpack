@@ -16,8 +16,10 @@
 
 package ratpack.http
 
+import ratpack.handling.internal.DefaultByContentSpec
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Unroll
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
@@ -80,6 +82,12 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
     when:
     resetRequest()
+    // No Accept header
+    then:
+    text == "json"
+
+    when:
+    resetRequest()
     requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "some/nonsense") }
     then:
     text == ""
@@ -125,5 +133,23 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "text/html") }
     then:
     text == "html"
+  }
+
+  @Unroll
+  def "refuses invalid custom mime types (#mimeType)"() {
+    when:
+    new DefaultByContentSpec([:]).type(mimeType) { }
+
+    then:
+    def ex = thrown(IllegalArgumentException)
+    ex.message == message
+
+    where:
+    mimeType | message
+    null     | "mimeType cannot be null"
+    ""       | "mimeType cannot be a blank string"
+    "*"      | "mimeType cannot include wildcards"
+    "*/*"    | "mimeType cannot include wildcards"
+    "text/*" | "mimeType cannot include wildcards"
   }
 }

@@ -221,7 +221,7 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * This is useful when a given handler can provide content of more than one type (i.e. <a href="http://en.wikipedia.org/wiki/Content_negotiation">content negotiation</a>).
    * <p>
-   * The handler to use will be selected based on parsing the "Accepts" header, respecting quality weighting and wildcard matching.
+   * The handler to use will be selected based on parsing the "Accept" header, respecting quality weighting and wildcard matching.
    * The order that types are specified is significant for wildcard matching.
    * The earliest registered type that matches the wildcard will be used.
    *

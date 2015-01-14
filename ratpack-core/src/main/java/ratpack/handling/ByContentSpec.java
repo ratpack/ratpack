@@ -22,13 +22,15 @@ import ratpack.func.NoArgAction;
  * A specification of how to respond to a request, based on the requested content type (i.e. the request's Accept header).
  *
  * @see Context#byContent(ratpack.func.Action)
+ * @see <a href="http://tools.ietf.org/html/rfc7231#section-5.3.2">RFC 7231: Accept</a>
  */
 public interface ByContentSpec {
 
   /**
-   * Specifies that the given handler should be used if the client wants content of the given mime type.
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
    *
-   * @param mimeType The mime type to register for
+   * @param mimeType The MIME type to register for
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
