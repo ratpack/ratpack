@@ -57,6 +57,9 @@ public interface StreamedResponse {
   TransformablePublisher<ByteBuf> getBody();
 
   /**
+   * Stream this received response out to the given server response.
+   *
+   * @param response the server response to stream to
    * @see #send(ratpack.http.Response, ratpack.func.Action)
    */
   void send(Response response);

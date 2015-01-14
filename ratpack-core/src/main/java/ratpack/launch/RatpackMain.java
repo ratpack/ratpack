@@ -51,6 +51,7 @@ public class RatpackMain {
    * @param overrideProperties The override properties
    * @param defaultProperties The default properties
    * @return A ratpack server, built from the launch config
+   * @throws Exception if the server cannot be built
    */
   public RatpackServer server(Properties overrideProperties, Properties defaultProperties) throws Exception {
     addImpliedDefaults(defaultProperties);

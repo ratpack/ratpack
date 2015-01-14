@@ -34,7 +34,6 @@ import java.util.Map;
  * <p>
  * A request fixture can be obtained by the {@link ratpack.test.handling.RequestFixture#requestFixture()} method.
  * However it is often more convenient to use the alternative {@link ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, ratpack.func.Action)} method.
- * <p>
  *
  * @see #handle(ratpack.handling.Handler)
  */
