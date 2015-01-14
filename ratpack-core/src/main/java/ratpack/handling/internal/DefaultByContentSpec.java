@@ -16,14 +16,17 @@
 
 package ratpack.handling.internal;
 
+import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 import ratpack.handling.ByContentSpec;
+import ratpack.handling.Context;
 
 import java.util.Map;
 
 public class DefaultByContentSpec implements ByContentSpec {
 
   private final Map<String, NoArgAction> map;
+  private Action<Context> noMatchHandler = ctx -> ctx.clientError(406);
 
   public DefaultByContentSpec(Map<String, NoArgAction> map) {
     this.map = map;
@@ -63,4 +66,22 @@ public class DefaultByContentSpec implements ByContentSpec {
     return type("application/xml", handler);
   }
 
+  @Override
+  public ByContentSpec noMatch(Action<Context> handler) {
+    noMatchHandler = handler;
+    return this;
+  }
+
+  @Override
+  public ByContentSpec noMatch(String mimeType) {
+    noMatchHandler = ctx -> {
+      ctx.getResponse().contentType(mimeType);
+      map.get(mimeType).execute();
+    };
+    return this;
+  }
+
+  public Action<Context> getNoMatchHandler() {
+    return noMatchHandler;
+  }
 }

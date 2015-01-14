@@ -16,47 +16,50 @@
 
 package ratpack.http.internal;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class ContentNegotiationHandler implements Handler {
 
-  private final Map<? extends CharSequence, NoArgAction> handlers;
+  private final ImmutableMap<String, NoArgAction> handlers;
+  private final Action<Context> noMatchHandler;
 
-  public ContentNegotiationHandler(Map<? extends CharSequence, NoArgAction> handlers) {
-    this.handlers = handlers;
+  public ContentNegotiationHandler(Map<String, NoArgAction> handlers, Action<Context> noMatchHandler) {
+    this.handlers = ImmutableMap.copyOf(handlers);
+    this.noMatchHandler = noMatchHandler;
   }
 
   @Override
   public void handle(Context context) throws Exception {
     if (handlers.isEmpty()) {
-      context.clientError(406);
+      noMatchHandler.execute(context);
       return;
     }
 
-    List<? extends CharSequence> types = new ArrayList<>(handlers.keySet());
-    CharSequence first = types.get(0);
+    List<String> types = Lists.newArrayList(handlers.keySet());
+    String winner = types.get(0);
     Collections.reverse(types);
-    CharSequence winner = first;
 
     String acceptHeader = context.getRequest().getHeaders().get(HttpHeaderNames.ACCEPT);
-    if (acceptHeader != null && !acceptHeader.isEmpty()) {
+    if (!Strings.isNullOrEmpty(acceptHeader)) {
       winner = MimeParse.bestMatch(types, acceptHeader);
     }
 
-    if (winner == null || winner.toString().isEmpty()) {
-      context.clientError(406);
+    if (Strings.isNullOrEmpty(winner)) {
+      noMatchHandler.execute(context);
     } else {
       context.getResponse().contentType(winner);
-      NoArgAction handler = handlers.get(winner);
-      handler.execute();
+      handlers.get(winner).execute();
     }
   }
 }

@@ -16,13 +16,18 @@
 
 package ratpack.handling;
 
+import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 
 /**
  * A specification of how to respond to a request, based on the requested content type (i.e. the request's Accept header).
+ * <p>
+ * If there is no type registered, or if the client does not accept any of the given types, by default a {@code 406} will be issued with {@link Context#clientError(int)}.
+ * If you want a different behavior, use {@link #noMatch}.
  *
  * @see Context#byContent(ratpack.func.Action)
  * @see <a href="http://tools.ietf.org/html/rfc7231#section-5.3.2">RFC 7231: Accept</a>
+ * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.5.6">RFC 7231: 406 Not Acceptable</a>
  */
 public interface ByContentSpec {
 
@@ -67,5 +72,21 @@ public interface ByContentSpec {
    * @return this
    */
   ByContentSpec xml(NoArgAction handler);
+
+  /**
+   * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
+   *
+   * @return this
+   */
+  ByContentSpec noMatch(Action<Context> handler);
+
+  /**
+   * Specifies that the handler for the specified content type should be used if the client's requested content type cannot be matched with any of the other handlers.
+   * Effectively, this treats the request as if the user requested the specified MIME type.
+   *
+   * @param mimeType The MIME type to use as a fallback if the requested type can't be matched
+   * @return this
+   */
+  ByContentSpec noMatch(String mimeType);
 
 }

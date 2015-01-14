@@ -152,4 +152,77 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     "*/*"    | "mimeType cannot include wildcards"
     "text/*" | "mimeType cannot include wildcards"
   }
+
+  def "default to 406 clientError when no handlers"() {
+    when:
+    handlers {
+      get {
+        byContent { }
+      }
+    }
+
+    then:
+    get().statusCode == 406
+  }
+
+  def "default to 406 clientError when content type not matched"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+        }
+      }
+    }
+
+    and:
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/xml") }
+    then:
+    get().statusCode == 406
+  }
+
+  def "can register fallback content type"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          noMatch("application/json")
+        }
+      }
+    }
+
+    and:
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/xml") }
+    then:
+    text == "json"
+    response.body.contentType.type == "application/json"
+  }
+
+  def "can register custom noMatch handler"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          noMatch {
+            response.contentType("text/html")
+            render "custom"
+          }
+        }
+      }
+    }
+
+    and:
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/xml") }
+    then:
+    text == "custom"
+    response.body.contentType.type == "text/html"
+  }
 }

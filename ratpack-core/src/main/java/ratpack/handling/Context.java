@@ -251,7 +251,8 @@ public interface Context extends ExecControl, Registry {
    *   }
    * }
    * }</pre>
-   * If there is no type registered, or if the client does not accept any of the given types, a {@code 406} will be issued with {@link Context#clientError(int)}.
+   * If there is no type registered, or if the client does not accept any of the given types, by default a {@code 406} will be issued with {@link Context#clientError(int)}.
+   * If you want a different behavior, use {@link ratpack.handling.ByContentSpec#noMatch}.
    * <p>
    * Only the last specified handler for a type will be used.
    * That is, adding a subsequent handler for the same type will replace the previous.
