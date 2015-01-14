@@ -54,9 +54,7 @@ public class ContentNegotiationHandler implements Handler {
     if (winner == null || winner.toString().isEmpty()) {
       context.clientError(406);
     } else {
-      if (!MimeParse.MIME_ANY.equals(winner)) {
-        context.getResponse().contentType(winner);
-      }
+      context.getResponse().contentType(winner);
       NoArgAction handler = handlers.get(winner);
       handler.execute();
     }
