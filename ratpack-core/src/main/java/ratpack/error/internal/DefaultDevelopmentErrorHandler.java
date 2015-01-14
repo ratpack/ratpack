@@ -64,6 +64,7 @@ public class DefaultDevelopmentErrorHandler implements ErrorHandler {
               }
             }
         )
+        .noMatch("text/plain")
     );
 
   }
@@ -101,6 +102,7 @@ public class DefaultDevelopmentErrorHandler implements ErrorHandler {
               }
             }
         )
+        .noMatch("text/plain")
     );
   }
 

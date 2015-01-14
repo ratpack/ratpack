@@ -70,4 +70,30 @@ class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
       body.contentType.text
     }
   }
+
+  def "debug error handler prints text if content type not matched"() {
+    given:
+    def e = new RuntimeException("!")
+    requestSpec { it.headers.add("Accept", "application/json") }
+
+    when:
+    serverConfig { development(true) }
+    handlers {
+      get("client") { clientError(404) }
+      get("server") { error(e) }
+    }
+
+    then:
+    with(get("client")) {
+      statusCode == 404
+      body.text.startsWith("Client error 404")
+      body.contentType.text
+    }
+
+    with(get("server")) {
+      statusCode == 500
+      body.text.startsWith(RuntimeException.name)
+      body.contentType.text
+    }
+  }
 }
