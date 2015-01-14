@@ -18,7 +18,6 @@ package ratpack.handling.internal;
 
 import ratpack.func.NoArgAction;
 import ratpack.handling.ByContentSpec;
-import ratpack.http.internal.MimeParse;
 
 import java.util.Map;
 
@@ -58,11 +57,6 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   public ByContentSpec xml(NoArgAction handler) {
     return type("application/xml", handler);
-  }
-
-  @Override
-  public ByContentSpec allTypes(NoArgAction handler) {
-    return type(MimeParse.MIME_ANY, handler);
   }
 
 }
