@@ -41,134 +41,142 @@ public class SiteMain {
   public static void main(String... args) throws Exception {
     RxRatpack.initialize();
 
-    RatpackServer.start(b -> b
-        .config(ServerConfig.findBaseDirProps())
-        .registry(
-          Guice.registry(s -> s
-              .add(JacksonModule.class)
-              .add(RemoteControlModule.class)
-              .add(NewRelicModule.class)
-              .add(new CodaHaleMetricsModule().metrics())
-              .add(new SiteModule(s.getServerConfig()))
-              .add(MarkupTemplateModule.class, conf -> {
-                conf.setAutoNewLine(true);
-                conf.setUseDoubleQuotes(true);
-                conf.setAutoIndent(true);
-              })
-              .add(TextTemplateModule.class, conf ->
-                  conf.setStaticallyCompile(true)
-              )
-          )
-        )
-        .handlers(c -> {
+    RatpackServer.start(b -> {
+        ServerConfig.Builder serverConfig = ServerConfig.findBaseDirProps();
+        String port = System.getenv("PORT");
+        if (port != null) {
+          serverConfig.port(Integer.parseInt(port));
+        }
 
-          int longCache = 60 * 60 * 24 * 365;
-          int shortCache = 60 * 10; // ten mins
-
-          c
-            .handler(ctx -> {
-              //noinspection ConstantConditions
-              if (ctx.getRequest().getHeaders().get("host").endsWith("ratpack-framework.org")) {
-                ctx.redirect(301, "http://www.ratpack.io");
-                return;
-              }
-
-              if (ctx.getRequest().getPath().isEmpty() || ctx.getRequest().getPath().equals("index.html")) {
-                ctx.getResponse().getHeaders().set("X-UA-Compatible", "IE=edge,chrome=1");
-              }
-
-              ctx.next();
-            })
-
-            .prefix("assets", assets -> assets
-                .handler(ctx -> {
-                  int cacheFor = ctx.getRequest().getQuery().isEmpty() ? longCache : shortCache;
-                  ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
-                  ctx.next();
+        return b
+          .config(serverConfig)
+          .registry(
+            Guice.registry(s -> s
+                .add(JacksonModule.class)
+                .add(RemoteControlModule.class)
+                .add(NewRelicModule.class)
+                .add(new CodaHaleMetricsModule().metrics())
+                .add(new SiteModule(s.getServerConfig()))
+                .add(MarkupTemplateModule.class, conf -> {
+                  conf.setAutoNewLine(true);
+                  conf.setUseDoubleQuotes(true);
+                  conf.setAutoIndent(true);
                 })
-                .assets("assets")
+                .add(TextTemplateModule.class, conf ->
+                    conf.setStaticallyCompile(true)
+                )
             )
+          )
+          .handlers(c -> {
 
-            .get("index.html", ctx -> {
-              ctx.redirect(301, "/");
-            })
+            int longCache = 60 * 60 * 24 * 365;
+            int shortCache = 60 * 10; // ten mins
 
-            .get(ctx -> ctx.render(groovyMarkupTemplate("index.gtpl")))
-
-            .handler("reset", ctx -> {
-              GitHubApi gitHubApi = ctx.get(GitHubApi.class);
-              ctx.byMethod(methods -> {
-                NoArgAction impl = () -> {
-                  gitHubApi.invalidateCache();
-                  ctx.render("ok");
-                };
-                if (ctx.getServerConfig().isDevelopment()) {
-                  methods.get(impl);
+            c
+              .handler(ctx -> {
+                //noinspection ConstantConditions
+                if (ctx.getRequest().getHeaders().get("host").endsWith("ratpack-framework.org")) {
+                  ctx.redirect(301, "http://www.ratpack.io");
+                  return;
                 }
-                methods.post(impl);
-              });
-            })
 
-            .prefix("versions", v -> v
-                .get(ctx ->
-                    ctx.render(
-                      ctx.get(RatpackVersions.class).getAll()
-                        .map(all -> groovyMarkupTemplate("versions.gtpl", m -> m.put("versions", all)))
-                    )
-                )
-                .get(":version", ctx ->
-                    ctx.render(
-                      ctx.get(RatpackVersions.class).getAll()
-                        .map(all -> all.version(ctx.getAllPathTokens().get("version")))
-                        .onNull(() -> ctx.clientError(404))
-                        .flatMap(version -> ctx.get(GitHubData.class).closed(version).map(i -> Pair.of(version, i)))
-                        .map(p -> groovyMarkupTemplate("version.gtpl", m -> m.put("version", p.left).put("issues", p.right)))
-                    )
-                )
-            )
+                if (ctx.getRequest().getPath().isEmpty() || ctx.getRequest().getPath().equals("index.html")) {
+                  ctx.getResponse().getHeaders().set("X-UA-Compatible", "IE=edge,chrome=1");
+                }
 
-            .prefix("manual", c1 -> c1
-                .fileSystem("manual", c2 -> c2
-                    .get(ctx -> ctx.redirect(301, "manual/current"))
-                    .prefix(":label", c3 -> c3
-                        .handler(ctx -> {
-                          String label = ctx.getPathTokens().get("label");
+                ctx.next();
+              })
 
-                          ctx.get(RatpackVersions.class).getAll().then(all -> {
-                            if (label.equals("current") || all.isReleased(label)) {
-                              ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
-                            } else if (label.equals("snapshot") || all.isUnreleased(label)) {
-                              ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + shortCache + ", public");
-                            }
+              .prefix("assets", assets -> assets
+                  .handler(ctx -> {
+                    int cacheFor = ctx.getRequest().getQuery().isEmpty() ? longCache : shortCache;
+                    ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
+                    ctx.next();
+                  })
+                  .assets("assets")
+              )
 
-                            RatpackVersion version;
-                            switch (label) {
-                              case "current":
-                                version = all.getCurrent();
-                                break;
-                              case "snapshot":
-                                version = all.getSnapshot();
-                                break;
-                              default:
-                                version = all.version(label);
-                                if (version == null) {
-                                  ctx.clientError(404);
-                                  return;
-                                }
-                                break;
-                            }
+              .get("index.html", ctx -> {
+                ctx.redirect(301, "/");
+              })
 
-                            ctx.next(just(new DefaultFileSystemBinding(ctx.file(version.getVersion()))));
-                          });
-                        })
-                        .assets("")
-                    )
-                )
+              .get(ctx -> ctx.render(groovyMarkupTemplate("index.gtpl")))
 
-            )
+              .handler("reset", ctx -> {
+                GitHubApi gitHubApi = ctx.get(GitHubApi.class);
+                ctx.byMethod(methods -> {
+                  NoArgAction impl = () -> {
+                    gitHubApi.invalidateCache();
+                    ctx.render("ok");
+                  };
+                  if (ctx.getServerConfig().isDevelopment()) {
+                    methods.get(impl);
+                  }
+                  methods.post(impl);
+                });
+              })
 
-            .assets("public");
-        })
+              .prefix("versions", v -> v
+                  .get(ctx ->
+                      ctx.render(
+                        ctx.get(RatpackVersions.class).getAll()
+                          .map(all -> groovyMarkupTemplate("versions.gtpl", m -> m.put("versions", all)))
+                      )
+                  )
+                  .get(":version", ctx ->
+                      ctx.render(
+                        ctx.get(RatpackVersions.class).getAll()
+                          .map(all -> all.version(ctx.getAllPathTokens().get("version")))
+                          .onNull(() -> ctx.clientError(404))
+                          .flatMap(version -> ctx.get(GitHubData.class).closed(version).map(i -> Pair.of(version, i)))
+                          .map(p -> groovyMarkupTemplate("version.gtpl", m -> m.put("version", p.left).put("issues", p.right)))
+                      )
+                  )
+              )
+
+              .prefix("manual", c1 -> c1
+                  .fileSystem("manual", c2 -> c2
+                      .get(ctx -> ctx.redirect(301, "manual/current"))
+                      .prefix(":label", c3 -> c3
+                          .handler(ctx -> {
+                            String label = ctx.getPathTokens().get("label");
+
+                            ctx.get(RatpackVersions.class).getAll().then(all -> {
+                              if (label.equals("current") || all.isReleased(label)) {
+                                ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
+                              } else if (label.equals("snapshot") || all.isUnreleased(label)) {
+                                ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + shortCache + ", public");
+                              }
+
+                              RatpackVersion version;
+                              switch (label) {
+                                case "current":
+                                  version = all.getCurrent();
+                                  break;
+                                case "snapshot":
+                                  version = all.getSnapshot();
+                                  break;
+                                default:
+                                  version = all.version(label);
+                                  if (version == null) {
+                                    ctx.clientError(404);
+                                    return;
+                                  }
+                                  break;
+                              }
+
+                              ctx.next(just(new DefaultFileSystemBinding(ctx.file(version.getVersion()))));
+                            });
+                          })
+                          .assets("")
+                      )
+                  )
+
+              )
+
+              .assets("public");
+          });
+      }
     );
   }
 }
