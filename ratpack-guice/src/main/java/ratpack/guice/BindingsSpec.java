@@ -87,17 +87,19 @@ public interface BindingsSpec {
   ServerConfig getServerConfig();
 
   /**
-   * Adds the bindings from the given modules.
+   * Adds the bindings from the given module.
    *
-   * @param modules modules whose bindings should be added
+   * @param module module whose bindings should be added
    * @return this
    */
-  BindingsSpec add(Module modules);
+  BindingsSpec add(Module module);
 
   @SuppressWarnings("unchecked")
   BindingsSpec add(Class<? extends Module> moduleClass);
 
   <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration);
+
+  <C> BindingsSpec add(ConfigurableModule<C> module, Action<? super C> configuration);
 
   /**
    * Retrieves the module that has been added with the given type for configuration.

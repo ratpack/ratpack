@@ -134,6 +134,12 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
+  public <C> BindingsSpec add(ConfigurableModule<C> module, Action<? super C> configuration) {
+    delegate.add(module, configuration);
+    return this;
+  }
+
+  @Override
   public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
     delegate.add(moduleClass, configuration);
     return this;

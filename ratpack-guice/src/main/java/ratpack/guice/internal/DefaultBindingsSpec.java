@@ -98,11 +98,16 @@ public class DefaultBindingsSpec implements BindingsSpec {
   }
 
   @Override
+  public <C> BindingsSpec add(ConfigurableModule<C> module, Action<? super C> configuration) {
+    module.configure(configuration);
+    this.modules.add(module);
+    return this;
+  }
+
+  @Override
   public <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
     T t = createModule(moduleClass);
-    t.configure(configuration);
-    this.modules.add(t);
-    return this;
+    return add(t, configuration);
   }
 
   @Override
