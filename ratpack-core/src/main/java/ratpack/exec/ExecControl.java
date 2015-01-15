@@ -135,9 +135,9 @@ public interface ExecControl {
   }
 
   /**
-   * Creates a new execution stater that can be used to initiate a new execution.
+   * Creates a new execution starter that can be used to initiate a new execution.
    *
-   * @return an execution start that can be used to configure and
+   * @return an execution starter that can be used to configure and start a new execution.
    */
   ExecStarter exec();
 
