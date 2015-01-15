@@ -148,36 +148,44 @@ class RatpackServerSpec extends Specification {
     client.text == 'bar'
   }
 
-  def "managed registry entries are executed"() {
+  def "server lifecycle events are executed with event data"() {
     given:
-    def managed1 = 0
-    def managed2 = 0
+    def counter = 0
+    def reloadCounter = 0
 
     server = RatpackServer.of {
       it.registryOf {
-        it.add(Integer, 3)
+        it.add(Integer, 5)
         it.add(ServerLifecycleListener, new ServerLifecycleListener() {
 
           @Override
           void onStart(StartEvent event) throws Exception {
-            managed1 = event.registry.get(Integer)
+            if (!event.reload) {
+              counter++
+            }
           }
 
           @Override
           void onStop(StopEvent event) throws Exception {
-            managed1++
+            if (!event.reload) {
+              counter += event.registry.get(Integer)
+            }
           }
         })
         it.add(ServerLifecycleListener, new ServerLifecycleListener() {
 
           @Override
           void onStart(StartEvent event) throws Exception {
-            managed2 = event.registry.get(Integer) * 2
+            if (event.reload) {
+              reloadCounter++
+            }
           }
 
           @Override
           void onStop(StopEvent event) throws Exception {
-            managed2++
+            if (event.reload) {
+              reloadCounter++
+            }
           }
         })
       }
@@ -189,15 +197,24 @@ class RatpackServerSpec extends Specification {
 
     then:
     server.running
-    managed1 == 3
-    managed2 == 6
+    counter == 1
+    reloadCounter == 0
+
+    when:
+    server.reload()
+
+    then:
+    server.running
+    counter == 1
+    reloadCounter == 2
 
     when:
     server.stop()
 
     then:
     !server.running
-    managed1 == 4
-    managed2 == 7
+    counter == 6
+    reloadCounter == 2
+
   }
 }
