@@ -31,14 +31,29 @@ public class StopEvent {
     this.reload = reload;
   }
 
+  /**
+   * Retrieves the server registry for this instance
+   * @return the server's registry
+   */
   public Registry getRegistry() {
     return registry;
   }
 
+  /**
+   * Indicates if this stop event is part of reloading the server.
+   * @return true if this stop event is part of a server reload. False otherwise.
+   */
   public boolean isReload() {
     return reload;
   }
 
+  /**
+   * Builder for stop events.
+   *
+   * @param registry the server registry for this server
+   * @param reload true if this is stop event during a server reload
+   * @return a new stop event
+   */
   public static StopEvent build(Registry registry, boolean reload) {
     return new StopEvent(registry, reload);
   }

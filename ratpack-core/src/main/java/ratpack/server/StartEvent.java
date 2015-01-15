@@ -31,14 +31,29 @@ public class StartEvent {
     this.reload = reload;
   }
 
+  /**
+   * Retrieves the server registry for this instance
+   * @return the server's registry
+   */
   public Registry getRegistry() {
     return registry;
   }
 
+  /**
+   * Indicates if this start event is part of reloading the server.
+   * @return true if this start event is part of a server reload. False otherwise.
+   */
   public boolean isReload() {
     return reload;
   }
 
+  /**
+   * Builder for start events.
+   *
+   * @param registry the server registry for this server
+   * @param reload true if this is start event during a server reload
+   * @return a new start event
+   */
   public static StartEvent build(Registry registry, boolean reload) {
     return new StartEvent(registry, reload);
   }
