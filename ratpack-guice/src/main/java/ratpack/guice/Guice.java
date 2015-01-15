@@ -16,22 +16,28 @@
 
 package ratpack.guice;
 
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Stage;
+import com.google.common.collect.Lists;
+import com.google.inject.*;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.util.Modules;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
-import ratpack.guice.internal.InjectorRegistryBacking;
-import ratpack.guice.internal.JustInTimeInjectorRegistry;
+import ratpack.func.Pair;
+import ratpack.guice.internal.*;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
+import ratpack.handling.HandlerDecorator;
 import ratpack.handling.Handlers;
-import ratpack.server.ServerConfig;
+import ratpack.launch.LaunchException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.inject.Guice.createInjector;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
  * Static utility methods for creating Google Guice based Ratpack infrastructure.
@@ -203,8 +209,8 @@ public abstract class Guice {
 
       @Override
       public Handler build(Action<? super Chain> action) throws Exception {
-        Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(rootRegistry.get(ServerConfig.class)) : childInjectorFactory(parent);
-        return new DefaultGuiceBackedHandlerFactory(rootRegistry).create(bindings, moduleTransformer,
+        java.util.function.Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(rootRegistry.get(ServerConfig.class)) : childInjectorFactory(parent);
+        return new DefaultGuiceBackedHandlerFactory(rootRegistry).create(bindings, Function.from(moduleTransformer),
           injector -> Handlers.chain(rootRegistry.get(ServerConfig.class), justInTimeRegistry(injector), action)
         );
       }
@@ -236,21 +242,108 @@ public abstract class Guice {
     return Registries.backedRegistry(new InjectorRegistryBacking(injector));
   }
 
-  /**
-   * Creates a transformer that can build an injector from a module.
-   * <p>
-   * The module given to the {@code transform()} method may be {@code null}.
-   *
-   * @param serverConfig The server config of the application
-   * @return a transformer that can build an injector from a module
-   */
-  public static Function<Module, Injector> newInjectorFactory(final ServerConfig serverConfig) {
+  public static Function<Registry, Registry> registry(Action<? super BindingsSpec> bindings) {
+    return baseRegistry -> registry(bindings, baseRegistry, newInjectorFactory(baseRegistry.get(ServerConfig.class)));
+  }
+
+  public static Function<Registry, Registry> registry(Injector parentInjector, Action<? super BindingsSpec> bindings) {
+    return baseRegistry -> registry(bindings, baseRegistry, childInjectorFactory(parentInjector));
+  }
+
+  private static Registry registry(Action<? super BindingsSpec> bindings, Registry baseRegistry, java.util.function.Function<Module, Injector> injectorFactory) {
+    Pair<List<Module>, Injector> pair = buildInjector(baseRegistry, bindings, injectorFactory);
+    return registry(pair.right);
+  }
+
+  public static java.util.function.Function<Module, Injector> newInjectorFactory(final ServerConfig serverConfig) {
     final Stage stage = serverConfig.isDevelopment() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
     return from -> from == null ? createInjector(stage) : createInjector(stage, from);
   }
 
-  private static Function<Module, Injector> childInjectorFactory(final Injector parent) {
+  private static java.util.function.Function<Module, Injector> childInjectorFactory(final Injector parent) {
     return from -> from == null ? parent.createChildInjector() : parent.createChildInjector(from);
   }
 
+  private static Pair<List<Module>, Injector> buildInjector(Registry baseRegistry, Action<? super BindingsSpec> bindingsAction, java.util.function.Function<? super Module, ? extends Injector> injectorFactory) {
+    List<Action<? super Binder>> binderActions = Lists.newLinkedList();
+    List<Action<? super Injector>> injectorActions = Lists.newLinkedList();
+    List<Module> modules = Lists.newLinkedList();
+
+    BindingsSpec bindings = new DefaultBindingsSpec(baseRegistry.get(ServerConfig.class), binderActions, injectorActions, modules);
+    bindings.add(new RatpackBaseRegistryModule(baseRegistry));
+
+    try {
+      bindingsAction.execute(bindings);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+
+    modules.add(new AdHocModule(binderActions));
+
+    Module masterModule = modules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
+    Injector injector = injectorFactory.apply(masterModule);
+
+    List<HandlerDecorator> adaptedDecorators = Lists.newLinkedList();
+    Collections.reverse(modules);
+    for (Module module : modules) {
+      if (module instanceof HandlerDecoratingModule) {
+        adaptedDecorators.add(new ModuleAdaptedHandlerDecorator((HandlerDecoratingModule) module, injector));
+      }
+    }
+
+    if (!adaptedDecorators.isEmpty()) {
+      injector = injector.createChildInjector(new AbstractModule() {
+        @Override
+        protected void configure() {
+          Multibinder<HandlerDecorator> multiBinder = Multibinder.newSetBinder(binder(), HandlerDecorator.class);
+          for (HandlerDecorator adaptedDecorator : adaptedDecorators) {
+            multiBinder.addBinding().toInstance(adaptedDecorator);
+          }
+        }
+      });
+    }
+
+    // TODO remove and replace with startup actions
+    for (Action<? super Injector> initAction : injectorActions) {
+      try {
+        initAction.execute(injector);
+      } catch (Exception e) {
+        throw new LaunchException("Startup action failed", e);
+      }
+    }
+
+    return Pair.of(modules, injector);
+  }
+
+  private static class ModuleAdaptedHandlerDecorator implements HandlerDecorator {
+
+    private final HandlerDecoratingModule module;
+    private final Injector injector;
+
+    public ModuleAdaptedHandlerDecorator(HandlerDecoratingModule module, Injector injector) {
+      this.module = module;
+      this.injector = injector;
+    }
+
+    @Override
+    public Handler decorate(Handler rest) {
+      return module.decorate(injector, rest);
+    }
+  }
+
+  private static class AdHocModule implements Module {
+
+    private final List<Action<? super Binder>> binderActions;
+
+    public AdHocModule(List<Action<? super Binder>> binderActions) {
+      this.binderActions = binderActions;
+    }
+
+    @Override
+    public void configure(Binder binder) {
+      for (Action<? super Binder> binderAction : binderActions) {
+        binderAction.toConsumer().accept(binder);
+      }
+    }
+  }
 }

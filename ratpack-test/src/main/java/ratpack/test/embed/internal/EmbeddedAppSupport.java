@@ -19,6 +19,8 @@ package ratpack.test.embed.internal;
 import ratpack.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public abstract class EmbeddedAppSupport implements EmbeddedApp {
 
   private RatpackServer ratpackServer;
@@ -26,12 +28,16 @@ public abstract class EmbeddedAppSupport implements EmbeddedApp {
   @Override
   public RatpackServer getServer() {
     if (ratpackServer == null) {
-      ratpackServer = createServer();
+      try {
+        ratpackServer = createServer();
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
     }
 
     return ratpackServer;
   }
 
-  abstract protected RatpackServer createServer();
+  abstract protected RatpackServer createServer() throws Exception;
 
 }

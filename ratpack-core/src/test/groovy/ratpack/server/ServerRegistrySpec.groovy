@@ -17,7 +17,6 @@
 package ratpack.server
 
 import ratpack.groovy.Groovy
-import ratpack.handling.Handler
 import ratpack.registry.Registries
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
@@ -26,11 +25,12 @@ class ServerRegistrySpec extends Specification {
 
   def "can create user registry from base registry"() {
     when:
-    def server = RatpackServer.of { it
-      .registry { Registries.just(it.get(ServerConfig.class)) }
-      .handler {
+    def server = RatpackServer.of {
+      it
+        .registry { Registries.just(it.get(ServerConfig)) }
+        .handler {
         Groovy.groovyHandler {
-          render getAll(ServerConfig.class).toList().size().toString()
+          render getAll(ServerConfig).toList().size().toString()
         }
       }
     }

@@ -19,9 +19,11 @@ package ratpack.guice
 import com.google.inject.Injector
 import ratpack.func.Action
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 
 import javax.inject.Inject
 
+@Ignore
 class GuiceInitSpec extends RatpackGroovyDslSpec {
 
   @com.google.inject.Singleton

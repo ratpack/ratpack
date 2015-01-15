@@ -27,8 +27,8 @@ import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -67,9 +67,9 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
 
     boolean compileStatic = Boolean.parseBoolean(serverConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
 
-    Function<Module, Injector> moduleTransformer = Guice.newInjectorFactory(serverConfig);
+    java.util.function.Function<Module, Injector> moduleTransformer = Guice.newInjectorFactory(serverConfig);
     GuiceBackedHandlerFactory handlerFactory = new GroovyKitAppFactory(registry);
-    Function<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(serverConfig, handlerFactory, moduleTransformer);
+    Function<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(serverConfig, handlerFactory, Function.from(moduleTransformer));
 
     return new ScriptBackedApp(script, compileStatic, serverConfig.isDevelopment(), closureTransformer);
   }

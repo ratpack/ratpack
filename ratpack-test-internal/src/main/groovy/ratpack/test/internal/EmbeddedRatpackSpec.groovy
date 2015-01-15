@@ -49,7 +49,11 @@ abstract class EmbeddedRatpackSpec extends Specification {
   }
 
   def cleanup() {
-    application.server.stop()
+    try {
+      application.server.stop()
+    } catch (ignore) {
+
+    }
   }
 
   String rawResponse(Charset charset = CharsetUtil.UTF_8) {

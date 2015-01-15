@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
@@ -35,6 +36,7 @@ import ratpack.exec.ExecController;
 import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
+import ratpack.handling.HandlerDecorator;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
@@ -53,11 +55,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class NettyRatpackServer implements RatpackServer {
 
+  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeToken.of(HandlerDecorator.class);
   private final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
   private final Function<? super Definition.Builder, ? extends Definition> definitionFactory;
   private Definition definition;
-  private Registry rootRegistry;
+  private Registry serverRegistry;
 
   private InetSocketAddress boundAddress;
   private Channel channel;
@@ -72,7 +75,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private void define() throws Exception {
     definition = definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder());
-    rootRegistry = ServerRegistry.serverRegistry(definition.getServerConfig(), this, definition.getUserRegistryFactory());
+    serverRegistry = ServerRegistry.serverRegistry(definition.getServerConfig(), this, definition.getUserRegistryFactory());
   }
 
   @Override
@@ -91,7 +94,8 @@ public class NettyRatpackServer implements RatpackServer {
     }
 
     Handler rootHandler = buildRootHandler();
-    NettyHandlerAdapter handlerAdapter = new NettyHandlerAdapter(getServerConfig(), rootRegistry, rootHandler);
+    Handler decorateHandler = decorateHandler(rootHandler, serverRegistry);
+    NettyHandlerAdapter handlerAdapter = new NettyHandlerAdapter(getServerConfig(), serverRegistry, decorateHandler);
 
     SSLContext sslContext = getServerConfig().getSSLContext();
     SSLEngine sslEngine = null;
@@ -103,9 +107,9 @@ public class NettyRatpackServer implements RatpackServer {
     final SSLEngine finalSslEngine = sslEngine;
 
     channel = new ServerBootstrap()
-      .group(rootRegistry.get(ExecController.class).getEventLoopGroup())
+      .group(serverRegistry.get(ExecController.class).getEventLoopGroup())
       .channel(ChannelImplDetector.getServerSocketChannelImpl())
-      .childOption(ChannelOption.ALLOCATOR, rootRegistry.get(ByteBufAllocator.class))
+      .childOption(ChannelOption.ALLOCATOR, serverRegistry.get(ByteBufAllocator.class))
       .childHandler(new ChannelInitializer<SocketChannel>() {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
@@ -137,16 +141,23 @@ public class NettyRatpackServer implements RatpackServer {
     running.set(true);
   }
 
+  private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) {
+    for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
+      rootHandler = handlerDecorator.decorate(rootHandler);
+    }
+    return rootHandler;
+  }
+
   private Handler buildRootHandler() throws Exception {
     if (getServerConfig().isDevelopment()) {
       File classFile = ClassUtil.getClassFile(definition.getHandlerFactory());
       if (classFile != null) {
-        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> definition.getHandlerFactory().apply(rootRegistry));
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> definition.getHandlerFactory().apply(serverRegistry));
         return new FactoryHandler(factory);
       }
     }
 
-    return definition.getHandlerFactory().apply(rootRegistry);
+    return definition.getHandlerFactory().apply(serverRegistry);
   }
 
   @Override
@@ -187,7 +198,7 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private void partialShutdown() throws Exception {
-    rootRegistry.get(ExecController.class).close();
+    serverRegistry.get(ExecController.class).close();
   }
 
   @Override

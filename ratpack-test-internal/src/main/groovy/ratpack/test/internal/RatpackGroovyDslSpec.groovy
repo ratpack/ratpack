@@ -18,10 +18,13 @@ package ratpack.test.internal
 
 import com.google.inject.Injector
 import com.google.inject.Module
+import ratpack.groovy.Groovy
 import ratpack.groovy.guice.GroovyBindingsSpec
+import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.ClosureUtil
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.guice.Guice
+import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 
@@ -37,18 +40,20 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
   final EmbeddedApp application = createApplication()
 
   protected EmbeddedApp createApplication() {
-    GroovyEmbeddedApp.build {
-      if (this.baseDir) {
-        baseDir(this.baseDir)
-      }
-      handlers(this._handlers)
-      bindings {
-        modules.each { add(it) }
-        it.with(this._bindings)
-      }
-      serverConfig(this._serverConfig)
-      if (this.parentInjector) {
-        parentInjector(this.parentInjector)
+    fromServer {
+      RatpackServer.of {
+        def serverConfig = this.baseDir ? ServerConfig.baseDir(this.baseDir.build()) : ServerConfig.noBaseDir()
+        serverConfig.port(0)
+        serverConfig.with(_serverConfig)
+        it.config(serverConfig)
+
+        def bindingsAction = { s ->
+          new DefaultGroovyBindingsSpec(s).with(_bindings)
+          modules.each { s.add(it) }
+        }
+
+        it.registry(parentInjector ? Guice.registry(parentInjector, bindingsAction) : Guice.registry(bindingsAction))
+        it.handler { Groovy.chain(it, _handlers) }
       }
     }
   }

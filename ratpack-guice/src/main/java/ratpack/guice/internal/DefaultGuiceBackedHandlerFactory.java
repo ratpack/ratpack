@@ -106,7 +106,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
   }
 
   protected void registerDefaultModules(BindingsSpec bindingsSpec) {
-    bindingsSpec.add(new DefaultRatpackModule(rootRegistry));
+    bindingsSpec.add(new RatpackBaseRegistryModule(rootRegistry));
   }
 
 }

@@ -29,7 +29,7 @@ import ratpack.server.ServerConfig;
 import java.util.List;
 import java.util.function.Consumer;
 
-class DefaultBindingsSpec implements BindingsSpec {
+public class DefaultBindingsSpec implements BindingsSpec {
 
   private final List<Module> modules;
   private final ServerConfig serverConfig;

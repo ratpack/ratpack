@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.guice;
+package ratpack.handling;
 
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import ratpack.func.Action;
-import ratpack.func.Function;
-import ratpack.handling.Handler;
+public interface HandlerDecorator {
 
-public interface GuiceBackedHandlerFactory {
-
-  Handler create(Action<? super BindingsSpec> modulesAction, Function<? super Module, ? extends Injector> moduleTransformer, Function<? super Injector, ? extends Handler> handler) throws Exception;
+  Handler decorate(Handler rest);
 
 }

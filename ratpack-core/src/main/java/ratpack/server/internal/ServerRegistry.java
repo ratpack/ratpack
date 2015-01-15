@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.error.ClientErrorHandler;
@@ -99,6 +100,7 @@ public abstract class ServerRegistry {
     try {
       userRegistry = userRegistryFactory.apply(baseRegistry);
     } catch (Exception e) {
+      Throwables.propagateIfPossible(e);
       throw new LaunchException("Failed to build user registry", e);
     }
 

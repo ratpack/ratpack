@@ -26,30 +26,29 @@ import ratpack.exec.Execution;
 import ratpack.exec.ExecutionException;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
-public class DefaultRatpackModule extends AbstractModule {
+public class RatpackBaseRegistryModule extends AbstractModule {
 
-  private final Registry rootRegistry;
+  private final Registry baseRegistry;
 
-  public DefaultRatpackModule(Registry rootRegistry) {
-    this.rootRegistry = rootRegistry;
+  public RatpackBaseRegistryModule(Registry baseRegistry) {
+    this.baseRegistry = baseRegistry;
   }
 
   @Override
   protected void configure() {
-    bind(Registry.class).toInstance(rootRegistry);
   }
 
   @Provides
-  ByteBufAllocator bufferAllocator(Registry rootRegistry) {
-    return rootRegistry.get(ByteBufAllocator.class);
+  ByteBufAllocator bufferAllocator() {
+    return baseRegistry.get(ByteBufAllocator.class);
   }
 
   @Provides
-  ExecController execController(Registry rootRegistry) {
-    return rootRegistry.get(ExecController.class);
+  ExecController execController() {
+    return baseRegistry.get(ExecController.class);
   }
 
   @Provides
@@ -58,13 +57,13 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  ServerConfig serverConfig(Registry rootRegistry) {
-    return rootRegistry.get(ServerConfig.class);
+  ServerConfig serverConfig() {
+    return baseRegistry.get(ServerConfig.class);
   }
 
   @Provides
-  HttpClient httpClient(ServerConfig serverConfig, Registry rootRegistry) {
-    return HttpClients.httpClient(serverConfig, rootRegistry);
+  HttpClient httpClient(ServerConfig serverConfig) {
+    return HttpClients.httpClient(serverConfig, baseRegistry);
   }
 
   @Provides

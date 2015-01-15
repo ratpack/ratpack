@@ -18,6 +18,7 @@ package ratpack.test.embed;
 
 import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -57,10 +58,14 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromServer(RatpackServer server) {
+    return fromServer(() -> server);
+  }
+
+  static EmbeddedApp fromServer(Factory<? extends RatpackServer> server) {
     return new EmbeddedAppSupport() {
       @Override
-      protected RatpackServer createServer() {
-        return server;
+      protected RatpackServer createServer() throws Exception {
+        return server.create();
       }
     };
   }
