@@ -139,7 +139,7 @@ TBD.
 
 Ratpack and Play share a few commonalities:
 
-* Netty Based (Play uses Netty 3.9, Ratpack uses Netty 4.X)
+* Netty Based (Play uses Netty 3.9, Ratpack uses Netty 4.1)
 * Async from the ground up
 * [Reactive](http://www.reactivemanifesto.org/)
 
@@ -165,8 +165,8 @@ You do not need to download any SDK to develop Ratpack apps. In fact a Ratpack a
 Ratpack is 100% Java 8 based with optional first class Groovy API.
 
 
-#### Netty 3.9 vs 4.X
-Trustin Lee, a core Netty developer at Twitter, wrote an article about performance increase [migrating from Netty 3.X to 4.X](https://blog.twitter.com/2013/netty-4-at-twitter-reduced-gc-overhead).
+#### Netty 3.9 vs 4.1
+Trustin Lee, a core Netty developer at Twitter, wrote an article about performance increase [migrating from Netty 3 to 4](https://blog.twitter.com/2013/netty-4-at-twitter-reduced-gc-overhead).
 Netty 4 has significantly less garbage production and less frequent GC pauses.
 [A more in-depth summary of Netty 3 and Netty 4 can be found here](http://netty.io/wiki/new-and-noteworthy-in-4.0.html).
 
