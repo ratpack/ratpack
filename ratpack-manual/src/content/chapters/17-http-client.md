@@ -14,15 +14,15 @@ import ratpack.test.embed.EmbeddedApp;
 
 public class HttpClientExample {
   public static void main(String... args) throws Exception {
-    EmbeddedApp remoteApp = EmbeddedApp.fromHandler(ctx -> ctx.render("Hello from remote"));
-
-    EmbeddedApp.fromHandler(ctx ->
-        ctx.get(HttpClient.class)
+    try(EmbeddedApp remoteApp = EmbeddedApp.fromHandler(ctx -> ctx.render("Hello from remote"))) { 
+      EmbeddedApp.fromHandler(ctx -> ctx
+          .get(HttpClient.class)
           .get(remoteApp.getAddress())
           .then(response -> ctx.render(response.getBody().getText()))
-    ).test(httpClient -> {
-      assert httpClient.getText().equals("Hello from remote");
-    });
+      ).test(httpClient -> {
+        assert httpClient.getText().equals("Hello from remote");
+      });
+    }
   }
 }
 
