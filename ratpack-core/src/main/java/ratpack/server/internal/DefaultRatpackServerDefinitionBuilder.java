@@ -28,19 +28,23 @@ import ratpack.server.ServerConfig;
 public final class DefaultRatpackServerDefinitionBuilder implements RatpackServer.Definition.Builder {
 
   private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
-  private Registry userRegistry = Registries.empty();
+  private Function<? super Registry, ? extends Registry> userRegistryFactory = (r) -> Registries.empty();
 
   @Override
-  public RatpackServer.Definition.Builder registry(Action<? super RegistrySpec> action) throws Exception {
-    return registry(Registries.registry(action));
+  public RatpackServer.Definition.Builder registryOf(Action<? super RegistrySpec> action) {
+    return registry(r -> Registries.registry(action));
   }
 
   @Override
   public RatpackServer.Definition.Builder registry(Registry registry) {
-    this.userRegistry = registry;
-    return this;
+    return registry(r -> registry);
   }
 
+  @Override
+  public RatpackServer.Definition.Builder registry(Function<? super Registry, ? extends Registry> function) {
+    this.userRegistryFactory = function;
+    return this;
+  }
 
   @Override
   public RatpackServer.Definition.Builder config(ServerConfig serverConfig) {
@@ -50,6 +54,6 @@ public final class DefaultRatpackServerDefinitionBuilder implements RatpackServe
 
   @Override
   public RatpackServer.Definition handler(Function<? super Registry, ? extends Handler> handlerFactory) {
-    return new DefaultServerDefinition(serverConfig, userRegistry, handlerFactory);
+    return new DefaultServerDefinition(serverConfig, userRegistryFactory, handlerFactory);
   }
 }

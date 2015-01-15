@@ -41,7 +41,7 @@ import ratpack.server.internal.NettyRatpackServer;
  *   public static void main(String... args) throws Exception {
  *     RatpackServer server = RatpackServer.of(b -> b
  *       .config(ServerConfig.embedded())            // base server configuration (e.g. port) - optional
- *       .registry(r -> r.add(String.class, "foo"))  // registry of supporting objects - optional
+ *       .registryOf(r -> r.add(String.class, "foo"))  // registry of supporting objects - optional
  *       .handlers(chain -> chain                    // request handlers - required
  *         .get("a", ctx -> ctx.render(ctx.get(String.class) + " 1"))
  *         .get("b", ctx -> ctx.render(ctx.get(String.class) + " 2"))
@@ -226,7 +226,7 @@ public interface RatpackServer {
      * @return the user registry
      * @see Builder#registry(Registry)
      */
-    Registry getUserRegistry();
+    Function<? super Registry, ? extends Registry> getUserRegistryFactory();
 
     /**
      * The handler factory.
@@ -258,7 +258,7 @@ public interface RatpackServer {
        * @throws Exception any thrown by {@code action}
        * @see #registry(Registry)
        */
-      Builder registry(Action<? super RegistrySpec> action) throws Exception;
+      Builder registryOf(Action<? super RegistrySpec> action) throws Exception;
 
       /**
        * Specifies the user registry.
@@ -270,6 +270,19 @@ public interface RatpackServer {
        * @return {@code this}
        */
       Builder registry(Registry registry);
+
+      /**
+       * Specifies the user registry.
+       * <p>
+       * This method is not additive.
+       * That is, there is only one user registry and subsequent calls to this method override any previous.
+       * <p>
+       * The given function receives the “base” registry, and must return the “user” registry.
+       *
+       * @param function a factory for the user registry
+       * @return {@code this}
+       */
+      Builder registry(Function<? super Registry, ? extends Registry> function);
 
       /**
        * Specifies the server configuration for the application.

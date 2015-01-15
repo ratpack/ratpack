@@ -72,7 +72,7 @@ class RatpackServerSpec extends Specification {
     def value = "foo"
     def server = RatpackServer.of {
       it
-        .registry { it.add(String, value) }
+        .registryOf { it.add(String, value) }
         .handler { return { it.render it.get(String) } as Handler }
     }
     def client = ApplicationUnderTest.of(server).httpClient
@@ -92,4 +92,5 @@ class RatpackServerSpec extends Specification {
     server.isRunning()
     client.text == "bar"
   }
+
 }

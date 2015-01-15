@@ -234,7 +234,7 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> ServerRegistry.serverRegistry(serverConfigBuilder.build(), new TestServer(), userRegistry.join(registryBuilder.build())));
+    return ExceptionUtils.uncheck(() -> ServerRegistry.serverRegistry(serverConfigBuilder.build(), new TestServer(), r -> userRegistry.join(registryBuilder.build())));
   }
 
   // TODO some kind of impl here

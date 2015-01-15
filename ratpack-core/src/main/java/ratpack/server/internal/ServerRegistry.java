@@ -30,10 +30,12 @@ import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
 import ratpack.file.internal.DefaultFileRenderer;
 import ratpack.form.internal.FormParser;
+import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
+import ratpack.launch.LaunchException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -52,14 +54,14 @@ import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
 
-  public static Registry serverRegistry(ServerConfig serverConfig, RatpackServer ratpackServer, Registry userRegistry) {
+  public static Registry serverRegistry(ServerConfig serverConfig, RatpackServer ratpackServer, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
     ExecController execController = new DefaultExecController(serverConfig.getThreads());
     PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
 
-    RegistryBuilder baseRegistry;
+    RegistryBuilder baseRegistryBuilder;
     try {
-      baseRegistry = Registries.registry()
+      baseRegistryBuilder = Registries.registry()
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, byteBufAllocator)
         .add(ExecController.class, execController)
@@ -88,9 +90,18 @@ public abstract class ServerRegistry {
     }
 
     if (serverConfig.isHasBaseDir()) {
-      baseRegistry.add(FileSystemBinding.class, serverConfig.getBaseDir());
+      baseRegistryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
 
-    return baseRegistry.build().join(userRegistry);
+    Registry baseRegistry = baseRegistryBuilder.build();
+    Registry userRegistry;
+
+    try {
+      userRegistry = userRegistryFactory.apply(baseRegistry);
+    } catch (Exception e) {
+      throw new LaunchException("Failed to build user registry", e);
+    }
+
+    return baseRegistry.join(userRegistry);
   }
 }

@@ -55,7 +55,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  *
  *     RatpackServer server = RatpackServer.of(spec -> spec
  *       .config(configData.get("/server", ServerConfig.class))
- *       .registry(r -> r
+ *       .registryOf(r -> r
  *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
  *       )
  *       .handler(registry ->

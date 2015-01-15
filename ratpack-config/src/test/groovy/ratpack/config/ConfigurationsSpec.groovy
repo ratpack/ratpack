@@ -20,11 +20,7 @@ import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.func.Action
-import ratpack.handling.Context
 import ratpack.handling.Handler
-import ratpack.registry.Registry
-import ratpack.registry.RegistrySpec
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import ratpack.test.ApplicationUnderTest
@@ -43,15 +39,17 @@ class ConfigurationsSpec extends Specification {
     propsFile.withOutputStream { props.store(it, null) }
 
     when:
-    def server = RatpackServer.of { serverDef ->
+    def server = RatpackServer.of {
       def configData = Configurations.config().props(propsFile).build()
-      serverDef.config(configData.get("/server", ServerConfig)).registry({ RegistrySpec registrySpec ->
-        registrySpec.add(MyAppConfig, configData.get("/app", MyAppConfig))
-      } as Action<RegistrySpec>).handler { Registry registry ->
-        { Context ctx ->
-          ctx.render("Hi, my name is ${ctx.get(MyAppConfig).name}")
-        } as Handler
-      }
+      it.config(configData.get("/server", ServerConfig))
+        .registryOf {
+          it.add(MyAppConfig, configData.get("/app", MyAppConfig))
+        }
+        .handler {
+          return {
+            it.render("Hi, my name is ${it.get(MyAppConfig).name}")
+          } as Handler
+        }
     }
     def client = ApplicationUnderTest.of(server).httpClient
     server.start()

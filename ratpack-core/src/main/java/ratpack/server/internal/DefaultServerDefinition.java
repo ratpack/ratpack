@@ -25,12 +25,12 @@ import ratpack.server.ServerConfig;
 public final class DefaultServerDefinition implements RatpackServer.Definition {
 
   private final ServerConfig serverConfig;
-  private final Registry userRegistry;
+  private final Function<? super Registry, ? extends Registry> userRegistryFactory;
   private final Function<? super Registry, ? extends Handler> handlerFactory;
 
-  public DefaultServerDefinition(ServerConfig serverConfig, Registry userRegistry, Function<? super Registry, ? extends Handler> handlerFactory) {
+  public DefaultServerDefinition(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory, Function<? super Registry, ? extends Handler> handlerFactory) {
     this.serverConfig = serverConfig;
-    this.userRegistry = userRegistry;
+    this.userRegistryFactory = userRegistryFactory;
     this.handlerFactory = handlerFactory;
   }
 
@@ -40,8 +40,8 @@ public final class DefaultServerDefinition implements RatpackServer.Definition {
   }
 
   @Override
-  public Registry getUserRegistry() {
-    return userRegistry;
+  public Function<? super Registry, ? extends Registry> getUserRegistryFactory() {
+    return userRegistryFactory;
   }
 
   @Override
