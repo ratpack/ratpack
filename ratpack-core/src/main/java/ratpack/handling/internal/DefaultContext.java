@@ -422,14 +422,14 @@ public class DefaultContext implements Context {
   }
 
   public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
-    Map<String, NoArgAction> handlers = new LinkedHashMap<>(2);
+    Map<String, Handler> handlers = new LinkedHashMap<>(2);
     DefaultByMethodSpec spec = new DefaultByMethodSpec(handlers);
     action.execute(spec);
     new MultiMethodHandler(handlers).handle(this);
   }
 
   public void byContent(Action<? super ByContentSpec> action) throws Exception {
-    Map<String, NoArgAction> handlers = new LinkedHashMap<>(2);
+    Map<String, Handler> handlers = new LinkedHashMap<>(2);
     DefaultByContentSpec spec = new DefaultByContentSpec(handlers);
     action.execute(spec);
     new ContentNegotiationHandler(handlers, spec.getNoMatchHandler()).handle(this);

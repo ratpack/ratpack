@@ -18,8 +18,6 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.handling.ByContentSpec;
-import ratpack.handling.ByMethodSpec;
 import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 
@@ -69,7 +67,7 @@ public interface GroovyContext extends Context {
    * @param closure defines the action to take for different HTTP methods
    * @throws Exception any thrown by the closure
    */
-  void byMethod(@DelegatesTo(value = ByMethodSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+  void byMethod(@DelegatesTo(value = GroovyByMethodSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
   /**
    * Groovy friendly overload of {@link #byContent(ratpack.func.Action)}.
@@ -108,7 +106,7 @@ public interface GroovyContext extends Context {
    * @param closure defines the action to take for the different content types
    * @throws Exception any thrown by the closure
    */
-  void byContent(@DelegatesTo(value = ByContentSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+  void byContent(@DelegatesTo(value = GroovyByContentSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
   /**
    * Adds a request close handler.

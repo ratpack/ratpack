@@ -16,7 +16,6 @@
 
 package ratpack.handling;
 
-import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 
 /**
@@ -42,12 +41,30 @@ public interface ByContentSpec {
   ByContentSpec type(String mimeType, NoArgAction handler);
 
   /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType The MIME type to register for
+   * @param handler The handler to invoke if the content type matches
+   * @return this
+   */
+  ByContentSpec type(String mimeType, Handler handler);
+
+  /**
    * Specifies that the given handler should be used if the client wants content of type "text/plain".
    *
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
   ByContentSpec plainText(NoArgAction handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "text/plain".
+   *
+   * @param handler The handler to invoke if the content type matches
+   * @return this
+   */
+  ByContentSpec plainText(Handler handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/html".
@@ -58,12 +75,28 @@ public interface ByContentSpec {
   ByContentSpec html(NoArgAction handler);
 
   /**
+   * Specifies that the given handler should be used if the client wants content of type "text/html".
+   *
+   * @param handler The handler to invoke if the content type matches
+   * @return this
+   */
+  ByContentSpec html(Handler handler);
+
+  /**
    * Specifies that the given handler should be used if the client wants content of type "application/json".
    *
    * @param handler The handler to invoke if the content type matches
    * @return this
    */
   ByContentSpec json(NoArgAction handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "application/json".
+   *
+   * @param handler The handler to invoke if the content type matches
+   * @return this
+   */
+  ByContentSpec json(Handler handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "application/xml".
@@ -74,11 +107,28 @@ public interface ByContentSpec {
   ByContentSpec xml(NoArgAction handler);
 
   /**
-   * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
+   * Specifies that the given handler should be used if the client wants content of type "application/xml".
    *
+   * @param handler The handler to invoke if the content type matches
    * @return this
    */
-  ByContentSpec noMatch(Action<Context> handler);
+  ByContentSpec xml(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
+   *
+   * @param handler The handler to invoke if the content type doesn't match
+   * @return this
+   */
+  ByContentSpec noMatch(NoArgAction handler);
+
+  /**
+   * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
+   *
+   * @param handler The handler to invoke if the content type doesn't match
+   * @return this
+   */
+  ByContentSpec noMatch(Handler handler);
 
   /**
    * Specifies that the handler for the specified content type should be used if the client's requested content type cannot be matched with any of the other handlers.

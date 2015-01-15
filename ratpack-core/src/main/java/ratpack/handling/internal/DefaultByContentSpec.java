@@ -16,23 +16,33 @@
 
 package ratpack.handling.internal;
 
-import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 import ratpack.handling.ByContentSpec;
-import ratpack.handling.Context;
+import ratpack.handling.Handler;
 
 import java.util.Map;
 
 public class DefaultByContentSpec implements ByContentSpec {
 
-  private final Map<String, NoArgAction> map;
-  private Action<Context> noMatchHandler = ctx -> ctx.clientError(406);
+  public static final String TYPE_PLAIN_TEXT = "text/plain";
+  public static final String TYPE_HTML = "text/html";
+  public static final String TYPE_JSON = "application/json";
+  public static final String TYPE_XML = "application/xml";
 
-  public DefaultByContentSpec(Map<String, NoArgAction> map) {
+  private final Map<String, Handler> map;
+  private Handler noMatchHandler = ctx -> ctx.clientError(406);
+
+  public DefaultByContentSpec(Map<String, Handler> map) {
     this.map = map;
   }
 
+  @Override
   public ByContentSpec type(String mimeType, NoArgAction handler) {
+    return type(mimeType, ctx -> handler.execute());
+  }
+
+  @Override
+  public ByContentSpec type(String mimeType, Handler handler) {
     if (mimeType == null) {
       throw new IllegalArgumentException("mimeType cannot be null");
     }
@@ -50,38 +60,67 @@ public class DefaultByContentSpec implements ByContentSpec {
     return this;
   }
 
+  @Override
   public ByContentSpec plainText(NoArgAction handler) {
-    return type("text/plain", handler);
-  }
-
-  public ByContentSpec html(NoArgAction handler) {
-    return type("text/html", handler);
-  }
-
-  public ByContentSpec json(NoArgAction handler) {
-    return type("application/json", handler);
-  }
-
-  public ByContentSpec xml(NoArgAction handler) {
-    return type("application/xml", handler);
+    return type(TYPE_PLAIN_TEXT, handler);
   }
 
   @Override
-  public ByContentSpec noMatch(Action<Context> handler) {
-    noMatchHandler = handler;
+  public ByContentSpec plainText(Handler handler) {
+    return type(TYPE_PLAIN_TEXT, handler);
+  }
+
+  @Override
+  public ByContentSpec html(NoArgAction handler) {
+    return type(TYPE_HTML, handler);
+  }
+
+  @Override
+  public ByContentSpec html(Handler handler) {
+    return type(TYPE_HTML, handler);
+  }
+
+  @Override
+  public ByContentSpec json(NoArgAction handler) {
+    return type(TYPE_JSON, handler);
+  }
+
+  @Override
+  public ByContentSpec json(Handler handler) {
+    return type(TYPE_JSON, handler);
+  }
+
+  @Override
+  public ByContentSpec xml(NoArgAction handler) {
+    return type(TYPE_XML, handler);
+  }
+
+  @Override
+  public ByContentSpec xml(Handler handler) {
+    return type(TYPE_XML, handler);
+  }
+
+  @Override
+  public ByContentSpec noMatch(NoArgAction handler) {
+    noMatchHandler = ctx -> handler.execute();
     return this;
   }
 
   @Override
   public ByContentSpec noMatch(String mimeType) {
-    noMatchHandler = ctx -> {
+    return noMatch(ctx -> {
       ctx.getResponse().contentType(mimeType);
-      map.get(mimeType).execute();
-    };
+      ctx.insert(map.get(mimeType));
+    });
+  }
+
+  @Override
+  public ByContentSpec noMatch(Handler handler) {
+    noMatchHandler = handler;
     return this;
   }
 
-  public Action<Context> getNoMatchHandler() {
+  public Handler getNoMatchHandler() {
     return noMatchHandler;
   }
 }

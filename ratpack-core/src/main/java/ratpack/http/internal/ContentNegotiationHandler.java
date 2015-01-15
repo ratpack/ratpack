@@ -20,8 +20,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import ratpack.func.Action;
-import ratpack.func.NoArgAction;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -31,10 +29,10 @@ import java.util.Map;
 
 public class ContentNegotiationHandler implements Handler {
 
-  private final ImmutableMap<String, NoArgAction> handlers;
-  private final Action<Context> noMatchHandler;
+  private final ImmutableMap<String, Handler> handlers;
+  private final Handler noMatchHandler;
 
-  public ContentNegotiationHandler(Map<String, NoArgAction> handlers, Action<Context> noMatchHandler) {
+  public ContentNegotiationHandler(Map<String, Handler> handlers, Handler noMatchHandler) {
     this.handlers = ImmutableMap.copyOf(handlers);
     this.noMatchHandler = noMatchHandler;
   }
@@ -42,7 +40,7 @@ public class ContentNegotiationHandler implements Handler {
   @Override
   public void handle(Context context) throws Exception {
     if (handlers.isEmpty()) {
-      noMatchHandler.execute(context);
+      noMatchHandler.handle(context);
       return;
     }
 
@@ -56,10 +54,10 @@ public class ContentNegotiationHandler implements Handler {
     }
 
     if (Strings.isNullOrEmpty(winner)) {
-      noMatchHandler.execute(context);
+      noMatchHandler.handle(context);
     } else {
       context.getResponse().contentType(winner);
-      handlers.get(winner).execute();
+      handlers.get(winner).handle(context);
     }
   }
 }

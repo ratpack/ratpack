@@ -18,38 +18,69 @@ package ratpack.handling.internal;
 
 import ratpack.func.NoArgAction;
 import ratpack.handling.ByMethodSpec;
+import ratpack.handling.Handler;
 
 import java.util.Map;
 
 public class DefaultByMethodSpec implements ByMethodSpec {
 
-  private final Map<String, NoArgAction> handlers;
+  public static final String METHOD_GET = "GET";
+  public static final String METHOD_POST = "POST";
+  public static final String METHOD_PUT = "PUT";
+  public static final String METHOD_PATCH = "PATCH";
+  public static final String METHOD_DELETE = "DELETE";
 
-  public DefaultByMethodSpec(Map<String, NoArgAction> handlers) {
+  private final Map<String, Handler> handlers;
+
+  public DefaultByMethodSpec(Map<String, Handler> handlers) {
     this.handlers = handlers;
   }
 
   public ByMethodSpec get(NoArgAction handler) {
-    return named("GET", handler);
+    return named(METHOD_GET, handler);
+  }
+
+  public ByMethodSpec get(Handler handler) {
+    return named(METHOD_GET, handler);
   }
 
   public ByMethodSpec post(NoArgAction handler) {
-    return named("POST", handler);
+    return named(METHOD_POST, handler);
+  }
+
+  public ByMethodSpec post(Handler handler) {
+    return named(METHOD_POST, handler);
   }
 
   public ByMethodSpec put(NoArgAction handler) {
-    return named("PUT", handler);
+    return named(METHOD_PUT, handler);
+  }
+
+  public ByMethodSpec put(Handler handler) {
+    return named(METHOD_PUT, handler);
   }
 
   public ByMethodSpec patch(NoArgAction handler) {
-    return named("PATCH", handler);
+    return named(METHOD_PATCH, handler);
+  }
+
+  public ByMethodSpec patch(Handler handler) {
+    return named(METHOD_PATCH, handler);
   }
 
   public ByMethodSpec delete(NoArgAction handler) {
-    return named("DELETE", handler);
+    return named(METHOD_DELETE, handler);
+  }
+
+  public ByMethodSpec delete(Handler handler) {
+    return named(METHOD_DELETE, handler);
   }
 
   public ByMethodSpec named(String methodName, NoArgAction handler) {
+    return named(methodName, ctx -> handler.execute());
+  }
+
+  public ByMethodSpec named(String methodName, Handler handler) {
     handlers.put(methodName.toUpperCase(), handler);
     return this;
   }

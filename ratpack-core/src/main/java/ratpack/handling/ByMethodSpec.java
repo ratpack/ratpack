@@ -34,12 +34,28 @@ public interface ByMethodSpec {
   ByMethodSpec get(NoArgAction handler);
 
   /**
+   * Defines the action to to take if the request has a HTTP method of GET.
+   *
+   * @param handler The handler to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec get(Handler handler);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of POST.
    *
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
   ByMethodSpec post(NoArgAction handler);
+
+  /**
+   * Defines the action to to take if the request has a HTTP method of POST.
+   *
+   * @param handler The handler to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec post(Handler handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -50,6 +66,14 @@ public interface ByMethodSpec {
   ByMethodSpec put(NoArgAction handler);
 
   /**
+   * Defines the action to to take if the request has a HTTP method of PUT.
+   *
+   * @param handler The handler to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec put(Handler handler);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of PATCH.
    *
    * @param handler The handler to invoke if the request method matches
@@ -58,12 +82,28 @@ public interface ByMethodSpec {
   ByMethodSpec patch(NoArgAction handler);
 
   /**
+   * Defines the action to to take if the request has a HTTP method of PATCH.
+   *
+   * @param handler The handler to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec patch(Handler handler);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
    *
    * @param handler The handler to invoke if the request method matches
    * @return this
    */
   ByMethodSpec delete(NoArgAction handler);
+
+  /**
+   * Defines the action to to take if the request has a HTTP method of DELETE.
+   *
+   * @param handler The handler to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec delete(Handler handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.
@@ -75,5 +115,16 @@ public interface ByMethodSpec {
    * @return this
    */
   ByMethodSpec named(String methodName, NoArgAction handler);
+
+  /**
+   * Defines the action to to take if the request has a HTTP method of {@code methodName}.
+   * <p>
+   * The method name is case insensitive.
+   *
+   * @param methodName The HTTP method to map the given action to
+   * @param handler The handler to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec named(String methodName, Handler handler);
 
 }
