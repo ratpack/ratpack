@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 import ratpack.gradle.WriteTestConfig
 
 buildscript {
@@ -25,8 +26,6 @@ buildscript {
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
-
-import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 
 import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang.SystemUtils.*
@@ -196,10 +195,10 @@ task writeTestConfig(type: WriteTestConfig) {
   dependsOn configureWriteTestConfig
   generatedTestResourcesDir = project.generatedTestResourcesDir
 
-   testProperties.putAll(
-     manualVersions: manualVersions.join(','),
-     currentVersion: version
-   )
+  testProperties.putAll(
+    manualVersions: manualVersions.join(','),
+    currentVersion: version
+  )
 }
 
 sourceSets.test.resources.srcDir generatedTestResourcesDir
@@ -239,8 +238,11 @@ compass {
   debugInfo = false
 }
 
-run.dependsOn compassWatchStart
-run.finalizedBy compassWatchStop
+run {
+  dependsOn compassWatchStart
+  finalizedBy compassWatchStop
+  main "ratpack.site.SiteMain"
+}
 
 task createScriptsDir {
   doLast {

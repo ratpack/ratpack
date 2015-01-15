@@ -17,7 +17,6 @@
 package ratpack.test;
 
 import ratpack.launch.RatpackMain;
-import ratpack.test.internal.ServerBackedApplicationUnderTest;
 
 import java.util.Collections;
 import java.util.Map;

@@ -21,8 +21,8 @@ import com.google.inject.Injector;
 import ratpack.guice.Guice;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.server.ServerConfig;
 import ratpack.remote.internal.RemoteControlHandler;
+import ratpack.server.ServerConfig;
 
 /**
  * An extension module that adds a Groovy Remote Control endpoint.
@@ -74,6 +74,5 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
       return handler;
     }
   }
-
 
 }

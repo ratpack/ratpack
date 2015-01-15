@@ -16,11 +16,13 @@
 
 package ratpack.test;
 
+import ratpack.func.Action;
 import ratpack.func.Factory;
+import ratpack.registry.Registries;
+import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.http.TestHttpClients;
-import ratpack.test.internal.ServerBackedApplicationUnderTest;
 
 import java.net.URI;
 
@@ -40,6 +42,14 @@ public interface ApplicationUnderTest {
 
   static CloseableApplicationUnderTest of(Factory<? extends RatpackServer> ratpackServer) {
     return new ServerBackedApplicationUnderTest(ratpackServer);
+  }
+
+  static CloseableApplicationUnderTest of(Class<?> mainClass) {
+    return new MainClassApplicationUnderTest(mainClass, Registries.empty());
+  }
+
+  static CloseableApplicationUnderTest of(Class<?> mainClass, Action<? super RegistrySpec> action) throws Exception {
+    return new MainClassApplicationUnderTest(mainClass, Registries.registry(action));
   }
 
   /**

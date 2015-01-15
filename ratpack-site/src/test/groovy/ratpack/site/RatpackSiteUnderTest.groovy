@@ -17,23 +17,22 @@
 package ratpack.site
 
 import ratpack.exec.ExecControl
-import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import ratpack.registry.Registries
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
 import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
+import ratpack.test.MainClassApplicationUnderTest
 import ratpack.test.remote.RemoteControl
 
-
-class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
+class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   final RemoteControl remote = new RemoteControl(this)
 
   RatpackSiteUnderTest() {
-    super(
-      "other.remoteControl.enabled": "true",
-      ("other.${SiteModule.GITHUB_ENABLE}".toString()): "false"
-    )
+    super(SiteMain, Registries.registry {
+      it.add(ratpack.remote.RemoteControl.handlerDecorator())
+    })
   }
 
   void mockGithubData() {
@@ -42,11 +41,11 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
 
       def config = new TestConfig()
 
-      config.manualVersions.eachWithIndex{ version, index ->
+      config.manualVersions.eachWithIndex { version, index ->
         data.released.add(new RatpackVersion(version, index + 1, "foo", new Date(), true))
       }
 
-      data.unreleased.add(new RatpackVersion(config.currentVersion - "-SNAPSHOT" , config.manualVersions.size() + 1, "foo", new Date(), false))
+      data.unreleased.add(new RatpackVersion(config.currentVersion - "-SNAPSHOT", config.manualVersions.size() + 1, "foo", new Date(), false))
 
       add(GitHubData, data)
       add(new RatpackVersions(data, get(ExecControl)))

@@ -16,8 +16,10 @@
 
 package ratpack.handling;
 
+import ratpack.registry.Registry;
+
 public interface HandlerDecorator {
 
-  Handler decorate(Handler rest);
+  Handler decorate(Registry serverRegistry, Handler rest);
 
 }

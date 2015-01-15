@@ -74,8 +74,10 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private void define() throws Exception {
+    Registry overrideRegistry = ServerCapture.capture(this);
     definition = definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder());
-    serverRegistry = ServerRegistry.serverRegistry(definition.getServerConfig(), this, definition.getUserRegistryFactory());
+    Registry definedServerRegistry = ServerRegistry.serverRegistry(definition.getServerConfig(), this, definition.getUserRegistryFactory());
+    serverRegistry = definedServerRegistry.join(overrideRegistry);
   }
 
   @Override
@@ -143,7 +145,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) {
     for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
-      rootHandler = handlerDecorator.decorate(rootHandler);
+      rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
     }
     return rootHandler;
   }

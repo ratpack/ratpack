@@ -130,6 +130,10 @@ public interface ExecControl {
    */
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
+  default <T> Promise<T> promiseOf(T item) {
+    return promise(f -> f.success(item));
+  }
+
   /**
    * Creates a new execution stater that can be used to initiate a new execution.
    *

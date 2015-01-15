@@ -22,12 +22,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
-import groovy.transform.CompileStatic
 import ratpack.http.client.HttpClient
 
 import java.util.concurrent.TimeUnit
 
-@CompileStatic
 @javax.inject.Singleton
 class GitHubApi {
 

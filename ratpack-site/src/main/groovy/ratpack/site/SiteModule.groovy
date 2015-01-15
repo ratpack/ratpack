@@ -7,8 +7,8 @@ import groovy.util.logging.Slf4j
 import ratpack.file.FileSystemChecksumServices
 import ratpack.groovy.template.MarkupTemplate
 import ratpack.http.client.HttpClient
-import ratpack.server.ServerConfig
 import ratpack.render.RenderableDecorator
+import ratpack.server.ServerConfig
 import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData

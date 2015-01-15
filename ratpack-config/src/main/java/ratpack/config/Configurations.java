@@ -29,7 +29,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  * import ratpack.server.ServerConfig;
  * import ratpack.server.RatpackServer;
  *
- * import ratpack.test.internal.ServerBackedApplicationUnderTest;
+ * import ratpack.test.ServerBackedApplicationUnderTest;
  * import ratpack.test.http.TestHttpClients;
  * import ratpack.test.http.TestHttpClient;
  * import static org.junit.Assert.*;

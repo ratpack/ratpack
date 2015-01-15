@@ -16,10 +16,14 @@
 
 package ratpack.site.github
 
+import ratpack.exec.Promise
+
 interface GitHubData {
 
-  rx.Observable<List<RatpackVersion>> getReleasedVersions()
-  rx.Observable<List<RatpackVersion>> getUnreleasedVersions()
-  rx.Observable<IssueSet> closed(RatpackVersion version)
+  Promise<List<RatpackVersion>> getReleasedVersions()
+
+  Promise<List<RatpackVersion>> getUnreleasedVersions()
+
+  Promise<IssueSet> closed(RatpackVersion version)
 
 }

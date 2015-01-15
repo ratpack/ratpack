@@ -16,24 +16,27 @@
 
 package ratpack.site.github
 
+import ratpack.exec.ExecControl
+import ratpack.exec.Promise
+
 class MockGithubData implements GitHubData {
 
   final List<RatpackVersion> released = []
   final List<RatpackVersion> unreleased = []
 
   @Override
-  rx.Observable<List<RatpackVersion>> getReleasedVersions() {
-    rx.Observable.just(released)
+  Promise<List<RatpackVersion>> getReleasedVersions() {
+    ExecControl.current().promiseOf(released)
   }
 
   @Override
-  rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
-    rx.Observable.just(unreleased)
+  Promise<List<RatpackVersion>> getUnreleasedVersions() {
+    ExecControl.current().promiseOf(unreleased)
   }
 
   @Override
-  rx.Observable<IssueSet> closed(RatpackVersion version) {
-    rx.Observable.from(new IssueSet([], []))
+  Promise<IssueSet> closed(RatpackVersion version) {
+    ExecControl.current().promiseOf(new IssueSet([], []))
   }
 
 }

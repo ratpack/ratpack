@@ -71,6 +71,19 @@ public final class Pair<L, R> {
   }
 
   /**
+   * Creates a new pair.
+   *
+   * @param left the left item
+   * @param right the right item
+   * @param <L> the type of the left item
+   * @param <R> the type of the right item
+   * @return a new pair
+   */
+  public static <L, R> Pair<L, R> of(L left, R right) {
+    return new Pair<>(left, right);
+  }
+
+  /**
    * The left item of the pair.
    *
    * @return the left item of the pair
@@ -107,16 +120,25 @@ public final class Pair<L, R> {
   }
 
   /**
-   * Creates a new pair.
+   * Replaces the left item with the given item.
    *
-   * @param left the left item
-   * @param right the right item
-   * @param <L> the type of the left item
-   * @param <R> the type of the right item
-   * @return a new pair
+   * @param newLeft the replacement left side of the pair
+   * @param <T> the new left type
+   * @return a new pair, with the given item replacing the left of this
    */
-  public static <L, R> Pair<L, R> of(L left, R right) {
-    return new Pair<>(left, right);
+  public <T> Pair<T, R> left(T newLeft) {
+    return of(newLeft, right);
+  }
+
+  /**
+   * Replaces the right item with the given item.
+   *
+   * @param newRight the replacement right side of the pair
+   * @param <T> the new right type
+   * @return a new pair, with the given item replacing the right of this
+   */
+  public <T> Pair<L, T> right(T newRight) {
+    return of(left, newRight);
   }
 
   /**
@@ -214,6 +236,7 @@ public final class Pair<L, R> {
    * @return the result of applying {@code function} to {@code this}
    * @throws Exception any thrown by {@code function}
    */
+
   public <T> T map(Function<? super Pair<L, R>, ? extends T> function) throws Exception {
     return function.apply(this);
   }

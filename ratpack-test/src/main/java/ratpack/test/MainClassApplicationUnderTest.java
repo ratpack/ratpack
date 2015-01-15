@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.site.github
+package ratpack.test;
 
-class Issue {
-  final Integer number
-  final String url
-  final String title
-  final String author
-  final String authorUrl
+import ratpack.registry.Registry;
+import ratpack.test.internal.MainClassServerFactory;
 
-  Issue(int number, String url, String title, String author, String authorUrl) {
-    this.number = number
-    this.url = url
-    this.title = title
-    this.author = author
-    this.authorUrl = authorUrl
+public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderTest {
+
+  public MainClassApplicationUnderTest(Class<?> mainClass, Registry registry) {
+    super(new MainClassServerFactory(mainClass, registry));
   }
+
 }

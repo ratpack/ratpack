@@ -19,6 +19,8 @@ package ratpack.site.github
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
+import ratpack.exec.Promise
+import ratpack.rx.RxRatpack
 
 import javax.inject.Inject
 
@@ -34,8 +36,8 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
   @Override
-  rx.Observable<IssueSet> closed(RatpackVersion version) {
-    gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").map { JsonNode issues ->
+  Promise<IssueSet> closed(RatpackVersion version) {
+    RxRatpack.asPromiseSingle(gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").map { JsonNode issues ->
       def issuesBuilder = ImmutableList.builder()
       def pullRequestsBuilder = ImmutableList.builder()
 
@@ -63,19 +65,19 @@ class ApiBackedGitHubData implements GitHubData {
       }
 
       new IssueSet(issuesBuilder.build(), pullRequestsBuilder.build())
-    }
+    })
   }
 
-  rx.Observable<List<RatpackVersion>> getReleasedVersions() {
-    gitHubApi.milestones(state: "closed", sort: "due_date").map {
+  Promise<List<RatpackVersion>> getReleasedVersions() {
+    RxRatpack.asPromiseSingle(gitHubApi.milestones(state: "closed", sort: "due_date").map {
       RatpackVersion.fromJson(it as JsonNode) as List
-    }
+    })
   }
 
-  rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
-    gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc").map {
+  Promise<List<RatpackVersion>> getUnreleasedVersions() {
+    RxRatpack.asPromiseSingle(gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc").map {
       RatpackVersion.fromJson(it as JsonNode) as List
-    }
+    })
   }
 
 }

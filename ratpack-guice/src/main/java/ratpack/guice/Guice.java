@@ -326,7 +326,7 @@ public abstract class Guice {
     }
 
     @Override
-    public Handler decorate(Handler rest) {
+    public Handler decorate(Registry serverRegistry, Handler rest) {
       return module.decorate(injector, rest);
     }
   }

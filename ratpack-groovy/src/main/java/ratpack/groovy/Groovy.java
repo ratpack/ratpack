@@ -41,8 +41,8 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -256,9 +256,8 @@ public abstract class Groovy {
    * @param id the id/name of the template
    * @param modelBuilder an action the builds a model map
    * @return a template
-   * @throws Exception any thrown by {@code modelBuilder}
    */
-  public static MarkupTemplate groovyMarkupTemplate(String id, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) throws Exception {
+  public static MarkupTemplate groovyMarkupTemplate(String id, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
     return groovyMarkupTemplate(id, null, modelBuilder);
   }
 
@@ -269,10 +268,9 @@ public abstract class Groovy {
    * @param type The content type of template
    * @param modelBuilder an action the builds a model map
    * @return a template
-   * @throws Exception any thrown by {@code modelBuilder}
    */
-  public static MarkupTemplate groovyMarkupTemplate(String id, String type, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) throws Exception {
-    ImmutableMap<String, Object> model = Action.with(ImmutableMap.<String, Object>builder(), Action.noopIfNull(modelBuilder)).build();
+  public static MarkupTemplate groovyMarkupTemplate(String id, String type, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    ImmutableMap<String, Object> model = uncheck(() -> Action.with(ImmutableMap.<String, Object>builder(), Action.noopIfNull(modelBuilder)).build());
     return groovyMarkupTemplate(model, id, type);
   }
 

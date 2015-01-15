@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal;
+package ratpack.test;
 
 import ratpack.func.Factory;
 import ratpack.server.RatpackServer;
-import ratpack.test.CloseableApplicationUnderTest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
