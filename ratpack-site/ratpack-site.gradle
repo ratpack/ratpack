@@ -244,6 +244,8 @@ run {
   main "ratpack.site.SiteMain"
 }
 
+mainClassName = "ratpack.site.SiteMain"
+
 task createScriptsDir {
   doLast {
     mkdir "src/ratpack/assets/scripts"
