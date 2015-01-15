@@ -18,7 +18,6 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.Script;
-import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.func.Factory;
@@ -32,48 +31,36 @@ import java.nio.file.Path;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class ScriptBackedApp implements Handler {
+public class ScriptBackedHandler implements Handler {
 
   private final Factory<Handler> reloadHandler;
   private final Path script;
 
-  public ScriptBackedApp(Path script, final boolean staticCompile, boolean reloadable, final Function<Closure<?>, Handler> closureTransformer) {
+  public ScriptBackedHandler(Path script, boolean staticCompile, boolean reloadable, Function<Closure<?>, Handler> closureTransformer) throws Exception {
     this.script = script;
-    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Producer<Handler>() {
-      public Handler produce(final Path file, final ByteBuf bytes) {
-        try {
-          final String string = bytes.toString(CharsetUtil.UTF_8);
-          final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
+    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, (file, bytes) -> {
+      String string = bytes.toString(CharsetUtil.UTF_8);
+      ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
 
-          Runnable runScript = new Runnable() {
-            public void run() {
-              try {
-                scriptEngine.create(file.getFileName().toString(), file, string).run();
-              } catch (Exception e) {
-                throw uncheck(e);
-              }
-            }
-          };
+      ClosureCaptureAction backing = new ClosureCaptureAction();
+      RatpackScriptBacking.withBacking(backing, () ->
+          uncheck(() -> scriptEngine.create(file.getFileName().toString(), file, string).run())
+      );
 
-          ClosureCaptureAction backing = new ClosureCaptureAction();
-          RatpackScriptBacking.withBacking(backing, runScript);
-
-          return closureTransformer.apply(backing.closure);
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
-      }
+      return closureTransformer.apply(backing.closure);
     });
 
-    new Thread(new Runnable() {
-      public void run() {
+    if (reloadable) {
+      new Thread(() -> {
         try {
           reloadHandler.create();
         } catch (Exception ignore) {
           // ignore
         }
-      }
-    }).run();
+      }).run();
+    } else {
+      reloadHandler.create();
+    }
   }
 
   public void handle(Context context) throws Exception {

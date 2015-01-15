@@ -16,16 +16,14 @@
 
 package ratpack.groovy.handling
 
-import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
-import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigs
-import ratpack.launch.internal.LaunchConfigsInternal
+import ratpack.groovy.Groovy
 import ratpack.server.RatpackServer
+import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
-class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
+class GroovyScriptHandlersSpec extends RatpackGroovyScriptAppSpec {
 
   boolean compileStatic = false
   boolean development = false
@@ -33,30 +31,15 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
   @Override
   EmbeddedApp createApplication() {
     new EmbeddedAppSupport() {
-      //TODO-JOHN
-      protected LaunchConfig createLaunchConfig() {
-        LaunchConfigs.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())
-      }
-
       @Override
       protected RatpackServer createServer() {
         RatpackServer.of { spec ->
           spec
-            .config(LaunchConfigsInternal.toServerConfig(createLaunchConfig()).port(0))
-            .handler(new GroovyScriptFileHandlerFactory().&create)
+            .config(ServerConfig.baseDir(temporaryFolder.root.canonicalFile).port(0).development(development))
+            .handler(Groovy.Script.handlers(ratpackFile.name, compileStatic))
         }
       }
     }
-  }
-
-  protected Properties getLaunchConfigProperties() {
-    Properties properties = new Properties()
-    properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.name)
-    properties.setProperty(LaunchConfigs.Property.DEVELOPMENT, development.toString())
-    properties.setProperty(LaunchConfigs.Property.PORT, "0")
-    properties.setProperty("other." + GroovyScriptFileHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
-    properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
-    return properties
   }
 
   def "can use script app"() {
@@ -69,6 +52,74 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
         handlers {
           get {
             render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+  }
+
+  def "changes to handlers are respected during development"() {
+    given:
+    compileStatic = true
+    development = true
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get {
+            render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get {
+            render "bar"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "bar"
+  }
+
+  def "changes to handlers are respected when not development"() {
+    given:
+    compileStatic = true
+    development = false
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get {
+            render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get {
+            render "bar"
           }
         }
       }
@@ -141,5 +192,69 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     !application.server.running
     !application.server.bindHost
     application.server.bindPort < 0
+  }
+
+  def "fails to start when attempt to use bindings method and not development"() {
+    given:
+    compileStatic = true
+    development = false
+
+    when:
+    script """
+      ratpack {
+        bindings {
+
+        }
+      }
+    """
+
+    server.start()
+
+    then:
+    def e = thrown IllegalStateException
+    e.message == "bindings {} not supported for this script"
+  }
+
+  def "does not fail to start when attempt to use bindings method and in development"() {
+    given:
+    compileStatic = true
+    development = true
+
+    when:
+    script """
+      ratpack {
+        bindings {
+
+        }
+        handlers {
+          get { render "ok" }
+        }
+      }
+    """
+
+    server.start()
+
+    then:
+    noExceptionThrown()
+    get()
+    response.status.code == 500
+    response.body.text.contains("bindings {} not supported for this script")
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get { render "ok" }
+        }
+      }
+    """
+
+    then:
+    noExceptionThrown()
+    text == "ok"
+  }
+
+  def "respects compile static"() {
+
   }
 }

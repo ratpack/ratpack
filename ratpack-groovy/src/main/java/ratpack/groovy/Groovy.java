@@ -22,7 +22,9 @@ import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
@@ -33,6 +35,7 @@ import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.internal.RatpackScriptBacking;
+import ratpack.groovy.internal.ScriptBackedHandler;
 import ratpack.groovy.template.Markup;
 import ratpack.groovy.template.MarkupTemplate;
 import ratpack.groovy.template.TextTemplate;
@@ -45,6 +48,7 @@ import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -122,6 +126,42 @@ public abstract class Groovy {
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
+  }
+
+  public static abstract class Script {
+    private Script() {
+    }
+
+
+    public static Function<Registry, Handler> handlers(String scriptPath, boolean staticCompile) {
+      return r -> {
+        Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
+        boolean development = r.get(ServerConfig.class).isDevelopment();
+        return new ScriptBackedHandler(scriptFile, staticCompile, development, closure -> {
+          HandlersOnly ratpack = new HandlersOnly();
+          ClosureUtil.configureDelegateFirst(ratpack, closure);
+          return Groovy.chain(r, ratpack.handlers);
+        });
+      };
+    }
+
+    public static Function<Registry, Handler> handlers(boolean staticCompile) {
+      return handlers("ratpack.groovy", staticCompile);
+    }
+  }
+
+  private static class HandlersOnly implements Ratpack {
+    private Closure<?> handlers = ClosureUtil.noop();
+
+    @Override
+    public void bindings(Closure<?> configurer) {
+      throw new IllegalStateException("bindings {} not supported for this script");
+    }
+
+    @Override
+    public void handlers(Closure<?> configurer) {
+      this.handlers = configurer;
+    }
   }
 
   /**

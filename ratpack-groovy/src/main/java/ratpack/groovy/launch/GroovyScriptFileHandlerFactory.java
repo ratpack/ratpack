@@ -21,7 +21,7 @@ import com.google.inject.Module;
 import groovy.lang.Closure;
 import ratpack.func.Function;
 import ratpack.groovy.internal.RatpackDslClosureToHandlerTransformer;
-import ratpack.groovy.internal.ScriptBackedApp;
+import ratpack.groovy.internal.ScriptBackedHandler;
 import ratpack.groovy.server.internal.GroovyKitAppFactory;
 import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
@@ -42,7 +42,7 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
   public static final String COMPILE_STATIC_PROPERTY_NAME = "groovy.compileStatic";
   public static final String COMPILE_STATIC_PROPERTY_DEFAULT = "false";
 
-  public Handler create(Registry registry) {
+  public Handler create(Registry registry) throws Exception {
     ServerConfig serverConfig = registry.get(ServerConfig.class);
     String scriptName = serverConfig.getOther(SCRIPT_PROPERTY_NAME, SCRIPT_PROPERTY_DEFAULT);
     Path script = serverConfig.getBaseDir().file(scriptName);
@@ -71,7 +71,7 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
     GuiceBackedHandlerFactory handlerFactory = new GroovyKitAppFactory(registry);
     Function<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(serverConfig, handlerFactory, Function.from(moduleTransformer));
 
-    return new ScriptBackedApp(script, compileStatic, serverConfig.isDevelopment(), closureTransformer);
+    return new ScriptBackedHandler(script, compileStatic, serverConfig.isDevelopment(), closureTransformer);
   }
 
 }
