@@ -96,12 +96,27 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
 
   private static ServerConfig.Builder builderForBasedir(ObjectNode serverNode, DeserializationContext ctxt) throws IOException {
     JsonNode baseDirNode = serverNode.get("baseDir");
-    if (baseDirNode == null) {
-      return ServerConfig.noBaseDir();
-    } else if (baseDirNode.isTextual()) {
-      return ServerConfig.baseDir(Paths.get(baseDirNode.asText()));
+    if (baseDirNode != null) {
+      if (baseDirNode.isTextual()) {
+        return ServerConfig.baseDir(Paths.get(baseDirNode.asText()));
+      } else {
+        throw ctxt.mappingException(ServerConfig.class, baseDirNode.asToken());
+      }
     }
-    throw ctxt.mappingException(ServerConfig.class, baseDirNode.asToken());
+    JsonNode baseDirPropsNode = serverNode.get("baseDirProps");
+    if (baseDirPropsNode != null) {
+      if (baseDirPropsNode.isTextual()) {
+        String propertiesPath = baseDirPropsNode.asText();
+        if (propertiesPath.isEmpty()) {
+          return ServerConfig.findBaseDirProps();
+        } else {
+          return ServerConfig.findBaseDirProps(propertiesPath);
+        }
+      } else {
+        throw ctxt.mappingException(ServerConfig.class, baseDirPropsNode.asToken());
+      }
+    }
+    return ServerConfig.noBaseDir();
   }
 
   @SuppressWarnings("unchecked")
