@@ -35,6 +35,6 @@ public interface ExecStarter {
 
   ExecStarter eventLoop(EventLoop eventLoop);
 
-  void start(Action<? super Execution> onError);
+  void start(Action<? super Execution> action);
 
 }
