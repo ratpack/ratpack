@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava library - https://github.com/Netflix/RxJava"
+description = "Integration with the RxJava library - https://github.com/ReactiveX/RxJava"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-  "http://reactivex.io/RxJava/javadoc/${commonVersions.rxjava.split("-", 2)[0]}/"
+  "http://reactivex.io/RxJava/javadoc/1.0.0/"
 ]
 
 dependencies {
