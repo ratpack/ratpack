@@ -79,7 +79,7 @@ public class NettyRatpackServer implements RatpackServer {
   private void define() throws Exception {
     Registry overrideRegistry = ServerCapture.capture(this);
     definition = definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder());
-    Registry definedServerRegistry = ServerRegistry.serverRegistry(definition.getServerConfig(), this, definition.getUserRegistryFactory());
+    Registry definedServerRegistry = ServerRegistry.serverRegistry(this, definition.getUserRegistryFactory());
     serverRegistry = definedServerRegistry.join(overrideRegistry);
   }
 

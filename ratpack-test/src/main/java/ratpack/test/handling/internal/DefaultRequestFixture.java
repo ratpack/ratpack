@@ -234,14 +234,20 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> ServerRegistry.serverRegistry(serverConfigBuilder.build(), new TestServer(), r -> userRegistry.join(registryBuilder.build())));
+    return ExceptionUtils.uncheck(() -> ServerRegistry.serverRegistry(new TestServer(serverConfigBuilder.build()), r -> userRegistry.join(registryBuilder.build())));
   }
 
   // TODO some kind of impl here
   private static class TestServer implements RatpackServer {
+    private final ServerConfig serverConfig;
+
+    TestServer(ServerConfig serverConfig) {
+      this.serverConfig = serverConfig;
+    }
+
     @Override
     public ServerConfig getServerConfig() {
-      throw new UnsupportedOperationException();
+      return serverConfig;
     }
 
     @Override

@@ -54,8 +54,29 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
+  public static Registry serverRegistry(RatpackServer ratpackServer, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+    Registry baseRegistry = buildBaseRegistry(ratpackServer);
+    Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
+    return buildServerRegistry(baseRegistry, userRegistry);
+  }
 
-  public static Registry serverRegistry(ServerConfig serverConfig, RatpackServer ratpackServer, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+  public static Registry buildServerRegistry(Registry baseRegistry, Registry userRegistry) {
+    return baseRegistry.join(userRegistry);
+  }
+
+  public static Registry buildUserRegistry(Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
+    Registry userRegistry;
+    try {
+      userRegistry = userRegistryFactory.apply(baseRegistry);
+    } catch (Exception e) {
+      Throwables.propagateIfPossible(e);
+      throw new LaunchException("Failed to build user registry", e);
+    }
+    return userRegistry;
+  }
+
+  public static Registry buildBaseRegistry(RatpackServer ratpackServer) {
+    ServerConfig serverConfig = ratpackServer.getServerConfig();
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
     ExecController execController = new DefaultExecController(serverConfig.getThreads());
     PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
@@ -89,21 +110,9 @@ public abstract class ServerRegistry {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);
     }
-
     if (serverConfig.isHasBaseDir()) {
       baseRegistryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
-
-    Registry baseRegistry = baseRegistryBuilder.build();
-    Registry userRegistry;
-
-    try {
-      userRegistry = userRegistryFactory.apply(baseRegistry);
-    } catch (Exception e) {
-      Throwables.propagateIfPossible(e);
-      throw new LaunchException("Failed to build user registry", e);
-    }
-
-    return baseRegistry.join(userRegistry);
+    return baseRegistryBuilder.build();
   }
 }
