@@ -31,6 +31,7 @@ class PromiseCachingSpec extends Specification {
   Queue<?> events = new ConcurrentLinkedQueue<>()
   def latch = new CountDownLatch(1)
 
+  //TODO this shouldn't use LaunchConfigBuilder.
   def setup() {
     controller = LaunchConfigBuilder.noBaseDir().build().execController
   }
