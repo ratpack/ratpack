@@ -20,25 +20,25 @@ import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.groovy.guice.GroovyBindingsSpec;
+import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
-import ratpack.groovy.internal.ClosureInvoker;
-import ratpack.groovy.internal.ClosureUtil;
-import ratpack.groovy.internal.RatpackScriptBacking;
-import ratpack.groovy.internal.ScriptBackedHandler;
+import ratpack.groovy.internal.*;
 import ratpack.groovy.template.Markup;
 import ratpack.groovy.template.MarkupTemplate;
 import ratpack.groovy.template.TextTemplate;
+import ratpack.guice.Guice;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -46,6 +46,7 @@ import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
+import ratpack.util.internal.IoUtils;
 
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -129,24 +130,42 @@ public abstract class Groovy {
   }
 
   public static abstract class Script {
+
+    public static final String DEFAULT_HANDLERS_PATH = "handlers.groovy";
+    public static final String DEFAULT_BINDINGS_PATH = "bindings.groovy";
+
     private Script() {
     }
 
+
+    public static Function<Registry, Handler> handlers(boolean staticCompile) {
+      return handlers(DEFAULT_HANDLERS_PATH, staticCompile);
+    }
 
     public static Function<Registry, Handler> handlers(String scriptPath, boolean staticCompile) {
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
         boolean development = r.get(ServerConfig.class).isDevelopment();
-        return new ScriptBackedHandler(scriptFile, staticCompile, development, closure -> {
-          HandlersOnly ratpack = new HandlersOnly();
-          ClosureUtil.configureDelegateFirst(ratpack, closure);
-          return Groovy.chain(r, ratpack.handlers);
-        });
+        return new ScriptBackedHandler(scriptFile, development, new RatpackDslCapture<>(staticCompile, HandlersOnly::new, h ->
+          Groovy.chain(r, h.handlers)
+        ));
       };
     }
 
-    public static Function<Registry, Handler> handlers(boolean staticCompile) {
-      return handlers("ratpack.groovy", staticCompile);
+    public static Function<Registry, Registry> bindings(boolean staticCompile) {
+      return bindings(DEFAULT_BINDINGS_PATH, staticCompile);
+    }
+
+    public static Function<Registry, Registry> bindings(String scriptPath, boolean staticCompile) {
+      // TODO reload during development
+      return r -> {
+        Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
+        String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+        Closure<?> bindingsClosure = new RatpackDslCapture<>(staticCompile, BindingsOnly::new, b -> b.bindings).apply(scriptFile, script);
+        return Guice.registry(bindingsSpec ->
+            ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure)
+        ).apply(r);
+      };
     }
   }
 
@@ -161,6 +180,20 @@ public abstract class Groovy {
     @Override
     public void handlers(Closure<?> configurer) {
       this.handlers = configurer;
+    }
+  }
+
+  private static class BindingsOnly implements Ratpack {
+    private Closure<?> bindings = ClosureUtil.noop();
+
+    @Override
+    public void bindings(Closure<?> configurer) {
+      this.bindings = configurer;
+    }
+
+    @Override
+    public void handlers(Closure<?> configurer) {
+      throw new IllegalStateException("handlers {} not supported for this script");
     }
   }
 

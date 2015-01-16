@@ -51,7 +51,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
   def cleanup() {
     try {
       application.server.stop()
-    } catch (ignore) {
+    } catch (Throwable ignore) {
 
     }
   }

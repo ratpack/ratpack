@@ -16,38 +16,25 @@
 
 package ratpack.groovy.internal;
 
-import groovy.lang.Closure;
-import groovy.lang.Script;
 import io.netty.util.CharsetUtil;
-import ratpack.func.Action;
+import ratpack.func.BiFunction;
 import ratpack.func.Factory;
-import ratpack.func.Function;
-import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 
 import java.nio.file.Path;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 public class ScriptBackedHandler implements Handler {
 
   private final Factory<Handler> reloadHandler;
   private final Path script;
 
-  public ScriptBackedHandler(Path script, boolean staticCompile, boolean reloadable, Function<Closure<?>, Handler> closureTransformer) throws Exception {
+  public ScriptBackedHandler(Path script, boolean reloadable, BiFunction<? super Path, ? super String, ? extends Handler> capture) throws Exception {
     this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, (file, bytes) -> {
       String string = bytes.toString(CharsetUtil.UTF_8);
-      ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
-
-      ClosureCaptureAction backing = new ClosureCaptureAction();
-      RatpackScriptBacking.withBacking(backing, () ->
-          uncheck(() -> scriptEngine.create(file.getFileName().toString(), file, string).run())
-      );
-
-      return closureTransformer.apply(backing.closure);
+      return capture.apply(script, string);
     });
 
     if (reloadable) {
@@ -72,11 +59,4 @@ public class ScriptBackedHandler implements Handler {
     }
   }
 
-  private static class ClosureCaptureAction implements Action<Closure<?>> {
-    private Closure<?> closure;
-
-    public void execute(Closure<?> configurer) throws Exception {
-      closure = configurer;
-    }
-  }
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch.internal;
+package ratpack.groovy.internal;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
-import ratpack.groovy.internal.RatpackDslClosureToHandlerTransformer;
+import ratpack.func.Function;
 import ratpack.groovy.server.internal.GroovyKitAppFactory;
 import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
@@ -27,8 +27,6 @@ import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
-
-import java.util.function.Function;
 
 public class GroovyClosureHandlerFactory implements HandlerFactory {
 
@@ -40,11 +38,15 @@ public class GroovyClosureHandlerFactory implements HandlerFactory {
 
   @Override
   public Handler create(Registry registry) throws Exception {
+    FullRatpackDslBacking dslBacking = new FullRatpackDslBacking();
+    ClosureUtil.configureDelegateFirst(dslBacking, ratpackClosure);
+    RatpackDslClosures closures = dslBacking.getClosures();
+
     ServerConfig serverConfig = registry.get(ServerConfig.class);
     GuiceBackedHandlerFactory guiceHandlerFactory = new GroovyKitAppFactory(registry);
     Function<Module, Injector> moduleInjectorTransformer = Guice.newInjectorFactory(serverConfig);
-    ratpack.func.Function<Closure<?>, Handler> handlerTransformer = new RatpackDslClosureToHandlerTransformer(serverConfig, guiceHandlerFactory, ratpack.func.Function.from(moduleInjectorTransformer));
-    return handlerTransformer.apply(ratpackClosure);
+
+    return new RatpackDslClosureToHandlerTransformer(serverConfig, guiceHandlerFactory, moduleInjectorTransformer).apply(closures);
   }
 
 }

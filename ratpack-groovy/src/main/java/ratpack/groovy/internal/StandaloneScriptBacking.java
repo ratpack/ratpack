@@ -23,7 +23,6 @@ import ratpack.api.Nullable;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
-import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;

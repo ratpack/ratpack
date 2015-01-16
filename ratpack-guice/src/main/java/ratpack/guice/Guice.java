@@ -208,8 +208,8 @@ public abstract class Guice {
 
       @Override
       public Handler build(Action<? super Chain> action) throws Exception {
-        java.util.function.Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(rootRegistry.get(ServerConfig.class)) : childInjectorFactory(parent);
-        return new DefaultGuiceBackedHandlerFactory(rootRegistry).create(bindings, Function.from(moduleTransformer),
+        Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(rootRegistry.get(ServerConfig.class)) : childInjectorFactory(parent);
+        return new DefaultGuiceBackedHandlerFactory(rootRegistry).create(bindings, moduleTransformer,
           injector -> Handlers.chain(rootRegistry.get(ServerConfig.class), justInTimeRegistry(injector), action)
         );
       }
@@ -249,21 +249,21 @@ public abstract class Guice {
     return baseRegistry -> registry(bindings, baseRegistry, childInjectorFactory(parentInjector));
   }
 
-  private static Registry registry(Action<? super BindingsSpec> bindings, Registry baseRegistry, java.util.function.Function<Module, Injector> injectorFactory) {
+  private static Registry registry(Action<? super BindingsSpec> bindings, Registry baseRegistry, Function<Module, Injector> injectorFactory) throws Exception {
     Pair<List<Module>, Injector> pair = buildInjector(baseRegistry, bindings, injectorFactory);
     return registry(pair.right);
   }
 
-  public static java.util.function.Function<Module, Injector> newInjectorFactory(final ServerConfig serverConfig) {
+  public static Function<Module, Injector> newInjectorFactory(final ServerConfig serverConfig) {
     final Stage stage = serverConfig.isDevelopment() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
     return from -> from == null ? createInjector(stage) : createInjector(stage, from);
   }
 
-  private static java.util.function.Function<Module, Injector> childInjectorFactory(final Injector parent) {
+  private static Function<Module, Injector> childInjectorFactory(final Injector parent) {
     return from -> from == null ? parent.createChildInjector() : parent.createChildInjector(from);
   }
 
-  private static Pair<List<Module>, Injector> buildInjector(Registry baseRegistry, Action<? super BindingsSpec> bindingsAction, java.util.function.Function<? super Module, ? extends Injector> injectorFactory) {
+  private static Pair<List<Module>, Injector> buildInjector(Registry baseRegistry, Action<? super BindingsSpec> bindingsAction, Function<? super Module, ? extends Injector> injectorFactory) throws Exception {
     List<Action<? super Binder>> binderActions = Lists.newLinkedList();
     List<Module> modules = Lists.newLinkedList();
 
