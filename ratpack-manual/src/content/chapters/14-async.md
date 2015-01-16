@@ -68,14 +68,14 @@ Instead, we need to use the “blocking” API…
 ```language-java
 import ratpack.handling.InjectionHandler;
 import ratpack.handling.Context;
-import ratpack.func.Action;
 
 import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
 
-import java.util.concurrent.Callable;
 import java.util.Collections;
 import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
 
 public class Example {
 
@@ -97,15 +97,11 @@ public class Example {
   // Unit test
   public static void main(String... args) throws Exception {
     HandlingResult result = RequestFixture.handle(new DeletingHandler(), fixture -> fixture
-      .pathBinding(Collections.singletonMap("days", "10"))
-      .registry(r -> r.add(Datastore.class, new Datastore() {
-        public int deleteOlderThan(int days) throws IOException {
-          return days;
-        }
-      }))
+        .pathBinding(Collections.singletonMap("days", "10"))
+        .registry(r -> r.add(Datastore.class, days -> days))
     );
 
-    assert result.rendered(String.class).equals("10 records deleted");
+    assertEquals("10 records deleted", result.rendered(String.class));
   }
 }
 ```
@@ -123,6 +119,8 @@ It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise t
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
 
+import static org.junit.Assert.assertEquals;
+
 public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandler(ctx ->
@@ -130,7 +128,7 @@ public class Example {
             new Thread(() -> f.success("hello world")).start()
         ).then(ctx::render)
     ).test(httpClient -> {
-      assert httpClient.getText().equals("hello world");
+      assertEquals("hello world", httpClient.getText());
     });
   }
 }

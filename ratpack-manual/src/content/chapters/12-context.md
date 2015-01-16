@@ -24,6 +24,7 @@ Consider the following example:
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
 
+import static org.junit.Assert.assertEquals;
 import static ratpack.registry.Registries.just;
 
 public class Example {
@@ -82,8 +83,8 @@ public class Example {
             }))
       )
       .test(httpClient -> {
-        assert httpClient.get("person/10/status").getBody().getText().equals("person 10 status: example-status");
-        assert httpClient.get("person/6/age").getBody().getText().equals("person 6 age: example-age");
+        assertEquals("person 10 status: example-status", httpClient.get("person/10/status").getBody().getText());
+        assertEquals("person 6 age: example-age", httpClient.get("person/6/age").getBody().getText());
       });
   }
 }
@@ -138,6 +139,8 @@ A typical use for this is using different error handling strategies for differen
 import ratpack.error.ServerErrorHandler;
 import ratpack.test.embed.EmbeddedApp;
 
+import static org.junit.Assert.assertEquals;
+
 public class Example {
 
   public static void main(String... args) throws Exception {
@@ -159,8 +162,8 @@ public class Example {
           throw new Exception("in app - " + context.getRequest().getPath());
         })
     ).test(httpClient -> {
-      assert httpClient.get("api/foo").getBody().getText().equals("api error: in api - api/foo");
-      assert httpClient.get("bar").getBody().getText().equals("app error: in app - bar");
+      assertEquals("api error: in api - api/foo", httpClient.get("api/foo").getBody().getText());
+      assertEquals("app error: in app - bar", httpClient.get("bar").getBody().getText());
     });
   }
 

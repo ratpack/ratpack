@@ -22,6 +22,7 @@ For example, blocking operations can be easily observed.
 import ratpack.exec.Promise;
 import ratpack.test.handling.HandlingResult;
 
+import static org.junit.Assert.assertEquals;
 import static ratpack.rx.RxRatpack.observe;
 import static ratpack.test.handling.RequestFixture.requestFixture;
 
@@ -32,7 +33,7 @@ public class Example {
       observe(promise).map(String::toUpperCase).subscribe(context::render);
     });
 
-    assert result.rendered(String.class).equals("HELLO WORLD");
+    assertEquals("HELLO WORLD", result.rendered(String.class));
   }
 }
 ```
@@ -50,21 +51,23 @@ import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
 import rx.Observable;
 
+import static org.junit.Assert.assertEquals;
+
 public class Example {
   public static void main(String... args) throws Exception {
     RxRatpack.initialize(); // must be called once per JVM
 
     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
       chain.register(registry ->
-        registry.add(ServerErrorHandler.class, (context, throwable) ->
-          context.render("caught by error handler: " + throwable.getMessage())
-        )
+          registry.add(ServerErrorHandler.class, (context, throwable) ->
+              context.render("caught by error handler: " + throwable.getMessage())
+          )
       );
 
       chain.get(ctx -> Observable.<String>error(new Exception("!")).subscribe((s) -> {}));
     });
 
-    assert result.rendered(String.class).equals("caught by error handler: !");
+    assertEquals("caught by error handler: !", result.rendered(String.class));
   }
 }
 ```
