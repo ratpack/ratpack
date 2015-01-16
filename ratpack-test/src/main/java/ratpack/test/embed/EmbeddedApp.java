@@ -61,6 +61,24 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
     return fromServer(() -> server);
   }
 
+  /**
+   * Creates an embedded application from the given function.
+   *
+   * @param definition a function that defines the server
+   * @return a newly created embedded application
+   * @throws java.lang.Exception if an error is encountered creating the application
+   * @see ratpack.server.RatpackServer#of(ratpack.func.Function)
+   */
+  static EmbeddedApp fromServerFunction(Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
+    return fromServer(RatpackServer.of(definition));
+  }
+
+  /**
+   * Creates an embedded application for the given server.
+   *
+   * @param server a factory that creates the server to embed
+   * @return a newly created embedded application
+   */
   static EmbeddedApp fromServer(Factory<? extends RatpackServer> server) {
     return new EmbeddedAppSupport() {
       @Override
