@@ -310,6 +310,18 @@ public interface RatpackServer {
       }
 
       /**
+       * Builds the server definition from the given handler type, and state of this builder.
+       * <p>
+       * The handler is retrieved from the registry.
+       *
+       * @param handlerType the type of handler to retrieve from the registry
+       * @return a server definition based on the state of this builder
+       */
+      default Definition handler(Class<? extends Handler> handlerType) {
+        return handler(registry -> registry.get(handlerType));
+      }
+
+      /**
        * Builds the server definition from the given factory, and state of this builder.
        * <p>
        * The registry given to this method is not the same registry that is defined by the {@link #registry(Registry)} methods (i.e. the user registry).
