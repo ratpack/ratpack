@@ -17,7 +17,6 @@
 package ratpack.guice.internal;
 
 import com.google.inject.Binder;
-import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import ratpack.func.Action;
@@ -34,12 +33,10 @@ public class DefaultBindingsSpec implements BindingsSpec {
   private final List<Module> modules;
   private final ServerConfig serverConfig;
   private final List<Action<? super Binder>> binderActions;
-  private final List<Action<? super Injector>> injectorActions;
 
-  public DefaultBindingsSpec(ServerConfig serverConfig, List<Action<? super Binder>> binderActions, List<Action<? super Injector>> injectorActions, List<Module> modules) {
+  public DefaultBindingsSpec(ServerConfig serverConfig, List<Action<? super Binder>> binderActions, List<Module> modules) {
     this.serverConfig = serverConfig;
     this.binderActions = binderActions;
-    this.injectorActions = injectorActions;
     this.modules = modules;
   }
 
@@ -119,18 +116,6 @@ public class DefaultBindingsSpec implements BindingsSpec {
   @Override
   public BindingsSpec binder(Action<? super Binder> action) {
     binderActions.add(action);
-    return this;
-  }
-
-  @Override
-  public BindingsSpec init(Action<? super Injector> action) {
-    injectorActions.add(action);
-    return this;
-  }
-
-  @Override
-  public BindingsSpec init(final Class<? extends Runnable> clazz) {
-    injectorActions.add(injector -> injector.getInstance(clazz).run());
     return this;
   }
 

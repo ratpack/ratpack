@@ -17,11 +17,8 @@
 package ratpack.groovy.guice;
 
 import com.google.inject.Binder;
-import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
@@ -33,17 +30,6 @@ import java.util.function.Consumer;
  * Groovy specific extensions to {@link ratpack.guice.BindingsSpec}.
  */
 public interface GroovyBindingsSpec extends BindingsSpec {
-
-  /**
-   * Adds a closure based application initializer.
-   * <p>
-   * The closure can declare parameters, that will be injected.
-   * That is, parameters must be typed and implementations of such types must be provided by the modules.
-   *
-   * @param closure The initializer
-   * @return {@code this}
-   */
-  GroovyBindingsSpec init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
 
   /**
    * {@inheritDoc}
@@ -110,17 +96,5 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    */
   @Override
   <T> GroovyBindingsSpec provider(Class<T> publicType, Provider<? extends T> provider);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyBindingsSpec init(Action<? super Injector> action);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyBindingsSpec init(Class<? extends Runnable> clazz);
 
 }

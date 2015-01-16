@@ -67,10 +67,9 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
   private Handler doCreate(Action<? super BindingsSpec> modulesAction, Function<? super Module, ? extends Injector> moduleTransformer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
 
     List<Action<? super Binder>> binderActions = Lists.newLinkedList();
-    List<Action<? super Injector>> injectorActions = Lists.newLinkedList();
     List<Module> modules = Lists.newLinkedList();
 
-    BindingsSpec moduleRegistry = new DefaultBindingsSpec(serverConfig, binderActions, injectorActions, modules);
+    BindingsSpec moduleRegistry = new DefaultBindingsSpec(serverConfig, binderActions, modules);
 
     registerDefaultModules(moduleRegistry);
     modulesAction.toConsumer().accept(moduleRegistry);
@@ -88,10 +87,6 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
 
     Module masterModule = effectiveModules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
     Injector injector = moduleTransformer.apply(masterModule);
-
-    for (Action<? super Injector> initAction : injectorActions) {
-      initAction.execute(injector);
-    }
 
     Handler handler = injectorTransformer.apply(injector);
     Collections.reverse(modules);

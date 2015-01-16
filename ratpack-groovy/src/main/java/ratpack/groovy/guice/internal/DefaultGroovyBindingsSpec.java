@@ -17,19 +17,14 @@
 package ratpack.groovy.guice.internal;
 
 import com.google.inject.Binder;
-import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import groovy.lang.Closure;
 import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
-import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.Guice;
 import ratpack.guice.NoSuchModuleException;
 import ratpack.server.ServerConfig;
-import ratpack.registry.Registry;
 
 import java.util.function.Consumer;
 
@@ -39,20 +34,6 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
 
   public DefaultGroovyBindingsSpec(BindingsSpec delegate) {
     this.delegate = delegate;
-  }
-
-  @Override
-  public GroovyBindingsSpec init(final Closure<?> closure) {
-    doInit(closure, Void.class, Closure.OWNER_ONLY);
-    return this;
-  }
-
-  private <T, N> void doInit(final Closure<T> closure, final Class<N> clazz, final int resolveStrategy) {
-    init(injector -> {
-      Registry injectorBackedRegistry = Guice.registry(injector);
-      N delegate = clazz.equals(Void.class) ? null : injector.getInstance(clazz);
-      new ClosureInvoker<T, N>(closure).invoke(injectorBackedRegistry, delegate, resolveStrategy);
-    });
   }
 
   @Override
@@ -93,18 +74,6 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   @Override
   public <T> GroovyBindingsSpec provider(Class<T> publicType, Provider<? extends T> provider) {
     delegate.provider(publicType, provider);
-    return this;
-  }
-
-  @Override
-  public GroovyBindingsSpec init(Action<? super Injector> action) {
-    delegate.init(action);
-    return this;
-  }
-
-  @Override
-  public GroovyBindingsSpec init(Class<? extends Runnable> clazz) {
-    delegate.init(clazz);
     return this;
   }
 

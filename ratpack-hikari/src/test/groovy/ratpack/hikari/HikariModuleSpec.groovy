@@ -18,6 +18,8 @@ package ratpack.hikari
 
 import groovy.sql.Sql
 import ratpack.groovy.sql.SqlModule
+import ratpack.server.ServerLifecycleListener
+import ratpack.server.StartEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 public class HikariModuleSpec extends RatpackGroovyDslSpec {
@@ -31,8 +33,11 @@ public class HikariModuleSpec extends RatpackGroovyDslSpec {
         it.dataSourceClassName = "org.h2.jdbcx.JdbcDataSource"
       }
 
-      init { Sql sql ->
-        sql.execute("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));")
+      bindInstance ServerLifecycleListener, new ServerLifecycleListener() {
+        @Override
+        void onStart(StartEvent event) {
+          event.registry.get(Sql).execute("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));")
+        }
       }
     }
 

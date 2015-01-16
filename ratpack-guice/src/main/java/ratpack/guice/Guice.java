@@ -28,7 +28,6 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.handling.Handlers;
-import ratpack.launch.LaunchException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
@@ -266,10 +265,9 @@ public abstract class Guice {
 
   private static Pair<List<Module>, Injector> buildInjector(Registry baseRegistry, Action<? super BindingsSpec> bindingsAction, java.util.function.Function<? super Module, ? extends Injector> injectorFactory) {
     List<Action<? super Binder>> binderActions = Lists.newLinkedList();
-    List<Action<? super Injector>> injectorActions = Lists.newLinkedList();
     List<Module> modules = Lists.newLinkedList();
 
-    BindingsSpec bindings = new DefaultBindingsSpec(baseRegistry.get(ServerConfig.class), binderActions, injectorActions, modules);
+    BindingsSpec bindings = new DefaultBindingsSpec(baseRegistry.get(ServerConfig.class), binderActions, modules);
     bindings.add(new RatpackBaseRegistryModule(baseRegistry));
 
     try {
@@ -301,15 +299,6 @@ public abstract class Guice {
           }
         }
       });
-    }
-
-    // TODO remove and replace with startup actions
-    for (Action<? super Injector> initAction : injectorActions) {
-      try {
-        initAction.execute(injector);
-      } catch (Exception e) {
-        throw new LaunchException("Startup action failed", e);
-      }
     }
 
     return Pair.of(modules, injector);

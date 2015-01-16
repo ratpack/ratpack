@@ -16,22 +16,20 @@
 
 package ratpack.guice
 
-import com.google.inject.Injector
-import ratpack.func.Action
+import ratpack.server.ServerLifecycleListener
+import ratpack.server.StartEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 import javax.inject.Inject
 
-@Ignore
-class GuiceInitSpec extends RatpackGroovyDslSpec {
+class GuiceLifecycleEventSpec extends RatpackGroovyDslSpec {
 
   @com.google.inject.Singleton
   static class Thing {
     final List<String> strings = []
   }
 
-  static class ThingInit implements Runnable {
+  static class ThingInit implements ServerLifecycleListener {
     final Thing thing
 
     @Inject
@@ -40,23 +38,22 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void run() {
-      thing.strings << "bar"
+    void onStart(StartEvent event) {
+      thing.strings << 'bar'
     }
   }
 
-  def "can register init callbacks"() {
+  def "can register lifecycle listeners"() {
     when:
     bindings {
       bind Thing
-      init new Action<Injector>() {
+      bindInstance ServerLifecycleListener, new ServerLifecycleListener() {
         @Override
-        void execute(Injector injector) throws Exception {
-          injector.getInstance(Thing).strings << "foo"
+        void onStart(StartEvent event) {
+          event.registry.get(Thing).strings << 'foo'
         }
       }
-      init ThingInit
-      init { Thing thing -> thing.strings << "baz" }
+      bind ThingInit
     }
     handlers {
       get { Thing thing ->
@@ -65,7 +62,7 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == ["foo", "bar", "baz"].toString()
+    text == ['foo', 'bar'].toString()
   }
 
 }
