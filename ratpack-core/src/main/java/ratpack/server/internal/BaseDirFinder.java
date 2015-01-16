@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.sun.nio.zipfs.ZipFileSystemProvider;
 
@@ -23,7 +24,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.Collections;
 import java.util.Optional;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -110,11 +110,22 @@ public abstract class BaseDirFinder {
     int separator = s.indexOf("!/");
     String entryName = s.substring(separator + 2);
     URI fileURI = URI.create(s.substring(0, separator));
-    FileSystem fs;
+    FileSystem fs = null;
     try {
-      fs = FileSystems.newFileSystem(fileURI, Collections.<String, Object>emptyMap());
-    } catch (IOException e) {
-      throw uncheck(e);
+      // Check if there's an existing file system, since it's provider-dependent whether file systems with the same URI are allowed
+      fs = FileSystems.getFileSystem(fileURI);
+      if (!fs.isOpen()) { // It's provider-dependent whether to return closed file systems
+        fs = null; // Ignore it; closed file systems can't be used
+      }
+    } catch (FileSystemNotFoundException ignore) {
+      // Continue to create the file system
+    }
+    if (fs == null) {
+      try {
+        fs = FileSystems.newFileSystem(fileURI, ImmutableMap.of());
+      } catch (IOException e) {
+        throw uncheck(e);
+      }
     }
     return fs.getPath(entryName);
   }
