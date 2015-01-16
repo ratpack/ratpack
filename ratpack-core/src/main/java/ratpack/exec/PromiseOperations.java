@@ -36,15 +36,17 @@ public interface PromiseOperations<T> {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *       c.blocking(() -> "foo")
-   *         .map(String::toUpperCase)
-   *         .map(s -> s + "-BAR")
+   *         c.blocking(() -> "foo")
+   *           .map(String::toUpperCase)
+   *           .map(s -> s + "-BAR")
    *     );
    *
-   *     assert result.getValue().equals("FOO-BAR");
+   *     assertEquals("FOO-BAR", result.getValue());
    *   }
    * }
    * }</pre>
@@ -74,15 +76,17 @@ public interface PromiseOperations<T> {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *       c.blocking(() -> "foo")
-   *         .flatMap(s -> c.blocking(() -> s.toUpperCase()))
-   *         .map(s -> s + "-BAR")
+   *         c.blocking(() -> "foo")
+   *           .flatMap(s -> c.blocking(s::toUpperCase))
+   *           .map(s -> s + "-BAR")
    *     );
    *
-   *     assert result.getValue().equals("FOO-BAR");
+   *     assertEquals("FOO-BAR", result.getValue());
    *   }
    * }
    * }</pre>
@@ -108,6 +112,8 @@ public interface PromiseOperations<T> {
    *
    * import java.util.List;
    *
+   * import static org.junit.Assert.*;
+   *
    * public class Example {
    *   public static ExecResult<Integer> yield(int i, List<Integer> collector) throws Exception {
    *     return ExecHarness.yieldSingle(c ->
@@ -120,14 +126,14 @@ public interface PromiseOperations<T> {
    *     List<Integer> routed = Lists.newLinkedList();
    *
    *     ExecResult<Integer> result1 = yield(1, routed);
-   *     assert result1.getValue().equals(1);
-   *     assert !result1.isComplete(); // false because promise returned a value before the execution completed
-   *     assert routed.isEmpty();
+   *     assertEquals(new Integer(1), result1.getValue());
+   *     assertFalse(result1.isComplete()); // false because promise returned a value before the execution completed
+   *     assertTrue(routed.isEmpty());
    *
    *     ExecResult<Integer> result10 = yield(10, routed);
-   *     assert result10.getValue() == null;
-   *     assert result10.isComplete(); // true because the execution completed before the promised value was returned (i.e. it was routed)
-   *     assert routed.contains(10);
+   *     assertNull(result10.getValue());
+   *     assertTrue(result10.isComplete()); // true because the execution completed before the promised value was returned (i.e. it was routed)
+   *     assertTrue(routed.contains(10));
    *   }
    * }
    * }</pre>
@@ -140,6 +146,8 @@ public interface PromiseOperations<T> {
    * import ratpack.exec.Promise;
    * import ratpack.handling.Context;
    * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static Promise<Integer> getAge(Context ctx) {
@@ -155,7 +163,7 @@ public interface PromiseOperations<T> {
    *     EmbeddedApp.fromHandler(ctx ->
    *         getAge(ctx).then(age -> ctx.render("welcome!"))
    *     ).test(httpClient -> {
-   *       assert httpClient.getText().equals("10 is too young to be here!");
+   *       assertEquals("10 is too young to be here!", httpClient.getText());
    *     });
    *   }
    * }
@@ -187,23 +195,25 @@ public interface PromiseOperations<T> {
    *
    * import java.util.concurrent.atomic.AtomicInteger;
    *
+   * import static org.junit.Assert.assertTrue;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       AtomicInteger counter = new AtomicInteger();
    *       Promise<Integer> uncached = c.promise(f -> f.success(counter.getAndIncrement()));
    *
-   *       uncached.then(i -> { assert i == 0; });
-   *       uncached.then(i -> { assert i == 1; });
-   *       uncached.then(i -> { assert i == 2; });
+   *       uncached.then(i -> assertTrue(i == 0));
+   *       uncached.then(i -> assertTrue(i == 1));
+   *       uncached.then(i -> assertTrue(i == 2));
    *
    *       Promise<Integer> cached = uncached.cache();
    *
-   *       cached.then(i -> { assert i == 3; });
-   *       cached.then(i -> { assert i == 3; });
+   *       cached.then(i -> assertTrue(i == 3));
+   *       cached.then(i -> assertTrue(i == 3));
    *
-   *       uncached.then(i -> { assert i == 4; });
-   *       cached.then(i -> { assert i == 3; });
+   *       uncached.then(i -> assertTrue(i == 4));
+   *       cached.then(i -> assertTrue(i == 3));
    *     });
    *   }
    * }
@@ -214,14 +224,16 @@ public interface PromiseOperations<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
+   * import static org.junit.Assert.assertTrue;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       Throwable error = new Exception("bang!");
    *       Promise<Object> cached = c.promise(f -> f.error(error)).cache();
-   *       cached.onError(t -> { assert t == error; }).then(i -> { assert false : "not called"; });
-   *       cached.onError(t -> { assert t == error; }).then(i -> { assert false : "not called"; });
-   *       cached.onError(t -> { assert t == error; }).then(i -> { assert false : "not called"; });
+   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
+   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
+   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *     });
    *   }
    * }
@@ -253,19 +265,20 @@ public interface PromiseOperations<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *       c.<String>promise(f -> {
-   *         events.add("promise");
-   *         f.success("foo");
-   *       })
-   *       .onYield(() -> events.add("onYield"))
-   *       .then(v -> events.add("then"))
+   *         c.<String>promise(f -> {
+   *           events.add("promise");
+   *           f.success("foo");
+   *         })
+   *           .onYield(() -> events.add("onYield"))
+   *           .then(v -> events.add("then"))
    *     );
-   *
-   *     assert events.equals(Arrays.asList("onYield", "promise", "then"));
+   *     assertEquals(Arrays.asList("onYield", "promise", "then"), events);
    *   }
    * }
    * }</pre>
@@ -284,19 +297,21 @@ public interface PromiseOperations<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *       c.<String>promise(f -> {
-   *         events.add("promise");
-   *         f.success("foo");
-   *       })
-   *       .wiretap(r -> events.add("wiretap: " + r.getValue()))
-   *       .then(v -> events.add("then"))
+   *         c.<String>promise(f -> {
+   *           events.add("promise");
+   *           f.success("foo");
+   *         })
+   *           .wiretap(r -> events.add("wiretap: " + r.getValue()))
+   *           .then(v -> events.add("then"))
    *     );
    *
-   *     assert events.equals(Arrays.asList("promise", "wiretap: foo", "then"));
+   *     assertEquals(Arrays.asList("promise", "wiretap: foo", "then"), events);
    *   }
    * }
    * }</pre>
@@ -314,12 +329,13 @@ public interface PromiseOperations<T> {
    * <p>
    * Note that the {@link Throttle} instance given defines the actual throttling semantics.
    * <pre class="java">{@code
-   * import ratpack.exec.ExecControl;
    * import ratpack.exec.Throttle;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
    *
    * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertTrue;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -354,7 +370,7 @@ public interface PromiseOperations<T> {
    *       });
    *     });
    *
-   *     assert result.getValue() <= maxAtOnce;
+   *     assertTrue(result.getValue() <= maxAtOnce);
    *   }
    * }
    * }</pre>

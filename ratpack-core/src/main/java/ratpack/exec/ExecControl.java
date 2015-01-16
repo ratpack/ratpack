@@ -34,6 +34,8 @@ import java.util.concurrent.Callable;
  * import ratpack.test.handling.RequestFixture;
  * import ratpack.test.handling.HandlingResult;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *
  *   public static class AsyncUpperCaseService {
@@ -55,7 +57,7 @@ import java.util.concurrent.Callable;
  *       chain.get(ctx -> service.toUpper("foo").then(ctx::render));
  *     });
  *
- *     assert result.rendered(String.class).equals("FOO");
+ *     assertEquals("FOO", result.rendered(String.class));
  *   }
  * }
  * }</pre>

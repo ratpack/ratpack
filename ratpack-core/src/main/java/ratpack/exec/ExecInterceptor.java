@@ -32,6 +32,8 @@ package ratpack.exec;
  * import java.util.concurrent.atomic.AtomicLong;
  *
  * import static java.lang.Thread.sleep;
+ * import static org.junit.Assert.assertEquals;
+ * import static org.junit.Assert.assertTrue;
  *
  * public class Example {
  *
@@ -82,7 +84,7 @@ package ratpack.exec;
  *   public static void main(String[] args) throws Exception {
  *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> chain
  *         .handler(context ->
- *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), () -> context.next())
+ *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), context::next)
  *         )
  *         .handler(context -> {
  *           sleep(100);
@@ -96,11 +98,11 @@ package ratpack.exec;
  *         })
  *     );
  *
- *     assert result.rendered(String.class).equals("foo");
- *
+ *     assertEquals("foo", result.rendered(String.class));
+ *     
  *     Timer timer = result.getRequestRegistry().get(Timer.class);
- *     assert timer.getBlockingTime() >= 100;
- *     assert timer.getComputeTime() >= 200;
+ *     assertTrue(timer.getBlockingTime() >= 100);
+ *     assertTrue(timer.getComputeTime() >= 200);
  *   }
  * }
  * }</pre>
