@@ -45,6 +45,8 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * import ratpack.handling.InjectionHandler;
  * import ratpack.test.embed.EmbeddedApp;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *
  *   static class Thing {
@@ -74,8 +76,8 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *         .get("verbose", new VerboseHandler())
  *         .get("succinct", new SuccinctHandler())
  *     ).test(httpClient -> {
- *       assert httpClient.getText("verbose").equals("foo");
- *       assert httpClient.getText("succinct").equals("foo");
+ *       assertEquals("foo", httpClient.getText("verbose"));
+ *       assertEquals("foo", httpClient.getText("succinct"));
  *     });
  *   }
  *
@@ -88,6 +90,8 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * import ratpack.handling.Context;
  * import ratpack.handling.InjectionHandler;
  * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import static org.junit.Assert.assertEquals;
  *
  * import java.util.Optional;
  *
@@ -104,7 +108,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *         .register(r -> r.add("foo")) // no Integer in registry
  *         .get(new OptionalInjectingHandler())
  *     ).test(httpClient -> {
- *       assert httpClient.getText().equals("foo:0");
+ *       assertEquals("foo:0", httpClient.getText());
  *     });
  *   }
  *

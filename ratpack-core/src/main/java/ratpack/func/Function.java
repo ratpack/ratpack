@@ -47,10 +47,12 @@ public interface Function<I, O> {
    * <pre class="java">{@code
    * import ratpack.func.Function;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
    *     Function<String, String> function = in -> in + "-bar";
-   *     assert function.andThen(String::toUpperCase).apply("foo").equals("FOO-BAR");
+   *     assertEquals("FOO-BAR", function.andThen(String::toUpperCase).apply("foo"));
    *   }
    * }
    * }</pre>
@@ -76,10 +78,12 @@ public interface Function<I, O> {
    * <pre class="java">{@code
    * import ratpack.func.Function;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     Function<String, String> function = String::toUpperCase;
-   *     assert function.compose(in -> in + "-BAR").apply("foo").equals("FOO-BAR");
+   *     assertEquals("FOO-BAR", function.compose(in -> in + "-BAR").apply("foo"));
    *   }
    * }
    * }</pre>

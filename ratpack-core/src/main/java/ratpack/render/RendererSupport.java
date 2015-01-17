@@ -36,6 +36,8 @@ import java.util.Arrays;
  * import ratpack.render.RendererSupport;
  * import ratpack.test.embed.EmbeddedApp;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *
  *   // A type of thing to be rendered
@@ -63,7 +65,7 @@ import java.util.Arrays;
  *       .register(r -> r.add(new ThingRenderer()))
  *       .handler(ctx -> ctx.render(new Thing("foo")))
  *     ).test(httpClient -> {
- *       assert httpClient.getText().equals("Thing: foo");
+ *       assertEquals("Thing: foo", httpClient.getText());
  *     });
  *   }
  * }

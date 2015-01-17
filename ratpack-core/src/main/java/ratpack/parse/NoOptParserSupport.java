@@ -24,20 +24,17 @@ import ratpack.http.TypedData;
  * A convenience base for parsers that don't require options.
  * <p>
  * The following is an example of an implementation that parses to an {@code Integer}.
- * <pre class="java">
- * import ratpack.parse.NullParseOpts;
- * import ratpack.parse.NoOptParserSupport;
- * import ratpack.http.TypedData;
+ * <pre class="java">{@code
+ * import com.google.common.reflect.TypeToken;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
- * import ratpack.util.Types;
- * import ratpack.func.Action;
- * import ratpack.registry.RegistrySpec;
- *
- * import com.google.common.reflect.TypeToken;
- *
+ * import ratpack.http.TypedData;
+ * import ratpack.parse.NoOptParserSupport;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
+ * import ratpack.util.Types;
+ *
+ * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *   public static class IntParser extends NoOptParserSupport {
@@ -45,7 +42,7 @@ import ratpack.http.TypedData;
  *       super("text/plain");
  *     }
  *
- *     public &lt;T&gt; T parse(Context context, TypedData body, TypeToken&lt;T&gt; type) {
+ *     public <T> T parse(Context context, TypedData body, TypeToken<T> type) {
  *       if (type.getRawType().equals(Integer.class)) {
  *         return Types.cast(Integer.valueOf(body.getText()));
  *       } else {
@@ -63,23 +60,16 @@ import ratpack.http.TypedData;
  *
  *   // unit test
  *   public static void main(String[] args) throws Exception {
- *     HandlingResult result = RequestFixture.handle(new ExampleHandler(), new Action&lt;RequestFixture&gt;() {
- *       public void execute(RequestFixture fixture) throws Exception {
- *         fixture
+ *     HandlingResult result = RequestFixture.handle(new ExampleHandler(),
+ *       fixture -> fixture
  *           .body("10", "text/plain")
- *           .registry(new Action&lt;RegistrySpec&gt;() {
- *             public void execute(RegistrySpec registry) {
- *               registry.add(new IntParser());
- *             }
- *           });
- *       }
- *     });
+ *           .registry(registry -> registry.add(new IntParser()))
+ *     );
  *
- *     assert result.rendered(String.class).equals("10");
+ *     assertEquals("10", result.rendered(String.class));
  *   }
- *
  * }
- * </pre>
+ * }</pre>
  */
 public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
 

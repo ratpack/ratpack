@@ -22,7 +22,7 @@ import com.google.common.reflect.TypeToken;
  * A convenience superclass for {@link Parser} implementations.
  * <p>
  * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
- * <pre class="java">
+ * <pre class="java">{@code
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
@@ -30,13 +30,13 @@ import com.google.common.reflect.TypeToken;
  * import ratpack.parse.ParserSupport;
  * import ratpack.parse.ParseException;
  * import ratpack.util.Types;
- * import ratpack.func.Action;
- * import ratpack.registry.RegistrySpec;
  *
  * import java.io.UnsupportedEncodingException;
  *
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
+ *
+ * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *
@@ -54,18 +54,18 @@ import com.google.common.reflect.TypeToken;
  *   }
  *
  *   // A parser for this type
- *   public static class MaxLengthStringParser extends ParserSupport&lt;StringParseOpts&gt; {
+ *   public static class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
  *     public MaxLengthStringParser() {
  *       super("text/plain");
  *     }
  *
- *     public &lt;T&gt; T parse(Context context, TypedData requestBody, Parse&lt;T, StringParseOpts&gt; parse) throws UnsupportedEncodingException {
+ *     public <T> T parse(Context context, TypedData requestBody, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
  *       if (!parse.getType().getRawType().equals(String.class)) {
  *         return null;
  *       }
  *
  *       String rawString = requestBody.getText();
- *       if (rawString.length() &lt; parse.getOpts().getMaxLength()) {
+ *       if (rawString.length() < parse.getOpts().getMaxLength()) {
  *         return Types.cast(rawString);
  *       } else {
  *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
@@ -82,22 +82,16 @@ import com.google.common.reflect.TypeToken;
  *
  *   // unit test
  *   public static void main(String[] args) throws Exception {
- *     HandlingResult result = RequestFixture.handle(new ToUpperCaseHandler(), new Action&lt;RequestFixture&gt;() {
- *       public void execute(RequestFixture fixture) throws Exception {
+ *     HandlingResult result = RequestFixture.handle(new ToUpperCaseHandler(), fixture ->
  *         fixture
  *           .body("123456", "text/plain")
- *           .registry(new Action&lt;RegistrySpec&gt;() {
- *             public void execute(RegistrySpec registry) {
- *               registry.add(new MaxLengthStringParser());
- *             }
- *           });
- *       }
- *     });
+ *           .registry(registry -> registry.add(new MaxLengthStringParser()))
+ *     );
  *
- *     assert result.rendered(String.class).equals("12345");
+ *     assertEquals("12345", result.rendered(String.class));
  *   }
  * }
- * </pre>
+ * }</pre>
  *
  * @see NoOptParserSupport
  * @param <O> the type of option object this parser accepts

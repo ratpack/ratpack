@@ -48,6 +48,8 @@ import ratpack.stream.Streams;
  *
  * import static java.util.stream.Collectors.joining;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(context -> {
@@ -62,7 +64,7 @@ import ratpack.stream.Streams;
  *       context.render(events);
  *     }).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
- *       assert response.getHeaders().get("Content-Type").equals("text/event-stream;charset=UTF-8");
+ *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
  *
  *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *         .stream()
@@ -70,7 +72,7 @@ import ratpack.stream.Streams;
  *         .collect(joining("\n"))
  *         + "\n";
  *
- *       assert response.getBody().getText().equals(expectedOutput);
+ *       assertEquals(expectedOutput, response.getBody().getText());
  *     });
  *   }
  * }

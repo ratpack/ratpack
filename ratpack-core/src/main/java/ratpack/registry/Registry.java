@@ -35,6 +35,8 @@ import java.util.Optional;
  * import ratpack.registry.Registry;
  * import static ratpack.registry.Registries.just;
  *
+ * import static org.junit.Assert.assertTrue;
+ *
  * public class Thing {
  *   private final String name
  *   public Thing(String name) { this.name = name; }
@@ -49,7 +51,7 @@ import java.util.Optional;
  *
  * public class DownstreamHandler implements Handler {
  *   public void handle(Context context) {
- *     assert context instanceof Registry;
+ *     assertTrue(context instanceof Registry);
  *     Thing thing = context.get(Thing.class);
  *     context.render(thing.getName());
  *   }
@@ -61,10 +63,12 @@ import java.util.Optional;
  * import static ratpack.handling.Handlers.chain;
  * import static ratpack.func.Action.noop;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
  * HandlingResult result = RequestFixture.handle(chain, noop());
  *
- * assert result.rendered(String.class).equals("foo");
+ * assertEquals("foo", result.rendered(String.class));
  * </pre>
  * <h3>Thread safety</h3>
  * <p>
@@ -177,13 +181,15 @@ public interface Registry {
    * <p>
    * The returned registry is effectively the union of the two registries, with the {@code child} registry taking precedence.
    * This means that child entries are effectively “returned first”.
-   * <pre class="java">
+   * <pre class="java">{@code
    * import ratpack.registry.Registry;
    *
    * import static ratpack.registry.Registries.registry;
    *
    * import java.util.List;
    * import com.google.common.collect.Lists;
+   *
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *
@@ -208,15 +214,15 @@ public interface Registry {
    *     Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
    *     Registry joined = parent.join(child);
    *
-   *     assert joined.get(Thing.class).getName() == "child-1";
-   *     List&lt;Thing&gt; all = Lists.newArrayList(joined.getAll(Thing.class));
-   *     assert all.get(0).getName() == "child-1";
-   *     assert all.get(1).getName() == "child-2";
-   *     assert all.get(2).getName() == "parent-1";
-   *     assert all.get(3).getName() == "parent-2";
+   *     assertEquals("child-1", joined.get(Thing.class).getName());
+   *     List<Thing> all = Lists.newArrayList(joined.getAll(Thing.class));
+   *     assertEquals("child-1", all.get(0).getName());
+   *     assertEquals("child-2", all.get(1).getName());
+   *     assertEquals("parent-1", all.get(2).getName());
+   *     assertEquals("parent-2", all.get(3).getName());
    *   }
    * }
-   * </pre>
+   * }</pre>
    *
    * @param child the child registry
    * @return a registry which is the combination of the {@code this} and the given child

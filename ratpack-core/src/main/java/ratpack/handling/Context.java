@@ -125,6 +125,8 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.registry.Registries;
    * import ratpack.test.embed.EmbeddedApp;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *
    *   public static void main(String... args) throws Exception {
@@ -132,7 +134,7 @@ public interface Context extends ExecControl, Registry {
    *         .handler(ctx -> ctx.next(Registries.just("foo")))
    *         .handler(ctx -> ctx.render(ctx.get(String.class)))
    *     ).test(httpClient -> {
-   *       assert httpClient.getText().equals("foo");
+   *       assertEquals("foo", httpClient.getText());
    *     });
    *   }
    * }
@@ -289,6 +291,8 @@ public interface Context extends ExecControl, Registry {
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandler(ctx ->
@@ -297,7 +301,7 @@ public interface Context extends ExecControl, Registry {
    *             "hello world"
    *         ).then(ctx::render)
    *     ).test(httpClient -> {
-   *       assert httpClient.getText().equals("hello world");
+   *       assertEquals("hello world", httpClient.getText());
    *     });
    *   }
    * }
@@ -326,6 +330,8 @@ public interface Context extends ExecControl, Registry {
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandler(ctx ->
@@ -333,7 +339,7 @@ public interface Context extends ExecControl, Registry {
    *             new Thread(() -> f.success("hello world")).start()
    *         ).then(ctx::render)
    *     ).test(httpClient -> {
-   *       assert httpClient.getText().equals("hello world");
+   *       assertEquals("hello world", httpClient.getText());
    *     });
    *   }
    * }
@@ -359,7 +365,6 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.func.Action;
-   * import ratpack.exec.Execution;
    * import ratpack.exec.Fulfiller;
    *
    * import java.util.Collections;
@@ -369,9 +374,11 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.test.handling.HandlingResult;
    * import ratpack.test.handling.RequestFixture;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static class ForkingHandler implements Handler {
-   *     public void handle(final Context context) {
+   *     public void handle(Context context) {
    *       final int numJobs = 3;
    *       final Integer failOnIteration = context.getPathTokens().asInt("failOn");
    *       context.promise(new Action<Fulfiller<Integer>>() {
@@ -389,7 +396,7 @@ public interface Context extends ExecControl, Registry {
    *           }
    *         }
    *
-   *         public void execute(final Fulfiller<Integer> fulfiller) {
+   *         public void execute(Fulfiller<Integer> fulfiller) {
    *           for (int i = 0; i < numJobs; ++i) {
    *             final int iteration = i;
    *
@@ -399,7 +406,7 @@ public interface Context extends ExecControl, Registry {
    *                 completeJob(fulfiller);
    *               })
    *               .start(execution -> {
-   *                 if (failOnIteration != null && failOnIteration.intValue() == iteration) {
+   *                 if (failOnIteration != null && failOnIteration == iteration) {
    *                   throw new Exception("bang!");
    *                 } else {
    *                   completeJob(fulfiller);
@@ -414,7 +421,7 @@ public interface Context extends ExecControl, Registry {
    *
    *   public static void main(String[] args) throws Exception {
    *     HandlingResult result = RequestFixture.handle(new ForkingHandler(), Action.noop());
-   *     assert result.rendered(String.class).equals("3");
+   *     assertEquals("3", result.rendered(String.class));
    *
    *     result = RequestFixture.handle(new ForkingHandler(), new Action<RequestFixture>() {
    *       public void execute(RequestFixture fixture) {
@@ -422,7 +429,7 @@ public interface Context extends ExecControl, Registry {
    *       }
    *     });
    *
-   *     assert result.exception(Exception.class).getMessage().equals("bang!");
+   *     assertEquals("bang!", result.exception(Exception.class).getMessage());
    *   }
    * }
    * }</pre>

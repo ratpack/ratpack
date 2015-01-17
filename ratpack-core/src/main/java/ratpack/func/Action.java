@@ -120,9 +120,11 @@ public interface Action<T> {
    * import ratpack.func.Action;
    * import java.util.ArrayList;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     assert Action.with(new ArrayList<>(), list -> list.add("foo")).get(0).equals("foo");
+   *     assertEquals("foo", Action.with(new ArrayList<>(), list -> list.add("foo")).get(0));
    *   }
    * }
    * }</pre>
@@ -143,9 +145,11 @@ public interface Action<T> {
    * import java.util.List;
    * import java.util.ArrayList;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     assert run(list -> list.add("foo")).get(0).equals("foo");
+   *     assertEquals("foo", run(list -> list.add("foo")).get(0));
    *   }
    *
    *   private static List<String> run(Action<? super List<String>> action) throws Exception {

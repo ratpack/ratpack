@@ -46,6 +46,8 @@ import java.nio.charset.Charset;
  *
  * import static ratpack.http.ResponseChunks.stringChunks;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(ctx -> {
@@ -55,7 +57,7 @@ import java.nio.charset.Charset;
  *
  *       ctx.render(stringChunks(strings));
  *     }).test(httpClient -> {
- *       assert httpClient.getText().equals("01234");
+ *       assertEquals("01234", httpClient.getText());
  *     });
  *   }
  * }

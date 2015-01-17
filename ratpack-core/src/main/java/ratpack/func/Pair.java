@@ -24,6 +24,8 @@ package ratpack.func;
  * import ratpack.func.Pair;
  * import ratpack.test.embed.EmbeddedApp;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *
  *   public static void main(String[] args) throws Exception {
@@ -43,7 +45,7 @@ package ratpack.func;
  *           ctx.render(receivedName + " [" + receivedId + "] - age: " + receivedAge);
  *         });
  *     }).test(httpClient -> {
- *       assert httpClient.getText().equals("John [1] - age: 21");
+ *       assertEquals("John [1] - age: 21", httpClient.getText());
  *     });
  *   }
  * }

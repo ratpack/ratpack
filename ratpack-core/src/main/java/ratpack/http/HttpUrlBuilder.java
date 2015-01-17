@@ -32,6 +32,8 @@ import java.util.Map;
  * <pre class="java">{@code
  * import ratpack.http.HttpUrlBuilder;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *
  *   public static void main(String... args) {
@@ -43,7 +45,7 @@ import java.util.Map;
  *       .build()
  *       .toString();
  *
- *     assert url.equals("http://foo.com/a/b/c%2Fd?k1=v1&k2=v2");
+ *     assertEquals("http://foo.com/a/b/c%2Fd?k1=v1&k2=v2", url);
  *   }
  * }
  * }</pre>
