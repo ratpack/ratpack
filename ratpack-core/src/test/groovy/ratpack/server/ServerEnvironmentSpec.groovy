@@ -18,7 +18,7 @@ package ratpack.server
 
 import spock.lang.Specification
 
-class ServerEnvironmentTest extends Specification {
+class ServerEnvironmentSpec extends Specification {
 
   ServerEnvironment env(Map<String, String> env, Map<String, String> props) {
     def p = new Properties()
