@@ -72,7 +72,7 @@ public interface GroovyContext extends Context {
   /**
    * Groovy friendly overload of {@link #byContent(ratpack.func.Action)}.
    *
-   * <pre class="tested-dynamic">
+   * <pre class="tested-dynamic">{@code
    * import ratpack.groovy.test.handling.GroovyRequestFixture
    * import static ratpack.groovy.Groovy.groovyHandler
    *
@@ -83,7 +83,7 @@ public interface GroovyContext extends Context {
    *       render "{\"msg\": \"$message\"}"
    *     }
    *     html {
-   *       render "&lt;p&gt;$message&lt;/p&gt;"
+   *       render "<p>$message</p>"
    *     }
    *   }
    * }
@@ -99,9 +99,9 @@ public interface GroovyContext extends Context {
    *   header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
    * }
    *
-   * assert result.rendered(CharSequence) == "&lt;p&gt;hello!&lt;/p&gt;";
+   * assert result.rendered(CharSequence) == "<p>hello!</p>";
    * assert result.headers.get("content-type") == "text/html";
-   * </pre>
+   * }</pre>
    *
    * @param closure defines the action to take for the different content types
    * @throws Exception any thrown by the closure
