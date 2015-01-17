@@ -15,6 +15,6 @@
  */
 
 /**
- * General functional (i.e. Single Abstract Method) types.
+ * General functional (i.e&#46; Single Abstract Method) types.
  */
 package ratpack.func;
