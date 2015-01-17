@@ -128,6 +128,7 @@ import java.lang.reflect.Constructor;
 public abstract class ConfigurableModule<T> extends AbstractModule {
 
   private Action<? super T> configurer = Action.noop();
+  private T config;
 
   /**
    * Registers the configuration action.
@@ -201,14 +202,23 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
   @Provides
   @Singleton
   T provideConfig(ServerConfig serverConfig) {
-    T configuration = createConfig(serverConfig);
-    defaultConfig(serverConfig, configuration);
+    T config = this.config == null ? createConfig(serverConfig) : this.config;
+    defaultConfig(serverConfig, config);
     try {
-      configurer.execute(configuration);
+      configurer.execute(config);
     } catch (Exception e) {
       throw ExceptionUtils.uncheck(e);
     }
-    return configuration;
+    return config;
   }
 
+  /**
+   * Sets the config object for this module.  This overrides the default config object that would be created otherwise.
+   *
+   * @param config the config object
+   * @see #createConfig(ratpack.server.ServerConfig)
+   */
+  public void setConfig(T config) {
+    this.config = config;
+  }
 }

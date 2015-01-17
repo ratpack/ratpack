@@ -78,12 +78,6 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public <T extends Module> GroovyBindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException {
-    delegate.config(moduleClass, configurer);
-    return this;
-  }
-
-  @Override
   public GroovyBindingsSpec binder(Action<? super Binder> action) {
     delegate.binder(action);
     return this;
@@ -103,14 +97,33 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public <C> BindingsSpec add(ConfigurableModule<C> module, Action<? super C> configuration) {
-    delegate.add(module, configuration);
+  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configurer) {
+    delegate.add(moduleClass, configurer);
     return this;
   }
 
   @Override
-  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
-    delegate.add(moduleClass, configuration);
+  public <C> GroovyBindingsSpec add(ConfigurableModule<C> module, Action<? super C> configurer) {
+    delegate.add(module, configurer);
     return this;
   }
+
+  @Override
+  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer) {
+    delegate.add(moduleClass, config, configurer);
+    return this;
+  }
+
+  @Override
+  public <C> GroovyBindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer) {
+    delegate.add(module, config, configurer);
+    return this;
+  }
+
+  @Override
+  public <T extends Module> GroovyBindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException {
+    delegate.config(moduleClass, configurer);
+    return this;
+  }
+
 }

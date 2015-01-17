@@ -47,7 +47,25 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configuration);
+  <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configurer);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <C> GroovyBindingsSpec add(ConfigurableModule<C> module, Action<? super C> configurer);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <C> GroovyBindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer);
 
   /**
    * {@inheritDoc}

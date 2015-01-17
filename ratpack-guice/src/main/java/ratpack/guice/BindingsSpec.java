@@ -93,12 +93,58 @@ public interface BindingsSpec {
    */
   BindingsSpec add(Module module);
 
+  /**
+   * Adds the bindings from the given module.
+   *
+   * @param moduleClass type of the module whose bindings should be added
+   * @return this
+   */
   @SuppressWarnings("unchecked")
   BindingsSpec add(Class<? extends Module> moduleClass);
 
-  <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration);
+  /**
+   * Adds the bindings from the given configurable module.
+   *
+   * @param moduleClass type of the module whose bindings should be added
+   * @param configurer action to customize the module's config object
+   * @param <C> the type of the module's config object
+   * @param <T> the type of the module
+   * @return this
+   */
+  <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configurer);
 
-  <C> BindingsSpec add(ConfigurableModule<C> module, Action<? super C> configuration);
+  /**
+   * Adds the bindings from the given configurable module.
+   *
+   * @param module module whose bindings should be added
+   * @param configurer action to customize the module's config object
+   * @param <C> the type of the module's config object
+   * @return this
+   */
+  <C> BindingsSpec add(ConfigurableModule<C> module, Action<? super C> configurer);
+
+  /**
+   * Adds the bindings from the given configurable module.
+   *
+   * @param moduleClass type of the module whose bindings should be added
+   * @param config config object for the module
+   * @param configurer action to customize the module's config object
+   * @param <C> the type of the module's config object
+   * @param <T> the type of the module
+   * @return this
+   */
+  <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer);
+
+  /**
+   * Adds the bindings from the given configurable module.
+   *
+   * @param module module whose bindings should be added
+   * @param config config object for the module
+   * @param configurer action to customize the module's config object
+   * @param <C> the type of the module's config object
+   * @return this
+   */
+  <C> BindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer);
 
   /**
    * Retrieves the module that has been added with the given type for configuration.
