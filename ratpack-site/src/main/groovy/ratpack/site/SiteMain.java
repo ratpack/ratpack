@@ -43,10 +43,6 @@ public class SiteMain {
 
     RatpackServer.start(b -> {
         ServerConfig.Builder serverConfig = ServerConfig.findBaseDirProps();
-        String port = System.getenv("PORT");
-        if (port != null) {
-          serverConfig.port(Integer.parseInt(port));
-        }
 
         return b
           .config(serverConfig)

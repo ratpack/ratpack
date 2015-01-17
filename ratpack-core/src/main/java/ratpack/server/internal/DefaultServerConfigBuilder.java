@@ -27,6 +27,7 @@ import ratpack.func.Action;
 import ratpack.func.Predicate;
 import ratpack.launch.internal.DefaultServerConfig;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerEnvironment;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -47,11 +48,11 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
 
   private FileSystemBinding baseDir;
 
-  private int port = ServerConfig.DEFAULT_PORT;
+  private int port = ServerEnvironment.env().getPort();
   private InetAddress address;
-  private boolean development;
+  private boolean development = ServerEnvironment.env().isDevelopment();
   private int threads = ServerConfig.DEFAULT_THREADS;
-  private URI publicAddress;
+  private URI publicAddress = ServerEnvironment.env().getPublicAddress();
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private SSLContext sslContext;
