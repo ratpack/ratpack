@@ -50,6 +50,8 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *
    *   // An async callback based API
@@ -90,7 +92,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    *       // exercise the async code using the harness, blocking until the promised value is available
    *       ExecResult<String> result = harness.yield(execution -> service.promise("foo"));
    *
-   *       assert result.getValue().equals("foo");
+   *       assertEquals("foo", result.getValue());
    *     }
    *   }
    * }

@@ -29,15 +29,14 @@ public interface CloseableApplicationUnderTest extends ApplicationUnderTest, Aut
    * <p>
    * The application will be closed regardless of whether the given action throws an exception.
    * <pre class="java">{@code
-   *
    * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandler(ctx -> ctx.render("ok"))
-   *       .test(httpClient -> {
-   *         assert httpClient.get().getBody().getText().equals("ok");
-   *       });
+   *       .test(httpClient -> assertEquals("ok", httpClient.get().getBody().getText()) );
    *   }
    * }
    * }</pre>

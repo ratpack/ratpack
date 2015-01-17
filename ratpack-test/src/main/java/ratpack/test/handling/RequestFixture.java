@@ -48,6 +48,8 @@ public interface RequestFixture {
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *
    *   public static class MyHandler implements Handler {
@@ -63,8 +65,8 @@ public interface RequestFixture {
    *         fixture.header("input-value", "foo").uri("some/path")
    *     );
    *
-   *     assert result.rendered(String.class).equals("received: some/path");
-   *     assert result.getHeaders().get("output-value").equals("foo:bar");
+   *     assertEquals("received: some/path", result.rendered(String.class));
+   *     assertEquals("foo:bar", result.getHeaders().get("output-value"));
    *   }
    * }
    * }</pre>
@@ -92,6 +94,8 @@ public interface RequestFixture {
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *
    *   public static class MyHandlers implements Action<Chain> {
@@ -101,9 +105,7 @@ public interface RequestFixture {
    *         ctx.getResponse().getHeaders().set("output-value", outputHeaderValue);
    *         ctx.next();
    *       });
-   *       chain.handler(ctx -> {
-   *         ctx.render("received: " + ctx.getRequest().getPath());
-   *       });
+   *       chain.handler(ctx -> ctx.render("received: " + ctx.getRequest().getPath()) );
    *     }
    *   }
    *
@@ -112,8 +114,8 @@ public interface RequestFixture {
    *         fixture.header("input-value", "foo").uri("some/path")
    *     );
    *
-   *     assert result.rendered(String.class).equals("received: some/path");
-   *     assert result.getHeaders().get("output-value").equals("foo:bar");
+   *     assertEquals("received: some/path", result.rendered(String.class));
+   *     assertEquals("foo:bar", result.getHeaders().get("output-value"));
    *   }
    * }
    * }</pre>

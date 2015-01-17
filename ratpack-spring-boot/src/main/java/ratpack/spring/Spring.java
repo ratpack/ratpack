@@ -25,7 +25,7 @@ import ratpack.spring.internal.SpringRegistryBacking;
 /**
  * Methods to facilitate integrating <a href="http://projects.spring.io/spring-boot">Spring Boot</a> with Ratpack.
  *
- * <pre class="java">
+ * <pre class="java">{@code
  * import org.springframework.boot.SpringApplication;
  * import org.springframework.context.annotation.Bean;
  * import org.springframework.context.annotation.Configuration;
@@ -33,16 +33,18 @@ import ratpack.spring.internal.SpringRegistryBacking;
  *
  * import static ratpack.spring.Spring.spring;
  *
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
- *     EmbeddedApp.fromChain(chain -&gt; chain
+ *     EmbeddedApp.fromChain(chain -> chain
  *       .register(spring(ExampleSpringBootApp.class))
- *       .handler(context -&gt; {
+ *       .handler(context -> {
  *         String helloBean = context.get(String.class);
  *         context.render(helloBean);
  *       })
- *     ).test(httpClient -&gt; {
- *       assert httpClient.getText().equals("hello");
+ *     ).test(httpClient -> {
+ *       assertEquals("hello", httpClient.getText());
  *     });
  *   }
  *
@@ -58,7 +60,7 @@ import ratpack.spring.internal.SpringRegistryBacking;
  *     }
  *   }
  * }
- * </pre>
+ * }</pre>
  */
 public abstract class Spring {
 

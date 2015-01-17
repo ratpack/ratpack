@@ -67,6 +67,8 @@ public abstract class RxRatpack {
    * import ratpack.test.handling.HandlingResult;
    * import rx.Observable;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     RxRatpack.initialize(); // must be called once per JVM
@@ -81,7 +83,7 @@ public abstract class RxRatpack {
    *       chain.get(ctx -> Observable.<String>error(new Exception("!")).subscribe((s) -> {}));
    *     });
    *
-   *     assert result.rendered(String.class).equals("caught by error handler: !");
+   *     assertEquals("caught by error handler: !", result.rendered(String.class));
    *   }
    * }
    * }</pre>
@@ -164,6 +166,8 @@ public abstract class RxRatpack {
    * import static ratpack.rx.RxRatpack.observe;
    * import static ratpack.test.handling.RequestFixture.requestFixture;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     HandlingResult result = requestFixture().handle(context -> {
@@ -171,7 +175,7 @@ public abstract class RxRatpack {
    *       observe(promise).map(String::toUpperCase).subscribe(context::render);
    *     });
    *
-   *     assert result.rendered(String.class).equals("HELLO WORLD");
+   *     assertEquals("HELLO WORLD", result.rendered(String.class));
    *   }
    * }
    * }</pre>
@@ -197,6 +201,8 @@ public abstract class RxRatpack {
    *
    * import static ratpack.rx.RxRatpack.asPromise;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *
    *   static class AsyncService {
@@ -217,8 +223,8 @@ public abstract class RxRatpack {
    *     ExecResult<List<String>> result = ExecHarness.yieldSingle(execution -> asPromise(service.observe("foo")));
    *
    *     List<String> results = result.getValue();
-   *     assert results.size() == 1;
-   *     assert results.get(0).equals("foo");
+   *     assertEquals(1, results.size());
+   *     assertEquals("foo", results.get(0));
    *   }
    * }
    * }</pre>
@@ -266,6 +272,8 @@ public abstract class RxRatpack {
    * import static ratpack.rx.RxRatpack.observeEach;
    * import static ratpack.test.handling.RequestFixture.requestFixture;
    *
+   * import static org.junit.Assert.assertEquals;
+   *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     HandlingResult result = requestFixture().handle(context -> {
@@ -276,7 +284,7 @@ public abstract class RxRatpack {
    *         .subscribe(strings -> context.render(String.join(" ", strings)));
    *     });
    *
-   *     assert result.rendered(String.class).equals("HELLO WORLD");
+   *     assertEquals("HELLO WORLD", result.rendered(String.class));
    *   }
    * }
    * }</pre>
@@ -319,19 +327,19 @@ public abstract class RxRatpack {
    * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
    * <p>
    * This is generally a more performant alternative to using plain Rx parallelization due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
-   * <pre class="java">
+   * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
    * import ratpack.exec.ExecController;
    * import ratpack.launch.LaunchConfigBuilder;
    *
    * import rx.Observable;
-   * import rx.functions.Func1;
-   * import rx.functions.Action1;
    *
    * import java.util.List;
    * import java.util.Arrays;
    * import java.util.concurrent.CyclicBarrier;
    * import java.util.concurrent.BrokenBarrierException;
+   *
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *
@@ -342,18 +350,16 @@ public abstract class RxRatpack {
    *     final ExecController execController = LaunchConfigBuilder.noBaseDir().threads(6).build().getExecController();
    *
    *     Integer[] myArray = {1, 2, 3, 4, 5};
-   *     Observable&lt;Integer&gt; source = Observable.from(myArray);
-   *     List&lt;Integer&gt; doubledAndSorted = source
-   *       .lift(RxRatpack.&lt;Integer&gt;forkOnNext(execController.getControl()))
-   *       .map(new Func1&lt;Integer, Integer&gt;() {
-   *         public Integer call(Integer integer) {
+   *     Observable<Integer> source = Observable.from(myArray);
+   *     List<Integer> doubledAndSorted = source
+   *       .lift(RxRatpack.<Integer>forkOnNext(execController.getControl()))
+   *       .map(integer -> {
    *           try {
    *             barrier.await(); // prove stream is processed concurrently
    *           } catch (InterruptedException | BrokenBarrierException e) {
    *             throw new RuntimeException(e);
    *           }
    *           return integer.intValue() * 2;
-   *         }
    *       })
    *       .serialize()
    *       .toSortedList()
@@ -361,13 +367,13 @@ public abstract class RxRatpack {
    *       .single();
    *
    *     try {
-   *       assert doubledAndSorted.equals(Arrays.asList(2, 4, 6, 8, 10));
+   *       assertEquals(Arrays.asList(2, 4, 6, 8, 10), doubledAndSorted);
    *     } finally {
    *       execController.close();
    *     }
    *   }
    * }
-   * </pre>
+   * }</pre>
    *
    * @param execControl the execution control to use to fork executions
    * @param <T> the type of item in the stream
