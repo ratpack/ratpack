@@ -19,7 +19,7 @@ package ratpack.test.internal;
 import ratpack.func.Factory;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
-import ratpack.server.internal.ServerCapture;
+import ratpack.server.internal.ServerCapturer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,7 +37,7 @@ public class MainClassServerFactory implements Factory<RatpackServer> {
 
   @Override
   public RatpackServer create() throws Exception {
-    return ServerCapture.capture(registry, () -> {
+    return ServerCapturer.capture(new ServerCapturer.Overrides(registry), () -> {
       Method method;
       try {
         method = mainClass.getDeclaredMethod("main", String[].class);

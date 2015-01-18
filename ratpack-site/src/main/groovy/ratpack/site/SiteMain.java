@@ -39,9 +39,8 @@ import static ratpack.registry.Registries.just;
 
 public class SiteMain {
   public static void main(String... args) throws Exception {
-    RxRatpack.initialize();
-
     RatpackServer.start(b -> {
+        RxRatpack.initialize();
         ServerConfig.Builder serverConfig = ServerConfig.findBaseDirProps();
 
         return b

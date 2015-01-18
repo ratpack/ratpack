@@ -23,20 +23,46 @@ import ratpack.server.RatpackServer;
 
 import java.util.Optional;
 
-public abstract class ServerCapture {
+public abstract class ServerCapturer {
 
-  private static final ThreadLocal<Registry> REGISTRY_HOLDER = ThreadLocal.withInitial(Registries::empty);
+  private static final ThreadLocal<Overrides> OVERRIDES_HOLDER = ThreadLocal.withInitial(Overrides::new);
   private static final ThreadLocal<RatpackServer> SERVER_HOLDER = new ThreadLocal<>();
 
-  private ServerCapture() {
+  private ServerCapturer() {
   }
 
-  public static Optional<RatpackServer> capture(Registry registry, NoArgAction bootstrap) throws Exception {
-    REGISTRY_HOLDER.set(registry);
+  public static class Overrides {
+    private final int port;
+    private final Registry registry;
+
+    public Overrides(Registry registry) {
+      this(0, registry);
+    }
+
+    public Overrides() {
+      this(0, Registries.empty());
+    }
+
+    public Overrides(int port, Registry registry) {
+      this.port = port;
+      this.registry = registry;
+    }
+
+    public int getPort() {
+      return port;
+    }
+
+    public Registry getRegistry() {
+      return registry;
+    }
+  }
+
+  public static Optional<RatpackServer> capture(Overrides overrides, NoArgAction bootstrap) throws Exception {
+    OVERRIDES_HOLDER.set(overrides);
     try {
       bootstrap.execute();
     } finally {
-      REGISTRY_HOLDER.remove();
+      OVERRIDES_HOLDER.remove();
     }
 
     RatpackServer ratpackServer = SERVER_HOLDER.get();
@@ -44,9 +70,9 @@ public abstract class ServerCapture {
     return Optional.ofNullable(ratpackServer);
   }
 
-  public static Registry capture(RatpackServer server) throws Exception {
+  public static Overrides capture(RatpackServer server) throws Exception {
     SERVER_HOLDER.set(server);
-    return REGISTRY_HOLDER.get();
+    return OVERRIDES_HOLDER.get();
   }
 
 }

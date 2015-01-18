@@ -16,7 +16,7 @@
 
 package ratpack.guice.internal
 
-import com.google.inject.Guice
+import com.google.inject.Injector
 import com.google.inject.Key
 import com.google.inject.TypeLiteral
 import io.netty.buffer.ByteBufAllocator
@@ -27,9 +27,11 @@ import ratpack.exec.ExecControl
 import ratpack.exec.ExecController
 import ratpack.exec.Execution
 import ratpack.exec.SuccessPromise
+import ratpack.exec.internal.DefaultExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
 import ratpack.form.internal.FormParser
+import ratpack.guice.Guice
 import ratpack.handling.Redirector
 import ratpack.http.client.HttpClient
 import ratpack.render.Renderable
@@ -47,12 +49,14 @@ import java.nio.file.Path
 class RatpackBaseRegistryModuleSpec extends Specification {
   def "injector contains bindings based on base registry"() {
     when:
-    def ratpackServer = RatpackServer.of { builder -> builder.handlers { } }
-    def baseRegistry = ServerRegistry.buildBaseRegistry(ratpackServer)
-    def injector = Guice.createInjector(new RatpackBaseRegistryModule(baseRegistry))
+    def ratpackServer = Mock(RatpackServer)
+    def execController = new DefaultExecController(4)
+    def serverConfig = ServerConfig.noBaseDir().build()
+    def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, execController, serverConfig, Guice.registry {})
+    def injector = baseRegistry.get(Injector)
 
     then:
-    injector.getInstance(ServerConfig) == ratpackServer.serverConfig
+    injector.getInstance(ServerConfig) == serverConfig
     injector.getInstance(ByteBufAllocator) == baseRegistry.get(ByteBufAllocator)
     injector.getInstance(ExecController) == baseRegistry.get(ExecController)
     injector.getInstance(MimeTypes) == baseRegistry.get(MimeTypes)
@@ -66,7 +70,7 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Publisher>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Renderable>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<CharSequence>>() {}))
-    injector.getInstance(Key.get(new TypeLiteral<Set<FormParser>>() { })).collect { it.contentType }.sort() == ["application/x-www-form-urlencoded", "multipart/form-data"]
+    injector.getInstance(Key.get(new TypeLiteral<Set<FormParser>>() {})).collect { it.contentType }.sort() == ["application/x-www-form-urlencoded", "multipart/form-data"]
     !injector.getExistingBinding(Key.get(FileSystemBinding))
     injector.getInstance(ExecControl) == baseRegistry.get(ExecController).control
     injector.getExistingBinding(Key.get(Execution))

@@ -79,11 +79,8 @@ public interface RatpackServer {
    *
    * @param definition a function that defines the server
    * @return a Ratpack server
-   * @throws Exception any thrown by the given function
    */
-  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> definition) throws Exception {
-    // TODO add more docs above to explain what a user registry actually is
-
+  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> definition) {
     return new NettyRatpackServer(definition);
   }
 
@@ -96,15 +93,6 @@ public interface RatpackServer {
   public static void start(Function<? super Definition.Builder, ? extends Definition> serverDefinition) throws Exception {
     of(serverDefinition).start();
   }
-
-  /**
-   * The base configuration of this server.
-   * <p>
-   * {@link #reload() Reloading the server} will generate a new configuration object, causing a different instance to be returned by this method.
-   *
-   * @return the server configuration
-   */
-  ServerConfig getServerConfig();
 
   /**
    * The URL scheme the server uses.

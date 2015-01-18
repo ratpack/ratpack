@@ -18,7 +18,6 @@ package ratpack.groovy
 
 import ratpack.groovy.internal.StandaloneScriptBacking
 import ratpack.launch.LaunchException
-import ratpack.server.ServerConfig
 import ratpack.server.RatpackServer
 
 class ScriptBackedServer implements RatpackServer {
@@ -31,13 +30,6 @@ class ScriptBackedServer implements RatpackServer {
     this.starter = starter
   }
 
-  @Override
-  ServerConfig getServerConfig() {
-    if (nestedServer == null) {
-      start()
-    }
-    nestedServer.serverConfig
-  }
 
   @Override
   void start() throws LaunchException {

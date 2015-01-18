@@ -42,10 +42,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
   protected EmbeddedApp createApplication() {
     fromServer {
       RatpackServer.of {
-        def serverConfig = this.baseDir ? ServerConfig.baseDir(this.baseDir.build()) : ServerConfig.noBaseDir()
-        serverConfig.port(0)
-        serverConfig.with(_serverConfig)
-        it.config(serverConfig)
+        it.config(serverConfigBuilder())
 
         def bindingsAction = { s ->
           new DefaultGroovyBindingsSpec(s).with(_bindings)
@@ -56,6 +53,13 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
         it.handler { Groovy.chain(it, _handlers) }
       }
     }
+  }
+
+  protected ServerConfig.Builder serverConfigBuilder() {
+    def serverConfig = this.baseDir ? ServerConfig.baseDir(this.baseDir.build()) : ServerConfig.noBaseDir()
+    serverConfig.port(0)
+    serverConfig.with(_serverConfig)
+    serverConfig
   }
 
   void handlers(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {

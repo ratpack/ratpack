@@ -25,7 +25,6 @@ import ratpack.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
@@ -54,17 +53,13 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
-  public static Registry serverRegistry(RatpackServer ratpackServer, Function<? super Registry, ? extends Registry> userRegistryFactory) {
-    Registry baseRegistry = buildBaseRegistry(ratpackServer);
+  public static Registry serverRegistry(RatpackServer ratpackServer, ExecController execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+    Registry baseRegistry = buildBaseRegistry(ratpackServer, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
-    return buildServerRegistry(baseRegistry, userRegistry);
-  }
-
-  public static Registry buildServerRegistry(Registry baseRegistry, Registry userRegistry) {
     return baseRegistry.join(userRegistry);
   }
 
-  public static Registry buildUserRegistry(Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
+  private static Registry buildUserRegistry(Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
     Registry userRegistry;
     try {
       userRegistry = userRegistryFactory.apply(baseRegistry);
@@ -75,17 +70,14 @@ public abstract class ServerRegistry {
     return userRegistry;
   }
 
-  public static Registry buildBaseRegistry(RatpackServer ratpackServer) {
-    ServerConfig serverConfig = ratpackServer.getServerConfig();
+  private static Registry buildBaseRegistry(RatpackServer ratpackServer, ExecController execController, ServerConfig serverConfig) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
-    ExecController execController = new DefaultExecController(serverConfig.getThreads());
-    PooledByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
 
     RegistryBuilder baseRegistryBuilder;
     try {
       baseRegistryBuilder = Registries.registry()
         .add(ServerConfig.class, serverConfig)
-        .add(ByteBufAllocator.class, byteBufAllocator)
+        .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(MimeTypes.class, new ActivationBackedMimeTypes())
         .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
@@ -105,14 +97,16 @@ public abstract class ServerRegistry {
           ratpackServer.stop();
           return null;
         }))
-        .add(HttpClient.class, HttpClients.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength()));
+        .add(HttpClient.class, HttpClients.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()));
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);
     }
+
     if (serverConfig.isHasBaseDir()) {
       baseRegistryBuilder.add(FileSystemBinding.class, serverConfig.getBaseDir());
     }
+
     return baseRegistryBuilder.build();
   }
 }

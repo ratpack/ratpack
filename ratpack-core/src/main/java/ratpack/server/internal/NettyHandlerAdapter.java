@@ -70,7 +70,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ExecController execController;
   private final Predicate<Pair<Long, String>> shouldCompress;
 
-  private Registry rootRegistry;
+  private final Registry rootRegistry;
 
   private final boolean addResponseTimeHeader;
   private final ExecControl execControl;

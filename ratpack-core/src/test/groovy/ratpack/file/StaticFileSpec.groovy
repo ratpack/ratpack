@@ -22,6 +22,7 @@ import ratpack.func.Action
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
+import ratpack.server.ServerConfig
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -34,6 +35,13 @@ import static java.nio.file.Files.getLastModifiedTime
 import static java.nio.file.Files.size
 
 class StaticFileSpec extends RatpackGroovyDslSpec {
+
+  boolean compressResponses
+
+  @Override
+  protected ServerConfig.Builder serverConfigBuilder() {
+    return super.serverConfigBuilder().compressResponses(compressResponses)
+  }
 
   def "requesting directory with no index file "() {
     given:
@@ -307,7 +315,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get("file.txt")
     response.statusCode == statusCode.code()
-    if (!application.server.serverConfig.compressResponses) {
+    if (!compressResponses) {
       assert response.headers.get(CONTENT_LENGTH).toInteger() == contentLength
     }
 
@@ -336,7 +344,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get("")
     response.statusCode == NOT_MODIFIED.code()
-    if (!application.server.serverConfig.compressResponses) {
+    if (!compressResponses) {
       assert response.headers.get(CONTENT_LENGTH).toInteger() == 0
     }
 
@@ -357,7 +365,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     with(head("static.text")) {
       statusCode == OK.code()
       body.bytes.length == 0
-      if (!application.server.serverConfig.compressResponses) {
+      if (!compressResponses) {
         assert headers.get(CONTENT_LENGTH) == size(file).toString()
       }
     }

@@ -26,6 +26,7 @@ import io.netty.util.CharsetUtil;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -234,21 +235,15 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> ServerRegistry.serverRegistry(new TestServer(serverConfigBuilder.build()), r -> userRegistry.join(registryBuilder.build())));
+    return ExceptionUtils.uncheck(() -> {
+      ServerConfig serverConfig = serverConfigBuilder.build();
+      ExecController execController = new DefaultExecController(serverConfig.getThreads());
+      return ServerRegistry.serverRegistry(new TestServer(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
+    });
   }
 
   // TODO some kind of impl here
   private static class TestServer implements RatpackServer {
-    private final ServerConfig serverConfig;
-
-    TestServer(ServerConfig serverConfig) {
-      this.serverConfig = serverConfig;
-    }
-
-    @Override
-    public ServerConfig getServerConfig() {
-      return serverConfig;
-    }
 
     @Override
     public String getScheme() {
