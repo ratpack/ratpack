@@ -8,22 +8,26 @@ Just like the Ratpack server, the `HttpClient` also uses Netty under the hood an
 ## Basic GET request
 
 
-```language-java tested
+```language-java
 import ratpack.http.client.HttpClient;
 import ratpack.test.embed.EmbeddedApp;
 
 import static org.junit.Assert.assertEquals;
 
-public class HttpClientExample {
+public class Example {
   public static void main(String... args) throws Exception {
-    try(EmbeddedApp remoteApp = EmbeddedApp.fromHandler(ctx -> ctx.render("Hello from remote"))) {
+    try (EmbeddedApp remoteApp = EmbeddedApp.fromHandler(ctx -> ctx.render("Hello from remoteApp"))) {
       EmbeddedApp.fromHandler(ctx -> ctx
-          .get(HttpClient.class)
-          .get(remoteApp.getAddress())
-          .then(response -> ctx.render(response.getBody().getText()))
-      ).test(httpClient -> assertEquals("Hello from remote", httpClient.getText()) );
+          .render(
+            ctx
+              .get(HttpClient.class)
+              .get(remoteApp.getAddress())
+              .map(response -> response.getBody().getText())
+          )
+      ).test(httpClient -> 
+        assertEquals("Hello from remoteApp", httpClient.getText())
+      );
     }
   }
 }
-
 ```
