@@ -124,4 +124,14 @@ public interface TransformablePublisher<T> extends Publisher<T> {
     return Streams.transformable(transformer.apply(this));
   }
 
+  /**
+   * See {@link ratpack.stream.Streams#streamMap(org.reactivestreams.Publisher, ratpack.func.Function)}.
+   *
+   * @param function the transformation
+   * @param <O> the type of transformed item
+   * @return the transformed publisher
+   */
+  default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<T>> function) {
+    return Streams.streamMap(this, function);
+  }
 }

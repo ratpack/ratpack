@@ -182,8 +182,12 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
           }
 
           if (!stopped.get()) {
-            for (int i = 0; i < n; i++) {
-              channelPipeline.channel().read();
+            if (n == Long.MAX_VALUE) {
+              channelPipeline.channel().config().setAutoRead(true);
+            } else {
+              for (int i = 0; i < n; i++) {
+                channelPipeline.channel().read();
+              }
             }
           }
         }

@@ -21,6 +21,7 @@ import io.netty.util.CharsetUtil
 import org.reactivestreams.Publisher
 import ratpack.exec.Result
 import ratpack.func.Action
+import ratpack.sse.Event
 import ratpack.sse.ServerSentEvents
 import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
@@ -57,11 +58,11 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     serverSentEvent { it.event("fooType") }                                                         | "event: fooType\n\n"
   }
 
-  public <T> ServerSentEvents.Event serverSentEvent(T t, Action<? super ServerSentEvents.Event> action) {
+  public <T> Event serverSentEvent(T t, Action<? super Event> action) {
     toList(ServerSentEvents.serverSentEvents(Streams.publish([t]), action).publisher).get(0)
   }
 
-  public <T> ServerSentEvents.Event serverSentEvent(Action<? super ServerSentEvents.Event> action) {
+  public <T> Event serverSentEvent(Action<? super Event> action) {
     serverSentEvent("foo", action)
   }
 

@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import ratpack.sse.ServerSentEvents;
+import ratpack.sse.Event;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -37,7 +37,7 @@ public class ServerSentEventEncoder {
   private static final byte[] EVENT_ID_PREFIX = "id: ".getBytes(UTF_8);
   private static final byte[] NEWLINE = "\n".getBytes(UTF_8);
 
-  public ByteBuf encode(ServerSentEvents.Event<?> event, ByteBufAllocator bufferAllocator) throws Exception {
+  public ByteBuf encode(Event<?> event, ByteBufAllocator bufferAllocator) throws Exception {
     ByteBuf buffer = bufferAllocator.buffer();
 
     OutputStream outputStream = new ByteBufOutputStream(buffer);

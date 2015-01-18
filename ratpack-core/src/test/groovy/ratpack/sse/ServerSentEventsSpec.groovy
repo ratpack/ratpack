@@ -16,18 +16,23 @@
 
 package ratpack.sse
 
+import io.netty.buffer.ByteBufAllocator
+import ratpack.http.client.HttpClient
+import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.RequestSpec
-import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.http.client.StreamedResponse
+import ratpack.sse.internal.ServerSentEventStreamMapDecoder
 
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
+import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
-import static ratpack.stream.Streams.publish
-import static ratpack.stream.Streams.wiretap
+import static ratpack.stream.Streams.*
 
-class ServerSentEventsSpec extends RatpackGroovyDslSpec {
+class ServerSentEventsSpec extends HttpClientSpec {
 
   @Override
   void configureRequest(RequestSpec requestSpecification) {
@@ -38,7 +43,7 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       handler {
-        render serverSentEvents(publish(1..3)) { ServerSentEvents.Event event ->
+        render serverSentEvents(publish(1..3)) { Event event ->
           event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
         }
       }
@@ -123,5 +128,35 @@ id: 3
 
     new GZIPInputStream(response.body.inputStream).bytes ==
       "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n".bytes
+  }
+
+  def "can consume server sent event stream"() {
+    given:
+    otherApp {
+      get("foo") {
+        def stream = periodically(context.execution.controller.executor, Duration.ofMillis(100)) { it < 10 ? it : null }
+
+        render serverSentEvents(stream) { Event<Integer> event ->
+          event.id(event.item.toString()).data("Event ${event.item}".toString())
+        }
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient, ByteBufAllocator byteBufAllocator ->
+        httpClient.requestStream(otherAppUrl("foo")) {
+        } then { StreamedResponse stream ->
+          render stringChunks(
+            stream.body.streamMap(new ServerSentEventStreamMapDecoder(byteBufAllocator)).map { Event e ->
+              e.data
+            }
+          )
+        }
+      }
+    }
+
+    expect:
+    getText() == "Event 0Event 1Event 2Event 3Event 4Event 5Event 6Event 7Event 8Event 9"
   }
 }
