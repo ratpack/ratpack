@@ -18,11 +18,15 @@ package ratpack.server
 
 import ratpack.handling.Handler
 import ratpack.test.ApplicationUnderTest
+import ratpack.test.http.TestHttpClients
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class RatpackServerSpec extends Specification {
 
+  @AutoCleanup("stop")
   RatpackServer server
+  def http = TestHttpClients.testHttpClient(ApplicationUnderTest.of({ server }))
 
   def cleanup() {
     if (server.isRunning()) {
@@ -34,6 +38,7 @@ class RatpackServerSpec extends Specification {
     given:
     server = RatpackServer.of { spec ->
       spec
+        .config(ServerConfig.embedded())
         .handler {
         return {} as Handler
       }
@@ -44,25 +49,6 @@ class RatpackServerSpec extends Specification {
 
     then:
     server.running
-    server.bindPort == 5050
-  }
-
-  def "start server on port"() {
-    given:
-    server = RatpackServer.of { spec ->
-      spec
-        .config(ServerConfig.noBaseDir().port(5060))
-        .handler {
-        return {} as Handler
-      }
-    }
-
-    when:
-    server.start()
-
-    then:
-    server.running
-    server.bindPort == 5060
   }
 
   def "registry changes are applied on reload"() {
@@ -70,17 +56,17 @@ class RatpackServerSpec extends Specification {
     def value = "foo"
     server = RatpackServer.of {
       it
+        .config(ServerConfig.embedded())
         .registryOf { it.add(String, value) }
         .handler { return { it.render it.get(String) } as Handler }
     }
-    def client = ApplicationUnderTest.of(server).httpClient
 
     when:
     server.start()
 
     then:
     server.isRunning()
-    client.text == "foo"
+    http.text == "foo"
 
     when:
     value = "bar"
@@ -88,17 +74,17 @@ class RatpackServerSpec extends Specification {
 
     then:
     server.isRunning()
-    client.text == "bar"
+    http.text == "bar"
   }
 
   def "configuration changes are applied up on reload"() {
     given:
-    def config = ServerConfig.noBaseDir().build()
+    def config = ServerConfig.embedded().development(true).build()
 
     server = RatpackServer.of {
       it
         .config(config)
-        .handler { return {} as Handler }
+        .handler { return { it.render(it.serverConfig.development.toString()) } as Handler }
     }
 
     when:
@@ -106,15 +92,15 @@ class RatpackServerSpec extends Specification {
 
     then:
     server.running
-    server.bindPort == 5050
+    http.text == "true"
 
     when:
-    config = ServerConfig.noBaseDir().port(6060).build()
+    config = ServerConfig.embedded().development(false).build()
     server.reload()
 
     then:
     server.running
-    server.bindPort == 6060
+    http.text == "false"
   }
 
   def "handler changes are applied on reload"() {
@@ -124,17 +110,16 @@ class RatpackServerSpec extends Specification {
     } as Handler
 
     server = RatpackServer.of {
-      it
-        .handler { return handler }
+      it.config(ServerConfig.embedded())
+      it.handler { return handler }
     }
-    def client = ApplicationUnderTest.of(server).httpClient
 
     when:
     server.start()
 
     then:
     server.running
-    client.text == 'foo'
+    http.text == 'foo'
 
     when:
     handler = {
@@ -145,7 +130,7 @@ class RatpackServerSpec extends Specification {
 
     then:
     server.running
-    client.text == 'bar'
+    http.text == 'bar'
   }
 
   def "server lifecycle events are executed with event data"() {
@@ -154,6 +139,7 @@ class RatpackServerSpec extends Specification {
     def reloadCounter = 0
 
     server = RatpackServer.of {
+      it.config(ServerConfig.embedded().development(false))
       it.registryOf {
         it.add(Integer, 5)
         it.add(ServerLifecycleListener, new ServerLifecycleListener() {
