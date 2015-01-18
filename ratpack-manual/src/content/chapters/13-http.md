@@ -1,10 +1,10 @@
 # Basic HTTP
 
-This chapter introduces how to deal with basic HTTP concerns such as parsing requests, rendering responses, content negotiation file uploads etc.
+This chapter introduces how to deal with basic HTTP concerns such as parsing requests, rendering responses, content negotiation, file uploads etc.
 
 ## Request & Response
 
-The context object that a handler operates on provides the ([`getRequest()`](api/ratpack/handling/Context.html#getRequest--)
+The context object that a handler operates on provides the [`getRequest()`](api/ratpack/handling/Context.html#getRequest--)
 & [`getResponse()`](api/ratpack/handling/Context.html#getResponse--) methods for accessing the [`Request`](api/ratpack/http/Request.html) and [`Response`](api/ratpack/http/Response.html) respectively.
 These objects provide more or less what you would expect. 
 
@@ -60,24 +60,161 @@ See [`Form`](api/ratpack/form/Form.html) and [`UploadedFile`](api/ratpack/form/U
 
 ## Sending a response
 
-TODO introduce status methods
+Sending an HTTP response in Ratpack is easy, efficient, and flexible.
+Like most things in Ratpack, transmitting a response to a client is done in a non-blocking manner.
+Ratpack provides a few mechanisms for sending a response.
+The methods exposed to manipulating the response can be found in the [`Response`](api/ratpack/http/Response.html) and [`Context`](api/ratpack/handling/Context.html) objects. 
+
+
+### Setting the response status
+
+Setting the status of a response is as easy as calling [`Response#status(int)`](api/ratpack/http/Response.html#status-int-) or [`Response#status(ratpack.http.Status)`](api/ratpack/http/Response.html#status-ratpack.http.Status-).
+
+```language-java
+import io.netty.handler.codec.http.HttpResponseStatus;
+import ratpack.http.Response;
+import ratpack.http.Status;
+import ratpack.http.internal.DefaultStatus;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromChain(chain ->
+          chain
+            .handler("status-object", ctx -> {
+              Status status = new DefaultStatus(HttpResponseStatus.FOUND);
+              Response response = ctx.getResponse();
+              response.status(status).send("foo");
+            })
+            .handler(":status", ctx -> {
+              Response response = ctx.getResponse();
+              String status = ctx.getPathTokens().get("status");
+              response.status(Integer.parseInt(status));
+              response.send("foo");
+            })
+      )
+      .test(httpClient -> {
+        assertEquals(200, httpClient.get("200").getStatusCode());
+        assertEquals(301, httpClient.get("301").getStatusCode());
+        assertEquals(404, httpClient.get("404").getStatusCode());
+        assertEquals(503, httpClient.get("503").getStatusCode());
+
+        assertEquals(302, httpClient.get("status-object").getStatusCode());
+      });
+  }
+}
+```
+
+### Sending the response
+
+[`Response#send()`](api/ratpack/http/Response.html#send--)
+
+Send without response body
+
+[`Response#send(String)`](api/ratpack/http/Response.html#send-java.lang.String-)
 
 TODO introduce send methods
 
+
+### An alternative approach with Renderers
+
 TODO introduce renderers
+
+### Sending files
 
 TODO introduce sendFile methods (pointing to use of `render(file(«path»)))` instead.
 
+### Before send
+
 TODO introduce beforeSend method and the ResponseMetaData interface.
+
+## Headers
+
+HTTP Header information is available from an incoming request as it is for an outgoing response.
+
+### Request headers
+
+The [`Headers`](api/ratpack/http/Headers.html) interface allows you to retrieve header information associated with the incoming request.
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+import ratpack.http.Headers;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> {
+        Headers headers = ctx.getRequest().getHeaders();
+        String clientHeader = headers.get("Client-Header");
+        ctx.getResponse().send(clientHeader);
+      })
+      .test(httpClient -> {
+        ReceivedResponse receivedResponse = httpClient
+          .requestSpec(requestSpec ->
+              requestSpec.getHeaders().set("Client-Header", "From Client")
+          ).get();
+
+        assertEquals("From Client", receivedResponse.getBody().getText());
+      });
+  }
+}
+```
+
+### Response headers
+
+The [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) provides functionality that enables you to manipulate response headers via the response object [`ResponseMetaData#getHeaders()`](api/ratpack/http/ResponseMetaData.html#getHeaders--).
+
+```language-java
+import ratpack.http.MutableHeaders;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> {
+        MutableHeaders headers = ctx.getResponse().getHeaders();
+        headers.add("Custom-Header", "custom-header-value");
+        ctx.getResponse().send("ok");
+      })
+      .test(httpClient -> {
+        ReceivedResponse receivedResponse = httpClient.get();
+        assertEquals("custom-header-value", receivedResponse.getHeaders().get("Custom-Header"));
+      });
+  }
+}
+```
+
+Additionally you can [`set(CharSequence, Object)`](api/ratpack/http/MutableHeaders.html#set-java.lang.CharSequence-java.lang.Object-), [`remove(CharSequence)`](api/ratpack/http/MutableHeaders.html#remove-java.lang.CharSequence-), [`clear()`](http://www.ratpack.io/manual/snapshot/api/ratpack/http/MutableHeaders.html#clear--) and more.
+
+See [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) for more methods.
+
 
 ## Cookies
 
+[`ResponseMetaData#getCookies()`](api/ratpack/http/ResponseMetaData.html#getCookies--)
+
 TODO introduce getCookies() on request and response 
 
+[`ResponseMetaData#cookie(String, String)`](api/ratpack/http/ResponseMetaData.html#cookie-java.lang.String-java.lang.String-)
+
+[`Request#oneCookie(String)`](api/ratpack/http/Request.html#oneCookie-java.lang.String-)
+
 TODO introduce Request#oneCookie()
+
+[`ResponseMetaData#expireCooke()`](api/ratpack/http/ResponseMetaData.html#expireCookie-java.lang.String-)
 
 TODO introduce Response#expireCookie()
 
 ## Sessions
 
-TODO introduce ratpack-sessions library
+TODO introduce `ratpack-sessions` library
