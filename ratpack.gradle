@@ -31,14 +31,7 @@ buildscript {
     // Force to newer version here.
     classpath 'com.google.guava:guava:18.0'
 
-    // Prevent coveralls from dragging in the whole android tooling stack
-    // https://github.com/kt3k/coveralls-gradle-plugin/issues/20
-    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:1.0.2", {
-      exclude group: "com.android.tools.build"
-    }
-    classpath "com.android.tools.build:gradle:0.11.2", {
-      transitive = false
-    }
+    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.1.0"
   }
 }
 
