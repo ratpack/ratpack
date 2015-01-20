@@ -43,7 +43,6 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
 
   @Override
   public ServerConfig deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-    String sysPropDevelopment = Strings.emptyToNull(System.getProperty("ratpack.development"));
     String portEnv = Strings.emptyToNull(environment.getenv("PORT"));
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
@@ -56,9 +55,7 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     if (serverNode.hasNonNull("address")) {
       builder.address(codec.treeToValue(serverNode.get("address"), InetAddress.class));
     }
-    if (sysPropDevelopment != null) {
-      builder.development(Boolean.parseBoolean(sysPropDevelopment));
-    } else if (serverNode.hasNonNull("development")) {
+    if (serverNode.hasNonNull("development")) {
       builder.development(serverNode.get("development").asBoolean());
     }
     if (serverNode.hasNonNull("threads")) {

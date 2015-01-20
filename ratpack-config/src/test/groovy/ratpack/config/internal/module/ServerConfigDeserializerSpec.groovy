@@ -24,28 +24,22 @@ import ratpack.server.ServerConfig
 import ratpack.test.embed.BaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-import spock.lang.Subject
 
 class ServerConfigDeserializerSpec extends Specification {
   @AutoCleanup
   def b1 = BaseDirBuilder.tmpDir()
-  def originalSysProps
   def originalClassLoader
   def classLoader = new GroovyClassLoader()
-  @Subject
   def deserializer = new ServerConfigDeserializer(new MapEnvironment([:]))
   def objectMapper = new ObjectMapper()
 
   def setup() {
-    originalSysProps = System.properties
-    System.properties = new Properties(originalSysProps)
     originalClassLoader = Thread.currentThread().contextClassLoader
     Thread.currentThread().contextClassLoader = classLoader
   }
 
   def cleanup() {
     Thread.currentThread().contextClassLoader = originalClassLoader
-    System.properties = originalSysProps
   }
 
   def "can specify baseDir"() {
@@ -106,32 +100,6 @@ class ServerConfigDeserializerSpec extends Specification {
 
     then:
     !serverConfig.hasBaseDir
-  }
-
-  def "supports ratpack.development system property as an override to development field"() {
-    when:
-    System.clearProperty("ratpack.development")
-
-    then:
-    !deserialize(objectMapper.createObjectNode()).development
-    !deserialize(objectMapper.createObjectNode().put("development", false)).development
-    deserialize(objectMapper.createObjectNode().put("development", true)).development
-
-    when:
-    System.setProperty("ratpack.development", "true")
-
-    then:
-    deserialize(objectMapper.createObjectNode()).development
-    deserialize(objectMapper.createObjectNode().put("development", false)).development
-    deserialize(objectMapper.createObjectNode().put("development", true)).development
-
-    when:
-    System.setProperty("ratpack.development", "false")
-
-    then:
-    !deserialize(objectMapper.createObjectNode()).development
-    !deserialize(objectMapper.createObjectNode().put("development", false)).development
-    !deserialize(objectMapper.createObjectNode().put("development", true)).development
   }
 
   private ServerConfig deserialize(JsonNode node) {
