@@ -201,11 +201,69 @@ See [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) for more methods.
 
 ## Cookies
 
-[`ResponseMetaData#getCookies()`](api/ratpack/http/ResponseMetaData.html#getCookies--)
+As with HTTP headers, cookies are available for inspection from an inbound request as they are for manipulation for an outbound response.
 
-TODO introduce getCookies() on request and response 
+### Cookies from an inbound request
 
-[`ResponseMetaData#cookie(String, String)`](api/ratpack/http/ResponseMetaData.html#cookie-java.lang.String-java.lang.String-)
+You may retrieve a set of cookies via [`Request#getCookies()`](api/ratpack/http/Request.html#getCookies--).
+
+```language-java
+import io.netty.handler.codec.http.Cookie;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp.fromHandler(ctx -> {
+      Set<Cookie> cookies = ctx.getRequest().getCookies();
+      assertEquals(1, cookies.size());
+      Cookie cookie = cookies.iterator().next();
+      assertEquals("username", cookie.name());
+      assertEquals("hbogart1", cookie.value());
+      ctx.getResponse().send("Welcome to Ratpack, " + cookie.value() + "!");
+    }).test(httpClient -> {
+      ReceivedResponse response = httpClient
+        .requestSpec(requestSpec -> requestSpec
+          .getHeaders()
+          .set("Cookie", "username=hbogart1"))
+        .get();
+
+      assertEquals("Welcome to Ratpack, hbogart1!", response.getBody().getText());
+    });
+  }
+}
+```
+
+### Setting cookies for an outbound response
+
+You can set cookies to be sent with the response [`ResponseMetaData#cookie(String, String)`](api/ratpack/http/ResponseMetaData.html#cookie-java.lang.String-java.lang.String-).
+To retrieve the set of cookies to be set with the response you may use [`ResponseMetaData#getCookies()`](api/ratpack/http/ResponseMetaData.html#getCookies--).
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp.fromHandler(ctx -> {
+      assertTrue(ctx.getResponse().getCookies().isEmpty());
+      ctx.getResponse().cookie("whiskey", "make-it-rye");
+      assertEquals(1, ctx.getResponse().getCookies().size());
+      ctx.getResponse().send("ok");
+    }).test(httpClient -> {
+      ReceivedResponse response = httpClient.get();
+      assertEquals("whiskey=make-it-rye", response.getHeaders().get("Set-Cookie"));
+    });
+  }
+}
+```
 
 [`Request#oneCookie(String)`](api/ratpack/http/Request.html#oneCookie-java.lang.String-)
 
