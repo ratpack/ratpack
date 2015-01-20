@@ -205,7 +205,33 @@ As with HTTP headers, cookies are available for inspection from an inbound reque
 
 ### Cookies from an inbound request
 
-You may retrieve a set of cookies via [`Request#getCookies()`](api/ratpack/http/Request.html#getCookies--).
+To retrieve the value of a cookie, you can use [`Request#oneCookie(String)`](api/ratpack/http/Request.html#oneCookie-java.lang.String-).
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp.fromHandler(ctx -> {
+      String username = ctx.getRequest().oneCookie("username");
+      ctx.getResponse().send("Welcome to Ratpack, " + username + "!");
+    }).test(httpClient -> {
+      ReceivedResponse response = httpClient
+        .requestSpec(requestSpec -> requestSpec
+          .getHeaders()
+          .set("Cookie", "username=hbogart1"))
+        .get();
+
+      assertEquals("Welcome to Ratpack, hbogart1!", response.getBody().getText());
+    });
+  }
+}
+```
+
+You can also retrieve a set of cookies via [`Request#getCookies()`](api/ratpack/http/Request.html#getCookies--).
 
 ```language-java
 import io.netty.handler.codec.http.Cookie;
@@ -265,13 +291,32 @@ public class Example {
 }
 ```
 
-[`Request#oneCookie(String)`](api/ratpack/http/Request.html#oneCookie-java.lang.String-)
+If you want to expire a cookie, you can do so with [`ResponseMetaData#expireCooke()`](api/ratpack/http/ResponseMetaData.html#expireCookie-java.lang.String-). 
 
-TODO introduce Request#oneCookie()
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
 
-[`ResponseMetaData#expireCooke()`](api/ratpack/http/ResponseMetaData.html#expireCookie-java.lang.String-)
+import static org.junit.Assert.assertTrue;
 
-TODO introduce Response#expireCookie()
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp.fromHandler(ctx -> {
+      ctx.getResponse().expireCookie("username");
+      ctx.getResponse().send("ok");
+    }).test(httpClient -> {
+      ReceivedResponse response = httpClient
+        .requestSpec(requestSpec -> requestSpec
+            .getHeaders().set("Cookie", "username=lbacall1")
+        )
+        .get();
+
+      String setCookie = response.getHeaders().get("Set-Cookie");
+      assertTrue(setCookie.startsWith("username=; Expires="));
+    });
+  }
+}
+```
 
 ## Sessions
 
