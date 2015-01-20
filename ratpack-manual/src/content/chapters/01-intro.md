@@ -170,6 +170,10 @@ Trustin Lee, a core Netty developer at Twitter, wrote an article about performan
 Netty 4 has significantly less garbage production and less frequent GC pauses.
 [A more in-depth summary of Netty 3 and Netty 4 can be found here](http://netty.io/wiki/new-and-noteworthy-in-4.0.html).
 
+As a huge bonus, Netty 4 introduces [native transports](http://netty.io/wiki/native-transports.html) which is supported in Ratpack.
+
+> Since 4.0.16, Netty provides the native socket transport for Linux using JNI. This transport has higher performance and produces less garbage, so you might want to give it a try.
+
 
 #### Async Execution
 When working with an asynchronous framework, you need to be able to reason about the application's execution.
