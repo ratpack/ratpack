@@ -137,6 +137,9 @@ public abstract class Groovy {
     private Script() {
     }
 
+    public static Function<Registry, Handler> handlers() {
+      return handlers(false);
+    }
 
     public static Function<Registry, Handler> handlers(boolean staticCompile) {
       return handlers(DEFAULT_HANDLERS_PATH, staticCompile);
@@ -150,6 +153,10 @@ public abstract class Groovy {
           Groovy.chain(r, h.handlers)
         ));
       };
+    }
+
+    public static Function<Registry, Registry> bindings() {
+      return bindings(false);
     }
 
     public static Function<Registry, Registry> bindings(boolean staticCompile) {
