@@ -24,7 +24,6 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigurationSource;
-import ratpack.config.internal.util.PathUtil;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -35,10 +34,6 @@ public abstract class JacksonConfigurationSource implements ConfigurationSource 
 
   public JacksonConfigurationSource(Path path) {
     this(Files.asByteSource(path.toFile()));
-  }
-
-  public JacksonConfigurationSource(String pathOrUrl) {
-    this(PathUtil.asByteSource(pathOrUrl));
   }
 
   public JacksonConfigurationSource(URL url) {

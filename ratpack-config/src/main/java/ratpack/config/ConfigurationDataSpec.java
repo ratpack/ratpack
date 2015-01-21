@@ -23,6 +23,8 @@ import ratpack.func.Function;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -116,10 +118,12 @@ public interface ConfigurationDataSpec {
   /**
    * Adds a configuration source for a JSON file.
    *
-   * @param pathOrUrl the source of the JSON data; may be either a file path or URL
+   * @param path the path to the source of the JSON data
    * @return this
    */
-  ConfigurationDataSpec json(String pathOrUrl);
+  default ConfigurationDataSpec json(String path) {
+    return json(Paths.get(path));
+  }
 
   /**
    * Adds a configuration source for a JSON file.
@@ -154,12 +158,22 @@ public interface ConfigurationDataSpec {
   ConfigurationDataSpec props(Properties properties);
 
   /**
-   * Adds a configuration source for a properties file.
+   * Adds a configuration source for a Map (flat key-value pairs).
    *
-   * @param pathOrUrl the source of the properties data; may be either a file path or URL
+   * @param map the map
    * @return this
    */
-  ConfigurationDataSpec props(String pathOrUrl);
+  ConfigurationDataSpec props(Map<String, String> map);
+
+  /**
+   * Adds a configuration source for a properties file.
+   *
+   * @param path the path to the source of the properties data
+   * @return this
+   */
+  default ConfigurationDataSpec props(String path) {
+    return props(Paths.get(path));
+  }
 
   /**
    * Adds a configuration source for a properties file.
@@ -204,10 +218,12 @@ public interface ConfigurationDataSpec {
   /**
    * Adds a configuration source for a YAML file.
    *
-   * @param pathOrUrl the source of the YAML data; may be either a file path or URL
+   * @param path the path to the source of the YAML data
    * @return this
    */
-  ConfigurationDataSpec yaml(String pathOrUrl);
+  default ConfigurationDataSpec yaml(String path) {
+    return yaml(Paths.get(path));
+  }
 
   /**
    * Adds a configuration source for a YAML file.

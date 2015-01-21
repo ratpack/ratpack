@@ -28,10 +28,6 @@ public class JsonConfigurationSource extends JacksonConfigurationSource {
     super(path);
   }
 
-  public JsonConfigurationSource(String pathOrUrl) {
-    super(pathOrUrl);
-  }
-
   public JsonConfigurationSource(URL url) {
     super(url);
   }

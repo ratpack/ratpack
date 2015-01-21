@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.util;
+package ratpack.config.internal.source;
 
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+public class MapConfigurationSource extends PropertiesConfigurationSource {
+  public MapConfigurationSource(Optional<String> prefix, Map<String, String> map) {
+    super(prefix, mapToProperties(map));
+  }
 
-public class PathUtil {
-  public static ByteSource asByteSource(String pathOrUrl) {
-    try {
-      return Resources.asByteSource(new URL(pathOrUrl));
-    } catch (MalformedURLException ex) {
-      return Files.asByteSource(new File(pathOrUrl));
-    }
+  private static Properties mapToProperties(Map<String, String> map) {
+    Properties properties = new Properties();
+    properties.putAll(map);
+    return properties;
   }
 }

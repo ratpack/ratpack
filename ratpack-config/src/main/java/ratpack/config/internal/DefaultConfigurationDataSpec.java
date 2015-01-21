@@ -32,13 +32,13 @@ import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.module.ConfigurationModule;
 import ratpack.config.internal.source.*;
 import ratpack.config.internal.source.env.Environment;
-import ratpack.config.internal.util.PathUtil;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.util.ExceptionUtils;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -114,12 +114,6 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   }
 
   @Override
-  public ConfigurationDataSpec json(String pathOrUrl) {
-    add(new JsonConfigurationSource(pathOrUrl));
-    return this;
-  }
-
-  @Override
   public ConfigurationDataSpec json(URL url) {
     add(new JsonConfigurationSource(url));
     return this;
@@ -138,12 +132,6 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   }
 
   @Override
-  public ConfigurationDataSpec props(String pathOrUrl) {
-    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), PathUtil.asByteSource(pathOrUrl)));
-    return this;
-  }
-
-  @Override
   public ConfigurationDataSpec props(Properties properties) {
     add(new PropertiesConfigurationSource(Optional.empty(), properties));
     return this;
@@ -152,6 +140,12 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   @Override
   public ConfigurationDataSpec props(URL url) {
     add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Resources.asByteSource(url)));
+    return this;
+  }
+
+  @Override
+  public ConfigurationDataSpec props(Map<String, String> map) {
+    add(new MapConfigurationSource(Optional.empty(), map));
     return this;
   }
 
@@ -176,12 +170,6 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   @Override
   public ConfigurationDataSpec yaml(Path path) {
     add(new YamlConfigurationSource(path));
-    return this;
-  }
-
-  @Override
-  public ConfigurationDataSpec yaml(String pathOrUrl) {
-    add(new YamlConfigurationSource(pathOrUrl));
     return this;
   }
 
