@@ -45,7 +45,7 @@ section(id: "main") {
       yield ', '
       a(href: "http://netty.io", 'Netty')
       yield ', '
-      a(href: "https://code.google.com/p/guava-libraries/", "Google Guava")
+      a(href: "https://github.com/google/guava", "Google Guava")
       yield ' and '
       a(href:"https://github.com/reactive-streams/reactive-streams", "Reactive Streams")
       yield '.'
