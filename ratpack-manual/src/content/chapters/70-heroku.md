@@ -21,16 +21,6 @@ Heroku has native support for Gradle via the [Gradle buildpack](https://devcente
 All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
 If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
 
-### Java Version
-
-Heroku allows the required Java version to be set via `system.properties` file in the root of the source tree.
-
-```
-java.runtime.version=1.8
-```
-
-At the time of writing, this file is required as Heroku defaults to Java 6 and Ratpack requires Java 8.
-
 ### Building
 
 The Gradle buildpack will invoke `./gradlew stage`.
