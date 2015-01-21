@@ -52,19 +52,17 @@ import ratpack.server.ServerConfig;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
+  private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
   private final Handler[] handlers;
-
-  private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
   private final DefaultContext.ApplicationConstants applicationConstants;
   private final ExecController execController;
@@ -100,7 +98,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   @Override
   public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
     if (!(msg instanceof FullHttpRequest)) {
-      Action<Object> subscriber = channelSubscriptions.get(channelHandlerContext.channel());
+      Action<Object> subscriber = channelHandlerContext.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber != null) {
         subscriber.execute(msg);
         return;
@@ -136,8 +134,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     Action<Action<Object>> subscribeHandler = thing -> {
       transmitted.set(true);
-      channelSubscriptions.put(channel, thing);
-      channel.closeFuture().addListener(future -> channelSubscriptions.remove(channel));
+      ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
     };
 
     final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
