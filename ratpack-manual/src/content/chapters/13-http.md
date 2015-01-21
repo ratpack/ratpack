@@ -111,13 +111,54 @@ public class Example {
 
 ### Sending the response
 
-[`Response#send()`](api/ratpack/http/Response.html#send--)
+There are a few ways to send a response body to the client.
 
-Send without response body
+The shortest way to send a response is to simply call [`Response#send()`](api/ratpack/http/Response.html#send--).
+This will send a response with no response body.
 
-[`Response#send(String)`](api/ratpack/http/Response.html#send-java.lang.String-)
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
 
-TODO introduce send methods
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> ctx.getResponse().send())
+      .test(httpClient -> {
+        ReceivedResponse response = httpClient.get();
+        assertEquals("", response.getBody().getText());
+      });
+  }
+}
+```
+
+
+If you want to send a plain text response you can use [`Response#send(String)`](api/ratpack/http/Response.html#send-java.lang.String-).
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> ctx.getResponse().send("Ratpack is rad"))
+      .test(httpClient -> {
+        ReceivedResponse response = httpClient.get();
+        assertTrue(response.getHeaders().get("Content-type").startsWith("text/plain;"));
+        assertEquals("Ratpack is rad", response.getBody().getText());
+      });
+  }
+}
+```
+
+There are additional `send()` methods that allow you send different the response body payloads, i.e. `String`, `byte[]`, `ByteBuf`, as well as set the `Content-type` header.
+See [`Response`](api/ratpack/http/Response.html) for more on sending a response.
 
 
 ### An alternative approach with Renderers
