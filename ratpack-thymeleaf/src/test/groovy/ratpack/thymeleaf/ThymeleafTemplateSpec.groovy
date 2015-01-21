@@ -30,7 +30,6 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a thymeleaf template from #scenario'() {
     given:
-    serverConfig { other(otherConfig) }
     file filePath, '<span th:text="${key}"/>'
 
     when:
@@ -52,7 +51,24 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     'default nested path'       | null            | 'inside/simple' | 'thymeleaf/inside/simple.html' | [:]
     'path set in module'        | 'custom'        | 'simple'        | 'custom/simple.html'           | [:]
     'nested path set in module' | 'custom'        | 'inside/simple' | 'custom/inside/simple.html'    | [:]
-    'path set in config'        | null            | 'simple'        | 'fromConfig/simple.html'       | ['thymeleaf.templatesPrefix': "fromConfig"]
+  }
+
+  void 'can render a thymeleaf template from path set in config'() {
+    given:
+    file 'fromConfig/simple.html', '<span th:text="${key}"/>'
+
+    when:
+    bindings {
+      add ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', key: 'it works!')
+      }
+    }
+
+    then:
+    text == '<span>it works!</span>'
   }
 
   @Unroll

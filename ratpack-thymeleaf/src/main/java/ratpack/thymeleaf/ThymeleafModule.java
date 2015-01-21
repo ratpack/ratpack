@@ -16,7 +16,7 @@
 
 package ratpack.thymeleaf;
 
-import com.google.inject.AbstractModule;
+import com.google.common.base.Strings;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
@@ -27,6 +27,7 @@ import org.thymeleaf.dialect.IDialect;
 import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
+import ratpack.guice.ConfigurableModule;
 import ratpack.server.ServerConfig;
 import ratpack.thymeleaf.internal.FileSystemBindingThymeleafResourceResolver;
 import ratpack.thymeleaf.internal.ThymeleafTemplateRenderer;
@@ -44,8 +45,8 @@ import java.util.Set;
  * <p>
  * By default templates are looked up in the {@code thymeleaf} directory of the application root with a {@code .html} suffix.
  * So {@code thymeleafTemplate("my/template/path")} maps to {@code thymeleaf/my/template/path.html} in the application root directory.
- * This can be configured using {@link #setTemplatesPrefix(String)} and {@link #setTemplatesSuffix(String)} as well as
- * {@code other.thymeleaf.templatesPrefix} and {@code other.thymeleaf.templatesSuffix} configuration properties.
+ * This can be configured using {@link #setTemplatesPrefix(String)} and {@link #setTemplatesSuffix(String)} as well as configuration of
+ * {@link Config#templatesPrefix(String)} and {@link Config#templateSuffix(String)}.
  * <p>
  * Response content type can be manually specified, i.e. {@code thymeleafTemplate("template", model, "text/html")} if
  * not specified will default to {@code text/html}.
@@ -84,7 +85,106 @@ import java.util.Set;
  * @see <a href="http://www.thymeleaf.org/" target="_blank">Thymeleaf</a>
  * @see <a href="https://code.google.com/p/google-guice/wiki/Multibindings" target="_blank">Guice Multibindings</a>
  */
-public class ThymeleafModule extends AbstractModule {
+@SuppressWarnings("UnusedDeclaration")
+public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> {
+
+  /**
+   * The configuration object for {@link ThymeleafModule}.
+   */
+  public static class Config {
+    private int templatesCacheSize;
+    private String templatesMode = DEFAULT_TEMPLATE_MODE;
+    private String templatesPrefix = DEFAULT_TEMPLATE_PREFIX;
+    private String templatesSuffix = DEFAULT_TEMPLATE_SUFFIX;
+
+    /**
+     * The size of the templates cache.
+     * <p>
+     * {@code 0} by default (disabled).
+     *
+     * @return the size of the templates cache.
+     */
+    public int getTemplatesCacheSize() {
+      return templatesCacheSize;
+    }
+
+    /**
+     * The mode for templates.
+     * <p>
+     * {@value #DEFAULT_TEMPLATE_MODE} by default.
+     *
+     * @return the mode for templates.
+     */
+    public String getTemplatesMode() {
+      return templatesMode;
+    }
+
+    /**
+     * The prefix for templates.
+     * <p>
+     * {@value #DEFAULT_TEMPLATE_PREFIX} by default.
+     *
+     * @return the prefix for templates.
+     */
+    public String getTemplatesPrefix() {
+      return templatesPrefix;
+    }
+
+    /**
+     * The suffix for templates.
+     * <p>
+     * {@value #DEFAULT_TEMPLATE_SUFFIX} by default.
+     *
+     * @return the suffix for templates.
+     */
+    public String getTemplatesSuffix() {
+      return templatesSuffix;
+    }
+
+    /**
+     * Sets the size of the templates cache.
+     *
+     * @param templatesCacheSize the size of the templates cache
+     * @return this
+     */
+    public Config templatesCacheSize(int templatesCacheSize) {
+      this.templatesCacheSize = templatesCacheSize;
+      return this;
+    }
+
+    /**
+     * Sets the mode for templates.
+     *
+     * @param templatesMode the mode for templates
+     * @return this
+     */
+    public Config templatesMode(String templatesMode) {
+      this.templatesMode = templatesMode;
+      return this;
+    }
+
+    /**
+     * Sets the prefix for templates.
+     *
+     * @param templatesPrefix the prefix for templates
+     * @return this
+     */
+    public Config templatesPrefix(String templatesPrefix) {
+      this.templatesPrefix = templatesPrefix;
+      return this;
+    }
+
+    /**
+     * Sets the suffix for templates.
+     *
+     * @param templatesSuffix the suffix for templates
+     * @return this
+     */
+    public Config templateSuffix(String templatesSuffix) {
+      this.templatesSuffix = templatesSuffix;
+      return this;
+    }
+  }
 
   private static final String DEFAULT_TEMPLATE_MODE = "XHTML";
   private static final String DEFAULT_TEMPLATE_PREFIX = "thymeleaf";
@@ -134,63 +234,60 @@ public class ThymeleafModule extends AbstractModule {
     bind(ICacheManager.class).to(StandardCacheManager.class).in(Singleton.class);
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  ITemplateResolver provideTemplateResolver(ServerConfig serverConfig) {
+  ITemplateResolver provideTemplateResolver(ServerConfig serverConfig, Config config) {
     IResourceResolver resourceResolver = new FileSystemBindingThymeleafResourceResolver(serverConfig.getBaseDir());
     TemplateResolver templateResolver = new TemplateResolver();
     templateResolver.setResourceResolver(resourceResolver);
-
-
-    String mode = templatesMode == null ? serverConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
-    templateResolver.setTemplateMode(mode);
-
-    String prefix = templatesPrefix == null ? serverConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
-    if (!prefix.endsWith(File.separator)) {
-      prefix += File.separator;
-    }
-    templateResolver.setPrefix(prefix);
-
-    String suffix = templatesSuffix == null ? serverConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
-    if (suffix.equalsIgnoreCase("")) {
-      suffix = DEFAULT_TEMPLATE_SUFFIX;
-    }
-    templateResolver.setSuffix(suffix);
-
-    Integer cacheSize = getCacheSizeSetting(serverConfig);
-    templateResolver.setCacheable(cacheSize > 0);
-
-    // Never use TTL expiration
-    templateResolver.setCacheTTLMs(null);
-
+    templateResolver.setTemplateMode(getTemplatesModeSetting(config));
+    templateResolver.setPrefix(getTemplatesPrefixSetting(config));
+    templateResolver.setSuffix(getTemplatesSuffixSetting(config));
+    templateResolver.setCacheable(getCacheSizeSetting(config) > 0);
+    templateResolver.setCacheTTLMs(null); // Never use TTL expiration
     return templateResolver;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  StandardCacheManager provideCacheManager(ServerConfig serverConfig) {
-    Integer cacheSize = getCacheSizeSetting(serverConfig);
+  StandardCacheManager provideCacheManager(Config config) {
+    int cacheSize = getCacheSizeSetting(config);
     StandardCacheManager cacheManager = new StandardCacheManager();
     cacheManager.setTemplateCacheMaxSize(cacheSize);
     return cacheManager;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
   TemplateEngine provideTemplateEngine(ITemplateResolver templateResolver, ICacheManager cacheManager, Set<IDialect> dialects) {
     final TemplateEngine templateEngine = new TemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
     templateEngine.setCacheManager(cacheManager);
-    for (IDialect dialect : dialects) {
-      templateEngine.addDialect(dialect);
-    }
+    dialects.stream().forEach(templateEngine::addDialect);
     return templateEngine;
   }
 
-  private Integer getCacheSizeSetting(ServerConfig serverConfig) {
-    return templatesCacheSize == null ? Integer.valueOf(serverConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
+  private int getCacheSizeSetting(Config config) {
+    return templatesCacheSize == null ? config.getTemplatesCacheSize() : templatesCacheSize;
+  }
+
+  private String getTemplatesModeSetting(Config config) {
+    return templatesMode == null ? config.getTemplatesMode() : templatesMode;
+  }
+
+  private String getTemplatesPrefixSetting(Config config) {
+    String prefix = templatesPrefix == null ? config.getTemplatesPrefix() : templatesPrefix;
+    if (!prefix.endsWith(File.separator)) {
+      prefix += File.separator;
+    }
+    return prefix;
+  }
+
+  private String getTemplatesSuffixSetting(Config config) {
+    String suffix = Strings.emptyToNull(templatesSuffix == null ? config.getTemplatesSuffix() : templatesSuffix);
+    if (suffix == null) {
+      suffix = DEFAULT_TEMPLATE_SUFFIX;
+    }
+    return suffix;
   }
 }
