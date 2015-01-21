@@ -21,10 +21,7 @@ import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
@@ -144,7 +141,7 @@ public class DefaultRequest implements Request {
       if (header == null || header.length() == 0) {
         cookies = Collections.emptySet();
       } else {
-        cookies = CookieDecoder.decode(header);
+        cookies = ServerCookieDecoder.decode(header);
       }
     }
 

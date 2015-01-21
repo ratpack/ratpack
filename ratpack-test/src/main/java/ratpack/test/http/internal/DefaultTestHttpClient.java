@@ -20,10 +20,7 @@ package ratpack.test.http.internal;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
-import io.netty.handler.codec.http.ClientCookieEncoder;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.*;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.http.client.ReceivedResponse;
@@ -224,7 +221,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
     List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
     for (String cookieHeader : cookieHeaders) {
-      Set<Cookie> decodedCookies = CookieDecoder.decode(cookieHeader);
+      Set<Cookie> decodedCookies = ServerCookieDecoder.decode(cookieHeader);
       for (Cookie decodedCookie : decodedCookies) {
         if (cookies.contains(decodedCookie)) {
           cookies.remove(decodedCookie);
