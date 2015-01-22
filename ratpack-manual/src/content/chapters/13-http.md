@@ -338,7 +338,7 @@ If you want to expire a cookie, you can do so with [`ResponseMetaData#expireCook
 import ratpack.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -353,7 +353,7 @@ public class Example {
         .get();
 
       String setCookie = response.getHeaders().get("Set-Cookie");
-      assertTrue(setCookie.startsWith("username=; Expires="));
+      assertEquals("username=; Max-Age=0", setCookie);
     });
   }
 }
