@@ -18,6 +18,8 @@ description = "Build time Ratpack support with the Gradle build tool - http://gr
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
+configurations.testCompile.dependencies.clear()
+
 dependencies {
   compile localGroovy()
   compile gradleApi()

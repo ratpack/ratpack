@@ -82,7 +82,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
 
   private void modifyBuildFile() {
     def buildFile = new File(projectDirectory, "build.gradle")
-    def lines = buildFile.readLines().collectAll {
+    def lines = buildFile.readLines().collectNested {
       it.contains("jcenter()") ? ["jcenter()", "maven { url '${localRepoUrl}' } "] : it
     }.flatten()
     lines << "applicationName = 'templated'"
