@@ -66,15 +66,6 @@ class OpenIdRpSpec extends Specification {
   @AutoCleanup
   EmbeddedProvider provider
 
-  static int allocatePort() {
-    def socket = new ServerSocket(0)
-    try {
-      return socket.localPort
-    } finally {
-      socket.close()
-    }
-  }
-
   def testApp(Module... additionalModules) {
     GroovyEmbeddedApp.build {
       baseDir(baseDir)
@@ -101,12 +92,11 @@ class OpenIdRpSpec extends Specification {
   }
 
   def setupSpec() {
-    def providerPort = allocatePort()
     provider = new EmbeddedProvider()
-    provider.open(providerPort)
+    provider.open()
     baseDir = BaseDirBuilder.tmpDir()
-    autConstructed = testApp(new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer()))
-    autInjected = testApp(new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(providerPort))
+    autConstructed = testApp(new Pac4jModule<>(new OpenIdTestClient(provider.port), new AuthPathAuthorizer()))
+    autInjected = testApp(new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(provider.port))
   }
 
   @Unroll

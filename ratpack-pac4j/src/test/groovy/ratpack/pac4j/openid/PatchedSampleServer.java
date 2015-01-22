@@ -19,12 +19,7 @@
 
 package ratpack.pac4j.openid;
 
-import org.openid4java.message.AuthRequest;
-import org.openid4java.message.AuthSuccess;
-import org.openid4java.message.MessageExtension;
-import org.openid4java.message.ParameterList;
-import org.openid4java.message.Message;
-import org.openid4java.message.DirectError;
+import org.openid4java.message.*;
 import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchRequest;
 import org.openid4java.message.ax.FetchResponse;
@@ -34,14 +29,13 @@ import org.openid4java.message.sreg.SRegResponse;
 import org.openid4java.server.ServerException;
 import org.openid4java.server.ServerManager;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletOutputStream;
-
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.IOException;
 
 /**
  * Sample Server (OpenID Provider) implementation.
@@ -53,11 +47,6 @@ public class PatchedSampleServer {
   public ServerManager manager = new ServerManager();
 
   public PatchedSampleServer() {
-    this("http://my.openidprovider.com/server");
-  }
-
-  public PatchedSampleServer(String endPointUrl) {
-    manager.setOPEndpointUrl(endPointUrl);
     // for a working demo, not enforcing RP realm discovery
     // since this new feature is not deployed
     manager.getRealmVerifier().setEnforceRpId(false);
