@@ -194,7 +194,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     decodedPairs.value == "foo"
 
     get("clear")
-    setCookie.startsWith("ratpack_session=; Expires=")
+    setCookie == "ratpack_session=; Max-Age=0"
     !sessionCookie
 
     get("")
