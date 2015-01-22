@@ -212,7 +212,10 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
-        requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
+        if (cookies.size() > 0) {
+          requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
+        }
+
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
       }));
     } catch (Throwable throwable) {
