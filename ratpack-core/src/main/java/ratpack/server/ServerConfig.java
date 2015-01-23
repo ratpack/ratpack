@@ -31,6 +31,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -468,6 +469,16 @@ public interface ServerConfig {
      * @param path the source of the properties data
      * @return this
      */
+    default Builder props(String path) {
+      return props(Paths.get(path));
+    }
+
+    /**
+     * Adds a configuration source for a properties file.
+     *
+     * @param path the source of the properties data
+     * @return this
+     */
     Builder props(Path path);
 
     /**
@@ -477,6 +488,14 @@ public interface ServerConfig {
      * @return this
      */
     Builder props(Properties properties);
+
+    /**
+     * Adds a configuration source for a Map (flat key-value pairs).
+     *
+     * @param map the map
+     * @return this
+     */
+    Builder props(Map<String, String> map);
 
     /**
      * Adds a configuration source for a properties file.
