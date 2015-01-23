@@ -18,7 +18,7 @@ package ratpack.server
 
 import ratpack.handling.Handler
 import ratpack.test.ApplicationUnderTest
-import ratpack.test.http.TestHttpClients
+import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
@@ -26,7 +26,7 @@ class RatpackServerSpec extends Specification {
 
   @AutoCleanup("stop")
   RatpackServer server
-  def http = TestHttpClients.testHttpClient(ApplicationUnderTest.of({ server }))
+  def http = TestHttpClient.testHttpClient(ApplicationUnderTest.of({ server }))
 
   def cleanup() {
     if (server.isRunning()) {

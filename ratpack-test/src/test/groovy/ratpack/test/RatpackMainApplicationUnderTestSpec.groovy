@@ -22,7 +22,7 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
 import ratpack.registry.Registry
-import ratpack.test.http.TestHttpClients
+import ratpack.test.http.TestHttpClient
 import spock.lang.Specification
 
 class RatpackMainApplicationUnderTestSpec extends Specification {
@@ -40,7 +40,7 @@ class RatpackMainApplicationUnderTestSpec extends Specification {
     def aut = new RatpackMainApplicationUnderTest(
       configResource: ratpackProperties.absolutePath
     )
-    def client = TestHttpClients.testHttpClient(aut)
+    def client = TestHttpClient.testHttpClient(aut)
 
     then:
     client.getText() == 'from aut'

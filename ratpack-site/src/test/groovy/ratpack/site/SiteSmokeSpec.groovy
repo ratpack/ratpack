@@ -17,7 +17,6 @@
 package ratpack.site
 
 import ratpack.test.http.TestHttpClient
-import ratpack.test.http.TestHttpClients
 import spock.lang.Specification
 
 class SiteSmokeSpec extends Specification {
@@ -25,7 +24,7 @@ class SiteSmokeSpec extends Specification {
   def aut = new RatpackSiteUnderTest()
 
   @Delegate
-  TestHttpClient client = TestHttpClients.testHttpClient(aut)
+  TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
   def "Check Site Index"() {
     when:

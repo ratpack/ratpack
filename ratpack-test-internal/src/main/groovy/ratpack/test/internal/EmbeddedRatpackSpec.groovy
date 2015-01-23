@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 import java.nio.charset.Charset
 
-import static ratpack.test.http.TestHttpClients.testHttpClient
+import static ratpack.test.http.TestHttpClient.testHttpClient
 
 abstract class EmbeddedRatpackSpec extends Specification {
 

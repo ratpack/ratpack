@@ -128,6 +128,8 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                     if (status.getCode() == 301 || status.getCode() == 302) {
                       s.method("GET");
                     }
+
+
                     s.redirects(maxRedirects - 1);
                   });
 

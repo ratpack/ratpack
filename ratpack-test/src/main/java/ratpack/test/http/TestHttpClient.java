@@ -18,10 +18,12 @@ package ratpack.test.http;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.netty.handler.codec.http.Cookie;
+import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
+import ratpack.test.http.internal.DefaultTestHttpClient;
 
 import java.util.List;
 
@@ -29,6 +31,27 @@ import java.util.List;
  * A Http Client focused on testing Ratpack applications.
  */
 public interface TestHttpClient {
+
+  /**
+   *  A method to create an instance of the default implementation of TestHttpClient.
+   *
+   * @param applicationUnderTest Which Ratpack application to make requests against.
+   * @return {@link ratpack.test.http.TestHttpClient} which is configured to make requests against the provided ApplicationUnderTest
+   */
+  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest) {
+    return testHttpClient(applicationUnderTest, null);
+  }
+
+  /**
+   * A method to create an instance of the default implementation of TestHttpClient.
+   *
+   * @param applicationUnderTest Which Ratpack application to make requests against.
+   * @param requestConfigurer A {@link ratpack.func.Action} that will set up the {@link ratpack.http.client.RequestSpec} for all requests made through this instance of TestHttpClient. These settings can be overridden on a per request basis via {@link ratpack.test.http.TestHttpClient#requestSpec}.
+   * @return {@link ratpack.test.http.TestHttpClient} which is configured to make requests against the provided ApplicationUnderTest
+   */
+  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
+    return new DefaultTestHttpClient(applicationUnderTest, Action.noopIfNull(requestConfigurer));
+  }
 
   /**
    * @return The {@link ratpack.test.ApplicationUnderTest} requests are being made against.

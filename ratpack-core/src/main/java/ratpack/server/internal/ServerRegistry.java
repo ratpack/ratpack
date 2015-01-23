@@ -34,7 +34,6 @@ import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClients;
 import ratpack.launch.LaunchException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -97,7 +96,7 @@ public abstract class ServerRegistry {
           ratpackServer.stop();
           return null;
         }))
-        .add(HttpClient.class, HttpClients.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()));
+        .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()));
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);

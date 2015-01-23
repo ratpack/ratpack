@@ -16,8 +16,13 @@
 
 package ratpack.http.client;
 
+import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
+import ratpack.http.client.internal.DefaultHttpClient;
+import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
 import java.net.URI;
 
@@ -81,6 +86,29 @@ import java.net.URI;
 public interface HttpClient {
 
   /**
+   *  A method to create an instance of the default implementation of HttpClient.
+   *
+   * @param serverConfig The {@link ratpack.server.ServerConfig} used to provide the max content length of a response.
+   * @param registry The {@link ratpack.registry.Registry} used to provide the {@link ratpack.exec.ExecController} and {@link io.netty.buffer.ByteBufAllocator} needed for DefaultHttpClient
+   * @return An instance of a HttpClient
+   */
+  public static HttpClient httpClient(ServerConfig serverConfig, Registry registry) {
+    return new DefaultHttpClient(registry.get(ExecController.class), registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength());
+  }
+
+  /**
+   * A method to create an instance of the default implementation of HttpClient.
+   *
+   * @param execController The ExecController used while making the requests.
+   * @param byteBufAllocator What ByteBufAllocator to use with the underlying Netty request.
+   * @param maxContentLengthBytes The max content length of a response to support.
+   * @return An instance of a HttpClient
+   */
+  public static HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
+    return new DefaultHttpClient(execController, byteBufAllocator, maxContentLengthBytes);
+  }
+
+  /**
    * An asynchronous method to do a GET HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec, but the method will be defaulted to a GET.
    *
    * @param uri the request URL (as a URI), must be of the {@code http} or {@code https} protocol
@@ -125,5 +153,4 @@ public interface HttpClient {
    * @see ratpack.http.client.StreamedResponse
    */
   Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer);
-
 }

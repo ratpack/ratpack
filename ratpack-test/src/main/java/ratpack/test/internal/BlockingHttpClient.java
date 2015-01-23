@@ -25,7 +25,7 @@ import ratpack.exec.Result;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.http.TypedData;
-import ratpack.http.client.HttpClients;
+import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.internal.DefaultReceivedResponse;
@@ -82,7 +82,7 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
+      HttpClient.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
         .request(uri, Action.join(s -> s.readTimeout(Duration.ofHours(1)), action))
         .then(response -> {
           TypedData responseBody = response.getBody();

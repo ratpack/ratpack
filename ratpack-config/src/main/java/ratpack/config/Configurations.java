@@ -30,7 +30,6 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  * import ratpack.server.RatpackServer;
  *
  * import ratpack.test.ServerBackedApplicationUnderTest;
- * import ratpack.test.http.TestHttpClients;
  * import ratpack.test.http.TestHttpClient;
  * import static org.junit.Assert.*;
  *
@@ -66,7 +65,7 @@ import ratpack.config.internal.source.env.SystemEnvironment;
  *     assertTrue(server.isRunning());
  *     assertEquals(5060, server.getBindPort());
  *
- *     TestHttpClient httpClient = TestHttpClients.testHttpClient(new ServerBackedApplicationUnderTest(() -> server));
+ *     TestHttpClient httpClient = TestHttpClient.testHttpClient(new ServerBackedApplicationUnderTest(() -> server));
  *     assertEquals("Hi, my name is Ratpack", httpClient.getText());
  *
  *     server.stop();

@@ -22,7 +22,6 @@ import ratpack.registry.Registries;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.test.http.TestHttpClient;
-import ratpack.test.http.TestHttpClients;
 
 import java.net.URI;
 
@@ -65,7 +64,7 @@ public interface ApplicationUnderTest {
    * @return a new test HTTP client that tests this application
    */
   default TestHttpClient getHttpClient() {
-    return TestHttpClients.testHttpClient(this);
+    return TestHttpClient.testHttpClient(this);
   }
 
 }

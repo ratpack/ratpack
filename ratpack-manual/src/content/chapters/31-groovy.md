@@ -335,13 +335,12 @@ Let's have a look at a Ratack unit test specification:
 ```language-groovy tested
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.test.http.TestHttpClient
-import ratpack.test.http.TestHttpClients
 import ratpack.test.ApplicationUnderTest
 
 class SiteSpec {
 
   LocalScriptApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
-  @Delegate TestHttpClient client = TestHttpClients.testHttpClient(aut)
+  @Delegate TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
   def "Check Site Index"() {
     when:

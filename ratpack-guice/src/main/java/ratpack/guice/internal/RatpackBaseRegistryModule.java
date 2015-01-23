@@ -33,7 +33,6 @@ import ratpack.file.MimeTypes;
 import ratpack.form.internal.FormParser;
 import ratpack.handling.Redirector;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClients;
 import ratpack.registry.Registry;
 import ratpack.render.Renderable;
 import ratpack.render.Renderer;
@@ -115,7 +114,7 @@ public class RatpackBaseRegistryModule extends AbstractModule {
 
   @Provides
   HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, ServerConfig serverConfig) {
-    return HttpClients.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength());
+    return HttpClient.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength());
   }
 
 }

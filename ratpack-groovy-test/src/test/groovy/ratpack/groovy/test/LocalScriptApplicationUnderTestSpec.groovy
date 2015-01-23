@@ -18,7 +18,7 @@ package ratpack.groovy.test
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.test.http.TestHttpClients
+import ratpack.test.http.TestHttpClient
 import spock.lang.Specification
 
 class LocalScriptApplicationUnderTestSpec extends Specification {
@@ -51,7 +51,7 @@ class LocalScriptApplicationUnderTestSpec extends Specification {
     def aut = new LocalScriptApplicationUnderTest(
       configResource: configResourceAbsolutePath
     )
-    def client = TestHttpClients.testHttpClient(aut)
+    def client = TestHttpClient.testHttpClient(aut)
 
     then:
     client.getText() == "from aut"

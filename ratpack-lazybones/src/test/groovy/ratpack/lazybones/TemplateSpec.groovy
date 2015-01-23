@@ -21,7 +21,6 @@ import org.junit.rules.TemporaryFolder
 import ratpack.lazybones.fixture.LazybonesTemplateRatpackApp
 import ratpack.lazybones.fixture.TestConfig
 import ratpack.test.http.TestHttpClient
-import ratpack.test.http.TestHttpClients
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
@@ -36,7 +35,7 @@ class TemplateSpec extends Specification {
   LazybonesTemplateRatpackApp app = new LazybonesTemplateRatpackApp(projectDirectoryProvider, testConfig.templateDirectory, testConfig.localRepoUrl)
 
   @Delegate
-  TestHttpClient client = TestHttpClients.testHttpClient(app)
+  TestHttpClient client = TestHttpClient.testHttpClient(app)
 
   def "can run template"() {
     expect:

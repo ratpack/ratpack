@@ -33,13 +33,12 @@ Note below we use @Delegate so we just need to call `get()` in the when block in
 
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.test.http.TestHttpClient
-import ratpack.test.http.TestHttpClients
 import ratpack.test.ApplicationUnderTest
 
 class SiteSmokeSpec {
 
   LocalScriptApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
-  @Delegate TestHttpClient client = TestHttpClients.testHttpClient(aut)
+  @Delegate TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
   def "Check Site Index"() {
     get("index.html")
@@ -84,4 +83,4 @@ The [`ratpack.groovy.test.embed`](api/ratpack/groovy/test/embed/package-summary.
 This is the preferred implementation to use as it provides Guice support, flexibility and is easy to use.
 
 The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) type extends the [`ApplicationUnderTest`](api/ratpack/test/ApplicationUnderTest.html) type.
-This makes them convenient to use with the [`TestHttpClient`](api/ratpack/test/http/TestHttpClients.html) mechanism provided by the `ratpack-groovy-test` library.
+This makes them convenient to use with the [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) mechanism provided by the `ratpack-groovy-test` library.
