@@ -263,6 +263,8 @@ public class Example {
 }
 ```
 
+TODO introduce Jackson module and methods to help render arbitrary types to json
+
 ### Sending files
 
 TODO introduce sendFile methods (pointing to use of `render(file(«path»)))` instead.
