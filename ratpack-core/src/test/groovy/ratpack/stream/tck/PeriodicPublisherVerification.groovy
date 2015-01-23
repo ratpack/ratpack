@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledExecutorService
 
 class PeriodicPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
+  public static final long DEFAULT_TIMEOUT_MILLIS = 1000L
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
 
   PeriodicPublisherVerification() {

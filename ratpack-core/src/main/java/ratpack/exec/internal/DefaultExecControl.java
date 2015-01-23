@@ -167,7 +167,9 @@ public class DefaultExecControl implements ExecControl {
           publisher.subscribe(new Subscriber<T>() {
             @Override
             public void onSubscribe(final Subscription subscription) {
-              handle.event(() -> subscriber.onSubscribe(subscription));
+              handle.event(() ->
+                subscriber.onSubscribe(subscription)
+              );
             }
 
             @Override

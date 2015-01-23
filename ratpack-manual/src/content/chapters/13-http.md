@@ -163,7 +163,107 @@ See [`Response`](api/ratpack/http/Response.html) for more on sending a response.
 
 ### An alternative approach with Renderers
 
-TODO introduce renderers
+Sending empty or simple text responses may be fine but you may find yourself wanting to send a more complex response to the client.
+The [`Renderer`](api/ratpack/render/Renderer.html) is a mechanism that is able to render a given type to the client.
+More specifically, it's the underlying mechanism that powers the [`render(Object)`](api/ratpack/handling/Context.html#render-java.lang.Object-) method, which can be found on the context object.
+
+In the following example, we utilize the context's `render(Object)` method to render an object of type `String`.
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> ctx.render("Sent using render(Object)!"))
+      .test(httpClient -> {
+        ReceivedResponse response = httpClient.get();
+        assertEquals("Sent using render(Object)!", response.getBody().getText());
+      });
+  }
+}
+```
+
+Because the `String` is of type `CharSequence`, Ratpack finds and uses the `CharSequenceRenderer` to render the `String`.
+Where did this `CharSequenceRenderer` come from?
+Ratpack provides a number of `Renderer`s out of the box, including but not limited to: `CharSequenceRenderer`, `RenderableRenderer`, `PromiseRenderer`, `DefaultFileRenderer`.
+
+If you attempt to render a type that is not registered, it will result in a server error.
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+
+  static class Foo {
+    public String value;
+  }
+
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> {
+        Foo foo = new Foo();
+        foo.value = "bar";
+        ctx.render(foo);
+      })
+      .test(httpClient -> {
+        ReceivedResponse response = httpClient.get();
+        assertEquals(500, response.getStatusCode());
+      });
+  }
+}
+```
+
+If you'd like to implement your own `Renderer`, Ratpack provides a [`RendererSupport`](api/ratpack/render/RendererSupport.html) that makes it easy to implement your own.
+You must also remember to register your `Renderer` so that Ratpack can use it.
+
+```language-java
+import ratpack.handling.Context;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.render.RendererSupport;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+
+  static class Foo {
+    public String value;
+  }
+
+  static class FooRenderer extends RendererSupport<Foo> {
+    @Override
+    public void render(Context ctx, Foo foo) throws Exception {
+      ctx.getResponse().send("Custom type: Foo, value=" + foo.value);
+    }
+  }
+
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromChain(chain -> chain
+        .register(new FooRenderer().register())
+        .handler(ctx -> {
+          Foo foo = new Foo();
+          foo.value = "bar";
+          ctx.render(foo);
+        })
+      )
+      .test(httpClient -> {
+        ReceivedResponse response = httpClient.get();
+        assertEquals(200, response.getStatusCode());
+        assertEquals("Custom type: Foo, value=bar", response.getBody().getText());
+      });
+  }
+}
+```
+
+TODO introduce Jackson module and methods to help render arbitrary types to json
 
 ### Sending files
 

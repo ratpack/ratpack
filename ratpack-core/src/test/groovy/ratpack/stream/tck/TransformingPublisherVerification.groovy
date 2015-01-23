@@ -37,6 +37,11 @@ class TransformingPublisherVerification extends PublisherVerification<String> {
   }
 
   @Override
+  long maxElementsFromPublisher() {
+    1000 // otherwise we explode the buffer
+  }
+
+  @Override
   Publisher<Integer> createErrorStatePublisher() {
     null
   }

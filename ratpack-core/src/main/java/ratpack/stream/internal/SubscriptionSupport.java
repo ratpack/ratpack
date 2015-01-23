@@ -31,7 +31,7 @@ abstract class SubscriptionSupport<T> implements Subscription {
   private final AtomicBoolean started = new AtomicBoolean();
   private final AtomicBoolean stopped = new AtomicBoolean();
 
-  private final AtomicLong waitingRequests = new AtomicLong();
+  private final AtomicLong waitingRequests = new AtomicLong(Long.MIN_VALUE);
   private final AtomicBoolean drainingRequests = new AtomicBoolean();
 
   private final AtomicBoolean complete = new AtomicBoolean();
@@ -48,13 +48,19 @@ abstract class SubscriptionSupport<T> implements Subscription {
   @Override
   public final void request(long n) {
     if (n < 1) {
-      throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
+      onError(new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0."));
+      cancel();
     }
 
     if (!stopped.get()) {
-      waitingRequests.addAndGet(n);
-      if (started.get()) {
-        drainRequests();
+      long waiting = waitingRequests.addAndGet(n);
+      if (waiting >= 0) {
+        onError(new IllegalStateException("3.17 If demand becomes higher than 2^63-1 then the Publisher MUST signal an onError with java.lang.IllegalStateException on the given Subscriber"));
+        cancel();
+      } else {
+        if (started.get()) {
+          drainRequests();
+        }
       }
     }
   }
@@ -66,15 +72,15 @@ abstract class SubscriptionSupport<T> implements Subscription {
   private void drainRequests() {
     if (drainingRequests.compareAndSet(false, true)) {
       try {
-        long n = waitingRequests.getAndSet(0);
-        while (n > 0) {
+        long n = waitingRequests.getAndSet(Long.MIN_VALUE) + Long.MIN_VALUE;
+        while (!stopped.get() && n > 0) {
           doRequest(n);
-          n = waitingRequests.getAndSet(0);
+          n = waitingRequests.getAndSet(Long.MIN_VALUE) + Long.MIN_VALUE;
         }
       } finally {
         drainingRequests.set(false);
       }
-      if (waitingRequests.get() > 0) {
+      if (waitingRequests.get() > Long.MIN_VALUE) {
         drainRequests();
       }
     }
@@ -98,29 +104,32 @@ abstract class SubscriptionSupport<T> implements Subscription {
     }
   }
 
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private void nextEvent() {
+  private void drain() {
     if (inOnMethod.compareAndSet(false, true)) {
       try {
-        T next = onNextQueue.poll();
-        while (next != null) {
-          subscriber.onNext(next);
-          next = onNextQueue.poll();
+        for (;;) {
+          Throwable error = this.error.get();
+          if (error != null) {
+            subscriber.onError(error);
+            return;
+          }
+          T next = onNextQueue.poll();
+          if (next == null) {
+            break;
+          } else {
+            subscriber.onNext(next);
+          }
         }
         if (complete.get()) {
           subscriber.onComplete();
           return;
         }
-        Throwable error = this.error.get();
-        if (error != null) {
-          subscriber.onError(error);
-          return;
-        }
       } finally {
         inOnMethod.set(false);
       }
+      //noinspection ThrowableResultOfMethodCallIgnored
       if (!onNextQueue.isEmpty() || complete.get() || error.get() != null) {
-        nextEvent();
+        drain();
       }
     }
   }
@@ -128,21 +137,21 @@ abstract class SubscriptionSupport<T> implements Subscription {
   public void onNext(T t) {
     if (!stopped.get()) {
       onNextQueue.add(t);
-      nextEvent();
+      drain();
     }
   }
 
   public void onError(Throwable t) {
     if (stopped.compareAndSet(false, true)) {
       error.set(t);
-      nextEvent();
+      drain();
     }
   }
 
   public void onComplete() {
     if (stopped.compareAndSet(false, true)) {
       complete.set(true);
-      nextEvent();
+      drain();
     }
   }
 

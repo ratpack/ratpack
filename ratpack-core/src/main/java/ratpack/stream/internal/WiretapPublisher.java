@@ -22,11 +22,12 @@ import org.reactivestreams.Subscription;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.stream.StreamEvent;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class WiretapPublisher<T> implements Publisher<T> {
+public class WiretapPublisher<T> implements TransformablePublisher<T> {
 
   private final Publisher<T> publisher;
   private final Action<? super StreamEvent<? super T>> listener;
@@ -180,7 +181,8 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[DataEvent{subscriptionId=" + subscriptionId + ", data=" + data + "}]"; }
+      return "StreamEvent[DataEvent{subscriptionId=" + subscriptionId + ", data=" + data + "}]";
+    }
   }
 
   private static class CompletionEvent<T> implements StreamEvent<T> {
@@ -239,7 +241,8 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[CompletionEvent{subscriptionId=" + subscriptionId + "}]"; }
+      return "StreamEvent[CompletionEvent{subscriptionId=" + subscriptionId + "}]";
+    }
   }
 
   private static class ErrorEvent<T> implements StreamEvent<T> {
@@ -299,7 +302,8 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[ErrorEvent{subscriptionId=" + subscriptionId + ", error=" + error + "}]"; }
+      return "StreamEvent[ErrorEvent{subscriptionId=" + subscriptionId + ", error=" + error + "}]";
+    }
   }
 
   private static class CancelEvent<T> implements StreamEvent<T> {
@@ -358,7 +362,8 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[CancelEvent{subscriptionId=" + subscriptionId + "}]"; }
+      return "StreamEvent[CancelEvent{subscriptionId=" + subscriptionId + "}]";
+    }
   }
 
   private static class RequestEvent<T> implements StreamEvent<T> {

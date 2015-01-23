@@ -38,6 +38,11 @@ class MulticastPublisherVerification extends PublisherVerification<Integer> {
   }
 
   @Override
+  long maxElementsFromPublisher() {
+    1000
+  }
+
+  @Override
   Publisher<Integer> createErrorStatePublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }

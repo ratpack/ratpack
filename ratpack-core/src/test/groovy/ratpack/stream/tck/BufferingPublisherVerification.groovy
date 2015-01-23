@@ -37,6 +37,11 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
   }
 
   @Override
+  long maxElementsFromPublisher() {
+    1000 // otherwise we explode the buffer
+  }
+
+  @Override
   Publisher<Integer> createErrorStatePublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }

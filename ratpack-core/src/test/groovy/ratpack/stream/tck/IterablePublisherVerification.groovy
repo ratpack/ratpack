@@ -37,6 +37,11 @@ class IterablePublisherVerification extends PublisherVerification<Long> {
   }
 
   @Override
+  long maxElementsFromPublisher() {
+    1000
+  }
+
+  @Override
   Publisher<Integer> createErrorStatePublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }

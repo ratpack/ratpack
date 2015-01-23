@@ -40,7 +40,8 @@ include \
     "ratpack-pac4j",
     "ratpack-hystrix",
     "ratpack-spring-boot",
-    "ratpack-config"
+    "ratpack-config",
+    "ratpack-benchmark"
 
 include "perf"
 

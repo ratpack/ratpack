@@ -236,6 +236,13 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
+  public ServerConfig.Builder props(Map<String, String> map) {
+    Properties properties = new Properties();
+    properties.putAll(map);
+    return props(properties);
+  }
+
+  @Override
   public ServerConfig.Builder props(Properties properties) {
     Map<String, BuilderAction<?>> propertyCoercions = createPropertyCoercions();
     properties.entrySet().forEach(entry -> {

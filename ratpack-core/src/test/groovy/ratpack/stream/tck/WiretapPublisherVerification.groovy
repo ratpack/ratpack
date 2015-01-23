@@ -35,6 +35,10 @@ class WiretapPublisherVerification extends PublisherVerification<Integer> {
   Publisher<Integer> createPublisher(long elements) {
     Streams.wiretap(Streams.publish(1..elements), Action.noop())
   }
+  long maxElementsFromPublisher() {
+    1000
+  }
+
 
   @Override
   Publisher<Integer> createErrorStatePublisher() {

@@ -17,70 +17,39 @@
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.stream.Streams
+import ratpack.stream.TransformablePublisher
 
+import java.time.Duration
 import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
 
 class MergingPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
+  public static final long DEFAULT_TIMEOUT_MILLIS = 1000L
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
 
   MergingPublisherVerification() {
     super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
   }
 
-  ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor()
-
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    Streams.merge(
-      new Publisher<Iterable<Integer>>() {
-        @Override
-        void subscribe(Subscriber<? super Iterable<Integer>> s) {
-          s.onSubscribe(new Subscription() {
-            @Override
-            void request(long n) {
-              for(int i = 1; i <= elements; i++){
-                if( i % 2 != 0){
-                  s.onNext(i)
-                }
-              }
+    def p1 = Math.floor(elements / 2)
+    def p2 = Math.ceil(elements / 2)
+    Streams.merge(makePublisher(p1), makePublisher(p2))
+  }
 
-              s.onComplete()
-            }
+  static TransformablePublisher<Integer> makePublisher(double elements) {
+    Streams.periodically(Executors.newSingleThreadScheduledExecutor(), Duration.ofMillis(10)) {
+      it < elements ? 1 : null
+    }
+  }
 
-            @Override
-            void cancel() { }
-          })
-        }
-      },
-      new Publisher<Iterable<Integer>>() {
-        @Override
-        void subscribe(Subscriber<? super Iterable<Integer>> s) {
-          s.onSubscribe(new Subscription() {
-            @Override
-            void request(long n) {
-              for(int i = 1; i <= elements; i++){
-                if( i % 2 == 0){
-                  s.onNext(i)
-                }
-              }
-
-              s.onComplete()
-            }
-
-            @Override
-            void cancel() { }
-          })
-        }
-      }
-    )
+  @Override
+  long maxElementsFromPublisher() {
+    1000
   }
 
   @Override
