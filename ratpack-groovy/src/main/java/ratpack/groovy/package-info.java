@@ -23,7 +23,7 @@
  * <li>Dynamic templates based on embedded groovy code - see {@link ratpack.groovy.template.internal.TextTemplateRenderer}.</li>
  * <li>Defining applications as a single script - see {@link ratpack.groovy.Groovy.Ratpack}.</li>
  * </ul>
- * <h3>Use of <a href="http://groovy.codehaus.org/Closures">closures</a> and {@link groovy.lang.DelegatesTo}</h3>
+ * <h3>Use of <a href="http://groovy-lang.org/closures.html">closures</a> and {@link groovy.lang.DelegatesTo}</h3>
  * <p>
  * Ratpack makes heavy use of a feature of Groovy 2.1 that allows the delegate of a closure to be specified via the type system.
  * Namely, the {@link groovy.lang.DelegatesTo} annotation.
