@@ -137,7 +137,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private ChannelHandler buildHandler(DefinitionBuild definitionBuild, ServerConfig serverConfig) throws Exception {
     if (serverConfig.isDevelopment()) {
-      return new ReloadHandler(definitionBuild.definition, serverConfig);
+      return new ReloadHandler(definitionBuild, serverConfig);
     } else {
       return buildAdapter(definitionBuild.definition, serverConfig);
     }
@@ -283,22 +283,25 @@ public class NettyRatpackServer implements RatpackServer {
 
   @ChannelHandler.Sharable
   private class ReloadHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    private final Definition definition;
+    private DefinitionBuild definitionBuild;
     private final ServerConfig serverConfig;
 
     private ChannelHandler inner;
 
-    public ReloadHandler(Definition definition, ServerConfig serverConfig) {
+    public ReloadHandler(DefinitionBuild definition, ServerConfig serverConfig) {
       super(false);
-      this.definition = definition;
+      this.definitionBuild = definition;
       this.serverConfig = serverConfig;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-      if (inner == null) {
+      if (inner == null || definitionBuild.inError) {
         try {
-          inner = buildAdapter(definition, serverConfig);
+          if (definitionBuild.inError) {
+            definitionBuild = buildUserDefinition();
+          }
+          inner = buildAdapter(definitionBuild.definition, serverConfig);
           delegate(ctx, inner, msg);
         } catch (Exception e) {
           delegate(ctx, new NettyHandlerAdapter(serverConfig, buildServerRegistry(serverConfig, (r) -> Registries.empty()), context -> context.error(e)), msg);

@@ -32,8 +32,11 @@ public class ServerEnvironment {
 
   public static final ServerEnvironment INSTANCE = new ServerEnvironment(System.getenv(), System.getProperties());
 
+  public static final String DEVELOPMENT_PROPERTY = "ratpack.development";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);
   private static final int MAX_PORT = 65535;
+  public static final String PORT_PROPERTY = "ratpack.port";
 
   private final Map<String, String> env;
   private final Properties properties;
@@ -56,7 +59,7 @@ public class ServerEnvironment {
   public Integer getPort() {
     return get(ServerConfig.DEFAULT_PORT,
       i -> i != null,
-      () -> parsePortValue("ratpack.port system property", properties.getProperty("ratpack.port")),
+      () -> parsePortValue("ratpack.port system property", properties.getProperty(PORT_PROPERTY)),
       () -> parsePortValue("RATPACK_PORT env var", env.get("RATPACK_PORT")),
       () -> parsePortValue("PORT env var", env.get("PORT"))
     );
@@ -65,7 +68,7 @@ public class ServerEnvironment {
   public boolean isDevelopment() {
     return Boolean.parseBoolean(
       get("false", i -> i != null,
-        () -> properties.getProperty("ratpack.development"),
+        () -> properties.getProperty(DEVELOPMENT_PROPERTY),
         () -> env.get("RATPACK_DEVELOPMENT")
       )
     );
