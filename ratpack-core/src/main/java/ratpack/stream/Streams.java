@@ -27,7 +27,6 @@ import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -78,7 +77,7 @@ public class Streams {
    * @return a publisher for the given iterable
    */
   public static <T> TransformablePublisher<T> publish(Iterable<T> iterable) {
-    return transformable(new IterablePublisher<>(iterable));
+    return new IterablePublisher<>(iterable);
   }
 
   /**
@@ -89,7 +88,7 @@ public class Streams {
    * @return a publisher backed by the given producer
    */
   public static <T> TransformablePublisher<T> yield(Function<? super YieldRequest, T> producer) {
-    return transformable(new YieldingPublisher<>(producer));
+    return new YieldingPublisher<>(producer);
   }
 
   /**
@@ -102,7 +101,7 @@ public class Streams {
    * @return a publisher that indefinitely streams the given item
    */
   public static <T> TransformablePublisher<T> constant(final T item) {
-    return transformable(yield(yieldRequest -> item));
+    return yield(yieldRequest -> item);
   }
 
   /**
@@ -119,7 +118,7 @@ public class Streams {
    * @return a publisher that applies the given transformation to each item from the input stream
    */
   public static <I, O> TransformablePublisher<O> map(Publisher<I> input, Function<? super I, ? extends O> function) {
-    return transformable(new MapPublisher<>(input, function));
+    return new MapPublisher<>(input, function);
   }
 
   /**
@@ -193,7 +192,7 @@ public class Streams {
 
        https://github.com/ratpack/ratpack/issues/515
     */
-    return buffer(new StreamMapPublisher<>(input, mapper));
+    return new StreamMapPublisher<>(input, mapper).buffer();
   }
 
   /**
@@ -210,7 +209,7 @@ public class Streams {
    * @return a publisher that applies the given transformation to each item from the input stream
    */
   public static <I, O> TransformablePublisher<O> flatMap(Publisher<I> input, Function<? super I, ? extends Promise<? extends O>> function) {
-    return transformable(new FlatMapPublisher<>(input, function));
+    return new FlatMapPublisher<>(input, function);
   }
 
   /**
@@ -229,7 +228,7 @@ public class Streams {
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
   public static <T> TransformablePublisher<T> buffer(Publisher<T> publisher) {
-    return transformable(new BufferingPublisher<>(publisher));
+    return new BufferingPublisher<>(publisher);
   }
 
   /**
@@ -252,7 +251,7 @@ public class Streams {
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
    */
   public static <T> TransformablePublisher<T> gate(Publisher<T> publisher, Action<? super Runnable> valveReceiver) {
-    return transformable(new GatedPublisher<>(publisher, valveReceiver));
+    return new GatedPublisher<>(publisher, valveReceiver);
   }
 
   /**
@@ -277,11 +276,11 @@ public class Streams {
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
   public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, Duration duration, Function<Integer, T> producer) {
-    return buffer(new PeriodicPublisher<>(executorService, producer, duration));
+    return new PeriodicPublisher<>(executorService, producer, duration).buffer();
   }
 
   public static <T> TransformablePublisher<T> periodically(Registry registry, Duration duration, Function<Integer, T> producer) {
-    return buffer(new PeriodicPublisher<>(registry.get(ExecController.class).getExecutor(), producer, duration));
+    return new PeriodicPublisher<>(registry.get(ExecController.class).getExecutor(), producer, duration).buffer();
   }
 
   /**
@@ -300,7 +299,7 @@ public class Streams {
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
    */
   public static <T> TransformablePublisher<T> wiretap(Publisher<T> publisher, Action<? super StreamEvent<? super T>> listener) {
-    return transformable(new WiretapPublisher<>(publisher, listener));
+    return new WiretapPublisher<>(publisher, listener);
   }
 
   /**
@@ -318,7 +317,7 @@ public class Streams {
    * @return a publisher that respects back pressure for each of it's Subscribers.
    */
   public static <T> TransformablePublisher<T> multicast(Publisher<T> publisher) {
-    return transformable(new MulticastPublisher<>(publisher));
+    return new MulticastPublisher<>(publisher);
   }
 
   /**
@@ -334,8 +333,8 @@ public class Streams {
    * @param <T> the type of item emitted
    * @return a publisher that splits collection items into new items per collection element
    */
-  public static <T> TransformablePublisher<T> fanOut(Publisher<Collection<T>> publisher) {
-    return buffer(new FanOutPublisher<>(publisher));
+  public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<T>> publisher) {
+    return new FanOutPublisher<>(publisher).buffer();
   }
 
   /**
@@ -363,7 +362,7 @@ public class Streams {
   @SuppressWarnings({"unchecked", "varargs"})
   @SafeVarargs
   public static <T> TransformablePublisher<T> merge(Publisher<? extends T>... publishers) {
-    return buffer(new MergingPublisher<>(publishers));
+    return new MergingPublisher<>(publishers).buffer();
   }
 
   /**

@@ -16,10 +16,10 @@
 
 package ratpack.stream.internal;
 
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Function;
+import ratpack.stream.TransformablePublisher;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Note, this publisher does not respect back pressure.
  * Must be used in conjunction with a throttling strategy.
  */
-public class PeriodicPublisher<T> implements Publisher<T> {
+public class PeriodicPublisher<T> implements TransformablePublisher<T> {
   private final ScheduledExecutorService executorService;
   private final Function<Integer, T> producer;
   private final Duration duration;

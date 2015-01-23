@@ -16,15 +16,15 @@
 
 package ratpack.stream.internal;
 
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import ratpack.func.Function;
+import ratpack.stream.TransformablePublisher;
 import ratpack.stream.YieldRequest;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class YieldingPublisher<T> implements Publisher<T> {
+public class YieldingPublisher<T> implements TransformablePublisher<T> {
 
   private final Function<? super YieldRequest, T> producer;
   private final AtomicLong subscriptionCounter = new AtomicLong();

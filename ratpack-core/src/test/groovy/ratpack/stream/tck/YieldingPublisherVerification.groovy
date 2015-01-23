@@ -38,6 +38,11 @@ class YieldingPublisherVerification extends PublisherVerification<Integer> {
   }
 
   @Override
+  long maxElementsFromPublisher() {
+    1000
+  }
+
+  @Override
   Publisher<Integer> createErrorStatePublisher() {
     return null
   }

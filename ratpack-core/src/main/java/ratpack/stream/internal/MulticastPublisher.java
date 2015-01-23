@@ -19,13 +19,12 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.stream.Streams.buffer;
-
-public class MulticastPublisher<T> implements Publisher<T> {
+public class MulticastPublisher<T> implements TransformablePublisher<T> {
 
   private final ConcurrentLinkedDeque<Subscriber<? super T>> bufferedSubscribers = new ConcurrentLinkedDeque<>();
   private final Publisher<T> upstreamPublisher;
@@ -43,7 +42,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
     if (upstreamFinished.get()) {
       downStreamSubscriber.onError(new IllegalStateException("The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted"));
     } else {
-      buffer((Publisher<T>) s -> s.onSubscribe(new Subscription() {
+      ((TransformablePublisher<T>) s -> s.onSubscribe(new Subscription() {
         @Override
         public void request(long n) {
           bufferedSubscribers.add(s);
@@ -56,7 +55,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
           // The downstream subscriber will be "unsubscribed" from this publisher.
           bufferedSubscribers.remove(s);
         }
-      })).subscribe(downStreamSubscriber);
+      })).buffer().subscribe(downStreamSubscriber);
     }
   }
 

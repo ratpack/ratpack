@@ -19,11 +19,12 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MergingPublisher<T> implements Publisher<T> {
+public class MergingPublisher<T> implements TransformablePublisher<T> {
 
   private final ConcurrentLinkedDeque<Publisher<? extends T>> upstreamPublishers = new ConcurrentLinkedDeque<>();
   private final ConcurrentLinkedDeque<Subscription> upstreamPublisherSubscriptions = new ConcurrentLinkedDeque<>();

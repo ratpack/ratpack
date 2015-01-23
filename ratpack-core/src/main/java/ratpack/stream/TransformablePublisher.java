@@ -134,4 +134,5 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<T>> function) {
     return Streams.streamMap(this, function);
   }
+
 }

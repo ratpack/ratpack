@@ -18,13 +18,14 @@ package ratpack.stream.internal;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class BufferingPublisher<T> implements Publisher<T> {
+public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
   private final Publisher<T> publisher;
 
@@ -56,23 +57,29 @@ public class BufferingPublisher<T> implements Publisher<T> {
     }
 
     protected void doRequest(long n) {
-      if (requestedUpstream.compareAndSet(false, true)) {
-        if (n == Long.MAX_VALUE) {
-          publisher.subscribe(new PassThruSubscriber());
-          upstreamSubscription.get().request(n);
+      if (!isStopped()) {
+        if (requestedUpstream.compareAndSet(false, true)) {
+          if (n == Long.MAX_VALUE) {
+            publisher.subscribe(new PassThruSubscriber());
+            upstreamSubscription.get().request(n);
+          } else {
+            bufferingSubscriber = new BufferingSubscriber();
+            publisher.subscribe(bufferingSubscriber);
+            upstreamSubscription.get().request(Long.MAX_VALUE);
+            bufferingSubscriber.wanted.addAndGet(n);
+            bufferingSubscriber.tryDrain();
+          }
         } else {
-          bufferingSubscriber = new BufferingSubscriber();
-          publisher.subscribe(bufferingSubscriber);
-          upstreamSubscription.get().request(Long.MAX_VALUE);
-          bufferingSubscriber.wanted.addAndGet(n);
-          bufferingSubscriber.tryDrain();
-        }
-      } else {
-        if (bufferingSubscriber == null) {
-          upstreamSubscription.get().request(n);
-        } else {
-          bufferingSubscriber.wanted.addAndGet(n);
-          bufferingSubscriber.tryDrain();
+          if (bufferingSubscriber == null) {
+            upstreamSubscription.get().request(n);
+          } else {
+            if (bufferingSubscriber.wanted.addAndGet(n) < 0) {
+              bufferingSubscriber.tryDrain();
+            } else {
+              onError(new IllegalStateException("3.17 If demand becomes higher than 2^63-1 then the Publisher MUST signal an onError with java.lang.IllegalStateException on the given Subscriber"));
+              cancel();
+            }
+          }
         }
       }
     }
@@ -82,6 +89,9 @@ public class BufferingPublisher<T> implements Publisher<T> {
       org.reactivestreams.Subscription subscription = upstreamSubscription.get();
       if (subscription != null) {
         subscription.cancel();
+      }
+      if (bufferingSubscriber != null) {
+        bufferingSubscriber.wanted.set(Long.MIN_VALUE);
       }
     }
 
@@ -108,7 +118,7 @@ public class BufferingPublisher<T> implements Publisher<T> {
     }
 
     class BufferingSubscriber implements Subscriber<T> {
-      private final AtomicLong wanted = new AtomicLong();
+      private final AtomicLong wanted = new AtomicLong(Long.MIN_VALUE);
       private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
       private final AtomicBoolean draining = new AtomicBoolean();
 
@@ -140,7 +150,7 @@ public class BufferingPublisher<T> implements Publisher<T> {
         if (draining.compareAndSet(false, true)) {
           try {
             long i = wanted.get();
-            while (i > 0) {
+            while (i > Long.MIN_VALUE) {
               T item = buffer.poll();
               if (item == null) {
                 if (upstreamFinished.get()) {
@@ -157,7 +167,7 @@ public class BufferingPublisher<T> implements Publisher<T> {
           } finally {
             draining.set(false);
           }
-          if (buffer.peek() != null && wanted.get() > 0) {
+          if (buffer.peek() != null && wanted.get() > Long.MIN_VALUE) {
             tryDrain();
           }
         }

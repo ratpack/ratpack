@@ -26,7 +26,7 @@ import ratpack.test.exec.ExecHarness
 
 class FlatMapPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 1000L
+  public static final long DEFAULT_TIMEOUT_MILLIS = 500L
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
 
   public FlatMapPublisherVerification() {
@@ -48,10 +48,14 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
           execHarness.stream(stream).flatMap { n ->
             execHarness.blocking { n * 2 }
           }.subscribe(s)
-          stream
         }
       }
     }
+  }
+
+  @Override
+  long maxElementsFromPublisher() {
+    1000
   }
 
   @Override

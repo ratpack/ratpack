@@ -20,10 +20,11 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Function;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MapPublisher<O, I> implements Publisher<O> {
+public class MapPublisher<O, I> implements TransformablePublisher<O> {
 
   private final Publisher<I> input;
   private final Function<? super I, ? extends O> function;

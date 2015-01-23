@@ -20,11 +20,12 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class GatedPublisher<T> implements Publisher<T> {
+public class GatedPublisher<T> implements TransformablePublisher<T> {
 
   private final Publisher<T> upstream;
   private final Action<? super Runnable> releaseReceiver;

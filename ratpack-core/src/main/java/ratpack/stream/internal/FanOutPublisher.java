@@ -19,50 +19,59 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.stream.TransformablePublisher;
 
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FanOutPublisher<T> implements Publisher<T> {
+public class FanOutPublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<Collection<T>> upstreamIterablePublisher;
+  private final Publisher<? extends Iterable<T>> upstream;
 
-  public FanOutPublisher(Publisher<Collection<T>> publisher) {
-    this.upstreamIterablePublisher = publisher;
+  public FanOutPublisher(Publisher<? extends Iterable<T>> upstream) {
+    this.upstream = upstream;
   }
 
-  @Override
-  public void subscribe(final Subscriber<? super T> subscriber) {
-    upstreamIterablePublisher.subscribe(new Subscriber<Iterable<T>>() {
+  // Note, we know that a buffer publisher is downstream
 
-      private Subscription subscription;
+  @Override
+  public void subscribe(final Subscriber<? super T> downstream) {
+    upstream.subscribe(new Subscriber<Iterable<T>>() {
+
       private final AtomicBoolean done = new AtomicBoolean();
 
       @Override
-      public void onSubscribe(Subscription s) {
-        this.subscription = s;
-        subscriber.onSubscribe(this.subscription);
+      public void onSubscribe(Subscription subscription) {
+        downstream.onSubscribe(new Subscription() {
+          @Override
+          public void request(long n) {
+            subscription.request(n);
+          }
+
+          @Override
+          public void cancel() {
+            done.set(true);
+            subscription.cancel();
+          }
+        });
       }
 
       @Override
       public void onNext(Iterable<T> iterable) {
-        for (T element: iterable) {
-          subscriber.onNext(element);
+        Iterator<T> iterator = iterable.iterator();
+        while (iterator.hasNext() && !done.get()) {
+          downstream.onNext(iterator.next());
         }
       }
 
       @Override
       public void onError(Throwable t) {
-        if (done.compareAndSet(false, true)) {
-          subscriber.onError(t);
-        }
+        downstream.onError(t);
       }
 
       @Override
       public void onComplete() {
-        if (done.compareAndSet(false, true)) {
-          subscriber.onComplete();
-        }
+        downstream.onComplete();
       }
     });
   }

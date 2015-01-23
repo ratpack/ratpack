@@ -16,12 +16,12 @@
 
 package ratpack.stream.internal;
 
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.Iterator;
 
-public class IterablePublisher<T> implements Publisher<T> {
+public class IterablePublisher<T> implements TransformablePublisher<T> {
 
   private final Iterable<T> iterable;
 
@@ -46,7 +46,7 @@ public class IterablePublisher<T> implements Publisher<T> {
 
     @Override
     protected void doRequest(long n) {
-      for (int i = 0; i < n; ++i) {
+      for (int i = 0; i < n && !isStopped(); ++i) {
         if (iterator.hasNext()) {
           T next;
           try {
@@ -57,12 +57,8 @@ public class IterablePublisher<T> implements Publisher<T> {
           }
           onNext(next);
         } else {
-          break;
+          onComplete();
         }
-      }
-
-      if (!iterator.hasNext()) {
-        onComplete();
       }
     }
 

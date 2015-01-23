@@ -21,10 +21,11 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FlatMapPublisher<O, I> implements Publisher<O> {
+public class FlatMapPublisher<O, I> implements TransformablePublisher<O> {
 
   private final Publisher<I> input;
   private final Function<? super I, ? extends Promise<? extends O>> function;
@@ -43,12 +44,26 @@ public class FlatMapPublisher<O, I> implements Publisher<O> {
 
       @Override
       public void onSubscribe(Subscription subscription) {
-        this.subscription = subscription;
+        this.subscription = new Subscription() {
+          @Override
+          public void request(long n) {
+            subscription.request(n);
+          }
+
+          @Override
+          public void cancel() {
+            done.set(true);
+            subscription.cancel();
+          }
+        };
         outSubscriber.onSubscribe(this.subscription);
       }
 
       @Override
       public void onNext(I in) {
+        if (done.get()) {
+          return;
+        }
         Promise<? extends O> out;
         try {
           out = function.apply(in);

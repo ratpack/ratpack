@@ -15,18 +15,12 @@
  */
 
 
-
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.stream.Streams
-
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
 
 class FanOutPublisherVerification extends PublisherVerification<Integer> {
 
@@ -37,27 +31,15 @@ class FanOutPublisherVerification extends PublisherVerification<Integer> {
     super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
   }
 
-  ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor()
-
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    Streams.fanOut(
-      new Publisher<Iterable<Integer>>() {
-        @Override
-        void subscribe(Subscriber<? super Iterable<Integer>> s) {
-          s.onSubscribe(new Subscription() {
-            @Override
-            void request(long n) {
-              s.onNext(0..<elements)
-              s.onComplete()
-            }
+    def publish = Streams.publish([0..<elements])
+    Streams.fanOut(publish)
+  }
 
-            @Override
-            void cancel() { }
-          })
-        }
-      }
-    )
+  @Override
+  long maxElementsFromPublisher() {
+    1000
   }
 
   @Override

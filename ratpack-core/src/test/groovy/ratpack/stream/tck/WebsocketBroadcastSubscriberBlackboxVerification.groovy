@@ -55,4 +55,5 @@ class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackbo
       publish([])
     }
   }
+
 }
