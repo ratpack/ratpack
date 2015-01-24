@@ -267,7 +267,11 @@ TODO introduce Jackson module and methods to help render arbitrary types to json
 
 ### Sending files
 
+Sending static resources such as files can be done with [`sendFile(Path)`](api/ratpack/http/Response.html#sendFile-java.nio.file.Path-) 
+
 TODO introduce sendFile methods (pointing to use of `render(file(«path»)))` instead.
+
+TODO introduce assets method
 
 ### Before send
 
