@@ -117,7 +117,6 @@ class PromiseCachingSpec extends Specification {
     events.toList() == [e, "complete"]
   }
 
-  @Ignore
   def "promise can be massively reused"() {
     when:
     def num = 100000
