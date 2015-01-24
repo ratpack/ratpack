@@ -25,32 +25,31 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import ratpack.config.internal.source.env.Environment;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerEnvironment;
+import ratpack.server.internal.DefaultServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
-  private final Environment environment;
+  private final ServerEnvironment serverEnvironment;
 
-  public ServerConfigDeserializer(Environment environment) {
-    this.environment = environment;
+  public ServerConfigDeserializer(ServerEnvironment serverEnvironment) {
+    this.serverEnvironment = serverEnvironment;
   }
 
   @Override
   public ServerConfig deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-    String portEnv = Strings.emptyToNull(environment.getenv("PORT"));
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
     ServerConfig.Builder builder = builderForBasedir(serverNode, ctxt);
     if (serverNode.hasNonNull("port")) {
       builder.port(serverNode.get("port").asInt());
-    } else if (portEnv != null) {
-      builder.port(Integer.parseInt(portEnv));
     }
     if (serverNode.hasNonNull("address")) {
       builder.address(codec.treeToValue(serverNode.get("address"), InetAddress.class));
@@ -94,11 +93,11 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     return builder.build();
   }
 
-  private static ServerConfig.Builder builderForBasedir(ObjectNode serverNode, DeserializationContext ctxt) throws IOException {
+  private ServerConfig.Builder builderForBasedir(ObjectNode serverNode, DeserializationContext ctxt) throws IOException {
     JsonNode baseDirNode = serverNode.get("baseDir");
     if (baseDirNode != null) {
       if (baseDirNode.isTextual()) {
-        return ServerConfig.baseDir(Paths.get(baseDirNode.asText()));
+        return DefaultServerConfigBuilder.baseDir(serverEnvironment, Paths.get(baseDirNode.asText()));
       } else {
         throw ctxt.mappingException(ServerConfig.class, baseDirNode.asToken());
       }
@@ -106,17 +105,13 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     JsonNode baseDirPropsNode = serverNode.get("baseDirProps");
     if (baseDirPropsNode != null) {
       if (baseDirPropsNode.isTextual()) {
-        String propertiesPath = baseDirPropsNode.asText();
-        if (propertiesPath.isEmpty()) {
-          return ServerConfig.findBaseDirProps();
-        } else {
-          return ServerConfig.findBaseDirProps(propertiesPath);
-        }
+        String propertiesPath = Optional.ofNullable(Strings.emptyToNull(baseDirPropsNode.asText())).orElse(ServerConfig.Builder.DEFAULT_PROPERTIES_FILE_NAME);
+        return DefaultServerConfigBuilder.findBaseDirProps(serverEnvironment, propertiesPath);
       } else {
         throw ctxt.mappingException(ServerConfig.class, baseDirPropsNode.asToken());
       }
     }
-    return ServerConfig.noBaseDir();
+    return DefaultServerConfigBuilder.noBaseDir(serverEnvironment);
   }
 
   @SuppressWarnings("unchecked")

@@ -44,6 +44,17 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
     config.port == 5060
   }
 
+  def "load from map"() {
+    given:
+    def map = [port:"5060"]
+
+    when:
+    def config = builder.props(map).build()
+
+    then:
+    config.port == 5060
+  }
+
   def "load from properties path"() {
     given:
     def properties = tempFolder.newFile('test.properties').toPath()
@@ -51,6 +62,18 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
 
     when:
     def config = builder.props(properties).build()
+
+    then:
+    config.port == 5060
+  }
+
+  def "load from properties string path"() {
+    given:
+    def properties = tempFolder.newFile('test.properties').toPath()
+    properties << 'port=5060'
+
+    when:
+    def config = builder.props(properties.toString()).build()
 
     then:
     config.port == 5060
@@ -64,6 +87,19 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
 
     when:
     def config = builder.props(properties).build()
+
+    then:
+    config.port == 5060
+  }
+
+  def "load from URL"() {
+    given:
+    def file = tempFolder.newFile('test.properties')
+    file << 'port=5060'
+    def url = file.toURI().toURL()
+
+    when:
+    def config = builder.props(url).build()
 
     then:
     config.port == 5060

@@ -31,9 +31,10 @@ import ratpack.config.ConfigurationSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.module.ConfigurationModule;
 import ratpack.config.internal.source.*;
-import ratpack.config.internal.source.env.Environment;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerEnvironment;
 import ratpack.util.ExceptionUtils;
 
 import java.net.URL;
@@ -44,15 +45,15 @@ import java.util.Properties;
 
 public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   private final ImmutableList.Builder<ConfigurationSource> sources = ImmutableList.builder();
-  private final Environment environment;
+  private final ServerEnvironment serverEnvironment;
   private final ObjectMapper objectMapper;
 
-  public DefaultConfigurationDataSpec(Environment environment) {
-    this(environment, newDefaultObjectMapper(environment));
+  public DefaultConfigurationDataSpec(ServerEnvironment serverEnvironment) {
+    this(serverEnvironment, newDefaultObjectMapper(serverEnvironment));
   }
 
-  public DefaultConfigurationDataSpec(Environment environment, ObjectMapper objectMapper) {
-    this.environment = environment;
+  public DefaultConfigurationDataSpec(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {
+    this.serverEnvironment = serverEnvironment;
     this.objectMapper = objectMapper;
   }
 
@@ -79,111 +80,94 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec env() {
-    add(new EnvironmentConfigurationSource(environment));
-    return this;
+    return add(new EnvironmentConfigurationSource(serverEnvironment));
   }
 
   @Override
   public ConfigurationDataSpec env(String prefix) {
-    add(new EnvironmentConfigurationSource(environment, prefix));
-    return this;
+    return add(new EnvironmentConfigurationSource(serverEnvironment, prefix));
   }
 
   @Override
   public ConfigurationDataSpec env(String prefix, Function<String, String> mapFunc) {
-    add(new EnvironmentConfigurationSource(environment, prefix, mapFunc));
-    return this;
+    return add(new EnvironmentConfigurationSource(serverEnvironment, prefix, mapFunc));
   }
 
   @Override
   public ConfigurationDataSpec env(EnvironmentParser environmentParser) {
-    add(new EnvironmentConfigurationSource(environment, environmentParser));
-    return this;
+    return add(new EnvironmentConfigurationSource(serverEnvironment, environmentParser));
   }
 
   @Override
   public ConfigurationDataSpec json(ByteSource byteSource) {
-    add(new JsonConfigurationSource(byteSource));
-    return this;
+    return add(new JsonConfigurationSource(byteSource));
   }
 
   @Override
   public ConfigurationDataSpec json(Path path) {
-    add(new JsonConfigurationSource(path));
-    return this;
+    return add(new JsonConfigurationSource(path));
   }
 
   @Override
   public ConfigurationDataSpec json(URL url) {
-    add(new JsonConfigurationSource(url));
-    return this;
+    return add(new JsonConfigurationSource(url));
   }
 
   @Override
   public ConfigurationDataSpec props(ByteSource byteSource) {
-    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), byteSource));
-    return this;
+    return add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), byteSource));
   }
 
   @Override
   public ConfigurationDataSpec props(Path path) {
-    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Files.asByteSource(path.toFile())));
-    return this;
+    return add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Files.asByteSource(path.toFile())));
   }
 
   @Override
   public ConfigurationDataSpec props(Properties properties) {
-    add(new PropertiesConfigurationSource(Optional.empty(), properties));
-    return this;
+    return add(new PropertiesConfigurationSource(Optional.empty(), properties));
   }
 
   @Override
   public ConfigurationDataSpec props(URL url) {
-    add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Resources.asByteSource(url)));
-    return this;
+    return add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Resources.asByteSource(url)));
   }
 
   @Override
   public ConfigurationDataSpec props(Map<String, String> map) {
-    add(new MapConfigurationSource(Optional.empty(), map));
-    return this;
+    return add(new MapConfigurationSource(Optional.empty(), map));
   }
 
   @Override
   public ConfigurationDataSpec sysProps() {
-    add(new SystemPropertiesConfigurationSource());
-    return this;
+    return sysProps(ServerConfig.Builder.DEFAULT_PROP_PREFIX);
   }
 
   @Override
   public ConfigurationDataSpec sysProps(String prefix) {
-    add(new SystemPropertiesConfigurationSource(Optional.of(prefix)));
-    return this;
+    return add(new PropertiesConfigurationSource(Optional.of(prefix), serverEnvironment.getProperties()));
   }
 
   @Override
   public ConfigurationDataSpec yaml(ByteSource byteSource) {
-    add(new YamlConfigurationSource(byteSource));
-    return this;
+    return add(new YamlConfigurationSource(byteSource));
   }
 
   @Override
   public ConfigurationDataSpec yaml(Path path) {
-    add(new YamlConfigurationSource(path));
-    return this;
+    return add(new YamlConfigurationSource(path));
   }
 
   @Override
   public ConfigurationDataSpec yaml(URL url) {
-    add(new YamlConfigurationSource(url));
-    return this;
+    return add(new YamlConfigurationSource(url));
   }
 
-  public static ObjectMapper newDefaultObjectMapper(Environment environment) {
+  public static ObjectMapper newDefaultObjectMapper(ServerEnvironment serverEnvironment) {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     objectMapper.registerModule(new GuavaModule());
-    objectMapper.registerModule(new ConfigurationModule(environment));
+    objectMapper.registerModule(new ConfigurationModule(serverEnvironment));
     JsonFactory factory = objectMapper.getFactory();
     factory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);

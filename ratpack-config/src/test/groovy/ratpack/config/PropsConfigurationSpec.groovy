@@ -16,7 +16,9 @@
 
 package ratpack.config
 
+import ratpack.config.internal.DefaultConfigurationDataSpec
 import ratpack.server.ServerConfig
+import ratpack.server.ServerEnvironment
 
 class PropsConfigurationSpec extends BaseConfigurationSpec {
   def "supports properties"() {
@@ -37,6 +39,12 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     |timeResponses: true
     |compressResponses: true
     |compressionMinSize: 100
+    |compressionMimeTypeWhiteList[0]: application/json
+    |compressionMimeTypeWhiteList[1]: text/plain
+    |compressionMimeTypeBlackList[0]: image/png
+    |compressionMimeTypeBlackList[1]: image/gif
+    |indexFiles[0]: index.html
+    |indexFiles[1]: index.htm
     |ssl.keyStorePath: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
     |ssl.keyStorePassword: ${keyStorePassword}
     |other.a: 1
@@ -58,10 +66,9 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.timeResponses
     serverConfig.compressResponses
     serverConfig.compressionMinSize == 100
-    // TODO: support for lists
-//        serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
-//        serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
-//        serverConfig.indexFiles == ["index.html", "index.htm"]
+    serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
+    serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
+    serverConfig.indexFiles == ["index.html", "index.htm"]
     serverConfig.SSLContext
     serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }
@@ -72,23 +79,32 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
-    System.setProperty("ratpack.baseDir", baseDir.toString())
-    System.setProperty("ratpack.port", "8080")
-    System.setProperty("ratpack.address", "localhost")
-    System.setProperty("ratpack.development", "true")
-    System.setProperty("ratpack.threads", "3")
-    System.setProperty("ratpack.publicAddress", "http://localhost:8080")
-    System.setProperty("ratpack.maxContentLength", "50000")
-    System.setProperty("ratpack.timeResponses", "true")
-    System.setProperty("ratpack.compressResponses", "true")
-    System.setProperty("ratpack.compressionMinSize", "100")
-    System.setProperty("ratpack.ssl.keyStorePath", keyStoreFile.toString())
-    System.setProperty("ratpack.ssl.keyStorePassword", keyStorePassword)
-    System.setProperty("ratpack.other.a", "1")
-    System.setProperty("ratpack.other.b", "2")
+    def properties = new Properties()
+    properties.with {
+      setProperty("ratpack.baseDir", baseDir.toString())
+      setProperty("ratpack.port", "8080")
+      setProperty("ratpack.address", "localhost")
+      setProperty("ratpack.development", "true")
+      setProperty("ratpack.threads", "3")
+      setProperty("ratpack.publicAddress", "http://localhost:8080")
+      setProperty("ratpack.maxContentLength", "50000")
+      setProperty("ratpack.timeResponses", "true")
+      setProperty("ratpack.compressResponses", "true")
+      setProperty("ratpack.compressionMinSize", "100")
+      setProperty("ratpack.compressionMimeTypeWhiteList[0]", "application/json")
+      setProperty("ratpack.compressionMimeTypeWhiteList[1]", "text/plain")
+      setProperty("ratpack.compressionMimeTypeBlackList[0]", "image/png")
+      setProperty("ratpack.compressionMimeTypeBlackList[1]", "image/gif")
+      setProperty("ratpack.indexFiles[0]", "index.html")
+      setProperty("ratpack.indexFiles[1]", "index.htm")
+      setProperty("ratpack.ssl.keyStorePath", keyStoreFile.toString())
+      setProperty("ratpack.ssl.keyStorePassword", keyStorePassword)
+      setProperty("ratpack.other.a", "1")
+      setProperty("ratpack.other.b", "2")
+    }
 
     when:
-    def serverConfig = Configurations.config().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir
@@ -102,10 +118,9 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.timeResponses
     serverConfig.compressResponses
     serverConfig.compressionMinSize == 100
-    // TODO: support for lists
-//        serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
-//        serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
-//        serverConfig.indexFiles == ["index.html", "index.htm"]
+    serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
+    serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
+    serverConfig.indexFiles == ["index.html", "index.htm"]
     serverConfig.SSLContext
     serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }

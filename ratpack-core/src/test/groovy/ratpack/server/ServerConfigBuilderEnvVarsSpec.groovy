@@ -16,9 +16,8 @@
 
 package ratpack.server
 
+import ratpack.server.internal.DefaultServerConfigBuilder
 import spock.lang.Specification
-
-import static ratpack.server.ServerConfig.Builder.DEFAULT_ENV_PREFIX
 
 class ServerConfigBuilderEnvVarsSpec extends Specification {
 
@@ -26,8 +25,8 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
   Map<String, String> source
 
   def setup() {
-    builder = ServerConfig.noBaseDir()
     source = [:]
+    builder = DefaultServerConfigBuilder.noBaseDir(new ServerEnvironment(source, new Properties()))
   }
 
   def "set port"() {
@@ -35,7 +34,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_PORT'] = '5060'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.port == 5060
@@ -46,7 +45,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['APP_PORT'] = '6060'
 
     when:
-    def config = builder.env('APP_', source).build()
+    def config = builder.env('APP_').build()
 
     then:
     config.port == 6060
@@ -58,13 +57,13 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['APP_PORT'] = '8080'
 
     when:
-    def config = builder.env('APP_', source).env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env('APP_').env().build()
 
     then:
     config.port == 5060
 
     when:
-    config = builder.env(DEFAULT_ENV_PREFIX, source).env('APP_', source).build()
+    config = builder.env().env('APP_').build()
 
     then:
     config.port == 8080
@@ -75,7 +74,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_PORT'] = 'abcd'
 
     when:
-    builder.env(DEFAULT_ENV_PREFIX, source)
+    builder.env()
 
     then:
     thrown NumberFormatException
@@ -86,7 +85,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_ADDRESS'] = 'localhost'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.address.hostName == 'localhost'
@@ -97,7 +96,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_ADDRESS'] = 'blah'
 
     when:
-    builder.env(DEFAULT_ENV_PREFIX, source)
+    builder.env()
 
     then:
     thrown RuntimeException
@@ -108,7 +107,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_DEVELOPMENT'] = 'true'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.development
@@ -119,7 +118,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_DEVELOPMENT'] = 'hi'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     !config.development
@@ -130,7 +129,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_THREADS'] = '10'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.threads == 10
@@ -141,7 +140,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_THREADS'] = 'abcd'
 
     when:
-    builder.env(DEFAULT_ENV_PREFIX, source)
+    builder.env()
 
     then:
     thrown NumberFormatException
@@ -152,7 +151,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_PUBLIC_ADDRESS'] = 'http://ratpack.io'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.publicAddress.toString() == 'http://ratpack.io'
@@ -163,7 +162,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_MAX_CONTENT_LENGTH'] = '256'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.maxContentLength == 256
@@ -174,7 +173,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_MAX_CONTENT_LENGTH'] = 'abcd'
 
     when:
-    builder.env(DEFAULT_ENV_PREFIX, source)
+    builder.env()
 
     then:
     thrown NumberFormatException
@@ -185,7 +184,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_TIME_RESPONSES'] = 'true'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.timeResponses
@@ -196,7 +195,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_TIME_RESPONSES'] = 'abcd'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     !config.timeResponses
@@ -207,7 +206,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_COMPRESS_RESPONSES'] = 'true'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.compressResponses
@@ -218,7 +217,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_COMPRESS_RESPONSES'] = 'abcd'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     !config.compressResponses
@@ -229,7 +228,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_COMPRESSION_MIN_SIZE'] = '256'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.compressionMinSize == 256L
@@ -240,7 +239,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_COMPRESSION_MIN_SIZE'] = 'abcd'
 
     when:
-    builder.env(DEFAULT_ENV_PREFIX, source)
+    builder.env()
 
     then:
     thrown NumberFormatException
@@ -251,7 +250,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_COMPRESSION_WHITE_LIST_MIME_TYPES'] = 'json,xml'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.compressionMimeTypeWhiteList == ['json', 'xml'] as Set
@@ -262,7 +261,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_COMPRESSION_BLACK_LIST_MIME_TYPES'] = 'json,xml'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.compressionMimeTypeBlackList == ['json', 'xml'] as Set
@@ -273,7 +272,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_INDEX_FILES'] = 'home.html,index.html'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.indexFiles == ['home.html', 'index.html']
@@ -284,7 +283,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     source['RATPACK_INDEX_FILES'] = 'home.html , index.html'
 
     when:
-    def config = builder.env(DEFAULT_ENV_PREFIX, source).build()
+    def config = builder.env().build()
 
     then:
     config.indexFiles == ['home.html', 'index.html']

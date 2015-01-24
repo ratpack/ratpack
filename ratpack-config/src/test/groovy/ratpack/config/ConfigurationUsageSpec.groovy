@@ -18,8 +18,8 @@ package ratpack.config
 
 import com.fasterxml.jackson.databind.JsonNode
 import ratpack.config.internal.DefaultConfigurationDataSpec
-import ratpack.config.internal.source.env.MapEnvironment
 import ratpack.server.ServerConfig
+import ratpack.server.ServerEnvironment
 
 class ConfigurationUsageSpec extends BaseConfigurationSpec {
   def "properly loads ServerConfig defaults"() {
@@ -51,11 +51,12 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     propsFile.text = 'development=true'
     def yamlFile = tempFolder.newFile("file.yaml").toPath()
     yamlFile.text = 'publicAddress: http://localhost:8080'
-    System.setProperty("ratpack.threads", "3")
+    def properties = new Properties()
+    properties.setProperty("ratpack.threads", "3")
     def envData = [RATPACK_ADDRESS: "localhost"]
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.port == 8080
@@ -91,18 +92,21 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     propsFile.text = 'port=345'
     def yamlFile = tempFolder.newFile("file.yaml").toPath()
     yamlFile.text = 'port: 234'
-    System.setProperty("ratpack.port", "567")
+    def properties = new Properties()
+    properties.setProperty("ratpack.port", "567")
     def envData = [RATPACK_PORT: "456"]
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.port == 567
   }
 
   def "can get raw data as node structure"() {
-    System.setProperty("ratpack.server.port", "6543")
+    def envData = [:]
+    def properties = new Properties()
+    properties.setProperty("ratpack.server.port", "6543")
     def yamlFile = tempFolder.newFile("file.yaml").toPath()
     yamlFile.text = """
     |server:
@@ -111,7 +115,7 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     |    jdbcUrl: "jdbc:h2:mem:"
     |""".stripMargin()
     when:
-    def config = Configurations.config().yaml(yamlFile).sysProps().build()
+    def config = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, properties)).yaml(yamlFile).sysProps().build()
     def node = config.get(JsonNode)
 
     then:

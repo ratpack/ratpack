@@ -17,8 +17,8 @@
 package ratpack.config
 
 import ratpack.config.internal.DefaultConfigurationDataSpec
-import ratpack.config.internal.source.env.MapEnvironment
 import ratpack.server.ServerConfig
+import ratpack.server.ServerEnvironment
 import spock.lang.Unroll
 
 class EnvVarConfigurationSpec extends BaseConfigurationSpec {
@@ -26,7 +26,7 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).env().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
 
     then:
     serverConfig.port == expectedPort
@@ -61,7 +61,7 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
     ]
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new MapEnvironment(envData)).env().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir
@@ -75,10 +75,6 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.timeResponses
     serverConfig.compressResponses
     serverConfig.compressionMinSize == 100
-    // TODO: support for lists
-//        serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
-//        serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
-//        serverConfig.indexFiles == ["index.html", "index.htm"]
     serverConfig.SSLContext
     serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }

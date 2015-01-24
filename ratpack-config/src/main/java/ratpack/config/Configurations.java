@@ -18,7 +18,7 @@ package ratpack.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.config.internal.DefaultConfigurationDataSpec;
-import ratpack.config.internal.source.env.SystemEnvironment;
+import ratpack.server.ServerEnvironment;
 
 /**
  * Builder class for creating application configuration by composing multiple sources.
@@ -80,7 +80,7 @@ public class Configurations {
    * @return the new configuration data spec
    */
   public static ConfigurationDataSpec config() {
-    return new DefaultConfigurationDataSpec(new SystemEnvironment());
+    return new DefaultConfigurationDataSpec(ServerEnvironment.env());
   }
 
   /**
@@ -90,6 +90,6 @@ public class Configurations {
    * @return the new configuration data spec
    */
   public static ConfigurationDataSpec config(ObjectMapper objectMapper) {
-    return new DefaultConfigurationDataSpec(new SystemEnvironment(), objectMapper);
+    return new DefaultConfigurationDataSpec(ServerEnvironment.env(), objectMapper);
   }
 }

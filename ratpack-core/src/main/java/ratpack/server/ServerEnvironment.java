@@ -41,7 +41,7 @@ public class ServerEnvironment {
   private final Map<String, String> env;
   private final Properties properties;
 
-  ServerEnvironment(Map<String, String> env, Properties properties) {
+  public ServerEnvironment(Map<String, String> env, Properties properties) {
     this.env = env;
     this.properties = properties;
   }
@@ -54,6 +54,14 @@ public class ServerEnvironment {
   @SuppressWarnings("varargs")
   private static <T> T get(T defaultValue, Predicate<? super T> accept, Supplier<T>... suppliers) {
     return Iterables.find(Iterables.transform(Arrays.asList(suppliers), Supplier::get), accept::test, defaultValue);
+  }
+
+  public Map<String, String> getenv() {
+    return env;
+  }
+
+  public Properties getProperties() {
+    return properties;
   }
 
   public Integer getPort() {

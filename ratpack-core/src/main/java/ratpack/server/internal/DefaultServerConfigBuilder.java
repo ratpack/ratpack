@@ -17,10 +17,14 @@
 package ratpack.server.internal;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
@@ -35,8 +39,8 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,13 +50,14 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultServerConfigBuilder implements ServerConfig.Builder {
 
+  private ServerEnvironment serverEnvironment;
   private FileSystemBinding baseDir;
 
-  private int port = ServerEnvironment.env().getPort();
+  private int port;
   private InetAddress address;
-  private boolean development = ServerEnvironment.env().isDevelopment();
+  private boolean development;
   private int threads = ServerConfig.DEFAULT_THREADS;
-  private URI publicAddress = ServerEnvironment.env().getPublicAddress();
+  private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private SSLContext sslContext;
@@ -63,11 +68,30 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
-  public DefaultServerConfigBuilder() {
+  private DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Optional<Path> baseDir) {
+    if (baseDir.isPresent()) {
+      this.baseDir = new DefaultFileSystemBinding(baseDir.get());
+    }
+    this.serverEnvironment = serverEnvironment;
+    this.port = serverEnvironment.getPort();
+    this.development = serverEnvironment.isDevelopment();
+    this.publicAddress = serverEnvironment.getPublicAddress();
   }
 
-  public DefaultServerConfigBuilder(Path baseDir) {
-    this.baseDir = new DefaultFileSystemBinding(baseDir);
+  public static ServerConfig.Builder noBaseDir(ServerEnvironment serverEnvironment) {
+    return new DefaultServerConfigBuilder(serverEnvironment, Optional.empty());
+  }
+
+  public static ServerConfig.Builder baseDir(ServerEnvironment serverEnvironment, Path baseDir) {
+    return new DefaultServerConfigBuilder(serverEnvironment, Optional.of(baseDir.toAbsolutePath().normalize()));
+  }
+
+  public static ServerConfig.Builder findBaseDirProps(ServerEnvironment serverEnvironment, String propertiesPath) {
+    String workingDir = StandardSystemProperty.USER_DIR.value();
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    BaseDirFinder.Result result = BaseDirFinder.find(workingDir, classLoader, propertiesPath)
+      .orElseThrow(() -> new IllegalStateException("Could not find properties file '" + propertiesPath + "' in working dir '" + workingDir + "' or context class loader classpath"));
+    return baseDir(serverEnvironment, result.getBaseDir()).props(result.getResource());
   }
 
   @Override
@@ -198,19 +222,12 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
 
   @Override
   public ServerConfig.Builder env(String prefix) {
-    return env(prefix, System.getenv());
-  }
-
-  @Override
-  public ServerConfig.Builder env(String prefix, Map<String, String> envvars) {
-    Map<String, String> filteredEnvVars = envvars.entrySet().stream()
+    Map<String, String> filteredEnvVars = serverEnvironment.getenv().entrySet().stream()
       .filter(entry -> entry.getKey().startsWith(prefix))
       .collect(Collectors.toMap(
         entry -> CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, entry.getKey().replace(prefix, "")),
         Map.Entry::getValue));
-    Properties properties = new Properties();
-    properties.putAll(filteredEnvVars);
-    return props(properties);
+    return props(filteredEnvVars);
   }
 
   @Override
@@ -225,33 +242,23 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
+  public ServerConfig.Builder props(String path) {
+    return props(Paths.get(path));
+  }
+
+  @Override
   public ServerConfig.Builder props(Path path) {
-    Properties properties = new Properties();
-    try (InputStream is = Files.newInputStream(path)) {
-      properties.load(is);
-    } catch (IOException e) {
-      throw uncheck(e);
-    }
-    return props(properties);
+    return props(Files.asByteSource(path.toFile()));
   }
 
   @Override
   public ServerConfig.Builder props(Map<String, String> map) {
-    Properties properties = new Properties();
-    properties.putAll(map);
-    return props(properties);
-  }
-
-  @Override
-  public ServerConfig.Builder props(Properties properties) {
     Map<String, BuilderAction<?>> propertyCoercions = createPropertyCoercions();
-    properties.entrySet().forEach(entry -> {
-      String key = entry.getKey().toString();
-      String value = entry.getValue().toString();
-      BuilderAction<?> mapping = propertyCoercions.get(key);
+    map.entrySet().forEach(entry -> {
+      BuilderAction<?> mapping = propertyCoercions.get(entry.getKey());
       if (mapping != null) {
         try {
-          mapping.apply(value);
+          mapping.apply(entry.getValue());
         } catch (Exception e) {
           throw uncheck(e);
         }
@@ -261,15 +268,15 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
+  public ServerConfig.Builder props(Properties properties) {
+    Map<String, String> map = Maps.newHashMapWithExpectedSize(properties.size());
+    properties.entrySet().forEach(e -> map.put(e.getKey().toString(), e.getValue().toString()));
+    return props(map);
+  }
+
+  @Override
   public ServerConfig.Builder props(URL url) {
-    //TODO-JOHN add test
-    Properties properties = new Properties();
-    try (InputStream is = url.openStream()) {
-      properties.load(is);
-    } catch (IOException e) {
-      throw uncheck(e);
-    }
-    return props(properties);
+    return props(Resources.asByteSource(url));
   }
 
   @Override
@@ -280,7 +287,7 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   @Override
   public ServerConfig.Builder sysProps(String prefix) {
     Map<String, String> filteredProperties = filter(
-      System.getProperties().entrySet(),
+      serverEnvironment.getProperties().entrySet(),
       entry -> entry.getKey().toString().startsWith(prefix)
     ).collect(
       Collectors.toMap(
@@ -288,9 +295,7 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
         p -> p.getValue().toString()
       )
     );
-    Properties properties = new Properties();
-    properties.putAll(filteredProperties);
-    return props(properties);
+    return props(filteredProperties);
   }
 
   private static <E> Stream<E> filter(Collection<E> collection, Predicate<E> predicate) {

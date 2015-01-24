@@ -55,7 +55,6 @@ class ServerConfigBuilderSpec extends Specification {
     if (server && server.running) {
       server.stop()
     }
-
   }
 
   def "new builder has default port"() {

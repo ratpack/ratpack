@@ -25,11 +25,11 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import ratpack.config.ConfigurationSource;
 import ratpack.config.EnvironmentParser;
-import ratpack.config.internal.source.env.Environment;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.func.Predicate;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerEnvironment;
 
 import java.util.List;
 import java.util.Map;
@@ -40,33 +40,33 @@ public class EnvironmentConfigurationSource implements ConfigurationSource {
   public static final String DEFAULT_OBJECT_DELIMITER = "__";
   public static final Function<String, String> DEFAULT_MAP_FUNC = camelCase();
 
-  private final Environment environment;
+  private final ServerEnvironment serverEnvironment;
   private final EnvironmentParser parser;
 
-  public EnvironmentConfigurationSource(Environment environment) {
-    this(environment, ServerConfig.Builder.DEFAULT_ENV_PREFIX);
+  public EnvironmentConfigurationSource(ServerEnvironment serverEnvironment) {
+    this(serverEnvironment, ServerConfig.Builder.DEFAULT_ENV_PREFIX);
   }
 
-  public EnvironmentConfigurationSource(Environment environment, String prefix) {
-    this(environment, prefix, DEFAULT_MAP_FUNC);
+  public EnvironmentConfigurationSource(ServerEnvironment serverEnvironment, String prefix) {
+    this(serverEnvironment, prefix, DEFAULT_MAP_FUNC);
   }
 
-  public EnvironmentConfigurationSource(Environment environment, String prefix, Function<String, String> mapFunc) {
-    this(environment, new DefaultEnvironmentParser(
+  public EnvironmentConfigurationSource(ServerEnvironment serverEnvironment, String prefix, Function<String, String> mapFunc) {
+    this(serverEnvironment, new DefaultEnvironmentParser(
       filterAndRemoveKeyPrefix(Preconditions.checkNotNull(prefix)),
       splitObjects(DEFAULT_OBJECT_DELIMITER),
       mapFunc));
   }
 
-  public EnvironmentConfigurationSource(Environment environment, EnvironmentParser parser) {
-    this.environment = environment;
+  public EnvironmentConfigurationSource(ServerEnvironment serverEnvironment, EnvironmentParser parser) {
+    this.serverEnvironment = serverEnvironment;
     this.parser = parser;
   }
 
   @Override
   public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
     ObjectNode rootNode = objectMapper.createObjectNode();
-    environment.getenv().entrySet().stream().map(toPair()).flatMap(getFilterFunc()).map(getPairTokenizerFunc()).forEach(entry -> {
+    serverEnvironment.getenv().entrySet().stream().map(toPair()).flatMap(getFilterFunc()).map(getPairTokenizerFunc()).forEach(entry -> {
         populate(rootNode, mapPathSegments(entry), 0, entry.getRight());
       }
     );

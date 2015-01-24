@@ -16,13 +16,11 @@
 
 package ratpack.server;
 
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.NoBaseDirException;
-import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
@@ -31,7 +29,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -72,7 +69,7 @@ public interface ServerConfig {
   }
 
   static Builder noBaseDir() {
-    return new DefaultServerConfigBuilder();
+    return DefaultServerConfigBuilder.noBaseDir(ServerEnvironment.env());
   }
 
   static Builder findBaseDirProps() {
@@ -80,11 +77,7 @@ public interface ServerConfig {
   }
 
   static Builder findBaseDirProps(String propertiesPath) {
-    String workingDir = StandardSystemProperty.USER_DIR.value();
-    BaseDirFinder.Result result = BaseDirFinder.find(workingDir, Thread.currentThread().getContextClassLoader(), propertiesPath)
-      .orElseThrow(() -> new IllegalStateException("Could not find properties file '" + propertiesPath + "' in working dir '" + workingDir + "' or context class loader classpath"));
-
-    return baseDir(result.getBaseDir()).props(result.getResource());
+    return DefaultServerConfigBuilder.findBaseDirProps(ServerEnvironment.env(), propertiesPath);
   }
 
   /**
@@ -95,7 +88,7 @@ public interface ServerConfig {
    * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
   static Builder baseDir(Path baseDir) {
-    return new DefaultServerConfigBuilder(baseDir.toAbsolutePath().normalize());
+    return DefaultServerConfigBuilder.baseDir(ServerEnvironment.env(), baseDir);
   }
 
   /**
@@ -453,8 +446,6 @@ public interface ServerConfig {
      */
     Builder env(String prefix);
 
-    Builder env(String prefix, Map<String, String> envvars);
-
     /**
      * Adds a configuration source for a properties file.
      *
@@ -469,9 +460,7 @@ public interface ServerConfig {
      * @param path the source of the properties data
      * @return this
      */
-    default Builder props(String path) {
-      return props(Paths.get(path));
-    }
+    Builder props(String path);
 
     /**
      * Adds a configuration source for a properties file.

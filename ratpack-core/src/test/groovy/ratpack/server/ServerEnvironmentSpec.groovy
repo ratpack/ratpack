@@ -19,7 +19,6 @@ package ratpack.server
 import spock.lang.Specification
 
 class ServerEnvironmentSpec extends Specification {
-
   ServerEnvironment env(Map<String, String> env, Map<String, String> props) {
     def p = new Properties()
     p.putAll(props)
@@ -30,8 +29,35 @@ class ServerEnvironmentSpec extends Specification {
     expect:
     env([:], [:]).port == 5050
     env([PORT: "2020"], [:]).port == 2020
-    env([PORT: "2020"], ["ratpack.port": "3030"]).port == 3030
+    env([RATPACK_PORT: "2020"], [:]).port == 2020
+    env([:], ["ratpack.port": "2020"]).port == 2020
     env([PORT: "2020", RATPACK_PORT: "3030"], [:]).port == 3030
+    env([PORT: "2020"], ["ratpack.port": "3030"]).port == 3030
+    env([RATPACK_PORT: "2020"], ["ratpack.port": "3030"]).port == 3030
     env([PORT: "-1"], [:]).port == 5050
+    env([RATPACK_PORT: "-1"], [:]).port == 5050
+    env([:], ["ratpack.port": "-1"]).port == 5050
+  }
+
+  def "development"() {
+    expect:
+    !env([:], [:]).development
+    env([RATPACK_DEVELOPMENT: "true"], [:]).development
+    env([:], ["ratpack.development": "true"]).development
+    !env([RATPACK_DEVELOPMENT: "true"], ["ratpack.development": "false"]).development
+    env([RATPACK_DEVELOPMENT: "false"], ["ratpack.development": "true"]).development
+    !env([RATPACK_DEVELOPMENT: "-1"], [:]).development
+    !env([:], ["ratpack.development": "-1"]).development
+  }
+
+  def "publicAddress"() {
+    expect:
+    !env([:], [:]).publicAddress
+    env([RATPACK_PUBLIC_ADDRESS: "http://example.com:2020"], [:]).publicAddress == URI.create("http://example.com:2020")
+    env([:], ["ratpack.publicAddress":"http://example.com:2020"]).publicAddress == URI.create("http://example.com:2020")
+    env([RATPACK_PUBLIC_ADDRESS: "http://example.com:2020"], ["ratpack.publicAddress":"http://example.com:3030"]).publicAddress == URI.create("http://example.com:3030")
+    !env([RATPACK_PUBLIC_ADDRESS: "bad://example.com:2020"], ["ratpack.publicAddress":"bad://example.com:3030"]).publicAddress
+    env([RATPACK_PUBLIC_ADDRESS: "bad://example.com:2020"], ["ratpack.publicAddress":"http://example.com:3030"]).publicAddress == URI.create("http://example.com:3030")
+    env([RATPACK_PUBLIC_ADDRESS: "http://example.com:2020"], ["ratpack.publicAddress":"bad://example.com:3030"]).publicAddress == URI.create("http://example.com:2020")
   }
 }

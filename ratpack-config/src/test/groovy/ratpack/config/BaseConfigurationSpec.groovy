@@ -27,17 +27,6 @@ abstract class BaseConfigurationSpec extends Specification {
   @Rule
   TemporaryFolder tempFolder
 
-  Properties origSysProps
-
-  def setup() {
-    origSysProps = System.properties
-    System.properties = new Properties(origSysProps)
-  }
-
-  def cleanup() {
-    System.properties = origSysProps
-  }
-
   protected static void createKeystore(Path path, String password) {
     def ks = KeyStore.getInstance("JKS")
     ks.load(null, password.toCharArray())

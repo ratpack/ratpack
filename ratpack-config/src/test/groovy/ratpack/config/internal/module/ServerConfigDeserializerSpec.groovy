@@ -19,8 +19,8 @@ package ratpack.config.internal.module
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import ratpack.config.internal.source.env.MapEnvironment
 import ratpack.server.ServerConfig
+import ratpack.server.ServerEnvironment
 import ratpack.test.embed.BaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class ServerConfigDeserializerSpec extends Specification {
   def b1 = BaseDirBuilder.tmpDir()
   def originalClassLoader
   def classLoader = new GroovyClassLoader()
-  def deserializer = new ServerConfigDeserializer(new MapEnvironment([:]))
+  def deserializer = new ServerConfigDeserializer(new ServerEnvironment([:], new Properties()))
   def objectMapper = new ObjectMapper()
 
   def setup() {
@@ -100,6 +100,16 @@ class ServerConfigDeserializerSpec extends Specification {
 
     then:
     !serverConfig.hasBaseDir
+  }
+
+  def "without any config uses default from server config builder"() {
+    when:
+    def serverConfig = deserialize(objectMapper.createObjectNode())
+
+    then:
+    serverConfig.port == 5050
+    !serverConfig.development
+    !serverConfig.publicAddress
   }
 
   private ServerConfig deserialize(JsonNode node) {
