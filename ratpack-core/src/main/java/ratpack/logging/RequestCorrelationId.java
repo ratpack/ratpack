@@ -16,15 +16,46 @@
 
 package ratpack.logging;
 
-
+/**
+ * Represents a unique identifier for a request
+ */
 public class RequestCorrelationId {
+
   private final String id;
 
   public RequestCorrelationId(String id) {
     this.id = id;
   }
 
+  /**
+   * Get the value of the request id.
+   * @return the id as a String.
+   */
   public String getId() {
     return id;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    RequestCorrelationId that = (RequestCorrelationId) o;
+
+    return (id != null && id.equals(that.id)) || (id == null && that.id == null);
+  }
+
+  @Override
+  public int hashCode() {
+    return id != null ? id.hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return getId();
   }
 }

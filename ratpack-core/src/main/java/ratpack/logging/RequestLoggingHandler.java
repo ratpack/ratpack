@@ -24,8 +24,6 @@ import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 
-import java.util.Optional;
-
 /**
  * A Handler that logs the the completion of every request using the standard
  * request log format.
@@ -87,11 +85,10 @@ public class RequestLoggingHandler  implements Handler {
     sb.append(" ");
     sb.append(response.getStatus().getCode());
 
-    Optional<RequestCorrelationId> potentialUUID = request.maybeGet(RequestCorrelationId.class);
-    if (potentialUUID.isPresent()) {
+    request.maybeGet(RequestCorrelationId.class).ifPresent(id -> {
       sb.append(" correlationId=");
-      sb.append(potentialUUID.get().toString());
-    }
+      sb.append(id.toString());
+    });
 
     return sb.toString();
   }
