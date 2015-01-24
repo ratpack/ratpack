@@ -19,7 +19,6 @@ package ratpack.exec
 import ratpack.func.Action
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentLinkedQueue
