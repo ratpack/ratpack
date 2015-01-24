@@ -19,6 +19,7 @@ package ratpack.exec
 import ratpack.func.Action
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -116,6 +117,7 @@ class PromiseCachingSpec extends Specification {
     events.toList() == [e, "complete"]
   }
 
+  @Ignore
   def "promise can be massively reused"() {
     when:
     def num = 100000
