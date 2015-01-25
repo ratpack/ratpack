@@ -44,7 +44,7 @@ import java.util.function.BiFunction;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromChain(chain -> chain
+ *     EmbeddedApp.fromHandlers(chain -> chain
  *       .register(registry -> registry
  *         .add(Renderer.of(Integer.class, (ctx, i) -> ctx.render(i.toString())))
  *         .add(RenderableDecorator.of(Integer.class, (ctx, i) -> i * 2))

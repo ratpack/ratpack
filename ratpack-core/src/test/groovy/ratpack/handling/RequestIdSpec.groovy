@@ -14,37 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.logging
+package ratpack.handling
 
-import com.google.inject.Binder
-import com.google.inject.Injector
-import ratpack.guice.HandlerDecoratingModule
-import ratpack.handling.Handler
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class LoggingSpec extends RatpackGroovyDslSpec {
-
-  private class TestLoggingModule implements HandlerDecoratingModule {
-    public Handler decorate(Injector injector, Handler handler) {
-      return new CorrelationIdHandler(new RequestLoggingHandler(handler))
-    }
-
-    @Override
-    void configure(Binder binder) {
-
-    }
-  }
+class RequestIdSpec extends RatpackGroovyDslSpec {
 
   def "add request uuids"() {
     given: 'a ratpack app with the logging request handlers added'
-    bindings {
-      add new TestLoggingModule()
-    }
-
     handlers {
+      handler RequestId.bind()
       handler {
-        render request.get(RequestCorrelationId).id
+        render request.get(RequestId).id
       }
     }
 

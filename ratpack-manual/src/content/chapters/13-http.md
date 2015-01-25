@@ -83,7 +83,7 @@ import static org.junit.Assert.assertNotNull;
 public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp
-      .fromChain(chain ->
+      .fromHandlers(chain ->
           chain
             .handler("status-object", ctx -> {
               Status status = new DefaultStatus(HttpResponseStatus.FOUND);
@@ -246,7 +246,7 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp
-      .fromChain(chain -> chain
+      .fromHandlers(chain -> chain
         .register(new FooRenderer().register())
         .handler(ctx -> {
           Foo foo = new Foo();

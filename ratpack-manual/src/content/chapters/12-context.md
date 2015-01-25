@@ -66,7 +66,7 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp
-      .fromChain(chain -> chain
+      .fromHandlers(chain -> chain
           .prefix("person/:id", (personChain) -> personChain
             .handler(context -> {
               String id = context.getPathTokens().get("id"); // (1)
@@ -144,7 +144,7 @@ import static org.junit.Assert.assertEquals;
 public class Example {
 
   public static void main(String... args) throws Exception {
-    EmbeddedApp.fromChain(chain -> chain
+    EmbeddedApp.fromHandlers(chain -> chain
         .prefix("api", api -> api
             .register(r -> r.add(ServerErrorHandler.class, (context, throwable) ->
                   context.render("api error: " + throwable.getMessage())

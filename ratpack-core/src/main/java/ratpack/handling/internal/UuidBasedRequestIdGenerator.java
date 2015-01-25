@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.logging
+package ratpack.handling.internal;
 
-import spock.lang.Specification
-import spock.lang.Unroll
+import ratpack.handling.Context;
+import ratpack.handling.RequestId;
 
-class RequestCorrelationIdSpec extends Specification {
+import java.util.Random;
+import java.util.UUID;
 
-  @Unroll
-  def "equals based on id"() {
-    expect:
-    new RequestCorrelationId(id).equals(new RequestCorrelationId(thatId)) == equals
+public class UuidBasedRequestIdGenerator implements RequestId.Generator {
 
-    where:
-    id    | thatId  || equals
-    "1"   | "1"     || true
-    "1"   | "2"     || false
-    null  | "1"     || false
-    "1"   | null    || false
-    null  | null    || true
+  public static final RequestId.Generator INSTANCE = new UuidBasedRequestIdGenerator();
+
+  private final Random random = new Random();
+
+  @Override
+  public RequestId generate(Context context) {
+    return new DefaultRequestId(new UUID(random.nextLong(), random.nextLong()).toString());
   }
 }

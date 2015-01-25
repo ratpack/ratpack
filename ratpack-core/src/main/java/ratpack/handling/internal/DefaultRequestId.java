@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.logging;
+package ratpack.handling.internal;
 
-/**
- * Represents a unique identifier for a request
- */
-public class RequestCorrelationId {
+import ratpack.handling.RequestId;
+
+public class DefaultRequestId implements RequestId {
 
   private final String id;
 
-  public RequestCorrelationId(String id) {
+  public DefaultRequestId(String id) {
     this.id = id;
   }
 
-  /**
-   * Get the value of the request id.
-   * @return the id as a String.
-   */
+  @Override
   public String getId() {
     return id;
   }
@@ -44,7 +40,7 @@ public class RequestCorrelationId {
       return false;
     }
 
-    RequestCorrelationId that = (RequestCorrelationId) o;
+    DefaultRequestId that = (DefaultRequestId) o;
 
     return (id != null && id.equals(that.id)) || (id == null && that.id == null);
   }

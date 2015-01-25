@@ -157,7 +157,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @param action the handler chain definition
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromChain(Action<? super Chain> action) {
+  static EmbeddedApp fromHandlers(Action<? super Chain> action) {
     return fromServer(ServerConfig.embedded().build(), b -> b.handler(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
   }
 

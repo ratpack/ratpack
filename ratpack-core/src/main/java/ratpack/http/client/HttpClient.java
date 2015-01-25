@@ -44,7 +44,7 @@ import java.net.URI;
  * public class ExampleHttpClient {
  *
  *   public static void main(String[] args) throws Exception {
- *     EmbeddedApp.fromChain(chain -> {
+ *     EmbeddedApp.fromHandlers(chain -> {
  *         chain
  *           .get("/simpleGet", context -> {
  *             PublicAddress address = context.get(PublicAddress.class);         //find local ip address

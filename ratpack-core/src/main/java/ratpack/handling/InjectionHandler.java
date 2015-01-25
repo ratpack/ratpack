@@ -71,7 +71,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromChain(chain -> chain
+ *     EmbeddedApp.fromHandlers(chain -> chain
  *         .register(r -> r.add(new Thing("foo")))
  *         .get("verbose", new VerboseHandler())
  *         .get("succinct", new SuccinctHandler())
@@ -104,7 +104,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromChain(chain -> chain
+ *     EmbeddedApp.fromHandlers(chain -> chain
  *         .register(r -> r.add("foo")) // no Integer in registry
  *         .get(new OptionalInjectingHandler())
  *     ).test(httpClient -> {

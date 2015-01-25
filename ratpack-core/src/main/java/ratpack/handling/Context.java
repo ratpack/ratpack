@@ -130,7 +130,7 @@ public interface Context extends ExecControl, Registry {
    * public class Example {
    *
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.fromChain(chain -> chain
+   *     EmbeddedApp.fromHandlers(chain -> chain
    *         .handler(ctx -> ctx.next(Registries.just("foo")))
    *         .handler(ctx -> ctx.render(ctx.get(String.class)))
    *     ).test(httpClient -> {
@@ -178,7 +178,7 @@ public interface Context extends ExecControl, Registry {
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
-   *     EmbeddedApp.fromChain(chain -> chain
+   *     EmbeddedApp.fromHandlers(chain -> chain
    *       .handler("a", ctx -> {
    *         String val = "a";
    *         ctx.byMethod(m -> m

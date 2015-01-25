@@ -61,7 +61,7 @@ import java.util.Arrays;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromChain(c -> c
+ *     EmbeddedApp.fromHandlers(c -> c
  *       .register(r -> r.add(new ThingRenderer()))
  *       .handler(ctx -> ctx.render(new Thing("foo")))
  *     ).test(httpClient -> {
