@@ -55,6 +55,7 @@ The following people have provided significant contributions.
 * [Robert Zakrzewski](https://github.com/zedar)
 * [Glenn Saqui](https://github.com/gsaqui)
 * [Jeff Blaisdell](https://github.com/jeff-blaisdell)
+* [Kyle Boon](https://github.com/kyleboon)
 
 ### Past project members
 
