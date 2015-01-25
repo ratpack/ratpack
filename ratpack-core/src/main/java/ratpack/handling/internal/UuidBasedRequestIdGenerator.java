@@ -21,15 +21,15 @@ import ratpack.handling.RequestId;
 
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class UuidBasedRequestIdGenerator implements RequestId.Generator {
 
   public static final RequestId.Generator INSTANCE = new UuidBasedRequestIdGenerator();
 
-  private final Random random = new Random();
-
   @Override
   public RequestId generate(Context context) {
+    Random random = ThreadLocalRandom.current();
     return new DefaultRequestId(new UUID(random.nextLong(), random.nextLong()).toString());
   }
 }
