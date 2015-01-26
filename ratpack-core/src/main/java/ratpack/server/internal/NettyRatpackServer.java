@@ -51,6 +51,8 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -63,8 +65,8 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeToken.of(HandlerDecorator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
 
-  protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
   protected final Function<? super Definition.Builder, ? extends Definition> definitionFactory;
 
   protected InetSocketAddress boundAddress;
@@ -98,7 +100,7 @@ public class NettyRatpackServer implements RatpackServer {
         throw e;
       }
 
-      logger.warn("Exception raised getting server config, using default config for development", e);
+      LOGGER.warn("Exception raised getting server config, using default config for development", e);
       definitionBuild = buildErrorPageDefinition(e, serverConfig);
       needsReload.set(true);
     }
@@ -112,8 +114,8 @@ public class NettyRatpackServer implements RatpackServer {
 
     boundAddress = (InetSocketAddress) channel.localAddress();
 
-    if (logger.isInfoEnabled()) {
-      logger.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
     }
   }
 
@@ -285,6 +287,7 @@ public class NettyRatpackServer implements RatpackServer {
   private class ReloadHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private DefinitionBuild definitionBuild;
     private final ServerConfig serverConfig;
+    private final Lock reloadLock = new ReentrantLock();
 
     private ChannelHandler inner;
 
@@ -296,18 +299,33 @@ public class NettyRatpackServer implements RatpackServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-      if (inner == null || definitionBuild.inError) {
-        try {
-          if (definitionBuild.inError) {
-            definitionBuild = buildUserDefinition();
+      reloadLock.lock();
+      try {
+        boolean rebuild = false;
+
+        if (inner == null || definitionBuild.inError) {
+          rebuild = true;
+        } else {
+          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), ReloadInformant::shouldReload);
+          if (reloadInformant.isPresent()) {
+            LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
+            rebuild = true;
           }
-          inner = buildAdapter(definitionBuild.definition, serverConfig);
-          delegate(ctx, inner, msg);
-        } catch (Exception e) {
-          delegate(ctx, new NettyHandlerAdapter(serverConfig, buildServerRegistry(serverConfig, (r) -> Registries.empty()), context -> context.error(e)), msg);
         }
-      } else {
-        delegate(ctx, inner, msg);
+
+        if (rebuild) {
+          try {
+            definitionBuild = buildUserDefinition();
+            inner = buildAdapter(definitionBuild.definition, serverConfig);
+            delegate(ctx, inner, msg);
+          } catch (Exception e) {
+            delegate(ctx, new NettyHandlerAdapter(serverConfig, buildServerRegistry(serverConfig, (r) -> Registries.empty()), context -> context.error(e)), msg);
+          }
+        } else {
+          delegate(ctx, inner, msg);
+        }
+      } finally {
+        reloadLock.unlock();
       }
     }
 
