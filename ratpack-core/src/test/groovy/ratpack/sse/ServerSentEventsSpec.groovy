@@ -16,12 +16,9 @@
 
 package ratpack.sse
 
-import io.netty.buffer.ByteBufAllocator
-import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.RequestSpec
-import ratpack.http.client.StreamedResponse
-import ratpack.sse.internal.ServerSentEventStreamMapDecoder
+import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
@@ -144,13 +141,10 @@ id: 3
 
     and:
     handlers {
-      get { HttpClient httpClient, ByteBufAllocator byteBufAllocator ->
-        httpClient.requestStream(otherAppUrl("foo")) {
-        } then { StreamedResponse stream ->
+      get { ServerSentEventStreamClient sseStreamClient ->
+        sseStreamClient.request(otherAppUrl("foo")).then { TransformablePublisher<Event<?>> eventStream ->
           render stringChunks(
-            stream.body.streamMap(new ServerSentEventStreamMapDecoder(byteBufAllocator)).map { Event e ->
-              e.data
-            }
+            eventStream.map { it.data }
           )
         }
       }
@@ -159,4 +153,5 @@ id: 3
     expect:
     getText() == "Event 0Event 1Event 2Event 3Event 4Event 5Event 6Event 7Event 8Event 9"
   }
+
 }

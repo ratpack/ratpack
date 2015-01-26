@@ -46,6 +46,7 @@ import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.Stopper;
+import ratpack.sse.ServerSentEventStreamClient;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
@@ -96,7 +97,8 @@ public abstract class ServerRegistry {
           ratpackServer.stop();
           return null;
         }))
-        .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()));
+        .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
+        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT));
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);

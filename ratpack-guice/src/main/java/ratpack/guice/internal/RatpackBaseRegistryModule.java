@@ -39,6 +39,7 @@ import ratpack.render.Renderer;
 import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
+import ratpack.sse.ServerSentEventStreamClient;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -117,4 +118,8 @@ public class RatpackBaseRegistryModule extends AbstractModule {
     return HttpClient.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength());
   }
 
+  @Provides
+  ServerSentEventStreamClient sseClient(ExecController execController, ByteBufAllocator byteBufAllocator) {
+    return ServerSentEventStreamClient.sseStreamClient(execController, byteBufAllocator);
+  }
 }
