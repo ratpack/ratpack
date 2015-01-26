@@ -25,6 +25,7 @@ ext.apiLinks = [
 dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
+  testCompile project(":ratpack-test")
 }
 
 processResources {
