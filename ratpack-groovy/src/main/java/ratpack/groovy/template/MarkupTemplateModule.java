@@ -22,8 +22,8 @@ import groovy.text.markup.TemplateConfiguration;
 import ratpack.groovy.template.internal.CachingTemplateResolver;
 import ratpack.groovy.template.internal.MarkupTemplateRenderer;
 import ratpack.guice.ConfigurableModule;
-import ratpack.server.ServerConfig;
 import ratpack.render.Renderer;
+import ratpack.server.ServerConfig;
 
 import javax.inject.Singleton;
 import java.nio.file.Path;
@@ -76,7 +76,7 @@ import java.nio.file.Path;
  * }
  * }</pre>
  *
- * @see <a href="http://beta.groovy-lang.org/docs/latest/html/documentation/markup-template-engine.html" target="_blank">Groovy Markup Template Engine</a>
+ * @see <a href="http://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_the_markuptemplateengine" target="_blank">Groovy Markup Template Engine</a>
  */
 public class MarkupTemplateModule extends ConfigurableModule<MarkupTemplateModule.Config> {
 
