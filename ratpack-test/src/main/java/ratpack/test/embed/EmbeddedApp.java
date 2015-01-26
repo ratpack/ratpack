@@ -69,7 +69,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @throws java.lang.Exception if an error is encountered creating the application
    * @see ratpack.server.RatpackServer#of(ratpack.func.Function)
    */
-  static EmbeddedApp fromServerFunction(Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
+  static EmbeddedApp of(Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
     return fromServer(RatpackServer.of(definition));
   }
 
