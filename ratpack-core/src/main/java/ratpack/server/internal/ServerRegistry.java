@@ -29,6 +29,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
 import ratpack.file.internal.DefaultFileRenderer;
+import ratpack.form.internal.FormNoOptParser;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
@@ -91,6 +92,8 @@ public abstract class ServerRegistry {
         .with(new CharSequenceRenderer().register())
         .add(FormParser.class, FormParser.multiPart())
         .add(FormParser.class, FormParser.urlEncoded())
+        .add(FormNoOptParser.class, FormNoOptParser.multiPart())
+        .add(FormNoOptParser.class, FormNoOptParser.urlEncoded())
         .add(RatpackServer.class, ratpackServer)
           // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {

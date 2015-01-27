@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,41 +18,36 @@ package ratpack.form.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.form.Form;
-import ratpack.form.FormParseOpts;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
-import ratpack.parse.Parse;
-import ratpack.parse.ParserSupport;
-import ratpack.util.MultiValueMap;
+import ratpack.parse.NoOptParserSupport;
 
 import static ratpack.util.internal.ImmutableDelegatingMultiValueMap.empty;
 
-public class FormParser extends ParserSupport<FormParseOpts> {
+public class FormNoOptParser extends NoOptParserSupport {
 
   private static final TypeToken<Form> FORM_TYPE = TypeToken.of(Form.class);
 
-  private FormParser(String contentType) {
+  private FormNoOptParser(String contentType) {
     super(contentType);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T parse(Context context, TypedData requestBody, Parse<T, FormParseOpts> parse) throws Exception {
-    if (parse.getType().equals(FORM_TYPE)) {
-      MultiValueMap<String, String> base =
-        parse.getOpts().isIncludeQueryParams() ? context.getRequest().getQueryParams() : empty();
-      return (T) FormDecoder.parseForm(context, requestBody, base);
+  public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
+    if (type.equals(FORM_TYPE)) {
+      return (T) FormDecoder.parseForm(context, requestBody, empty());
     } else {
       return null;
     }
   }
 
-  public static FormParser multiPart() {
-    return new FormParser("multipart/form-data");
+  public static FormNoOptParser multiPart() {
+    return new FormNoOptParser("multipart/form-data");
   }
 
-  public static FormParser urlEncoded() {
-    return new FormParser("application/x-www-form-urlencoded");
+  public static FormNoOptParser urlEncoded() {
+    return new FormNoOptParser("application/x-www-form-urlencoded");
   }
 
 }

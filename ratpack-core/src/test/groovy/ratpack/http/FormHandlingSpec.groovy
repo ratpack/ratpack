@@ -31,8 +31,8 @@ import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
+import static ratpack.form.Form.form
 import static ratpack.http.MediaType.APPLICATION_FORM
-
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -43,7 +43,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can get form params"() {
-    when:
+    given:
     handlers {
       post {
         def form = parse Form
@@ -51,9 +51,11 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    then:
+    when:
     requestSpec { it.headers.add("Content-Type", APPLICATION_FORM) }
+    then:
     postText() == "[:]"
+
     when:
     resetRequest()
     requestSpec { RequestSpec requestSpec ->
@@ -62,9 +64,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
     then:
     postText() == "[a:[b]]"
+
     when:
     resetRequest()
-
     requestSpec { RequestSpec requestSpec ->
       def body = "a=b&a=c&d=e&abc="
       requestSpec.headers.add("Content-Type", APPLICATION_FORM)
@@ -75,7 +77,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can read multi part forms"() {
-    when:
+    given:
     handlers {
       post {
         def form = parse Form
@@ -83,7 +85,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    and:
+    when:
     requestSpec { RequestSpec requestSpec ->
 
       HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
@@ -112,8 +114,6 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
   def "can handle file uploads"() {
     given:
     def fooFile = file "foo.txt", "bar"
-
-    when:
     handlers {
       post {
         def form = parse Form
@@ -121,7 +121,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    then:
+    when:
     requestSpec { RequestSpec requestSpec ->
       HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
       HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
@@ -139,15 +139,13 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
-
+    then:
     postText() == "File content: bar"
   }
 
   def "default encoding is utf-8"() {
     given:
     def fooFile = file "foo.txt", "bar"
-
-    when:
     handlers {
       post {
         def form = parse Form
@@ -155,7 +153,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    then:
+    when:
     requestSpec { RequestSpec requestSpec ->
       HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
       HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
@@ -173,14 +171,13 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
+    then:
     postText() == "File type: text/plain;charset=UTF-8"
   }
 
   def "respects custom encoding"() {
     given:
     def fooFile = file "foo.txt", "bar"
-
-    when:
     handlers {
       post {
         def form = parse Form
@@ -188,7 +185,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    then:
+    when:
     requestSpec { RequestSpec requestSpec ->
       HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
       HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
@@ -206,7 +203,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
-
+    then:
     postText() == "File type: text/plain;charset=US-ASCII"
   }
 
@@ -257,8 +254,66 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
                                context.render "I changed things I shoudn't"
                              }
                            }]]
-
   }
 
+  def "can parse form from only query parameters"() {
+    given:
+    handlers {
+      post {
+        def form = parse form(true)
+        render form.toString()
+      }
+    }
+
+    when:
+    requestSpec { it.headers.add("Content-Type", APPLICATION_FORM) }
+    then:
+    postText() == "[:]"
+
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+    }
+    then:
+    postText("?a=b") == "[a:[b]]"
+
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+    }
+    then:
+    postText("?a=b&a=c&d=e&abc=") == "[a:[b, c], d:[e], abc:[]]"
+  }
+
+  def "request body merged with query parameters"() {
+    given:
+    handlers {
+      post {
+        def form = parse form(true)
+        render form.toString()
+      }
+    }
+
+    when: "different keys in body and params"
+    requestSpec { RequestSpec requestSpec ->
+      def body = "d=e"
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << body })
+    }
+    then:
+    postText("?a=b") == "[a:[b], d:[e]]"
+
+    when: "same keys in body and params"
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      def body = "a=c"
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << body })
+    }
+    then:
+    postText("?a=b") == "[a:[b, c]]"
+  }
 
 }

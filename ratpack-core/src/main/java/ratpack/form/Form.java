@@ -17,6 +17,8 @@
 package ratpack.form;
 
 import ratpack.api.Nullable;
+import ratpack.form.internal.DefaultFormParseOpts;
+import ratpack.parse.Parse;
 import ratpack.util.MultiValueMap;
 
 import java.util.List;
@@ -50,6 +52,10 @@ import java.util.List;
  *   }
  * }
  * </pre>
+ *
+ * <p>
+ * To include the query parameters from the request in the parsed form, use {@link Form#form(boolean)}.
+ * This can be useful if you want to support both {@code GET} and {@code PUT} submission with a single handler.
  */
 public interface Form extends MultiValueMap<String, String> {
 
@@ -76,5 +82,26 @@ public interface Form extends MultiValueMap<String, String> {
    * @return all of the uploaded files.
    */
   MultiValueMap<String, UploadedFile> files();
+
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link Form}.
+   * <p>
+   * Default options will be used (no query parameters included).
+   *
+   * @return a parse object
+   */
+  static Parse<Form, FormParseOpts> form() {
+    return form(false);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link Form}.
+   *
+   * @param includeQueryParams whether to include the query parameters from the request in the parsed form
+   * @return a parse object
+   */
+  static Parse<Form, FormParseOpts> form(boolean includeQueryParams) {
+    return Parse.of(Form.class, new DefaultFormParseOpts(includeQueryParams));
+  }
 
 }

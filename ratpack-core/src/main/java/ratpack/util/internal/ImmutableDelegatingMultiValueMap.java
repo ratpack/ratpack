@@ -16,16 +16,20 @@
 
 package ratpack.util.internal;
 
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import ratpack.util.MultiValueMap;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, V> {
+
+  private static final ImmutableDelegatingMultiValueMap<Object, Object> EMPTY = new ImmutableDelegatingMultiValueMap<>(ImmutableMap.of());
+
+  @SuppressWarnings("unchecked")
+  public static <K, V> MultiValueMap<K, V> empty() {
+    return (MultiValueMap<K, V>) EMPTY;
+  }
 
   private final Map<? extends K, ? extends List<? extends V>> delegate;
 

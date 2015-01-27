@@ -32,6 +32,7 @@ import ratpack.http.Request;
 import ratpack.http.TypedData;
 import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.http.internal.DefaultMediaType;
+import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.io.IOException;
@@ -45,7 +46,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public abstract class FormDecoder {
 
-  public static Form parseForm(Context context, TypedData requestBody) throws RuntimeException {
+  public static Form parseForm(Context context, TypedData requestBody, MultiValueMap<String, String> base) throws RuntimeException {
     Request request = context.getRequest();
     HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());
     HttpRequest nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
@@ -57,7 +58,7 @@ public abstract class FormDecoder {
     decoder.offer(content);
     decoder.offer(LastHttpContent.EMPTY_LAST_CONTENT);
 
-    Map<String, List<String>> attributes = new LinkedHashMap<>();
+    Map<String, List<String>> attributes = new LinkedHashMap<>(base.getAll());
     Map<String, List<UploadedFile>> files = new LinkedHashMap<>();
 
     try {
