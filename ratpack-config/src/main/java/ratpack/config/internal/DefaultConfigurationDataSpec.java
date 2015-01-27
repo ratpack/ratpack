@@ -47,6 +47,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   private final ImmutableList.Builder<ConfigurationSource> sources = ImmutableList.builder();
   private final ServerEnvironment serverEnvironment;
   private final ObjectMapper objectMapper;
+  private Action<? super Throwable> errorHandler = Action.throwException();
 
   public DefaultConfigurationDataSpec(ServerEnvironment serverEnvironment) {
     this(serverEnvironment, newDefaultObjectMapper(serverEnvironment));
@@ -59,7 +60,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec add(ConfigurationSource configurationSource) {
-    sources.add(configurationSource);
+    sources.add(new ErrorHandlingConfigurationSource(configurationSource, errorHandler));
     return this;
   }
 
@@ -161,6 +162,12 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
   @Override
   public ConfigurationDataSpec yaml(URL url) {
     return add(new YamlConfigurationSource(url));
+  }
+
+  @Override
+  public ConfigurationDataSpec onError(Action<? super Throwable> errorHandler) {
+    this.errorHandler = errorHandler;
+    return this;
   }
 
   public static ObjectMapper newDefaultObjectMapper(ServerEnvironment serverEnvironment) {

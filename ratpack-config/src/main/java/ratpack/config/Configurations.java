@@ -24,17 +24,14 @@ import ratpack.server.ServerEnvironment;
  * Builder class for creating application configuration by composing multiple sources.
  *
  * <pre class="java">{@code
+ * import com.google.common.collect.ImmutableMap;
  * import ratpack.config.ConfigurationData;
  * import ratpack.config.Configurations;
- * import ratpack.server.ServerConfig;
  * import ratpack.server.RatpackServer;
- *
+ * import ratpack.server.ServerConfig;
  * import ratpack.test.ServerBackedApplicationUnderTest;
  * import ratpack.test.http.TestHttpClient;
  * import static org.junit.Assert.*;
- *
- * import java.net.URL;
- * import java.util.Properties;
  *
  * public class Example {
  *   public static class MyAppConfig {
@@ -46,11 +43,10 @@ import ratpack.server.ServerEnvironment;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     Properties myData = new Properties();
- *     myData.put("server.port", "5060");
- *     myData.put("app.name", "Ratpack");
- *
- *     ConfigurationData configData = Configurations.config().props(myData).sysProps().build();
+ *     ConfigurationData configData = Configurations.config()
+ *       .props(ImmutableMap.of("server.port", "5060", "app.name", "Ratpack"))
+ *       .sysProps()
+ *       .build();
  *
  *     RatpackServer server = RatpackServer.of(spec -> spec
  *       .config(configData.get("/server", ServerConfig.class))
@@ -72,6 +68,8 @@ import ratpack.server.ServerEnvironment;
  *   }
  * }
  * }</pre>
+ *
+ * @see ratpack.config.ConfigurationDataSpec
  */
 public class Configurations {
   /**

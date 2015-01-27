@@ -29,9 +29,58 @@ import java.util.Properties;
 
 /**
  * Configures how configuration data will be loaded and bound to objects.
+ * <p>
  * Multiple data sources can be specified.
  * All specified data sources will be merged together to form the final configuration data.
  * If a given value exists in multiple data sources, the value from the last specified source will be used.
+ * <p>
+ * By default, if loading a data source fails, the exception will be thrown.
+ * If desired, this behavior can be adjusted using {@link #onError(ratpack.func.Action)}.
+ * For example:
+ *
+ * <pre class="java">{@code
+ * import java.nio.file.Files;
+ * import java.nio.file.Path;
+ * import ratpack.config.ConfigurationData;
+ * import ratpack.config.Configurations;
+ * import ratpack.func.Action;
+ * import ratpack.server.RatpackServer;
+ * import ratpack.server.ServerConfig;
+ * import ratpack.test.ServerBackedApplicationUnderTest;
+ * import ratpack.test.http.TestHttpClient;
+ *
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *   public static void main(String[] args) throws Exception {
+ *     Path jsonFile = Files.createTempFile("optionalConfig", ".json");
+ *     Files.delete(jsonFile);
+ *     Path yamlFile = Files.createTempFile("mandatoryConfig", ".yaml");
+ *     try {
+ *       Files.write(yamlFile, "threads: 7".getBytes());
+ *
+ *       ConfigurationData configData = Configurations.config()
+ *         .onError(Action.noop()).json(jsonFile)
+ *         .onError(Action.throwException()).yaml(yamlFile)
+ *         .build();
+ *
+ *       RatpackServer server = RatpackServer.of(spec -> spec
+ *         .config(configData.get(ServerConfig.class))
+ *         .handler(registry ->
+ *           (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
+ *         ));
+ *       server.start();
+ *
+ *       TestHttpClient httpClient = TestHttpClient.testHttpClient(new ServerBackedApplicationUnderTest(() -> server));
+ *       assertEquals("threads:7", httpClient.getText());
+ *
+ *       server.stop();
+ *     } finally {
+ *       Files.delete(yamlFile);
+ *     }
+ *   }
+ * }
+ * }</pre>
  */
 public interface ConfigurationDataSpec {
   /**
@@ -232,4 +281,14 @@ public interface ConfigurationDataSpec {
    * @return this
    */
   ConfigurationDataSpec yaml(URL url);
+
+  /**
+   * Sets the error handler that will be used for added configuration sources.
+   *
+   * @param errorHandler the error handler
+   * @return this
+   * @see ratpack.func.Action#noop()
+   * @see ratpack.func.Action#throwException()
+   */
+  ConfigurationDataSpec onError(Action<? super Throwable> errorHandler);
 }

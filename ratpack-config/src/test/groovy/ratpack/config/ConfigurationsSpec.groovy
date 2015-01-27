@@ -20,11 +20,15 @@ import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.api.UncheckedException
+import ratpack.func.Action
 import ratpack.handling.Handler
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
+
+import java.nio.file.Files
 
 class ConfigurationsSpec extends Specification {
   @Rule
@@ -102,6 +106,73 @@ class ConfigurationsSpec extends Specification {
     appConfig.name == "Ratpack"
     serverConfig.port == 8080
     serviceConfig.url == "http://example.com"
+  }
+
+  def "by default, throws errors on configuration load"() {
+    def yamlFile = temporaryFolder.newFolder().toPath().resolve("config.yaml")
+
+    when:
+    Configurations.config().yaml(yamlFile).props([port: "8080"]) build()
+
+    then:
+    def ex = thrown(UncheckedException)
+    ex.cause instanceof FileNotFoundException
+  }
+
+  def "can override errorHandler"() {
+    def folder = temporaryFolder.newFolder().toPath()
+    def yamlFile = folder.resolve("config.yaml")
+    def jsonFile = folder.resolve("config.json")
+
+    when:
+    def configData = Configurations.config().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
+    def serverConfig = configData.get(ServerConfig)
+
+    then:
+    notThrown(Exception)
+    serverConfig.port == 8080
+  }
+
+  def "can alternate between error handlers"() {
+    def folder = temporaryFolder.newFolder().toPath()
+    def yamlFile = folder.resolve("config.yaml")
+    def jsonFile = folder.resolve("config.json")
+
+    when:
+    Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+
+    then:
+    def ex = thrown(UncheckedException)
+    ex.cause instanceof FileNotFoundException
+
+    when:
+    jsonFile.text = '{"threads":7}'
+    def configData = Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    def serverConfig = configData.get(ServerConfig)
+
+    then:
+    notThrown(Exception)
+    serverConfig.port == 8080
+    serverConfig.threads == 7
+
+    when:
+    yamlFile.text = 'publicAddress: http://example.com'
+    configData = Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    serverConfig = configData.get(ServerConfig)
+
+    then:
+    notThrown(Exception)
+    serverConfig.port == 8080
+    serverConfig.threads == 7
+    serverConfig.publicAddress == URI.create("http://example.com")
+
+    when:
+    Files.delete(jsonFile)
+    Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+
+    then:
+    ex = thrown(UncheckedException)
+    ex.cause instanceof FileNotFoundException
   }
 
   static class MyAppConfig {
