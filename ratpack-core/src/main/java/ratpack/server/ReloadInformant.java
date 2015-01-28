@@ -34,7 +34,7 @@ package ratpack.server;
  * Reload informants are never queried when not in development mode.
  * It is completely benign for informants to be in the server registry when not in development.
  * <p>
- * Below shows a contrived reload informant that simply asks that the server reload on every third request.
+ * Below shows a contrived reload informant that simply asks that the server reload on every other request.
  * <pre class="java">{@code
  * import ratpack.server.ReloadInformant;
  * import ratpack.server.ServerConfig;
@@ -43,7 +43,7 @@ package ratpack.server;
  * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
- *   static class ReloadEveryThirdRequest implements ReloadInformant {
+ *   static class ReloadEveryOtherRequest implements ReloadInformant {
  *     private int i = 0;
  *
  *     public boolean shouldReload() {
@@ -51,7 +51,7 @@ package ratpack.server;
  *     }
  *
  *     public String toString() {
- *       return "every third request informant";
+ *       return "every other request informant";
  *     }
  *   }
  *
@@ -61,7 +61,7 @@ package ratpack.server;
  *     EmbeddedApp.of(s -> s
  *         .config(ServerConfig.embedded().development(true))
  *         .registryOf(r -> r
- *             .add(ReloadInformant.class, new ReloadEveryThirdRequest())
+ *             .add(ReloadInformant.class, new ReloadEveryOtherRequest())
  *             .add(Integer.class, Example.counter++)
  *         )
  *         .handler(r -> ctx -> ctx.render(ctx.get(Integer.class).toString()))
