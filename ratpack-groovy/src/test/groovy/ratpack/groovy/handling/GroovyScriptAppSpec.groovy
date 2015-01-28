@@ -232,4 +232,47 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     then:
     text == "foo"
   }
+
+  def "defining a class inside for ratpack.groovy"() {
+    when:
+    script """
+      import ratpack.server.*
+      import ratpack.groovy.Groovy.Ratpack
+
+      import org.slf4j.*
+      import javax.inject.Inject
+      import groovy.util.logging.*
+
+      final Logger log = LoggerFactory.getLogger(Ratpack)
+
+      @Slf4j
+      class DbInit implements ServerLifecycleListener {
+
+        @Inject
+        DbInit() {
+        }
+
+        void onStart(StartEvent event) throws Exception {
+          log.info "Initializing DB"
+        }
+      }
+
+      ratpack {
+        config {
+          development false
+        }
+        bindings {
+          bind DbInit
+        }
+        handlers {
+          get {
+            render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+  }
 }
