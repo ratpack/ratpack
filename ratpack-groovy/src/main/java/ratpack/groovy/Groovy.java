@@ -16,6 +16,7 @@
 
 package ratpack.groovy;
 
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -35,6 +36,7 @@ import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.*;
+import ratpack.groovy.script.ScriptNotFoundException;
 import ratpack.groovy.template.Markup;
 import ratpack.groovy.template.MarkupTemplate;
 import ratpack.groovy.template.TextTemplate;
@@ -45,12 +47,15 @@ import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
+import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
+import ratpack.server.internal.BaseDirFinder;
 import ratpack.util.internal.IoUtils;
 
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -127,14 +132,58 @@ public abstract class Groovy {
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
+    /**
+     * Registry the closure used to build the configuration of the application.
+     *
+     * @param configurer The configuration closure, delegating to {@link ratpack.server.ServerConfig.Builder}
+     */
+    void config(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+
   }
 
   public static abstract class Script {
 
     public static final String DEFAULT_HANDLERS_PATH = "handlers.groovy";
     public static final String DEFAULT_BINDINGS_PATH = "bindings.groovy";
+    public static final String DEFAULT_APP_PATH = "ratpack.groovy";
 
     private Script() {
+    }
+
+    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app() {
+      return app(false);
+    }
+
+    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(boolean staticCompile) {
+      return app(DEFAULT_APP_PATH, staticCompile);
+    }
+
+    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(String scriptPath, boolean staticCompile) {
+      return definition -> {
+        String workingDir = StandardSystemProperty.USER_DIR.value();
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        Optional<BaseDirFinder.Result> result = BaseDirFinder.find(workingDir, classLoader, scriptPath);
+        if (!result.isPresent()) {
+          throw new ScriptNotFoundException(scriptPath);
+        }
+        Path baseDir = result.get().getBaseDir();
+        Path scriptFile = result.get().getResource();
+
+        String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+
+        RatpackDslClosures closures = new FullRatpackDslCapture(staticCompile).apply(scriptFile, script);
+        definition.config(ClosureUtil.configureDelegateFirstAndReturn(ServerConfig.baseDir(baseDir), closures.getConfig()));
+
+        definition.registry(r -> {
+          return Guice.registry(bindingsSpec ->
+              ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings())
+          ).apply(r);
+        });
+
+        return definition.handler(r -> {
+          return Groovy.chain(r, closures.getHandlers());
+        });
+      };
     }
 
     public static Function<Registry, Handler> handlers() {
@@ -188,6 +237,11 @@ public abstract class Groovy {
     public void handlers(Closure<?> configurer) {
       this.handlers = configurer;
     }
+
+    @Override
+    public void config(Closure<?> configurer) {
+      throw new IllegalStateException("config {} not supported for this script");
+    }
   }
 
   private static class BindingsOnly implements Ratpack {
@@ -201,6 +255,11 @@ public abstract class Groovy {
     @Override
     public void handlers(Closure<?> configurer) {
       throw new IllegalStateException("handlers {} not supported for this script");
+    }
+
+    @Override
+    public void config(Closure<?> configurer) {
+      throw new IllegalStateException("config {} not supported for this script");
     }
   }
 

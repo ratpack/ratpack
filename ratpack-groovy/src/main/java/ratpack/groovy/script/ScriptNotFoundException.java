@@ -14,32 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.internal;
+package ratpack.groovy.script;
 
-import groovy.lang.Closure;
+public class ScriptNotFoundException extends RuntimeException {
 
-public class RatpackDslClosures {
-
-  private final Closure<?> handlers;
-  private final Closure<?> bindings;
-  private final Closure<?> config;
-
-  public RatpackDslClosures(Closure<?> config, Closure<?> handlers, Closure<?> bindings) {
-    this.config = config;
-    this.handlers = handlers;
-    this.bindings = bindings;
+  public ScriptNotFoundException(String path) {
+    super("No Ratpack script found at " + path);
   }
-
-  public Closure<?> getHandlers() {
-    return handlers;
-  }
-
-  public Closure<?> getBindings() {
-    return bindings;
-  }
-
-  public Closure<?> getConfig() {
-    return config;
-  }
-
 }

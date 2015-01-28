@@ -49,6 +49,11 @@ public abstract class ClosureUtil {
     return configure(delegate, argument, configurer, Closure.DELEGATE_FIRST);
   }
 
+  public static <D, R> D configureDelegateFirstAndReturn(@DelegatesTo.Target D delegate, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<R> configurer) {
+    configure(delegate, delegate, configurer, Closure.DELEGATE_FIRST);
+    return delegate;
+  }
+
   private static <R, D, A> R configure(D delegate, A argument, Closure<R> configurer, int resolveStrategy) {
     if (configurer == null) {
       return null;
