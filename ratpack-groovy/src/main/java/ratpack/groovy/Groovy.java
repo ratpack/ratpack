@@ -50,6 +50,7 @@ import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.BaseDirFinder;
+import ratpack.server.internal.FileBackedReloadInformant;
 import ratpack.util.internal.IoUtils;
 
 import java.nio.charset.Charset;
@@ -175,9 +176,10 @@ public abstract class Groovy {
         definition.config(ClosureUtil.configureDelegateFirstAndReturn(ServerConfig.baseDir(baseDir), closures.getConfig()));
 
         definition.registry(r -> {
-          return Guice.registry(bindingsSpec ->
-              ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings())
-          ).apply(r);
+          return Guice.registry(bindingsSpec -> {
+            bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile, r.get(ServerConfig.class).isDevelopment()));
+            ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings());
+          }).apply(r);
         });
 
         return definition.handler(r -> {
@@ -213,14 +215,14 @@ public abstract class Groovy {
     }
 
     public static Function<Registry, Registry> bindings(String scriptPath, boolean staticCompile) {
-      // TODO reload during development
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
         String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
         Closure<?> bindingsClosure = new RatpackDslCapture<>(staticCompile, BindingsOnly::new, b -> b.bindings).apply(scriptFile, script);
-        return Guice.registry(bindingsSpec ->
-            ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure)
-        ).apply(r);
+        return Guice.registry(bindingsSpec -> {
+          bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile, r.get(ServerConfig.class).isDevelopment()));
+          ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure);
+        }).apply(r);
       };
     }
   }

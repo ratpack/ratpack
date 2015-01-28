@@ -93,4 +93,64 @@ class GroovyScriptBindingsSpec extends RatpackGroovyScriptAppSpec {
     e.message == "handlers {} not supported for this script"
   }
 
+  def "changes to bindings are respected during development"() {
+    given:
+    compileStatic = true
+    development = true
+
+    when:
+    script """
+      ratpack {
+        bindings {
+          bindInstance(String, "foo")
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+
+    when:
+    script """
+      ratpack {
+        bindings {
+          bindInstance(String, "bar")
+        }
+      }
+    """
+
+    then:
+    text == 'bar'
+  }
+
+  def "changes to bindings are not reload when not in development"() {
+    given:
+    compileStatic = true
+    development = false
+
+    when:
+    script """
+      ratpack {
+        bindings {
+          bindInstance(String, "foo")
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+
+    when:
+    script """
+      ratpack {
+        bindings {
+          bindInstance(String, "bar")
+        }
+      }
+    """
+
+    then:
+    text == 'foo'
+  }
+
 }

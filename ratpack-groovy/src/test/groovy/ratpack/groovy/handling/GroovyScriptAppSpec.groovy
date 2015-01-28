@@ -154,4 +154,82 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     then:
     thrown Error
   }
+
+  def "changes to app are respected during development"() {
+    given:
+    compileStatic = true
+
+    when:
+    script """
+      ratpack {
+        config {
+          development true
+        }
+        handlers {
+          get {
+            render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+
+    when:
+    script """
+      ratpack {
+        config {
+          development true
+        }
+        handlers {
+          get {
+            render "bar"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "bar"
+  }
+
+  def "changes to app are not reloaded when not development"() {
+    given:
+    compileStatic = true
+
+    when:
+    script """
+      ratpack {
+        config {
+          development false
+        }
+        handlers {
+          get {
+            render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+
+    when:
+    script """
+      ratpack {
+        config {
+          development false
+        }
+        handlers {
+          get {
+            render "bar"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+  }
 }
