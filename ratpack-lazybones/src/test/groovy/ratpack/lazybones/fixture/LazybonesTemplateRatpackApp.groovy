@@ -139,8 +139,8 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
       }
     }
 
-    if (!latch.await(30, TimeUnit.SECONDS)) {
-      throw new RuntimeException("Timeout waiting for application to start", startException)
+    if (!latch.await(15, TimeUnit.SECONDS)) {
+      throw new RuntimeException("Timeout waiting for application to start\nProcess Output:\n${process.text}", startException)
     }
 
     new ApplicationInstance(process, port)
