@@ -173,11 +173,13 @@ public abstract class Groovy {
         String workingDir = StandardSystemProperty.USER_DIR.value();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        Optional<Optional<BaseDirFinder.Result>> result = Arrays.stream(scriptPaths).map(scriptPath -> BaseDirFinder.find(workingDir, classLoader, scriptPath)).filter(Optional::isPresent).findFirst();
-        if (!result.isPresent()) {
-          throw new ScriptNotFoundException(scriptPaths);
-        }
-        BaseDirFinder.Result baseDirResult = result.get().get();
+        BaseDirFinder.Result baseDirResult = Arrays.stream(scriptPaths)
+          .map(scriptPath -> BaseDirFinder.find(workingDir, classLoader, scriptPath))
+          .filter(Optional::isPresent)
+          .map(Optional::get)
+          .findFirst()
+          .orElseThrow(() -> new ScriptNotFoundException(scriptPaths));
+
         Path baseDir = baseDirResult.getBaseDir();
         Path scriptFile = baseDirResult.getResource();
 
