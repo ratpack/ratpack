@@ -20,6 +20,7 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
@@ -36,6 +37,7 @@ import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.*;
+import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.groovy.script.ScriptNotFoundException;
 import ratpack.groovy.template.Markup;
 import ratpack.groovy.template.MarkupTemplate;
@@ -151,6 +153,10 @@ public abstract class Groovy {
     private Script() {
     }
 
+    public static void checkGroovy() {
+      GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
+    }
+
     public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app() {
       return app(false);
     }
@@ -160,6 +166,7 @@ public abstract class Groovy {
     }
 
     public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(String scriptPath, boolean staticCompile) {
+      checkGroovy();
       return definition -> {
         String workingDir = StandardSystemProperty.USER_DIR.value();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -197,6 +204,7 @@ public abstract class Groovy {
     }
 
     public static Function<Registry, Handler> handlers(String scriptPath, boolean staticCompile) {
+      checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
         boolean development = r.get(ServerConfig.class).isDevelopment();
@@ -215,6 +223,7 @@ public abstract class Groovy {
     }
 
     public static Function<Registry, Registry> bindings(String scriptPath, boolean staticCompile) {
+      checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
         String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
