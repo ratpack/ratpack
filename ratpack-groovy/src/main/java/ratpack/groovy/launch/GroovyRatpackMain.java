@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import ratpack.groovy.Groovy;
 import ratpack.server.RatpackServer;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 /**
  * The standard “main” entry point for Groovy script based apps.
  */
@@ -33,7 +35,7 @@ public class GroovyRatpackMain  {
       RatpackServer.of(Groovy.Script.app()).start();
     } catch (Exception e) {
       LOGGER.error("", e);
-      System.exit(1);
+      throw uncheck(e);
     }
   }
 }
