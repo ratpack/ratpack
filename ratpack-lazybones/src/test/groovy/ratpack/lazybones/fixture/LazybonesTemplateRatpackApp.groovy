@@ -123,8 +123,11 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
 
     def latch = new CountDownLatch(1)
     Exception startException = null
+    StringBuilder processText = new StringBuilder()
     Thread.start {
       process.inputStream.eachLine { String line ->
+        processText.append(line)
+        processText.append('\n')
         if (latch.count) {
           if (line.contains("Exception in thread \"main\"")) {
             latch.countDown()
@@ -140,7 +143,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     }
 
     if (!latch.await(15, TimeUnit.SECONDS)) {
-      throw new RuntimeException("Timeout waiting for application to start\nProcess Output:\n${process.text}", startException)
+      throw new RuntimeException("Timeout waiting for application to start\nProcess Output:\n${processText.toString()}", startException)
     }
 
     new ApplicationInstance(process, port)
