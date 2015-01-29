@@ -177,7 +177,7 @@ public abstract class Groovy {
 
         definition.registry(r -> {
           return Guice.registry(bindingsSpec -> {
-            bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile, r.get(ServerConfig.class).isDevelopment()));
+            bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
             ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings());
           }).apply(r);
         });
@@ -220,7 +220,7 @@ public abstract class Groovy {
         String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
         Closure<?> bindingsClosure = new RatpackDslCapture<>(staticCompile, BindingsOnly::new, b -> b.bindings).apply(scriptFile, script);
         return Guice.registry(bindingsSpec -> {
-          bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile, r.get(ServerConfig.class).isDevelopment()));
+          bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
           ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure);
         }).apply(r);
       };

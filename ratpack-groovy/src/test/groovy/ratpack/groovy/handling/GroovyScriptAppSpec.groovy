@@ -161,37 +161,90 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
     when:
     script """
+      class RequestCounter {
+        int requests
+
+        int inc() {
+          return ++requests
+        }
+      }
       ratpack {
         config {
           development true
         }
+        bindings {
+          bind RequestCounter
+        }
         handlers {
           get {
-            render "foo"
+            render get(RequestCounter).inc().toString()
           }
         }
       }
     """
 
     then:
-    text == "foo"
+    text == "1"
+
+    when:
+    ratpackFile.lastModified = System.currentTimeMillis()
+
+    then:
+    text == "2"
 
     when:
     script """
+      class RequestCounter {
+        int requests
+
+        int inc() {
+          return ++requests
+        }
+      }
       ratpack {
         config {
           development true
         }
+        bindings {
+          bind RequestCounter
+        }
         handlers {
           get {
-            render "bar"
+            render get(RequestCounter).inc().toString()
           }
         }
       }
     """
 
     then:
-    text == "bar"
+    text == "3"
+
+    when:
+    script """
+      class RequestCounter {
+        int requests
+
+        int inc() {
+          return ++requests
+        }
+      }
+      ratpack {
+        bindings {
+          bind RequestCounter
+        }
+        config {
+          development true
+        }
+        handlers {
+          get {
+            render get(RequestCounter).inc().toString()
+          }
+        }
+      }
+    """
+
+    then:
+    text == "1"
   }
 
   def "changes to app are not reloaded when not development"() {

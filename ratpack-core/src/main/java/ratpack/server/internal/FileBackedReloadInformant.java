@@ -33,22 +33,32 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class FileBackedReloadInformant implements ReloadInformant {
   private final Path file;
-  private final boolean reloadable;
   private final Lock lock = new ReentrantLock();
   private final AtomicReference<FileTime> lastModifiedHolder = new AtomicReference<>(null);
   private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
 
-  public FileBackedReloadInformant(Path file, boolean reloadable) {
+  public FileBackedReloadInformant(Path file) {
     this.file = file;
-    this.reloadable = reloadable;
+    load();
+  }
+
+  private void load() {
+    lock.lock();
+    try {
+      FileTime lastModifiedTime = Files.getLastModifiedTime(file);
+      ByteBuf bytes = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file);
+
+      this.lastModifiedHolder.set(lastModifiedTime);
+      this.contentHolder.set(bytes);
+    } catch (Exception e) {
+      uncheck(e);
+    } finally {
+      lock.unlock();
+    }
   }
 
   @Override
   public boolean shouldReload() {
-    if (!reloadable) {
-      return false;
-    }
-
     // If the file disappeared, wait a little for it to appear
     int i = 10;
     while (!Files.exists(file) && --i > 0) {
@@ -64,18 +74,15 @@ public class FileBackedReloadInformant implements ReloadInformant {
     }
 
     try {
-      if (refreshNeeded()) {
-        return refresh();
-      }
+      return reloadNeeded();
     } catch (Exception e) {
       throw uncheck(e);
     }
 
-    return false;
   }
 
-  private boolean refreshNeeded() throws IOException {
-    return !Files.getLastModifiedTime(file).equals(lastModifiedHolder.get()) || !isBytesAreSame();
+  private boolean reloadNeeded() throws IOException {
+    return !isBytesAreSame();
   }
 
   private boolean isBytesAreSame() throws IOException {
@@ -88,24 +95,6 @@ public class FileBackedReloadInformant implements ReloadInformant {
       }
 
       return IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file).equals(existing);
-    } finally {
-      lock.unlock();
-    }
-  }
-
-  private boolean refresh() throws Exception {
-    lock.lock();
-    try {
-      FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      ByteBuf bytes = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file);
-
-      if (lastModifiedTime.equals(lastModifiedHolder.get()) && bytes.equals(contentHolder.get())) {
-        return false;
-      }
-
-      this.lastModifiedHolder.set(lastModifiedTime);
-      this.contentHolder.set(bytes);
-      return true;
     } finally {
       lock.unlock();
     }
