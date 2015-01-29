@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigurationData;
 import ratpack.config.ConfigurationDataSpec;
@@ -36,6 +35,7 @@ import ratpack.func.Function;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
 import ratpack.util.ExceptionUtils;
+import ratpack.util.internal.Paths2;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -121,7 +121,7 @@ public class DefaultConfigurationDataSpec implements ConfigurationDataSpec {
 
   @Override
   public ConfigurationDataSpec props(Path path) {
-    return add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Files.asByteSource(path.toFile())));
+    return add(new ByteSourcePropertiesConfigurationSource(Optional.empty(), Paths2.asByteSource(path)));
   }
 
   @Override

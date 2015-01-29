@@ -19,6 +19,7 @@ package ratpack.file
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.file.FileSystems
+import java.nio.file.Files
 
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -54,7 +55,7 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
       get { FileSystemBinding fsBinding ->
 
         if (fsBinding.file.fileSystem == FileSystems.default) {
-          assert new File(fsBinding.file.toFile(), path).exists()
+          assert Files.exists(fsBinding.file)
         }
 
         assert fsBinding.binding(path) == null

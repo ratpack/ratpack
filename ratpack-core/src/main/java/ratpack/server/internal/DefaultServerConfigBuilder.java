@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
@@ -32,6 +31,7 @@ import ratpack.func.Predicate;
 import ratpack.launch.internal.DefaultServerConfig;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
+import ratpack.util.internal.Paths2;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -248,7 +248,7 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
 
   @Override
   public ServerConfig.Builder props(Path path) {
-    return props(Files.asByteSource(path.toFile()));
+    return props(Paths2.asByteSource(path));
   }
 
   @Override

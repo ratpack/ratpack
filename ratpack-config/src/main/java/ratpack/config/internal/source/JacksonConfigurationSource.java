@@ -21,9 +21,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigurationSource;
+import ratpack.util.internal.Paths2;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -33,7 +33,7 @@ public abstract class JacksonConfigurationSource implements ConfigurationSource 
   private final ByteSource byteSource;
 
   public JacksonConfigurationSource(Path path) {
-    this(Files.asByteSource(path.toFile()));
+    this(Paths2.asByteSource(path));
   }
 
   public JacksonConfigurationSource(URL url) {

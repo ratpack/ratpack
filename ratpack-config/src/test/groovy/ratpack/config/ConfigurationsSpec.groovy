@@ -34,6 +34,7 @@ import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressWarnings(["MethodName"])
@@ -168,7 +169,7 @@ class ConfigurationsSpec extends Specification {
 
     then:
     def ex = thrown(UncheckedException)
-    ex.cause instanceof FileNotFoundException
+    ex.cause instanceof NoSuchFileException
   }
 
   def "can override errorHandler"() {
@@ -195,7 +196,7 @@ class ConfigurationsSpec extends Specification {
 
     then:
     def ex = thrown(UncheckedException)
-    ex.cause instanceof FileNotFoundException
+    ex.cause instanceof NoSuchFileException
 
     when:
     jsonFile.text = '{"threads":7}'
@@ -224,7 +225,7 @@ class ConfigurationsSpec extends Specification {
 
     then:
     ex = thrown(UncheckedException)
-    ex.cause instanceof FileNotFoundException
+    ex.cause instanceof NoSuchFileException
   }
 
   static class MyAppConfig {
