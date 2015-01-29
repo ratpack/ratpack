@@ -122,9 +122,14 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     int port = -1
 
     def latch = new CountDownLatch(1)
+    Exception startException = null
     Thread.start {
       process.inputStream.eachLine { String line ->
         if (latch.count) {
+          if (line.contains("Exception in thread \"main\"")) {
+            latch.countDown()
+            startException = new RuntimeException(line);
+          }
           if (line.contains("Ratpack started for http://localhost:")) {
             def matcher = (line =~ "http://localhost:(\\d+)")
             port = matcher[0][1].toString().toInteger()
@@ -135,7 +140,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     }
 
     if (!latch.await(15, TimeUnit.SECONDS)) {
-      throw new RuntimeException("Timeout waiting for application to start")
+      throw new RuntimeException("Timeout waiting for application to start", startException)
     }
 
     new ApplicationInstance(process, port)
