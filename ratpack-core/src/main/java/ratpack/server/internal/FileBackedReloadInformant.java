@@ -51,7 +51,7 @@ public class FileBackedReloadInformant implements ReloadInformant {
       this.lastModifiedHolder.set(lastModifiedTime);
       this.contentHolder.set(bytes);
     } catch (Exception e) {
-      uncheck(e);
+      throw uncheck(e);
     } finally {
       lock.unlock();
     }
@@ -78,7 +78,11 @@ public class FileBackedReloadInformant implements ReloadInformant {
     } catch (Exception e) {
       throw uncheck(e);
     }
+  }
 
+  @Override
+  public String toString() {
+    return "file-backed reload informant: " + file.toString();
   }
 
   private boolean reloadNeeded() throws IOException {
