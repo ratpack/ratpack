@@ -56,6 +56,7 @@ import ratpack.server.internal.FileBackedReloadInformant;
 import ratpack.util.internal.IoUtils;
 
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
@@ -183,7 +184,7 @@ public abstract class Groovy {
         String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
 
         RatpackDslClosures closures = new FullRatpackDslCapture(staticCompile).apply(scriptFile, script);
-        definition.config(ClosureUtil.configureDelegateFirstAndReturn(ServerConfig.baseDir(baseDir), closures.getConfig()));
+        definition.config(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.baseDir(baseDir), baseDir), closures.getConfig()));
 
         definition.registry(r -> {
           return Guice.registry(bindingsSpec -> {
@@ -196,6 +197,14 @@ public abstract class Groovy {
           return Groovy.chain(r, closures.getHandlers());
         });
       };
+    }
+
+    private static ServerConfig.Builder loadPropsIfPresent(ServerConfig.Builder serverConfigBuilder, Path baseDir) {
+      Path propsFile = baseDir.resolve(ServerConfig.Builder.DEFAULT_PROPERTIES_FILE_NAME);
+      if (Files.exists(propsFile)) {
+        serverConfigBuilder.props(propsFile);
+      }
+      return serverConfigBuilder;
     }
 
     public static Function<Registry, Handler> handlers() {
