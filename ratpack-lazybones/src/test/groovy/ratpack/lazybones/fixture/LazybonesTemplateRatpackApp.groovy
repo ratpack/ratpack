@@ -131,7 +131,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
         if (latch.count) {
           if (line.contains("Exception in thread \"main\"")) {
             latch.countDown()
-            startException = new RuntimeException(line);
+            startException = new RuntimeException(line)
           }
           if (line.contains("Ratpack started for http://localhost:")) {
             def matcher = (line =~ "http://localhost:(\\d+)")

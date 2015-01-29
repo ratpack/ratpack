@@ -32,7 +32,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        RatpackServer.of(Groovy.Script.app(ratpackFile.canonicalPath, compileStatic))
+        RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalPath))
       }
     }
   }
@@ -76,11 +76,17 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
         }
       }
     """
-    ratpackFile.renameTo(new File(ratpackFile.parent, 'Ratpack.groovy'))
+    temporaryFolder.newFolder('customFile')
+    File customRatpackFile = temporaryFolder.newFile('customFile/Ratpack.groovy')
+    customRatpackFile.text = ratpackFile.text
+    GroovyScriptAppSpec.classLoader.addURL(customRatpackFile.parentFile.toURI().toURL())
 
 
     then:
     app.httpClient.text == "foo"
+
+    cleanup:
+    app.close()
   }
 
   def "dangling handlers in scripts are reported"() {

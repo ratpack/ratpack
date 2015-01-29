@@ -57,6 +57,7 @@ import ratpack.util.internal.IoUtils;
 
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -162,20 +163,22 @@ public abstract class Groovy {
     }
 
     public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(boolean staticCompile) {
-      return app(DEFAULT_APP_PATH, staticCompile);
+      return app(staticCompile, DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1));
     }
 
-    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(String scriptPath, boolean staticCompile) {
+    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(boolean staticCompile, String... scriptPaths) {
       checkGroovy();
       return definition -> {
         String workingDir = StandardSystemProperty.USER_DIR.value();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Optional<BaseDirFinder.Result> result = BaseDirFinder.find(workingDir, classLoader, scriptPath);
+
+        Optional<Optional<BaseDirFinder.Result>> result = Arrays.stream(scriptPaths).map(scriptPath -> BaseDirFinder.find(workingDir, classLoader, scriptPath)).filter(Optional::isPresent).findFirst();
         if (!result.isPresent()) {
-          throw new ScriptNotFoundException(scriptPath);
+          throw new ScriptNotFoundException(scriptPaths);
         }
-        Path baseDir = result.get().getBaseDir();
-        Path scriptFile = result.get().getResource();
+        BaseDirFinder.Result baseDirResult = result.get().get();
+        Path baseDir = baseDirResult.getBaseDir();
+        Path scriptFile = baseDirResult.getResource();
 
         String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
 
@@ -200,10 +203,10 @@ public abstract class Groovy {
     }
 
     public static Function<Registry, Handler> handlers(boolean staticCompile) {
-      return handlers(DEFAULT_HANDLERS_PATH, staticCompile);
+      return handlers(staticCompile, DEFAULT_HANDLERS_PATH);
     }
 
-    public static Function<Registry, Handler> handlers(String scriptPath, boolean staticCompile) {
+    public static Function<Registry, Handler> handlers(boolean staticCompile, String scriptPath) {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
@@ -219,10 +222,10 @@ public abstract class Groovy {
     }
 
     public static Function<Registry, Registry> bindings(boolean staticCompile) {
-      return bindings(DEFAULT_BINDINGS_PATH, staticCompile);
+      return bindings(staticCompile, DEFAULT_BINDINGS_PATH);
     }
 
-    public static Function<Registry, Registry> bindings(String scriptPath, boolean staticCompile) {
+    public static Function<Registry, Registry> bindings(boolean staticCompile, String scriptPath) {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);

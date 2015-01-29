@@ -36,7 +36,7 @@ class GroovyScriptHandlersSpec extends RatpackGroovyScriptAppSpec {
         RatpackServer.of { spec ->
           spec
             .config(ServerConfig.baseDir(temporaryFolder.root.canonicalFile).port(0).development(development))
-            .handler(Groovy.Script.handlers(ratpackFile.name, compileStatic))
+            .handler(Groovy.Script.handlers(compileStatic, ratpackFile.name))
         }
       }
     }

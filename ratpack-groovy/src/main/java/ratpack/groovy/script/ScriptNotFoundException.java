@@ -16,9 +16,15 @@
 
 package ratpack.groovy.script;
 
+import com.google.common.base.Joiner;
+
 public class ScriptNotFoundException extends RuntimeException {
 
   public ScriptNotFoundException(String path) {
     super("No Ratpack script found at " + path);
+  }
+
+  public ScriptNotFoundException(String... paths) {
+    super("No Ratpack scripts found for " + Joiner.on(", ").join(paths));
   }
 }
