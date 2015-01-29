@@ -16,6 +16,8 @@
 
 package ratpack.config;
 
+import ratpack.server.ReloadInformant;
+
 /**
  * Provides access to configuration data bound to arbitrary objects.
  */
@@ -32,7 +34,7 @@ public interface ConfigurationData {
   <O> O get(String pointer, Class<O> type);
 
   /**
-   * Binds the root of the configuraiton data to the specified type.
+   * Binds the root of the configuration data to the specified type.
    *
    * @param type the class of the type to bind to
    * @param <O> the type to bind to
@@ -41,4 +43,11 @@ public interface ConfigurationData {
   default <O> O get(Class<O> type) {
     return get(null, type);
   }
+
+  /**
+   * Returns a reload informant that can be used to reload the server when the configuration data changes.
+   *
+   * @return a reload informant backed by this configuration data
+   */
+  ReloadInformant getReloadInformant();
 }

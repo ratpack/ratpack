@@ -16,32 +16,27 @@
 
 package ratpack.config.internal;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.collect.ImmutableList;
 import ratpack.config.ConfigurationData;
 import ratpack.config.ConfigurationSource;
+import ratpack.server.ReloadInformant;
 import ratpack.util.ExceptionUtils;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 public class DefaultConfigurationData implements ConfigurationData {
   private final ObjectMapper objectMapper;
   private final ObjectNode rootNode;
+  private final ReloadInformant reloadInformant;
 
   public DefaultConfigurationData(ObjectMapper objectMapper, ImmutableList<ConfigurationSource> configurationSources) {
+    ConfigurationDataLoader loader = new ConfigurationDataLoader(objectMapper, configurationSources);
     this.objectMapper = objectMapper;
-    rootNode = objectMapper.createObjectNode();
-    try {
-      for (ConfigurationSource source : configurationSources) {
-        merge(source.loadConfigurationData(objectMapper), rootNode);
-      }
-    } catch (Exception ex) {
-      throw ExceptionUtils.uncheck(ex);
-    }
+    this.rootNode = loader.load();
+    this.reloadInformant = new ConfigurationDataReloadInformant(rootNode, loader);
   }
 
   @Override
@@ -54,20 +49,8 @@ public class DefaultConfigurationData implements ConfigurationData {
     }
   }
 
-  /**
-   * Merges node data from the source into the dest, overwriting non-object fields in dest if they already exist.
-   */
-  private void merge(JsonNode sourceNode, JsonNode destNode) {
-    Iterator<String> fieldNames = sourceNode.fieldNames();
-    while (fieldNames.hasNext()) {
-      String fieldName = fieldNames.next();
-      JsonNode sourceFieldValue = sourceNode.get(fieldName);
-      JsonNode destFieldValue = destNode.get(fieldName);
-      if (destFieldValue != null && destFieldValue.isObject()) {
-        merge(sourceFieldValue, destFieldValue);
-      } else if (destNode instanceof ObjectNode) {
-        ((ObjectNode) destNode).replace(fieldName, sourceFieldValue);
-      }
-    }
+  @Override
+  public ReloadInformant getReloadInformant() {
+    return reloadInformant;
   }
 }

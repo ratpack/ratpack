@@ -28,6 +28,7 @@ import ratpack.server.ServerEnvironment;
  * import ratpack.config.ConfigurationData;
  * import ratpack.config.Configurations;
  * import ratpack.server.RatpackServer;
+ * import ratpack.server.ReloadInformant;
  * import ratpack.server.ServerConfig;
  * import ratpack.test.ServerBackedApplicationUnderTest;
  * import ratpack.test.http.TestHttpClient;
@@ -51,6 +52,7 @@ import ratpack.server.ServerEnvironment;
  *     RatpackServer server = RatpackServer.of(spec -> spec
  *       .config(configData.get("/server", ServerConfig.class))
  *       .registryOf(r -> r
+ *         .add(ReloadInformant.class, configData.getReloadInformant())
  *         .add(MyAppConfig.class, configData.get("/app", MyAppConfig.class))
  *       )
  *       .handler(registry ->

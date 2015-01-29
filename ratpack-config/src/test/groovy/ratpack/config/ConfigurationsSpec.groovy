@@ -22,14 +22,21 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.api.UncheckedException
 import ratpack.func.Action
+import ratpack.handling.Context
 import ratpack.handling.Handler
+import ratpack.registry.RegistrySpec
 import ratpack.server.RatpackServer
+import ratpack.server.ReloadInformant
 import ratpack.server.ServerConfig
+import ratpack.server.ServerLifecycleListener
+import ratpack.server.StartEvent
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
+@SuppressWarnings(["MethodName"])
 class ConfigurationsSpec extends Specification {
   @Rule
   TemporaryFolder temporaryFolder
@@ -73,6 +80,51 @@ class ConfigurationsSpec extends Specification {
     server.isRunning()
     server.bindPort == 5051
     client.text == "Hi, my name is Ratpack!"
+  }
+
+  def "auto-reload"() {
+    given:
+    def props = new Properties()
+    props.setProperty("name", "Ratpack")
+    def propsFile = temporaryFolder.newFile("config.properties").toPath()
+    propsFile.withOutputStream { props.store(it, null) }
+    def listener = new StartCountServerLifecycleListener()
+
+    when:
+    def server = RatpackServer.of {
+      def configData = Configurations.config().props(propsFile).build()
+      it.config(ServerConfig.embedded())
+        .registryOf { RegistrySpec registrySpec ->
+          registrySpec.add(ServerLifecycleListener, listener)
+          registrySpec.add(MyAppConfig, configData.get(MyAppConfig))
+          registrySpec.add(ReloadInformant, configData.getReloadInformant())
+        }
+        .handler {
+          return { Context context ->
+            context.render("Hi, my name is ${it.get(MyAppConfig).name}")
+          } as Handler
+        }
+    }
+    def client = ApplicationUnderTest.of(server).httpClient
+    server.start()
+
+    then:
+    client.text == "Hi, my name is Ratpack"
+    listener.count.get() == 1
+
+    when: "the config changes"
+    props.setProperty("name", "Ratpack!")
+    propsFile.withOutputStream { props.store(it, null) }
+    then: "the next request results in a reload"
+    client.text == "Hi, my name is Ratpack!"
+    listener.count.get() == 2
+
+    when: "the config doesn't change"
+    then: "requests don't result in a reload"
+    // Need more than one, because the first request after a reload may not check reload informers
+    client.text == "Hi, my name is Ratpack!"
+    client.text == "Hi, my name is Ratpack!"
+    listener.count.get() == 2
   }
 
   def "supports initially null children config objects"() {
@@ -182,5 +234,14 @@ class ConfigurationsSpec extends Specification {
 
   private static class ServiceConfig {
     String url
+  }
+
+  private static class StartCountServerLifecycleListener implements ServerLifecycleListener {
+    AtomicInteger count = new AtomicInteger()
+
+    @Override
+    void onStart(StartEvent event) throws Exception {
+      count.incrementAndGet()
+    }
   }
 }
