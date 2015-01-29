@@ -69,8 +69,6 @@ class RatpackPlugin implements Plugin<Project> {
       workingDir = project.file("src/ratpack")
     }
 
-    project.mainClassName = "ratpack.launch.RatpackMain"
-
     SourceSetContainer sourceSets = project.sourceSets
     def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
     testSourceSet.resources.srcDir(run.workingDir)

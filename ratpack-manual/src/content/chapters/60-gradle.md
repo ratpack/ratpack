@@ -98,8 +98,9 @@ Both the `'ratpack-java'` and `'ratpack-groovy'` plugins also apply the core Gra
 This plugin provides the ability to create a standalone executable distribution of your software.
 This is the preferred deployment format for Ratpack applications.
 
-The `'application'` plugin requires the main class (i.e. entry point) of your application to be specified.
-This is preconfigured by the `'ratpack-java'` and `'ratpack-groovy'` plugins to be the [`RatpackMain`](api/ratpack/launch/RatpackMain.html) and [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) respectively.
+The `'application'` plugin requires the main class (i.e. entry point) of your application to be specified. You must configure the `'mainClassName'` attribute in your Gradle
+build file to be the fully qualified class name of class that contains a `'static void main(String[] args)'` method which configures the Ratpack server.
+This is preconfigured by the `'ratpack-groovy'` plugin to be the [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html).
 This can be changed if you wish to use a custom entry point (consult the `'application'` plugin documentation).
 
 ## The 'shadow' plugin

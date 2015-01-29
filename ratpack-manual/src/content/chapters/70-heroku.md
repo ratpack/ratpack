@@ -118,5 +118,6 @@ See the [launching chapter](launching.html) chapter for more detail on starting 
 You may want to consider setting `-Dratpack.publicAddress` to the public name of your application so that application redirects work as expected.
 See [`redirect()`](api/ratpack/handling/Context.html#redirect-java.lang.String-) for more details.
 
-Heroku assigns each application an ephemeral port number, made available by the `PORT` environment variable.
-The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) entry point implicitly supports this environment variable if the `ratpack.port` system property is not set.
+Heroku assigns each application an ephemeral port number, made available by the `PORT` environment variable. Ratpack honors this environment variable by default
+if the `ratpack.port` system property is not set. This automatic configuration takes place through the [`ServerEnvironment`](api/ratpack/server/ServerEnvironment.html) 
+as part of creating the server's [`Builder`](api/ratpack/server/ServerConfig.Builder.html).
