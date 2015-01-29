@@ -59,7 +59,12 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
   def "can use Ratpack.groovy script app"() {
     given:
     compileStatic = true
-    ratpackFile.renameTo(new File(ratpackFile.parent, 'Ratpack.groovy'))
+    def app = new EmbeddedAppSupport() {
+      @Override
+      protected RatpackServer createServer() {
+        RatpackServer.of(Groovy.Script.app(compileStatic))
+      }
+    }
 
     when:
     script """
@@ -71,9 +76,11 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
         }
       }
     """
+    ratpackFile.renameTo(new File(ratpackFile.parent, 'Ratpack.groovy'))
+
 
     then:
-    text == "foo"
+    app.httpClient.text == "foo"
   }
 
   def "dangling handlers in scripts are reported"() {
