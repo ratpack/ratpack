@@ -56,6 +56,26 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     text == "foo"
   }
 
+  def "can use Ratpack.groovy script app"() {
+    given:
+    compileStatic = true
+    ratpackFile.renameTo(new File(ratpackFile.parent, 'Ratpack.groovy'))
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get {
+            render "foo"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo"
+  }
+
   def "dangling handlers in scripts are reported"() {
     when:
     script """
