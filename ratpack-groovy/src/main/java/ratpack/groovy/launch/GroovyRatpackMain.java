@@ -16,31 +16,24 @@
 
 package ratpack.groovy.launch;
 
-import groovy.lang.GroovySystem;
-import ratpack.groovy.launch.internal.GroovyVersionCheck;
-import ratpack.launch.LaunchConfigs;
-import ratpack.launch.RatpackMain;
-
-import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ratpack.groovy.Groovy;
+import ratpack.server.RatpackServer;
 
 /**
  * The standard “main” entry point for Groovy script based apps.
  */
-public class GroovyRatpackMain extends RatpackMain {
+public class GroovyRatpackMain  {
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(GroovyRatpackMain.class);
 
   public static void main(String[] args) {
-    new GroovyRatpackMain().startOrExit();
-  }
-
-  @Override
-  public void start() throws Exception {
-    GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
-    super.start();
-  }
-
-  @Override
-  protected void addImpliedDefaults(Properties properties) {
-    properties.put(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
-    properties.put(GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, "ratpack.groovy");
+    try {
+      RatpackServer.of(Groovy.Script.app()).start();
+    } catch (Exception e) {
+      LOGGER.error("", e);
+      System.exit(1);
+    }
   }
 }

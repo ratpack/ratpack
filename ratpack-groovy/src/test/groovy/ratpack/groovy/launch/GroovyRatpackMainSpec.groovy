@@ -18,11 +18,9 @@ package ratpack.groovy.launch
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.launch.LaunchConfigs
-import ratpack.server.RatpackServer
+import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
+import ratpack.test.MainClassApplicationUnderTest
 import spock.lang.Specification
-
-import java.nio.file.Paths
 
 class GroovyRatpackMainSpec extends Specification {
 
@@ -31,7 +29,9 @@ class GroovyRatpackMainSpec extends Specification {
 
   def "starts ratpack app"() {
     given:
+    GroovyRatpackMainSpec.classLoader.addURL(dir.root.toURI().toURL())
     File ratpackFile = dir.newFile("ratpack.groovy")
+    this.class.classLoader
     ratpackFile << """
       import static ratpack.groovy.Groovy.*
       import ratpack.server.Stopper
@@ -39,7 +39,6 @@ class GroovyRatpackMainSpec extends Specification {
       ratpack {
         handlers {
           get {
-            get(Stopper).stop()
             render "foo"
           }
           get("stop") {
@@ -49,19 +48,15 @@ class GroovyRatpackMainSpec extends Specification {
       }
     """
 
-    Properties overrides = System.properties
-    overrides.put("ratpack.${LaunchConfigs.CONFIG_RESOURCE_PROPERTY}".toString(), Paths.get(dir.root.absolutePath, LaunchConfigs.CONFIG_RESOURCE_DEFAULT).toAbsolutePath().toString())
-    RatpackServer server = new GroovyRatpackMain().server(overrides, new Properties())
+    MainClassApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
 
     when:
-    server.start()
+    String response = aut.httpClient.text
 
     then:
-    server.isRunning()
+    response == "foo"
 
     cleanup:
-    if (server.isRunning()) {
-      server.stop()
-    }
+    aut?.close()
   }
 }

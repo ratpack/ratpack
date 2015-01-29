@@ -17,18 +17,17 @@
 package ratpack.groovy.test;
 
 import ratpack.groovy.launch.GroovyRatpackMain;
-import ratpack.test.RatpackMainApplicationUnderTest;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
+import ratpack.test.MainClassApplicationUnderTest;
 
-import java.util.Collections;
-import java.util.Map;
+public class GroovyRatpackMainApplicationUnderTest extends MainClassApplicationUnderTest {
 
-public class LocalScriptApplicationUnderTest extends RatpackMainApplicationUnderTest {
-
-  public LocalScriptApplicationUnderTest() {
-    this(Collections.<String, String>emptyMap());
+  public GroovyRatpackMainApplicationUnderTest() {
+    this(Registries.empty());
   }
 
-  public LocalScriptApplicationUnderTest(Map<String, String> overriddenProperties) {
-    super(new GroovyRatpackMain(), overriddenProperties);
+  public GroovyRatpackMainApplicationUnderTest(Registry registry) {
+    super(GroovyRatpackMain.class, registry);
   }
 }

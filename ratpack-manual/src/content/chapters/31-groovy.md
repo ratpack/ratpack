@@ -333,13 +333,13 @@ fixture methods, features methods and helper methods.
 Let's have a look at a Ratack unit test specification:
 
 ```language-groovy tested
-import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.test.http.TestHttpClient
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.ServerBackedApplicationUnderTest
 
 class SiteSpec {
 
-  LocalScriptApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
+  ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
   @Delegate TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
   def "Check Site Index"() {

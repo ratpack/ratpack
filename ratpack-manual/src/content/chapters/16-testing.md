@@ -31,13 +31,13 @@ Note below we use @Delegate so we just need to call `get()` in the when block in
 
 ```language-groovy tested
 
-import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.test.http.TestHttpClient
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.ServerBackedApplicationUnderTest
 
 class SiteSmokeSpec {
 
-  LocalScriptApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
+  ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
   @Delegate TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
   def "Check Site Index"() {
