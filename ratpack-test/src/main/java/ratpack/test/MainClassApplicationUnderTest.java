@@ -16,11 +16,16 @@
 
 package ratpack.test;
 
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.test.internal.MainClassServerFactory;
 
 public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
+  public MainClassApplicationUnderTest(Class<?> mainClass) {
+    this(mainClass, Registries.empty());
+  }
+  
   public MainClassApplicationUnderTest(Class<?> mainClass, Registry registry) {
     super(new MainClassServerFactory(mainClass, registry));
   }
