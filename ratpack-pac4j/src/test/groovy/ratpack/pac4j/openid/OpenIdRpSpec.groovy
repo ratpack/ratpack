@@ -39,7 +39,7 @@ import spock.lang.Unroll
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
-import static ratpack.pac4j.internal.AbstractPac4jModule.Config.DEFAULT_CALLBACK_PATH
+import static ratpack.pac4j.internal.AbstractPac4jModule.DEFAULT_CALLBACK_PATH
 
 /**
  * Tests OpenID Relying Party support.

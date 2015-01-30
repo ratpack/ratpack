@@ -34,11 +34,13 @@ import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
 public abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends ConfigurableModule<AbstractPac4jModule.Config> implements HandlerDecoratingModule {
+
+  public static final String DEFAULT_CALLBACK_PATH = "pac4j-callback";
+
   /**
    * The configuration object for {@link AbstractPac4jModule}.
    */
   public static class Config {
-    public static final String DEFAULT_CALLBACK_PATH = "pac4j-callback";
 
     private String callbackPath = DEFAULT_CALLBACK_PATH;
 
