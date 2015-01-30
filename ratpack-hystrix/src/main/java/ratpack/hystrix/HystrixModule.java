@@ -16,10 +16,10 @@
 
 package ratpack.hystrix;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.netflix.hystrix.strategy.HystrixPlugins;
 import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy;
+import ratpack.guice.ConfigurableModule;
 import ratpack.hystrix.internal.*;
 
 /**
@@ -53,9 +53,36 @@ import ratpack.hystrix.internal.*;
  * @see <a href="https://github.com/Netflix/Hystrix/wiki/How-To-Use#request-cache" target="_blank">Hystrix - Request Cache</a>
  * @see <a href="https://github.com/Netflix/Hystrix/wiki/How-To-Use#request-collapsing" target="_blank">Hystrix - Request Collapsing</a>
  */
-public class HystrixModule extends AbstractModule {
+public class HystrixModule extends ConfigurableModule<HystrixModule.Config> {
 
   private boolean reportMetricsToSse;
+
+  public static class Config {
+
+    public static final long DEFAULT_INTERVAL = 2;
+
+    private long streamInterval = DEFAULT_INTERVAL;
+
+    /**
+     * The configured stream interval in seconds;
+     *
+     * @return the configured stream interval in seconds;
+     */
+    public long getStreamInterval() {
+      return streamInterval;
+    }
+
+    /**
+     * Configure the number of seconds between periodic publications.
+     *
+     * @param streamInterval the number of seconds between publications in seconds
+     * @return this
+     */
+    public Config streamInterval(long streamInterval) {
+      this.streamInterval = streamInterval;
+      return this;
+    }
+  }
 
   @Override
   protected void configure() {

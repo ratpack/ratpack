@@ -19,7 +19,7 @@ package ratpack.hystrix.internal;
 import com.google.inject.Inject;
 import com.netflix.hystrix.HystrixCommandMetrics;
 import ratpack.exec.ExecController;
-import ratpack.server.ServerConfig;
+import ratpack.hystrix.HystrixModule;
 import ratpack.stream.internal.PeriodicPublisher;
 
 import java.time.Duration;
@@ -27,17 +27,12 @@ import java.util.Collection;
 
 public class HystrixCommandMetricsPeriodicPublisher extends PeriodicPublisher<Collection<HystrixCommandMetrics>> {
 
-  /**
-   * The default reporting interval.
-   */
-  private final static String DEFAULT_INTERVAL = "2";
-
   @Inject
-  public HystrixCommandMetricsPeriodicPublisher(ServerConfig serverConfig, ExecController execController) {
+  public HystrixCommandMetricsPeriodicPublisher(HystrixModule.Config config, ExecController execController) {
     super(
       execController.getExecutor(),
       integer -> HystrixCommandMetrics.getInstances(),
-      Duration.ofSeconds(new Long(serverConfig.getOther("hystrix.stream.interval", DEFAULT_INTERVAL)))
+      Duration.ofSeconds(config.getStreamInterval())
     );
   }
 
