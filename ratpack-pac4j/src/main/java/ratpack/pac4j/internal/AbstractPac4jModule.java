@@ -16,15 +16,14 @@
 
 package ratpack.pac4j.internal;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.server.ServerConfig;
 import ratpack.pac4j.Authorizer;
 import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
 
@@ -34,36 +33,38 @@ import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
  * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends AbstractModule implements HandlerDecoratingModule {
-  private static final String DEFAULT_CALLBACK_PATH = "pac4j-callback";
-
-  private String callbackPath;
-
+public abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends ConfigurableModule<AbstractPac4jModule.Config> implements HandlerDecoratingModule {
   /**
-   * Sets the path to use for callbacks from the identity provider.
-   *
-   * @param callbackPath The callback path
-   * @return This module, for call chaining
+   * The configuration object for {@link AbstractPac4jModule}.
    */
-  public AbstractPac4jModule<C, U> callbackPath(String callbackPath) {
-    this.callbackPath = callbackPath;
-    return this;
+  public static class Config {
+    public static final String DEFAULT_CALLBACK_PATH = "pac4j-callback";
+
+    private String callbackPath = DEFAULT_CALLBACK_PATH;
+
+    /**
+     * Returns the path to use for callbacks from the identity provider.
+     *
+     * @return the path to use for callbacks
+     */
+    public String getCallbackPath() {
+      return callbackPath;
+    }
+
+    /**
+     * Sets the path to use for callbacks from the identity provider.
+     *
+     * @param callbackPath The callback path
+     * @return this
+     */
+    public Config callbackPath(String callbackPath) {
+      this.callbackPath = callbackPath;
+      return this;
+    }
   }
 
   @Override
-  protected void configure() {
-  }
-
-  /**
-   * Returns the path to use for callbacks from the identity provider.
-   *
-   * @param injector The injector created from all the application modules
-   * @return The callback path
-   */
-  private String getCallbackPath(Injector injector) {
-    ServerConfig serverConfig = injector.getInstance(ServerConfig.class);
-    return callbackPath == null ? serverConfig.getOther("pac4j.callbackPath", DEFAULT_CALLBACK_PATH) : callbackPath;
-  }
+  protected void configure() { }
 
   /**
    * Returns the client to use for authentication.
@@ -83,7 +84,8 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {
-    final String callbackPath = getCallbackPath(injector);
+    final Config config = injector.getInstance(Config.class);
+    final String callbackPath = config.getCallbackPath();
     final Client<C, U> client = getClient(injector);
     final Authorizer authorizer = getAuthorizer(injector);
     final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);

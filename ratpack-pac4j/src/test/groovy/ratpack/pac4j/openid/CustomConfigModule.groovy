@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,17 @@
 package ratpack.pac4j.openid
 
 import com.google.inject.AbstractModule
-import com.google.inject.TypeLiteral
-import org.pac4j.core.client.Client
-import org.pac4j.openid.credentials.OpenIdCredentials
-import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
-import ratpack.pac4j.Authorizer
+import ratpack.pac4j.internal.AbstractPac4jModule
 
-class OpenIdTestModule extends AbstractModule {
-  private final int providerPort
+class CustomConfigModule extends AbstractModule {
+  private final String callbackPath
 
-  OpenIdTestModule(int providerPort) {
-    this.providerPort = providerPort
+  CustomConfigModule(String callbackPath) {
+    this.callbackPath = callbackPath
   }
 
   @Override
   protected void configure() {
-    bind(new TypeLiteral<Client<OpenIdCredentials, YahooOpenIdProfile>>() {}).toInstance(new OpenIdTestClient(providerPort))
-    bind(Authorizer).toInstance(new AuthPathAuthorizer())
+    bind(AbstractPac4jModule.Config).toInstance(new AbstractPac4jModule.Config().callbackPath(callbackPath))
   }
 }

@@ -21,7 +21,7 @@ import org.junit.ClassRule
 import org.junit.rules.TemporaryFolder
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.credentials.OpenIdCredentials
-import org.pac4j.openid.profile.google.GoogleOpenIdProfile
+import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
@@ -36,14 +36,16 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.LOCATION
+import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
+import static ratpack.pac4j.internal.AbstractPac4jModule.Config.DEFAULT_CALLBACK_PATH
 
 /**
  * Tests OpenID Relying Party support.
  */
 class OpenIdRpSpec extends Specification {
+  private static final String CUSTOM_CALLBACK_PATH = "custom-callback"
   private static final String EMAIL = "fake@example.com"
 
   @Shared
@@ -64,6 +66,10 @@ class OpenIdRpSpec extends Specification {
 
   @Shared
   @AutoCleanup
+  EmbeddedApp autCustom
+
+  @Shared
+  @AutoCleanup
   EmbeddedProvider provider
 
   def testApp(Module... additionalModules) {
@@ -78,12 +84,12 @@ class OpenIdRpSpec extends Specification {
 
       handlers {
         get("noauth") {
-          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile).orElse(null)
+          def typedUserProfile = request.maybeGet(YahooOpenIdProfile).orElse(null)
           def genericUserProfile = request.maybeGet(UserProfile).orElse(null)
           response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
         }
         get("auth") {
-          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile).orElse(null)
+          def typedUserProfile = request.maybeGet(YahooOpenIdProfile).orElse(null)
           def genericUserProfile = request.maybeGet(UserProfile).orElse(null)
           response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
         }
@@ -96,7 +102,8 @@ class OpenIdRpSpec extends Specification {
     provider.open()
     baseDir = BaseDirBuilder.tmpDir()
     autConstructed = testApp(new Pac4jModule<>(new OpenIdTestClient(provider.port), new AuthPathAuthorizer()))
-    autInjected = testApp(new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(provider.port))
+    autInjected = testApp(new InjectedPac4jModule<>(OpenIdCredentials, YahooOpenIdProfile), new OpenIdTestModule(provider.port))
+    autCustom = testApp(new Pac4jModule<>(new OpenIdTestClient(provider.port), new AuthPathAuthorizer()), new CustomConfigModule(CUSTOM_CALLBACK_PATH))
   }
 
   @Unroll
@@ -111,11 +118,11 @@ class OpenIdRpSpec extends Specification {
     response.body.text == "noauth:null:null"
 
     where:
-    aut << [autConstructed, autInjected]
+    aut << [autConstructed, autInjected, autCustom]
   }
 
   @Unroll
-  def "test successful auth"(EmbeddedApp aut) {
+  def "test successful auth"(EmbeddedApp aut, String expectedCallbackPath) {
     setup:
     def client = aut.httpClient
     client.requestSpec { it.redirects(0) }
@@ -133,7 +140,7 @@ class OpenIdRpSpec extends Specification {
 
     then: "the response is redirected to the callback"
     response2.statusCode == FOUND.code()
-    response2.headers.get(LOCATION).contains("/pac4j-callback")
+    response2.headers.get(LOCATION).contains(expectedCallbackPath)
 
     when: "following the redirect"
     client.resetRequest()
@@ -168,7 +175,10 @@ class OpenIdRpSpec extends Specification {
     response5.body.text == "noauth:${EMAIL}:${EMAIL}"
 
     where:
-    aut << [autConstructed, autInjected]
+    aut            | expectedCallbackPath
+    autConstructed | DEFAULT_CALLBACK_PATH
+    autInjected    | DEFAULT_CALLBACK_PATH
+    autCustom      | CUSTOM_CALLBACK_PATH
   }
 
   @Unroll
@@ -191,7 +201,7 @@ class OpenIdRpSpec extends Specification {
     assert response.statusCode == UNAUTHORIZED.code()
 
     where:
-    aut << [autConstructed, autInjected]
+    aut << [autConstructed, autInjected, autCustom]
   }
 
 }
