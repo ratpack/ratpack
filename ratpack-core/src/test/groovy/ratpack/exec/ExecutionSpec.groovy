@@ -20,7 +20,7 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
-import ratpack.launch.LaunchConfigBuilder
+import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -32,30 +32,23 @@ import java.util.concurrent.atomic.AtomicLong
 class ExecutionSpec extends Specification {
 
   @AutoCleanup
-  ExecController controller
+  ExecHarness harness = ExecHarness.harness()
   List<Object> events = []
   def latch = new CountDownLatch(1)
 
-  def setup() {
-    controller = LaunchConfigBuilder.noBaseDir().build().execController
-  }
 
   def exec(Action<? super ExecControl> action) {
     exec(action, Action.noop())
   }
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError) {
-    controller.control.exec().onError(onError).onComplete {
+    harness.exec().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
     } start {
       action.execute(it.control)
     }
     latch.await()
-  }
-
-  ExecControl getControl() {
-    controller.control
   }
 
   def "exception thrown after promise prevents promise from running"() {
@@ -85,7 +78,7 @@ class ExecutionSpec extends Specification {
       throw new RuntimeException("!")
     }, {
       try {
-        control.blocking { 2 } then { events << "error" }
+        harness.blocking { 2 } then { events << "error" }
 
       } catch (e) {
         e.printStackTrace()
@@ -101,10 +94,10 @@ class ExecutionSpec extends Specification {
     exec({
       throw new RuntimeException("!")
     }, {
-      control.blocking {
+      harness.blocking {
         2
       } then {
-        control.blocking {
+        harness.blocking {
           5
         } then {
           events << "error"
