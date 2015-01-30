@@ -16,8 +16,8 @@
 
 package ratpack.remote;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.Guice;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
@@ -30,11 +30,11 @@ import ratpack.server.ServerConfig;
  * To use it one has to register the module.
  * </p>
  * <p>
- * By default the endpoint is registered under {@code /remote-control}. This can be configured using {@link #setPath(String)} or
- * {@code other.remoteControl.path} configuration property.
+ * By default the endpoint is registered under {@code /remote-control}.
+ * This can be configured using {@link ratpack.remote.RemoteControlModule.Config#path(String)}.
  * </p>
  * <p>
- * The endpoint is not registered unless {@code other.remoteControl.enabled} configuration property is set to {@code true} or reloading
+ * The endpoint is not registered unless {@link ratpack.remote.RemoteControlModule.Config#enabled(boolean)} is set to {@code true} or development mode
  * is enabled. This is so that you have to explicitly enable it, for example when integration testing the application, and it's harder
  * to make a mistake of keeping it on for production. Securing the endpoint when used in production is left for the users to implement if desired.
  * </p>
@@ -44,29 +44,42 @@ import ratpack.server.ServerConfig;
  *
  * @see <a href="http://groovy.codehaus.org/modules/remote/" target="_blank">Groovy Remote Control</a>
  */
-public class RemoteControlModule extends AbstractModule implements HandlerDecoratingModule {
+public class RemoteControlModule extends ConfigurableModule<RemoteControlModule.Config> implements HandlerDecoratingModule {
 
   public static final String DEFAULT_REMOTE_CONTROL_PATH = "remote-control";
 
-  private String path;
+  public static class Config {
+    private String path = DEFAULT_REMOTE_CONTROL_PATH;
+    private boolean enabled;
 
-  public String getPath() {
+    public String getPath() {
     return path;
   }
 
-  public void setPath(String path) {
-    this.path = path;
+    public Config path(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    public Config enabled(boolean enabled) {
+      this.enabled = enabled;
+      return this;
+    }
   }
 
   @Override
-  protected void configure() {
-  }
+  protected void configure() { }
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {
+    Config config = injector.getInstance(Config.class);
     ServerConfig serverConfig = injector.getInstance(ServerConfig.class);
-    String endpointPath = path == null ? serverConfig.getOther("remoteControl.path", "remote-control") : path;
-    boolean enabled = Boolean.valueOf(serverConfig.getOther("remoteControl.enabled", "false")) || serverConfig.isDevelopment();
+    String endpointPath = config.getPath();
+    boolean enabled = config.isEnabled() || serverConfig.isDevelopment();
 
     if (enabled) {
       return new RemoteControlHandler(endpointPath, Guice.justInTimeRegistry(injector), handler);

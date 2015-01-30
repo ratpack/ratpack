@@ -22,7 +22,6 @@ import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileSystemBinding
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.server.ServerConfig
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -34,46 +33,49 @@ import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH
 
 class RemoteControlSpec extends RatpackGroovyDslSpec {
 
-  final Map<String, String> enabled = ['remoteControl.enabled': 'true'].asImmutable()
-
-  def setup() {
-    bindings {
-      add new RemoteControlModule()
-    }
-  }
-
   RemoteControl getRemote() {
     server.start()
     new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/$DEFAULT_REMOTE_CONTROL_PATH"))
   }
 
   void 'by default the endpoint is not enabled'() {
-    expect:
+    when:
+    bindings {
+      add new RemoteControlModule()
+    }
+
+    then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_FOUND.code()
   }
 
   void 'only posts are allowed'() {
-    given:
-    serverConfig { other(enabled) }
+    when:
+    bindings {
+      add new RemoteControlModule(), { it.enabled(true) }
+    }
 
-    expect:
+    then:
     get(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
     head(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
   }
 
   void 'only requests that contain groovy-remote-control-command are allowed'() {
-    given:
-    serverConfig { other(enabled) }
+    when:
+    bindings {
+      add new RemoteControlModule(), { it.enabled(true) }
+    }
 
-    expect:
+    then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == UNSUPPORTED_MEDIA_TYPE.code()
   }
 
   void 'only requests that accept groovy-remote-control-result are allowed'() {
-    given:
-    serverConfig { other(enabled) }
-
     when:
+    bindings {
+      add new RemoteControlModule(), { it.enabled(true) }
+    }
+
+    then:
     requestSpec { RequestSpec requestSpec ->
       requestSpec.headers.set(HttpHeaderConstants.CONTENT_TYPE, ContentType.COMMAND.value)
       requestSpec.headers.set(HttpHeaderConstants.ACCEPT, 'text/html')
@@ -85,33 +87,38 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   @Unroll
   void 'sending a simple command - #scenario'() {
-    given:
+    when:
     bindings {
-      add new RemoteControlModule(path: modulePath)
+      if (modulePath) {
+        add new RemoteControlModule(), new RemoteControlModule.Config().path(modulePath), { it.enabled(true); if (configPath) { it.path(configPath)} }
+      } else {
+        add new RemoteControlModule(), { it.enabled(true); if (configPath) { it.path(configPath)} }
+      }
     }
-    serverConfig { other(*: enabled, *: otherConfig) }
 
     and:
     server.start()
     def remoteControl = new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/$path"))
 
-    expect:
+    then:
     remoteControl { 1 + 2 } == 3
 
     where:
-    scenario             | path                        | modulePath | otherConfig
-    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null       | [:]
-    'path set in module' | 'custom'                    | 'custom'   | [:]
-    'path set in config' | 'fromConfig'                | null       | ['remoteControl.path': 'fromConfig']
+    scenario             | path                        | modulePath | configPath
+    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null       | null
+    'path set in module' | 'custom'                    | 'custom'   | null
+    'path set in config' | 'fromConfig'                | null       | 'fromConfig'
   }
 
   void 'registry is available in command context'() {
-    given:
-    serverConfig { other(*: enabled, test: 'it works') }
+    when:
+    bindings {
+      add new RemoteControlModule(), { it.enabled(true) }
+    }
 
-    expect:
+    then:
     //from guice
-    remote.exec { get(ServerConfig).other.test } == 'it works'
+    remote.exec { get(RemoteControlModule.Config).path } == DEFAULT_REMOTE_CONTROL_PATH
     //from root registry
     remote.exec { get(FileSystemBinding) != null }
     //created just in time
@@ -120,8 +127,10 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'endpoint is also enabled if reloading is enabled'() {
     given:
+    bindings {
+      add new RemoteControlModule()
+    }
     serverConfig {
-      other(enabled)
       development(true)
     }
 

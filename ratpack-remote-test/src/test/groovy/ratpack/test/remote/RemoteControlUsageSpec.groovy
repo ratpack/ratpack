@@ -26,9 +26,8 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
   RemoteControl remoteControl
 
   def setup() {
-    serverConfig { other("remoteControl.enabled": "true") }
     bindings {
-      add new RemoteControlModule()
+      add new RemoteControlModule(), { it.enabled(true) }
       bind ValueHolder
     }
     handlers {
