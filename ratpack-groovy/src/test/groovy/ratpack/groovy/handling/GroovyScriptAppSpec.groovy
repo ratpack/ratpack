@@ -79,6 +79,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     temporaryFolder.newFolder('customFile')
     File customRatpackFile = temporaryFolder.newFile('customFile/Ratpack.groovy')
     customRatpackFile.text = ratpackFile.text
+    ratpackFile.delete()
     GroovyScriptAppSpec.classLoader.addURL(customRatpackFile.parentFile.toURI().toURL())
 
 
