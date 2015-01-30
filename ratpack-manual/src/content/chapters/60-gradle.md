@@ -148,18 +148,7 @@ That is, these are the files that are visible to your application (e.g. static f
 This directory will be included in the distribution built by the `'application'` plugin as the `app` directory.
 This directory will be added to the classpath when starting the application, and will also be the JVM working directory.
 
-### ratpack.properties and launch configuration
-
-It is a good idea to immediately put a (potentially empty) `ratpack.properties` file in the `src/ratpack` directory.
-When the application is launched, this file contributes to the application [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html).
-
-For example, to configure the maximum request size that the application will accept, add the following to the `src/ratpack/ratpack.properties` file…
-
-```
-ratpack.maxContentLength=1024
-```
-
-See [Launching](launching.html) for more information about specifying the effective `LaunchConfig` for the application.
+See [Launching](launching.html) for more information.
 
 ### The 'ratpack.groovy' script
 

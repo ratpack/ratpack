@@ -36,7 +36,7 @@ import java.net.URI;
  *
  * <p>
  * If the default implementation isn't doing what you want it to, you can usually simply configure the public address via
- * {@link ratpack.launch.LaunchConfigBuilder#publicAddress(java.net.URI)}.  Alternatively, you can register an instance of
+ * {@link ratpack.server.ServerConfig.Builder#publicAddress(java.net.URI)}.  Alternatively, you can register an instance of
  * your own implementation.
  */
 public interface PublicAddress {

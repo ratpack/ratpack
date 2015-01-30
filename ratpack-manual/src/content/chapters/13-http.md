@@ -457,7 +457,7 @@ public class Example {
         .get();
 
       String setCookie = response.getHeaders().get("Set-Cookie");
-      assertTrue(setCookie.startsWith("username=; Max-Age=0; Expires="));
+      assertTrue(setCookie.startsWith("username=; Max-Age=0"));
     });
   }
 }

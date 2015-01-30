@@ -17,54 +17,14 @@
 package ratpack.handling;
 
 import ratpack.func.Action;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.ServerConfig;
 
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
  * A handler chain can be constructed using the {@link Handlers#chain(ServerConfig, ratpack.func.Action)} like methods.
- * For example, from a {@link ratpack.launch.HandlerFactory} implementation…
- * <pre class="tested">
- * import ratpack.launch.HandlerFactory;
- * import ratpack.server.ServerConfig;
- * import ratpack.handling.Chain;
- * import ratpack.handling.Handler;
- * import ratpack.handling.Handlers;
- * import ratpack.handling.Context;
- * import ratpack.func.Action;
- * import ratpack.registry.Registry;
- *
- * public class MyHandlerBootstrap implements HandlerFactory {
- *   public Handler create(Registry registry) {
- *
- *     return Handlers.chain(registry.get(ServerConfig), new Action&lt;Chain&gt;() {
- *       public void execute(Chain chain) {
- *         chain
- *           .assets("public")
- *           .prefix("api", new Action&lt;Chain&gt;() {
- *             public void execute(Chain api) {
- *               api
- *                 .get("people", new PeopleHandler())
- *                 .post( "person/:id", new Handler() {
- *                   public void handle(Context context) {
- *                     // handle
- *                   }
- *                 });
- *             }
- *           });
- *       }
- *     });
- *   }
- * }
- *
- * public class PeopleHandler implements Handler {
- *   public void handle(Context context) {
- *     // handle
- *   }
- * }
- * </pre>
  * <p>
  * Chains <i>may</i> be backed by a {@link Registry registry}, depending on how the chain was constructed.
  * For example, the Ratpack Guice module makes it possible to create a Guice backed registry that can be used to

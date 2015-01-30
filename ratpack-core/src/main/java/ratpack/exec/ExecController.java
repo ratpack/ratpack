@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 /**
  * The exec controller manages the execution of operations.
  * <p>
- * The instance for an application can be obtained via the launch config's {@link ratpack.launch.LaunchConfig#getExecController()} method.
+ * The instance for an application can be obtained via the server registry.
  */
 public interface ExecController extends AutoCloseable {
 
@@ -101,7 +101,7 @@ public interface ExecController extends AutoCloseable {
   /**
    * The number of threads that will be used for computation.
    * <p>
-   * This is determined by the {@link ratpack.launch.LaunchConfig#getThreads()} value of the launch config that created this controller.
+   * This is determined by the {@link ratpack.server.ServerConfig#getThreads()} value of the launch config that created this controller.
    *
    * @return the number of threads that will be used for computation
    */

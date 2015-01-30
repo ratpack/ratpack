@@ -8,11 +8,11 @@ Conceptually, a handler ([`Handler`](api/ratpack/handling/Handler.html)) is just
 
 The “hello world” handler looks like this…
 
-```language-groovy tested
+```language-java
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 
-public class HelloWorld implements Handler {
+public class Example implements Handler {
   public void handle(Context context) {
       context.getResponse().send("Hello world!");
   }

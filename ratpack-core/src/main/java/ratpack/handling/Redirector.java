@@ -21,7 +21,7 @@ import ratpack.api.NonBlocking;
 /**
  * Contextual strategy for issuing redirects.
  * <p>
- * Ratpack provides a default contextual implementation that uses the {@link ratpack.launch.LaunchConfig#getPublicAddress()} to
+ * Ratpack provides a default contextual implementation that uses the {@link ratpack.server.ServerConfig#getPublicAddress()} to
  * make any relative redirect locations absolute in terms of the public address.
  * <p>
  * This strategy is typically sufficient and a user implementation of this type is not required.

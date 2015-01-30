@@ -93,5 +93,3 @@ There are two main patterns for access services from handlers:
 
 One aspect of Ratpack that is relevant to non request handling code is the use of the [`ExecControl`](api/ratpack/exec/ExecControl.html) for performing asynchronous operations.
 This allows services to perform async operations, using Ratpack's event loop, and use Ratpack's [`Promise`](api/ratpack/exec/Promise.html) API.
-
-An exec control can be obtained from the [execution controller attached to the launch config](api/ratpack/launch/LaunchConfig.html#getExecController--).

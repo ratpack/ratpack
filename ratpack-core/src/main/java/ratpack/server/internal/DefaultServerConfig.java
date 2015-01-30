@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.launch.internal;
+package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
-import ratpack.launch.NoBaseDirException;
+import ratpack.server.NoBaseDirException;
 import ratpack.server.ServerConfig;
 
 import javax.net.ssl.SSLContext;

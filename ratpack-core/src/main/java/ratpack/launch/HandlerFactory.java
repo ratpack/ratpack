@@ -22,7 +22,6 @@ import ratpack.registry.Registry;
 /**
  * A factory contract for creating handlers, typically the root handler of the application.
  * <p>
- * See {@link LaunchConfigBuilder#build(HandlerFactory)}.
  */
 public interface HandlerFactory {
 

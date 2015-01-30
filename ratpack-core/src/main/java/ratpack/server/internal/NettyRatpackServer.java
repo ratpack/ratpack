@@ -38,7 +38,6 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.handling.internal.FactoryHandler;
-import ratpack.launch.internal.DelegatingServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;

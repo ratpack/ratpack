@@ -17,7 +17,7 @@
 package ratpack.exec
 
 import ratpack.func.Action
-import ratpack.launch.LaunchConfigBuilder
+import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
@@ -27,17 +27,12 @@ import java.util.concurrent.CountDownLatch
 class PromiseCachingSpec extends Specification {
 
   @AutoCleanup
-  ExecController controller
+  ExecHarness execHarness = ExecHarness.harness()
   Queue<?> events = new ConcurrentLinkedQueue<>()
   def latch = new CountDownLatch(1)
 
-  //TODO this shouldn't use LaunchConfigBuilder.
-  def setup() {
-    controller = LaunchConfigBuilder.noBaseDir().build().execController
-  }
-
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    controller.control.exec()
+    execHarness.exec()
       .onError(onError)
       .onComplete({ events << "complete"; latch.countDown() })
       .start { action.execute(it.control) }
@@ -45,7 +40,7 @@ class PromiseCachingSpec extends Specification {
   }
 
   ExecControl getControl() {
-    controller.control
+    execHarness
   }
 
   def "can cache promise"() {

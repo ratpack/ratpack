@@ -107,6 +107,10 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
     return new DefaultExecHarness(new DefaultExecController());
   }
 
+  public static ExecHarness harness(int numThreads) {
+    return new DefaultExecHarness(new DefaultExecController(numThreads));
+  }
+
   /**
    * Synchronously returns a promised value.
    * <p>

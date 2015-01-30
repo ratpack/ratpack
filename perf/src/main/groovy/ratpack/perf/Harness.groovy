@@ -203,7 +203,7 @@ class Harness {
       if (outputString.lastIndexOf("Ratpack started for http://localhost:") > -1) {
         latch.countDown()
       }
-      if (outputString.contains("ratpack.launch.LaunchException")) {
+      if (outputString.contains("ratpack.server.LaunchException")) {
         throw new RuntimeException("App failed to launch: $outputString")
       }
       sleep retryMs

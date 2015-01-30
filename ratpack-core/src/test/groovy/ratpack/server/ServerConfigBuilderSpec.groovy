@@ -16,7 +16,6 @@
 
 package ratpack.server
 
-import ratpack.launch.NoBaseDirException
 import spock.lang.Specification
 
 class ServerConfigBuilderSpec extends Specification {

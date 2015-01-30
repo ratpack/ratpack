@@ -17,7 +17,7 @@
 package ratpack.exec
 
 import ratpack.func.Action
-import ratpack.launch.LaunchConfigBuilder
+import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
@@ -29,16 +29,13 @@ import static ratpack.func.Action.throwException
 class PromiseOperationsSpec extends Specification {
 
   @AutoCleanup
-  ExecController controller
+  ExecHarness execHarness = ExecHarness.harness()
   List<String> events = []
   def latch = new CountDownLatch(1)
 
-  def setup() {
-    controller = LaunchConfigBuilder.noBaseDir().build().execController
-  }
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    controller.control
+    execHarness
       .exec()
       .onError(onError)
       .onComplete {
@@ -52,7 +49,7 @@ class PromiseOperationsSpec extends Specification {
   }
 
   ExecControl getControl() {
-    controller.control
+    execHarness
   }
 
   def "can map promise"() {
@@ -243,7 +240,7 @@ class PromiseOperationsSpec extends Specification {
   def "can defer promise"() {
     when:
     def runner = new BlockingVariable<Runnable>()
-    controller.control.exec().onComplete { latch.countDown() }.start {
+    execHarness.exec().onComplete { latch.countDown() }.start {
       it.control.promise { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
         events << it
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,31 @@
  * limitations under the License.
  */
 
-package ratpack.launch;
+package ratpack.server;
 
 /**
- * Thrown when a request is made for the base directory of the application in an application
- * launch config where no base directory has been set.
- *
- * @see LaunchConfig#getBaseDir()
+ * Thrown if something goes wrong at launch time.
  */
-public class NoBaseDirException extends RuntimeException {
+public class LaunchException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
   /**
    * Constructor.
    *
-   * @param message the exception message
+   * @param message The exception message
    */
-  public NoBaseDirException(String message) {
+  public LaunchException(String message) {
     super(message);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param message The exception message
+   * @param cause The nested exception
+   */
+  public LaunchException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

@@ -329,8 +329,7 @@ public abstract class RxRatpack {
    * This is generally a more performant alternative to using plain Rx parallelization due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
-   * import ratpack.exec.ExecController;
-   * import ratpack.launch.LaunchConfigBuilder;
+   * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
    *
@@ -345,31 +344,26 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Exception {
    *     RxRatpack.initialize();
+   *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
+   *       CyclicBarrier barrier = new CyclicBarrier(5);
+   *       Integer[] myArray = {1, 2, 3, 4, 5};
+   *       Observable<Integer> source = Observable.from(myArray);
+   *       List<Integer> doubledAndSorted = source
+   *         .lift(RxRatpack.<Integer>forkOnNext(execHarness))
+   *         .map(integer -> {
+   *             try {
+   *               barrier.await(); // prove stream is processed concurrently
+   *             } catch (InterruptedException | BrokenBarrierException e) {
+   *               throw new RuntimeException(e);
+   *             }
+   *             return integer.intValue() * 2;
+   *         })
+   *         .serialize()
+   *         .toSortedList()
+   *         .toBlocking()
+   *         .single();
    *
-   *     final CyclicBarrier barrier = new CyclicBarrier(5);
-   *     final ExecController execController = LaunchConfigBuilder.noBaseDir().threads(6).build().getExecController();
-   *
-   *     Integer[] myArray = {1, 2, 3, 4, 5};
-   *     Observable<Integer> source = Observable.from(myArray);
-   *     List<Integer> doubledAndSorted = source
-   *       .lift(RxRatpack.<Integer>forkOnNext(execController.getControl()))
-   *       .map(integer -> {
-   *           try {
-   *             barrier.await(); // prove stream is processed concurrently
-   *           } catch (InterruptedException | BrokenBarrierException e) {
-   *             throw new RuntimeException(e);
-   *           }
-   *           return integer.intValue() * 2;
-   *       })
-   *       .serialize()
-   *       .toSortedList()
-   *       .toBlocking()
-   *       .single();
-   *
-   *     try {
    *       assertEquals(Arrays.asList(2, 4, 6, 8, 10), doubledAndSorted);
-   *     } finally {
-   *       execController.close();
    *     }
    *   }
    * }

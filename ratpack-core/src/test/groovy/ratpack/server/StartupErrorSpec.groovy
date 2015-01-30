@@ -16,7 +16,6 @@
 
 package ratpack.server
 
-import ratpack.launch.LaunchException
 import ratpack.registry.Registries
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.http.TestHttpClient

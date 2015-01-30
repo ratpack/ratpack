@@ -28,7 +28,6 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Predicate;
-import ratpack.launch.internal.DefaultServerConfig;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
 import ratpack.util.internal.Paths2;

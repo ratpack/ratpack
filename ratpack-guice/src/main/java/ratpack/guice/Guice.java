@@ -51,10 +51,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * </p>
  * <h3>Starting a Guice Ratpack app</h3>
  * <p>
- * The user entry point for Ratpack applications is the {@link ratpack.launch.HandlerFactory} implementation
- * that is given to the {@link ratpack.launch.LaunchConfigBuilder#build(ratpack.launch.HandlerFactory)} method.
- * This implementation can use one of the {@code handler(...) } static methods.
- * <p>
  * Below is a complete example for bootstrapping a Guice based Ratpack application.
  * </p>
  * <pre class="java">{@code

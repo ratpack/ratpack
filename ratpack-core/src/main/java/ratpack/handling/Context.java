@@ -25,7 +25,6 @@ import ratpack.func.NoArgAction;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.server.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -33,6 +32,7 @@ import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
+import ratpack.server.ServerConfig;
 import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
@@ -63,8 +63,7 @@ import java.util.concurrent.Callable;
  * <h4>Default contextual objects</h4>
  * <p>There is also a set of default objects that are made available via the Ratpack infrastructure:
  * <ul>
- * <li>The effective {@link ratpack.launch.LaunchConfig}</li>
- * <li>A {@link ratpack.file.FileSystemBinding} that is the application {@link ratpack.launch.LaunchConfig#getBaseDir()}</li>
+ * <li>A {@link ratpack.file.FileSystemBinding} that is the application {@link ratpack.server.ServerConfig#getBaseDir()}</li>
  * <li>A {@link ratpack.file.MimeTypes} implementation</li>
  * <li>A {@link ratpack.error.ServerErrorHandler}</li>
  * <li>A {@link ratpack.error.ClientErrorHandler}</li>

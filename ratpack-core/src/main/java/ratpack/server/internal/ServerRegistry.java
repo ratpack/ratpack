@@ -35,7 +35,7 @@ import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
 import ratpack.http.client.HttpClient;
-import ratpack.launch.LaunchException;
+import ratpack.server.LaunchException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;

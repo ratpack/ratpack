@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
-import ratpack.launch.NoBaseDirException;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
@@ -85,7 +84,6 @@ public interface ServerConfig {
    *
    * @param baseDir The base dir of the launch config
    * @return A new server config builder
-   * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
   static Builder baseDir(Path baseDir) {
     return DefaultServerConfigBuilder.baseDir(ServerEnvironment.env(), baseDir);
@@ -96,7 +94,6 @@ public interface ServerConfig {
    *
    * @param baseDir The base dir of the launch config
    * @return A new server config builder
-   * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
   static Builder baseDir(File baseDir) {
     return baseDir(baseDir.toPath());
@@ -227,7 +224,7 @@ public interface ServerConfig {
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
    *
    * @return The base dir of the application.
-   * @throws ratpack.launch.NoBaseDirException if this launch config has no base dir set.
+   * @throws NoBaseDirException if this launch config has no base dir set.
    */
   public FileSystemBinding getBaseDir() throws NoBaseDirException;
 

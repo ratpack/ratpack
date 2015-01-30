@@ -45,42 +45,7 @@ Create directories `src/ratpack` and `src/main/java`.
 
 If desired, run `gradle idea` to generate project files for IntelliJ and open the project.
 
-Create a `src/ratpack/ratpack.properties` file with the following contents:
-
-```
-handlerFactory=AppHandlerFactory
-```
-
-Create a `src/main/java/AppHandlerFactory.java` with the following contents:
-
-```language-java
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.launch.HandlerFactory;
-import ratpack.registry.Registry;
-
-import static ratpack.handling.Handlers.*;
-
-public class AppHandlerFactory implements HandlerFactory {
-  @Override
-  public Handler create(Registry registry) throws Exception {
-    return chain(
-      path("foo", new Handler() {
-          @Override
-          public void handle(Context context) {
-              context.render("from the foo handler");
-          }
-      }),
-      path("bar", new Handler() {
-        @Override
-        public void handle(Context context) throws Exception {
-          context.render("from the bar handler");
-        }
-      })
-    );
-  }
-}
-```
+TODO - fix after launch changes in 0.9.13
 
 Run the project by running `gradle run`, or create a distribution archive by running `gradle distZip`.
 

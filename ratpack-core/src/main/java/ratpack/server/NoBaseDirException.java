@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.launch;
+package ratpack.server;
 
-public class NoHandlerFactoryException extends RuntimeException {
+/**
+ * Thrown when a request is made for the base directory of the application in an application
+ * launch config where no base directory has been set.
+ *
+ * @see ServerConfig#getBaseDir()
+ */
+public class NoBaseDirException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
@@ -25,8 +31,7 @@ public class NoHandlerFactoryException extends RuntimeException {
    *
    * @param message the exception message
    */
-  public NoHandlerFactoryException(String message) {
+  public NoBaseDirException(String message) {
     super(message);
   }
-
 }
