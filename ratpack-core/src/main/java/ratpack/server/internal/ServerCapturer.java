@@ -36,11 +36,15 @@ public abstract class ServerCapturer {
     private final Registry registry;
 
     public Overrides(Registry registry) {
-      this(0, registry);
+      this(-1, registry);
     }
 
     public Overrides() {
-      this(0, Registries.empty());
+      this(-1, Registries.empty());
+    }
+
+    public Overrides(int port) {
+      this(port, Registries.empty());
     }
 
     public Overrides(int port, Registry registry) {

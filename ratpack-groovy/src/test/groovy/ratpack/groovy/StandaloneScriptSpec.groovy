@@ -18,9 +18,8 @@ package ratpack.groovy
 
 import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.groovy.template.EphemeralPortScriptBacking
 import ratpack.server.RatpackServer
+import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -40,10 +39,8 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(getRatpackFile())
-          Thread.start {
-            RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
-              script.run()
-            }
+          ServerCapturer.capture(new ServerCapturer.Overrides(0)) {
+            script.run()
           }
         })
       }
@@ -54,6 +51,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
+        config { development true }
         handlers {
           get {
             response.send "foo"

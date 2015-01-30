@@ -24,9 +24,7 @@ public abstract class RemoteControl {
   }
 
   public static HandlerDecorator handlerDecorator(String path) {
-    return (registry, handlers) -> {
-      return new RemoteControlHandler(path, registry, handlers);
-    };
+    return (registry, handlers) -> new RemoteControlHandler(path, registry, handlers);
   }
 
   public static HandlerDecorator handlerDecorator() {

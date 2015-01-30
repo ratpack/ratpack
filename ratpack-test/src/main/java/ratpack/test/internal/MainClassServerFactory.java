@@ -37,7 +37,7 @@ public class MainClassServerFactory implements Factory<RatpackServer> {
 
   @Override
   public RatpackServer create() throws Exception {
-    return ServerCapturer.capture(new ServerCapturer.Overrides(registry), () -> {
+    return ServerCapturer.capture(new ServerCapturer.Overrides(0, registry), () -> {
       Method method;
       try {
         method = mainClass.getDeclaredMethod("main", String[].class);

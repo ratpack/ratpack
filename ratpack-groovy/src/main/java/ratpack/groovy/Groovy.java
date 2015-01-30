@@ -167,9 +167,12 @@ public abstract class Groovy {
       return app(staticCompile, DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1));
     }
 
+    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(Path script) {
+      return b -> doApp(b, false, script.getParent(), script);
+    }
+
     public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(boolean staticCompile, String... scriptPaths) {
-      checkGroovy();
-      return definition -> {
+      return b -> {
         String workingDir = StandardSystemProperty.USER_DIR.value();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -182,23 +185,26 @@ public abstract class Groovy {
 
         Path baseDir = baseDirResult.getBaseDir();
         Path scriptFile = baseDirResult.getResource();
-
-        String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
-
-        RatpackDslClosures closures = new FullRatpackDslCapture(staticCompile).apply(scriptFile, script);
-        definition.config(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.baseDir(baseDir), baseDir), closures.getConfig()));
-
-        definition.registry(r -> {
-          return Guice.registry(bindingsSpec -> {
-            bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
-            ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings());
-          }).apply(r);
-        });
-
-        return definition.handler(r -> {
-          return Groovy.chain(r, closures.getHandlers());
-        });
+        return doApp(b, staticCompile, baseDir, scriptFile);
       };
+    }
+
+    private static RatpackServer.Definition doApp(RatpackServer.Definition.Builder definition, boolean staticCompile, Path baseDir, Path scriptFile) throws Exception {
+      String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+
+      RatpackDslClosures closures = new FullRatpackDslCapture(staticCompile).apply(scriptFile, script);
+      definition.config(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.baseDir(baseDir), baseDir), closures.getConfig()));
+
+      definition.registry(r -> {
+        return Guice.registry(bindingsSpec -> {
+          bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
+          ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings());
+        }).apply(r);
+      });
+
+      return definition.handler(r -> {
+        return Groovy.chain(r, closures.getHandlers());
+      });
     }
 
     private static ServerConfig.Builder loadPropsIfPresent(ServerConfig.Builder serverConfigBuilder, Path baseDir) {

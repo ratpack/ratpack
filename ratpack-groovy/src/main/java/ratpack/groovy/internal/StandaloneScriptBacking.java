@@ -16,30 +16,19 @@
 
 package ratpack.groovy.internal;
 
-import com.google.common.base.StandardSystemProperty;
 import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
-import ratpack.api.Nullable;
-import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
-import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
+import ratpack.groovy.Groovy;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
-import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigs;
-import ratpack.launch.internal.DelegatingLaunchConfig;
-import ratpack.launch.internal.LaunchConfigsInternal;
 import ratpack.server.RatpackServer;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
   private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
-
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
@@ -48,37 +37,12 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   //TODO-JOHN
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
-
     Path scriptFile = ClosureUtil.findScript(closure);
-
-    Properties defaultProperties = new Properties();
-    Path baseDir;
-
     if (scriptFile == null) {
-      baseDir = new File(StandardSystemProperty.USER_DIR.value()).toPath();
-    } else {
-      baseDir = scriptFile.getParent();
+      throw new IllegalStateException("Could not find script file for closure: " + closure.toString());
     }
 
-    Properties properties = createProperties(scriptFile);
-
-    Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigs.CONFIG_RESOURCE_DEFAULT);
-    //TODO-JOHN
-    LaunchConfig launchConfig = LaunchConfigs.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
-
-    if (scriptFile == null) {
-      launchConfig = new DelegatingLaunchConfig(launchConfig) {
-        @Override
-        public HandlerFactory getHandlerFactory() {
-          return new GroovyClosureHandlerFactory(closure);
-        }
-      };
-    }
-
-    final LaunchConfig effectiveLaunchConfig = launchConfig;
-    RatpackServer server = RatpackServer.of(spec -> spec
-      .config(LaunchConfigsInternal.toServerConfig(effectiveLaunchConfig))
-      .handler(r -> effectiveLaunchConfig.getHandlerFactory().create(r)));
+    RatpackServer server = RatpackServer.of(Groovy.Script.app(scriptFile));
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {
@@ -86,29 +50,6 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
 
     server.start();
-
-    try {
-      while (server.isRunning() && !Thread.interrupted()) {
-        Thread.sleep(1000);
-      }
-    } catch (InterruptedException ignore) {
-      // do nothing
-    }
-
-    server.stop();
-  }
-
-  protected Properties createProperties(@Nullable Path scriptFile) {
-    Properties properties = LaunchConfigs.getDefaultPrefixedProperties();
-
-    properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
-    properties.setProperty(LaunchConfigs.Property.DEVELOPMENT, "true");
-
-    if (scriptFile != null) {
-      properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getFileName().toString());
-    }
-
-    return properties;
   }
 
 }

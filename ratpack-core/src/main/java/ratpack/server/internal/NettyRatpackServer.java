@@ -38,11 +38,13 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.handling.internal.FactoryHandler;
+import ratpack.launch.internal.DelegatingServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.*;
+import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
@@ -91,25 +93,19 @@ public class NettyRatpackServer implements RatpackServer {
 
     ServerConfig serverConfig;
 
-    DefinitionBuild definitionBuild;
-    try {
-      definitionBuild = buildUserDefinition();
-    } catch (Exception e) {
-      serverConfig = ServerConfig.noBaseDir().build();
-      if (!serverConfig.isDevelopment()) {
-        throw e;
+    DefinitionBuild definitionBuild = buildUserDefinition();
+    if (definitionBuild.error != null) {
+      if (definitionBuild.getServerConfig().isDevelopment()) {
+        LOGGER.warn("Exception raised getting server config, using default config for development", definitionBuild);
+        needsReload.set(true);
+      } else {
+        throw ExceptionUtils.toException(definitionBuild.error);
       }
-
-      LOGGER.warn("Exception raised getting server config, using default config for development", e);
-      definitionBuild = buildErrorPageDefinition(e, serverConfig);
-      needsReload.set(true);
     }
 
-    serverConfig = definitionBuild.definition.getServerConfig();
-
+    serverConfig = definitionBuild.getServerConfig();
     execController = new DefaultExecController(serverConfig.getThreads());
-
-    ChannelHandler channelHandler = buildHandler(definitionBuild, serverConfig);
+    ChannelHandler channelHandler = buildHandler(definitionBuild);
     channel = buildChannel(serverConfig, channelHandler);
 
     boundAddress = (InetSocketAddress) channel.localAddress();
@@ -119,29 +115,70 @@ public class NettyRatpackServer implements RatpackServer {
     }
   }
 
-  private static class DefinitionBuild {
+  private static class DefinitionBuild implements Definition {
+    private final ServerCapturer.Overrides overrides;
     private final Definition definition;
-    private final boolean inError;
+    private final Throwable error;
+    private final ServerConfig serverConfig;
+    private final Function<? super Registry, ? extends Registry> userRegistryFactory;
 
-    public DefinitionBuild(Definition definition, boolean inError) {
+    public DefinitionBuild(ServerCapturer.Overrides overrides, Definition definition, Throwable error) {
+      this.overrides = overrides;
       this.definition = definition;
-      this.inError = inError;
+      this.error = error;
+
+      Registry overridesRegistry = Registries.empty();
+
+      if (overrides.getPort() < 0) {
+        this.serverConfig = definition.getServerConfig();
+      } else {
+        this.serverConfig = new DelegatingServerConfig(definition.getServerConfig()) {
+          @Override
+          public int getPort() {
+            return overrides.getPort();
+          }
+        };
+        overridesRegistry = Registries.just(ServerConfig.class, serverConfig).join(overrides.getRegistry());
+      }
+
+      final Registry finalOverridesRegistry = overridesRegistry;
+      this.userRegistryFactory = r -> definition.getUserRegistryFactory().apply(r).join(finalOverridesRegistry);
+    }
+
+    public ServerCapturer.Overrides getOverrides() {
+      return overrides;
+    }
+
+    @Override
+    public ServerConfig getServerConfig() {
+      return serverConfig;
+    }
+
+    @Override
+    public Function<? super Registry, ? extends Registry> getUserRegistryFactory() {
+      return userRegistryFactory;
+    }
+
+    @Override
+    public Function<? super Registry, ? extends Handler> getHandlerFactory() {
+      return definition.getHandlerFactory();
     }
   }
 
-  protected DefinitionBuild buildErrorPageDefinition(Exception e, ServerConfig defaultServerConfig) {
-    return new DefinitionBuild(new DefaultServerDefinition(defaultServerConfig, r -> Registries.empty(), r -> ctx -> ctx.error(e)), true);
-  }
-
   protected DefinitionBuild buildUserDefinition() throws Exception {
-    return new DefinitionBuild(definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder()), false);
+    ServerCapturer.Overrides overrides = ServerCapturer.capture(this);
+    try {
+      return new DefinitionBuild(overrides, definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder()), null);
+    } catch (Exception e) {
+      return new DefinitionBuild(overrides, new DefaultServerDefinition(ServerConfig.noBaseDir().build(), r -> Registries.empty(), r -> ctx -> ctx.error(e)), e);
+    }
   }
 
-  private ChannelHandler buildHandler(DefinitionBuild definitionBuild, ServerConfig serverConfig) throws Exception {
-    if (serverConfig.isDevelopment()) {
-      return new ReloadHandler(definitionBuild, serverConfig);
+  private ChannelHandler buildHandler(DefinitionBuild definitionBuild) throws Exception {
+    if (definitionBuild.getServerConfig().isDevelopment()) {
+      return new ReloadHandler(definitionBuild);
     } else {
-      return buildAdapter(definitionBuild.definition, serverConfig);
+      return buildAdapter(definitionBuild);
     }
   }
 
@@ -182,17 +219,15 @@ public class NettyRatpackServer implements RatpackServer {
       .channel();
   }
 
-  protected NettyHandlerAdapter buildAdapter(Definition definition, ServerConfig serverConfig) throws Exception {
-    ServerCapturer.Overrides overrides = ServerCapturer.capture(this);
-    Registry definedServerRegistry = buildServerRegistry(serverConfig, definition.getUserRegistryFactory());
-    serverRegistry = definedServerRegistry.join(overrides.getRegistry());
+  protected NettyHandlerAdapter buildAdapter(DefinitionBuild definition) throws Exception {
+    serverRegistry = buildServerRegistry(definition.getServerConfig(), definition.getUserRegistryFactory());
 
-    Handler ratpackHandler = buildRatpackHandler(serverConfig, serverRegistry, definition.getHandlerFactory());
+    Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
     executeEvents(serverRegistry, StartEvent.build(serverRegistry, reloading), ServerLifecycleListener::onStart);
 
-    return new NettyHandlerAdapter(serverConfig, serverRegistry, ratpackHandler);
+    return new NettyHandlerAdapter(definition.getServerConfig(), serverRegistry, ratpackHandler);
   }
 
   private Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
@@ -285,16 +320,16 @@ public class NettyRatpackServer implements RatpackServer {
 
   @ChannelHandler.Sharable
   private class ReloadHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
-    private final ServerConfig serverConfig;
     private final Lock reloadLock = new ReentrantLock();
 
     private ChannelHandler inner;
 
-    public ReloadHandler(DefinitionBuild definition, ServerConfig serverConfig) {
+    public ReloadHandler(DefinitionBuild definition) {
       super(false);
       this.definitionBuild = definition;
-      this.serverConfig = serverConfig;
+      this.lastServerConfig = definitionBuild.getServerConfig();
     }
 
     @Override
@@ -303,7 +338,7 @@ public class NettyRatpackServer implements RatpackServer {
       try {
         boolean rebuild = false;
 
-        if (inner == null || definitionBuild.inError) {
+        if (inner == null || definitionBuild.error != null) {
           rebuild = true;
         } else {
           Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), ReloadInformant::shouldReload);
@@ -316,10 +351,11 @@ public class NettyRatpackServer implements RatpackServer {
         if (rebuild) {
           try {
             definitionBuild = buildUserDefinition();
-            inner = buildAdapter(definitionBuild.definition, serverConfig);
+            lastServerConfig = definitionBuild.getServerConfig();
+            inner = buildAdapter(definitionBuild);
             delegate(ctx, inner, msg);
           } catch (Exception e) {
-            delegate(ctx, new NettyHandlerAdapter(serverConfig, buildServerRegistry(serverConfig, (r) -> Registries.empty()), context -> context.error(e)), msg);
+            delegate(ctx, new NettyHandlerAdapter(lastServerConfig, buildServerRegistry(lastServerConfig, (r) -> Registries.empty()), context -> context.error(e)), msg);
           }
         } else {
           delegate(ctx, inner, msg);
