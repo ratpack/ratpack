@@ -34,7 +34,6 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     CAPTURE_ACTION.set(action);
   }
 
-  //TODO-JOHN
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
     Path scriptFile = ClosureUtil.findScript(closure);
