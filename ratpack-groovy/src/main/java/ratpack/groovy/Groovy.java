@@ -138,11 +138,11 @@ public abstract class Groovy {
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
     /**
-     * Registry the closure used to build the configuration of the application.
+     * Registers the closure used to build the configuration of the server.
      *
      * @param configurer The configuration closure, delegating to {@link ratpack.server.ServerConfig.Builder}
      */
-    void config(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void serverConfig(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
   }
 
@@ -270,8 +270,8 @@ public abstract class Groovy {
     }
 
     @Override
-    public void config(Closure<?> configurer) {
-      throw new IllegalStateException("config {} not supported for this script");
+    public void serverConfig(Closure<?> configurer) {
+      throw new IllegalStateException("serverConfig {} not supported for this script");
     }
   }
 
@@ -289,8 +289,8 @@ public abstract class Groovy {
     }
 
     @Override
-    public void config(Closure<?> configurer) {
-      throw new IllegalStateException("config {} not supported for this script");
+    public void serverConfig(Closure<?> configurer) {
+      throw new IllegalStateException("serverConfig {} not supported for this script");
     }
   }
 

@@ -23,7 +23,7 @@ class FullRatpackDslBacking implements Groovy.Ratpack {
 
   Closure<?> bindingsConfigurer;
   Closure<?> handlersConfigurer;
-  Closure<?> configConfigurer;
+  Closure<?> serverConfigConfigurer;
 
   public void bindings(Closure<?> bindingsConfigurer) {
     this.bindingsConfigurer = bindingsConfigurer;
@@ -33,12 +33,12 @@ class FullRatpackDslBacking implements Groovy.Ratpack {
     this.handlersConfigurer = handlersConfigurer;
   }
 
-  public void config(Closure<?> configConfigurer) {
-    this.configConfigurer = configConfigurer;
+  public void serverConfig(Closure<?> configConfigurer) {
+    this.serverConfigConfigurer = configConfigurer;
   }
 
   RatpackDslClosures getClosures() {
-    return new RatpackDslClosures(configConfigurer, handlersConfigurer, bindingsConfigurer);
+    return new RatpackDslClosures(serverConfigConfigurer, handlersConfigurer, bindingsConfigurer);
   }
 
 }

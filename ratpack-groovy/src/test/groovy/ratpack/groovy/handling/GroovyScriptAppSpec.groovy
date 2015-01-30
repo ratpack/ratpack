@@ -94,7 +94,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
-        config {
+        serverConfig {
           development true
         }
         handlers {
@@ -203,7 +203,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
         }
       }
       ratpack {
-        config {
+        serverConfig {
           development true
         }
         bindings {
@@ -236,7 +236,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
         }
       }
       ratpack {
-        config {
+        serverConfig {
           development true
         }
         bindings {
@@ -266,7 +266,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
         bindings {
           bind RequestCounter
         }
-        config {
+        serverConfig {
           development true
         }
         handlers {
@@ -288,7 +288,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
-        config {
+        serverConfig {
           development false
         }
         handlers {
@@ -305,7 +305,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
-        config {
+        serverConfig {
           development false
         }
         handlers {
@@ -345,7 +345,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       }
 
       ratpack {
-        config {
+        serverConfig {
           development false
         }
         bindings {

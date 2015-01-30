@@ -51,7 +51,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
-        config { development true }
+        serverConfig { development true }
         handlers {
           get {
             response.send "foo"
