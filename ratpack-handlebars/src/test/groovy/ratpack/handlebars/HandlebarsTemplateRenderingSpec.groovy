@@ -29,12 +29,14 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a handlebars template from #scenario'() {
     given:
-    serverConfig { other(otherConfig) }
     file filePath, '{{key}}'
 
     when:
     bindings {
-      add new HandlebarsModule(templatesPath: templatesPath)
+      add new HandlebarsModule(), { if(configPath) { it.templatesPath(configPath) } }
+      if (templatesPath) {
+        bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesPath(templatesPath))
+      }
     }
     handlers {
       get {
@@ -46,21 +48,23 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == 'it works!'
 
     where:
-    scenario             | templatesPath | filePath                | otherConfig
-    'default path'       | null          | 'handlebars/simple.hbs' | [:]
-    'path set in module' | 'custom'      | 'custom/simple.hbs'     | [:]
-    'path set in config' | null          | 'fromConfig/simple.hbs' | ['handlebars.templatesPath': "fromConfig"]
+    scenario             | templatesPath | filePath                | configPath
+    'default path'       | null          | 'handlebars/simple.hbs' | null
+    'path set in module' | 'custom'      | 'custom/simple.hbs'     | null
+    'path set in config' | null          | 'fromConfig/simple.hbs' | "fromConfig"
   }
 
   @Unroll
   void 'can configure loader suffix via #scenario'() {
     given:
-    serverConfig { other(otherConfig) }
     file('handlebars/simple.hbs', '{{this}}')
 
     when:
     bindings {
-      add new HandlebarsModule(templatesSuffix: templatesSuffix)
+      add new HandlebarsModule(), { if (configSuffix != null) { it.templatesSuffix(configSuffix) } }
+      if (templatesSuffix != null) {
+        bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesSuffix(templatesSuffix))
+      }
     }
     handlers {
       get {
@@ -72,9 +76,9 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == 'it works!'
 
     where:
-    scenario | templatesSuffix | otherConfig
-    'module' | ''              | [:]
-    'config' | null            | ['handlebars.templatesSuffix': '']
+    scenario | templatesSuffix | configSuffix
+    'module' | ''              | null
+    'config' | null            | ''
   }
 
   void 'missing templates are handled'() {
@@ -145,7 +149,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(reloadable: true)
+      add new HandlebarsModule(), { it.reloadable(true) }
     }
     handlers {
       get {
@@ -170,7 +174,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(reloadable: false)
+      add new HandlebarsModule(), { it.reloadable(false) }
     }
     handlers {
       get {
@@ -196,7 +200,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(reloadable: false, cacheSize: 20)
+      add new HandlebarsModule(), { it.reloadable(false).cacheSize(20) }
     }
     handlers {
       get('foo') {

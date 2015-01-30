@@ -21,11 +21,11 @@ import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import ratpack.file.FileSystemBinding;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
@@ -44,8 +44,7 @@ import ratpack.server.ServerConfig;
  * <p>
  * By default templates are looked up in the {@code handlebars} directory of the application root with a {@code .hbs} suffix.
  * So {@code handlebarsTemplate("my/template/path")} maps to {@code handlebars/my/template/path.hbs} in the application root directory.
- * This can be configured using {@link #setTemplatesPath(String)} and {@link #setTemplatesSuffix(String)} as well as
- * {@code other.handlebars.templatesPath} and {@code other.handlebars.templatesSuffix} configuration properties.
+ * This can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#templatesPath(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#templatesSuffix(String)}.
  * </p>
  * <p>
  * Response content type can be manually specified, i.e. {@code handlebarsTemplate("template", model, "text/html")} or can
@@ -85,49 +84,55 @@ import ratpack.server.ServerConfig;
  *
  * @see <a href="http://jknack.github.io/handlebars.java/" target="_blank">Handlebars.java</a>
  */
-public class HandlebarsModule extends AbstractModule {
+public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config> {
 
   private static final TypeToken<NamedHelper<?>> NAMED_HELPER_TYPE = new TypeToken<NamedHelper<?>>() {
   };
 
-  private String templatesPath;
+  public static class Config {
+    private String templatesPath = "handlebars";
 
-  private String templatesSuffix;
+    private String templatesSuffix = ".hbs";
 
-  private Integer cacheSize;
+    private int cacheSize = 100;
 
-  private Boolean reloadable;
+    private Boolean reloadable;
 
-  public String getTemplatesPath() {
-    return templatesPath;
-  }
+    public String getTemplatesPath() {
+      return templatesPath;
+    }
 
-  public void setTemplatesPath(String templatesPath) {
-    this.templatesPath = templatesPath;
-  }
+    public Config templatesPath(String templatesPath) {
+      this.templatesPath = templatesPath;
+      return this;
+    }
 
-  public String getTemplatesSuffix() {
-    return templatesSuffix;
-  }
+    public String getTemplatesSuffix() {
+      return templatesSuffix;
+    }
 
-  public void setTemplatesSuffix(String templatesSuffix) {
-    this.templatesSuffix = templatesSuffix;
-  }
+    public Config templatesSuffix(String templatesSuffix) {
+      this.templatesSuffix = templatesSuffix;
+      return this;
+    }
 
-  public int getCacheSize() {
-    return cacheSize;
-  }
+    public int getCacheSize() {
+      return cacheSize;
+    }
 
-  public void setCacheSize(int cacheSize) {
-    this.cacheSize = cacheSize;
-  }
+    public Config cacheSize(int cacheSize) {
+      this.cacheSize = cacheSize;
+      return this;
+    }
 
-  public boolean isReloadable() {
-    return reloadable;
-  }
+    public Boolean isReloadable() {
+      return reloadable;
+    }
 
-  public void setReloadable(boolean reloadable) {
-    this.reloadable = reloadable;
+    public Config reloadable(boolean reloadable) {
+      this.reloadable = reloadable;
+      return this;
+    }
   }
 
   @Override
@@ -138,20 +143,16 @@ public class HandlebarsModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  TemplateLoader provideTemplateLoader(ServerConfig serverConfig) {
-    String path = templatesPath == null ? serverConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
-    String suffix = templatesSuffix == null ? serverConfig.getOther("handlebars.templatesSuffix", ".hbs") : templatesSuffix;
-
-    FileSystemBinding templatesBinding = serverConfig.getBaseDir().binding(path);
-    return new FileSystemBindingTemplateLoader(templatesBinding, suffix);
+  TemplateLoader provideTemplateLoader(Config config, FileSystemBinding fileSystemBinding) {
+    FileSystemBinding templatesBinding = fileSystemBinding.binding(config.getTemplatesPath());
+    return new FileSystemBindingTemplateLoader(templatesBinding, config.getTemplatesSuffix());
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  TemplateCache provideTemplateCache(ServerConfig serverConfig) {
-    boolean reloadable = this.reloadable == null ? serverConfig.isDevelopment() : this.reloadable;
-    int cacheSize = this.cacheSize == null ? Integer.parseInt(serverConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
-    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build());
+  TemplateCache provideTemplateCache(Config config, ServerConfig serverConfig) {
+    boolean reloadable = config.isReloadable() == null ? serverConfig.isDevelopment() : config.isReloadable();
+    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(config.getCacheSize()).<TemplateKey, com.github.jknack.handlebars.Template>build());
   }
 
   @SuppressWarnings("UnusedDeclaration")
