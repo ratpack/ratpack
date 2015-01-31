@@ -16,6 +16,7 @@
 
 package ratpack.config.internal;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
@@ -31,19 +32,24 @@ public class DefaultConfigurationData implements ConfigurationData {
   private final ObjectMapper objectMapper;
   private final ObjectNode rootNode;
   private final ReloadInformant reloadInformant;
+  private final ObjectNode emptyNode;
 
   public DefaultConfigurationData(ObjectMapper objectMapper, ImmutableList<ConfigurationSource> configurationSources) {
     ConfigurationDataLoader loader = new ConfigurationDataLoader(objectMapper, configurationSources);
     this.objectMapper = objectMapper;
     this.rootNode = loader.load();
     this.reloadInformant = new ConfigurationDataReloadInformant(rootNode, loader);
+    this.emptyNode = objectMapper.getNodeFactory().objectNode();
   }
 
   @Override
   public <O> O get(String pointer, Class<O> type) {
-    ObjectNode curNode = pointer != null ? (ObjectNode) rootNode.at(pointer) : rootNode;
+    JsonNode node = pointer != null ? rootNode.at(pointer) : rootNode;
+    if (node.isMissingNode()) {
+      node = emptyNode;
+    }
     try {
-      return objectMapper.readValue(new TreeTraversingParser(curNode, objectMapper), type);
+      return objectMapper.readValue(new TreeTraversingParser(node, objectMapper), type);
     } catch (IOException ex) {
       throw ExceptionUtils.uncheck(ex);
     }
