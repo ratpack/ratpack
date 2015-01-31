@@ -16,43 +16,36 @@ import javax.inject.Singleton
 
 @Slf4j
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
-class SiteModule extends ConfigurableModule<Config> {
-
-  static class Config {
-    GitHubConfig github = new GitHubConfig()
-  }
+class SiteModule extends ConfigurableModule<GitHubConfig> {
 
   static class GitHubConfig {
     boolean enabled = true
     String auth
-    int ttl = 5
+    Integer ttl = 5
     String url = "https://api.github.com/"
   }
 
   @Override
   protected void configure() {
-//    bind(ClientErrorHandler).toInstance(new SiteErrorHandler())
-//    bind(ServerErrorHandler).toInstance(new SiteErrorHandler())
-
     bind(RatpackVersions)
   }
 
   @Provides
   @Singleton
-  GitHubApi gitHubApi(Config config, ObjectReader reader, HttpClient httpClient) {
-    String authToken = config.github.auth
+  GitHubApi gitHubApi(GitHubConfig config, ObjectReader reader, HttpClient httpClient) {
+    String authToken = config.auth
     if (authToken == null) {
       log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth property)"
     }
-    def ttlMinsInt = config.github.ttl
-    String url = config.github.url
+    def ttlMinsInt = config.ttl
+    String url = config.url
     new GitHubApi(url, authToken, ttlMinsInt, reader, httpClient)
   }
 
   @Provides
   @Singleton
-  GitHubData gitHubData(Config config, Provider<GitHubApi> apiProvider) {
-    config.github.enabled ? new ApiBackedGitHubData(apiProvider.get()) : new NullGitHubData()
+  GitHubData gitHubData(GitHubConfig config, Provider<GitHubApi> apiProvider) {
+    config.enabled ? new ApiBackedGitHubData(apiProvider.get()) : new NullGitHubData()
   }
 
   @Provides
@@ -64,7 +57,7 @@ class SiteModule extends ConfigurableModule<Config> {
   @Provides
   RenderableDecorator<MarkupTemplate> markupTemplateRenderableDecorator(AssetLinkService assetLinkService) {
     RenderableDecorator.of(MarkupTemplate) { c, t ->
-      new MarkupTemplate(t.name, t.contentType, t.model + [assets: assetLinkService])
+      new MarkupTemplate(t.name, t.contentType, [assets: assetLinkService].plus(t.model))
     }
   }
 
