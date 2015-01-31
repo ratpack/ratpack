@@ -46,7 +46,6 @@ import java.util.Properties;
  * import ratpack.func.Action;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
- * import ratpack.test.ServerBackedApplicationUnderTest;
  * import ratpack.test.http.TestHttpClient;
  *
  * import static org.junit.Assert.*;
@@ -68,10 +67,11 @@ import java.util.Properties;
  *         .config(configData.get(ServerConfig.class))
  *         .handler(registry ->
  *           (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
- *         ));
+ *         )
+ *       );
  *       server.start();
  *
- *       TestHttpClient httpClient = TestHttpClient.testHttpClient(new ServerBackedApplicationUnderTest(() -> server));
+ *       TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
  *       assertEquals("threads:7", httpClient.getText());
  *
  *       server.stop();

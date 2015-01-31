@@ -20,9 +20,12 @@ import com.google.common.collect.ImmutableMultimap;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
+import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
+import ratpack.test.ServerBackedApplicationUnderTest;
 import ratpack.test.http.internal.DefaultTestHttpClient;
 
 import java.util.List;
@@ -51,6 +54,14 @@ public interface TestHttpClient {
    */
   public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
     return new DefaultTestHttpClient(applicationUnderTest, Action.noopIfNull(requestConfigurer));
+  }
+
+  public static TestHttpClient testHttpClient(RatpackServer server) {
+    return testHttpClient(() -> server);
+  }
+
+  public static TestHttpClient testHttpClient(Factory<? extends RatpackServer> server) {
+    return new DefaultTestHttpClient(new ServerBackedApplicationUnderTest(server), Action.noop());
   }
 
   /**
