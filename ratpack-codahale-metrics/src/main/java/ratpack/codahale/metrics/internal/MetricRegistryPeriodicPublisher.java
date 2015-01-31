@@ -18,31 +18,20 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
+import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.exec.ExecController;
-import ratpack.func.Function;
-import ratpack.server.ServerConfig;
 import ratpack.stream.internal.PeriodicPublisher;
 
 import java.time.Duration;
 
 public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricRegistry> {
 
-  /**
-   * The default reporting interval.
-   */
-  private final static String DEFAULT_INTERVAL = "30";
-
   @Inject
-  public MetricRegistryPeriodicPublisher(final MetricRegistry metricRegistry, ServerConfig serverConfig, ExecController execController) {
+  public MetricRegistryPeriodicPublisher(final MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config, ExecController execController) {
     super(
       execController.getExecutor(),
-      new Function<Integer, MetricRegistry>() {
-        @Override
-        public MetricRegistry apply(Integer integer) throws Exception {
-          return metricRegistry;
-        }
-      },
-      Duration.ofSeconds(new Long(serverConfig.getOther("metrics.scheduledreporter.interval", DEFAULT_INTERVAL)))
+      i -> metricRegistry,
+      Duration.ofSeconds(config.getWebSocket().getReporterInterval())
     );
   }
 

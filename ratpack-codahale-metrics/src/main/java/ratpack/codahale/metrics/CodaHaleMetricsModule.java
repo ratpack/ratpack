@@ -24,18 +24,19 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
-import com.google.inject.name.Names;
 import ratpack.codahale.metrics.internal.*;
 import ratpack.func.Action;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
 
 import java.io.File;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
  * An extension module that provides support for Coda Hale's Metrics.
@@ -162,7 +163,7 @@ import java.io.File;
  * @see <a href="http://metrics.codahale.com/" target="_blank">Coda Hale's Metrics</a>
  * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
  */
-public class CodaHaleMetricsModule extends AbstractModule implements HandlerDecoratingModule {
+public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsModule.Config> implements HandlerDecoratingModule {
 
   public static final String RATPACK_METRIC_REGISTRY = "ratpack-metrics";
   private boolean reportMetricsToJmx;
@@ -172,6 +173,341 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   private boolean jvmMetricsEnabled;
   private boolean reportMetricsToWebsocket;
   private boolean metricsEnabled;
+
+  public static class Config {
+    public static final long DEFAULT_INTERVAL = 30;
+
+    private boolean enabled;
+    private boolean healthChecks;
+    private boolean jvmMetrics;
+
+    private Jmx jmx = new Jmx();
+    private Console console = new Console();
+    private WebSocket webSocket = new WebSocket();
+    private Csv csv = new Csv();
+
+    public boolean isMetricsEnabled() {
+      return isEnabled() || isJvmMetrics() || console.isEnabled() || webSocket.isEnabled() || jmx.isEnabled() || csv.isEnabled();
+    }
+
+    /**
+     * The state of metric collection.
+     *
+     * @return True if metrics collection is enabled. False otherwise
+     */
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    /**
+     * Enables the collection of metrics.
+     *
+     * @return this
+     * @see <a href="http://metrics.codahale.com/getting-started/" target="_blank">Coda Hale Metrics - Getting Started</a>
+     */
+    public Config enabled(boolean enabled) {
+      this.enabled = enabled;
+      return this;
+    }
+
+    /**
+     * The state of health checks.
+     *
+     * @return True if health checks are enabled. False otherwise
+     */
+    public boolean isHealthChecks() {
+      return healthChecks;
+    }
+
+    /**
+     * Set if health checks are registered.
+     * @param healthChecks True if health checks are to be register. False otherwise
+     * @return this
+     */
+    public Config healthChecks(boolean healthChecks) {
+      this.healthChecks = healthChecks;
+      return this;
+    }
+
+    /**
+     * The state of jvm metrics collection.
+     *
+     * @return True if jvm metrics collection is enabled. False otherwise
+     */
+    public boolean isJvmMetrics() {
+      return jvmMetrics;
+    }
+
+    /**
+     * The state of JVM metrics reporting.
+     * @param jvmMetrics True is JVM metrics are report. False otherwise
+     * @return this
+     */
+    public Config jvmMetrics(boolean jvmMetrics) {
+      this.jvmMetrics = jvmMetrics;
+      return this;
+    }
+
+    /**
+     * Get the settings for the JMX metrics publisher.
+     * @return the jmx publisher settings
+     */
+    public Jmx getJmx() {
+      return jmx;
+    }
+
+    /**
+     * Configure the JMX metrics publisher.
+     *
+     * @param configure the configuration for the publisher
+     * @return this
+     */
+    public Config jmx(Action<Jmx> configure) {
+      try {
+        configure.execute(jmx);
+        return this;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+    /**
+     * Get the settings for the console metrics publisher.
+     * @return the console publisher settings
+     */
+    public Console getConsole() {
+      return console;
+    }
+
+    /**
+     * Configure the console metrics publisher.
+     *
+     * @param configure the configuration for the publisher
+     * @return this
+     */
+    public Config console(Action<Console> configure) {
+      try {
+        configure.execute(console);
+        return this;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+    /**
+     * Get the settings for the websockets metrics broadcaster.
+     * @return the websockets broadcaster settings
+     */
+    public WebSocket getWebSocket() {
+      return webSocket;
+    }
+
+    /**
+     * Configure the websockets metrics broadcaster.
+     *
+     * @param configure the configuration for the broadcaster
+     * @return this
+     */
+    public Config webSocket(Action<WebSocket> configure) {
+      try {
+        configure.execute(webSocket);
+        return this;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+    /**
+     * Get the settings for the csv metrics publisher.
+     * @return the csv publisher settings
+     */
+    public Csv getCsv() {
+      return csv;
+    }
+
+    /**
+     * Configure the csv metrics publisher.
+     *
+     * @param configure the configuration for the publisher
+     * @return this
+     */
+    public Config csv(Action<Csv> configure) {
+      try {
+        configure.execute(csv);
+        return this;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+    public static class Jmx {
+      public boolean enabled;
+
+      /**
+       * The state of the JMX publisher.
+       * @return the state of the JMX publisher
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the JMX publisher.
+       * @param enabled True if metrics are published to JMX. False otherwise
+       * @return this
+       */
+      public Jmx enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
+    }
+
+    public static class Console {
+      public boolean enabled;
+      private long reporterInterval = DEFAULT_INTERVAL;
+
+      /**
+       * The state of the console publisher.
+       * @return the state of the console publisher
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the console publisher.
+       * @param enabled True if metrics are published to the console. False otherwise
+       * @return this
+       */
+      public Console enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
+
+      /**
+       * The interval in seconds between metrics reports.
+       * @return the interval in seconds between metrics reports
+       */
+      public long getReporterInterval() {
+        return reporterInterval;
+      }
+
+      /**
+       * Configure the number of seconds between metrics reports.
+       *
+       * @param reporterInterval the report interval in seconds
+       * @return this
+       */
+      public Console reporterInterval(long reporterInterval) {
+        this.reporterInterval = reporterInterval;
+        return this;
+      }
+    }
+
+    public static class WebSocket {
+      public boolean enabled;
+      private long reporterInterval = DEFAULT_INTERVAL;
+
+      /**
+       * The state of the websocket broadcaster.
+       * @return the state of the websocket broadcaster
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the websocket broadcaster.
+       * @param enabled True if metrics are published to the websocket handler. False otherwise
+       * @return this
+       */
+      public WebSocket enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
+
+      /**
+       * The interval in seconds between metrics reports.
+       * @return the interval in seconds between metrics reports
+       */
+      public long getReporterInterval() {
+        return reporterInterval;
+      }
+
+      /**
+       * Configure the number of seconds between broadcasts.
+       *
+       * @param reporterInterval the report interval in seconds
+       * @return this
+       */
+      public WebSocket reporterInterval(long reporterInterval) {
+        this.reporterInterval = reporterInterval;
+        return this;
+      }
+    }
+
+    public static class Csv {
+      public boolean enabled;
+      private long reporterInterval = DEFAULT_INTERVAL;
+      private File reportDirectory;
+
+      /**
+       * The state of the csv publisher.
+       * @return True if published is enabled and report directory is specified. False otherwise
+       */
+      public boolean isEnabled() {
+        return enabled && reportDirectory != null;
+      }
+
+      /**
+       * Set the state of the csv publisher.
+       * @param enabled True if metrics are published a csv file. False otherwise
+       * @return this
+       */
+      public Csv enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
+
+      /**
+       * The interval in seconds between metrics reports.
+       * @return the interval in seconds between metrics reports
+       */
+      public long getReporterInterval() {
+        return reporterInterval;
+      }
+
+      /**
+       * Configure the number of seconds between metrics reports.
+       *
+       * @param reporterInterval the report interval in seconds
+       * @return this
+       */
+      public Csv reporterInterval(long reporterInterval) {
+        this.reporterInterval = reporterInterval;
+        return this;
+      }
+
+      /**
+       * The directory to output CSV metrics reports to.
+       * @return the output directory
+       */
+      public File getReportDirectory() {
+        return reportDirectory;
+      }
+
+      /**
+       * Configure the output directory for csv metrics reports.
+       * @param reportDirectory The directory to place csv metrics reports
+       * @return this
+       */
+      public Csv reportDirectory(File reportDirectory) {
+        this.reportDirectory = reportDirectory;
+        return this;
+      }
+    }
+
+  }
 
   private boolean isMetricsEnabled() {
     return metricsEnabled || jvmMetricsEnabled || reportMetricsToConsole || reportMetricsToWebsocket || reportMetricsToJmx || csvReportDirectory != null;
@@ -203,10 +539,11 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
         bind(ConsoleReporter.class).toProvider(ConsoleReporterProvider.class).asEagerSingleton();
       }
 
-      if (csvReportDirectory != null) {
-        bind(File.class).annotatedWith(Names.named(CsvReporterProvider.CSV_REPORT_DIRECTORY)).toInstance(csvReportDirectory);
-        bind(CsvReporter.class).toProvider(CsvReporterProvider.class).asEagerSingleton();
-      }
+      //TODO commented this out while converting to config backed
+//      if (csvReportDirectory != null) {
+//        bind(File.class).annotatedWith(Names.named(CsvReporterProvider.CSV_REPORT_DIRECTORY)).toInstance(csvReportDirectory);
+//        bind(CsvReporter.class).toProvider(CsvReporterProvider.class).asEagerSingleton();
+//      }
 
       if (reportMetricsToWebsocket) {
         bind(MetricRegistryPeriodicPublisher.class).in(Singleton.class);

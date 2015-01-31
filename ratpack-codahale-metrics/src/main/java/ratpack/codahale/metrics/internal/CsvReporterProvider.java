@@ -19,11 +19,9 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
-import ratpack.server.ServerConfig;
+import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,24 +29,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class CsvReporterProvider implements Provider<CsvReporter> {
 
-  public static final String CSV_REPORT_DIRECTORY = "ratpack.codahale.metrics.internal.CsvReporterProvider.csvReportDirectory";
-
   private final MetricRegistry metricRegistry;
-  private final File csvReportDirectory;
-  private final ServerConfig serverConfig;
+  private final CodaHaleMetricsModule.Config config;
 
   @Inject
-  public CsvReporterProvider(MetricRegistry metricRegistry, @Named(CsvReporterProvider.CSV_REPORT_DIRECTORY) File csvReportDirectory, ServerConfig serverConfig) {
+  public CsvReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
     this.metricRegistry = metricRegistry;
-    this.csvReportDirectory = csvReportDirectory;
-    this.serverConfig = serverConfig;
+    this.config = config;
   }
 
   @Override
   public CsvReporter get() {
-    CsvReporter reporter = CsvReporter.forRegistry(metricRegistry).build(csvReportDirectory);
-    String interval = serverConfig.getOther("metrics.scheduledreporter.interval", "30");
-    reporter.start(Long.parseLong(interval), TimeUnit.SECONDS);
+    CsvReporter reporter = CsvReporter.forRegistry(metricRegistry).build(config.getCsv().getReportDirectory());
+    if (config.getCsv().isEnabled()) {
+      reporter.start(config.getCsv().getReporterInterval(), TimeUnit.SECONDS);
+    }
     return reporter;
   }
 }
