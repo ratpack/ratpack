@@ -32,13 +32,18 @@ import ratpack.server.ServerLifecycleListener
 import ratpack.server.StartEvent
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressWarnings(["MethodName"])
 class ConfigurationsSpec extends Specification {
+  @SuppressWarnings("GroovyUnusedDeclaration")
+  PollingConditions polling = new PollingConditions()
+
   @Rule
   TemporaryFolder temporaryFolder
 
@@ -98,7 +103,7 @@ class ConfigurationsSpec extends Specification {
         .registryOf { RegistrySpec registrySpec ->
           registrySpec.add(ServerLifecycleListener, listener)
           registrySpec.add(MyAppConfig, configData.get(MyAppConfig))
-          registrySpec.add(ReloadInformant, configData.getReloadInformant())
+          registrySpec.add(ReloadInformant, configData.reloadInformant.interval(Duration.ofSeconds(1)))
         }
         .handler {
           return { Context context ->
@@ -116,9 +121,11 @@ class ConfigurationsSpec extends Specification {
     when: "the config changes"
     props.setProperty("name", "Ratpack!")
     propsFile.withOutputStream { props.store(it, null) }
-    then: "the next request results in a reload"
-    client.text == "Hi, my name is Ratpack!"
-    listener.count.get() == 2
+    then: "a subsequent request results in a reload"
+    polling.within(2) {
+      client.text == "Hi, my name is Ratpack!"
+      listener.count.get() == 2
+    }
 
     when: "the config doesn't change"
     then: "requests don't result in a reload"
