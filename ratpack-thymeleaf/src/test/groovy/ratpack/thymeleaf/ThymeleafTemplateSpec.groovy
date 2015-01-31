@@ -22,7 +22,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.thymeleafTemplate
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 
 class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
@@ -74,12 +74,11 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'use default suffix if a #scenario suffix is used'() {
     given:
-    serverConfig { other(otherConfig) }
     file 'thymeleaf/simple.html', '<span th:text="${text}"/>'
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix)
+      add new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
     }
     handlers {
       get {
@@ -91,10 +90,10 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<span>it works!</span>'
 
     where:
-    scenario              | templatesSuffix | otherConfig
-    'empty'               | ''              | [:]
-    'null'                | null            | [:]
-    'empty (from config)' | null            | ['thymeleaf.templatesSuffix': '']
+    scenario              | templatesSuffix | configTemplatesSuffix
+    'empty'               | ''              | null
+    'null'                | null            | null
+    'empty (from config)' | null            | ''
   }
 
   void 'can handle abitrary suffixes'() {
