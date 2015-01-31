@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch.internal
+package ratpack.groovy.internal
 
+import ratpack.groovy.internal.GroovyVersionCheck
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch.internal;
+package ratpack.groovy.internal;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;

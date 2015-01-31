@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch;
+package ratpack.groovy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.groovy.Groovy;
 import ratpack.server.RatpackServer;
-
-import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
  * The standard “main” entry point for Groovy script based apps.
  */
-public class GroovyRatpackMain  {
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(GroovyRatpackMain.class);
-
-  public static void main(String[] args) {
-    try {
-      RatpackServer.of(Groovy.Script.app()).start();
-    } catch (Exception e) {
-      LOGGER.error("", e);
-      throw uncheck(e);
-    }
+public class GroovyRatpackMain {
+  public static void main(String... args) throws Exception {
+    RatpackServer.start(Groovy.Script.app());
   }
 }

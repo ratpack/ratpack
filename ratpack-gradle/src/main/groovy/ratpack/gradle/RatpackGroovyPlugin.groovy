@@ -27,7 +27,7 @@ class RatpackGroovyPlugin implements Plugin<Project> {
     project.plugins.apply(RatpackPlugin)
     project.plugins.apply(GroovyPlugin)
 
-    project.mainClassName = "ratpack.groovy.launch.GroovyRatpackMain"
+    project.mainClassName = "ratpack.groovy.GroovyRatpackMain"
 
     def ratpackDependencies = new RatpackDependencies(project.dependencies)
 

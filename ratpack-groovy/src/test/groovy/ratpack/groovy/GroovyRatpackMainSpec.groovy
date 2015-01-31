@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch
+package ratpack.groovy
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder

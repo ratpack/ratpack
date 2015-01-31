@@ -106,7 +106,7 @@ Once you have a compiled Ratpack application in the Heroku environment (either t
 you can simply start the application by using `java` directly.
 
 ```language-bash
-web: java ratpack.groovy.launch.GroovyRatpackMain
+web: java ratpack.groovy.GroovyRatpackMain
 ```
 
 See the [launching chapter](launching.html) chapter for more detail on starting Ratpack applications.

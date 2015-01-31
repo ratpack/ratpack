@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import ratpack.func.Action;
 import ratpack.groovy.Groovy;
-import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.server.RatpackServer;
 
 import java.nio.file.Path;
