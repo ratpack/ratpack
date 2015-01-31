@@ -50,7 +50,7 @@ class YamlConfigurationSpec extends BaseConfigurationSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = Configurations.config().yaml(configFile).build().get(ServerConfig)
+    def serverConfig = ConfigurationData.of().yaml(configFile).build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir

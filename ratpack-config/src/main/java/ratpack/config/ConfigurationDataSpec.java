@@ -42,7 +42,6 @@ import java.util.Properties;
  * import java.nio.file.Files;
  * import java.nio.file.Path;
  * import ratpack.config.ConfigurationData;
- * import ratpack.config.Configurations;
  * import ratpack.func.Action;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
@@ -56,15 +55,15 @@ import java.util.Properties;
  *     Files.delete(jsonFile);
  *     Path yamlFile = Files.createTempFile("mandatoryConfig", ".yaml");
  *     try {
- *       Files.write(yamlFile, "threads: 7".getBytes());
+ *       Files.write(yamlFile, "server:\n  threads: 7".getBytes());
  *
- *       ConfigurationData configData = Configurations.config()
+ *       ConfigurationData config = ConfigurationData.of(c -> c
  *         .onError(Action.noop()).json(jsonFile)
  *         .onError(Action.throwException()).yaml(yamlFile)
- *         .build();
+ *       );
  *
  *       RatpackServer server = RatpackServer.of(spec -> spec
- *         .config(configData.get(ServerConfig.class))
+ *         .config(config.getServerConfig())
  *         .handler(registry ->
  *           (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
  *         )

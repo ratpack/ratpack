@@ -50,7 +50,7 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = Configurations.config().props(configFile).build().get(ServerConfig)
+    def serverConfig = ConfigurationData.of().props(configFile).build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir

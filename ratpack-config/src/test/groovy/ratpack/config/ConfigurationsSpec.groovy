@@ -57,7 +57,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     def server = RatpackServer.of {
-      def configData = Configurations.config().props(propsFile).build()
+      def configData = ConfigurationData.of().props(propsFile).build()
       it.config(configData.get("/server", ServerConfig))
         .registryOf {
           it.add(MyAppConfig, configData.get("/app", MyAppConfig))
@@ -98,7 +98,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     def server = RatpackServer.of {
-      def configData = Configurations.config().props(propsFile).build()
+      def configData = ConfigurationData.of().props(propsFile).build()
       it.config(ServerConfig.embedded())
         .registryOf { RegistrySpec registrySpec ->
           registrySpec.add(ServerLifecycleListener, listener)
@@ -142,7 +142,7 @@ class ConfigurationsSpec extends Specification {
     |""".stripMargin()
 
     when:
-    def configData = Configurations.config().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def configData = ConfigurationData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
     def config = configData.get(MyAppConfig)
 
     then:
@@ -157,7 +157,7 @@ class ConfigurationsSpec extends Specification {
     |""".stripMargin()
 
     when:
-    def configData = Configurations.config().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def configData = ConfigurationData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
     def appConfig = configData.get(MyAppConfig)
     def serverConfig = configData.get(ServerConfig)
     def serviceConfig = configData.get(ServiceConfig)
@@ -172,7 +172,7 @@ class ConfigurationsSpec extends Specification {
     def yamlFile = temporaryFolder.newFolder().toPath().resolve("config.yaml")
 
     when:
-    Configurations.config().yaml(yamlFile).props([port: "8080"]) build()
+    ConfigurationData.of().yaml(yamlFile).props([port: "8080"]) build()
 
     then:
     def ex = thrown(UncheckedException)
@@ -185,7 +185,7 @@ class ConfigurationsSpec extends Specification {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    def configData = Configurations.config().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
+    def configData = ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
     def serverConfig = configData.get(ServerConfig)
 
     then:
@@ -199,7 +199,7 @@ class ConfigurationsSpec extends Specification {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
 
     then:
     def ex = thrown(UncheckedException)
@@ -207,7 +207,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     jsonFile.text = '{"threads":7}'
-    def configData = Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    def configData = ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
     def serverConfig = configData.get(ServerConfig)
 
     then:
@@ -217,7 +217,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     yamlFile.text = 'publicAddress: http://example.com'
-    configData = Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    configData = ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
     serverConfig = configData.get(ServerConfig)
 
     then:
@@ -228,7 +228,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     Files.delete(jsonFile)
-    Configurations.config().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
 
     then:
     ex = thrown(UncheckedException)

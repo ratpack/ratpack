@@ -24,7 +24,7 @@ import ratpack.server.ServerEnvironment
 class ConfigurationUsageSpec extends BaseConfigurationSpec {
   def "properly loads ServerConfig defaults"() {
     when:
-    def serverConfig = Configurations.config().build().get(ServerConfig)
+    def serverConfig = ConfigurationData.of().build().get(ServerConfig)
 
     then:
     !serverConfig.hasBaseDir
@@ -75,7 +75,7 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     |    jdbcUrl: "jdbc:h2:mem:"
     |""".stripMargin()
     when:
-    def config = Configurations.config().yaml(yamlFile).build()
+    def config = ConfigurationData.of().yaml(yamlFile).build()
     def serverConfig = config.get("/server", ServerConfig)
     def dbConfig = config.get("/db", TestDatabaseConfig)
 

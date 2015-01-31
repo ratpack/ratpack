@@ -49,7 +49,7 @@ class JsonConfigurationSpec extends BaseConfigurationSpec {
 """
 
         when:
-        def serverConfig = Configurations.config().json(configFile).build().get(ServerConfig)
+        def serverConfig = ConfigurationData.of().json(configFile).build().get(ServerConfig)
 
         then:
         serverConfig.hasBaseDir
