@@ -16,7 +16,10 @@
 
 package ratpack.server
 
+import ratpack.ssl.SSLContexts
 import spock.lang.Specification
+
+import javax.net.ssl.SSLContext
 
 class ServerConfigBuilderSpec extends Specification {
 
@@ -197,5 +200,17 @@ class ServerConfigBuilderSpec extends Specification {
 
     then:
     indexFiles == ['home.html', 'index.html'] as Set
+  }
+
+  def "set ssl context"() {
+    given:
+    SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/launch/internal/keystore.jks'), 'password')
+
+    when:
+    SSLContext sslContext = builder.ssl(context).build().SSLContext
+
+    then:
+    sslContext
+
   }
 }

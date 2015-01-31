@@ -19,6 +19,8 @@ package ratpack.server
 import ratpack.server.internal.DefaultServerConfigBuilder
 import spock.lang.Specification
 
+import javax.net.ssl.SSLContext
+
 class ServerConfigBuilderEnvVarsSpec extends Specification {
 
   ServerConfig.Builder builder
@@ -287,5 +289,20 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
 
     then:
     config.indexFiles == ['home.html', 'index.html']
+  }
+
+  def "set ssl context"() {
+    given:
+    String keystoreFile = 'ratpack/launch/internal/keystore.jks'
+    String keystorePassword = 'password'
+    source['RATPACK_SSL_KEYSTORE_FILE'] = keystoreFile
+    source['RATPACK_SSL_KEYSTORE_PASSWORD'] = keystorePassword
+
+    when:
+    SSLContext sslContext = builder.env().build().SSLContext
+
+    then:
+    sslContext
+
   }
 }

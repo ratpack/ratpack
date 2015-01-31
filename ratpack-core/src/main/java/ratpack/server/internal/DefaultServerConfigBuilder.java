@@ -30,16 +30,18 @@ import ratpack.func.Action;
 import ratpack.func.Predicate;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
+import ratpack.ssl.SSLContexts;
 import ratpack.util.internal.Paths2;
 
 import javax.net.ssl.SSLContext;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,6 +68,10 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   private long compressionMinSize = ServerConfig.DEFAULT_COMPRESSION_MIN_SIZE;
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
+
+  //Variables to support configuring SSL
+  private InputStream sslKeystore;
+  private String sslKeystorePassword = "";
 
   private DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Optional<Path> baseDir) {
     if (baseDir.isPresent()) {
@@ -208,6 +214,7 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
 
   @Override
   public ServerConfig build() {
+    loadSSLIfConfigured();
     return new DefaultServerConfig(baseDir, port, address, development, threads,
       publicAddress, indexFiles.build(), other.build(), sslContext, maxContentLength,
       timeResponses, compressResponses, compressionMinSize,
@@ -297,6 +304,26 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
     return props(filteredProperties);
   }
 
+  private ServerConfig.Builder sslKeystore(InputStream is) {
+    sslKeystore = is;
+    return this;
+  }
+
+  private ServerConfig.Builder sslKeystorePassword(String password) {
+    this.sslKeystorePassword = password;
+    return this;
+  }
+
+  private void loadSSLIfConfigured() {
+    if (sslKeystore != null) {
+      try (InputStream stream = sslKeystore) {
+        this.ssl(SSLContexts.sslContext(stream, sslKeystorePassword));
+      } catch (IOException | GeneralSecurityException e) {
+        throw uncheck(e);
+      }
+    }
+  }
+
   private static <E> Stream<E> filter(Collection<E> collection, Predicate<E> predicate) {
     return collection.stream().filter(predicate.toPredicate());
   }
@@ -322,6 +349,45 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
     return Arrays.stream(s.split(",")).map(String::trim).toArray(String[]::new);
   }
 
+  /**
+   * Gets a property value as an InputStream. The property value can be any of:
+   * <ul>
+   *   <li>An absolute file path to a file that exists.</li>
+   *   <li>A valid URI.</li>
+   *   <li>A classpath resource path loaded via the ClassLoader passed to the constructor.</li>
+   * </ul>
+   *
+   * @param path the path to the resource
+   * @return an InputStream or <code>null</code> if the property does not exist.
+   */
+  private static InputStream asStream(String path) {
+    try {
+      InputStream stream = null;
+      if (path != null) {
+        // try to treat it as a File path
+        File file = new File(path);
+        if (file.isFile()) {
+          stream = new FileInputStream(file);
+        } else {
+          // try to treat it as a URL
+          try {
+            URL url = new URL(path);
+            stream = url.openStream();
+          } catch (MalformedURLException e) {
+            // try to treat it as a resource path
+            stream = DefaultServerConfigBuilder.class.getClassLoader().getResourceAsStream(path);
+            if (stream == null) {
+              throw new FileNotFoundException(path);
+            }
+          }
+        }
+      }
+      return stream;
+    } catch (IOException e) {
+      throw uncheck(e);
+    }
+  }
+
   private static InetAddress inetAddress(String s) {
     return uncheck(() -> InetAddress.getByName(s));
   }
@@ -340,7 +406,8 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
       .put("compressionWhiteListMimeTypes", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::compressionWhiteListMimeTypes))
       .put("compressionBlackListMimeTypes", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::compressionBlackListMimeTypes))
       .put("indexFiles", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::indexFiles))
-        //TODO-JOHN add support for SSLContext somehow
+      .put("sslKeystoreFile", new BuilderAction<>(DefaultServerConfigBuilder::asStream, DefaultServerConfigBuilder.this::sslKeystore))
+      .put("sslKeystorePassword", new BuilderAction<>(Function.identity(), DefaultServerConfigBuilder.this::sslKeystorePassword))
       .build();
   }
 }
