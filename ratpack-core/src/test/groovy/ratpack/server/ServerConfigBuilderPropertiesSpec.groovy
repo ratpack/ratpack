@@ -104,4 +104,17 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
     then:
     config.port == 5060
   }
+
+  def "set index files"() {
+    given:
+    def file = tempFolder.newFile('test.properties')
+    file << 'indexFiles=home.html,index.html'
+    def url = file.toURI().toURL()
+
+    when:
+    def config = builder.props(url).build()
+
+    then:
+    config.indexFiles == ['home.html', 'index.html']
+  }
 }
