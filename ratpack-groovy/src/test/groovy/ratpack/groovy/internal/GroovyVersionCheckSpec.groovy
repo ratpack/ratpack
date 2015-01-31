@@ -16,7 +16,6 @@
 
 package ratpack.groovy.internal
 
-import ratpack.groovy.internal.GroovyVersionCheck
 import spock.lang.Specification
 import spock.lang.Unroll
 
