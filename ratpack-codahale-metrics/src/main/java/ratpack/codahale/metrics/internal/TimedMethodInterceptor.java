@@ -19,10 +19,10 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.annotation.Timed;
-import com.google.inject.Inject;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import javax.inject.Inject;
 import java.lang.reflect.Method;
 
 /**

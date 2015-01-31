@@ -24,12 +24,13 @@ import ratpack.render.RendererSupport
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Inject
+import javax.inject.Singleton
 
 import static ratpack.jackson.Jackson.json
 
 class HealthchecksSpec extends RatpackGroovyDslSpec {
 
-  @com.google.inject.Singleton
+  @Singleton
   static class SomeResource {
     boolean ok
   }
@@ -64,7 +65,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can register healthcheck"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule().healthChecks()
+      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
       bind MyHealthCheck
     }
     handlers { HealthCheckRegistry healthChecks ->
@@ -90,7 +91,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can use healthcheck endpoint"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule().healthChecks()
+      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
       bind MyHealthCheck
       bind FooHealthCheck
     }
@@ -106,7 +107,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "non existent health check returns 404"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule().healthChecks()
+      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
       bind MyHealthCheck
       bind FooHealthCheck
     }
@@ -136,7 +137,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can use healthcheck endpoint with custom renderer"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule().healthChecks()
+      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
       add JacksonModule, { it.prettyPrint(false) }
       bind MyHealthCheck
       bind FooHealthCheck

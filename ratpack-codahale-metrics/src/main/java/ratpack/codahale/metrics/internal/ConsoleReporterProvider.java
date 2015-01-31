@@ -18,32 +18,24 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Provider;
-import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
 import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
+import javax.inject.Provider;
 
 /**
  * A Provider implementation that sets up a {@link ConsoleReporter} for a {@link MetricRegistry}.
  */
 public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
   private final MetricRegistry metricRegistry;
-  private final CodaHaleMetricsModule.Config config;
 
   @Inject
-  public ConsoleReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
+  public ConsoleReporterProvider(MetricRegistry metricRegistry) {
     this.metricRegistry = metricRegistry;
-    this.config = config;
   }
 
   @Override
   public ConsoleReporter get() {
-    ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build();
-    if (config.getConsole().isEnabled()) {
-      reporter.start(config.getConsole().getReporterInterval(), TimeUnit.SECONDS);
-    }
-    return reporter;
+    return ConsoleReporter.forRegistry(metricRegistry).build();
   }
 }
 

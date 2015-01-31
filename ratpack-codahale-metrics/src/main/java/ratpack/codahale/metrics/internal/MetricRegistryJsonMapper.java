@@ -19,7 +19,6 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.*;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -27,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Function;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;

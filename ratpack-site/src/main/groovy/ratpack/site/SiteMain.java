@@ -50,7 +50,7 @@ public class SiteMain {
                 .add(JacksonModule.class)
                 .add(RemoteControlModule.class)
                 .add(NewRelicModule.class)
-                .add(new CodaHaleMetricsModule().metrics())
+                .add(new CodaHaleMetricsModule(), config -> config.enable(true))
                 .add(new SiteModule(s.getServerConfig()))
                 .add(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);

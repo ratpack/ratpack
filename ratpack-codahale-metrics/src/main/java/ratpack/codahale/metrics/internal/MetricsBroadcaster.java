@@ -17,7 +17,8 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Inject;
+
+import javax.inject.Inject;
 
 /**
  * A message broadcaster for sending metrics to its subscribers.

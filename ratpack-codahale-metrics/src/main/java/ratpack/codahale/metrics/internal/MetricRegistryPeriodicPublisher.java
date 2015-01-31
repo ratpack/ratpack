@@ -17,12 +17,11 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Inject;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.exec.ExecController;
 import ratpack.stream.internal.PeriodicPublisher;
 
-import java.time.Duration;
+import javax.inject.Inject;
 
 public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricRegistry> {
 
@@ -31,7 +30,7 @@ public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricReg
     super(
       execController.getExecutor(),
       i -> metricRegistry,
-      Duration.ofSeconds(config.getWebSocket().getReporterInterval())
+      config.getWebSocket().getReporterInterval()
     );
   }
 

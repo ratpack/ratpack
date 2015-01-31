@@ -18,31 +18,24 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Provider;
-import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
  * A Provider implementation that sets up a {@link JmxReporter} for a {@link MetricRegistry}.
  */
 public class JmxReporterProvider implements Provider<JmxReporter> {
   private final MetricRegistry metricRegistry;
-  private final CodaHaleMetricsModule.Config config;
 
   @Inject
-  public JmxReporterProvider(CodaHaleMetricsModule.Config config, MetricRegistry metricRegistry) {
-    this.config = config;
+  public JmxReporterProvider(MetricRegistry metricRegistry) {
     this.metricRegistry = metricRegistry;
   }
 
   @Override
   public JmxReporter get() {
-    JmxReporter reporter = JmxReporter.forRegistry(metricRegistry).build();
-    if (config.getJmx().isEnabled()) {
-      reporter.start();
-    }
-    return reporter;
+    return JmxReporter.forRegistry(metricRegistry).build();
   }
 }
 

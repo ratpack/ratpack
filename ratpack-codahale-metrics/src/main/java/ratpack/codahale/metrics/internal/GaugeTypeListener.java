@@ -22,10 +22,11 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
-
-import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.lang.reflect.Method;
 
 /**
  * An implementation of TypeListener that collects {@link com.codahale.metrics.Gauge} metrics for any valid method
@@ -36,11 +37,9 @@ import org.slf4j.LoggerFactory;
 public class GaugeTypeListener implements TypeListener {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(GaugeTypeListener.class);
-  private final MetricRegistry metricRegistry;
 
-  public GaugeTypeListener(MetricRegistry metricRegistry) {
-    this.metricRegistry = metricRegistry;
-  }
+  @Inject
+  MetricRegistry metricRegistry;
 
   @Override
   public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {

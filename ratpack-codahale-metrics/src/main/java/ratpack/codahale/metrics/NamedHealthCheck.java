@@ -24,7 +24,7 @@ import com.codahale.metrics.health.HealthCheck;
  * {@link ratpack.codahale.metrics.NamedHealthCheck#getName()} should be used when registering
  * this health check with {@link com.codahale.metrics.health.HealthCheckRegistry}
  *
- * @see ratpack.codahale.metrics.CodaHaleMetricsModule#healthChecks()
+ * @see ratpack.codahale.metrics.CodaHaleMetricsModule.Config#healthChecks(boolean)
  */
 public abstract class NamedHealthCheck extends HealthCheck {
 

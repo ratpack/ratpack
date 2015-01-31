@@ -18,17 +18,15 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Provider;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
 import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
+import javax.inject.Provider;
 
 /**
  * A Provider implementation that sets up a {@link CsvReporter} for a {@link MetricRegistry}.
  */
 public class CsvReporterProvider implements Provider<CsvReporter> {
-
   private final MetricRegistry metricRegistry;
   private final CodaHaleMetricsModule.Config config;
 
@@ -40,11 +38,7 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
 
   @Override
   public CsvReporter get() {
-    CsvReporter reporter = CsvReporter.forRegistry(metricRegistry).build(config.getCsv().getReportDirectory());
-    if (config.getCsv().isEnabled()) {
-      reporter.start(config.getCsv().getReporterInterval(), TimeUnit.SECONDS);
-    }
-    return reporter;
+    return CsvReporter.forRegistry(metricRegistry).build(config.getCsv().getReportDirectory());
   }
 }
 

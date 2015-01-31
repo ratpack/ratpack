@@ -15,7 +15,7 @@ See [`CodaHaleMetricsModule`](api/ratpack/codahale/metrics/CodaHaleMetricsModule
 ## Built-in metrics
 
 Ratpack provides built-in metric collectors for key metrics.
-When metrics are enabled within your application using [`CodaHaleMetricsModule.metrics()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#metrics--), the built-in metric collectors will automatically be enabled too.
+When metrics are enabled within your application using [`CodaHaleMetricsModule.Config.enable(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#enable-boolean-), the built-in metric collectors will automatically be enabled too.
 
 Ratpack has built-in metric collectors for:
 
@@ -23,7 +23,7 @@ Ratpack has built-in metric collectors for:
 * Background operation timing
 
 Ratpack also has support for Coda Hale Metric's JVM instrumentation.
-See [`CodaHaleMetricsModule.jvmMetrics()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#jvmMetrics--) for usage information.
+See [`CodaHaleMetricsModule.Config.jvmMetrics(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#jvmMetrics-boolean-) for usage information.
 
 ## Custom metrics
 
@@ -32,16 +32,16 @@ Ratpack enables you to capture your own application metrics in two ways:
 1. Obtaining the `MetricRegistry` via dependency injection or context registry lookup and registering your own metrics with it.
 2. Add metrics annotations to your Guice injected classes.
 
-See [`CodaHaleMetricsModule.metrics()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#metrics--) for more details.
+See [`CodaHaleMetricsModule.Config.enable(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#enable-boolean-) for more details.
 
 ## Reporting metrics
 
 Ratpack supports metric reporters for the following outputs:
 
-* [JMX](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#jmx--)
-* [Console](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#console--)
-* [CSV](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#csv-java.io.File-)
-* [Websockets](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#websocket--)
+* [JMX](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#jmx-ratpack.func.Action-)
+* [Console](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#console-ratpack.func.Action-)
+* [CSV](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#csv-ratpack.func.Action-)
+* [Websockets](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#webSocket-ratpack.func.Action-)
 
 For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/Ratpack.groovy) project.
 
@@ -49,4 +49,4 @@ For an example of how to consume real-time metrics with websockets, see the [exa
 
 Health checks verify that your application components or responsibilities are performing as expected.
 
-For detailed information on how to create your own application health checks and how to run them, see [`CodaHaleMetricsModule.healthChecks()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#healthChecks--).
+For detailed information on how to create your own application health checks and how to run them, see [`CodaHaleMetricsModule.Config.healthChecks(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#healthChecks-boolean-).
