@@ -22,9 +22,6 @@ import com.google.inject.Provider;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.NoSuchModuleException;
-
-import java.util.function.Consumer;
 
 /**
  * Groovy specific extensions to {@link ratpack.guice.BindingsSpec}.
@@ -59,19 +56,13 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer);
+  <C, T extends ConfigurableModule<C>> GroovyBindingsSpec addConfig(Class<T> moduleClass, C config, Action<? super C> configurer);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <C> GroovyBindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <T extends Module> GroovyBindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException;
+  <C> GroovyBindingsSpec addConfig(ConfigurableModule<C> module, C config, Action<? super C> configurer);
 
   /**
    * {@inheritDoc}

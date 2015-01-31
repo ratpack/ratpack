@@ -22,11 +22,9 @@ import com.google.inject.Provider;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.NoSuchModuleException;
 import ratpack.server.ServerConfig;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class DefaultBindingsSpec implements BindingsSpec {
 
@@ -108,21 +106,15 @@ public class DefaultBindingsSpec implements BindingsSpec {
   }
 
   @Override
-  public <C> BindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer) {
+  public <C> BindingsSpec addConfig(ConfigurableModule<C> module, C config, Action<? super C> configurer) {
     module.setConfig(config);
     return add(module, configurer);
   }
 
   @Override
-  public <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer) {
+  public <C, T extends ConfigurableModule<C>> BindingsSpec addConfig(Class<T> moduleClass, C config, Action<? super C> configurer) {
     T t = createModule(moduleClass);
-    return add(t, config, configurer);
-  }
-
-  @Override
-  public <T extends Module> BindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException {
-    modules.stream().filter(moduleClass::isInstance).map(moduleClass::cast).forEach(configurer);
-    return this;
+    return addConfig(t, config, configurer);
   }
 
   @Override

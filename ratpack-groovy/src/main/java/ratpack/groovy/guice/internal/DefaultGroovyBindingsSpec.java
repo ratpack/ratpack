@@ -23,10 +23,7 @@ import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.NoSuchModuleException;
 import ratpack.server.ServerConfig;
-
-import java.util.function.Consumer;
 
 public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
 
@@ -109,20 +106,14 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer) {
-    delegate.add(moduleClass, config, configurer);
+  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec addConfig(Class<T> moduleClass, C config, Action<? super C> configurer) {
+    delegate.addConfig(moduleClass, config, configurer);
     return this;
   }
 
   @Override
-  public <C> GroovyBindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer) {
-    delegate.add(module, config, configurer);
-    return this;
-  }
-
-  @Override
-  public <T extends Module> GroovyBindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException {
-    delegate.config(moduleClass, configurer);
+  public <C> GroovyBindingsSpec addConfig(ConfigurableModule<C> module, C config, Action<? super C> configurer) {
+    delegate.addConfig(module, config, configurer);
     return this;
   }
 

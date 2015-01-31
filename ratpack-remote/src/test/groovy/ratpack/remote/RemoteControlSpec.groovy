@@ -90,7 +90,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       if (modulePath) {
-        add new RemoteControlModule(), new RemoteControlModule.Config().path(modulePath), { it.enabled(true); if (configPath) { it.path(configPath)} }
+        addConfig new RemoteControlModule(), new RemoteControlModule.Config().path(modulePath), { it.enabled(true); if (configPath) { it.path(configPath)} }
       } else {
         add new RemoteControlModule(), { it.enabled(true); if (configPath) { it.path(configPath)} }
       }

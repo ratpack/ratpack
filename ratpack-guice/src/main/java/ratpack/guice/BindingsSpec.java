@@ -22,8 +22,6 @@ import com.google.inject.Provider;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 
-import java.util.function.Consumer;
-
 /**
  * A buildable specification of Guice bindings.
  * <p>
@@ -133,7 +131,11 @@ public interface BindingsSpec {
    * @param <T> the type of the module
    * @return this
    */
-  <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, C config, Action<? super C> configurer);
+  <C, T extends ConfigurableModule<C>> BindingsSpec addConfig(Class<T> moduleClass, C config, Action<? super C> configurer);
+
+  default <C, T extends ConfigurableModule<C>> BindingsSpec addConfig(Class<T> moduleClass, C config) {
+    return addConfig(moduleClass, config, Action.noop());
+  }
 
   /**
    * Adds the bindings from the given configurable module.
@@ -144,20 +146,11 @@ public interface BindingsSpec {
    * @param <C> the type of the module's config object
    * @return this
    */
-  <C> BindingsSpec add(ConfigurableModule<C> module, C config, Action<? super C> configurer);
+  <C> BindingsSpec addConfig(ConfigurableModule<C> module, C config, Action<? super C> configurer);
 
-  /**
-   * Retrieves the module that has been added with the given type for configuration.
-   * <p>
-   * This can be used to config modules that have already been added by some other mechanism.
-   *
-   * @param moduleClass the type of the module to retrieve
-   * @param configurer the configurer of the module
-   * @param <T> the type of the module to retrieve
-   * @return this
-   * @throws NoSuchModuleException if no module has been added with the given type
-   */
-  <T extends Module> BindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException;
+  default <C, T extends ConfigurableModule<C>> BindingsSpec addConfig(T moduleClass, C config) {
+    return addConfig(moduleClass, config, Action.noop());
+  }
 
   /**
    * Adds bindings by directly configuring a {@link Binder}.
