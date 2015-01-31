@@ -28,36 +28,6 @@ import ratpack.server.ServerConfig;
  * This type is used when bootstrapping a Guice based application to add {@link Module modules} and bindings.
  * <p>
  * It is recommended to become familiar with Guice bindings, scopes and other concerns before using Guice with Ratpack.
- *
- * <pre class="tested">
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import com.google.inject.AbstractModule;
- *
- * class MyService {
- *   private final String value;
- *   public MyService(String value) {
- *     this.value = value;
- *   }
- * }
- *
- * class MyModule extends AbstractModule {
- *   public String serviceValue;
- *
- *   protected void configure() {
- *     bind(MyService.class).toInstance(new MyService(serviceValue));
- *   }
- * }
- *
- * class ModuleAction implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     // MyModule has been added by some other action that executed against this registry…
- *
- *     bindings.config(MyModule.class) { it.serviceValue = "foo" };
- *   }
- * }
- * </pre>
- *
  * <h3>Module order and overrides</h3>
  * <p>
  * The order in which modules are added is significant.
