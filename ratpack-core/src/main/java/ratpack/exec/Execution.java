@@ -54,7 +54,7 @@ import java.util.function.Supplier;
  * Moreover, it provides its own error handling and completion mechanisms.
  * </p>
  */
-public interface Execution extends MutableRegistry {
+public interface Execution extends MutableRegistry, ExecControl {
 
   /**
    * The execution controller that this execution is associated with.

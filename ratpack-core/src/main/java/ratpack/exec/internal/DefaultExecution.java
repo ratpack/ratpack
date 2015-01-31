@@ -18,12 +18,15 @@ package ratpack.exec.internal;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
-import ratpack.exec.ExecControl;
-import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
+import org.reactivestreams.Publisher;
+import ratpack.exec.*;
+import ratpack.func.Action;
+import ratpack.func.NoArgAction;
 import ratpack.registry.internal.SimpleMutableRegistry;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public class DefaultExecution extends SimpleMutableRegistry implements Execution {
@@ -41,6 +44,15 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   @Override
   public ExecController getController() {
     return controller;
+  }
+
+  @Override
+  public Execution getExecution() {
+    return getControl().getExecution();
+  }
+
+  public static ExecControl current() {
+    return ExecControl.current();
   }
 
   @Override
@@ -68,5 +80,35 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   public <O> Execution add(TypeToken<? super O> type, O object) {
     super.add(type, object);
     return this;
+  }
+
+  @Override
+  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
+    return getControl().stream(publisher);
+  }
+
+  @Override
+  public ExecStarter exec() {
+    return getControl().exec();
+  }
+
+  @Override
+  public <T> Promise<T> promiseOf(T item) {
+    return getControl().promiseOf(item);
+  }
+
+  @Override
+  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return getControl().promise(action);
+  }
+
+  @Override
+  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
+    return getControl().blocking(blockingOperation);
+  }
+
+  @Override
+  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
+    getControl().addInterceptor(execInterceptor, continuation);
   }
 }
