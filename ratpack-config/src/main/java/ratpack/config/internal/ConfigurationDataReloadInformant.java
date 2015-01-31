@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecControl;
-import ratpack.exec.Execution;
-import ratpack.func.Action;
 import ratpack.server.ReloadInformant;
 
 import java.time.Duration;
@@ -79,37 +77,27 @@ public class ConfigurationDataReloadInformant implements ReloadInformant {
     LOGGER.debug("Scheduling configuration poll in {}", interval);
     ExecControl execControl = ExecControl.current();
     ScheduledExecutorService scheduledExecutorService = execControl.getController().getExecutor();
-    return scheduledExecutorService.schedule(execPoll(execControl), interval.getSeconds(), TimeUnit.SECONDS);
-  }
 
-  private Runnable execPoll(ExecControl execControl) {
-    return () -> execControl.exec().start(poll());
-  }
+    Runnable poll = () ->
+      execControl.exec().start(e -> e
+          .blocking(loader::load)
+          .then(newNode -> {
+            if (currentNode.equals(newNode)) {
+              LOGGER.debug("No difference in configuration data");
+              lock.lock();
+              try {
+                future = schedulePoll();
+              } finally {
+                lock.unlock();
+              }
+            } else {
+              LOGGER.info("Configuration data difference detected; next request should reload");
+              changeDetected.set(true);
+            }
+          })
+      );
 
-  private Action<Execution> poll() {
-    return execution -> {
-      execution.getControl()
-        .blocking(loader::load)
-        .onError(Action.noop())
-        .then(processData());
-    };
-  }
-
-  private Action<ObjectNode> processData() {
-    return newNode -> {
-      if (currentNode.equals(newNode)) {
-        LOGGER.debug("No difference in configuration data");
-        lock.lock();
-        try {
-          future = schedulePoll();
-        } finally {
-          lock.unlock();
-        }
-      } else {
-        LOGGER.info("Configuration data difference detected; next request should reload");
-        changeDetected.set(true);
-      }
-    };
+    return scheduledExecutorService.schedule(poll, interval.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override
