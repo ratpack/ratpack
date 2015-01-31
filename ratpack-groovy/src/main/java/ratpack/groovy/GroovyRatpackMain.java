@@ -16,7 +16,6 @@
 
 package ratpack.groovy;
 
-import ratpack.groovy.Groovy;
 import ratpack.server.RatpackServer;
 
 /**
