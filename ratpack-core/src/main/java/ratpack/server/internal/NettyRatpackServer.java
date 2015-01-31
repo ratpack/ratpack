@@ -95,7 +95,7 @@ public class NettyRatpackServer implements RatpackServer {
     DefinitionBuild definitionBuild = buildUserDefinition();
     if (definitionBuild.error != null) {
       if (definitionBuild.getServerConfig().isDevelopment()) {
-        LOGGER.warn("Exception raised getting server config, using default config for development", definitionBuild);
+        LOGGER.warn("Exception raised getting server config (will use default config until reload):", definitionBuild.error);
         needsReload.set(true);
       } else {
         throw ExceptionUtils.toException(definitionBuild.error);
