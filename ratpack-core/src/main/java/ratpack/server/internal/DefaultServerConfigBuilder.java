@@ -60,7 +60,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
-  private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private SSLContext sslContext;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
@@ -199,24 +198,10 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
-  public ServerConfig.Builder other(String key, String value) {
-    other.put(key, value);
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder other(Map<String, String> other) {
-    for (Map.Entry<String, String> entry : other.entrySet()) {
-      other(entry.getKey(), entry.getValue());
-    }
-    return this;
-  }
-
-  @Override
   public ServerConfig build() {
     loadSSLIfConfigured();
     return new DefaultServerConfig(baseDir, port, address, development, threads,
-      publicAddress, indexFiles.build(), other.build(), sslContext, maxContentLength,
+      publicAddress, indexFiles.build(), sslContext, maxContentLength,
       timeResponses, compressResponses, compressionMinSize,
       compressionMimeTypeWhiteList.build(), compressionMimeTypeBlackList.build());
   }

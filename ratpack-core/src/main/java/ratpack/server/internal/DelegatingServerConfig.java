@@ -26,7 +26,6 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 public class DelegatingServerConfig implements ServerConfig {
 
@@ -111,15 +110,5 @@ public class DelegatingServerConfig implements ServerConfig {
   @Override
   public FileSystemBinding getBaseDir() throws NoBaseDirException {
     return delegate.getBaseDir();
-  }
-
-  @Override
-  public String getOther(String key, String defaultValue) {
-    return delegate.getOther(key, defaultValue);
-  }
-
-  @Override
-  public Map<String, String> getOtherPrefixedWith(String prefix) {
-    return delegate.getOtherPrefixedWith(prefix);
   }
 }

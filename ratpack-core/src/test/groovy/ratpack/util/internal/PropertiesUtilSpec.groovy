@@ -25,7 +25,6 @@ class PropertiesUtilSpec extends Specification {
       "ratpack.handlerFactory": "app.AppHandlerFactory",
       "ratpack.port": "8080",
       "ratpack.publicAddress": "http://app.example.com",
-      "ratpack.other.service.url": "https://service.example.com",
       "app.name": "myapp",
       "app.version": "1.0.2"
     ])
@@ -34,7 +33,6 @@ class PropertiesUtilSpec extends Specification {
     def allMap = extractToNewMap("", properties)
     def ratpackMap = extractToNewMap("ratpack.", properties)
     def appMap = extractToNewMap("app.", properties)
-    def otherMap = extractToNewMap("other.", new Properties(ratpackMap))
 
     then:
     allMap == properties
@@ -42,10 +40,8 @@ class PropertiesUtilSpec extends Specification {
       "handlerFactory": "app.AppHandlerFactory",
       "port": "8080",
       "publicAddress": "http://app.example.com",
-      "other.service.url": "https://service.example.com"
     ]
     appMap == [name: "myapp", version: "1.0.2"]
-    otherMap == ["service.url": "https://service.example.com"]
   }
 
   Map<String, String> extractToNewMap(String prefix, Properties properties) {

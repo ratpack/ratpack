@@ -51,7 +51,7 @@ public class SiteMain {
                 .add(RemoteControlModule.class)
                 .add(NewRelicModule.class)
                 .add(new CodaHaleMetricsModule(), config -> config.enable(true))
-                .add(new SiteModule(s.getServerConfig()))
+                .add(new SiteModule())
                 .add(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
                   conf.setUseDoubleQuotes(true);

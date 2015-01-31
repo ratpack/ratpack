@@ -58,7 +58,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  *   serverConfig {
  *     development true
- *     other "some.other.property": "value"
  *   }
  *
  *   // Configure the module registry

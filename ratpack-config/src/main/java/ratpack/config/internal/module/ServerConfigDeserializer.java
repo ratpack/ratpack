@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
 import ratpack.server.internal.DefaultServerConfigBuilder;
@@ -87,9 +86,6 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     if (serverNode.hasNonNull("ssl")) {
       builder.ssl(codec.treeToValue(serverNode.get("ssl"), SSLContext.class));
     }
-    if (serverNode.hasNonNull("other")) {
-      builder.other(toMap(codec, serverNode.get("other")));
-    }
     return builder.build();
   }
 
@@ -117,10 +113,5 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
   @SuppressWarnings("unchecked")
   private static ImmutableList<String> toList(ObjectCodec codec, JsonNode node) throws IOException {
     return codec.treeToValue(node, ImmutableList.class);
-  }
-
-  @SuppressWarnings("unchecked")
-  private static ImmutableMap<String, String> toMap(ObjectCodec codec, JsonNode node) throws IOException {
-    return codec.treeToValue(node, ImmutableMap.class);
   }
 }

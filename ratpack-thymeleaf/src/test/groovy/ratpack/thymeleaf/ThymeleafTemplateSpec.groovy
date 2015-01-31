@@ -46,11 +46,11 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<span>it works!</span>'
 
     where:
-    scenario                    | templatesPrefix | templateName    | filePath                       | otherConfig
-    'default path'              | null            | 'simple'        | 'thymeleaf/simple.html'        | [:]
-    'default nested path'       | null            | 'inside/simple' | 'thymeleaf/inside/simple.html' | [:]
-    'path set in module'        | 'custom'        | 'simple'        | 'custom/simple.html'           | [:]
-    'nested path set in module' | 'custom'        | 'inside/simple' | 'custom/inside/simple.html'    | [:]
+    scenario                    | templatesPrefix | templateName    | filePath
+    'default path'              | null            | 'simple'        | 'thymeleaf/simple.html'
+    'default nested path'       | null            | 'inside/simple' | 'thymeleaf/inside/simple.html'
+    'path set in module'        | 'custom'        | 'simple'        | 'custom/simple.html'
+    'nested path set in module' | 'custom'        | 'inside/simple' | 'custom/inside/simple.html'
   }
 
   void 'can render a thymeleaf template from path set in config'() {

@@ -17,7 +17,6 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
@@ -27,9 +26,7 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultServerConfig implements ServerConfig {
 
@@ -40,7 +37,6 @@ public class DefaultServerConfig implements ServerConfig {
   private final int threads;
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
-  private final ImmutableMap<String, String> other;
   private final SSLContext sslContext;
   private final int maxContentLength;
   private final boolean timeResponses;
@@ -57,7 +53,6 @@ public class DefaultServerConfig implements ServerConfig {
     int threads,
     URI publicAddress,
     ImmutableList<String> indexFiles,
-    ImmutableMap<String, String> other,
     SSLContext sslContext,
     int maxContentLength,
     boolean timeResponses,
@@ -78,7 +73,6 @@ public class DefaultServerConfig implements ServerConfig {
     this.compressionMimeTypeBlackList = compressionMimeTypeBlackList;
     this.publicAddress = publicAddress;
     this.indexFiles = indexFiles;
-    this.other = other;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
   }
@@ -162,25 +156,6 @@ public class DefaultServerConfig implements ServerConfig {
     } else {
       return baseDir;
     }
-  }
-
-  @Override
-  public String getOther(String key, String defaultValue) {
-    String value = other.get(key);
-    return value == null ? defaultValue : value;
-  }
-
-  @Override
-  public Map<String, String> getOtherPrefixedWith(String prefix) {
-    Map<String, String> result = new LinkedHashMap<>();
-    int prefixLength = prefix.length();
-    for (Map.Entry<String, String> property : other.entrySet()) {
-      String key = property.getKey();
-      if (key.startsWith(prefix) && key.length() > prefixLength) {
-        result.put(key.substring(prefixLength), property.getValue());
-      }
-    }
-    return result;
   }
 
 }

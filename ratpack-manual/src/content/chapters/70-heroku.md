@@ -81,7 +81,7 @@ If your application name was `foo-Bar`, then the environment variable would be n
 One way to bring this all together is to launch your application via `env`:
 
 ```language-bash
-web: env "FOO_BAR_OPTS=-Dratpack.other.dbPassword=secret" build/install/«project name»/bin/«project name»
+web: env "FOO_BAR_OPTS=-Dapp.dbPassword=secret" build/install/«project name»/bin/«project name»
 ```
 
 It is generally preferable to not use `JAVA_OPTS` as Heroku sets this to [useful defaults](https://devcenter.heroku.com/articles/java-support#environment) for the platform.
@@ -92,7 +92,7 @@ The benefit of using config vars is that they are only available to those with p
 It is possible to combine both approaches by setting config vars for values that should be secret (like passwords) and referencing them in your Procfile.
 
 ```language-bash
-web: env "FOO_BAR_OPTS=-Dratpack.other.dbPassword=$SECRET_DB_PASSWORD" build/install/«project name»/bin/«project name»
+web: env "FOO_BAR_OPTS=-Dapp.dbPassword=$SECRET_DB_PASSWORD" build/install/«project name»/bin/«project name»
 ```
 
 Now it is easy to see which properties and environment variables are set in the source tree, but sensitive values are only visible via the Heroku management tools.

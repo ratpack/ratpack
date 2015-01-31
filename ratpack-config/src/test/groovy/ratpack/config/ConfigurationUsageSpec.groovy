@@ -41,7 +41,6 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     serverConfig.compressionMimeTypeBlackList == [] as Set
     serverConfig.indexFiles == []
     !serverConfig.SSLContext
-    serverConfig.getOtherPrefixedWith("") == [:]
   }
 
   def "can combine configuration from multiple sources"() {

@@ -47,8 +47,6 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     |indexFiles[1]: index.htm
     |ssl.keyStorePath: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
     |ssl.keyStorePassword: ${keyStorePassword}
-    |other.a: 1
-    |other.b: 2
     |""".stripMargin()
 
     when:
@@ -70,7 +68,6 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
     serverConfig.indexFiles == ["index.html", "index.htm"]
     serverConfig.SSLContext
-    serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }
 
   @SuppressWarnings(["UnnecessaryObjectReferences"])
@@ -99,8 +96,6 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
       setProperty("ratpack.indexFiles[1]", "index.htm")
       setProperty("ratpack.ssl.keyStorePath", keyStoreFile.toString())
       setProperty("ratpack.ssl.keyStorePassword", keyStorePassword)
-      setProperty("ratpack.other.a", "1")
-      setProperty("ratpack.other.b", "2")
     }
 
     when:
@@ -122,6 +117,5 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
     serverConfig.indexFiles == ["index.html", "index.htm"]
     serverConfig.SSLContext
-    serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }
 }

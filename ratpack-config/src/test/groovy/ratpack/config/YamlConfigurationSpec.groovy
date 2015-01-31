@@ -46,9 +46,6 @@ class YamlConfigurationSpec extends BaseConfigurationSpec {
     |ssl:
     |    keyStorePath: ${keyStoreFile.toString()}
     |    keyStorePassword: ${keyStorePassword}
-    |other:
-    |    a: "1"
-    |    b: "2"
     |...
     |""".stripMargin()
 
@@ -71,6 +68,5 @@ class YamlConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
     serverConfig.indexFiles == ["index.html", "index.htm"]
     serverConfig.SSLContext
-    serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }
 }

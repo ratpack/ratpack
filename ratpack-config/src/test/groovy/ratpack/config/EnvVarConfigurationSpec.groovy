@@ -56,8 +56,6 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
       RATPACK_COMPRESSION_MIN_SIZE: "100",
       RATPACK_SSL__KEY_STORE_PATH: keyStoreFile.toString(),
       RATPACK_SSL__KEY_STORE_PASSWORD: keyStorePassword,
-      RATPACK_OTHER__A: "1",
-      RATPACK_OTHER__B: "2",
     ]
 
     when:
@@ -76,6 +74,5 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
     serverConfig.compressResponses
     serverConfig.compressionMinSize == 100
     serverConfig.SSLContext
-    serverConfig.getOtherPrefixedWith("") == [a:"1", b:"2"]
   }
 }

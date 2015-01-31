@@ -222,7 +222,7 @@ repositories {
 }
 
 run {
-  systemProperty "ratpack.other.dbPassword", "secret"
+  systemProperty "app.dbPassword", "secret"
 }
 ```
 
@@ -255,7 +255,7 @@ repositories {
 }
 
 runShadow {
-  systemProperty "ratpack.other.dbPassword", "secret"
+  systemProperty "app.dbPassword", "secret"
 }
 ```
 

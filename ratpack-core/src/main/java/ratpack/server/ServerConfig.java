@@ -228,28 +228,6 @@ public interface ServerConfig {
    */
   public FileSystemBinding getBaseDir() throws NoBaseDirException;
 
-  /**
-   * Provides access to any "other" properties that were specified.
-   * <p>
-   * Extensions and plugins can use other properties for their configuration.
-   *
-   * @param key The property key
-   * @param defaultValue The value to return if the property was not set
-   * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
-   */
-  public String getOther(String key, String defaultValue);
-
-
-  /**
-   * Provides access to all "other" properties whose name starts with a given prefix.
-   * <p>
-   * The prefix is removed from keys of the result map.
-   *
-   * @param prefix Property name prefix that should be used for filtering
-   * @return A map of all "other" properties whose name starts with the prefix with the prefix removed from key names
-   */
-  public Map<String, String> getOtherPrefixedWith(String prefix);
-
   interface Builder {
 
     String DEFAULT_ENV_PREFIX = "RATPACK_";
@@ -407,25 +385,6 @@ public interface ServerConfig {
      * @see ServerConfig#getSSLContext()
      */
     Builder ssl(SSLContext sslContext);
-
-    /**
-     * Add an "other" property.
-     *
-     * @param key The key of the property
-     * @param value The value of the property
-     * @return this
-     * @see ServerConfig#getOther(String, String)
-     */
-    Builder other(String key, String value);
-
-    /**
-     * Add some "other" properties.
-     *
-     * @param other A map of properties to add to the launch config other properties
-     * @return this
-     * @see ServerConfig#getOther(String, String)
-     */
-    Builder other(Map<String, String> other);
 
     /**
      * Adds a configuration source for environment variables starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_ENV_PREFIX}.
