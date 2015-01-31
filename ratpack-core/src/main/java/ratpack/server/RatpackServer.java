@@ -80,7 +80,7 @@ public interface RatpackServer {
    * @param definition a function that defines the server
    * @return a Ratpack server
    */
-  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> definition) {
+  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> definition) throws Exception {
     return new NettyRatpackServer(definition);
   }
 

@@ -32,7 +32,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class JarFileBaseDirBuilder extends PathBaseDirBuilder {
 
   public JarFileBaseDirBuilder(File jar) {
-    super(getJarPath(jar));
+    super(getJarPath(jar), jar.toPath());
   }
 
   @Override

@@ -17,17 +17,10 @@
 package ratpack.groovy.test;
 
 import ratpack.groovy.GroovyRatpackMain;
-import ratpack.registry.Registries;
-import ratpack.registry.Registry;
 import ratpack.test.MainClassApplicationUnderTest;
 
 public class GroovyRatpackMainApplicationUnderTest extends MainClassApplicationUnderTest {
-
   public GroovyRatpackMainApplicationUnderTest() {
-    this(Registries.empty());
-  }
-
-  public GroovyRatpackMainApplicationUnderTest(Registry registry) {
-    super(GroovyRatpackMain.class, registry);
+    super(GroovyRatpackMain.class);
   }
 }

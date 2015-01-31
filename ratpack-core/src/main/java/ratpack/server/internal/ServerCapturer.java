@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import ratpack.func.Function;
 import ratpack.func.NoArgAction;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -32,33 +33,40 @@ public abstract class ServerCapturer {
   }
 
   public static class Overrides {
-    private final int port;
-    private final Registry registry;
+    private int port = -1;
+    private Function<? super Registry, ? extends Registry> registryFunction = Function.constant(Registries.empty());
+    private Boolean development;
 
-    public Overrides(Registry registry) {
-      this(-1, registry);
-    }
-
-    public Overrides() {
-      this(-1, Registries.empty());
-    }
-
-    public Overrides(int port) {
-      this(port, Registries.empty());
-    }
-
-    public Overrides(int port, Registry registry) {
+    public Overrides port(int port) {
       this.port = port;
-      this.registry = registry;
+      return this;
+    }
+
+    public Overrides registry(Function<? super Registry, ? extends Registry> registryFunction) {
+      this.registryFunction = registryFunction;
+      return this;
+    }
+
+    public Overrides development(boolean development) {
+      this.development = development;
+      return this;
     }
 
     public int getPort() {
       return port;
     }
 
-    public Registry getRegistry() {
-      return registry;
+    public Function<? super Registry, ? extends Registry> getRegistryFunction() {
+      return registryFunction;
     }
+
+    public Boolean isDevelopment() {
+      return development;
+    }
+  }
+
+  public static Optional<RatpackServer> capture(NoArgAction bootstrap) throws Exception {
+    return capture(new Overrides(), bootstrap);
   }
 
   public static Optional<RatpackServer> capture(Overrides overrides, NoArgAction bootstrap) throws Exception {

@@ -25,7 +25,6 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
-import ratpack.test.ServerBackedApplicationUnderTest;
 import ratpack.test.http.internal.DefaultTestHttpClient;
 
 import java.util.List;
@@ -61,7 +60,7 @@ public interface TestHttpClient {
   }
 
   public static TestHttpClient testHttpClient(Factory<? extends RatpackServer> server) {
-    return new DefaultTestHttpClient(new ServerBackedApplicationUnderTest(server), Action.noop());
+    return new DefaultTestHttpClient(ApplicationUnderTest.of(server), Action.noop());
   }
 
   /**

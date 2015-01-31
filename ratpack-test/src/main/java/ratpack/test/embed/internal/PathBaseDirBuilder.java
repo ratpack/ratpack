@@ -21,6 +21,7 @@ import ratpack.test.embed.BaseDirBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -28,13 +29,19 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class PathBaseDirBuilder implements BaseDirBuilder {
 
   private final Path baseDir;
+  private final Path toDelete;
 
   public PathBaseDirBuilder(File baseDir) {
     this(baseDir.toPath());
   }
 
   public PathBaseDirBuilder(Path baseDir) {
+    this(baseDir, baseDir);
+  }
+
+  public PathBaseDirBuilder(Path baseDir, Path toDelete) {
     this.baseDir = baseDir;
+    this.toDelete = toDelete;
   }
 
   @Override
@@ -72,6 +79,20 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
     if (!fileSystem.equals(FileSystems.getDefault())) {
       fileSystem.close();
     }
+
+    Files.walkFileTree(toDelete, new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Files.delete(file);
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+        Files.delete(dir);
+        return FileVisitResult.CONTINUE;
+      }
+    });
   }
 
   @Override

@@ -169,4 +169,8 @@ public interface Function<I, O> {
   static <T> Function<T, T> identity() {
     return t -> t;
   }
+
+  static <T> Function<Object, T> constant(T t) {
+    return i -> t;
+  }
 }

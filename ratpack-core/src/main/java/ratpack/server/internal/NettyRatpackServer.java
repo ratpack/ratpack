@@ -79,9 +79,11 @@ public class NettyRatpackServer implements RatpackServer {
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
   protected SSLEngine sslEngine;
+  private final ServerCapturer.Overrides overrides;
 
-  public NettyRatpackServer(Function<? super Definition.Builder, ? extends Definition> definitionFactory) {
+  public NettyRatpackServer(Function<? super Definition.Builder, ? extends Definition> definitionFactory) throws Exception {
     this.definitionFactory = definitionFactory;
+    this.overrides = ServerCapturer.capture(this);
   }
 
   @Override
@@ -125,23 +127,25 @@ public class NettyRatpackServer implements RatpackServer {
       this.overrides = overrides;
       this.definition = definition;
       this.error = error;
+      this.serverConfig = new DelegatingServerConfig(definition.getServerConfig()) {
+        @Override
+        public int getPort() {
+          return overrides.getPort() < 0 ? super.getPort() : overrides.getPort();
+        }
 
-      Registry overridesRegistry = Registries.empty();
+        @Override
+        public boolean isDevelopment() {
+          return overrides.isDevelopment() == null ? super.isDevelopment() : overrides.isDevelopment();
+        }
+      };
 
-      if (overrides.getPort() < 0) {
-        this.serverConfig = definition.getServerConfig();
-      } else {
-        this.serverConfig = new DelegatingServerConfig(definition.getServerConfig()) {
-          @Override
-          public int getPort() {
-            return overrides.getPort();
-          }
-        };
-        overridesRegistry = Registries.just(ServerConfig.class, serverConfig).join(overrides.getRegistry());
-      }
-
-      final Registry finalOverridesRegistry = overridesRegistry;
-      this.userRegistryFactory = r -> definition.getUserRegistryFactory().apply(r).join(finalOverridesRegistry);
+      Registry serverConfigOverrideRegistry = Registries.just(ServerConfig.class, serverConfig);
+      this.userRegistryFactory = baseRegistry -> {
+        Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
+        Registry userRegistry = definition.getUserRegistryFactory().apply(actualBaseRegistry);
+        Registry overrideRegistry = overrides.getRegistryFunction().apply(userRegistry);
+        return userRegistry.join(overrideRegistry);
+      };
     }
 
     public ServerCapturer.Overrides getOverrides() {
@@ -165,7 +169,6 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   protected DefinitionBuild buildUserDefinition() throws Exception {
-    ServerCapturer.Overrides overrides = ServerCapturer.capture(this);
     try {
       return new DefinitionBuild(overrides, definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder()), null);
     } catch (Exception e) {

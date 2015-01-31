@@ -28,7 +28,6 @@ class LinkCrawlSpec extends Specification {
   def "site has no bad links"() {
     given:
     def aut = new RatpackSiteUnderTest()
-    aut.mockGithubData()
 
     def allowBroken = ["http://www.sparkjava.com", "http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk", "http://lea.verou.me/", "http://www.yourkit.com", "http://thecodingdesigner.com"]
 
@@ -66,7 +65,7 @@ class LinkCrawlSpec extends Specification {
 
     when:
     def visited = crawler.crawl()
-    def broken = visited.findAll {it.errors.size() > 0 }
+    def broken = visited.findAll { it.errors.size() > 0 }
     def brokenByLevel = broken.groupBy { link -> allowBroken.any { link.uri.toString().startsWith(it) } ? "warn" : "error" }
     def errored = new PrettyPrintCollection(brokenByLevel["error"] ?: [])
     def warned = new PrettyPrintCollection(brokenByLevel["warn"] ?: [])

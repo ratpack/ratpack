@@ -39,7 +39,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(getRatpackFile())
-          ServerCapturer.capture(new ServerCapturer.Overrides(0)) {
+          ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
             script.run()
           }
         })

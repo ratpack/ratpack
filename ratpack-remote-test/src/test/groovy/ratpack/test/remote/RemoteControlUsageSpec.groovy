@@ -16,7 +16,6 @@
 
 package ratpack.test.remote
 
-import ratpack.remote.RemoteControlModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.test.remote.RemoteControl.command
@@ -27,7 +26,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      add new RemoteControlModule(), { it.enabled(true) }
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
       bind ValueHolder
     }
     handlers {

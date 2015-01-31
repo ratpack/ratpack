@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH;
+import static ratpack.remote.RemoteControl.DEFAULT_REMOTE_CONTROL_PATH;
 
 public class RemoteControl {
 

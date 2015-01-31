@@ -20,6 +20,8 @@ import ratpack.handling.HandlerDecorator;
 import ratpack.remote.internal.RemoteControlHandler;
 
 public abstract class RemoteControl {
+  public static final String DEFAULT_REMOTE_CONTROL_PATH = "remote-control";
+
   private RemoteControl() {
   }
 

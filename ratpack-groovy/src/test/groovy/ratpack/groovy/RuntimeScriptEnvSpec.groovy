@@ -39,7 +39,7 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(script)
-          ServerCapturer.capture(new ServerCapturer.Overrides()) {
+          ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
             script.run()
           }
         })

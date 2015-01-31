@@ -27,7 +27,6 @@ import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
 import ratpack.jackson.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
-import ratpack.remote.RemoteControlModule;
 import ratpack.rx.RxRatpack;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.RatpackServer;
@@ -37,6 +36,9 @@ import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
+
+import java.util.Collections;
+import java.util.List;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
 import static ratpack.registry.Registries.just;
@@ -59,6 +61,11 @@ public class SiteMain {
           public boolean isHasBaseDir() {
             return true;
           }
+
+          @Override
+          public List<String> getIndexFiles() {
+            return Collections.singletonList("index.html");
+          }
         };
 
         return b
@@ -66,7 +73,6 @@ public class SiteMain {
           .registry(
             Guice.registry(s -> s
                 .add(JacksonModule.class)
-                .add(RemoteControlModule.class)
                 .add(NewRelicModule.class)
                 .add(new CodaHaleMetricsModule(), c -> c.enable(true))
                 .addConfig(SiteModule.class, config.get("/github", SiteModule.GitHubConfig.class))

@@ -19,6 +19,7 @@ package ratpack.test;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.test.http.TestHttpClient;
@@ -40,15 +41,25 @@ public interface ApplicationUnderTest {
   }
 
   static CloseableApplicationUnderTest of(Factory<? extends RatpackServer> ratpackServer) {
-    return new ServerBackedApplicationUnderTest(ratpackServer);
+    return new ServerBackedApplicationUnderTest() {
+      @Override
+      protected RatpackServer createServer() throws Exception {
+        return ratpackServer.create();
+      }
+    };
   }
 
   static CloseableApplicationUnderTest of(Class<?> mainClass) {
-    return new MainClassApplicationUnderTest(mainClass, Registries.empty());
+    return new MainClassApplicationUnderTest(mainClass);
   }
 
   static CloseableApplicationUnderTest of(Class<?> mainClass, Action<? super RegistrySpec> action) throws Exception {
-    return new MainClassApplicationUnderTest(mainClass, Registries.registry(action));
+    return new MainClassApplicationUnderTest(mainClass) {
+      @Override
+      protected Registry createOverrides(Registry serverRegistry) throws Exception {
+        return Registries.registry(action);
+      }
+    };
   }
 
   /**

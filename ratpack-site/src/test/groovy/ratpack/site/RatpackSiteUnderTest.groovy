@@ -18,25 +18,22 @@ package ratpack.site
 
 import ratpack.exec.ExecControl
 import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
 import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
 import ratpack.test.MainClassApplicationUnderTest
-import ratpack.test.remote.RemoteControl
 
 class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
-  final RemoteControl remote = new RemoteControl(this)
-
   RatpackSiteUnderTest() {
-    super(SiteMain, Registries.registry {
-      it.add(ratpack.remote.RemoteControl.handlerDecorator())
-    })
+    super(SiteMain)
   }
 
-  void mockGithubData() {
-    remote.exec {
+  @Override
+  protected Registry createOverrides(Registry serverRegistry) throws Exception {
+    Registries.registry {
       def data = new MockGithubData()
 
       def config = new TestConfig()
@@ -47,9 +44,8 @@ class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
       data.unreleased.add(new RatpackVersion(config.currentVersion - "-SNAPSHOT", config.manualVersions.size() + 1, "foo", new Date(), false))
 
-      add(GitHubData, data)
-      add(new RatpackVersions(data, get(ExecControl)))
+      it.add(GitHubData, data)
+      it.add(new RatpackVersions(data, serverRegistry.get(ExecControl)))
     }
   }
-
 }

@@ -32,10 +32,6 @@ class SiteBrowserSmokeSpec extends GebReportingSpec {
     browser.baseUrl = base.toString()
   }
 
-  def setupSpec() {
-    aut.mockGithubData()
-  }
-
   def "go to current manual"() {
     given:
     to HomePage
