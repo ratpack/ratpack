@@ -19,9 +19,20 @@ package ratpack.groovy;
 import ratpack.server.RatpackServer;
 
 /**
- * The standard “main” entry point for Groovy script based apps.
+ * A boilerplate entry point, which combines {@link RatpackServer#start(ratpack.func.Function)} and {@link Groovy.Script#app()}.
+ * <p>
+ * This can be be used as the main class, when defining your Ratpack app as a Groovy script.
+ *
+ * @see Groovy.Script#app()
  */
 public class GroovyRatpackMain {
+
+  /**
+   * Starts the server defined by calling {@link Groovy.Script#app()}.
+   *
+   * @param args not used
+   * @throws Exception any when starting the server
+   */
   public static void main(String... args) throws Exception {
     RatpackServer.start(Groovy.Script.app());
   }
