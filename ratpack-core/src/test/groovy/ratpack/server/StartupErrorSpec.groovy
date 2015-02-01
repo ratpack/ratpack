@@ -48,7 +48,7 @@ class StartupErrorSpec extends Specification {
 
   def "registry building errors are fatal when not in development"() {
     when:
-    server = RatpackServer.of { it.config(ServerConfig.embedded().development(false)).registry { throw ex }.handlers { it.handler { it.render "ok" } } }
+    server = RatpackServer.of { it.serverConfig(ServerConfig.embedded().development(false)).registry { throw ex }.handlers { it.handler { it.render "ok" } } }
 
     then:
     noExceptionThrown()
@@ -63,7 +63,7 @@ class StartupErrorSpec extends Specification {
 
   def "registry building errors are not fatal when in development"() {
     when:
-    server = RatpackServer.of { it.config(ServerConfig.embedded().development(true)).registry { throw ex }.handlers { it.handler { it.render "ok" } } }
+    server = RatpackServer.of { it.serverConfig(ServerConfig.embedded().development(true)).registry { throw ex }.handlers { it.handler { it.render "ok" } } }
 
     then:
     noExceptionThrown()
@@ -80,7 +80,7 @@ class StartupErrorSpec extends Specification {
     when:
     def error = true
     server = RatpackServer.of {
-      it.config(ServerConfig.embedded().development(true))
+      it.serverConfig(ServerConfig.embedded().development(true))
       it.registry {
         if (error) {
           throw ex

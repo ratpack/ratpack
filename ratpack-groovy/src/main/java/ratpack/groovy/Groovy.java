@@ -37,7 +37,6 @@ import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.*;
-import ratpack.groovy.internal.GroovyVersionCheck;
 import ratpack.groovy.script.ScriptNotFoundException;
 import ratpack.groovy.template.Markup;
 import ratpack.groovy.template.MarkupTemplate;
@@ -193,7 +192,7 @@ public abstract class Groovy {
       String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
 
       RatpackDslClosures closures = new FullRatpackDslCapture(staticCompile).apply(scriptFile, script);
-      definition.config(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.baseDir(baseDir), baseDir), closures.getConfig()));
+      definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.baseDir(baseDir), baseDir), closures.getServerConfig()));
 
       definition.registry(r -> {
         return Guice.registry(bindingsSpec -> {

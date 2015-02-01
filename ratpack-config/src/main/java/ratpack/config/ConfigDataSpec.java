@@ -63,7 +63,7 @@ import java.util.Properties;
  *       );
  *
  *       RatpackServer server = RatpackServer.of(spec -> spec
- *         .config(config.getServerConfig())
+ *         .serverConfig(config.getServerConfig())
  *         .handler(registry ->
  *           (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
  *         )

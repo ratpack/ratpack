@@ -69,7 +69,7 @@ public class SiteMain {
         };
 
         return b
-          .config(serverConfig)
+          .serverConfig(serverConfig)
           .registry(
             Guice.registry(s -> s
                 .add(JacksonModule.class)

@@ -38,7 +38,7 @@ class RatpackServerSpec extends Specification {
     given:
     server = RatpackServer.of { spec ->
       spec
-        .config(ServerConfig.embedded())
+        .serverConfig(ServerConfig.embedded())
         .handler {
         return {} as Handler
       }
@@ -56,7 +56,7 @@ class RatpackServerSpec extends Specification {
     def value = "foo"
     server = RatpackServer.of {
       it
-        .config(ServerConfig.embedded())
+        .serverConfig(ServerConfig.embedded())
         .registryOf { it.add(String, value) }
         .handler { return { it.render it.get(String) } as Handler }
     }
@@ -83,7 +83,7 @@ class RatpackServerSpec extends Specification {
 
     server = RatpackServer.of {
       it
-        .config(config)
+        .serverConfig(config)
         .handler { return { it.render(it.serverConfig.development.toString()) } as Handler }
     }
 
@@ -110,7 +110,7 @@ class RatpackServerSpec extends Specification {
     } as Handler
 
     server = RatpackServer.of {
-      it.config(ServerConfig.embedded())
+      it.serverConfig(ServerConfig.embedded())
       it.handler { return handler }
     }
 
@@ -139,7 +139,7 @@ class RatpackServerSpec extends Specification {
     def reloadCounter = 0
 
     server = RatpackServer.of {
-      it.config(ServerConfig.embedded().development(false))
+      it.serverConfig(ServerConfig.embedded().development(false))
       it.registryOf {
         it.add(Integer, 5)
         it.add(Service, new Service() {

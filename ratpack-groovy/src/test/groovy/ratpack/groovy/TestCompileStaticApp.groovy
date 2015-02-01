@@ -25,7 +25,7 @@ class TestCompileStaticApp {
   static void main(String[] args) {
     RatpackServer.start { RatpackServer.Definition.Builder serverSpec ->
       serverSpec
-        .config(ServerConfig.noBaseDir().port(0))
+        .serverConfig(ServerConfig.noBaseDir().port(0))
         .handlers(Groovy.chain {
           get { render "Used @CompileStatic!" }
         })

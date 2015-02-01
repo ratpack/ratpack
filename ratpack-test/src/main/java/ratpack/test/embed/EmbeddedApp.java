@@ -96,7 +96,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @return a newly created embedded application
    */
   static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super DefaultServerDefinition.Builder, ? extends RatpackServer.Definition> builder) {
-    return fromServer(uncheck(() -> RatpackServer.of(b -> builder.apply(b.config(serverConfig)))));
+    return fromServer(uncheck(() -> RatpackServer.of(b -> builder.apply(b.serverConfig(serverConfig)))));
   }
 
   /**

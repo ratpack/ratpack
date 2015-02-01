@@ -47,7 +47,7 @@ public final class DefaultRatpackServerDefinitionBuilder implements RatpackServe
   }
 
   @Override
-  public RatpackServer.Definition.Builder config(ServerConfig serverConfig) {
+  public RatpackServer.Definition.Builder serverConfig(ServerConfig serverConfig) {
     this.serverConfig = serverConfig;
     return this;
   }

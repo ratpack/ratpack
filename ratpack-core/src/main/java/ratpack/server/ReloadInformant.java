@@ -59,7 +59,7 @@ package ratpack.server;
  *
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
- *         .config(ServerConfig.embedded().development(true))
+ *         .serverConfig(ServerConfig.embedded().development(true))
  *         .registryOf(r -> r
  *             .add(ReloadInformant.class, new ReloadEveryOtherRequest())
  *             .add(Integer.class, Example.counter++)

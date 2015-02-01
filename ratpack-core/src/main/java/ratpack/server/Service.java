@@ -48,7 +48,7 @@ package ratpack.server;
  *     RecordingService service = new RecordingService();
  *
  *     RatpackServer server = RatpackServer.of(s -> s
- *       .config(ServerConfig.embedded())
+ *       .serverConfig(ServerConfig.embedded())
  *       .registryOf(r -> r.add(service))
  *       .handler(r ->
  *         ctx -> ctx.render("ok")

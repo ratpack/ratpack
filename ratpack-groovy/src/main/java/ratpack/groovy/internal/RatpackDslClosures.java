@@ -22,10 +22,10 @@ public class RatpackDslClosures {
 
   private final Closure<?> handlers;
   private final Closure<?> bindings;
-  private final Closure<?> config;
+  private final Closure<?> serverConfig;
 
-  public RatpackDslClosures(Closure<?> config, Closure<?> handlers, Closure<?> bindings) {
-    this.config = config;
+  public RatpackDslClosures(Closure<?> serverConfig, Closure<?> handlers, Closure<?> bindings) {
+    this.serverConfig = serverConfig;
     this.handlers = handlers;
     this.bindings = bindings;
   }
@@ -38,8 +38,8 @@ public class RatpackDslClosures {
     return bindings;
   }
 
-  public Closure<?> getConfig() {
-    return config;
+  public Closure<?> getServerConfig() {
+    return serverConfig;
   }
 
 }

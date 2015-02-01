@@ -42,7 +42,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
   protected EmbeddedApp createApplication() {
     fromServer {
       RatpackServer.of {
-        it.config(serverConfigBuilder())
+        it.serverConfig(serverConfigBuilder())
 
         def bindingsAction = { s ->
           new DefaultGroovyBindingsSpec(s).with(_bindings)

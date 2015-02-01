@@ -55,7 +55,7 @@ class ConfigDataCreateSpec extends Specification {
     when:
     def server = RatpackServer.of {
       def configData = ConfigData.of().props(propsFile).build()
-      it.config(configData.get("/server", ServerConfig))
+      it.serverConfig(configData.get("/server", ServerConfig))
         .registryOf {
         it.add(MyAppConfig, configData.get("/app", MyAppConfig))
       }
@@ -93,7 +93,7 @@ class ConfigDataCreateSpec extends Specification {
     when:
     def server = RatpackServer.of {
       def configData = ConfigData.of().props(propsFile).build()
-      it.config(ServerConfig.embedded())
+      it.serverConfig(ServerConfig.embedded())
         .registryOf {
         it.add(listener)
           .add(configData.get(MyAppConfig))

@@ -160,7 +160,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         try {
           return RatpackServer.of(serverSpec -> serverSpec
-            .config(serverConfigBuilder)
+            .serverConfig(serverConfigBuilder)
             .handler(r -> {
               Guice.Builder builder = Guice.builder(r);
               if (spec.parentInjector != null) {
