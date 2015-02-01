@@ -46,7 +46,7 @@ public class RatpackVersion {
     }
 
     try {
-      return Resources.toString(resource, CharsetUtil.UTF_8);
+      return Resources.toString(resource, CharsetUtil.UTF_8).trim();
     } catch (Exception e) {
       throw uncheck(e);
     }
