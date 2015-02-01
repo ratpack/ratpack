@@ -227,7 +227,7 @@ public class NettyRatpackServer implements RatpackServer {
     Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    executeEvents(serverRegistry, StartEvent.build(serverRegistry, reloading), ServerLifecycleListener::onStart);
+    executeEvents(serverRegistry, StartEvent.build(serverRegistry, reloading), Service::onStart);
 
     return new NettyHandlerAdapter(definition.getServerConfig(), serverRegistry, ratpackHandler);
   }
@@ -262,7 +262,7 @@ public class NettyRatpackServer implements RatpackServer {
         return;
       }
       if (serverRegistry != null) {
-        executeEvents(serverRegistry, StopEvent.build(serverRegistry, reloading), ServerLifecycleListener::onStop);
+        executeEvents(serverRegistry, StopEvent.build(serverRegistry, reloading), Service::onStop);
       }
     } finally {
       Optional.ofNullable(channel).ifPresent(Channel::close);
@@ -316,8 +316,8 @@ public class NettyRatpackServer implements RatpackServer {
     return (serverConfig.getAddress() == null) ? new InetSocketAddress(serverConfig.getPort()) : new InetSocketAddress(serverConfig.getAddress(), serverConfig.getPort());
   }
 
-  private <E> void executeEvents(Registry registry, E event, BiAction<ServerLifecycleListener, E> action) throws Exception {
-    registry.getAll(ServerLifecycleListener.class).forEach(listener -> uncheck(listener, event, action));
+  private <E> void executeEvents(Registry registry, E event, BiAction<Service, E> action) throws Exception {
+    registry.getAll(Service.class).forEach(listener -> uncheck(listener, event, action));
   }
 
   @ChannelHandler.Sharable
@@ -332,6 +332,11 @@ public class NettyRatpackServer implements RatpackServer {
       super(false);
       this.definitionBuild = definition;
       this.lastServerConfig = definitionBuild.getServerConfig();
+      try {
+        this.inner = buildAdapter(definitionBuild);
+      } catch (Exception e) {
+        this.inner = buildErrorRenderingAdapter(e);
+      }
     }
 
     @Override
@@ -357,13 +362,21 @@ public class NettyRatpackServer implements RatpackServer {
             inner = buildAdapter(definitionBuild);
             delegate(ctx, inner, msg);
           } catch (Exception e) {
-            delegate(ctx, new NettyHandlerAdapter(lastServerConfig, buildServerRegistry(lastServerConfig, (r) -> Registries.empty()), context -> context.error(e)), msg);
+            delegate(ctx, buildErrorRenderingAdapter(e), msg);
           }
         } else {
           delegate(ctx, inner, msg);
         }
       } finally {
         reloadLock.unlock();
+      }
+    }
+
+    private NettyHandlerAdapter buildErrorRenderingAdapter(Exception e) {
+      try {
+        return new NettyHandlerAdapter(lastServerConfig, buildServerRegistry(lastServerConfig, (r) -> Registries.empty()), context -> context.error(e));
+      } catch (Exception e1) {
+        throw uncheck(e);
       }
     }
 

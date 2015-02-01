@@ -16,7 +16,7 @@
 
 package ratpack.guice
 
-import ratpack.server.ServerLifecycleListener
+import ratpack.server.Service
 import ratpack.server.StartEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -29,7 +29,7 @@ class GuiceLifecycleEventSpec extends RatpackGroovyDslSpec {
     final List<String> strings = []
   }
 
-  static class ThingInit implements ServerLifecycleListener {
+  static class ThingInit implements Service {
     final Thing thing
 
     @Inject
@@ -47,7 +47,7 @@ class GuiceLifecycleEventSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       bind Thing
-      bindInstance ServerLifecycleListener, new ServerLifecycleListener() {
+      bindInstance Service, new Service() {
         @Override
         void onStart(StartEvent event) {
           event.registry.get(Thing).strings << 'foo'

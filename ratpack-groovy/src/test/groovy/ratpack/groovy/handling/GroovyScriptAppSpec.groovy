@@ -333,7 +333,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       final Logger log = LoggerFactory.getLogger(Ratpack)
 
       @Slf4j
-      class DbInit implements ServerLifecycleListener {
+      class DbInit implements Service {
 
         @Inject
         DbInit() {

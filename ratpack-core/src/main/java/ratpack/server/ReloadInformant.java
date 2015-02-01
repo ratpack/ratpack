@@ -67,7 +67,6 @@ package ratpack.server;
  *         .handler(r -> ctx -> ctx.render(ctx.get(Integer.class).toString()))
  *     ).test(httpClient -> {
  *       assertEquals("0", httpClient.getText()); // first request never queries informants
- *       assertEquals("0", httpClient.getText());
  *       assertEquals("1", httpClient.getText()); // reload triggered
  *       assertEquals("1", httpClient.getText());
  *       assertEquals("2", httpClient.getText()); // reload triggered

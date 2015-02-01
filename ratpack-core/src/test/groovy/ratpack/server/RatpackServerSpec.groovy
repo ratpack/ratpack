@@ -142,7 +142,7 @@ class RatpackServerSpec extends Specification {
       it.config(ServerConfig.embedded().development(false))
       it.registryOf {
         it.add(Integer, 5)
-        it.add(ServerLifecycleListener, new ServerLifecycleListener() {
+        it.add(Service, new Service() {
 
           @Override
           void onStart(StartEvent event) throws Exception {
@@ -158,7 +158,7 @@ class RatpackServerSpec extends Specification {
             }
           }
         })
-        it.add(ServerLifecycleListener, new ServerLifecycleListener() {
+        it.add(Service, new Service() {
 
           @Override
           void onStart(StartEvent event) throws Exception {

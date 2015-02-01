@@ -26,7 +26,7 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
-import ratpack.server.ServerLifecycleListener
+import ratpack.server.Service
 import ratpack.server.StartEvent
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
@@ -88,7 +88,7 @@ class ConfigDataCreateSpec extends Specification {
     props.setProperty("name", "Ratpack")
     def propsFile = temporaryFolder.newFile("config.properties").toPath()
     propsFile.withOutputStream { props.store(it, null) }
-    def listener = new StartCountServerLifecycleListener()
+    def listener = new StartCountService()
 
     when:
     def server = RatpackServer.of {
@@ -238,7 +238,7 @@ class ConfigDataCreateSpec extends Specification {
     String url
   }
 
-  private static class StartCountServerLifecycleListener implements ServerLifecycleListener {
+  private static class StartCountService implements Service {
     AtomicInteger count = new AtomicInteger()
 
     @Override
