@@ -32,7 +32,7 @@ In this release, the new [`Service`](api/ratpack/server/Service.html) interface 
 
 Another driver for the change was the desire to have really great support for externalised configuration.
 This is something we've been working on for some time.
-This release inttoduces the `ratpack-config` library.
+This release introduces the `ratpack-config` library.
 This library makes it easy to create Java objects based on configuration data sourced from JSON, YAML and properties files as well as JVM system properties and environment variables.
 While not part of `ratpack-core`, use of `ratpack-config` will be strongly recommended going forward as it makes it very easy to externalise your configuration.
 The documentation on the new configruation mechanism is a little sparse right now, but we are working on it.
