@@ -29,6 +29,7 @@ import ratpack.util.ExceptionUtils;
 import java.io.IOException;
 
 public class DefaultConfigData implements ConfigData {
+
   private final ObjectMapper objectMapper;
   private final ObjectNode rootNode;
   private final ReloadInformant reloadInformant;
@@ -56,7 +57,7 @@ public class DefaultConfigData implements ConfigData {
   }
 
   @Override
-  public ReloadInformant getReloadInformant() {
-    return reloadInformant;
+  public boolean shouldReload() {
+    return reloadInformant.shouldReload();
   }
 }

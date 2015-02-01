@@ -24,9 +24,7 @@ import ratpack.api.UncheckedException
 import ratpack.func.Action
 import ratpack.handling.Context
 import ratpack.handling.Handler
-import ratpack.registry.RegistrySpec
 import ratpack.server.RatpackServer
-import ratpack.server.ReloadInformant
 import ratpack.server.ServerConfig
 import ratpack.server.ServerLifecycleListener
 import ratpack.server.StartEvent
@@ -36,7 +34,6 @@ import spock.util.concurrent.PollingConditions
 
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
-import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressWarnings(["MethodName"])
@@ -60,13 +57,13 @@ class ConfigDataCreateSpec extends Specification {
       def configData = ConfigData.of().props(propsFile).build()
       it.config(configData.get("/server", ServerConfig))
         .registryOf {
-          it.add(MyAppConfig, configData.get("/app", MyAppConfig))
-        }
-        .handler {
-          return {
-            it.render("Hi, my name is ${it.get(MyAppConfig).name}")
-          } as Handler
-        }
+        it.add(MyAppConfig, configData.get("/app", MyAppConfig))
+      }
+      .handler {
+        return {
+          it.render("Hi, my name is ${it.get(MyAppConfig).name}")
+        } as Handler
+      }
     }
     def client = ApplicationUnderTest.of(server).httpClient
     server.start()
@@ -97,16 +94,16 @@ class ConfigDataCreateSpec extends Specification {
     def server = RatpackServer.of {
       def configData = ConfigData.of().props(propsFile).build()
       it.config(ServerConfig.embedded())
-        .registryOf { RegistrySpec registrySpec ->
-          registrySpec.add(ServerLifecycleListener, listener)
-          registrySpec.add(MyAppConfig, configData.get(MyAppConfig))
-          registrySpec.add(ReloadInformant, configData.reloadInformant.interval(Duration.ofSeconds(1)))
-        }
-        .handler {
-          return { Context context ->
-            context.render("Hi, my name is ${it.get(MyAppConfig).name}")
-          } as Handler
-        }
+        .registryOf {
+        it.add(listener)
+          .add(configData.get(MyAppConfig))
+          .add(configData)
+      }
+      .handler {
+        return { Context context ->
+          context.render("Hi, my name is ${it.get(MyAppConfig).name}")
+        } as Handler
+      }
     }
     def client = ApplicationUnderTest.of(server).httpClient
     server.start()

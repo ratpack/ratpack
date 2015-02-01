@@ -54,7 +54,7 @@ import ratpack.server.ServerEnvironment;
  *     RatpackServer server = RatpackServer.of(spec -> spec
  *       .config(config.getServerConfig())
  *       .registryOf(r -> r
- *         .add(config.getReloadInformant())
+ *         .add(config)
  *         .add(config.get("/app", MyAppConfig.class))
  *       )
  *       .handler(registry ->
@@ -72,10 +72,14 @@ import ratpack.server.ServerEnvironment;
  *   }
  * }
  * }</pre>
+ * <h3>Configuration Reloading</h3>
+ * <p>
+ * The created configuration data instance should be added to the server registry (as in the above example).
+ * This enables automatically reloading the configuration when it changes.
  *
  * @see ConfigDataSpec
  */
-public interface ConfigData {
+public interface ConfigData extends ReloadInformant {
 
   /**
    * Begins building a new application configuration using a default object mapper.
@@ -134,10 +138,4 @@ public interface ConfigData {
     return get(pointer, ServerConfig.class);
   }
 
-  /**
-   * Returns a reload informant that can be used to reload the server when the configuration data changes.
-   *
-   * @return a reload informant backed by this configuration data
-   */
-  ReloadInformant getReloadInformant();
 }

@@ -37,7 +37,7 @@ public class ConfigDataReloadInformant implements ReloadInformant {
   private final AtomicBoolean changeDetected = new AtomicBoolean();
   private final ConfigDataLoader loader;
   private final Lock lock = new ReentrantLock();
-  private Duration interval = Duration.ofSeconds(60);
+  private Duration interval = Duration.ofSeconds(1);
   private ScheduledFuture<?> future;
 
   public ConfigDataReloadInformant(ObjectNode currentNode, ConfigDataLoader loader) {
