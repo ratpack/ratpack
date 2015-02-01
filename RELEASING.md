@@ -4,11 +4,11 @@ Release instructions.
 
 ## Release announcement
 
-The announcement for the release is the description of the GitHub milestone.
-Use the GitHub UI to write it.
-You can use Markdown.
+In-progress release notes during the cycle of development should have been written in `release-notes.md`.
+Review these notes and edit as needed.  You can use Markdown.
+The only truly mandatory requirement is to mention all contributors.
 
-Write the content, but don't close the milestone yet.
+When you've got the release announcement set, copy it to the description of the GitHub milestone, but don't close the milestone yet.
 
 ## Pre
 
@@ -47,6 +47,7 @@ Write the content, but don't close the milestone yet.
 1. Close the Milestone on GitHub
 1. Copy the release announcement to the GitHub tag description on the [GitHub releases page](https://github.com/ratpack/ratpack/releases) and publish the release
 1. Get a tweet out about the release
+1. (a) Update `release-notes.md` to remove the content specific to the freshly-completed release (i.e. set it back to a fresh template)
 1. For all example projects ([example-ratpack-gradle-java-app](https://github.com/ratpack/example-ratpack-gradle-java-app), [example-ratpack-gradle-groovy-app](https://github.com/ratpack/example-ratpack-gradle-groovy-app), [example-books](https://github.com/ratpack/example-books)):
     1. Update `master` branch to use the latest released version
     1. Merge `latest` branch into `master` to pick up any fixes for breaking changes in the released version
