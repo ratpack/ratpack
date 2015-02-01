@@ -35,7 +35,7 @@ This is something we've been working on for some time.
 This release introduces the `ratpack-config` library.
 This library makes it easy to create Java objects based on configuration data sourced from JSON, YAML and properties files as well as JVM system properties and environment variables.
 While not part of `ratpack-core`, use of `ratpack-config` will be strongly recommended going forward as it makes it very easy to externalise your configuration.
-The documentation on the new configruation mechanism is a little sparse right now, but we are working on it.
+The documentation on the new configuration mechanism is a little sparse right now, but we are working on it.
 In the meantime, you can start with the documentation for [`ConfigData`](api/ratpack/config/ConfigData.html).
 We'll be following up with blog posts and more docs over the 0.9.14 development cycle.
 
