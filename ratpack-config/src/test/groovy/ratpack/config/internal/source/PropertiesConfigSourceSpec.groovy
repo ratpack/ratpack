@@ -16,23 +16,23 @@
 
 package ratpack.config.internal.source
 
-import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.DefaultConfigDataSpec
 import ratpack.server.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static ratpack.server.ServerConfig.Builder.DEFAULT_PROP_PREFIX
 
-class PropertiesConfigurationSourceSpec extends Specification {
+class PropertiesConfigSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
-  def mapper = DefaultConfigurationDataSpec.newDefaultObjectMapper(new ServerEnvironment([:], new Properties()))
+  def mapper = DefaultConfigDataSpec.newDefaultObjectMapper(new ServerEnvironment([:], new Properties()))
 
   @Unroll
   def "supports no prefix (#prefix)"() {
     def source = propsSource(prefix, port: "8080", threads: "10")
 
     when:
-    def rootNode = source.loadConfigurationData(mapper)
+    def rootNode = source.loadConfigData(mapper)
 
     then:
     rootNode.path("port").asText() == "8080"
@@ -48,7 +48,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     def source = propsSource(input, prefix)
 
     when:
-    def rootNode = source.loadConfigurationData(mapper)
+    def rootNode = source.loadConfigData(mapper)
 
     then:
     rootNode.path("port").asText() == "8080"
@@ -65,7 +65,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     def source = propsSource("server.port": "8080", "server.threads": "10", "db.jdbcUrl": "jdbc:h2:mem:")
 
     when:
-    def rootNode = source.loadConfigurationData(mapper)
+    def rootNode = source.loadConfigData(mapper)
 
     then:
     rootNode.path("server").path("port").asText() == "8080"
@@ -82,7 +82,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigurationData(mapper)
+    def rootNode = source.loadConfigData(mapper)
 
     then:
     def users = rootNode.path("users")
@@ -101,7 +101,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigurationData(mapper)
+    def rootNode = source.loadConfigData(mapper)
 
     then:
     def dbConfigs = rootNode.path("dbs")
@@ -146,7 +146,7 @@ class PropertiesConfigurationSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigurationData(mapper)
+    def rootNode = source.loadConfigData(mapper)
 
     then:
     rootNode.path("nums").elements().collect { it.asText() } == (0..20).collect { it.toString() }
@@ -163,15 +163,15 @@ class PropertiesConfigurationSourceSpec extends Specification {
     rootNode.size() == 3
   }
 
-  private static PropertiesConfigurationSource propsSource(String input, String prefix = null) {
+  private static PropertiesConfigSource propsSource(String input, String prefix = null) {
     def props = new Properties()
     props.load(new StringReader(input))
-    new PropertiesConfigurationSource(Optional.ofNullable(prefix), props)
+    new PropertiesConfigSource(Optional.ofNullable(prefix), props)
   }
 
-  private static PropertiesConfigurationSource propsSource(Map<String, String> input, String prefix = null) {
+  private static PropertiesConfigSource propsSource(Map<String, String> input, String prefix = null) {
     def props = new Properties()
     props.putAll(input)
-    new PropertiesConfigurationSource(Optional.ofNullable(prefix), props)
+    new PropertiesConfigSource(Optional.ofNullable(prefix), props)
   }
 }

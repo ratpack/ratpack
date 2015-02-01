@@ -41,7 +41,7 @@ import java.util.Properties;
  * <pre class="java">{@code
  * import java.nio.file.Files;
  * import java.nio.file.Path;
- * import ratpack.config.ConfigurationData;
+ * import ratpack.config.ConfigData;
  * import ratpack.func.Action;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
@@ -55,9 +55,9 @@ import java.util.Properties;
  *     Files.delete(jsonFile);
  *     Path yamlFile = Files.createTempFile("mandatoryConfig", ".yaml");
  *     try {
- *       Files.write(yamlFile, "server:\n  threads: 7".getBytes());
+ *       Files.write(yamlFile, "server:\n  threads: 7\n  port: 0".getBytes());
  *
- *       ConfigurationData config = ConfigurationData.of(c -> c
+ *       ConfigData config = ConfigData.of(c -> c
  *         .onError(Action.noop()).json(jsonFile)
  *         .onError(Action.throwException()).yaml(yamlFile)
  *       );
@@ -81,29 +81,29 @@ import java.util.Properties;
  * }
  * }</pre>
  */
-public interface ConfigurationDataSpec {
+public interface ConfigDataSpec {
   /**
    * Configures the object mapper used for binding configuration data to arbitrary objects.
    *
    * @param action an action to perform upon the object mapper
    * @return this
    */
-  ConfigurationDataSpec configureObjectMapper(Action<ObjectMapper> action);
+  ConfigDataSpec configureObjectMapper(Action<ObjectMapper> action);
 
   /**
    * Adds a configuration source.
    *
-   * @param configurationSource the configuration source to add
+   * @param configSource the configuration source to add
    * @return this
    */
-  ConfigurationDataSpec add(ConfigurationSource configurationSource);
+  ConfigDataSpec add(ConfigSource configSource);
 
   /**
    * Builds the configuration data from this specification.
    *
    * @return the newly build configuration data
    */
-  ConfigurationData build();
+  ConfigData build();
 
   /**
    * Adds a configuration source for environment variables starting with the prefix
@@ -114,7 +114,7 @@ public interface ConfigurationDataSpec {
    *
    * @return this
    */
-  ConfigurationDataSpec env();
+  ConfigDataSpec env();
 
   /**
    * Adds a configuration source for environment variables starting with the specified prefix.
@@ -125,7 +125,7 @@ public interface ConfigurationDataSpec {
    * @param prefix the prefix which should be used to identify relevant environment variables
    * @return this
    */
-  ConfigurationDataSpec env(String prefix);
+  ConfigDataSpec env(String prefix);
 
   /**
    * Adds a configuration source for environment variables starting with the specified prefix.
@@ -137,7 +137,7 @@ public interface ConfigurationDataSpec {
    * @param mapFunc the function to transform segments into field names
    * @return this
    */
-  ConfigurationDataSpec env(String prefix, Function<String, String> mapFunc);
+  ConfigDataSpec env(String prefix, Function<String, String> mapFunc);
 
   /**
    * Adds a configuration source for environment variables using custom parsing logic.
@@ -145,7 +145,7 @@ public interface ConfigurationDataSpec {
    * @param environmentParser the parser to use to interpret environment variables
    * @return this
    */
-  ConfigurationDataSpec env(EnvironmentParser environmentParser);
+  ConfigDataSpec env(EnvironmentParser environmentParser);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -153,7 +153,7 @@ public interface ConfigurationDataSpec {
    * @param byteSource the source of the JSON data
    * @return this
    */
-  ConfigurationDataSpec json(ByteSource byteSource);
+  ConfigDataSpec json(ByteSource byteSource);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -161,7 +161,7 @@ public interface ConfigurationDataSpec {
    * @param path the source of the JSON data
    * @return this
    */
-  ConfigurationDataSpec json(Path path);
+  ConfigDataSpec json(Path path);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -169,7 +169,7 @@ public interface ConfigurationDataSpec {
    * @param path the path to the source of the JSON data
    * @return this
    */
-  default ConfigurationDataSpec json(String path) {
+  default ConfigDataSpec json(String path) {
     return json(Paths.get(path));
   }
 
@@ -179,7 +179,7 @@ public interface ConfigurationDataSpec {
    * @param url the source of the JSON data
    * @return this
    */
-  ConfigurationDataSpec json(URL url);
+  ConfigDataSpec json(URL url);
 
   /**
    * Adds a configuration source for a properties file.
@@ -187,7 +187,7 @@ public interface ConfigurationDataSpec {
    * @param byteSource the source of the properties data
    * @return this
    */
-  ConfigurationDataSpec props(ByteSource byteSource);
+  ConfigDataSpec props(ByteSource byteSource);
 
   /**
    * Adds a configuration source for a properties file.
@@ -195,7 +195,7 @@ public interface ConfigurationDataSpec {
    * @param path the source of the properties data
    * @return this
    */
-  ConfigurationDataSpec props(Path path);
+  ConfigDataSpec props(Path path);
 
   /**
    * Adds a configuration source for a properties object.
@@ -203,7 +203,7 @@ public interface ConfigurationDataSpec {
    * @param properties the properties object
    * @return this
    */
-  ConfigurationDataSpec props(Properties properties);
+  ConfigDataSpec props(Properties properties);
 
   /**
    * Adds a configuration source for a Map (flat key-value pairs).
@@ -211,7 +211,7 @@ public interface ConfigurationDataSpec {
    * @param map the map
    * @return this
    */
-  ConfigurationDataSpec props(Map<String, String> map);
+  ConfigDataSpec props(Map<String, String> map);
 
   /**
    * Adds a configuration source for a properties file.
@@ -219,7 +219,7 @@ public interface ConfigurationDataSpec {
    * @param path the path to the source of the properties data
    * @return this
    */
-  default ConfigurationDataSpec props(String path) {
+  default ConfigDataSpec props(String path) {
     return props(Paths.get(path));
   }
 
@@ -229,14 +229,14 @@ public interface ConfigurationDataSpec {
    * @param url the source of the properties data
    * @return this
    */
-  ConfigurationDataSpec props(URL url);
+  ConfigDataSpec props(URL url);
 
   /**
    * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.ServerConfig.Builder#DEFAULT_PROP_PREFIX}.
    *
    * @return this
    */
-  ConfigurationDataSpec sysProps();
+  ConfigDataSpec sysProps();
 
   /**
    * Adds a configuration source for system properties starting with the specified prefix.
@@ -245,7 +245,7 @@ public interface ConfigurationDataSpec {
    * the prefix will be removed before loading the data
    * @return this
    */
-  ConfigurationDataSpec sysProps(String prefix);
+  ConfigDataSpec sysProps(String prefix);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -253,7 +253,7 @@ public interface ConfigurationDataSpec {
    * @param byteSource the source of the YAML data
    * @return this
    */
-  ConfigurationDataSpec yaml(ByteSource byteSource);
+  ConfigDataSpec yaml(ByteSource byteSource);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -261,7 +261,7 @@ public interface ConfigurationDataSpec {
    * @param path the source of the YAML data
    * @return this
    */
-  ConfigurationDataSpec yaml(Path path);
+  ConfigDataSpec yaml(Path path);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -269,7 +269,7 @@ public interface ConfigurationDataSpec {
    * @param path the path to the source of the YAML data
    * @return this
    */
-  default ConfigurationDataSpec yaml(String path) {
+  default ConfigDataSpec yaml(String path) {
     return yaml(Paths.get(path));
   }
 
@@ -279,7 +279,7 @@ public interface ConfigurationDataSpec {
    * @param url the source of the YAML data
    * @return this
    */
-  ConfigurationDataSpec yaml(URL url);
+  ConfigDataSpec yaml(URL url);
 
   /**
    * Sets the error handler that will be used for added configuration sources.
@@ -289,5 +289,5 @@ public interface ConfigurationDataSpec {
    * @see ratpack.func.Action#noop()
    * @see ratpack.func.Action#throwException()
    */
-  ConfigurationDataSpec onError(Action<? super Throwable> errorHandler);
+  ConfigDataSpec onError(Action<? super Throwable> errorHandler);
 }

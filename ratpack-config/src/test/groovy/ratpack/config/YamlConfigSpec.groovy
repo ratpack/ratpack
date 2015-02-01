@@ -18,7 +18,7 @@ package ratpack.config
 
 import ratpack.server.ServerConfig
 
-class YamlConfigurationSpec extends BaseConfigurationSpec {
+class YamlConfigSpec extends BaseConfigSpec {
   def "supports yaml"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
@@ -50,7 +50,7 @@ class YamlConfigurationSpec extends BaseConfigurationSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigurationData.of().yaml(configFile).build().get(ServerConfig)
+    def serverConfig = ConfigData.of().yaml(configFile).build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir

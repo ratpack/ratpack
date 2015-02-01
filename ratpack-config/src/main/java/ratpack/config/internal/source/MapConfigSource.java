@@ -16,30 +16,18 @@
 
 package ratpack.config.internal.source;
 
-import com.google.common.io.ByteSource;
-import ratpack.util.ExceptionUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-public class ByteSourcePropertiesConfigurationSource extends AbstractPropertiesConfigurationSource {
-  private final ByteSource byteSource;
-
-  public ByteSourcePropertiesConfigurationSource(Optional<String> prefix, ByteSource byteSource) {
-    super(prefix);
-    this.byteSource = byteSource;
+public class MapConfigSource extends PropertiesConfigSource {
+  public MapConfigSource(Optional<String> prefix, Map<String, String> map) {
+    super(prefix, mapToProperties(map));
   }
 
-  @Override
-  protected Properties loadProperties() throws Exception {
+  private static Properties mapToProperties(Map<String, String> map) {
     Properties properties = new Properties();
-    try (InputStream inputStream = byteSource.openStream()) {
-      properties.load(inputStream);
-    } catch (IOException ex) {
-      throw ExceptionUtils.uncheck(ex);
-    }
+    properties.putAll(map);
     return properties;
   }
 }

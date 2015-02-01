@@ -22,30 +22,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
-import ratpack.config.ConfigurationSource;
+import ratpack.config.ConfigSource;
 import ratpack.util.internal.Paths2;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 
-public abstract class JacksonConfigurationSource implements ConfigurationSource {
+public abstract class JacksonConfigSource implements ConfigSource {
   private final ByteSource byteSource;
 
-  public JacksonConfigurationSource(Path path) {
+  public JacksonConfigSource(Path path) {
     this(Paths2.asByteSource(path));
   }
 
-  public JacksonConfigurationSource(URL url) {
+  public JacksonConfigSource(URL url) {
     this(Resources.asByteSource(url));
   }
 
-  public JacksonConfigurationSource(ByteSource byteSource) {
+  public JacksonConfigSource(ByteSource byteSource) {
     this.byteSource = byteSource;
   }
 
   @Override
-  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
+  public ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception {
     try (InputStream inputStream = byteSource.openStream()) {
       JsonParser parser = getFactory(objectMapper).createParser(inputStream);
       return objectMapper.readTree(parser);

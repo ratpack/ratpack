@@ -18,7 +18,7 @@ package ratpack.config
 
 import ratpack.server.ServerConfig
 
-class JsonConfigurationSpec extends BaseConfigurationSpec {
+class JsonConfigSpec extends BaseConfigSpec {
     def "supports json"() {
         def baseDir = tempFolder.newFolder("baseDir").toPath()
         def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
@@ -49,7 +49,7 @@ class JsonConfigurationSpec extends BaseConfigurationSpec {
 """
 
         when:
-        def serverConfig = ConfigurationData.of().json(configFile).build().get(ServerConfig)
+        def serverConfig = ConfigData.of().json(configFile).build().get(ServerConfig)
 
         then:
         serverConfig.hasBaseDir

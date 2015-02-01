@@ -19,6 +19,6 @@
  * properties files, system properties, and environment variables.  These sources can be combined and
  * then bound to user-specified objects for use in the application.
  *
- * @see ratpack.config.ConfigurationData
+ * @see ratpack.config.ConfigData
  */
 package ratpack.config;

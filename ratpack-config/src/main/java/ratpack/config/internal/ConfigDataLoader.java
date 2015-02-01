@@ -20,25 +20,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
-import ratpack.config.ConfigurationSource;
+import ratpack.config.ConfigSource;
 import ratpack.util.ExceptionUtils;
 
 import java.util.Iterator;
 
-public class ConfigurationDataLoader {
+public class ConfigDataLoader {
   private final ObjectMapper objectMapper;
-  private final ImmutableList<ConfigurationSource> configurationSources;
+  private final ImmutableList<ConfigSource> configSources;
 
-  public ConfigurationDataLoader(ObjectMapper objectMapper, ImmutableList<ConfigurationSource> configurationSources) {
+  public ConfigDataLoader(ObjectMapper objectMapper, ImmutableList<ConfigSource> configSources) {
     this.objectMapper = objectMapper;
-    this.configurationSources = configurationSources;
+    this.configSources = configSources;
   }
 
   public ObjectNode load() {
     ObjectNode node = objectMapper.createObjectNode();
     try {
-      for (ConfigurationSource source : configurationSources) {
-        merge(source.loadConfigurationData(objectMapper), node);
+      for (ConfigSource source : configSources) {
+        merge(source.loadConfigData(objectMapper), node);
       }
     } catch (Exception ex) {
       throw ExceptionUtils.uncheck(ex);

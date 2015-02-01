@@ -18,25 +18,25 @@ package ratpack.config.internal.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ratpack.config.ConfigurationSource;
+import ratpack.config.ConfigSource;
 import ratpack.func.Action;
 
 /**
  * Decorator for a configuration source to apply an error handler.
  */
-public class ErrorHandlingConfigurationSource implements ConfigurationSource {
-  private final ConfigurationSource delegate;
+public class ErrorHandlingConfigSource implements ConfigSource {
+  private final ConfigSource delegate;
   private final Action<? super Throwable> errorHandler;
 
-  public ErrorHandlingConfigurationSource(ConfigurationSource delegate, Action<? super Throwable> errorHandler) {
+  public ErrorHandlingConfigSource(ConfigSource delegate, Action<? super Throwable> errorHandler) {
     this.delegate = delegate;
     this.errorHandler = errorHandler;
   }
 
   @Override
-  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
+  public ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception {
     try {
-      return delegate.loadConfigurationData(objectMapper);
+      return delegate.loadConfigData(objectMapper);
     } catch (Throwable ex) {
       errorHandler.execute(ex);
       return objectMapper.createObjectNode(); // treat the source as if it had no data

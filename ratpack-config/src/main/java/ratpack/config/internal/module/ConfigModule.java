@@ -22,8 +22,8 @@ import ratpack.server.ServerEnvironment;
 
 import javax.net.ssl.SSLContext;
 
-public class ConfigurationModule extends SimpleModule {
-  public ConfigurationModule(ServerEnvironment serverEnvironment) {
+public class ConfigModule extends SimpleModule {
+  public ConfigModule(ServerEnvironment serverEnvironment) {
     super("ratpack-config");
     addDeserializer(ServerConfig.class, new ServerConfigDeserializer(serverEnvironment));
     addDeserializer(SSLContext.class, new SSLContextDeserializer());

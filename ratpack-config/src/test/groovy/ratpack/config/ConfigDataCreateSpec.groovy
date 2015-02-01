@@ -40,7 +40,7 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressWarnings(["MethodName"])
-class ConfigurationsSpec extends Specification {
+class ConfigDataCreateSpec extends Specification {
   @SuppressWarnings("GroovyUnusedDeclaration")
   PollingConditions polling = new PollingConditions()
 
@@ -57,7 +57,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     def server = RatpackServer.of {
-      def configData = ConfigurationData.of().props(propsFile).build()
+      def configData = ConfigData.of().props(propsFile).build()
       it.config(configData.get("/server", ServerConfig))
         .registryOf {
           it.add(MyAppConfig, configData.get("/app", MyAppConfig))
@@ -98,7 +98,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     def server = RatpackServer.of {
-      def configData = ConfigurationData.of().props(propsFile).build()
+      def configData = ConfigData.of().props(propsFile).build()
       it.config(ServerConfig.embedded())
         .registryOf { RegistrySpec registrySpec ->
           registrySpec.add(ServerLifecycleListener, listener)
@@ -142,7 +142,7 @@ class ConfigurationsSpec extends Specification {
     |""".stripMargin()
 
     when:
-    def configData = ConfigurationData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def configData = ConfigData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
     def config = configData.get(MyAppConfig)
 
     then:
@@ -157,7 +157,7 @@ class ConfigurationsSpec extends Specification {
     |""".stripMargin()
 
     when:
-    def configData = ConfigurationData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def configData = ConfigData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
     def appConfig = configData.get(MyAppConfig)
     def serverConfig = configData.get(ServerConfig)
     def serviceConfig = configData.get(ServiceConfig)
@@ -172,7 +172,7 @@ class ConfigurationsSpec extends Specification {
     def yamlFile = temporaryFolder.newFolder().toPath().resolve("config.yaml")
 
     when:
-    ConfigurationData.of().yaml(yamlFile).props([port: "8080"]) build()
+    ConfigData.of().yaml(yamlFile).props([port: "8080"]) build()
 
     then:
     def ex = thrown(UncheckedException)
@@ -185,7 +185,7 @@ class ConfigurationsSpec extends Specification {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    def configData = ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
+    def configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
     def serverConfig = configData.get(ServerConfig)
 
     then:
@@ -199,7 +199,7 @@ class ConfigurationsSpec extends Specification {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
 
     then:
     def ex = thrown(UncheckedException)
@@ -207,7 +207,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     jsonFile.text = '{"threads":7}'
-    def configData = ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    def configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
     def serverConfig = configData.get(ServerConfig)
 
     then:
@@ -217,7 +217,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     yamlFile.text = 'publicAddress: http://example.com'
-    configData = ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
     serverConfig = configData.get(ServerConfig)
 
     then:
@@ -228,7 +228,7 @@ class ConfigurationsSpec extends Specification {
 
     when:
     Files.delete(jsonFile)
-    ConfigurationData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
 
     then:
     ex = thrown(UncheckedException)

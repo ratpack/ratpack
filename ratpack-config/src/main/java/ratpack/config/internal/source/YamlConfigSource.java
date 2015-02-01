@@ -16,19 +16,29 @@
 
 package ratpack.config.internal.source;
 
-import java.util.Optional;
-import java.util.Properties;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.io.ByteSource;
 
-public class PropertiesConfigurationSource extends AbstractPropertiesConfigurationSource {
-  private final Properties properties;
+import java.net.URL;
+import java.nio.file.Path;
 
-  public PropertiesConfigurationSource(Optional<String> prefix, Properties properties) {
-    super(prefix);
-    this.properties = properties;
+public class YamlConfigSource extends JacksonConfigSource {
+  public YamlConfigSource(Path path) {
+    super(path);
+  }
+
+  public YamlConfigSource(URL url) {
+    super(url);
+  }
+
+  public YamlConfigSource(ByteSource byteSource) {
+    super(byteSource);
   }
 
   @Override
-  protected Properties loadProperties() throws Exception {
-    return properties;
+  protected JsonFactory getFactory(ObjectMapper objectMapper) {
+    return new YAMLFactory(objectMapper);
   }
 }

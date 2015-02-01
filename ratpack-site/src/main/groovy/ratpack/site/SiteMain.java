@@ -17,7 +17,7 @@
 package ratpack.site;
 
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
-import ratpack.config.ConfigurationData;
+import ratpack.config.ConfigData;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.NoArgAction;
@@ -47,7 +47,7 @@ public class SiteMain {
   public static void main(String... args) throws Exception {
     RatpackServer.start(b -> {
         RxRatpack.initialize();
-        ConfigurationData config = ConfigurationData.of(c -> c.env().sysProps());
+        ConfigData config = ConfigData.of(c -> c.env().sysProps());
         ServerConfig innerServerConfig = ServerConfig.findBaseDirProps().build();
 
         // This is needed because the config loading stuff doesn't quite handle portable base dir

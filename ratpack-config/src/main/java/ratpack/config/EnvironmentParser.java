@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Strategy for parsing a set of environment variables into a form appropriate for use in a {@link ratpack.config.ConfigurationSource}.
+ * Strategy for parsing a set of environment variables into a form appropriate for use in a {@link ConfigSource}.
  * The methods are called in order:
  *
  * <ol>

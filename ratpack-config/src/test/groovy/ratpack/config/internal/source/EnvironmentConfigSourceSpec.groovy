@@ -17,14 +17,14 @@
 package ratpack.config.internal.source
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.DefaultConfigDataSpec
 import ratpack.server.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static ratpack.server.ServerConfig.Builder.DEFAULT_ENV_PREFIX
 
-class EnvironmentConfigurationSourceSpec extends Specification {
+class EnvironmentConfigSourceSpec extends Specification {
   private static final SAMPLE_ENV_VARS = [USER: "jdoe", SHELL: "/bin/bash", LANG: "en_US.UTF-8"]
 
   def "supports empty prefix"() {
@@ -70,8 +70,8 @@ class EnvironmentConfigurationSourceSpec extends Specification {
 
   private static ObjectNode loadConfig(Map<String, String> input, String prefix = DEFAULT_ENV_PREFIX) {
     def environment = new ServerEnvironment(input, new Properties())
-    def mapper = DefaultConfigurationDataSpec.newDefaultObjectMapper(environment)
-    def source = new EnvironmentConfigurationSource(environment, prefix)
-    source.loadConfigurationData(mapper)
+    def mapper = DefaultConfigDataSpec.newDefaultObjectMapper(environment)
+    def source = new EnvironmentConfigSource(environment, prefix)
+    source.loadConfigData(mapper)
   }
 }

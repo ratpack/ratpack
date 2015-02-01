@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.source;
+package ratpack.config;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.ByteSource;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.net.URL;
-import java.nio.file.Path;
-
-public class JsonConfigurationSource extends JacksonConfigurationSource {
-  public JsonConfigurationSource(Path path) {
-    super(path);
-  }
-
-  public JsonConfigurationSource(URL url) {
-    super(url);
-  }
-
-  public JsonConfigurationSource(ByteSource byteSource) {
-    super(byteSource);
-  }
-
-  @Override
-  protected JsonFactory getFactory(ObjectMapper objectMapper) {
-    return objectMapper.getFactory();
-  }
+/**
+ * Allows providing custom sources of configuration data.
+ *
+ * @see ConfigDataSpec#add(ConfigSource)
+ */
+public interface ConfigSource {
+  /**
+   * Loads the configuration data from this data source.
+   *
+   * @param objectMapper the Jackson ObjectMapper to use to build objects.
+   * @return the root node of the configuration data loaded
+   * @throws Exception any
+   */
+  ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception;
 }

@@ -16,17 +16,17 @@
 
 package ratpack.config
 
-import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.DefaultConfigDataSpec
 import ratpack.server.ServerConfig
 import ratpack.server.ServerEnvironment
 import spock.lang.Unroll
 
-class EnvVarConfigurationSpec extends BaseConfigurationSpec {
+class EnvVarConfigSpec extends BaseConfigSpec {
   @SuppressWarnings("GroovyAssignabilityCheck")
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
 
     then:
     serverConfig.port == expectedPort
@@ -59,7 +59,7 @@ class EnvVarConfigurationSpec extends BaseConfigurationSpec {
     ]
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir

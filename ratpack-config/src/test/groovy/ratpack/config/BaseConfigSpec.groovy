@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.config;
+package ratpack.config
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
-/**
- * Allows providing custom sources of configuration data.
- *
- * @see ConfigurationDataSpec#add(ConfigurationSource)
- */
-public interface ConfigurationSource {
-  /**
-   * Loads the configuration data from this data source.
-   *
-   * @param objectMapper the Jackson ObjectMapper to use to build objects.
-   * @return the root node of the configuration data loaded
-   * @throws Exception any
-   */
-  ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception;
+import java.nio.file.Path
+import java.security.KeyStore
+
+abstract class BaseConfigSpec extends Specification {
+  @Rule
+  TemporaryFolder tempFolder
+
+  protected static void createKeystore(Path path, String password) {
+    def ks = KeyStore.getInstance("JKS")
+    ks.load(null, password.toCharArray())
+    path.withOutputStream { ks.store(it, password.toCharArray()) }
+  }
 }

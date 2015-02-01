@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import ratpack.config.ConfigurationSource;
+import ratpack.config.ConfigSource;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 
@@ -28,17 +28,17 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
 
-public abstract class AbstractPropertiesConfigurationSource implements ConfigurationSource {
+public abstract class AbstractPropertiesConfigSource implements ConfigSource {
   private final Optional<String> prefix;
 
-  protected AbstractPropertiesConfigurationSource(Optional<String> prefix) {
+  protected AbstractPropertiesConfigSource(Optional<String> prefix) {
     this.prefix = prefix;
   }
 
   protected abstract Properties loadProperties() throws Exception;
 
   @Override
-  public ObjectNode loadConfigurationData(ObjectMapper objectMapper) throws Exception {
+  public ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception {
     ObjectNode rootNode = objectMapper.createObjectNode();
     Properties properties = loadProperties();
     Stream<Pair<String, String>> pairs = properties.stringPropertyNames().stream().map(key -> Pair.of(key, properties.getProperty(key)));

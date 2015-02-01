@@ -21,24 +21,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.collect.ImmutableList;
-import ratpack.config.ConfigurationData;
-import ratpack.config.ConfigurationSource;
+import ratpack.config.ConfigData;
+import ratpack.config.ConfigSource;
 import ratpack.server.ReloadInformant;
 import ratpack.util.ExceptionUtils;
 
 import java.io.IOException;
 
-public class DefaultConfigurationData implements ConfigurationData {
+public class DefaultConfigData implements ConfigData {
   private final ObjectMapper objectMapper;
   private final ObjectNode rootNode;
   private final ReloadInformant reloadInformant;
   private final ObjectNode emptyNode;
 
-  public DefaultConfigurationData(ObjectMapper objectMapper, ImmutableList<ConfigurationSource> configurationSources) {
-    ConfigurationDataLoader loader = new ConfigurationDataLoader(objectMapper, configurationSources);
+  public DefaultConfigData(ObjectMapper objectMapper, ImmutableList<ConfigSource> configSources) {
+    ConfigDataLoader loader = new ConfigDataLoader(objectMapper, configSources);
     this.objectMapper = objectMapper;
     this.rootNode = loader.load();
-    this.reloadInformant = new ConfigurationDataReloadInformant(rootNode, loader);
+    this.reloadInformant = new ConfigDataReloadInformant(rootNode, loader);
     this.emptyNode = objectMapper.getNodeFactory().objectNode();
   }
 

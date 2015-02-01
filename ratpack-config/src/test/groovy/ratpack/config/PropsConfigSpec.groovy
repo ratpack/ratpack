@@ -16,11 +16,11 @@
 
 package ratpack.config
 
-import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.DefaultConfigDataSpec
 import ratpack.server.ServerConfig
 import ratpack.server.ServerEnvironment
 
-class PropsConfigurationSpec extends BaseConfigurationSpec {
+class PropsConfigSpec extends BaseConfigSpec {
   def "supports properties"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
@@ -50,7 +50,7 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigurationData.of().props(configFile).build().get(ServerConfig)
+    def serverConfig = ConfigData.of().props(configFile).build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir
@@ -99,7 +99,7 @@ class PropsConfigurationSpec extends BaseConfigurationSpec {
     }
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.hasBaseDir

@@ -17,7 +17,7 @@
 package ratpack.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ratpack.config.internal.DefaultConfigurationDataSpec;
+import ratpack.config.internal.DefaultConfigDataSpec;
 import ratpack.func.Action;
 import ratpack.server.ReloadInformant;
 import ratpack.server.ServerConfig;
@@ -26,12 +26,12 @@ import ratpack.server.ServerEnvironment;
 /**
  * Configuration data for the application, potentially built from many sources.
  * <p>
- * A {@link ConfigurationData} object allows configuration to be “read” as Java objects.
+ * A {@link ConfigData} object allows configuration to be “read” as Java objects.
  * The data used to populate the objects is specified when building the configuration data.
  * The static methods of this interface can be used to build a configuration data object.
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
- * import ratpack.config.ConfigurationData;
+ * import ratpack.config.ConfigData;
  * import ratpack.server.RatpackServer;
  * import ratpack.test.http.TestHttpClient;
  * import static org.junit.Assert.*;
@@ -46,7 +46,7 @@ import ratpack.server.ServerEnvironment;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     ConfigurationData config = ConfigurationData.of(d -> d
+ *     ConfigData config = ConfigData.of(d -> d
  *       .props(ImmutableMap.of("server.port", "5060", "app.name", "Ratpack"))
  *       .sysProps()
  *     );
@@ -73,20 +73,20 @@ import ratpack.server.ServerEnvironment;
  * }
  * }</pre>
  *
- * @see ratpack.config.ConfigurationDataSpec
+ * @see ConfigDataSpec
  */
-public interface ConfigurationData {
+public interface ConfigData {
 
   /**
    * Begins building a new application configuration using a default object mapper.
    *
    * @return the new configuration data spec
    */
-  static ConfigurationDataSpec of() {
-    return new DefaultConfigurationDataSpec(ServerEnvironment.env());
+  static ConfigDataSpec of() {
+    return new DefaultConfigDataSpec(ServerEnvironment.env());
   }
 
-  static ConfigurationData of(Action<? super ConfigurationDataSpec> config) throws Exception {
+  static ConfigData of(Action<? super ConfigDataSpec> config) throws Exception {
     return config.with(of()).build();
   }
 
@@ -96,11 +96,11 @@ public interface ConfigurationData {
    * @param objectMapper the object mapper to use for configuration purposes
    * @return the new configuration data spec
    */
-  static ConfigurationDataSpec of(ObjectMapper objectMapper) {
-    return new DefaultConfigurationDataSpec(ServerEnvironment.env(), objectMapper);
+  static ConfigDataSpec of(ObjectMapper objectMapper) {
+    return new DefaultConfigDataSpec(ServerEnvironment.env(), objectMapper);
   }
 
-  static ConfigurationData of(ObjectMapper objectMapper, Action<? super ConfigurationDataSpec> config) throws Exception {
+  static ConfigData of(ObjectMapper objectMapper, Action<? super ConfigDataSpec> config) throws Exception {
     return config.with(of(objectMapper)).build();
   }
 

@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.config
+package ratpack.config.internal.source;
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+import java.util.Optional;
+import java.util.Properties;
 
-import java.nio.file.Path
-import java.security.KeyStore
+public class PropertiesConfigSource extends AbstractPropertiesConfigSource {
+  private final Properties properties;
 
-abstract class BaseConfigurationSpec extends Specification {
-  @Rule
-  TemporaryFolder tempFolder
+  public PropertiesConfigSource(Optional<String> prefix, Properties properties) {
+    super(prefix);
+    this.properties = properties;
+  }
 
-  protected static void createKeystore(Path path, String password) {
-    def ks = KeyStore.getInstance("JKS")
-    ks.load(null, password.toCharArray())
-    path.withOutputStream { ks.store(it, password.toCharArray()) }
+  @Override
+  protected Properties loadProperties() throws Exception {
+    return properties;
   }
 }

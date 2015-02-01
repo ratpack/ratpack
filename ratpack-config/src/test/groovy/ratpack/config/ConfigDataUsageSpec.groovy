@@ -17,14 +17,14 @@
 package ratpack.config
 
 import com.fasterxml.jackson.databind.JsonNode
-import ratpack.config.internal.DefaultConfigurationDataSpec
+import ratpack.config.internal.DefaultConfigDataSpec
 import ratpack.server.ServerConfig
 import ratpack.server.ServerEnvironment
 
-class ConfigurationUsageSpec extends BaseConfigurationSpec {
+class ConfigDataUsageSpec extends BaseConfigSpec {
   def "properly loads ServerConfig defaults"() {
     when:
-    def serverConfig = ConfigurationData.of().build().get(ServerConfig)
+    def serverConfig = ConfigData.of().build().get(ServerConfig)
 
     then:
     !serverConfig.hasBaseDir
@@ -55,7 +55,7 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     def envData = [RATPACK_ADDRESS: "localhost"]
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.port == 8080
@@ -75,7 +75,7 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     |    jdbcUrl: "jdbc:h2:mem:"
     |""".stripMargin()
     when:
-    def config = ConfigurationData.of().yaml(yamlFile).build()
+    def config = ConfigData.of().yaml(yamlFile).build()
     def serverConfig = config.get("/server", ServerConfig)
     def dbConfig = config.get("/db", TestDatabaseConfig)
 
@@ -96,7 +96,7 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     def envData = [RATPACK_PORT: "456"]
 
     when:
-    def serverConfig = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
 
     then:
     serverConfig.port == 567
@@ -114,7 +114,7 @@ class ConfigurationUsageSpec extends BaseConfigurationSpec {
     |    jdbcUrl: "jdbc:h2:mem:"
     |""".stripMargin()
     when:
-    def config = new DefaultConfigurationDataSpec(new ServerEnvironment(envData, properties)).yaml(yamlFile).sysProps().build()
+    def config = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).yaml(yamlFile).sysProps().build()
     def node = config.get(JsonNode)
 
     then:

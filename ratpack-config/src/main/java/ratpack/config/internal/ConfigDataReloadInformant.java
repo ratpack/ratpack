@@ -30,22 +30,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ConfigurationDataReloadInformant implements ReloadInformant {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationDataReloadInformant.class);
+public class ConfigDataReloadInformant implements ReloadInformant {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDataReloadInformant.class);
 
   private final ObjectNode currentNode;
   private final AtomicBoolean changeDetected = new AtomicBoolean();
-  private final ConfigurationDataLoader loader;
+  private final ConfigDataLoader loader;
   private final Lock lock = new ReentrantLock();
   private Duration interval = Duration.ofSeconds(60);
   private ScheduledFuture<?> future;
 
-  public ConfigurationDataReloadInformant(ObjectNode currentNode, ConfigurationDataLoader loader) {
+  public ConfigDataReloadInformant(ObjectNode currentNode, ConfigDataLoader loader) {
     this.currentNode = currentNode;
     this.loader = loader;
   }
 
-  public ConfigurationDataReloadInformant interval(Duration interval) {
+  public ConfigDataReloadInformant interval(Duration interval) {
     this.interval = interval;
     return this;
   }
