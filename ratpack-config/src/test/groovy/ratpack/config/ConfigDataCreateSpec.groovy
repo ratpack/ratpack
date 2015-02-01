@@ -50,7 +50,7 @@ class ConfigDataCreateSpec extends Specification {
   def "reload server"() {
     given:
     def props = new Properties()
-    props.setProperty("server.port", "5050")
+    props.setProperty("server.port", "0")
     props.setProperty("app.name", "Ratpack")
     def propsFile = temporaryFolder.newFile("config.properties").toPath()
     propsFile.withOutputStream { props.store(it, null) }
@@ -73,18 +73,15 @@ class ConfigDataCreateSpec extends Specification {
 
     then:
     server.isRunning()
-    server.bindPort == 5050
     client.text == "Hi, my name is Ratpack"
 
     when:
-    props.setProperty("server.port", "5051")
     props.setProperty("app.name", "Ratpack!")
     propsFile.withOutputStream { props.store(it, null) }
     server.reload()
 
     then:
     server.isRunning()
-    server.bindPort == 5051
     client.text == "Hi, my name is Ratpack!"
   }
 
