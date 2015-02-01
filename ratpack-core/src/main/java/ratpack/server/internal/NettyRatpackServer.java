@@ -73,7 +73,7 @@ public class NettyRatpackServer implements RatpackServer {
   protected InetSocketAddress boundAddress;
   protected Channel channel;
   protected ExecController execController;
-  protected Registry serverRegistry;
+  protected Registry serverRegistry = Registries.empty();
 
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
@@ -335,7 +335,7 @@ public class NettyRatpackServer implements RatpackServer {
       try {
         this.inner = buildAdapter(definitionBuild);
       } catch (Exception e) {
-        this.inner = buildErrorRenderingAdapter(e);
+        this.inner = null;
       }
     }
 
