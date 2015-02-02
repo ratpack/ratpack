@@ -339,7 +339,7 @@ public class Example {
 }
 ```
 
-Additionally you can [`set(CharSequence, Object)`](api/ratpack/http/MutableHeaders.html#set-java.lang.CharSequence-java.lang.Object-), [`remove(CharSequence)`](api/ratpack/http/MutableHeaders.html#remove-java.lang.CharSequence-), [`clear()`](http://www.ratpack.io/manual/snapshot/api/ratpack/http/MutableHeaders.html#clear--) and more.
+Additionally you can [`set(CharSequence, Object)`](api/ratpack/http/MutableHeaders.html#set-java.lang.CharSequence-java.lang.Object-), [`remove(CharSequence)`](api/ratpack/http/MutableHeaders.html#remove-java.lang.CharSequence-), [`clear()`](api/ratpack/http/MutableHeaders.html#clear--) and more.
 
 See [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) for more methods.
 

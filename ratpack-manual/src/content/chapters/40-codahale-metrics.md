@@ -43,7 +43,7 @@ Ratpack supports metric reporters for the following outputs:
 * [CSV](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#csv-ratpack.func.Action-)
 * [Websockets](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#webSocket-ratpack.func.Action-)
 
-For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/Ratpack.groovy) project.
+For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/ratpack.groovy) project.
 
 ## Health checks
 
