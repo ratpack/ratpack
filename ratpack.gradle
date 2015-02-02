@@ -69,13 +69,7 @@ task bintrayPublish << {
   def curlUrl = [baseUrl, project.buildNumber, params].join('')
   def curl = ['curl', '-X', 'POST', '-u',
               /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, /"${curlUrl}"/].execute()
-  def json = new JsonSlurper().parseText(curl.text)
-
   logger.info("Received response: ${curl.text}")
-
-  if (!json || json.errors) {
-    throw new GradleException("Publish to Bintray failed: ${json}")
-  }
 }
 
 allprojects {
