@@ -26,6 +26,47 @@ import java.util.concurrent.Executors;
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
 
+/**
+ *  Factory methods for creating {@link ratpack.file.FileSystemChecksumService}.
+ *  <p>
+ *  Checksum service is used for calculation of file system checksums - assets or any kind of files.
+ *  Checksum service is backed by either predefined checksum calculation function (Noop. Adler32, MD5), or custom function.
+ *  Custom function has to be provided in the form of {@code Function<InputStream, String>} (class implementing this interface or lambda expression).
+ *
+ *  <pre class="java">{@code
+ *  import ratpack.file.FileSystemChecksumService;
+ *  import ratpack.file.FileSystemChecksumServices;
+ *  import ratpack.handling.Context;
+ *  import ratpack.handling.Handler;
+ *  import ratpack.test.handling.RequestFixture;
+ *  import ratpack.test.handling.HandlingResult;
+ *  import static org.junit.Assert.assertNotNull;
+ *  import java.nio.file.Paths;
+ *  public class Test {
+ *    public static class MyHandler implements Handler {
+ *      public void handle(Context ctx) throws Exception {
+ *        FileSystemChecksumService service = FileSystemChecksumServices.service(ctx.getServerConfig());
+ *        try {
+ *          String chks = service.checksum("README.md");
+ *          ctx.render(chks);
+ *        }
+ *        catch (Exception ex) {
+ *          ctx.clientError(400);
+ *        }
+ *      }
+ *    }
+ *
+ *    public static void main(String... args) throws Exception {
+ *      // Paths.get(".") -> indicates ratpack-manual home folder.
+ *      HandlingResult result = RequestFixture.requestFixture()
+ *        .serverConfig(Paths.get("."), b -> {
+ *        })
+ *        .handle(new MyHandler());
+ *      assertNotNull(result.rendered(String.class));
+ *    }
+ *  }
+ *  }</pre>
+ */
 public abstract class FileSystemChecksumServices {
 
   private FileSystemChecksumServices() {
@@ -41,6 +82,16 @@ public abstract class FileSystemChecksumServices {
       new FileSystemChecksumServicePopulater(serverConfig.getBaseDir().getFile(), cachingService, Executors.newFixedThreadPool(5), 4).start();
       return cachingService;
     }
+  }
+
+  /**
+   *  Return checksummer that does nothing. Does not calculate checksum and instead returns empty string.
+   *  @return checksummer function that returns empty checksum.
+   */
+  private static Function<InputStream, String> noopChecksummer() {
+    return (InputStream is) -> {
+      return "";
+    };
   }
 
   private static class Adler32Checksummer implements Function<InputStream, String> {
