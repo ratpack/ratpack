@@ -65,7 +65,6 @@ class JsonConfigSpec extends BaseConfigSpec {
         serverConfig.compressionMinSize == 100
         serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
         serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
-        serverConfig.indexFiles == ["index.html", "index.htm"]
         serverConfig.SSLContext
     }
 }

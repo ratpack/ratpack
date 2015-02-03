@@ -26,7 +26,6 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.List;
 
 public class DefaultServerConfig implements ServerConfig {
 
@@ -101,11 +100,6 @@ public class DefaultServerConfig implements ServerConfig {
   @Override
   public URI getPublicAddress() {
     return publicAddress;
-  }
-
-  @Override
-  public List<String> getIndexFiles() {
-    return indexFiles;
   }
 
   @Nullable

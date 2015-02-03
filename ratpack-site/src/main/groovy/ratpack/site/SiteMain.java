@@ -61,11 +61,6 @@ public class SiteMain {
           public boolean isHasBaseDir() {
             return true;
           }
-
-          @Override
-          public List<String> getIndexFiles() {
-            return Collections.singletonList("index.html");
-          }
         };
 
         return b
@@ -112,7 +107,7 @@ public class SiteMain {
                     ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
                     ctx.next();
                   })
-                  .assets("assets")
+                  .assets("assets", "index.html")
               )
 
               .get("index.html", ctx -> {
@@ -187,13 +182,13 @@ public class SiteMain {
                               ctx.next(just(new DefaultFileSystemBinding(ctx.file(version.getVersion()))));
                             });
                           })
-                          .assets("")
+                          .assets("", "index.html")
                       )
                   )
 
               )
 
-              .assets("public");
+              .assets("public", "index.html");
           });
       }
     );

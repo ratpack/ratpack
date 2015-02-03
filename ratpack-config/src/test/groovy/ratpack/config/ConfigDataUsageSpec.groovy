@@ -39,7 +39,6 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     serverConfig.compressionMinSize == ServerConfig.DEFAULT_COMPRESSION_MIN_SIZE
     serverConfig.compressionMimeTypeWhiteList == [] as Set
     serverConfig.compressionMimeTypeBlackList == [] as Set
-    serverConfig.indexFiles == []
     !serverConfig.SSLContext
   }
 

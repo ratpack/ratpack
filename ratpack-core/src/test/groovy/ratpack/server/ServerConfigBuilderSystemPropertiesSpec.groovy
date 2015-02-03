@@ -269,28 +269,6 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     config.compressionMimeTypeBlackList == ['json', 'xml'] as Set
   }
 
-  def "set index files"() {
-    given:
-    properties.setProperty('ratpack.indexFiles', 'home.html,index.html')
-
-    when:
-    def config = builder.sysProps().build()
-
-    then:
-    config.indexFiles == ['home.html', 'index.html']
-  }
-
-  def "trim white space in comma separated lists"() {
-    given:
-    properties.setProperty('ratpack.indexFiles', 'home.html , index.html')
-
-    when:
-    def config = builder.sysProps().build()
-
-    then:
-    config.indexFiles == ['home.html', 'index.html']
-  }
-
   def "set ssl context"() {
     given:
     String keystoreFile = 'ratpack/launch/internal/keystore.jks'

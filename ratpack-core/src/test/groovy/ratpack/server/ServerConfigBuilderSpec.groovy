@@ -189,19 +189,6 @@ class ServerConfigBuilderSpec extends Specification {
     blackList == ['json', 'xml'] as Set
   }
 
-  def "new builder has default index files"() {
-    expect:
-    builder.build().indexFiles.size() == 0
-  }
-
-  def "set index files"() {
-    when:
-    Set<String> indexFiles = builder.indexFiles('home.html', 'index.html').build().indexFiles
-
-    then:
-    indexFiles == ['home.html', 'index.html'] as Set
-  }
-
   def "set ssl context"() {
     given:
     SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/launch/internal/keystore.jks'), 'password')

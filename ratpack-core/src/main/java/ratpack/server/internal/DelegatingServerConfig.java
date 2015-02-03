@@ -25,7 +25,6 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.List;
 
 public class DelegatingServerConfig implements ServerConfig {
 
@@ -59,11 +58,6 @@ public class DelegatingServerConfig implements ServerConfig {
   @Override
   public URI getPublicAddress() {
     return delegate.getPublicAddress();
-  }
-
-  @Override
-  public List<String> getIndexFiles() {
-    return delegate.getIndexFiles();
   }
 
   @Override

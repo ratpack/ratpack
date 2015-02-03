@@ -46,7 +46,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
 
   def "load from map"() {
     given:
-    def map = [port:"5060"]
+    def map = [port: "5060"]
 
     when:
     def config = builder.props(map).build()
@@ -105,16 +105,4 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
     config.port == 5060
   }
 
-  def "set index files"() {
-    given:
-    def file = tempFolder.newFile('test.properties')
-    file << 'indexFiles=home.html,index.html'
-    def url = file.toURI().toURL()
-
-    when:
-    def config = builder.props(url).build()
-
-    then:
-    config.indexFiles == ['home.html', 'index.html']
-  }
 }

@@ -180,18 +180,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
-  public ServerConfig.Builder indexFiles(String... indexFiles) {
-    this.indexFiles.add(indexFiles);
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder indexFiles(List<String> indexFiles) {
-    this.indexFiles.addAll(indexFiles);
-    return this;
-  }
-
-  @Override
   public ServerConfig.Builder ssl(SSLContext sslContext) {
     this.sslContext = sslContext;
     return this;
@@ -390,7 +378,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
       .put("compressionMinSize", new BuilderAction<>(Long::parseLong, DefaultServerConfigBuilder.this::compressionMinSize))
       .put("compressionWhiteListMimeTypes", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::compressionWhiteListMimeTypes))
       .put("compressionBlackListMimeTypes", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::compressionBlackListMimeTypes))
-      .put("indexFiles", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::indexFiles))
       .put("sslKeystoreFile", new BuilderAction<>(DefaultServerConfigBuilder::asStream, DefaultServerConfigBuilder.this::sslKeystore))
       .put("sslKeystorePassword", new BuilderAction<>(Function.identity(), DefaultServerConfigBuilder.this::sslKeystorePassword))
       .build();

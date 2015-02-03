@@ -80,9 +80,6 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     if (serverNode.hasNonNull("compressionMimeTypeBlackList")) {
       builder.compressionBlackListMimeTypes(toList(codec, serverNode.get("compressionMimeTypeBlackList")));
     }
-    if (serverNode.hasNonNull("indexFiles")) {
-      builder.indexFiles(toList(codec, serverNode.get("indexFiles")));
-    }
     if (serverNode.hasNonNull("ssl")) {
       builder.ssl(codec.treeToValue(serverNode.get("ssl"), SSLContext.class));
     }

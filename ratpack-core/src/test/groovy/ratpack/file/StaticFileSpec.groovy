@@ -374,68 +374,6 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     fileSize = 2131795 // taken from original bug report
   }
 
-  def "can serve index files using global configuration"() {
-    given:
-    file "d1/custom.html", "foo"
-    file "d2/custom.xhtml", "bar"
-
-    and:
-    serverConfig {
-      indexFiles "custom.xhtml", "custom.html"
-    }
-
-    when:
-    handlers {
-      prefix("a") {
-        assets("d1")
-      }
-      prefix("b") {
-        assets("d2")
-      }
-    }
-
-    then:
-    getText("a/") == "foo"
-    getText("b/") == "bar"
-  }
-
-  def "can serve index files overriding global configuration with handler"() {
-    given:
-    file "public/custom.html", "foo"
-    file "public/index.html", "bar"
-
-    and:
-    serverConfig {
-      indexFiles "custom.html"
-    }
-
-    when:
-    handlers {
-      assets("public", "index.html")
-    }
-
-    then:
-    getText() == "bar"
-  }
-
-  def "can serve index files overriding global configuration with module"() {
-    given:
-    file "public/custom.html", "foo"
-    file "public/index.html", "bar"
-    and:
-    serverConfig {
-      indexFiles "index.html", "custom.html"
-    }
-
-    when:
-    handlers {
-      assets("public")
-    }
-
-    then:
-    getText() == "bar"
-  }
-
   def "asset handler passes through on not found"() {
     given:
     file "public/foo.txt", "bar"

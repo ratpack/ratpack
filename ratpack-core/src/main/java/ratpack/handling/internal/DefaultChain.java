@@ -21,10 +21,10 @@ import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.ServerConfig;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain assets(String path, String... indexFiles) {
-    return handler(Handlers.assets(getServerConfig(), path, indexFiles.length == 0 ? serverConfig.getIndexFiles() : copyOf(indexFiles)));
+    return handler(Handlers.assets(getServerConfig(), path, copyOf(indexFiles)));
   }
 
   @Override

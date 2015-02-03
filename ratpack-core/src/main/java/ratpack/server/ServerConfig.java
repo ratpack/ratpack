@@ -149,13 +149,6 @@ public interface ServerConfig {
   public URI getPublicAddress();
 
   /**
-   * The names of files that can be served if a request is made to serve a directory.
-   *
-   * @return The names of files that can be served if a request is made to serve a directory.
-   */
-  public List<String> getIndexFiles();
-
-  /**
    * The SSL context to use if the application will serve content over HTTPS.
    *
    * @return The SSL context or <code>null</code> if the application does not use SSL.
@@ -357,24 +350,6 @@ public interface ServerConfig {
      * @see ServerConfig#getCompressionMimeTypeBlackList()
      */
     Builder compressionBlackListMimeTypes(List<String> mimeTypes);
-
-    /**
-     * Adds the given values as potential index file names.
-     *
-     * @param indexFiles the potential index file names.
-     * @return this
-     * @see ServerConfig#getIndexFiles()
-     */
-    Builder indexFiles(String... indexFiles);
-
-    /**
-     * Adds the given values as potential index file names.
-     *
-     * @param indexFiles the potential index file names.
-     * @return this
-     * @see ServerConfig#getIndexFiles()
-     */
-    Builder indexFiles(List<String> indexFiles);
 
     /**
      * The SSL context to use if the application serves content over HTTPS.
