@@ -317,7 +317,9 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private <E> void executeEvents(Registry registry, E event, BiAction<Service, E> action) throws Exception {
-    registry.getAll(Service.class).forEach(listener -> uncheck(listener, event, action));
+    for (Service service : registry.getAll(Service.class)) {
+      action.execute(service, event);
+    }
   }
 
   @ChannelHandler.Sharable
@@ -348,7 +350,7 @@ public class NettyRatpackServer implements RatpackServer {
         if (inner == null || definitionBuild.error != null) {
           rebuild = true;
         } else {
-          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), ReloadInformant::shouldReload);
+          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry));
           if (reloadInformant.isPresent()) {
             LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
             rebuild = true;

@@ -16,6 +16,8 @@
 
 package ratpack.server;
 
+import ratpack.registry.Registry;
+
 /**
  * Informs when the server should be reloaded, during {@link ServerConfig#isDevelopment() development}.
  * <p>
@@ -23,7 +25,7 @@ package ratpack.server;
  * The term “reload” here specifically refers to rebuilding the server definition by re-<i>executing</i> the function given to the {@link RatpackServer#of(ratpack.func.Function)} method that defined the server.
  * <p>
  * Reload informants will never be queried concurrently so can be safely stateful.
- * Calls to {@link #shouldReload()} are serialised for any given informant, and informants are queried in sequence.
+ * Calls to {@link #shouldReload(ratpack.registry.Registry)} are serialised for any given informant, and informants are queried in sequence.
  * <p>
  * Reload informants are queried in the order they are returned by the server registry.
  * If an informant indicates that the server should reload, no further informants will be queried.
@@ -39,6 +41,7 @@ package ratpack.server;
  * import ratpack.server.ReloadInformant;
  * import ratpack.server.ServerConfig;
  * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.registry.Registry;
  *
  * import static org.junit.Assert.assertEquals;
  *
@@ -46,7 +49,7 @@ package ratpack.server;
  *   static class ReloadEveryOtherRequest implements ReloadInformant {
  *     private int i = 0;
  *
- *     public boolean shouldReload() {
+ *     public boolean shouldReload(Registry registry) {
  *       return ++i % 2 == 0;
  *     }
  *
@@ -82,8 +85,9 @@ public interface ReloadInformant {
    * Whether the server should reload.
    *
    * @return whether the server should reload
+   * @param registry the server registry
    */
-  boolean shouldReload();
+  boolean shouldReload(Registry registry);
 
   /**
    * The description of this reload informant.

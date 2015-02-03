@@ -19,9 +19,7 @@ package ratpack.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.config.internal.DefaultConfigDataSpec;
 import ratpack.func.Action;
-import ratpack.server.ReloadInformant;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerEnvironment;
+import ratpack.server.*;
 
 /**
  * Configuration data for the application, potentially built from many sources.
@@ -79,7 +77,7 @@ import ratpack.server.ServerEnvironment;
  *
  * @see ConfigDataSpec
  */
-public interface ConfigData extends ReloadInformant {
+public interface ConfigData extends ReloadInformant, Service {
 
   /**
    * Begins building a new application configuration using a default object mapper.

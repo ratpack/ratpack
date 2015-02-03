@@ -23,7 +23,9 @@ import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.collect.ImmutableList;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigSource;
-import ratpack.server.ReloadInformant;
+import ratpack.registry.Registry;
+import ratpack.server.StartEvent;
+import ratpack.server.StopEvent;
 import ratpack.util.ExceptionUtils;
 
 import java.io.IOException;
@@ -32,7 +34,7 @@ public class DefaultConfigData implements ConfigData {
 
   private final ObjectMapper objectMapper;
   private final ObjectNode rootNode;
-  private final ReloadInformant reloadInformant;
+  private final ConfigDataReloadInformant reloadInformant;
   private final ObjectNode emptyNode;
 
   public DefaultConfigData(ObjectMapper objectMapper, ImmutableList<ConfigSource> configSources) {
@@ -57,7 +59,17 @@ public class DefaultConfigData implements ConfigData {
   }
 
   @Override
-  public boolean shouldReload() {
-    return reloadInformant.shouldReload();
+  public boolean shouldReload(Registry registry) {
+    return reloadInformant.shouldReload(registry);
+  }
+
+  @Override
+  public void onStart(StartEvent event) throws Exception {
+    reloadInformant.onStart(event);
+  }
+
+  @Override
+  public void onStop(StopEvent event) throws Exception {
+    reloadInformant.onStop(event);
   }
 }

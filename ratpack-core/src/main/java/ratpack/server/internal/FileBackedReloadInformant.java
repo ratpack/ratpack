@@ -18,6 +18,7 @@ package ratpack.server.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import ratpack.registry.Registry;
 import ratpack.server.ReloadInformant;
 import ratpack.util.internal.IoUtils;
 
@@ -58,7 +59,7 @@ public class FileBackedReloadInformant implements ReloadInformant {
   }
 
   @Override
-  public boolean shouldReload() {
+  public boolean shouldReload(Registry registry) {
     // If the file disappeared, wait a little for it to appear
     int i = 10;
     while (!Files.exists(file) && --i > 0) {

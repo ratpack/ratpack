@@ -20,88 +20,81 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecControl;
+import ratpack.registry.Registry;
 import ratpack.server.ReloadInformant;
+import ratpack.server.Service;
+import ratpack.server.StartEvent;
+import ratpack.server.StopEvent;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-public class ConfigDataReloadInformant implements ReloadInformant {
+public class ConfigDataReloadInformant implements ReloadInformant, Service {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDataReloadInformant.class);
+  private static final Duration INTERVAL = Duration.ofSeconds(1);
 
-  private final ObjectNode currentNode;
-  private final AtomicBoolean changeDetected = new AtomicBoolean();
   private final ConfigDataLoader loader;
-  private final Lock lock = new ReentrantLock();
-  private Duration interval = Duration.ofSeconds(1);
-  private ScheduledFuture<?> future;
+  private final ObjectNode currentNode;
+
+  private boolean changeDetected;
+  private boolean stopped;
 
   public ConfigDataReloadInformant(ObjectNode currentNode, ConfigDataLoader loader) {
     this.currentNode = currentNode;
     this.loader = loader;
   }
 
-  public ConfigDataReloadInformant interval(Duration interval) {
-    this.interval = interval;
-    return this;
-  }
-
   @Override
-  public boolean shouldReload() {
-    schedulePollIfNotRunning();
-    return changeDetected.get();
+  public boolean shouldReload(Registry registry) {
+    return changeDetected;
   }
 
-  private void schedulePollIfNotRunning() {
-    if (!isPollRunning()) {
-      lock.lock();
-      try {
-        if (!isPollRunning()) {
-          future = schedulePoll();
-        }
-      } finally {
-        lock.unlock();
-      }
+  private void schedulePoll(ExecControl execControl) {
+    if (stopped) {
+      return;
     }
-  }
 
-  private boolean isPollRunning() {
-    return future != null && !future.isDone();
-  }
-
-  private ScheduledFuture<?> schedulePoll() {
-    LOGGER.debug("Scheduling configuration poll in {}", interval);
-    ExecControl execControl = ExecControl.current();
     ScheduledExecutorService scheduledExecutorService = execControl.getController().getExecutor();
 
     Runnable poll = () ->
-      execControl.exec().start(e -> e
-          .blocking(loader::load)
-          .then(newNode -> {
-            if (currentNode.equals(newNode)) {
-              LOGGER.debug("No difference in configuration data");
-              lock.lock();
-              try {
-                future = schedulePoll();
-              } finally {
-                lock.unlock();
+      execControl.exec().start(e -> {
+          if (stopped) {
+            return;
+          }
+          e.blocking(loader::load)
+            .onError(error -> {
+              LOGGER.warn("failed to load config in order to check for changes", error);
+              schedulePoll(execControl);
+            })
+            .then(newNode -> {
+              if (currentNode.equals(newNode)) {
+                LOGGER.debug("No difference in configuration data");
+                schedulePoll(execControl);
+              } else {
+                LOGGER.info("Configuration data difference detected; next request should reload");
+                changeDetected = true;
               }
-            } else {
-              LOGGER.info("Configuration data difference detected; next request should reload");
-              changeDetected.set(true);
-            }
-          })
+            });
+        }
       );
 
-    return scheduledExecutorService.schedule(poll, interval.getSeconds(), TimeUnit.SECONDS);
+    scheduledExecutorService.schedule(poll, INTERVAL.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override
   public String toString() {
     return "configuration data reload informant";
+  }
+
+  @Override
+  public void onStart(StartEvent event) throws Exception {
+    schedulePoll(event.getRegistry().get(ExecControl.class));
+  }
+
+  @Override
+  public void onStop(StopEvent event) throws Exception {
+    stopped = true;
   }
 }

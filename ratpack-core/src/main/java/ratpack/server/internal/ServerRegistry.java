@@ -24,6 +24,7 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
+import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -80,6 +81,7 @@ public abstract class ServerRegistry {
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
+        .add(ExecControl.class, execController.getControl())
         .add(MimeTypes.class, new ActivationBackedMimeTypes())
         .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
         .add(Redirector.class, new DefaultRedirector())
