@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-description = "Provides integration with the Coda Hale Metrics library - http://metrics.codahale.com/"
+description = "Provides integration with the Coda Hale Metrics library - https://dropwizard.github.io/metrics/"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
@@ -22,12 +22,12 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
 
-  def codahaleMetricsVersion = "3.0.2"
-  
-  compile "com.codahale.metrics:metrics-core:$codahaleMetricsVersion"
-  compile "com.codahale.metrics:metrics-healthchecks:$codahaleMetricsVersion"
-  compile "com.codahale.metrics:metrics-jvm:$codahaleMetricsVersion"
-  compile "com.codahale.metrics:metrics-annotation:$codahaleMetricsVersion"
+  def codahaleMetricsVersion = "3.1.0"
+
+  compile "io.dropwizard.metrics:metrics-core:$codahaleMetricsVersion"
+  compile "io.dropwizard.metrics:metrics-healthchecks:$codahaleMetricsVersion"
+  compile "io.dropwizard.metrics:metrics-jvm:$codahaleMetricsVersion"
+  compile "io.dropwizard.metrics:metrics-annotation:$codahaleMetricsVersion"
   compile commonDependencies.jackson
 
   testCompile project(":ratpack-jackson")
