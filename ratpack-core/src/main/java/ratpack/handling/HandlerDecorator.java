@@ -20,6 +20,14 @@ import ratpack.registry.Registry;
 
 public interface HandlerDecorator {
 
-  Handler decorate(Registry serverRegistry, Handler rest);
+  Handler decorate(Registry serverRegistry, Handler rest) throws Exception;
+
+  static HandlerDecorator prepend(Handler handler) {
+    return (registry, rest) -> Handlers.chain(registry, c -> c.handler(handler).handler(rest));
+  }
+
+  static HandlerDecorator passThru() {
+    return (registry, rest) -> rest;
+  }
 
 }

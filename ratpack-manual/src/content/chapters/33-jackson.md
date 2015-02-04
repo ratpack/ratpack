@@ -43,14 +43,11 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
-    EmbeddedApp.fromHandlerFactory(launchConfig ->
-      Guice.builder(launchConfig)
-        .bindings(b ->
-          b.add(JacksonModule.class, c -> c.prettyPrint(false))
-        )
-        .build(chain ->
-          chain.get(ctx -> ctx.render(json(new Person("John"))))
-        )
+    EmbeddedApp.of(s -> s
+      .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+      .handlers(chain ->
+        chain.get(ctx -> ctx.render(json(new Person("John"))))
+      )
     ).test(httpClient -> {
       ReceivedResponse response = httpClient.get();
       assertEquals("{\"name\":\"John\"}", response.getBody().getText());
@@ -97,25 +94,22 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
-    EmbeddedApp.fromHandlerFactory(launchConfig ->
-      Guice.builder(launchConfig)
-        .bindings(b ->
-          b.add(JacksonModule.class, c -> c.prettyPrint(false))
-        )
-        .build(chain -> chain
-          .post("asNode", ctx -> {
-            JsonNode node = ctx.parse(jsonNode());
-            ctx.render(node.get("name").asText());
-          })
-          .post("asPerson", ctx -> {
-            Person person = ctx.parse(fromJson(Person.class));
-            ctx.render(person.getName());
-          })
-          .post("asPersonList", ctx -> {
-            List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
-            ctx.render(person.get(0).getName());
-          })
-        )
+    EmbeddedApp.of(s -> s
+      .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+      .handlers(chain -> chain
+        .post("asNode", ctx -> {
+          JsonNode node = ctx.parse(jsonNode());
+          ctx.render(node.get("name").asText());
+        })
+        .post("asPerson", ctx -> {
+          Person person = ctx.parse(fromJson(Person.class));
+          ctx.render(person.getName());
+        })
+        .post("asPersonList", ctx -> {
+          List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
+          ctx.render(person.get(0).getName());
+        })
+      )
     ).test(httpClient -> {
       ReceivedResponse response = httpClient.requestSpec(s ->
         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
@@ -164,21 +158,18 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
-    EmbeddedApp.fromHandlerFactory(launchConfig ->
-      Guice.builder(launchConfig)
-        .bindings(b ->
-          b.add(JacksonModule.class, c -> c.prettyPrint(false))
-        )
-        .build(chain -> chain
-          .post("asPerson", ctx -> {
-            Person person = ctx.parse(Person.class);
-            ctx.render(person.getName());
-          })
-          .post("asPersonList", ctx -> {
-            List<Person> person = ctx.parse(listOf(Person.class));
-            ctx.render(person.get(0).getName());
-          })
-        )
+    EmbeddedApp.of(s -> s
+      .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+      .handlers(chain -> chain
+        .post("asPerson", ctx -> {
+          Person person = ctx.parse(Person.class);
+          ctx.render(person.getName());
+        })
+        .post("asPersonList", ctx -> {
+          List<Person> person = ctx.parse(listOf(Person.class));
+          ctx.render(person.get(0).getName());
+        })
+      )
     ).test(httpClient -> {
       ReceivedResponse response = httpClient.requestSpec(s ->
         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
@@ -226,20 +217,19 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
-    EmbeddedApp.fromHandlerFactory(launchConfig ->
-      Guice.builder(launchConfig)
-        .bindings(b ->
-          b.add(JacksonModule.class, c -> c
-            .modules(new Jdk8Module()) // register the Jackson module
-            .prettyPrint(false)
-          )
+    EmbeddedApp.of(s -> s
+      .registry(Guice.registry(b -> b
+        .add(JacksonModule.class, c -> c 
+          .modules(new Jdk8Module()) // register the Jackson module
+          .prettyPrint(false)
         )
-        .build(chain ->
-          chain.get(ctx -> {
-            Optional<Person> personOptional = Optional.of(new Person("John"));
-            ctx.render(json(personOptional));
-          })
-        )
+      ))
+      .handlers(chain ->
+        chain.get(ctx -> {
+          Optional<Person> personOptional = Optional.of(new Person("John"));
+          ctx.render(json(personOptional));
+        })
+      )
     ).test(httpClient -> {
       ReceivedResponse response = httpClient.get();
       assertEquals("{\"name\":\"John\"}", response.getBody().getText());

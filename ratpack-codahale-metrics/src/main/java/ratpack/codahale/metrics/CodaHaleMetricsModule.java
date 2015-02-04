@@ -26,13 +26,17 @@ import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.multibindings.Multibinder;
 import ratpack.codahale.metrics.internal.*;
 import ratpack.func.Action;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
-import ratpack.handling.Handler;
+import ratpack.handling.HandlerDecorator;
+import ratpack.server.Service;
+import ratpack.server.StartEvent;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
 import java.io.File;
 import java.time.Duration;
 
@@ -165,7 +169,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * @see <a href="http://metrics.codahale.com/" target="_blank">Coda Hale's Metrics</a>
  * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
  */
-public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsModule.Config> implements HandlerDecoratingModule {
+public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsModule.Config> {
 
   public static final String RATPACK_METRIC_REGISTRY = "ratpack-metrics";
 
@@ -504,6 +508,9 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     bind(HealthCheckRegistry.class).in(SINGLETON);
     bind(HealthCheckResultRenderer.class).in(SINGLETON);
     bind(HealthCheckResultsRenderer.class).in(SINGLETON);
+
+    bind(Startup.class);
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(HandlerDecoratorProvider.class);
   }
 
   private <T> T injected(T instance) {
@@ -511,38 +518,62 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     return instance;
   }
 
-  @Override
-  public Handler decorate(Injector injector, Handler handler) {
-    Config config = injector.getInstance(Config.class);
-    if (config.isHealthChecks()) {
-      final HealthCheckRegistry registry = injector.getInstance(HealthCheckRegistry.class);
-      GuiceUtil.eachOfType(injector, TypeToken.of(NamedHealthCheck.class), new Action<NamedHealthCheck>() {
-        public void execute(NamedHealthCheck healthCheck) throws Exception {
-          registry.register(healthCheck.getName(), healthCheck);
+  private static class Startup implements Service {
+
+    private final Config config;
+    private final Injector injector;
+
+    @Inject
+    public Startup(Config config, Injector injector) {
+      this.config = config;
+      this.injector = injector;
+    }
+
+    @Override
+    public void onStart(StartEvent event) throws Exception {
+      if (config.isHealthChecks()) {
+        final HealthCheckRegistry registry = injector.getInstance(HealthCheckRegistry.class);
+        GuiceUtil.eachOfType(injector, TypeToken.of(NamedHealthCheck.class), new Action<NamedHealthCheck>() {
+          public void execute(NamedHealthCheck healthCheck) throws Exception {
+            registry.register(healthCheck.getName(), healthCheck);
+          }
+        });
+      }
+      if (config.isEnabled()) {
+        Config.Jmx jmx = config.getJmx();
+        Config.Console console = config.getConsole();
+        Config.Csv csv = config.getCsv();
+        if (jmx.isEnabled()) {
+          injector.getInstance(JmxReporter.class).start();
         }
-      });
+        if (console.isEnabled()) {
+          injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS);
+        }
+        if (csv.isEnabled()) {
+          injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS);
+        }
+        if (config.isJvmMetrics()) {
+          final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+          metricRegistry.registerAll(new GarbageCollectorMetricSet());
+          metricRegistry.registerAll(new ThreadStatesGaugeSet());
+          metricRegistry.registerAll(new MemoryUsageGaugeSet());
+        }
+      }
     }
-    if (config.isEnabled()) {
-      Config.Jmx jmx = config.getJmx();
-      Config.Console console = config.getConsole();
-      Config.Csv csv = config.getCsv();
-      if (jmx.isEnabled()) {
-        injector.getInstance(JmxReporter.class).start();
-      }
-      if (console.isEnabled()) {
-        injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS);
-      }
-      if (csv.isEnabled()) {
-        injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS);
-      }
-      if (config.isJvmMetrics()) {
-        final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
-        metricRegistry.registerAll(new GarbageCollectorMetricSet());
-        metricRegistry.registerAll(new ThreadStatesGaugeSet());
-        metricRegistry.registerAll(new MemoryUsageGaugeSet());
-      }
-      return new RequestTimingHandler(handler);
-    }
-    return handler;
   }
+
+  private static class HandlerDecoratorProvider implements Provider<HandlerDecorator> {
+    private final Config config;
+
+    @Inject
+    public HandlerDecoratorProvider(Config config) {
+      this.config = config;
+    }
+
+    @Override
+    public HandlerDecorator get() {
+      return config.isEnabled() ? HandlerDecorator.prepend(new RequestTimingHandler()) : HandlerDecorator.passThru();
+    }
+  }
+
 }

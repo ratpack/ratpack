@@ -16,11 +16,17 @@
 
 package ratpack.guice;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.multibindings.Multibinder;
 import ratpack.func.Action;
+import ratpack.guice.internal.GuiceUtil;
 import ratpack.server.ServerConfig;
+import ratpack.util.Types;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
  * A buildable specification of Guice bindings.
@@ -37,12 +43,6 @@ import ratpack.server.ServerConfig;
  * <p>
  * Bindings added via the {@code bind()} and {@code provider()} methods always have the highest precedence, regardless of order.
  * That is, non module bindings can always override module bindings regardless of whether the module is added before or after the non module binding.
- * <h3>Adding handlers</h3>
- * <p>
- * Added modules can implement the {@link HandlerDecoratingModule} interface to facilitate adding handlers implicitly to the handler chain.
- *
- * @see Guice#builder(ratpack.registry.Registry)
- * @see HandlerDecoratingModule
  */
 public interface BindingsSpec {
 
@@ -130,6 +130,14 @@ public interface BindingsSpec {
    */
   BindingsSpec binder(Action<? super Binder> action);
 
+  default <T> BindingsSpec multiBinder(TypeToken<T> type, Action<? super Multibinder<T>> action) throws Exception {
+    return binder(b -> action.execute(Multibinder.newSetBinder(b, GuiceUtil.toTypeLiteral(type))));
+  }
+
+  default <T> BindingsSpec multiBinder(Class<T> type, Action<? super Multibinder<T>> action) throws Exception {
+    return multiBinder(TypeToken.of(type), action);
+  }
+
   /**
    * Add a binding for the given type.
    *
@@ -137,6 +145,10 @@ public interface BindingsSpec {
    * @return this
    */
   BindingsSpec bind(Class<?> type);
+
+  default <T> BindingsSpec multiBind(Class<T> type) {
+    return uncheck(() -> multiBinder(type, b -> b.addBinding().to(type)));
+  }
 
   /**
    * Add a binding for the given public type, to the given implementation type.
@@ -148,6 +160,10 @@ public interface BindingsSpec {
    */
   <T> BindingsSpec bind(Class<T> publicType, Class<? extends T> implType);
 
+  default <T> BindingsSpec multiBind(Class<T> publicType, Class<? extends T> implType) {
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().to(implType)));
+  }
+
   /**
    * Add a binding for the given public type, to the given implementing instance.
    *
@@ -158,6 +174,10 @@ public interface BindingsSpec {
    */
   <T> BindingsSpec bindInstance(Class<? super T> publicType, T instance);
 
+  default <T> BindingsSpec multiBindInstance(Class<T> publicType, T instance) {
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().toInstance(instance)));
+  }
+
   /**
    * Add a binding for the given object to its concrete type.
    *
@@ -166,6 +186,13 @@ public interface BindingsSpec {
    * @return this
    */
   <T> BindingsSpec bindInstance(T instance);
+
+  default <T> BindingsSpec multiBindInstance(T instance) {
+    return uncheck(() -> {
+      Class<T> aClass = Types.cast(instance.getClass());
+      return multiBinder(aClass, b -> b.addBinding().toInstance(instance));
+    });
+  }
 
   /**
    * Add a binding for the given public type, to the given provider.
@@ -177,6 +204,10 @@ public interface BindingsSpec {
    */
   <T> BindingsSpec provider(Class<T> publicType, Provider<? extends T> provider);
 
+  default <T> BindingsSpec multiBindProvider(Class<T> publicType, Provider<? extends T> provider) {
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().toProvider(provider)));
+  }
+
   /**
    * Add a binding for the given public type, to the given provider type.
    *
@@ -186,5 +217,9 @@ public interface BindingsSpec {
    * @return this
    */
   <T> BindingsSpec providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+
+  default <T> BindingsSpec multiBindProviderType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().toProvider(providerType)));
+  }
 
 }

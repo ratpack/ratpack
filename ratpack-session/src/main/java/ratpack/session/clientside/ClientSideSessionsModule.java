@@ -16,18 +16,19 @@
 
 package ratpack.session.clientside;
 
-import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
 import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.HandlerDecoratingModule;
-import ratpack.handling.Handler;
+import ratpack.handling.HandlerDecorator;
 import ratpack.session.clientside.internal.CookieBasedSessionStorageBindingHandler;
 import ratpack.session.clientside.internal.DefaultClientSessionService;
 import ratpack.session.clientside.internal.DefaultCrypto;
 import ratpack.session.clientside.internal.DefaultSigner;
 
 import javax.crypto.spec.SecretKeySpec;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /**
@@ -38,8 +39,6 @@ import javax.inject.Singleton;
  * </ul>
  * <h3>Getting the session storage</h3>
  * <p>
- * This module {@linkplain #decorate(com.google.inject.Injector, ratpack.handling.Handler) decorates the handler} to make
- * the {@link ratpack.session.store.SessionStorage} available during request processing.
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.session.store.SessionStorage;
@@ -91,25 +90,28 @@ import javax.inject.Singleton;
  *
  * public class ClientSideSessionsModuleConfigExample {
  *   public static void main(String[] args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *       Guice.builder(registry)
- *         .bindings(b -> b.add(ClientSideSessionsModule.class, config -> {
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b ->
+ *         b.add(ClientSideSessionsModule.class, config -> {
  *           config.setSessionName("session-name");
  *           config.setSecretToken("your token for signing");
  *           // config.setSecretKey("key for cipher");
  *           // config.setMacAlgorithm("MAC algorithm for signing");
  *           // config.setCipherAlgorithm("Cipher Algorithm");
- *         }))
- *         .build(chain ->
- *           chain.get(ctx -> {
- *             SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
- *             ctx.render(sessionStorage.getOrDefault("value", "not set"));
- *           }).get("set/:value", ctx -> {
- *             SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
- *             String value = ctx.getPathTokens().get("value");
- *             sessionStorage.put("value", value);
- *             ctx.render(value);
- *           }))
+ *         })
+ *       ))
+ *       .handlers(chain -> chain
+ *         .get(ctx -> {
+ *           SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
+ *           ctx.render(sessionStorage.getOrDefault("value", "not set"));
+ *         })
+ *         .get("set/:value", ctx -> {
+ *           SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
+ *           String value = ctx.getPathTokens().get("value");
+ *           sessionStorage.put("value", value);
+ *           ctx.render(value);
+ *         })
+ *       )
  *     ).test(client -> {
  *       ReceivedResponse response = client.get();
  *       assertEquals("not set", response.getBody().getText());
@@ -145,10 +147,11 @@ import javax.inject.Singleton;
  * make sure that the key length is acceptable according to the algorithm you have chosen.
  *
  */
-public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessionsModule.Config> implements HandlerDecoratingModule {
+public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessionsModule.Config> {
 
   @Override
   protected void configure() {
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(CookieBasedSessionStorageHandlerDecorator.class);
   }
 
   @SuppressWarnings("UnusedDeclaration")
@@ -182,15 +185,20 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     return sessionService;
   }
 
-  /**
-   * Makes {@link ratpack.session.store.SessionStorage} available in the context registry.
-   *
-   * @param injector The injector created from all the application modules
-   * @param handler The application handler
-   * @return A handler that provides a {@link ratpack.session.store.SessionStorage} impl in the context registry
-   */
-  public Handler decorate(Injector injector, Handler handler) {
-    return new CookieBasedSessionStorageBindingHandler(injector.getInstance(SessionService.class), injector.getInstance(Config.class).getSessionName(), handler);
+  private static class CookieBasedSessionStorageHandlerDecorator implements Provider<HandlerDecorator> {
+    private final SessionService sessionService;
+    private final Config config;
+
+    @Inject
+    public CookieBasedSessionStorageHandlerDecorator(SessionService sessionService, Config config) {
+      this.sessionService = sessionService;
+      this.config = config;
+    }
+
+    @Override
+    public HandlerDecorator get() {
+      return HandlerDecorator.prepend(new CookieBasedSessionStorageBindingHandler(sessionService, config.getSessionName()));
+    }
   }
 
   public static class Config {

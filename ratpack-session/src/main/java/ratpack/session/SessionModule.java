@@ -17,17 +17,16 @@
 package ratpack.session;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import ratpack.guice.HandlerDecoratingModule;
-import ratpack.handling.Handler;
+import com.google.inject.multibindings.Multibinder;
+import ratpack.handling.HandlerDecorator;
 import ratpack.session.internal.DefaultSessionCookieConfig;
 import ratpack.session.internal.DefaultSessionIdGenerator;
 import ratpack.session.internal.DefaultSessionManager;
-import ratpack.session.internal.SessionBindingHandler;
+import ratpack.session.internal.RequestSessionManager;
 
 @SuppressWarnings("UnusedDeclaration")
-public class SessionModule extends AbstractModule implements HandlerDecoratingModule {
+public class SessionModule extends AbstractModule {
 
   private int cookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
   private String cookieDomain;
@@ -62,10 +61,15 @@ public class SessionModule extends AbstractModule implements HandlerDecoratingMo
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);
     bind(SessionManager.class).to(DefaultSessionManager.class).in(Singleton.class);
     bind(SessionCookieConfig.class).toInstance(new DefaultSessionCookieConfig(cookieExpiresMins, cookieDomain, cookiePath));
-  }
 
-  public Handler decorate(Injector injector, Handler handler) {
-    return new SessionBindingHandler(handler);
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toInstance(HandlerDecorator.prepend(ctx -> {
+      ctx.getRequest().addLazy(Session.class, () -> {
+        SessionManager sessionManager = ctx.get(SessionManager.class);
+        final RequestSessionManager requestSessionManager = new RequestSessionManager(ctx, sessionManager);
+        return requestSessionManager.getSession();
+      });
+      ctx.next();
+    }));
   }
 
 }

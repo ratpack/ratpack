@@ -71,14 +71,13 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *       Guice.builder(registry)
- *         .bindings(b ->
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b ->
  *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
- *         )
- *         .build(chain ->
- *           chain.get(ctx -> ctx.render(json(new Person("John"))))
- *         )
+ *       ))
+ *       .handlers(chain ->
+ *         chain.get(ctx -> ctx.render(json(new Person("John"))))
+ *       )
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
  *       assertEquals("{\"name\":\"John\"}", response.getBody().getText());
@@ -123,22 +122,21 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *       Guice.builder(registry)
- *         .bindings(b ->
- *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
- *         )
- *         .build(chain -> chain
- *           .get("stream", ctx -> {
- *             Publisher<Person> people = Streams.publish(Arrays.asList(
- *               new Person("a"),
- *               new Person("b"),
- *               new Person("c")
- *             ));
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b ->
+ *         b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *       ))
+ *       .handlers(chain -> chain
+ *         .get("stream", ctx -> {
+ *           Publisher<Person> people = Streams.publish(Arrays.asList(
+ *             new Person("a"),
+ *             new Person("b"),
+ *             new Person("c")
+ *           ));
  *
- *             ctx.render(serverSentEvents(people, e -> e.data(toJson(ctx))));
- *           })
- *         )
+ *           ctx.render(serverSentEvents(people, e -> e.data(toJson(ctx))));
+ *         })
+ *       )
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get("stream");
  *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
@@ -189,25 +187,24 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *       Guice.builder(registry)
- *         .bindings(b ->
- *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
- *         )
- *         .build(chain -> chain
- *           .post("asNode", ctx -> {
- *             JsonNode node = ctx.parse(jsonNode());
- *             ctx.render(node.get("name").asText());
- *           })
- *           .post("asPerson", ctx -> {
- *             Person person = ctx.parse(fromJson(Person.class));
- *             ctx.render(person.getName());
- *           })
- *           .post("asPersonList", ctx -> {
- *             List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
- *             ctx.render(person.get(0).getName());
- *           })
- *         )
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b ->
+ *         b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *       ))
+ *       .handlers(chain -> chain
+ *         .post("asNode", ctx -> {
+ *           JsonNode node = ctx.parse(jsonNode());
+ *           ctx.render(node.get("name").asText());
+ *         })
+ *         .post("asPerson", ctx -> {
+ *           Person person = ctx.parse(fromJson(Person.class));
+ *           ctx.render(person.getName());
+ *         })
+ *         .post("asPersonList", ctx -> {
+ *           List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
+ *           ctx.render(person.get(0).getName());
+ *         })
+ *       )
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.requestSpec(s ->
  *         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
@@ -256,21 +253,20 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *       Guice.builder(registry)
- *         .bindings(b ->
- *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
- *         )
- *         .build(chain -> chain
- *           .post("asPerson", ctx -> {
- *             Person person = ctx.parse(Person.class);
- *             ctx.render(person.getName());
- *           })
- *           .post("asPersonList", ctx -> {
- *             List<Person> person = ctx.parse(listOf(Person.class));
- *             ctx.render(person.get(0).getName());
- *           })
- *         )
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b ->
+ *         b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *       ))
+ *       .handlers(chain -> chain
+ *         .post("asPerson", ctx -> {
+ *           Person person = ctx.parse(Person.class);
+ *           ctx.render(person.getName());
+ *         })
+ *         .post("asPersonList", ctx -> {
+ *           List<Person> person = ctx.parse(listOf(Person.class));
+ *           ctx.render(person.get(0).getName());
+ *         })
+ *       )
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.requestSpec(s ->
  *         s.body(b -> b.type("application/json").text("{\"name\":\"John\"}"))
@@ -449,15 +445,14 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.fromHandlerFactory(registry ->
-   *       Guice.builder(registry)
-   *         .bindings(b -> b.add(JacksonModule.class))
-   *         .build(chain ->
-   *           chain.get(ctx -> {
-   *             Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
-   *             ctx.render(chunkedJsonList(ctx, ints));
-   *           })
-   *         )
+   *     EmbeddedApp.of(s -> s
+   *       .registry(Guice.registry(b -> b.add(JacksonModule.class)))
+   *       .handlers(chain ->
+   *         chain.get(ctx -> {
+   *           Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
+   *           ctx.render(chunkedJsonList(ctx, ints));
+   *         })
+   *       )
    *     ).test(httpClient -> {
    *       ReceivedResponse response = httpClient.get();
    *       assertEquals("[1,2,3]", response.getBody().getText()); // body was streamed in chunks
@@ -556,16 +551,15 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.fromHandlerFactory(registry ->
-   *       Guice.builder(registry)
-   *         .bindings(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false)))
-   *         .build(chain -> chain
-   *           .get(ctx -> ctx
-   *             .blocking(() -> singletonMap("foo", "bar"))
-   *             .map(toJson(ctx))
-   *             .then(ctx::render)
-   *           )
+   *     EmbeddedApp.of(s -> s
+   *       .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+   *       .handlers(chain -> chain
+   *         .get(ctx -> ctx
+   *           .blocking(() -> singletonMap("foo", "bar"))
+   *           .map(toJson(ctx))
+   *           .then(ctx::render)
    *         )
+   *       )
    *     ).test(httpClient -> {
    *       assertEquals("{\"foo\":\"bar\"}", httpClient.getText());
    *     });

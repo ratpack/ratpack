@@ -160,14 +160,10 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         try {
           return RatpackServer.of(serverSpec -> serverSpec
-            .serverConfig(serverConfigBuilder)
-            .handler(r -> {
-              Guice.Builder builder = Guice.builder(r);
-              if (spec.parentInjector != null) {
-                builder.parent(spec.parentInjector);
-              }
-              return builder.bindings(bindingsAction).build(chain -> Groovy.chain(chain, spec.handlers));
-            }));
+              .serverConfig(serverConfigBuilder)
+              .registry(spec.parentInjector == null ? Guice.registry(bindingsAction) : Guice.registry(spec.parentInjector, bindingsAction))
+              .handlers(c -> Groovy.chain(c, spec.handlers))
+          );
         } catch (Exception e) {
           throw uncheck(e);
         }

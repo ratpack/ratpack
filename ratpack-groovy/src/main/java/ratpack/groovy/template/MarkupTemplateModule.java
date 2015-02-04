@@ -63,12 +63,11 @@ import java.nio.file.Path;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("templates/myTemplate.gtpl", "html { body { p(value) } }")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
- *         Guice.builder(registry)
- *           .bindings(b -> b.add(MarkupTemplateModule.class))
- *           .build(chain -> chain
- *               .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
- *           )
+ *     EmbeddedApp.of(baseDir, s -> s
+ *       .registry(Guice.registry(b -> b.add(MarkupTemplateModule.class)))
+ *       .handlers(chain -> chain
+ *         .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("<html><body><p>hello!</p></body></html>", httpClient.get().getBody().getText());
  *     });

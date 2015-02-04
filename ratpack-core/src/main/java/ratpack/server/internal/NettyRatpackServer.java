@@ -236,7 +236,7 @@ public class NettyRatpackServer implements RatpackServer {
     return ServerRegistry.serverRegistry(this, execController, serverConfig, userRegistryFactory);
   }
 
-  private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) {
+  private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
     for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
       rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
     }

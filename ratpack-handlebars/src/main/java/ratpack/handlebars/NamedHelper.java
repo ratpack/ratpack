@@ -51,15 +51,14 @@ import com.github.jknack.handlebars.Helper;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "{{hello \"ratpack\"}}")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
- *         Guice.builder(registry)
- *           .bindings(b -> b
- *               .add(new HandlebarsModule())
- *               .bind(HelloHelper.class)
- *           )
- *           .build(chain -> chain
- *               .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html")))
- *           )
+ *     EmbeddedApp.of(baseDir, s -> s
+ *       .registry(Guice.registry(b -> b
+ *         .add(new HandlebarsModule())
+ *         .bind(HelloHelper.class)
+ *       ))
+ *       .handlers(chain -> chain
+ *         .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html")))
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("Hello RATPACK!", httpClient.getText());
  *     });

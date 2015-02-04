@@ -37,12 +37,10 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   private final SessionService sessionService;
 
   private final String sessionName;
-  private final Handler handler;
 
-  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, Handler handler) {
+  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName) {
     this.sessionService = sessionService;
     this.sessionName = sessionName;
-    this.handler = handler;
   }
 
   public void handle(final Context context) {
@@ -66,7 +64,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
           if (entries.isEmpty()) {
             invalidateSession(responseMetaData);
           } else {
-              ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+            ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
             String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
             responseMetaData.cookie(sessionName, cookieValue);
           }
@@ -74,7 +72,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       }
     });
 
-    context.insert(handler);
+    context.next();
   }
 
   private void invalidateSession(ResponseMetaData responseMetaData) {

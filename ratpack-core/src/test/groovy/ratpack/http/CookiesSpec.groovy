@@ -16,12 +16,10 @@
 
 package ratpack.http
 
-import com.google.inject.AbstractModule
-import com.google.inject.Injector
 import ratpack.func.Action
-import ratpack.guice.HandlerDecoratingModule
 import ratpack.handling.Context
 import ratpack.handling.Handler
+import ratpack.handling.HandlerDecorator
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class CookiesSpec extends RatpackGroovyDslSpec {
@@ -68,8 +66,9 @@ class CookiesSpec extends RatpackGroovyDslSpec {
   def "can finalize cookies before sending"() {
     given:
     bindings {
-      add(new CookieModule())
+      multiBindInstance(HandlerDecorator.prepend(new CookieHandler()))
     }
+
     handlers {
       get("get/:name") {
         response.send request.oneCookie(pathTokens.name) ?: "null"
@@ -90,27 +89,7 @@ class CookiesSpec extends RatpackGroovyDslSpec {
 
   }
 
-  class CookieModule extends AbstractModule implements HandlerDecoratingModule {
-
-    @Override
-    protected void configure() {
-
-    }
-
-    @Override
-    Handler decorate(Injector injector, Handler handler) {
-      return new CookieHandler(handler)
-    }
-  }
-
   class CookieHandler implements Handler {
-
-    private final Handler handler
-
-    CookieHandler(Handler handler) {
-      this.handler = handler
-    }
-
     @Override
     void handle(Context context) throws Exception {
       context.getResponse().beforeSend(new Action<ResponseMetaData>() {
@@ -119,7 +98,7 @@ class CookiesSpec extends RatpackGroovyDslSpec {
           responseMetaData.cookie('id', 'id')
         }
       })
-      handler.handle(context)
+      context.next()
     }
   }
 }

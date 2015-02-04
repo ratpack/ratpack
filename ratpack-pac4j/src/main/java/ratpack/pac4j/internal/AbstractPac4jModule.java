@@ -17,15 +17,17 @@
 package ratpack.pac4j.internal;
 
 import com.google.inject.Injector;
+import com.google.inject.Provides;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
+import ratpack.handling.HandlerDecorator;
 import ratpack.handling.Handlers;
 import ratpack.pac4j.Authorizer;
 import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
+import ratpack.registry.Registry;
 
 /**
  * Base class for pac4j integration modules.
@@ -33,7 +35,7 @@ import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
  * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends ConfigurableModule<AbstractPac4jModule.Config> implements HandlerDecoratingModule {
+public abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends ConfigurableModule<AbstractPac4jModule.Config> {
 
   public static final String DEFAULT_CALLBACK_PATH = "pac4j-callback";
 
@@ -84,15 +86,32 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
    */
   protected abstract Authorizer getAuthorizer(Injector injector);
 
-  @Override
-  public Handler decorate(Injector injector, Handler handler) {
-    final Config config = injector.getInstance(Config.class);
-    final String callbackPath = config.getCallbackPath();
-    final Client<C, U> client = getClient(injector);
-    final Authorizer authorizer = getAuthorizer(injector);
-    final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
-    final Handler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
-    final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
-    return Handlers.chain(clientsHandler, Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
+  @Provides
+  protected Pac4JHandlerDecorator pac4JHandlerDecorator(Config config, Injector injector) {
+    return new Pac4JHandlerDecorator(config, getClient(injector), getAuthorizer(injector));
   }
+
+  private static class Pac4JHandlerDecorator implements HandlerDecorator {
+
+    private final Config config;
+    private final Client<?, ?> client;
+    private final Authorizer authorizer;
+
+    public Pac4JHandlerDecorator(Config config,   Client<?, ?> client, Authorizer authorizer) {
+      this.config = config;
+      this.client = client;
+      this.authorizer = authorizer;
+    }
+
+    @Override
+    public Handler decorate(Registry serverRegistry, Handler rest) {
+      final String callbackPath = config.getCallbackPath();
+      final Authorizer authorizer = this.authorizer;
+      final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
+      final Handler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
+      final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
+      return Handlers.chain(clientsHandler, Handlers.path(callbackPath, callbackHandler), authenticationHandler, rest);
+    }
+  }
+
 }

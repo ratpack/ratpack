@@ -69,12 +69,11 @@ import ratpack.server.ServerConfig;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "Hello {{name}}!")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
- *         Guice.builder(registry)
- *           .bindings(b -> b.add(new HandlebarsModule()))
- *           .build(chain -> chain
- *               .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
- *           )
+ *     EmbeddedApp.of(baseDir, s -> s
+ *       .registry(Guice.registry(b -> b.add(HandlebarsModule.class)))
+ *       .handlers(chain -> chain
+ *         .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("Hello Ratpack!", httpClient.getText());
  *     });

@@ -49,12 +49,6 @@ import ratpack.http.Request;
  */
 public class RequestTimingHandler implements Handler {
 
-  private final Handler rest;
-
-  public RequestTimingHandler(Handler rest) {
-    this.rest = rest;
-  }
-
   @Override
   public void handle(final Context context) throws Exception {
     final MetricRegistry metricRegistry = context.get(MetricRegistry.class);
@@ -65,7 +59,7 @@ public class RequestTimingHandler implements Handler {
       String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());
       final Timer.Context timer = metricRegistry.timer(tag).time();
       context.onClose(thing -> timer.stop());
-      context.insert(rest);
+      context.next();
     });
   }
 

@@ -17,17 +17,18 @@
 package ratpack.guice;
 
 import com.google.common.collect.Lists;
-import com.google.inject.*;
-import com.google.inject.multibindings.Multibinder;
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.Pair;
-import ratpack.guice.internal.*;
-import ratpack.handling.Chain;
-import ratpack.handling.Handler;
-import ratpack.handling.HandlerDecorator;
-import ratpack.handling.Handlers;
+import ratpack.guice.internal.DefaultBindingsSpec;
+import ratpack.guice.internal.InjectorRegistryBacking;
+import ratpack.guice.internal.JustInTimeInjectorRegistry;
+import ratpack.guice.internal.RatpackBaseRegistryModule;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
@@ -91,10 +92,11 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *     }
  *   }
  *
- *   static class ServiceModule extends AbstractModule {
+ *   public static class ServiceModule extends AbstractModule {
  *     protected void configure() {
  *       bind(SomeService.class).toInstance(new SomeService("foo"));
  *       bind(SomeOtherService.class).toInstance(new SomeOtherService("bar"));
+ *       bind(InjectedHandler.class);
  *     }
  *   }
  *
@@ -113,14 +115,13 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *         Guice.builder(registry)
- *           .bindings(b -> b.add(new ServiceModule()))
- *           .build(chain -> {
- *             // The registry in a Guice backed chain can be used to retrieve objects that were bound,
- *             // or to create objects that are bound “just-in-time”.
- *             chain.get("some/path", InjectedHandler.class);
- *           })
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b -> b.add(ServiceModule.class)))
+ *       .handlers(chain -> {
+ *         // The registry in a Guice backed chain can be used to retrieve objects that were bound,
+ *         // or to create objects that are bound “just-in-time”.
+ *         chain.get("some/path", InjectedHandler.class);
+ *       })
  *     ).test(httpClient -> {
  *       assertEquals("foo-bar", httpClient.get("some/path").getBody().getText());
  *     });
@@ -134,10 +135,10 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * </p>
  * <h4>Dependency Injected Handlers</h4>
  * <p>
- * The {@code handler()} methods used to create a Guice backed application take an {@link Action} that operates on a {@link Chain} instance.
- * This chain instance given to this action provides a Guice backed {@link Registry} via its {@link Chain#getRegistry()} method.
+ * The {@code handler()} methods used to create a Guice backed application take an {@link Action} that operates on a {@link ratpack.handling.Chain} instance.
+ * This chain instance given to this action provides a Guice backed {@link Registry} via its {@link ratpack.handling.Chain#getRegistry()} method.
  * This registry is able to retrieve objects that were explicitly bound (i.e. defined by a module), and bind objects “just in time”.
- * This means that it can be used to construct dependency injected {@link Handler} implementations.
+ * This means that it can be used to construct dependency injected {@link ratpack.handling.Handler} implementations.
  * </p>
  * <p>
  * Simply pass the class of the handler implementation to create a new dependency injected instance of to this method,
@@ -148,7 +149,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * </p>
  * <h4>Accessing dependencies via context registry lookup</h4>
  * <p>
- * The {@link ratpack.handling.Context} object that is given to a handler's {@link Handler#handle(ratpack.handling.Context)}
+ * The {@link ratpack.handling.Context} object that is given to a handler's {@link ratpack.handling.Handler#handle(ratpack.handling.Context)}
  * method is also a registry implementation. In a Guice backed app, Guice bound objects can be retrieved via the {@link Registry#get(Class)} method of
  * the context. You can retrieve any bound object via its publicly bound type.
  * </p>
@@ -175,41 +176,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public abstract class Guice {
 
   private Guice() {
-  }
-
-  public interface Builder {
-    Builder parent(Injector injector);
-
-    Builder bindings(Action<? super BindingsSpec> action);
-
-    Handler build(Action<? super Chain> action) throws Exception;
-  }
-
-  public static Builder builder(Registry rootRegistry) {
-    return new Builder() {
-      private Injector parent;
-      private Action<? super BindingsSpec> bindings = Action.noop();
-
-      @Override
-      public Builder parent(Injector injector) {
-        parent = injector;
-        return this;
-      }
-
-      @Override
-      public Builder bindings(Action<? super BindingsSpec> action) {
-        bindings = action;
-        return this;
-      }
-
-      @Override
-      public Handler build(Action<? super Chain> action) throws Exception {
-        Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(rootRegistry.get(ServerConfig.class)) : childInjectorFactory(parent);
-        return new DefaultGuiceBackedHandlerFactory(rootRegistry).create(bindings, moduleTransformer,
-          injector -> Handlers.chain(rootRegistry.get(ServerConfig.class), justInTimeRegistry(injector), action)
-        );
-      }
-    };
   }
 
   /**
@@ -277,44 +243,10 @@ public abstract class Guice {
     Module masterModule = modules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
     Injector injector = injectorFactory.apply(masterModule);
 
-    List<HandlerDecorator> adaptedDecorators = Lists.newLinkedList();
     Collections.reverse(modules);
-    for (Module module : modules) {
-      if (module instanceof HandlerDecoratingModule) {
-        adaptedDecorators.add(new ModuleAdaptedHandlerDecorator((HandlerDecoratingModule) module, injector));
-      }
-    }
-
-    if (!adaptedDecorators.isEmpty()) {
-      injector = injector.createChildInjector(new AbstractModule() {
-        @Override
-        protected void configure() {
-          Multibinder<HandlerDecorator> multiBinder = Multibinder.newSetBinder(binder(), HandlerDecorator.class);
-          for (HandlerDecorator adaptedDecorator : adaptedDecorators) {
-            multiBinder.addBinding().toInstance(adaptedDecorator);
-          }
-        }
-      });
-    }
-
     return Pair.of(modules, injector);
   }
 
-  private static class ModuleAdaptedHandlerDecorator implements HandlerDecorator {
-
-    private final HandlerDecoratingModule module;
-    private final Injector injector;
-
-    public ModuleAdaptedHandlerDecorator(HandlerDecoratingModule module, Injector injector) {
-      this.module = module;
-      this.injector = injector;
-    }
-
-    @Override
-    public Handler decorate(Registry serverRegistry, Handler rest) {
-      return module.decorate(injector, rest);
-    }
-  }
 
   private static class AdHocModule implements Module {
 

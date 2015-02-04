@@ -24,16 +24,10 @@ import ratpack.newrelic.NewRelicTransaction;
 
 public class NewRelicInterceptorBindingHandler implements Handler {
 
-  private final Handler delegate;
-
-  public NewRelicInterceptorBindingHandler(Handler delegate) {
-    this.delegate = delegate;
-  }
-
   @Override
-  public void handle(final Context context) throws Exception {
+  public void handle(Context context) throws Exception {
     context.getRequest().add(NewRelicTransaction.class, new DefaultNewRelicTransaction(context));
-    context.addInterceptor(new NewRelicExecInterceptor(context), () -> context.insert(delegate));
+    context.addInterceptor(new NewRelicExecInterceptor(context), context::next);
   }
 
   private static class NewRelicExecInterceptor implements ExecInterceptor {

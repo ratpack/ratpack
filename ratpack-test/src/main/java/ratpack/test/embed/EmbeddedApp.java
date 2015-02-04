@@ -70,7 +70,11 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @see ratpack.server.RatpackServer#of(ratpack.func.Function)
    */
   static EmbeddedApp of(Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
-    return fromServer(RatpackServer.of(definition));
+    return fromServer(RatpackServer.of(d -> definition.apply(d.serverConfig(ServerConfig.embedded()))));
+  }
+
+  static EmbeddedApp of(Path baseDir, Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
+    return fromServer(RatpackServer.of(d -> definition.apply(d.serverConfig(ServerConfig.embedded(baseDir)))));
   }
 
   /**

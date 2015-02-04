@@ -62,14 +62,9 @@ import java.lang.reflect.Constructor;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *         Guice.builder(registry)
- *           .bindings(b -> b
- *               .add(StringModule.class, c -> c.value("foo"))
- *           )
- *           .build(chain -> chain
- *               .get(ctx -> ctx.render(ctx.get(String.class)))
- *           )
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b -> b.add(StringModule.class, c -> c.value("foo"))))
+ *       .handlers(chain -> chain.get(ctx -> ctx.render(ctx.get(String.class))))
  *     ).test(httpClient -> {
  *       assertEquals("foo", httpClient.getText());
  *     });
@@ -107,15 +102,14 @@ import java.lang.reflect.Constructor;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *         Guice.builder(registry)
- *           .bindings(b -> b
- *               .add(StringModule.class)
- *               .bindInstance(new StringModule.Config().value("bar"))
- *           )
- *           .build(chain -> chain
- *               .get(ctx -> ctx.render(ctx.get(String.class)))
- *           )
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b -> b
+ *         .add(StringModule.class)
+ *         .bindInstance(new StringModule.Config().value("bar"))
+ *       ))
+ *       .handlers(chain -> chain
+ *         .get(ctx -> ctx.render(ctx.get(String.class)))
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("bar", httpClient.getText());
  *     });

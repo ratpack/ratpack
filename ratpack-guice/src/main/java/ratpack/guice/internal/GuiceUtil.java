@@ -21,6 +21,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.util.Types;
 
 import java.util.Map;
 
@@ -95,8 +96,11 @@ public abstract class GuiceUtil {
   }
 
   public static <T> TypeToken<T> toTypeToken(TypeLiteral<T> type) {
-    @SuppressWarnings("unchecked") TypeToken<T> typeToken = (TypeToken<T>) TypeToken.of(type.getType());
-    return typeToken;
+    return Types.cast(TypeToken.of(type.getType()));
+  }
+
+  public static <T> TypeLiteral<T> toTypeLiteral(TypeToken<T> type) {
+    return Types.cast(TypeLiteral.get(type.getType()));
   }
 
 }

@@ -67,12 +67,11 @@ import java.util.Set;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
  *     );
- *     EmbeddedApp.fromHandlerFactory(baseDir, registry ->
- *       Guice.builder(registry)
- *           .bindings(b -> b.add(new ThymeleafModule()))
- *           .build(chain -> chain
- *               .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
- *           )
+ *     EmbeddedApp.of(baseDir, s -> s
+ *       .registry(Guice.registry(b -> b.add(new ThymeleafModule())))
+ *       .handlers(chain -> chain
+ *         .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("<span>Hello Ratpack!</span>", httpClient.getText());
  *     });

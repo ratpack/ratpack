@@ -17,13 +17,12 @@
 package ratpack.session.store;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
 import com.google.inject.Provides;
-import ratpack.guice.HandlerDecoratingModule;
-import ratpack.handling.Handler;
+import com.google.inject.multibindings.Multibinder;
+import ratpack.handling.HandlerDecorator;
+import ratpack.session.Session;
 import ratpack.session.SessionManager;
 import ratpack.session.store.internal.DefaultSessionStore;
-import ratpack.session.store.internal.SessionStorageBindingHandler;
 
 import javax.inject.Singleton;
 
@@ -39,8 +38,6 @@ import javax.inject.Singleton;
  * </ul>
  * <h3>Getting the session storage</h3>
  * <p>
- * This module {@linkplain #decorate(com.google.inject.Injector, ratpack.handling.Handler) decorates the handler} to make
- * the {@link SessionStorage} available during request processing.
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.session.store.SessionStorage;
@@ -52,7 +49,7 @@ import javax.inject.Singleton;
  * }
  * </pre>
  */
-public class MapSessionsModule extends AbstractModule implements HandlerDecoratingModule {
+public class MapSessionsModule extends AbstractModule {
 
   private final int maxEntries;
   private final int idleTimeoutMinutes;
@@ -69,7 +66,19 @@ public class MapSessionsModule extends AbstractModule implements HandlerDecorati
   }
 
   @Override
-  protected void configure() {}
+  protected void configure() {
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toInstance(HandlerDecorator.prepend(ctx -> {
+        ctx.getRequest().addLazy(SessionStorage.class, () -> {
+          Session session = ctx.getRequest().get(Session.class);
+          String id = session.getId();
+          SessionStore sessionStore = ctx.get(SessionStore.class);
+          return sessionStore.get(id);
+        });
+
+        ctx.next();
+      }
+    ));
+  }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
@@ -80,14 +89,4 @@ public class MapSessionsModule extends AbstractModule implements HandlerDecorati
     return defaultMapSessionStore;
   }
 
-  /**
-   * Makes {@link SessionStorage} available in the exchange service.
-   *
-   * @param injector The injector created from all the application modules
-   * @param handler The application handler
-   * @return A handler that provides a {@link SessionStorage} impl in the exchange service
-   */
-  public Handler decorate(Injector injector, Handler handler) {
-    return new SessionStorageBindingHandler(handler);
-  }
 }

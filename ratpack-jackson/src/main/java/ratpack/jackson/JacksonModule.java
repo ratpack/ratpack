@@ -84,20 +84,19 @@ import java.util.function.Consumer;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.fromHandlerFactory(registry ->
- *       Guice.builder(registry)
- *         .bindings(b ->
- *           b.add(JacksonModule.class, c -> c
- *             .modules(new Jdk8Module()) // register the Jackson module
- *             .prettyPrint(false)
- *           )
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b ->
+ *         b.add(JacksonModule.class, c -> c
+ *           .modules(new Jdk8Module()) // register the Jackson module
+ *           .prettyPrint(false)
  *         )
- *         .build(chain ->
- *           chain.get(ctx -> {
- *             Optional<Person> personOptional = Optional.of(new Person("John"));
- *             ctx.render(json(personOptional));
- *           })
- *         )
+ *       ))
+ *       .handlers(chain ->
+ *         chain.get(ctx -> {
+ *           Optional<Person> personOptional = Optional.of(new Person("John"));
+ *           ctx.render(json(personOptional));
+ *         })
+ *       )
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
  *       assertEquals("{\"name\":\"John\"}", response.getBody().getText());
