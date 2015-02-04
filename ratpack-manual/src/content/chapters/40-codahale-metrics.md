@@ -15,7 +15,7 @@ See [`CodaHaleMetricsModule`](api/ratpack/codahale/metrics/CodaHaleMetricsModule
 ## Built-in metrics
 
 Ratpack provides built-in metric collectors for key metrics.
-When metrics are enabled within your application using [`CodaHaleMetricsModule.Config.enable(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#enable-boolean-), the built-in metric collectors will automatically be enabled too.
+When metrics are enabled within your application using [`CodaHaleMetricsModule`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html), the built-in metric collectors will automatically be enabled too.
 
 Ratpack has built-in metric collectors for:
 
