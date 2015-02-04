@@ -31,19 +31,19 @@ import java.io.File;
 public class CsvReporterProvider implements Provider<CsvReporter> {
   private final MetricRegistry metricRegistry;
   private final CodaHaleMetricsModule.Config config;
-  private final File DEFAULT_REPORT_DIRECTORY;
+  private final File defaultReportDirectory;
 
   @Inject
   public CsvReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config, ServerConfig serverConfig) {
     this.metricRegistry = metricRegistry;
     this.config = config;
-    this.DEFAULT_REPORT_DIRECTORY = serverConfig.getBaseDir().getFile().toFile();
+    this.defaultReportDirectory = serverConfig.getBaseDir().getFile().toFile();
   }
 
   @Override
   public CsvReporter get() {
     return CsvReporter.forRegistry(metricRegistry).build(
-      config.getCsv().isPresent() ? config.getCsv().get().getReportDirectory() : DEFAULT_REPORT_DIRECTORY
+      config.getCsv().isPresent() ? config.getCsv().get().getReportDirectory() : defaultReportDirectory
     );
   }
 }
