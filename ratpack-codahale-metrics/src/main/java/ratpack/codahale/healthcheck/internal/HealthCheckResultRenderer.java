@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.metrics.internal;
+package ratpack.codahale.healthcheck.internal;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.core.JsonProcessingException;

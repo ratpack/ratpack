@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.metrics;
+package ratpack.codahale.healthcheck;
 
 import com.codahale.metrics.health.HealthCheck;
 
 /**
  * A named application health check.
  * <p>
- * {@link ratpack.codahale.metrics.NamedHealthCheck#getName()} should be used when registering
+ * {@link NamedHealthCheck#getName()} should be used when registering
  * this health check with {@link com.codahale.metrics.health.HealthCheckRegistry}
  *
- * @see ratpack.codahale.metrics.CodaHaleMetricsModule.Config#healthChecks(boolean)
+ * @see ratpack.codahale.healthcheck.CodaHaleHealthCheckModule
  */
 public abstract class NamedHealthCheck extends HealthCheck {
 
@@ -35,4 +35,3 @@ public abstract class NamedHealthCheck extends HealthCheck {
   public abstract String getName();
 
 }
-

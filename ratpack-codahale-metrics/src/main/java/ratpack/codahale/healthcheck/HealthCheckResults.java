@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.metrics;
+package ratpack.codahale.healthcheck;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.google.common.collect.ImmutableSortedMap;
@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 /**
  * A {@link ratpack.handling.Context#render(Object) renderable} type for the result of running health checks.
  *
- * @see HealthCheckHandler
+ * @see ratpack.codahale.healthcheck.HealthCheckHandler
  */
 public class HealthCheckResults {
 

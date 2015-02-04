@@ -19,18 +19,15 @@ package ratpack.codahale.metrics;
 import com.codahale.metrics.*;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
-import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
-import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
 import ratpack.codahale.metrics.internal.*;
 import ratpack.func.Action;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.HandlerDecorator;
 import ratpack.server.Service;
 import ratpack.server.StartEvent;
@@ -76,10 +73,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * }
  * </pre>
  * <p>
- * This module supports both metric collection and health checks.
- * </p>
- * <h3>Metrics</h3>
- * <p>
  * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
  * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
  * framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is
@@ -113,61 +106,8 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge})
  * to any Guice injected classes.
  * </p>
- * <h3>Health checks</h3>
- * <p>
- * Health checks verify that application components or responsibilities are performing as expected.
- * </p>
- * <p>
- * To create a health check simply create a class that extends {@link NamedHealthCheck} and bind it with Guice.
- * This will automatically add it to the application wide {@link HealthCheckRegistry}.
- * <p>
- * Health checks can be run by obtaining the {@link HealthCheckRegistry} via dependency injection or context registry lookup,
- * then calling {@link HealthCheckRegistry#runHealthChecks()}.
- * <p>
- * To expose the health check status over HTTP, see {@link HealthCheckHandler}.
- * <p>
- * Example health checks: (Groovy DSL)
- * </p>
- * <pre class="groovy-ratpack-dsl">
- * import com.codahale.metrics.health.HealthCheck
- * import com.codahale.metrics.health.HealthCheckRegistry
- * import ratpack.codahale.metrics.CodaHaleMetricsModule
- * import ratpack.codahale.metrics.HealthCheckHandler
- * import ratpack.codahale.metrics.NamedHealthCheck
- * import static ratpack.groovy.Groovy.ratpack
- *
- * class FooHealthCheck extends NamedHealthCheck {
- *
- *   protected HealthCheck.Result check() throws Exception {
- *     // perform the health check logic here and return HealthCheck.Result.healthy() or HealthCheck.Result.unhealthy("Unhealthy message")
- *     HealthCheck.Result.healthy()
- *   }
- *
- *   def String getName() {
- *     "foo_health_check"
- *   }
- * }
- *
- * ratpack {
- *   bindings {
- *     add new CodaHaleMetricsModule(), { it.healthChecks(true) }
- *     bind FooHealthCheck // if you don't bind the health check with Guice it will not be automatically registered
- *   }
- *
- *   handlers {
- *     // Using the provided handler…
- *     get("health-check/:name", new HealthCheckHandler())
- *
- *     // Using a custom handler to run all health checks…
- *     get("healthChecks-custom") { HealthCheckRegistry healthCheckRegistry -&gt;
- *       render healthCheckRegistry.runHealthChecks().toString()
- *     }
- *   }
- * }
- * </pre>
  *
  * @see <a href="http://metrics.codahale.com/" target="_blank">Coda Hale's Metrics</a>
- * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
  */
 public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsModule.Config> {
 
@@ -180,7 +120,6 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
     private boolean enabled;
-    private boolean healthChecks;
     private boolean jvmMetrics;
 
     private Jmx jmx = new Jmx();
@@ -206,25 +145,6 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      */
     public Config enable(boolean enabled) {
       this.enabled = enabled;
-      return this;
-    }
-
-    /**
-     * The state of health checks.
-     *
-     * @return True if health checks are enabled. False otherwise
-     */
-    public boolean isHealthChecks() {
-      return healthChecks;
-    }
-
-    /**
-     * Set if health checks are registered.
-     * @param healthChecks True if health checks are to be register. False otherwise
-     * @return this
-     */
-    public Config healthChecks(boolean healthChecks) {
-      this.healthChecks = healthChecks;
       return this;
     }
 
@@ -505,9 +425,6 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
     bind(MetricRegistryJsonMapper.class).in(SINGLETON);
-    bind(HealthCheckRegistry.class).in(SINGLETON);
-    bind(HealthCheckResultRenderer.class).in(SINGLETON);
-    bind(HealthCheckResultsRenderer.class).in(SINGLETON);
 
     bind(Startup.class);
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(HandlerDecoratorProvider.class);
@@ -531,14 +448,6 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     @Override
     public void onStart(StartEvent event) throws Exception {
-      if (config.isHealthChecks()) {
-        final HealthCheckRegistry registry = injector.getInstance(HealthCheckRegistry.class);
-        GuiceUtil.eachOfType(injector, TypeToken.of(NamedHealthCheck.class), new Action<NamedHealthCheck>() {
-          public void execute(NamedHealthCheck healthCheck) throws Exception {
-            registry.register(healthCheck.getName(), healthCheck);
-          }
-        });
-      }
       if (config.isEnabled()) {
         Config.Jmx jmx = config.getJmx();
         Config.Console console = config.getConsole();

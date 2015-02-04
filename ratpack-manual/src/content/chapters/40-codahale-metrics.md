@@ -49,4 +49,4 @@ For an example of how to consume real-time metrics with websockets, see the [exa
 
 Health checks verify that your application components or responsibilities are performing as expected.
 
-For detailed information on how to create your own application health checks and how to run them, see [`CodaHaleMetricsModule.Config.healthChecks(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#healthChecks-boolean-).
+For detailed information on how to create your own application health checks and how to run them, see [`CodaHaleHealthCheckModule`](api/ratpack/codahale/healthcheck/CodaHaleHealthCheckModule.html).

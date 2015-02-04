@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 
 /**
- * Integration with <a href="https://dropwizard.github.io/metrics/3.1.0/manual/">Coda Hale's Metrics Library</a>.
+ * Integration with <a href="https://dropwizard.github.io/metrics/3.1.0/manual/healthchecks/">Coda Hale's Metrics Library for health checks</a>.
  *
- * See {@link ratpack.codahale.metrics.CodaHaleMetricsModule} to get started.
+ * See {@link ratpack.codahale.healthcheck.CodaHaleHealthCheckModule} to get started.
  */
-package ratpack.codahale.metrics;
+package ratpack.codahale.healthcheck;

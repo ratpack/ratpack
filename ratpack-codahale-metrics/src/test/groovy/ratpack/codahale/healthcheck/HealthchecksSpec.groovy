@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.metrics
+package ratpack.codahale.healthcheck
 
 import com.codahale.metrics.health.HealthCheck
 import com.codahale.metrics.health.HealthCheckRegistry
@@ -65,7 +65,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can register healthcheck"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
+      add new CodaHaleHealthCheckModule()
       bind MyHealthCheck
     }
     handlers { HealthCheckRegistry healthChecks ->
@@ -91,7 +91,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can use healthcheck endpoint"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
+      add new CodaHaleHealthCheckModule()
       bind MyHealthCheck
       bind FooHealthCheck
     }
@@ -107,7 +107,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "non existent health check returns 404"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
+      add new CodaHaleHealthCheckModule()
       bind MyHealthCheck
       bind FooHealthCheck
     }
@@ -137,7 +137,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can use healthcheck endpoint with custom renderer"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule(), { it.healthChecks(true) }
+      add new CodaHaleHealthCheckModule()
       add JacksonModule, { it.prettyPrint(false) }
       bind MyHealthCheck
       bind FooHealthCheck
@@ -154,4 +154,3 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   }
 
 }
-

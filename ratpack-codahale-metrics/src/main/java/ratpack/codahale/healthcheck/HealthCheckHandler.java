@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.metrics;
+package ratpack.codahale.healthcheck;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -30,7 +30,7 @@ import java.util.SortedMap;
  * <p>
  * This handler should be bound to an application path, and most likely only for the GET method…
  * <pre class="java-chain-dsl">
- * import ratpack.codahale.metrics.HealthCheckHandler;
+ * import ratpack.codahale.healthcheck.HealthCheckHandler;
  *
  * chain instanceof ratpack.handling.Chain;
  * chain.get("health-checks/:name?", new HealthCheckHandler());
@@ -47,9 +47,9 @@ import java.util.SortedMap;
  * <p>
  * When a single health check is selected (by presence of the path token) the corresponding {@link com.codahale.metrics.health.HealthCheck.Result} is {@link Context#render(Object) rendered}.
  * When rendering all health checks a {@link HealthCheckResults} is {@link Context#render(Object) rendered}.
- * The {@link CodaHaleMetricsModule} installs renderers for these two types that simply renders to the {@code toString()} as plain text.
+ * The {@link CodaHaleHealthCheckModule} installs renderers for these two types that simply renders to the {@code toString()} as plain text.
  * If you wish to change the representation, to JSON for example, you can register your own renderers for these types after registering the
- * {@link CodaHaleMetricsModule}.
+ * {@link CodaHaleHealthCheckModule}.
  */
 public class HealthCheckHandler implements Handler {
 
@@ -99,4 +99,3 @@ public class HealthCheckHandler implements Handler {
   }
 
 }
-
