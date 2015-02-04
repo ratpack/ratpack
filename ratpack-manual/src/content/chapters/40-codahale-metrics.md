@@ -32,7 +32,7 @@ Ratpack enables you to capture your own application metrics in two ways:
 1. Obtaining the `MetricRegistry` via dependency injection or context registry lookup and registering your own metrics with it.
 2. Add metrics annotations to your Guice injected classes.
 
-See [`CodaHaleMetricsModule.Config.enable(boolean)`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#enable-boolean-) for more details.
+See [`CodaHaleMetricsModule`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html) for more details.
 
 ## Reporting metrics
 

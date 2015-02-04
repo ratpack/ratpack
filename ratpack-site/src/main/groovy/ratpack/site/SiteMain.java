@@ -69,7 +69,7 @@ public class SiteMain {
             Guice.registry(s -> s
                 .add(JacksonModule.class)
                 .add(NewRelicModule.class)
-                .add(new CodaHaleMetricsModule(), c -> c.enable(true))
+                .add(new CodaHaleMetricsModule(), c -> {})
                 .addConfig(SiteModule.class, config.get("/github", SiteModule.GitHubConfig.class))
                 .add(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
