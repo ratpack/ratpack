@@ -19,9 +19,11 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
+import ratpack.server.ServerConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import java.io.File;
 
 /**
  * A Provider implementation that sets up a {@link CsvReporter} for a {@link MetricRegistry}.
@@ -29,16 +31,20 @@ import javax.inject.Provider;
 public class CsvReporterProvider implements Provider<CsvReporter> {
   private final MetricRegistry metricRegistry;
   private final CodaHaleMetricsModule.Config config;
+  private final File DEFAULT_REPORT_DIRECTORY;
 
   @Inject
-  public CsvReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
+  public CsvReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config, ServerConfig serverConfig) {
     this.metricRegistry = metricRegistry;
     this.config = config;
+    this.DEFAULT_REPORT_DIRECTORY = serverConfig.getBaseDir().getFile().toFile();
   }
 
   @Override
   public CsvReporter get() {
-    return CsvReporter.forRegistry(metricRegistry).build(config.getCsv().getReportDirectory());
+    return CsvReporter.forRegistry(metricRegistry).build(
+      config.getCsv().isPresent() ? config.getCsv().get().getReportDirectory() : DEFAULT_REPORT_DIRECTORY
+    );
   }
 }
 

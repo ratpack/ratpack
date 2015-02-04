@@ -36,6 +36,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
 import java.time.Duration;
+import java.util.Optional;
 
 import static com.google.inject.Scopes.SINGLETON;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -54,7 +55,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.enable(true).jmx { it.enable(true) } }
+ *     add new CodaHaleMetricsModule(), { it.jmx() }
  *   }
  * }
  * </pre>
@@ -68,7 +69,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.enable(true).jmx { it.enable(true) }.console { it.enable(true) } }
+ *     add new CodaHaleMetricsModule(), { it.jmx().console() }
  *   }
  * }
  * </pre>
@@ -91,7 +92,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.enable(true).jmx { it.enable(true) } }
+ *     add new CodaHaleMetricsModule(), { it.jmx() }
  *   }
  *
  *   handlers { MetricRegistry metricRegistry -&gt;
@@ -119,34 +120,12 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
   public static class Config {
     public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
-    private boolean enabled;
     private boolean jvmMetrics;
 
-    private Jmx jmx = new Jmx();
-    private Console console = new Console();
-    private WebSocket webSocket = new WebSocket();
-    private Csv csv = new Csv();
-
-    /**
-     * The state of metric collection.
-     *
-     * @return True if metrics collection is enabled. False otherwise
-     */
-    public boolean isEnabled() {
-      return enabled;
-    }
-
-    /**
-     * Enables the collection of metrics.
-     *
-     * @param enabled whether metrics collection should be enabled
-     * @return this
-     * @see <a href="http://metrics.codahale.com/getting-started/" target="_blank">Coda Hale Metrics - Getting Started</a>
-     */
-    public Config enable(boolean enabled) {
-      this.enabled = enabled;
-      return this;
-    }
+    private Optional<Jmx> jmx = Optional.empty();
+    private Optional<Console> console = Optional.empty();
+    private Optional<WebSocket> webSocket = Optional.empty();
+    private Optional<Csv> csv = Optional.empty();
 
     /**
      * The state of jvm metrics collection.
@@ -171,8 +150,15 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * Get the settings for the JMX metrics publisher.
      * @return the jmx publisher settings
      */
-    public Jmx getJmx() {
+    public Optional<Jmx> getJmx() {
       return jmx;
+    }
+
+    /**
+     * @see #jmx(ratpack.func.Action)
+     */
+    public Config jmx() {
+      return jmx(Action.noop());
     }
 
     /**
@@ -181,9 +167,12 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * @param configure the configuration for the publisher
      * @return this
      */
-    public Config jmx(Action<Jmx> configure) {
+    public Config jmx(Action<? super Jmx> configure) {
       try {
-        configure.execute(jmx);
+        configure.execute(jmx.orElseGet(() -> {
+          jmx = Optional.of(new Jmx());
+          return jmx.get();
+        }));
         return this;
       } catch (Exception e) {
         throw uncheck(e);
@@ -194,8 +183,15 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * Get the settings for the console metrics publisher.
      * @return the console publisher settings
      */
-    public Console getConsole() {
+    public Optional<Console> getConsole() {
       return console;
+    }
+
+    /**
+     * @see #console(ratpack.func.Action)
+     */
+    public Config console() {
+      return console(Action.noop());
     }
 
     /**
@@ -204,9 +200,12 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * @param configure the configuration for the publisher
      * @return this
      */
-    public Config console(Action<Console> configure) {
+    public Config console(Action<? super Console> configure) {
       try {
-        configure.execute(console);
+        configure.execute(console.orElseGet(() -> {
+          console = Optional.of(new Console());
+          return console.get();
+        }));
         return this;
       } catch (Exception e) {
         throw uncheck(e);
@@ -217,8 +216,15 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * Get the settings for the websockets metrics broadcaster.
      * @return the websockets broadcaster settings
      */
-    public WebSocket getWebSocket() {
+    public Optional<WebSocket> getWebSocket() {
       return webSocket;
+    }
+
+    /**
+     * @see #webSocket(ratpack.func.Action)
+     */
+    public Config webSocket() {
+      return webSocket(Action.noop());
     }
 
     /**
@@ -227,9 +233,12 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * @param configure the configuration for the broadcaster
      * @return this
      */
-    public Config webSocket(Action<WebSocket> configure) {
+    public Config webSocket(Action<? super WebSocket> configure) {
       try {
-        configure.execute(webSocket);
+        configure.execute(webSocket.orElseGet(() -> {
+          webSocket = Optional.of(new WebSocket());
+          return webSocket.get();
+        }));
         return this;
       } catch (Exception e) {
         throw uncheck(e);
@@ -240,7 +249,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * Get the settings for the csv metrics publisher.
      * @return the csv publisher settings
      */
-    public Csv getCsv() {
+    public Optional<Csv> getCsv() {
       return csv;
     }
 
@@ -250,58 +259,22 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      * @param configure the configuration for the publisher
      * @return this
      */
-    public Config csv(Action<Csv> configure) {
+    public Config csv(Action<? super Csv> configure) {
       try {
-        configure.execute(csv);
+        configure.execute(csv.orElseGet(() -> {
+          csv = Optional.of(new Csv());
+          return csv.get();
+        }));
         return this;
       } catch (Exception e) {
         throw uncheck(e);
       }
     }
 
-    public static class Jmx {
-      private boolean enabled;
-
-      /**
-       * The state of the JMX publisher.
-       * @return the state of the JMX publisher
-       */
-      public boolean isEnabled() {
-        return enabled;
-      }
-
-      /**
-       * Set the state of the JMX publisher.
-       * @param enabled True if metrics are published to JMX. False otherwise
-       * @return this
-       */
-      public Jmx enable(boolean enabled) {
-        this.enabled = enabled;
-        return this;
-      }
-    }
+    public static class Jmx { }
 
     public static class Console {
-      private boolean enabled;
       private Duration reporterInterval = DEFAULT_INTERVAL;
-
-      /**
-       * The state of the console publisher.
-       * @return the state of the console publisher
-       */
-      public boolean isEnabled() {
-        return enabled;
-      }
-
-      /**
-       * Set the state of the console publisher.
-       * @param enabled True if metrics are published to the console. False otherwise
-       * @return this
-       */
-      public Console enable(boolean enabled) {
-        this.enabled = enabled;
-        return this;
-      }
 
       /**
        * The interval between metrics reports.
@@ -347,27 +320,8 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     }
 
     public static class Csv {
-      private boolean enabled;
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private File reportDirectory;
-
-      /**
-       * The state of the csv publisher.
-       * @return True if published is enabled and report directory is specified. False otherwise
-       */
-      public boolean isEnabled() {
-        return enabled && reportDirectory != null;
-      }
-
-      /**
-       * Set the state of the csv publisher.
-       * @param enabled True if metrics are published a csv file. False otherwise
-       * @return this
-       */
-      public Csv enable(boolean enabled) {
-        this.enabled = enabled;
-        return this;
-      }
 
       /**
        * The interval between metrics reports.
@@ -448,40 +402,28 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     @Override
     public void onStart(StartEvent event) throws Exception {
-      if (config.isEnabled()) {
-        Config.Jmx jmx = config.getJmx();
-        Config.Console console = config.getConsole();
-        Config.Csv csv = config.getCsv();
-        if (jmx.isEnabled()) {
-          injector.getInstance(JmxReporter.class).start();
-        }
-        if (console.isEnabled()) {
-          injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS);
-        }
-        if (csv.isEnabled()) {
-          injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS);
-        }
-        if (config.isJvmMetrics()) {
-          final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
-          metricRegistry.registerAll(new GarbageCollectorMetricSet());
-          metricRegistry.registerAll(new ThreadStatesGaugeSet());
-          metricRegistry.registerAll(new MemoryUsageGaugeSet());
-        }
+      config.getJmx().ifPresent(jmx ->
+        injector.getInstance(JmxReporter.class).start());
+
+      config.getConsole().ifPresent(console ->
+        injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS));
+
+      config.getCsv().ifPresent(csv ->
+        injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS));
+
+      if (config.isJvmMetrics()) {
+        final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+        metricRegistry.registerAll(new GarbageCollectorMetricSet());
+        metricRegistry.registerAll(new ThreadStatesGaugeSet());
+        metricRegistry.registerAll(new MemoryUsageGaugeSet());
       }
     }
   }
 
   private static class HandlerDecoratorProvider implements Provider<HandlerDecorator> {
-    private final Config config;
-
-    @Inject
-    public HandlerDecoratorProvider(Config config) {
-      this.config = config;
-    }
-
     @Override
     public HandlerDecorator get() {
-      return config.isEnabled() ? HandlerDecorator.prepend(new RequestTimingHandler()) : HandlerDecorator.passThru();
+      return HandlerDecorator.prepend(new RequestTimingHandler());
     }
   }
 

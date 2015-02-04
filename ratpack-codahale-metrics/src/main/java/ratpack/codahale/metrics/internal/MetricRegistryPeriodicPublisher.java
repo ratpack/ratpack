@@ -22,15 +22,17 @@ import ratpack.exec.ExecController;
 import ratpack.stream.internal.PeriodicPublisher;
 
 import javax.inject.Inject;
+import java.time.Duration;
 
 public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricRegistry> {
+  private static final Duration DEFAULT_REPORTER_INTERVAL = Duration.ofSeconds(30);
 
   @Inject
   public MetricRegistryPeriodicPublisher(final MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config, ExecController execController) {
     super(
       execController.getExecutor(),
       i -> metricRegistry,
-      config.getWebSocket().getReporterInterval()
+      config.getWebSocket().isPresent() ? config.getWebSocket().get().getReporterInterval() : DEFAULT_REPORTER_INTERVAL
     );
   }
 
