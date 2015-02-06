@@ -143,52 +143,6 @@ class ServerConfigBuilderSpec extends Specification {
     builder.timeResponses(true).build().timeResponses
   }
 
-  def "new builder has default compress responses"() {
-    expect:
-    !builder.build().compressResponses
-  }
-
-  def "set compress responses"() {
-    expect:
-    builder.compressResponses(true).build().compressResponses
-  }
-
-  def "new builder has default compression min size"() {
-    expect:
-    builder.build().compressionMinSize == ServerConfig.DEFAULT_COMPRESSION_MIN_SIZE
-  }
-
-  def "set compression min size"() {
-    expect:
-    builder.compressionMinSize(256L).build().compressionMinSize == 256
-  }
-
-  def "new builder has default compression white list"() {
-    expect:
-    builder.build().compressionMimeTypeWhiteList.size() == 0
-  }
-
-  def "set compression white list"() {
-    when:
-    Set<String> whiteList = builder.compressionWhiteListMimeTypes('json', 'xml').build().compressionMimeTypeWhiteList
-
-    then:
-    whiteList == ['json', 'xml'] as Set
-  }
-
-  def "new builder has default compression black list"() {
-    expect:
-    builder.build().compressionMimeTypeBlackList.size() == 0
-  }
-
-  def "set compression black list"() {
-    when:
-    Set<String> blackList = builder.compressionBlackListMimeTypes('json', 'xml').build().compressionMimeTypeBlackList
-
-    then:
-    blackList == ['json', 'xml'] as Set
-  }
-
   def "set ssl context"() {
     given:
     SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/launch/internal/keystore.jks'), 'password')

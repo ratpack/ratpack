@@ -35,10 +35,6 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     !serverConfig.publicAddress
     serverConfig.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
     !serverConfig.timeResponses
-    !serverConfig.compressResponses
-    serverConfig.compressionMinSize == ServerConfig.DEFAULT_COMPRESSION_MIN_SIZE
-    serverConfig.compressionMimeTypeWhiteList == [] as Set
-    serverConfig.compressionMimeTypeBlackList == [] as Set
     !serverConfig.SSLContext
   }
 

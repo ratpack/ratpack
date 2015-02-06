@@ -68,18 +68,6 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     if (serverNode.hasNonNull("timeResponses")) {
       builder.timeResponses(serverNode.get("timeResponses").asBoolean());
     }
-    if (serverNode.hasNonNull("compressResponses")) {
-      builder.compressResponses(serverNode.get("compressResponses").asBoolean());
-    }
-    if (serverNode.hasNonNull("compressionMinSize")) {
-      builder.compressionMinSize(serverNode.get("compressionMinSize").asLong());
-    }
-    if (serverNode.hasNonNull("compressionMimeTypeWhiteList")) {
-      builder.compressionWhiteListMimeTypes(toList(codec, serverNode.get("compressionMimeTypeWhiteList")));
-    }
-    if (serverNode.hasNonNull("compressionMimeTypeBlackList")) {
-      builder.compressionBlackListMimeTypes(toList(codec, serverNode.get("compressionMimeTypeBlackList")));
-    }
     if (serverNode.hasNonNull("ssl")) {
       builder.ssl(codec.treeToValue(serverNode.get("ssl"), SSLContext.class));
     }

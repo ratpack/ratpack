@@ -16,9 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -29,10 +26,7 @@ import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.file.internal.ActivationBackedMimeTypes;
-import ratpack.file.internal.ShouldCompressPredicate;
 import ratpack.func.Action;
-import ratpack.func.Pair;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.RequestOutcome;
@@ -66,7 +60,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final DefaultContext.ApplicationConstants applicationConstants;
   private final ExecController execController;
-  private final Predicate<Pair<Long, String>> shouldCompress;
 
   private final Registry rootRegistry;
 
@@ -82,17 +75,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = registry.get(ExecController.class);
     this.execControl = execController.getControl();
-
-    if (serverConfig.isCompressResponses()) {
-      ImmutableSet<String> blacklist = serverConfig.getCompressionMimeTypeBlackList();
-      this.shouldCompress = new ShouldCompressPredicate(
-        serverConfig.getCompressionMinSize(),
-        serverConfig.getCompressionMimeTypeWhiteList(),
-        blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist
-      );
-    } else {
-      this.shouldCompress = Predicates.alwaysFalse();
-    }
   }
 
   @Override
@@ -127,9 +109,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController, serverConfig.isCompressResponses(), shouldCompress, startTime);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController, startTime);
 
-    final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter);
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 
     Action<Action<Object>> subscribeHandler = thing -> {
@@ -140,8 +121,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
     final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
+      applicationConstants, request, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
+
+    final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter, requestConstants);
+    requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, rootRegistry, handlers, execution -> {
       if (!transmitted.get()) {

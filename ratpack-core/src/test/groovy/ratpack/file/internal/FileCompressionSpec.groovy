@@ -17,6 +17,7 @@
 package ratpack.file.internal
 
 import ratpack.http.client.RequestSpec
+import ratpack.server.CompressionConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -61,8 +62,8 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "doesn't encode when compression disabled"() {
     when:
-    serverConfig {
-      compressResponses(false)
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(false).build())
     }
     def response = get(path)
 
@@ -79,8 +80,8 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "encodes when compression enabled, larger than min size, and not an excluded content type"() {
     when:
-    serverConfig {
-      compressResponses(true)
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).build())
     }
     def response = get(path)
 
@@ -108,9 +109,8 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "minimum compression size can be configured"() {
     when:
-    serverConfig {
-      compressResponses(true)
-      compressionMinSize(minSize)
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).minSize(minSize).build())
     }
     def response = get(path)
 
@@ -130,8 +130,8 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "images, videos, audio, archives are not compressed by default"() {
     when:
-    serverConfig {
-      compressResponses(true)
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).build())
     }
 
     then:
@@ -148,9 +148,8 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "compression white list can be configured"() {
     when:
-    serverConfig {
-      compressResponses(true)
-      compressionWhiteListMimeTypes("image/png")
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).whiteListMimeTypes("image/png").build())
     }
 
     then:
@@ -169,9 +168,8 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "compression black list can be configured"() {
     when:
-    serverConfig {
-      compressResponses(true)
-      compressionBlackListMimeTypes("text/plain", "application/xml")
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).blackListMimeTypes("text/plain", "application/xml").build())
     }
 
     then:

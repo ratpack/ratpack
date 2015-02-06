@@ -18,9 +18,7 @@ package ratpack.server.internal;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
@@ -59,14 +57,9 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   private boolean development;
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
-  private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private SSLContext sslContext;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
-  private boolean compressResponses;
-  private long compressionMinSize = ServerConfig.DEFAULT_COMPRESSION_MIN_SIZE;
-  private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
-  private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
   //Variables to support configuring SSL
   private InputStream sslKeystore;
@@ -144,42 +137,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
-  public ServerConfig.Builder compressResponses(boolean compressResponses) {
-    this.compressResponses = compressResponses;
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder compressionMinSize(long compressionMinSize) {
-    this.compressionMinSize = compressionMinSize;
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder compressionWhiteListMimeTypes(String... mimeTypes) {
-    this.compressionMimeTypeWhiteList.add(mimeTypes);
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder compressionWhiteListMimeTypes(List<String> mimeTypes) {
-    this.compressionMimeTypeWhiteList.addAll(mimeTypes);
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder compressionBlackListMimeTypes(String... mimeTypes) {
-    this.compressionMimeTypeBlackList.add(mimeTypes);
-    return this;
-  }
-
-  @Override
-  public ServerConfig.Builder compressionBlackListMimeTypes(List<String> mimeTypes) {
-    this.compressionMimeTypeBlackList.addAll(mimeTypes);
-    return this;
-  }
-
-  @Override
   public ServerConfig.Builder ssl(SSLContext sslContext) {
     this.sslContext = sslContext;
     return this;
@@ -189,9 +146,7 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   public ServerConfig build() {
     loadSSLIfConfigured();
     return new DefaultServerConfig(baseDir, port, address, development, threads,
-      publicAddress, indexFiles.build(), sslContext, maxContentLength,
-      timeResponses, compressResponses, compressionMinSize,
-      compressionMimeTypeWhiteList.build(), compressionMimeTypeBlackList.build());
+      publicAddress, sslContext, maxContentLength, timeResponses);
   }
 
   @Override
@@ -374,10 +329,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
       .put("publicAddress", new BuilderAction<>(URI::create, DefaultServerConfigBuilder.this::publicAddress))
       .put("maxContentLength", new BuilderAction<>(Integer::parseInt, DefaultServerConfigBuilder.this::maxContentLength))
       .put("timeResponses", new BuilderAction<>(Boolean::parseBoolean, DefaultServerConfigBuilder.this::timeResponses))
-      .put("compressResponses", new BuilderAction<>(Boolean::parseBoolean, DefaultServerConfigBuilder.this::compressResponses))
-      .put("compressionMinSize", new BuilderAction<>(Long::parseLong, DefaultServerConfigBuilder.this::compressionMinSize))
-      .put("compressionWhiteListMimeTypes", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::compressionWhiteListMimeTypes))
-      .put("compressionBlackListMimeTypes", new BuilderAction<>(DefaultServerConfigBuilder::split, DefaultServerConfigBuilder.this::compressionBlackListMimeTypes))
       .put("sslKeystoreFile", new BuilderAction<>(DefaultServerConfigBuilder::asStream, DefaultServerConfigBuilder.this::sslKeystore))
       .put("sslKeystorePassword", new BuilderAction<>(Function.identity(), DefaultServerConfigBuilder.this::sslKeystorePassword))
       .build();

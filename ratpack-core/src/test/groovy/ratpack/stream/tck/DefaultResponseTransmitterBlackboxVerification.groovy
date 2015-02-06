@@ -21,6 +21,7 @@ import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.FullHttpRequest
+import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.codec.http.HttpResponseStatus
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
@@ -28,7 +29,9 @@ import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.event.internal.DefaultEventController
 import ratpack.func.Function
+import ratpack.handling.Context
 import ratpack.handling.RequestOutcome
+import ratpack.server.CompressionConfig
 import ratpack.server.internal.DefaultResponseTransmitter
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -60,12 +63,18 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     when(nettyRequest.headers().get(any())).thenReturn(null)
     when(nettyRequest.getProtocolVersion().isKeepAliveDefault()).thenReturn(false)
 
+    HttpHeaders responseHeaders = mock(HttpHeaders)
+
     DefaultEventController<RequestOutcome> eventController = mock(DefaultEventController)
     when(eventController.hasListeners).thenReturn(false)
 
+    CompressionConfig compressionConfig = mock(CompressionConfig)
+    Context context = mock(Context)
+    when(context.get(CompressionConfig)).thenReturn(compressionConfig)
+
     new DefaultResponseTransmitter(
-      new AtomicBoolean(), null, channel, nettyRequest, null, null, eventController, false, null, 0
-    ).transmitter(HttpResponseStatus.OK)
+      new AtomicBoolean(), null, channel, nettyRequest, null, responseHeaders, eventController, 0
+    ).transmitter(context, HttpResponseStatus.OK)
   }
 
   @Override

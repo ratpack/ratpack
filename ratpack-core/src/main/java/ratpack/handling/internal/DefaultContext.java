@@ -89,23 +89,22 @@ public class DefaultContext implements Context {
     private final ApplicationConstants applicationConstants;
 
     private final Request request;
-    private final Response response;
 
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
     private final Deque<ChainIndex> indexes = Lists.newLinkedList();
 
+    public Response response;
     public Context context;
     public Handler handler;
 
     public RequestConstants(
-      ApplicationConstants applicationConstants, Request request, Response response,
+      ApplicationConstants applicationConstants, Request request,
       DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
       this.request = request;
-      this.response = response;
       this.directChannelAccess = directChannelAccess;
       this.onCloseRegistry = onCloseRegistry;
     }

@@ -95,7 +95,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
       @Override
-      public void transmit(HttpResponseStatus status, ByteBuf byteBuf) {
+      public void transmit(Context context, HttpResponseStatus status, ByteBuf byteBuf) {
         sentResponse = true;
         body = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(body);
@@ -105,14 +105,14 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public void transmit(HttpResponseStatus responseStatus, BasicFileAttributes basicFileAttributes, Path file) {
+      public void transmit(Context context, HttpResponseStatus responseStatus, BasicFileAttributes basicFileAttributes, Path file) {
         sentFile = file;
         eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
         latch.countDown();
       }
 
       @Override
-      public Subscriber<ByteBuf> transmitter(HttpResponseStatus status) {
+      public Subscriber<ByteBuf> transmitter(Context context, HttpResponseStatus status) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
     };
@@ -120,12 +120,12 @@ public class DefaultHandlingResult implements HandlingResult {
     ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
     Registry effectiveRegistry = Registries.just(Stopper.class, stopper).join(registry);
-    Response response = new DefaultResponse(execControl, responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, request, response, null, eventController.getRegistry()
+      applicationConstants, request, null, eventController.getRegistry()
     );
-
+    Response response = new DefaultResponse(execControl, responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter, requestConstants);
+    requestConstants.response = response;
     DefaultContext.start(execController.getEventLoopGroup().next(), execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 
     try {

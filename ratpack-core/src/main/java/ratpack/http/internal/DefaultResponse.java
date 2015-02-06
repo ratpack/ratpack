@@ -29,6 +29,7 @@ import ratpack.api.Nullable;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
+import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.MultiValueMap;
@@ -51,15 +52,17 @@ public class DefaultResponse implements Response {
   private final ExecControl execControl;
   private final ByteBufAllocator byteBufAllocator;
   private final ResponseTransmitter responseTransmitter;
+  private final DefaultContext.RequestConstants requestConstants;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
   private List<Action<? super ResponseMetaData>> responseFinalizers;
 
-  public DefaultResponse(ExecControl execControl, MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
+  public DefaultResponse(ExecControl execControl, MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter, DefaultContext.RequestConstants requestConstants) {
     this.execControl = execControl;
     this.byteBufAllocator = byteBufAllocator;
     this.responseTransmitter = responseTransmitter;
+    this.requestConstants = requestConstants;
     this.headers = new MutableHeadersWrapper(headers);
     responseFinalizers = Lists.newArrayList();
   }
@@ -264,14 +267,14 @@ public class DefaultResponse implements Response {
   public void sendFile(BasicFileAttributes attributes, Path file) {
     finalizeResponse();
     setCookieHeader();
-    responseTransmitter.transmit(status, attributes, file);
+    responseTransmitter.transmit(requestConstants.context, status, attributes, file);
   }
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
     finalizeResponse();
     setCookieHeader();
-    stream.subscribe(responseTransmitter.transmitter(status));
+    stream.subscribe(responseTransmitter.transmitter(requestConstants.context, status));
   }
 
   @Override
@@ -319,7 +322,7 @@ public class DefaultResponse implements Response {
   private void commit(ByteBuf byteBuf) {
     finalizeResponse();
     setCookieHeader();
-    responseTransmitter.transmit(status, byteBuf);
+    responseTransmitter.transmit(requestConstants.context, status, byteBuf);
   }
 
   private void finalizeResponse() {

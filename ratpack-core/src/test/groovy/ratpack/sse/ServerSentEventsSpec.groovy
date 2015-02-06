@@ -18,6 +18,7 @@ package ratpack.sse
 
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.RequestSpec
+import ratpack.server.CompressionConfig
 import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
@@ -104,8 +105,8 @@ id: 3
 
   def "can send compressed server sent event"() {
     given:
-    serverConfig {
-      compressResponses(true)
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).build())
     }
     handlers {
       handler {

@@ -16,7 +16,6 @@
 
 package ratpack.server;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
@@ -28,7 +27,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -53,11 +51,6 @@ public interface ServerConfig {
    * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
    */
   public int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
-
-  /**
-   * The default compression minimum size in bytes, {@value}.
-   */
-  public long DEFAULT_COMPRESSION_MIN_SIZE = 1024;
 
   static Builder embedded() {
     return noBaseDir().development(true).port(0);
@@ -175,38 +168,6 @@ public interface ServerConfig {
   public boolean isTimeResponses();
 
   /**
-   * Whether or not responses should be compressed.
-   *
-   * @return whether or not responses should be compressed.
-   */
-  public boolean isCompressResponses();
-
-  /**
-   * The minimum size at which responses should be compressed, in bytes.
-   *
-   * @return the minimum size at which responses should be compressed.
-   */
-  public long getCompressionMinSize();
-
-  /**
-   * The response mime types which should be compressed.
-   * <p>
-   * If empty, defaults to all mime types not on the black list.
-   *
-   * @return the response mime types which should be compressed.
-   */
-  public ImmutableSet<String> getCompressionMimeTypeWhiteList();
-
-  /**
-   * The response mime types which should not be compressed.
-   * <p>
-   * If empty, uses a default that excludes many commonly used compressed types.
-   *
-   * @return the response mime types which should not be compressed.
-   */
-  public ImmutableSet<String> getCompressionMimeTypeBlackList();
-
-  /**
    * Whether or not the base dir of the application has been set.
    *
    * @return whether or not the base dir of the application has been set.
@@ -294,62 +255,6 @@ public interface ServerConfig {
      * @see ServerConfig#isTimeResponses()
      */
     Builder timeResponses(boolean timeResponses);
-
-    /**
-     * Whether to compress responses.
-     *
-     * Default value is {@code false}.
-     *
-     * @param compressResponses Whether to compress responses
-     * @return this
-     * @see ServerConfig#isCompressResponses()
-     */
-    Builder compressResponses(boolean compressResponses);
-
-    /**
-     * The minimum size at which responses should be compressed, in bytes.
-     *
-     * @param compressionMinSize The minimum size at which responses should be compressed, in bytes
-     * @return this
-     * @see ServerConfig#getCompressionMinSize()
-     */
-    Builder compressionMinSize(long compressionMinSize);
-
-    /**
-     * Adds the given values as compressible mime types.
-     *
-     * @param mimeTypes the compressible mime types.
-     * @return this
-     * @see ServerConfig#getCompressionMimeTypeWhiteList()
-     */
-    Builder compressionWhiteListMimeTypes(String... mimeTypes);
-
-    /**
-     * Adds the given values as compressible mime types.
-     *
-     * @param mimeTypes the compressible mime types.
-     * @return this
-     * @see ServerConfig#getCompressionMimeTypeWhiteList()
-     */
-    Builder compressionWhiteListMimeTypes(List<String> mimeTypes);
-
-    /**
-     * Adds the given values as non-compressible mime types.
-     *
-     * @param mimeTypes the non-compressible mime types.
-     * @return this
-     * @see ServerConfig#getCompressionMimeTypeBlackList()
-     */
-    Builder compressionBlackListMimeTypes(String... mimeTypes);
-
-    /**
-     * Adds the given values as non-compressible mime types.
-     *
-     * @param mimeTypes the non-compressible mime types.
-     * @return this
-     * @see ServerConfig#getCompressionMimeTypeBlackList()
-     */
-    Builder compressionBlackListMimeTypes(List<String> mimeTypes);
 
     /**
      * The SSL context to use if the application serves content over HTTPS.

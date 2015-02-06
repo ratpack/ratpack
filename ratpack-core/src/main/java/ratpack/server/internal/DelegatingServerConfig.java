@@ -16,7 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.NoBaseDirException;
@@ -74,26 +73,6 @@ public class DelegatingServerConfig implements ServerConfig {
   @Override
   public boolean isTimeResponses() {
     return delegate.isTimeResponses();
-  }
-
-  @Override
-  public boolean isCompressResponses() {
-    return delegate.isCompressResponses();
-  }
-
-  @Override
-  public long getCompressionMinSize() {
-    return delegate.getCompressionMinSize();
-  }
-
-  @Override
-  public ImmutableSet<String> getCompressionMimeTypeWhiteList() {
-    return delegate.getCompressionMimeTypeWhiteList();
-  }
-
-  @Override
-  public ImmutableSet<String> getCompressionMimeTypeBlackList() {
-    return delegate.getCompressionMimeTypeBlackList();
   }
 
   @Override

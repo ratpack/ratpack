@@ -36,10 +36,6 @@ class YamlConfigSpec extends BaseConfigSpec {
     |publicAddress: http://localhost:8080
     |maxContentLength: 50000
     |timeResponses: true
-    |compressResponses: true
-    |compressionMinSize: 100
-    |compressionMimeTypeWhiteList: ["application/json", "text/plain"]
-    |compressionMimeTypeBlackList: ["image/png", "image/gif"]
     |indexFiles:
     |    - index.html
     |    - index.htm
@@ -62,10 +58,6 @@ class YamlConfigSpec extends BaseConfigSpec {
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
     serverConfig.timeResponses
-    serverConfig.compressResponses
-    serverConfig.compressionMinSize == 100
-    serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
-    serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
     serverConfig.SSLContext
   }
 }

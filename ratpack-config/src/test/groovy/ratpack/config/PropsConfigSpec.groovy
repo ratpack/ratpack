@@ -37,12 +37,6 @@ class PropsConfigSpec extends BaseConfigSpec {
     |publicAddress: http://localhost:8080
     |maxContentLength: 50000
     |timeResponses: true
-    |compressResponses: true
-    |compressionMinSize: 100
-    |compressionMimeTypeWhiteList[0]: application/json
-    |compressionMimeTypeWhiteList[1]: text/plain
-    |compressionMimeTypeBlackList[0]: image/png
-    |compressionMimeTypeBlackList[1]: image/gif
     |indexFiles[0]: index.html
     |indexFiles[1]: index.htm
     |ssl.keyStorePath: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
@@ -62,10 +56,6 @@ class PropsConfigSpec extends BaseConfigSpec {
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
     serverConfig.timeResponses
-    serverConfig.compressResponses
-    serverConfig.compressionMinSize == 100
-    serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
-    serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
     serverConfig.SSLContext
   }
 
@@ -85,12 +75,6 @@ class PropsConfigSpec extends BaseConfigSpec {
       setProperty("ratpack.publicAddress", "http://localhost:8080")
       setProperty("ratpack.maxContentLength", "50000")
       setProperty("ratpack.timeResponses", "true")
-      setProperty("ratpack.compressResponses", "true")
-      setProperty("ratpack.compressionMinSize", "100")
-      setProperty("ratpack.compressionMimeTypeWhiteList[0]", "application/json")
-      setProperty("ratpack.compressionMimeTypeWhiteList[1]", "text/plain")
-      setProperty("ratpack.compressionMimeTypeBlackList[0]", "image/png")
-      setProperty("ratpack.compressionMimeTypeBlackList[1]", "image/gif")
       setProperty("ratpack.indexFiles[0]", "index.html")
       setProperty("ratpack.indexFiles[1]", "index.htm")
       setProperty("ratpack.ssl.keyStorePath", keyStoreFile.toString())
@@ -110,10 +94,6 @@ class PropsConfigSpec extends BaseConfigSpec {
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
     serverConfig.timeResponses
-    serverConfig.compressResponses
-    serverConfig.compressionMinSize == 100
-    serverConfig.compressionMimeTypeWhiteList == ["application/json", "text/plain"] as Set
-    serverConfig.compressionMimeTypeBlackList == ["image/png", "image/gif"] as Set
     serverConfig.SSLContext
   }
 }

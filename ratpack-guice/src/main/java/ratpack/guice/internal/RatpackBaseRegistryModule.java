@@ -36,6 +36,7 @@ import ratpack.http.client.HttpClient;
 import ratpack.registry.Registry;
 import ratpack.render.Renderable;
 import ratpack.render.Renderer;
+import ratpack.server.CompressionConfig;
 import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
@@ -61,8 +62,8 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   @Override
   protected void configure() {
     List<Class<?>> simpleTypes = ImmutableList.of(
-      ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class, Redirector.class,
-      ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class
+      ServerConfig.class, CompressionConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
+      Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class
     );
     List<TypeToken<?>> genericTypes = ImmutableList.of(
       new TypeToken<Renderer<Path>>() {}, new TypeToken<Renderer<SuccessPromise>>() {}, new TypeToken<Renderer<Publisher>>() {},

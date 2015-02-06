@@ -52,8 +52,6 @@ class EnvVarConfigSpec extends BaseConfigSpec {
       RATPACK_PUBLIC_ADDRESS: "http://localhost:8080",
       RATPACK_MAX_CONTENT_LENGTH: "50000",
       RATPACK_TIME_RESPONSES: "true",
-      RATPACK_COMPRESS_RESPONSES: "true",
-      RATPACK_COMPRESSION_MIN_SIZE: "100",
       RATPACK_SSL__KEY_STORE_PATH: keyStoreFile.toString(),
       RATPACK_SSL__KEY_STORE_PASSWORD: keyStorePassword,
     ]
@@ -71,8 +69,6 @@ class EnvVarConfigSpec extends BaseConfigSpec {
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
     serverConfig.timeResponses
-    serverConfig.compressResponses
-    serverConfig.compressionMinSize == 100
     serverConfig.SSLContext
   }
 }

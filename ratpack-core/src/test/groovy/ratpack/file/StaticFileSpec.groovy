@@ -22,7 +22,7 @@ import ratpack.func.Action
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
-import ratpack.server.ServerConfig
+import ratpack.server.CompressionConfig
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -38,9 +38,10 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   boolean compressResponses
 
-  @Override
-  protected ServerConfig.Builder serverConfigBuilder() {
-    return super.serverConfigBuilder().compressResponses(compressResponses)
+  def setup() {
+    bindings {
+      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(compressResponses).build())
+    }
   }
 
   def "requesting directory with no index file "() {

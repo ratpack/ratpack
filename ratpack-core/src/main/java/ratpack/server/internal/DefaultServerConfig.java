@@ -16,8 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.NoBaseDirException;
@@ -35,14 +33,9 @@ public class DefaultServerConfig implements ServerConfig {
   private final boolean development;
   private final int threads;
   private final URI publicAddress;
-  private final ImmutableList<String> indexFiles;
   private final SSLContext sslContext;
   private final int maxContentLength;
   private final boolean timeResponses;
-  private final boolean compressResponses;
-  private final long compressionMinSize;
-  private final ImmutableSet<String> compressionMimeTypeWhiteList;
-  private final ImmutableSet<String> compressionMimeTypeBlackList;
 
   public DefaultServerConfig(
     FileSystemBinding baseDir,
@@ -51,14 +44,9 @@ public class DefaultServerConfig implements ServerConfig {
     boolean development,
     int threads,
     URI publicAddress,
-    ImmutableList<String> indexFiles,
     SSLContext sslContext,
     int maxContentLength,
-    boolean timeResponses,
-    boolean compressResponses,
-    long compressionMinSize,
-    ImmutableSet<String> compressionMimeTypeWhiteList,
-    ImmutableSet<String> compressionMimeTypeBlackList
+    boolean timeResponses
   ) {
     this.baseDir = baseDir;
     this.port = port;
@@ -66,12 +54,7 @@ public class DefaultServerConfig implements ServerConfig {
     this.development = development;
     this.threads = threads;
     this.timeResponses = timeResponses;
-    this.compressResponses = compressResponses;
-    this.compressionMinSize = compressionMinSize;
-    this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
-    this.compressionMimeTypeBlackList = compressionMimeTypeBlackList;
     this.publicAddress = publicAddress;
-    this.indexFiles = indexFiles;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
   }
@@ -116,26 +99,6 @@ public class DefaultServerConfig implements ServerConfig {
   @Override
   public boolean isTimeResponses() {
     return timeResponses;
-  }
-
-  @Override
-  public boolean isCompressResponses() {
-    return compressResponses;
-  }
-
-  @Override
-  public long getCompressionMinSize() {
-    return compressionMinSize;
-  }
-
-  @Override
-  public ImmutableSet<String> getCompressionMimeTypeWhiteList() {
-    return compressionMimeTypeWhiteList;
-  }
-
-  @Override
-  public ImmutableSet<String> getCompressionMimeTypeBlackList() {
-    return compressionMimeTypeBlackList;
   }
 
   @Override
