@@ -16,21 +16,13 @@
 
 package ratpack.config.server
 
-import com.google.common.io.ByteSource
-import ratpack.config.ConfigData
 import ratpack.server.CompressionConfig
-import spock.lang.Specification
-
-import static com.google.common.base.Charsets.UTF_8
 
 @SuppressWarnings("GrMethodMayBeStatic")
-class CompressionConfigUsageSpec extends Specification {
-  def "can get CompressionConfig from no data"() {
-    given:
-    def configData = ConfigData.of().build()
-
+class CompressionConfigUsageSpec extends ConfigUsageSpec {
+  def "can get CompressionConfig with defaults from no data"() {
     when:
-    def config = configData.get(CompressionConfig)
+    def config = noData().get(CompressionConfig)
 
     then:
     !config.compressResponses
@@ -41,7 +33,7 @@ class CompressionConfigUsageSpec extends Specification {
 
   def "can override all CompressionConfig fields"() {
     given:
-    def yamlData = """
+    def data = """
     |---
     |compressResponses: true
     |mimeTypeBlackList:
@@ -52,10 +44,9 @@ class CompressionConfigUsageSpec extends Specification {
     |  - text/plain
     |minSize: 2048
     """.stripMargin()
-    def configData = ConfigData.of().yaml(ByteSource.wrap(yamlData.getBytes(UTF_8))).build()
 
     when:
-    def config = configData.get(CompressionConfig)
+    def config = yamlConfig(data).get(CompressionConfig)
 
     then:
     config.compressResponses

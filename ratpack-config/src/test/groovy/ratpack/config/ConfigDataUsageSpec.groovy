@@ -18,26 +18,9 @@ package ratpack.config
 
 import com.fasterxml.jackson.databind.JsonNode
 import ratpack.config.internal.DefaultConfigDataSpec
-import ratpack.server.ServerConfig
 import ratpack.server.ServerEnvironment
 
 class ConfigDataUsageSpec extends BaseConfigSpec {
-  def "properly loads ServerConfig defaults"() {
-    when:
-    def serverConfig = ConfigData.of().build().get(ServerConfig)
-
-    then:
-    !serverConfig.hasBaseDir
-    serverConfig.port == ServerConfig.DEFAULT_PORT
-    !serverConfig.address
-    !serverConfig.development
-    serverConfig.threads == ServerConfig.DEFAULT_THREADS
-    !serverConfig.publicAddress
-    serverConfig.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
-    !serverConfig.timeResponses
-    !serverConfig.SSLContext
-  }
-
   def "can combine configuration from multiple sources"() {
     def jsonFile = tempFolder.newFile("file.json").toPath()
     jsonFile.text = '{"port": 8080}'
@@ -50,7 +33,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     def envData = [RATPACK_ADDRESS: "localhost"]
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(TestServerConfig)
 
     then:
     serverConfig.port == 8080
@@ -58,7 +41,6 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     serverConfig.development
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
-    serverConfig.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
   }
 
   def "can get objects from subpaths"() {
@@ -71,7 +53,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     |""".stripMargin()
     when:
     def config = ConfigData.of().yaml(yamlFile).build()
-    def serverConfig = config.get("/server", ServerConfig)
+    def serverConfig = config.get("/server", TestServerConfig)
     def dbConfig = config.get("/db", TestDatabaseConfig)
 
     then:
@@ -91,7 +73,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     def envData = [RATPACK_PORT: "456"]
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(TestServerConfig)
 
     then:
     serverConfig.port == 567
