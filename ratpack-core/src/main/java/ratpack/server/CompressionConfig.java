@@ -51,7 +51,7 @@ public interface CompressionConfig {
    *
    * @return the minimum size at which responses should be compressed.
    */
-  long getCompressionMinSize();
+  long getMinSize();
 
   /**
    * The response mime types which should be compressed.
@@ -60,7 +60,7 @@ public interface CompressionConfig {
    *
    * @return the response mime types which should be compressed.
    */
-  ImmutableSet<String> getCompressionMimeTypeWhiteList();
+  ImmutableSet<String> getMimeTypeWhiteList();
 
   /**
    * The response mime types which should not be compressed.
@@ -69,7 +69,7 @@ public interface CompressionConfig {
    *
    * @return the response mime types which should not be compressed.
    */
-  ImmutableSet<String> getCompressionMimeTypeBlackList();
+  ImmutableSet<String> getMimeTypeBlackList();
 
   /**
    * Builds a new compression config.
@@ -91,7 +91,7 @@ public interface CompressionConfig {
      *
      * @param minSize The minimum size at which responses should be compressed, in bytes
      * @return this
-     * @see CompressionConfig#getCompressionMinSize()
+     * @see CompressionConfig#getMinSize()
      */
     Builder minSize(long minSize);
 
@@ -100,7 +100,7 @@ public interface CompressionConfig {
      *
      * @param mimeTypes the compressible mime types.
      * @return this
-     * @see CompressionConfig#getCompressionMimeTypeWhiteList()
+     * @see CompressionConfig#getMimeTypeWhiteList()
      */
     Builder whiteListMimeTypes(String... mimeTypes);
 
@@ -109,7 +109,7 @@ public interface CompressionConfig {
      *
      * @param mimeTypes the compressible mime types.
      * @return this
-     * @see CompressionConfig#getCompressionMimeTypeWhiteList()
+     * @see CompressionConfig#getMimeTypeWhiteList()
      */
     Builder whiteListMimeTypes(List<String> mimeTypes);
 
@@ -118,7 +118,7 @@ public interface CompressionConfig {
      *
      * @param mimeTypes the non-compressible mime types.
      * @return this
-     * @see CompressionConfig#getCompressionMimeTypeBlackList()
+     * @see CompressionConfig#getMimeTypeBlackList()
      */
     Builder blackListMimeTypes(String... mimeTypes);
 
@@ -127,7 +127,7 @@ public interface CompressionConfig {
      *
      * @param mimeTypes the non-compressible mime types.
      * @return this
-     * @see CompressionConfig#getCompressionMimeTypeBlackList()
+     * @see CompressionConfig#getMimeTypeBlackList()
      */
     Builder blackListMimeTypes(List<String> mimeTypes);
 

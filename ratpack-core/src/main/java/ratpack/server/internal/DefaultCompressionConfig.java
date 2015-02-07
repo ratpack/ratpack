@@ -22,20 +22,28 @@ import ratpack.server.CompressionConfig;
 public class DefaultCompressionConfig implements CompressionConfig {
 
   private final boolean compressResponses;
-  private final long compressionMinSize;
-  private final ImmutableSet<String> compressionMimeTypeWhiteList;
-  private final ImmutableSet<String> compressionMimeTypeBlackList;
+  private final long minSize;
+  private final ImmutableSet<String> mimeTypeWhiteList;
+  private final ImmutableSet<String> mimeTypeBlackList;
+
+  /**
+   * Used by Jackson in ratpack-config.
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  public DefaultCompressionConfig() {
+    this(false, CompressionConfig.DEFAULT_COMPRESSION_MIN_SIZE, ImmutableSet.of(), ImmutableSet.of());
+  }
 
   public DefaultCompressionConfig(
     boolean compressResponses,
-    long compressionMinSize,
-    ImmutableSet<String> compressionMimeTypeWhiteList,
-    ImmutableSet<String> compressionMimeTypeBlackList
+    long minSize,
+    ImmutableSet<String> mimeTypeWhiteList,
+    ImmutableSet<String> mimeTypeBlackList
   ) {
     this.compressResponses = compressResponses;
-    this.compressionMinSize = compressionMinSize;
-    this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
-    this.compressionMimeTypeBlackList = compressionMimeTypeBlackList;
+    this.minSize = minSize;
+    this.mimeTypeWhiteList = mimeTypeWhiteList;
+    this.mimeTypeBlackList = mimeTypeBlackList;
   }
 
   @Override
@@ -44,18 +52,18 @@ public class DefaultCompressionConfig implements CompressionConfig {
   }
 
   @Override
-  public long getCompressionMinSize() {
-    return compressionMinSize;
+  public long getMinSize() {
+    return minSize;
   }
 
   @Override
-  public ImmutableSet<String> getCompressionMimeTypeWhiteList() {
-    return compressionMimeTypeWhiteList;
+  public ImmutableSet<String> getMimeTypeWhiteList() {
+    return mimeTypeWhiteList;
   }
 
   @Override
-  public ImmutableSet<String> getCompressionMimeTypeBlackList() {
-    return compressionMimeTypeBlackList;
+  public ImmutableSet<String> getMimeTypeBlackList() {
+    return mimeTypeBlackList;
   }
 
 }

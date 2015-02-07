@@ -143,10 +143,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     final boolean compressionEnabled = compressionConfig.isCompressResponses();
     final Predicate<? super Pair<Long, String>> shouldCompress;
     if (compressionEnabled) {
-      ImmutableSet<String> blacklist = compressionConfig.getCompressionMimeTypeBlackList();
+      ImmutableSet<String> blacklist = compressionConfig.getMimeTypeBlackList();
       shouldCompress = new ShouldCompressPredicate(
-        compressionConfig.getCompressionMinSize(),
-        compressionConfig.getCompressionMimeTypeWhiteList(),
+        compressionConfig.getMinSize(),
+        compressionConfig.getMimeTypeWhiteList(),
         blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist
       );
     } else {
