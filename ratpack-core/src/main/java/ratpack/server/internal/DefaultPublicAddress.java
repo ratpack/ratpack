@@ -27,6 +27,7 @@ import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.ProtocolUtil;
 
 import java.net.*;
+import java.util.Optional;
 
 import static ratpack.http.internal.HttpHeaderConstants.*;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
@@ -51,19 +52,16 @@ public class DefaultPublicAddress implements PublicAddress {
 
   private static final Splitter FORWARDED_HOST_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
-  private final URI publicAddress;
+  private final Optional<URI> publicAddress;
   private final String scheme;
 
   public DefaultPublicAddress(URI publicAddress, String scheme) {
-    this.publicAddress = publicAddress;
+    this.publicAddress = Optional.ofNullable(publicAddress);
     this.scheme = scheme;
   }
 
   public URI getAddress(Context context) {
-    URI currentUrl;
-    if (this.publicAddress != null) {
-      currentUrl = this.publicAddress;
-    } else {
+    return publicAddress.orElseGet(() -> {
       String scheme;
       String host;
       int port;
@@ -92,12 +90,11 @@ public class DefaultPublicAddress implements PublicAddress {
         }
       }
       try {
-        currentUrl = new URI(scheme, null, host, port, null, null, null);
+        return new URI(scheme, null, host, port, null, null, null);
       } catch (URISyntaxException ex) {
         throw ExceptionUtils.uncheck(ex);
       }
-    }
-    return currentUrl;
+    });
   }
 
   private URI getAbsoluteRequestUri(Context context) {
