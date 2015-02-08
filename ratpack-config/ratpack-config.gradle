@@ -27,4 +27,5 @@ dependencies {
   compile commonDependencies.jackson
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 }

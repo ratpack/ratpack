@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
@@ -173,6 +174,7 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
   public static ObjectMapper newDefaultObjectMapper(ServerEnvironment serverEnvironment) {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new ConfigModule(serverEnvironment));
     JsonFactory factory = objectMapper.getFactory();
