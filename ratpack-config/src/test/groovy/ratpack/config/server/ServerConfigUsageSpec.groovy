@@ -71,7 +71,7 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     config.address == InetAddress.getByAddress([1, 2, 3, 4] as byte[])
     config.development
     config.threads == 5
-    config.publicAddress == new URI("http://app.ratpack.com")
+    config.publicAddress == URI.create("http://app.ratpack.com")
     config.SSLContext
     config.maxContentLength == 54321L
   }
