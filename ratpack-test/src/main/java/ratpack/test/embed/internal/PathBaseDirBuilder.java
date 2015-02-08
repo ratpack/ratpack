@@ -80,6 +80,8 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
       fileSystem.close();
     }
 
+    System.gc();
+
     Files.walkFileTree(toDelete, new SimpleFileVisitor<Path>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
