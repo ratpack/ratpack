@@ -181,28 +181,6 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     thrown NumberFormatException
   }
 
-  def "set time responses"() {
-    given:
-    properties.setProperty('ratpack.timeResponses', 'true')
-
-    when:
-    def config = builder.sysProps().build()
-
-    then:
-    config.timeResponses
-  }
-
-  def "none boolean time responses are false"() {
-    given:
-    properties.setProperty('ratpack.timeResponses', 'abcd')
-
-    when:
-    def config = builder.sysProps().build()
-
-    then:
-    !config.timeResponses
-  }
-
   def "set ssl context"() {
     given:
     String keystoreFile = 'ratpack/launch/internal/keystore.jks'

@@ -22,11 +22,11 @@ import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
 import ratpack.handling.internal.*;
 import ratpack.http.internal.*;
-import ratpack.server.ServerConfig;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinders;
 import ratpack.path.internal.PathHandler;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
 import java.util.List;
 
@@ -134,7 +134,7 @@ public abstract class Handlers {
    */
   public static Handler chain(Handler... handlers) {
     if (handlers.length == 0) {
-      return ctx -> ctx.next();
+      return Context::next;
     } else if (handlers.length == 1) {
       return handlers[0];
     } else {

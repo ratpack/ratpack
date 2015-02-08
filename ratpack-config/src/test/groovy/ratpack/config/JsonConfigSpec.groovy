@@ -56,7 +56,6 @@ class JsonConfigSpec extends BaseConfigSpec {
         serverConfig.threads == 3
         serverConfig.publicAddress == URI.create("http://localhost:8080")
         serverConfig.maxContentLength == 50000
-        serverConfig.timeResponses
         serverConfig.SSLContext
     }
 }

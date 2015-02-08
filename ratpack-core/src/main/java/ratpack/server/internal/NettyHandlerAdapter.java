@@ -63,15 +63,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final Registry rootRegistry;
 
-  private final boolean addResponseTimeHeader;
   private final ExecControl execControl;
 
-  public NettyHandlerAdapter(ServerConfig serverConfig, Registry registry, Handler handler) throws Exception {
+  public NettyHandlerAdapter(Registry registry, Handler handler) throws Exception {
     super(false);
 
     this.handlers = ChainHandler.unpack(handler);
     this.rootRegistry = registry;
-    this.addResponseTimeHeader = serverConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = registry.get(ExecController.class);
     this.execControl = execController.getControl();
@@ -96,8 +94,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       return;
     }
 
-    final long startTime = addResponseTimeHeader ? System.nanoTime() : 0;
-
     final Channel channel = ctx.channel();
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
@@ -109,7 +105,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController, startTime);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController);
 
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 

@@ -40,7 +40,6 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     !config.publicAddress
     !config.SSLContext
     config.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
-    !config.timeResponses
   }
 
   def "can override all ServerConfig fields"() {
@@ -60,7 +59,6 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     |  keyStorePath: ${keyStoreFile.toString()}
     |  keyStorePassword: ${keyStorePassword}
     |maxContentLength: 54321
-    |timeResponses: true
     """.stripMargin()
 
     when:
@@ -76,7 +74,6 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     config.publicAddress == new URI("http://app.ratpack.com")
     config.SSLContext
     config.maxContentLength == 54321L
-    config.timeResponses
   }
 
   private Path createKeystore(String password) {

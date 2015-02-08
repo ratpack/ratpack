@@ -65,9 +65,6 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     if (serverNode.hasNonNull("maxContentLength")) {
       builder.maxContentLength(serverNode.get("maxContentLength").asInt());
     }
-    if (serverNode.hasNonNull("timeResponses")) {
-      builder.timeResponses(serverNode.get("timeResponses").asBoolean());
-    }
     if (serverNode.hasNonNull("ssl")) {
       builder.ssl(codec.treeToValue(serverNode.get("ssl"), SSLContext.class));
     }

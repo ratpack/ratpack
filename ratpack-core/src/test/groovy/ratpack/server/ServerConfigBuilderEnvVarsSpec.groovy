@@ -181,28 +181,6 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     thrown NumberFormatException
   }
 
-  def "set time responses"() {
-    given:
-    source['RATPACK_TIME_RESPONSES'] = 'true'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.timeResponses
-  }
-
-  def "none boolean time responses are false"() {
-    given:
-    source['RATPACK_TIME_RESPONSES'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    !config.timeResponses
-  }
-
   def "set ssl context"() {
     given:
     String keystoreFile = 'ratpack/launch/internal/keystore.jks'

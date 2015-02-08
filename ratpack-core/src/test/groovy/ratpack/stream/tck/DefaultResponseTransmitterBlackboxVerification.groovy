@@ -73,7 +73,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     when(context.get(CompressionConfig)).thenReturn(compressionConfig)
 
     new DefaultResponseTransmitter(
-      new AtomicBoolean(), null, channel, nettyRequest, null, responseHeaders, eventController, 0
+      new AtomicBoolean(), null, channel, nettyRequest, null, responseHeaders, eventController
     ).transmitter(context, HttpResponseStatus.OK)
   }
 

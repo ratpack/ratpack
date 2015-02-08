@@ -36,7 +36,6 @@ class PropsConfigSpec extends BaseConfigSpec {
     |threads: 3
     |publicAddress: http://localhost:8080
     |maxContentLength: 50000
-    |timeResponses: true
     |indexFiles[0]: index.html
     |indexFiles[1]: index.htm
     |ssl.keyStorePath: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
@@ -55,7 +54,6 @@ class PropsConfigSpec extends BaseConfigSpec {
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.timeResponses
     serverConfig.SSLContext
   }
 
@@ -74,7 +72,6 @@ class PropsConfigSpec extends BaseConfigSpec {
       setProperty("ratpack.threads", "3")
       setProperty("ratpack.publicAddress", "http://localhost:8080")
       setProperty("ratpack.maxContentLength", "50000")
-      setProperty("ratpack.timeResponses", "true")
       setProperty("ratpack.indexFiles[0]", "index.html")
       setProperty("ratpack.indexFiles[1]", "index.htm")
       setProperty("ratpack.ssl.keyStorePath", keyStoreFile.toString())
@@ -93,7 +90,6 @@ class PropsConfigSpec extends BaseConfigSpec {
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.timeResponses
     serverConfig.SSLContext
   }
 }

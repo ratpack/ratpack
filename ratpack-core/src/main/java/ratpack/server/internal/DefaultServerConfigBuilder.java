@@ -40,7 +40,10 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,7 +62,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   private URI publicAddress;
   private SSLContext sslContext;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
-  private boolean timeResponses;
 
   //Variables to support configuring SSL
   private InputStream sslKeystore;
@@ -131,12 +133,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   }
 
   @Override
-  public ServerConfig.Builder timeResponses(boolean timeResponses) {
-    this.timeResponses = timeResponses;
-    return this;
-  }
-
-  @Override
   public ServerConfig.Builder ssl(SSLContext sslContext) {
     this.sslContext = sslContext;
     return this;
@@ -146,7 +142,7 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
   public ServerConfig build() {
     loadSSLIfConfigured();
     return new DefaultServerConfig(baseDir, port, address, development, threads,
-      publicAddress, sslContext, maxContentLength, timeResponses);
+      publicAddress, sslContext, maxContentLength);
   }
 
   @Override
@@ -273,10 +269,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
 
   }
 
-  private static String[] split(String s) {
-    return Arrays.stream(s.split(",")).map(String::trim).toArray(String[]::new);
-  }
-
   /**
    * Gets a property value as an InputStream. The property value can be any of:
    * <ul>
@@ -328,7 +320,6 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
       .put("threads", new BuilderAction<>(Integer::parseInt, DefaultServerConfigBuilder.this::threads))
       .put("publicAddress", new BuilderAction<>(URI::create, DefaultServerConfigBuilder.this::publicAddress))
       .put("maxContentLength", new BuilderAction<>(Integer::parseInt, DefaultServerConfigBuilder.this::maxContentLength))
-      .put("timeResponses", new BuilderAction<>(Boolean::parseBoolean, DefaultServerConfigBuilder.this::timeResponses))
       .put("sslKeystoreFile", new BuilderAction<>(DefaultServerConfigBuilder::asStream, DefaultServerConfigBuilder.this::sslKeystore))
       .put("sslKeystorePassword", new BuilderAction<>(Function.identity(), DefaultServerConfigBuilder.this::sslKeystorePassword))
       .build();

@@ -1,7 +1,19 @@
 import ratpack.perf.incl.*
 import static ratpack.groovy.Groovy.*
 
+<% if (patch >= 14) { %>
+import ratpack.handling.ResponseTimer
+<% } %>
+
 ratpack {
+  <% if (patch < 14) { %>
+    serverConfig { it.timeResponses(true) }
+  <% } %>
+  bindings {
+    <% if (patch >= 14) { %>
+      bindInstance ResponseTimer.decorator()
+    <% } %>
+  }
   handlers {
     handler("stop", new StopHandler())
 

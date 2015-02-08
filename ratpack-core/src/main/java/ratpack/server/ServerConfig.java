@@ -157,17 +157,6 @@ public interface ServerConfig {
   public int getMaxContentLength();
 
   /**
-   * Indicates whether responses should include a 'X-Response-Time' header with the number of milliseconds (to 5 decimal places) it took to process the request.
-   * <p>
-   * Timing starts when processing of the request starts.
-   * That is, the number of milliseconds it took to determine the response to send to the client.
-   * It does not include the time taken to send the response over the wire.
-   *
-   * @return whether or not responses should be timed.
-   */
-  public boolean isTimeResponses();
-
-  /**
    * Whether or not the base dir of the application has been set.
    *
    * @return whether or not the base dir of the application has been set.
@@ -244,17 +233,6 @@ public interface ServerConfig {
      * @see ServerConfig#getMaxContentLength()
      */
     Builder maxContentLength(int maxContentLength);
-
-    /**
-     * Whether to time responses.
-     *
-     * Default value is {@code false}.
-     *
-     * @param timeResponses Whether to time responses
-     * @return this
-     * @see ServerConfig#isTimeResponses()
-     */
-    Builder timeResponses(boolean timeResponses);
 
     /**
      * The SSL context to use if the application serves content over HTTPS.

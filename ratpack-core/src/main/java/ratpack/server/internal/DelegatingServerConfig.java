@@ -71,11 +71,6 @@ public class DelegatingServerConfig implements ServerConfig {
   }
 
   @Override
-  public boolean isTimeResponses() {
-    return delegate.isTimeResponses();
-  }
-
-  @Override
   public boolean isHasBaseDir() {
     return delegate.isHasBaseDir();
   }

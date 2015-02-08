@@ -35,7 +35,6 @@ public class DefaultServerConfig implements ServerConfig {
   private final URI publicAddress;
   private final SSLContext sslContext;
   private final int maxContentLength;
-  private final boolean timeResponses;
 
   public DefaultServerConfig(
     FileSystemBinding baseDir,
@@ -45,15 +44,13 @@ public class DefaultServerConfig implements ServerConfig {
     int threads,
     URI publicAddress,
     SSLContext sslContext,
-    int maxContentLength,
-    boolean timeResponses
+    int maxContentLength
   ) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.development = development;
     this.threads = threads;
-    this.timeResponses = timeResponses;
     this.publicAddress = publicAddress;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
@@ -94,11 +91,6 @@ public class DefaultServerConfig implements ServerConfig {
   @Override
   public int getMaxContentLength() {
     return maxContentLength;
-  }
-
-  @Override
-  public boolean isTimeResponses() {
-    return timeResponses;
   }
 
   @Override

@@ -1,16 +1,19 @@
 package perf;
 
-import ratpack.launch.*;
 import ratpack.handling.*;
-import ratpack.func.*;
 import ratpack.server.*;
 import ratpack.perf.incl.*;
-import ratpack.registry.*;
 
-public class HandlerFactory implements ratpack.launch.HandlerFactory {
+public class Main {
 
-  public Handler create(Registry registry) throws Exception {
-    return Handlers.chain(registry.get(ServerConfig.class), chain -> {
+  public static void main(String... args) throws Exception {
+    RatpackServer.start(s -> s
+      <% if (patch > 13) { %>
+      .registryOf(r -> r.add(ResponseTimer.decorator()))
+      <% } else { %>
+      .serverConfig(ServerConfig.noBaseDir().timeResponses(true))
+      <% } %>
+      .handlers(chain -> {
         chain
           .handler("stop", new StopHandler())
           .handler("render", ctx -> ctx.render("ok"))
@@ -23,7 +26,7 @@ public class HandlerFactory implements ratpack.launch.HandlerFactory {
         }
 
         chain.handler("manyHandlers", ctx -> ctx.getResponse().send());
-      }
+      })
     );
   }
 

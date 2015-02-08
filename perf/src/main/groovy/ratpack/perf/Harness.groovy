@@ -130,7 +130,7 @@ class Harness {
             }
 
 
-            log.info "Testing endpoint: $endpoint"
+            log.info "Testing endpoint: $appName $endpoint @ $version"
 
             String endpointName = "$appName:$endpoint"
             def versionName = version

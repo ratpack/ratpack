@@ -133,16 +133,6 @@ class ServerConfigBuilderSpec extends Specification {
     builder.maxContentLength(256).build().maxContentLength == 256
   }
 
-  def "new builder has default time responses"() {
-    expect:
-    !builder.build().timeResponses
-  }
-
-  def "set time responses"() {
-    expect:
-    builder.timeResponses(true).build().timeResponses
-  }
-
   def "set ssl context"() {
     given:
     SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/launch/internal/keystore.jks'), 'password')

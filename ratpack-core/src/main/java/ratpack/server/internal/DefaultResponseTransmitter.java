@@ -42,7 +42,6 @@ import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
 import ratpack.server.CompressionConfig;
 import ratpack.util.internal.InternalRatpackError;
-import ratpack.util.internal.NumberUtil;
 
 import java.io.FileInputStream;
 import java.nio.file.FileSystems;
@@ -65,7 +64,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
   private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
-  private final long startTime;
   private final boolean isKeepAlive;
   private final boolean isSsl;
 
@@ -73,7 +71,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, ExecControl execControl, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController, long startTime) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, ExecControl execControl, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
     this.transmitted = transmitted;
     this.execControl = execControl;
     this.channel = channel;
@@ -81,7 +79,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
     this.requestOutcomeEventController = requestOutcomeEventController;
-    this.startTime = startTime;
     this.isKeepAlive = HttpHeaderUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
@@ -95,10 +92,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
       if (isKeepAlive) {
         headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-      }
-
-      if (startTime > 0) {
-        headersResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
       }
 
       if (channel.isOpen()) {

@@ -1,26 +1,30 @@
-<% if (patch > 11) { %>
 import ratpack.groovy.template.MarkupTemplateModule
 import ratpack.groovy.template.TextTemplateModule
-<% } else { %>
-import ratpack.groovy.markuptemplates.MarkupTemplatingModule
-import ratpack.groovy.templating.TemplatingModule
-<% } %>
-
 import ratpack.handlebars.HandlebarsModule
-import ratpack.perf.incl.*
 import ratpack.thymeleaf.ThymeleafModule
 
 import static ratpack.groovy.Groovy.*
 import static ratpack.handlebars.Template.handlebarsTemplate
 import static ratpack.thymeleaf.Template.thymeleafTemplate
 
+import ratpack.perf.incl.*
+
+<% if (patch >= 14) { %>
+  import ratpack.handling.ResponseTimer
+<% } %>
+
 ratpack {
+  <% if (patch < 14) { %>
+    serverConfig { it.timeResponses(true) }
+  <% } %>
   bindings {
-    <% def c = patch > 11 ? "TextTemplateModule" : "TemplatingModule"  %>
-    add($c) { ${c}.Config config -> config.staticallyCompile = true }
-    add new HandlebarsModule()
-    add new ThymeleafModule()
-    add new <%= patch > 11 ? "MarkupTemplateModule" : "MarkupTemplatingModule" %>()
+    <% if (patch >= 14) { %>
+      bindInstance ResponseTimer.decorator()
+    <% } %>
+    add TextTemplateModule, { it.staticallyCompile = true }
+    add HandlebarsModule
+    add ThymeleafModule
+    add MarkupTemplateModule
   }
 
   handlers {

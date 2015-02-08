@@ -35,7 +35,6 @@ class YamlConfigSpec extends BaseConfigSpec {
     |threads: 3
     |publicAddress: http://localhost:8080
     |maxContentLength: 50000
-    |timeResponses: true
     |indexFiles:
     |    - index.html
     |    - index.htm
@@ -57,7 +56,6 @@ class YamlConfigSpec extends BaseConfigSpec {
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.timeResponses
     serverConfig.SSLContext
   }
 }

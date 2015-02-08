@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -226,7 +227,7 @@ public class NettyRatpackServer implements RatpackServer {
 
     executeEvents(serverRegistry, StartEvent.build(serverRegistry, reloading), Service::onStart);
 
-    return new NettyHandlerAdapter(definition.getServerConfig(), serverRegistry, ratpackHandler);
+    return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
   }
 
   private Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
@@ -234,7 +235,8 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
-    for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
+    ImmutableList<HandlerDecorator> decorators = ImmutableList.copyOf(serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN));
+    for (HandlerDecorator handlerDecorator : decorators.reverse()) {
       rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
     }
     return rootHandler;
@@ -373,7 +375,7 @@ public class NettyRatpackServer implements RatpackServer {
 
     private NettyHandlerAdapter buildErrorRenderingAdapter(Exception e) {
       try {
-        return new NettyHandlerAdapter(lastServerConfig, buildServerRegistry(lastServerConfig, (r) -> Registries.empty()), context -> context.error(e));
+        return new NettyHandlerAdapter(buildServerRegistry(lastServerConfig, (r) -> Registries.empty()), context -> context.error(e));
       } catch (Exception e1) {
         throw uncheck(e);
       }
