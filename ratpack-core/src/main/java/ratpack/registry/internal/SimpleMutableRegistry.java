@@ -17,6 +17,7 @@
 package ratpack.registry.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
@@ -34,7 +35,7 @@ import java.util.function.Supplier;
 public class SimpleMutableRegistry implements MutableRegistry {
 
   private final List<RegistryEntry<?>> entries = new LinkedList<>();
-  private final Registry registry = new MultiEntryRegistry(entries);
+  private final Registry registry = new MultiEntryRegistry(Lists.reverse(entries));
 
   @Override
   public <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {

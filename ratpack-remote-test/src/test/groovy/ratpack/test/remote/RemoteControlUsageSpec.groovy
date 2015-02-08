@@ -78,7 +78,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     remoteControl.exec command, { add(ValueHolder, new ValueHolder(value: "overridden")) }
 
     then:
-    text == "command:overridden:initial"
+    text == "overridden:command:initial"
   }
 
 }

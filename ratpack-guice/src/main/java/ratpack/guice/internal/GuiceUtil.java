@@ -54,44 +54,22 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void eachOfType(Injector injector, TypeToken<T> type, final Action<? super T> action) {
-    search(injector, type, new Function<Provider<? extends T>, Boolean>() {
-      @Override
-      public Boolean apply(Provider<? extends T> from) throws Exception {
-        action.execute(from.get());
-        return true;
-      }
+    search(injector, type, from -> {
+      action.execute(from.get());
+      return true;
     });
   }
 
   public static <T> void eachProviderOfType(Injector injector, TypeToken<T> type, final Action<? super Provider<? extends T>> action) {
-    search(injector, type, new Function<Provider<? extends T>, Boolean>() {
-      @Override
-      public Boolean apply(Provider<? extends T> from) throws Exception {
-        action.execute(from);
-        return true;
-      }
+    search(injector, type, from -> {
+      action.execute(from);
+      return true;
     });
-  }
-
-  public static <T> ImmutableList<T> allOfType(Injector injector, TypeToken<T> type) {
-    final ImmutableList.Builder<T> listBuilder = ImmutableList.builder();
-    eachOfType(injector, type, new Action<T>() {
-      @Override
-      public void execute(T thing) throws Exception {
-        listBuilder.add(thing);
-      }
-    });
-    return listBuilder.build();
   }
 
   public static <T> ImmutableList<Provider<? extends T>> allProvidersOfType(Injector injector, TypeToken<T> type) {
     final ImmutableList.Builder<Provider<? extends T>> listBuilder = ImmutableList.builder();
-    eachProviderOfType(injector, type, new Action<Provider<? extends T>>() {
-      @Override
-      public void execute(Provider<? extends T> thing) throws Exception {
-        listBuilder.add(thing);
-      }
-    });
+    eachProviderOfType(injector, type, listBuilder::add);
     return listBuilder.build();
   }
 

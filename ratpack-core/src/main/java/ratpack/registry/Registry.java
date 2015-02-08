@@ -214,12 +214,12 @@ public interface Registry {
    *     Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
    *     Registry joined = parent.join(child);
    *
-   *     assertEquals("child-1", joined.get(Thing.class).getName());
+   *     assertEquals("child-2", joined.get(Thing.class).getName());
    *     List<Thing> all = Lists.newArrayList(joined.getAll(Thing.class));
-   *     assertEquals("child-1", all.get(0).getName());
-   *     assertEquals("child-2", all.get(1).getName());
-   *     assertEquals("parent-1", all.get(2).getName());
-   *     assertEquals("parent-2", all.get(3).getName());
+   *     assertEquals("child-2", all.get(0).getName());
+   *     assertEquals("child-1", all.get(1).getName());
+   *     assertEquals("parent-2", all.get(2).getName());
+   *     assertEquals("parent-1", all.get(3).getName());
    *   }
    * }
    * }</pre>

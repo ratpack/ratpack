@@ -35,6 +35,6 @@ class RenderableDecorationSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "a3412"
+    text == "a4321"
   }
 }

@@ -99,7 +99,7 @@ import ratpack.registry.Registry;
  *   public static class HandlerDecoratorImpl implements HandlerDecorator {
  *     private final MaintenanceWindow maintenanceWindow;
  *
- *     {@code @}Inject
+ *     {@literal @}Inject
  *     public HandlerDecoratorImpl(MaintenanceWindow maintenanceWindow) {
  *       this.maintenanceWindow = maintenanceWindow;
  *     }

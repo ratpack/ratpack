@@ -16,7 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -235,8 +234,7 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
-    ImmutableList<HandlerDecorator> decorators = ImmutableList.copyOf(serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN));
-    for (HandlerDecorator handlerDecorator : decorators.reverse()) {
+    for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
       rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
     }
     return rootHandler;

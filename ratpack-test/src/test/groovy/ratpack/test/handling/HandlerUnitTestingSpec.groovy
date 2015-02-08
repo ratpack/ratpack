@@ -329,7 +329,7 @@ class HandlerUnitTestingSpec extends Specification {
     }
 
     then:
-    rendered(String) == "foo,bar"
+    rendered(String) == "bar,foo"
   }
 
   def "can easily add path tokens for unit tests"() {
