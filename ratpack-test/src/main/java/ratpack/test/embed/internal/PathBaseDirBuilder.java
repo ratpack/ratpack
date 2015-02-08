@@ -80,7 +80,7 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
       fileSystem.close();
     }
 
-    System.gc();
+    System.gc(); // this is required for builds to pass on Windows
 
     Files.walkFileTree(toDelete, new SimpleFileVisitor<Path>() {
       @Override
