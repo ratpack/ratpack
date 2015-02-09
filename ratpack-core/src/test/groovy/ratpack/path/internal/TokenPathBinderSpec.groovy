@@ -44,6 +44,9 @@ class TokenPathBinderSpec extends Specification {
     expect:
     tokens("a", "b") == null
     tokens("a", "a") == [:]
+    tokens("a/::[bc]", "a/a") == null
+    tokens("a/::[bc]", "a/b") == [:]
+    tokens("a/::[bc]", "a/c") == [:]
     tokens("(.+)", "abc") == null
     tokens(":a", "abc") == [a: "abc"]
     tokens(":a", "abc/") == [a: "abc"]

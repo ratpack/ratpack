@@ -65,7 +65,7 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
   }
 
   public PathBinderBuilder literalPattern(String pattern) {
-    this.pattern.append(String.format("(?:%s)", pattern));
+    this.pattern.append("(?:(?:^|/)").append(String.format("(?:%s)", pattern)).append(")");
     return this;
   }
 
