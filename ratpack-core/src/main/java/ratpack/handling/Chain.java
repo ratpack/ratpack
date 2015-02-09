@@ -36,76 +36,97 @@ import ratpack.server.ServerConfig;
  * </p>
  * <h3>Path Binding</h3>
  * <p>
- * When a "path" or "prefix" is called for as an argument in {@code Chain}, a {@link ratpack.path.PathBinding} is established to handle any path tokens used.
- *
+ * Methods such as {@link #get(String, Handler)}, {@link #prefix(String, Action)}, accept a string argument as a request path binding specification.
+ * These strings can contain symbols that allow {@link ratpack.path.PathTokens} to be captured and for path binding to be dynamic.
+ * For example, the path string {@code "foo/:val"} will match paths such as {@code "foo/bar"}, {@code "foo/123"} or indeed <code>"foo/<i>«anything»</i>"</code>.
+ * <p>
+ * The following table describes the types of symbols that can be used in path strings…
  * <table>
- *   <caption>Path Binding Types</caption>
+ *   <caption>Path binding symbols</caption>
  *   <tr>
  *     <th>Path Type</th>
  *     <th>Syntax</th>
+ *     <th>Example</th>
  *   </tr>
  *   <tr>
- *     <th>Literal</th>
+ *     <td>Literal</td>
  *     <td>{@code foo}</td>
+ *     <td>{@code "foo"}</td>
  *   </tr>
  *   <tr>
- *     <th>Regular Expression Literal</th>
- *     <td>{@code ::regex}</td>
+ *     <td>Regular Expression Literal</td>
+ *     <td><code>::<i>«regex»</i></code></td>
+ *     <td>{@code "foo/::\d+"}</td>
  *   </tr>
  *   <tr>
- *     <th>Optional Path Token</th>
- *     <td>{@code :token?}</td>
+ *     <td>Optional Path Token</td>
+ *     <td><code>:<i>«token-name»</i>?</code></td>
+ *     <td>{@code "foo/:val?"}</td>
  *   </tr>
  *   <tr>
- *     <th>Mandatory Path Token</th>
- *     <td>{@code :token}</td>
+ *     <td>Mandatory Path Token</td>
+ *     <td><code>:<i>«token-name»</i></code></td>
+ *     <td>{@code "foo/:val"}</td>
  *   </tr>
  *   <tr>
- *     <th>Optional Regular Expression Path Token</th>
- *     <td>{@code :token?:regex}</td>
+ *     <td>Optional Regular Expression Path Token</td>
+ *     <td><code>:<i>«token-name»</i>?:<i>«regex»</i></code></td>
+ *     <td>{@code "foo/:val?:\d+"}</td>
  *   </tr>
  *   <tr>
- *     <th>Mandatory Regular Expression Path Token</th>
- *     <td>{@code :token:regex}</td>
+ *     <td>Mandatory Regular Expression Path Token</td>
+ *     <td><code>:<i>«token-name»</i>:<i>«regex»</i></code></td>
+ *     <td>{@code "foo/:val:\d+"}</td>
  *   </tr>
  * </table>
+ * <p>The following example shows different kinds of binding paths in action.</p>
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import com.google.common.base.Objects;
+ * import com.google.common.io.BaseEncoding;
+ * import java.util.Arrays;
+ * import static org.junit.Assert.*;
  *
- * <h4>Path Binding Examples</h4>
- * <pre class="tested">{@code
- * import ratpack.groovy.test.embed.GroovyEmbeddedApp
- *
- * GroovyEmbeddedApp.build {
- *   handlers {
- *     get('favorites/food') { render 'pizza' } // Literal
- *     get('favorites/::colou?r') { render 'blue' } // Regular expression literal
- *     get('optionalToken/:tkn?') { render pathTokens.toMapString() } // Optional path token
- *     get('greeting/:name?') { // Optional path token with default handling
- *       render "Hello ${pathTokens.name ?: 'world'}"
- *     }
- *     get('convert/hex/:tkn') { // Mandatory path token
- *       render pathTokens.get('tkn').getBytes('UTF-8').encodeHex().toString()
- *     }
- *     get('pi/:precision?:[\\d]+') { // Optional regular expression path token
- *       render String.format("%1.${(pathTokens.asInt("precision") ?: 5)}f", Math.PI)
- *     }
- *     get('sum/:num1:[\\d]+/:num2:[\\d]+') { // Mandatory regular expression path tokens
- *       render(['num1', 'num2'].collect { pathTokens.asInt(it) }.sum().toString())
- *     }
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(c -> c
+ *       .get("favorites/food", ctx -> ctx.render("pizza")) // Literal
+ *       .get("favorites/::colou?r", ctx -> ctx.render("blue")) // Regular expression literal
+ *       .get("optionalToken/:tkn?", ctx -> ctx.render(ctx.getPathTokens().toString())) // Optional path token
+ *       .get("greeting/:name?", ctx -> // Optional path token with default handling
+ *         ctx.render("Hello " + Objects.firstNonNull(ctx.getPathTokens().get("name"), "world"))
+ *       )
+ *       .get("convert/hex/:tkn", ctx -> // Mandatory path token
+ *         ctx.render("Hello " + BaseEncoding.base64().encode(ctx.getPathTokens().get("tkn").getBytes("UTF-8")))
+ *       )
+ *       .get("pi/:precision?:[\\d]+", ctx -> // Optional regular expression path token
+ *         ctx.render(String.format("%1." + Objects.firstNonNull(ctx.getPathTokens().get("precision"), "5") + "f", Math.PI))
+ *       )
+ *       .get("sum/:num1:[\\d]+/:num2:[\\d]+", ctx -> // Mandatory regular expression path tokens
+ *         ctx.render(
+ *           Arrays.asList("num1", "num2")
+ *           .stream()
+ *           .map(it -> ctx.getPathTokens().get(it))
+ *           .mapToInt(Integer::valueOf)
+ *           .sum() + ""
+ *         )
+ *       )
+ *     ).test(httpClient -> {
+ *       assertEquals("pizza", httpClient.getText("favorites/food")); // Literal value matched
+ *       assertEquals("blue", httpClient.getText("favorites/color")); // Regular expression literal matched
+ *       assertEquals("blue", httpClient.getText("favorites/colour")); // Regular expression literal matched
+ *       assertEquals("{tkn=val}", httpClient.getText("optionalToken/val")); // Optional path token with value specified
+ *       assertEquals("{tkn=}", httpClient.getText("optionalToken/")); // Optional path token with trailing slash treated as empty string
+ *       assertEquals("{}", httpClient.getText("optionalToken")); // Optional path token without trailing slash treated as missing
+ *       assertEquals("Hello Ratpack", httpClient.getText("greeting/Ratpack")); // Optional path token with value specified
+ *       assertEquals("Hello world", httpClient.getText("greeting")); // Optional path token with default handling
+ *       assertEquals("Hello UmF0cGFjaw==", httpClient.getText("convert/hex/Ratpack")); // Mandatory path token
+ *       assertEquals("3.14159", httpClient.getText("pi")); // Optional regular expression path token with default handling
+ *       assertEquals("3.14", httpClient.getText("pi/2")); // Optional regular expression path token with value specified
+ *       assertEquals("3.1415927", httpClient.getText("pi/7")); // Optional regular expression path token with value specified
+ *       assertEquals("42", httpClient.getText("sum/13/29")); // Mandatory regular expression path tokens
+ *     });
  *   }
- * }.test {
- *   assert it.getText('favorites/food') == 'pizza' // Literal value matched
- *   assert it.getText('favorites/color') == 'blue' // Regular expression literal matched
- *   assert it.getText('favorites/colour') == 'blue' // Regular expression literal matched
- *   assert it.getText('optionalToken/val') == '[tkn:val]' // Optional path token with value specified
- *   assert it.getText('optionalToken/') == '[tkn:]' // Optional path token with trailing slash treated as empty string
- *   assert it.getText('optionalToken') == '[:]' // Optional path token without trailing slash treated as missing
- *   assert it.getText('greeting/Ratpack') == 'Hello Ratpack' // Optional path token with value specified
- *   assert it.getText('greeting') == 'Hello world' // Optional path token with default handling
- *   assert it.getText('convert/hex/Ratpack') == '5261747061636b' // Mandatory path token
- *   assert it.getText('pi') == '3.14159' // Optional regular expression path token with default handling
- *   assert it.getText('pi/2') == '3.14' // Optional regular expression path token with value specified
- *   assert it.getText('pi/7') == '3.1415927' // Optional regular expression path token with value specified
- *   assert it.getText('sum/13/29') == '42' // Mandatory regular expression path tokens
  * }
  * }</pre>
  */
