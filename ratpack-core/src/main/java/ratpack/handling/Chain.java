@@ -34,6 +34,80 @@ import ratpack.server.ServerConfig;
  * A Groovy specific subclass of this interface is provided by the Groovy module that overloads methods here with {@code Closure} based variants.
  * See the {@code ratpack-groovy} library for details.
  * </p>
+ * <h3>Path Binding</h3>
+ * <p>
+ * When a "path" or "prefix" is called for as an argument in {@code Chain}, a {@link ratpack.path.PathBinding} is established to handle any path tokens used.
+ *
+ * <table>
+ *   <caption>Path Binding Types</caption>
+ *   <tr>
+ *     <th>Path Type</th>
+ *     <th>Syntax</th>
+ *   </tr>
+ *   <tr>
+ *     <th>Literal</th>
+ *     <td>{@code foo}</td>
+ *   </tr>
+ *   <tr>
+ *     <th>Regular Expression Literal</th>
+ *     <td>{@code ::regex}</td>
+ *   </tr>
+ *   <tr>
+ *     <th>Optional Path Token</th>
+ *     <td>{@code :token?}</td>
+ *   </tr>
+ *   <tr>
+ *     <th>Mandatory Path Token</th>
+ *     <td>{@code :token}</td>
+ *   </tr>
+ *   <tr>
+ *     <th>Optional Regular Expression Path Token</th>
+ *     <td>{@code :token?:regex}</td>
+ *   </tr>
+ *   <tr>
+ *     <th>Mandatory Regular Expression Path Token</th>
+ *     <td>{@code :token:regex}</td>
+ *   </tr>
+ * </table>
+ *
+ * <h4>Path Binding Examples</h4>
+ * <pre class="tested">{@code
+ * import ratpack.groovy.test.embed.GroovyEmbeddedApp
+ *
+ * GroovyEmbeddedApp.build {
+ *   handlers {
+ *     get('favorites/food') { render 'pizza' } // Literal
+ *     get('favorites/::colou?r') { render 'blue' } // Regular expression literal
+ *     get('optionalToken/:tkn?') { render pathTokens.toMapString() } // Optional path token
+ *     get('greeting/:name?') { // Optional path token with default handling
+ *       render "Hello ${pathTokens.name ?: 'world'}"
+ *     }
+ *     get('convert/hex/:tkn') { // Mandatory path token
+ *       render pathTokens.get('tkn').getBytes('UTF-8').encodeHex().toString()
+ *     }
+ *     get('pi/:precision?:[\\d]+') { // Optional regular expression path token
+ *       render String.format("%1.${(pathTokens.asInt("precision") ?: 5)}f", Math.PI)
+ *     }
+ *     get('sum/:num1:[\\d]+/:num2:[\\d]+') { // Mandatory regular expression path tokens
+ *       render(['num1', 'num2'].collect { pathTokens.asInt(it) }.sum().toString())
+ *     }
+ *   }
+ * }.test {
+ *   assert it.getText('favorites/food') == 'pizza' // Literal value matched
+ *   assert it.getText('favorites/color') == 'blue' // Regular expression literal matched
+ *   assert it.getText('favorites/colour') == 'blue' // Regular expression literal matched
+ *   assert it.getText('optionalToken/val') == '[tkn:val]' // Optional path token with value specified
+ *   assert it.getText('optionalToken/') == '[tkn:]' // Optional path token with trailing slash treated as empty string
+ *   assert it.getText('optionalToken') == '[:]' // Optional path token without trailing slash treated as missing
+ *   assert it.getText('greeting/Ratpack') == 'Hello Ratpack' // Optional path token with value specified
+ *   assert it.getText('greeting') == 'Hello world' // Optional path token with default handling
+ *   assert it.getText('convert/hex/Ratpack') == '5261747061636b' // Mandatory path token
+ *   assert it.getText('pi') == '3.14159' // Optional regular expression path token with default handling
+ *   assert it.getText('pi/2') == '3.14' // Optional regular expression path token with value specified
+ *   assert it.getText('pi/7') == '3.1415927' // Optional regular expression path token with value specified
+ *   assert it.getText('sum/13/29') == '42' // Mandatory regular expression path tokens
+ * }
+ * }</pre>
  */
 public interface Chain {
 
