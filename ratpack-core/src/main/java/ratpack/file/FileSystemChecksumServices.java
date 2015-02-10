@@ -18,13 +18,19 @@ package ratpack.file;
 
 import ratpack.file.internal.DefaultFileSystemChecksumService;
 import ratpack.file.internal.FileSystemChecksumServicePopulater;
+import ratpack.file.checksummer.Adler32Checksummer;
+import ratpack.file.checksummer.MD5Checksummer;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Function;
 import ratpack.server.ServerConfig;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
+import java.nio.file.Files;
 
 /**
  *  Factory methods for creating {@link ratpack.file.FileSystemChecksumService}.
@@ -47,8 +53,8 @@ import java.util.zip.Checksum;
  *      public void handle(Context ctx) throws Exception {
  *        FileSystemChecksumService service = FileSystemChecksumServices.service(ctx.getServerConfig());
  *        try {
- *          String chks = service.checksum("README.md");
- *          ctx.render(chks);
+ *          String chksum = service.checksum("README.md");
+ *          ctx.render(chksum);
  *        }
  *        catch (Exception ex) {
  *          ctx.clientError(400);
@@ -72,16 +78,83 @@ public abstract class FileSystemChecksumServices {
   private FileSystemChecksumServices() {
   }
 
+  /**
+   *  Get checksum service that is backward compatible - calculates file checksum with Adler32 method.
+   *
+   *  @param serverConfig current server configuration. The most important parameter is baseDir. File path taken as parameter to checksummer is calculated relative to baseDir.
+   *  @return file system checksummer service
+   */
   public static FileSystemChecksumService service(ServerConfig serverConfig) {
-    Function<InputStream, String> checksummer = new Adler32Checksummer();
-    DefaultFileSystemChecksumService service = new DefaultFileSystemChecksumService(serverConfig.getBaseDir(), checksummer);
+    return service(serverConfig, new Adler32Checksummer());
+  }
+
+  /**
+   *  Get checksum service with calculation method given as checksummer function. 
+   *  If checksummerFunc is not provided then noop method (no calculation) is used.
+   *
+   *  @param serverConfig current server configuration. The most important parameter is baseDir. File path taken as parameter to checksummer is calculated relative to baseDir.
+   *  @param checksummerFunc checksum calculation function that takes InputStream and return String with checksum value.
+   *  @return file system checksummer service
+   */
+  public static FileSystemChecksumService service(ServerConfig serverConfig, Function<? super InputStream, ? extends String> checksummerFunc) {
+    return service(serverConfig, checksummerFunc, null);
+  }
+
+  /**
+   *  Get checksum service for additional path related to server's base dir and calculation method as checksummer function.
+   *  Apply file filtering by extension: ```js```, ```css```, ```html``` filter files in target path. 
+   *  If checksummer function is not provided then noop method is used (no checksum calculation).
+   *  If additional path is not given then server's base dir is used.
+   *  If additional path is not correct path definition (contains illegal characters) or is not existing directory, IllegalArgumentException is thrown.
+   *  If fileEndsWith variable length argument is not given then checksum may be calculated for file with any extension.
+   *  If fileEndsWith is given and file's extension no match NoSuchFileException is thrown.
+   *
+   *  @param serverConfig server configuration. The most important parameter is baseDir. File path taken as parameter to checksummer is calculated relative to baseDir and additional path.
+   *  @param checksummerFunc checksum calculation function
+   *  @param path additional path calculated relative to server's base dir. Becomes root for checksummer function.
+   *  @param fileEndsWith variable length array of extenstions filtering files in target path
+   *  @return file system checksummer service
+   */
+  public static FileSystemChecksumService service(ServerConfig serverConfig, Function<? super InputStream, ? extends String> checksummerFunc, String path, String... fileEndsWith) {
+    Function<? super InputStream, ? extends String> checksummer = checksummerFunc != null ? checksummerFunc : noopChecksummer();
+    FileSystemBinding fsb = path != null ? serverConfig.getBaseDir().binding(path) : serverConfig.getBaseDir();
+    List<String> exts = Arrays.asList(fileEndsWith);
+    if (fsb == null || !Files.isDirectory(fsb.getFile())) {
+      throw new IllegalArgumentException("Non existing path related to server's base dir.");
+    }
+    DefaultFileSystemChecksumService service = new DefaultFileSystemChecksumService(fsb, checksummer, exts);
     if (serverConfig.isDevelopment()) {
       return service;
-    } else {
+    }
+    else {
       CachingFileSystemChecksumService cachingService = new CachingFileSystemChecksumService(service);
-      new FileSystemChecksumServicePopulater(serverConfig.getBaseDir().getFile(), cachingService, Executors.newFixedThreadPool(5), 4).start();
+      new FileSystemChecksumServicePopulater(fsb.getFile(), exts, cachingService, Executors.newFixedThreadPool(5), 4).start();
       return cachingService;
     }
+  }
+
+  /**
+   *  Get checksum service with Adler32 calculation method.
+   *
+   *  @param serverConfig current server configuration. The most important parameter is baseDir. File path taken as parameter to checksummer is calculated relative to baseDir.
+   *  @param path additional path related to server's base dir. Becomes root for checksummer function. Optional argument.
+   *  @param fileEndsWith variable length array of extenstions filtering files in target path
+   *  @return file system checksummer service
+   */
+  public static FileSystemChecksumService adler32(ServerConfig serverConfig, String path, String... fileEndsWith) {
+    return service(serverConfig, new Adler32Checksummer(), path, fileEndsWith);
+  }
+
+  /**
+   *  Get checksum service with MD5 calculation method.
+   *
+   *  @param serverConfig current server configuration. The most important parameter is baseDir. File path taken as parameter to checksummer is calculated relative to baseDir.
+   *  @param path additional path related to server's base dir. Becomes root for checksummer function. Optional argument.
+   *  @param fileEndsWith variable length array of extenstions filtering files in target path
+   *  @return file system checksummer service
+   */
+  public static FileSystemChecksumService md5(ServerConfig serverConfig, String path, String... fileEndsWith) {
+    return service(serverConfig, new MD5Checksummer(), path, fileEndsWith);
   }
 
   /**
@@ -93,22 +166,4 @@ public abstract class FileSystemChecksumServices {
       return "";
     };
   }
-
-  private static class Adler32Checksummer implements Function<InputStream, String> {
-    private static final int BUFFER_SIZE = 8192;
-
-    @Override
-    public String apply(InputStream inputStream) throws Exception {
-      byte[] buffer = new byte[BUFFER_SIZE];
-      Checksum checksum = new Adler32();
-      int read = inputStream.read(buffer, 0, BUFFER_SIZE);
-      while (read != -1) {
-        checksum.update(buffer, 0, read);
-        read = inputStream.read(buffer, 0, BUFFER_SIZE);
-      }
-
-      return Long.toHexString(checksum.getValue());
-    }
-  }
-
 }

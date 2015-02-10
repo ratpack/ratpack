@@ -16,6 +16,10 @@
 
 package ratpack.file
 
+import java.nio.file.Path
+import java.nio.file.NoSuchFileException
+import java.nio.file.InvalidPathException
+
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -23,6 +27,9 @@ import spock.lang.AutoCleanup
 
 import ratpack.server.ServerConfig
 import ratpack.file.FileSystemChecksumServices
+import ratpack.file.internal.DefaultFileSystemChecksumService
+import ratpack.file.CachingFileSystemChecksumService
+
 import ratpack.test.embed.BaseDirBuilder
 
 class FileSystemChecksumServicesSpec extends Specification {
@@ -37,17 +44,281 @@ class FileSystemChecksumServicesSpec extends Specification {
   ServerConfig serverConfig
 
   def setup() {
-    baseDir = dir(temporaryFolder.newFolder("asset"))
-    serverConfig = ServerConfig.baseDir(this.baseDir.build()).build()
+    baseDir = BaseDirBuilder.dir(temporaryFolder.newFolder("asset"))
   }
 
-  def "requesting checksum service with baseDir defined"() {
+  def "requesting checksum service in development mode"() {
     given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig)
 
     then:
-    service
+    service != null
+    service instanceof DefaultFileSystemChecksumService
+  }
+
+  def "requesting checksum service in production mode"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig)
+
+    then:
+    service != null
+    service instanceof CachingFileSystemChecksumService
+  }
+
+  def "calculate checksum for the file"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    Path file = baseDir.file("test.js", "function(){}")
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig)
+    String checksum = service.checksum("test.js")
+
+    System.out.println("==> CHECKSUM: $checksum")
+    then:
+    checksum
+    checksum == "1f6f04b0"
+  }
+
+  def "exception when non existing file"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig)
+    String checksum = service.checksum("test.js")
+
+    then:
+    thrown NoSuchFileException
+  }
+
+  def "noop checksummer returns empty string"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    Path file = baseDir.file("test.js", "function(){}")
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, null)
+    String checksum = service.checksum("test.js")
+
+    then:
+    checksum == ""
+  }
+
+  def "custom checksummer function"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    Path file = baseDir.file("test.js", "function(){}")
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"})
+    String checksum = service.checksum("test.js")
+
+    then:
+    checksum == "A123B"
+  }
+
+  def "calculate checksum with Adler32 method"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    baseDir.file("test.js", "function(){}")
+    baseDir.dir("js")
+    baseDir.file("js/test2.js", "function(){}")
+
+    when:
+    def service = FileSystemChecksumServices.adler32(serverConfig, null)
+    String checksum = service.checksum("test.js")
+
+    then:
+    checksum == "1f6f04b0"
+
+    when:
+    service = FileSystemChecksumServices.adler32(serverConfig, "js")
+    checksum = service.checksum("test2.js")
+
+    then:
+    checksum == "1f6f04b0"
+
+    when:
+    service = FileSystemChecksumServices.adler32(serverConfig, "js", "js", "css", "png")
+    checksum = service.checksum("test2.js")
+
+    then:
+    checksum == "1f6f04b0"
+  }
+
+  def "calculate checksum with MD5 method"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    baseDir.file("test.js", "function(){}")
+    baseDir.dir("js")
+    baseDir.file("js/test2.js", "function(){}")
+
+    when:
+    def service = FileSystemChecksumServices.md5(serverConfig, null)
+    String checksum = service.checksum("test.js")
+
+    System.out.println("==> CHECKSUM: $checksum")
+
+    then:
+    checksum == "7c1368cdbc23988b15934bf7655c765b"
+
+    when:
+    service = FileSystemChecksumServices.md5(serverConfig, "js")
+    checksum = service.checksum("test2.js")
+
+    then:
+    checksum == "7c1368cdbc23988b15934bf7655c765b"
+
+    when:
+    service = FileSystemChecksumServices.md5(serverConfig, "js", "js", "css", "png")
+    checksum = service.checksum("test2.js")
+
+    then:
+    checksum == "7c1368cdbc23988b15934bf7655c765b"
+  }
+
+  def "calculate checksum for file in path relative to server's base dir"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    Path additionalDir = baseDir.dir("js")
+    Path file = baseDir.file("js/test.js", "function(){}")
+    
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "js")
+    String checksum = service.checksum("test.js")
+
+    then:
+    checksum
+    checksum == "A123B"
+  }
+
+  def "throw exception when additional path cannot be resolved"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css\0")
+
+    then:
+    thrown InvalidPathException
+  }
+
+  def "throw exception when additional path is not a folder"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "test.js")
+    String checksum = service.checksum("test.js")
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "throw exception when file does not exist in additional path"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    Path additionalDir = baseDir.dir("css")
+    Path file = baseDir.file("test.js", "function(){}")
+  
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css")
+    String checksum = service.checksum("test.js")
+
+    then:
+    thrown NoSuchFileException
+  }
+
+  def "throw exception when file does not exist in cache for additional path"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    Path additionalDir = baseDir.dir("css")
+    Path file = baseDir.file("test.js", "function(){}")
+  
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css")
+    String checksum = service.checksum("test.js")
+
+    then:
+    thrown NoSuchFileException
+  }
+
+  def "calculate checksum for file with given extension"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    baseDir.dir("css")
+    baseDir.file("test.js", "function(){}")
+    baseDir.file("css/test.css", ".blue{}")
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> "A123B" }, null, "js", "css", "png")
+
+    when:
+    String checksum = service.checksum("test.js")
+
+    then:
+    checksum
+    checksum == "A123B"
+
+    when:
+    checksum = service.checksum("css/test.css")
+
+    then:
+    checksum
+    checksum == "A123B"
+  }
+
+  def "calculate checksum for file with given extension in production mode"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    baseDir.dir("css")
+    baseDir.file("test.js", "function(){}")
+    baseDir.file("css/test.css", ".blue{}")
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> "A123B" }, null, "js", "css", "png")
+
+    when:
+    String checksum = service.checksum("test.js")
+
+    then:
+    checksum
+    checksum == "A123B"
+
+    when:
+    checksum = service.checksum("css/test.css")
+
+    then:
+    checksum
+    checksum == "A123B"
+  }
+
+  def "throw exception when file no match list of file extenstions"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    Path file = baseDir.file("test.js", "function(){}")
+  
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, null, "css", "html")
+    String checksum = service.checksum("test.js")
+
+    then:
+    thrown NoSuchFileException
+  }
+
+  def "throw exception when file no match list of file extenstions in production mode"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    Path file = baseDir.file("test.js", "function(){}")
+  
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, null, "css", "html")
+    String checksum = service.checksum("test.js")
+
+    then:
+    thrown NoSuchFileException
   }
 }
