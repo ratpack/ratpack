@@ -28,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
 
 public class FileSystemChecksumServicePopulater {
 
@@ -35,6 +36,7 @@ public class FileSystemChecksumServicePopulater {
   private final ExecutorService executorService;
   private final int workers;
   private final Path root;
+  private final List<String> fileEndsWith;
 
   private static class Task {
     private final String path;
@@ -49,8 +51,9 @@ public class FileSystemChecksumServicePopulater {
   private AtomicBoolean started = new AtomicBoolean();
   private final CountDownLatch latch;
 
-  public FileSystemChecksumServicePopulater(Path root, FileSystemChecksumService checksumService, ExecutorService executorService, int workers) {
+  public FileSystemChecksumServicePopulater(Path root, List<String> fileEndsWith, FileSystemChecksumService checksumService, ExecutorService executorService, int workers) {
     this.root = root;
+    this.fileEndsWith = fileEndsWith;
     this.checksumService = checksumService;
     this.executorService = executorService;
     this.workers = workers;
@@ -83,7 +86,13 @@ public class FileSystemChecksumServicePopulater {
           @Override
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
             try {
-              queue.put(new Task(root.relativize(file).toString()));
+              String nPath = root.relativize(file).toString();
+              if (fileEndsWith != null && !fileEndsWith.isEmpty()) {
+                if (!fileEndsWith.stream().anyMatch(ext -> nPath.endsWith(ext))) {
+                  return FileVisitResult.CONTINUE;
+                }
+              }
+              queue.put(new Task(nPath));
               return FileVisitResult.CONTINUE;
             } catch (InterruptedException e) {
               return FileVisitResult.TERMINATE;
