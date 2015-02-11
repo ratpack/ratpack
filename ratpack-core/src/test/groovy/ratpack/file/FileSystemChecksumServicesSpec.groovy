@@ -26,9 +26,7 @@ import spock.lang.Specification
 import spock.lang.AutoCleanup
 
 import ratpack.server.ServerConfig
-import ratpack.file.FileSystemChecksumServices
 import ratpack.file.internal.DefaultFileSystemChecksumService
-import ratpack.file.CachingFileSystemChecksumService
 
 import ratpack.test.embed.BaseDirBuilder
 
@@ -74,13 +72,12 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "calculate checksum for the file"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.file("test.js", "function(){}")
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig)
     String checksum = service.checksum("test.js")
 
-    System.out.println("==> CHECKSUM: $checksum")
     then:
     checksum
     checksum == "1f6f04b0"
@@ -92,7 +89,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig)
-    String checksum = service.checksum("test.js")
+    service.checksum("test.js")
 
     then:
     thrown NoSuchFileException
@@ -101,7 +98,7 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "noop checksummer returns empty string"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.file("test.js", "function(){}")
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig, null)
@@ -114,7 +111,7 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "custom checksummer function"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.file("test.js", "function(){}")
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"})
@@ -187,8 +184,8 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "calculate checksum for file in path relative to server's base dir"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
-    Path additionalDir = baseDir.dir("js")
-    Path file = baseDir.file("js/test.js", "function(){}")
+    baseDir.dir("js")
+    baseDir.file("js/test.js", "function(){}")
     
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "js")
@@ -204,7 +201,7 @@ class FileSystemChecksumServicesSpec extends Specification {
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
 
     when:
-    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css\0")
+    FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css\0")
 
     then:
     thrown InvalidPathException
@@ -216,7 +213,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "test.js")
-    String checksum = service.checksum("test.js")
+    service.checksum("test.js")
 
     then:
     thrown IllegalArgumentException
@@ -225,12 +222,12 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "throw exception when file does not exist in additional path"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
-    Path additionalDir = baseDir.dir("css")
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.dir("css")
+    baseDir.file("test.js", "function(){}")
   
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css")
-    String checksum = service.checksum("test.js")
+    service.checksum("test.js")
 
     then:
     thrown NoSuchFileException
@@ -239,12 +236,12 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "throw exception when file does not exist in cache for additional path"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
-    Path additionalDir = baseDir.dir("css")
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.dir("css")
+    baseDir.file("test.js", "function(){}")
   
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css")
-    String checksum = service.checksum("test.js")
+    service.checksum("test.js")
 
     then:
     thrown NoSuchFileException
@@ -299,11 +296,11 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "throw exception when file no match list of file extenstions"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.file("test.js", "function(){}")
   
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, null, "css", "html")
-    String checksum = service.checksum("test.js")
+    service.checksum("test.js")
 
     then:
     thrown NoSuchFileException
@@ -312,11 +309,11 @@ class FileSystemChecksumServicesSpec extends Specification {
   def "throw exception when file no match list of file extenstions in production mode"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
-    Path file = baseDir.file("test.js", "function(){}")
+    baseDir.file("test.js", "function(){}")
   
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, null, "css", "html")
-    String checksum = service.checksum("test.js")
+    service.checksum("test.js")
 
     then:
     thrown NoSuchFileException
