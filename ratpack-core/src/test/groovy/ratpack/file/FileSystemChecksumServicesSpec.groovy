@@ -196,6 +196,18 @@ class FileSystemChecksumServicesSpec extends Specification {
     checksum == "A123B"
   }
 
+  def "return null checksum if file path is not provided"() {
+    given:
+    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+
+    when:
+    def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"})
+    def checksum = service.checksum()
+
+    then:
+    checksum == null
+  }
+
   def "throw exception when additional path cannot be resolved"() {
     given:
     ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
