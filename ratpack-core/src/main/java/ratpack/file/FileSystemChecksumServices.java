@@ -20,7 +20,6 @@ import ratpack.file.internal.DefaultFileSystemChecksumService;
 import ratpack.file.internal.FileSystemChecksumServicePopulater;
 import ratpack.file.checksummer.Adler32Checksummer;
 import ratpack.file.checksummer.MD5Checksummer;
-import ratpack.file.FileSystemBinding;
 import ratpack.func.Function;
 import ratpack.server.ServerConfig;
 
@@ -28,8 +27,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
-import java.util.zip.Adler32;
-import java.util.zip.Checksum;
 import java.nio.file.Files;
 
 /**
@@ -125,8 +122,7 @@ public abstract class FileSystemChecksumServices {
     DefaultFileSystemChecksumService service = new DefaultFileSystemChecksumService(fsb, checksummer, exts);
     if (serverConfig.isDevelopment()) {
       return service;
-    }
-    else {
+    } else {
       CachingFileSystemChecksumService cachingService = new CachingFileSystemChecksumService(service);
       new FileSystemChecksumServicePopulater(fsb.getFile(), exts, cachingService, Executors.newFixedThreadPool(5), 4).start();
       return cachingService;
