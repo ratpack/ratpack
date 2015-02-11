@@ -35,40 +35,43 @@ import java.nio.file.Files;
  *  Checksum service is used for calculation of file system checksums - assets or any kind of files.
  *  Checksum service is backed by either predefined checksum calculation function (Noop. Adler32, MD5), or custom function.
  *  Custom function has to be provided in the form of {@code Function<InputStream, String>} (class implementing this interface or lambda expression).
+ *  If checksummer function is not provided then Noop (no operation) calculation method is used. It does nothing, returns empty string as checksum.
  *
- *  <pre class="java">{@code
- *  import ratpack.file.FileSystemChecksumService;
- *  import ratpack.file.FileSystemChecksumServices;
- *  import ratpack.handling.Context;
- *  import ratpack.handling.Handler;
- *  import ratpack.test.handling.RequestFixture;
- *  import ratpack.test.handling.HandlingResult;
- *  import static org.junit.Assert.assertNotNull;
- *  import java.nio.file.Paths;
- *  public class Test {
- *    public static class MyHandler implements Handler {
- *      public void handle(Context ctx) throws Exception {
- *        FileSystemChecksumService service = FileSystemChecksumServices.service(ctx.getServerConfig());
- *        try {
- *          String chksum = service.checksum("README.md");
- *          ctx.render(chksum);
- *        }
- *        catch (Exception ex) {
- *          ctx.clientError(400);
- *        }
- *      }
- *    }
  *
- *    public static void main(String... args) throws Exception {
- *      // Paths.get(".") -> indicates ratpack-manual home folder.
- *      HandlingResult result = RequestFixture.requestFixture()
- *        .serverConfig(Paths.get("."), b -> {
- *        })
- *        .handle(new MyHandler());
- *      assertNotNull(result.rendered(String.class));
- *    }
- *  }
- *  }</pre>
+ * <pre class="java">{@code
+ * import ratpack.file.FileSystemChecksumService;
+ * import ratpack.file.FileSystemChecksumServices;
+ * import ratpack.handling.Context;
+ * import ratpack.handling.Handler;
+ * import ratpack.test.handling.RequestFixture;
+ * import ratpack.test.handling.HandlingResult;
+ * import static org.junit.Assert.assertNotNull;
+ * import java.nio.file.Paths;
+ *
+ * public class Test {
+ *   public static class MyHandler implements Handler {
+ *     public void handle(Context ctx) throws Exception {
+ *       FileSystemChecksumService service = FileSystemChecksumServices.adler32(ctx.getServerConfig(), "assets", "css", "js", "png", "svg");
+ *       try {
+ *         String chksum = service.checksum("styles/ratpack.css");
+ *         ctx.render(chksum);
+ *       }
+ *       catch (Exception ex) {
+ *         ctx.clientError(400);
+ *       }
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     // Paths.get(".") -> indicates ratpack-manual home folder.
+ *     HandlingResult result = RequestFixture.requestFixture()
+ *       .serverConfig(Paths.get("./ratpack-site/src/ratpack"), b -> {
+ *       })
+ *       .handle(new MyHandler());
+ *     assertNotNull(result.rendered(String.class));
+ *   }
+ * }
+ * }</pre>
  */
 public abstract class FileSystemChecksumServices {
 
@@ -86,7 +89,7 @@ public abstract class FileSystemChecksumServices {
   }
 
   /**
-   *  Get checksum service with calculation method given as checksummer function. 
+   *  Get checksum service with calculation method given as checksummer function.
    *  If checksummerFunc is not provided then noop method (no calculation) is used.
    *
    *  @param serverConfig current server configuration. The most important parameter is baseDir. File path taken as parameter to checksummer is calculated relative to baseDir.
@@ -99,7 +102,7 @@ public abstract class FileSystemChecksumServices {
 
   /**
    *  Get checksum service for additional path related to server's base dir and calculation method as checksummer function.
-   *  Apply file filtering by extension: ```js```, ```css```, ```html``` filter files in target path. 
+   *  Apply file filtering by extension: <i>js</i>, <i>css</i>, <i>png</i> filter files in target path.
    *  If checksummer function is not provided then noop method is used (no checksum calculation).
    *  If additional path is not given then server's base dir is used.
    *  If additional path is not correct path definition (contains illegal characters) or is not existing directory, IllegalArgumentException is thrown.
