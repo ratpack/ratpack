@@ -65,7 +65,7 @@ import java.nio.file.Files;
  *   public static void main(String... args) throws Exception {
  *     // Paths.get(".") -> indicates ratpack-manual home folder.
  *     HandlingResult result = RequestFixture.requestFixture()
- *       .serverConfig(Paths.get("./ratpack-site/src/ratpack"), b -> {
+ *       .serverConfig(Paths.get("../ratpack-site/src/ratpack"), b -> {
  *       })
  *       .handle(new MyHandler());
  *     assertNotNull(result.rendered(String.class));
@@ -119,6 +119,7 @@ public abstract class FileSystemChecksumServices {
     Function<? super InputStream, ? extends String> checksummer = checksummerFunc != null ? checksummerFunc : noopChecksummer();
     FileSystemBinding fsb = path != null ? serverConfig.getBaseDir().binding(path) : serverConfig.getBaseDir();
     List<String> exts = Arrays.asList(fileEndsWith);
+    System.out.println("===> FSB: " + (fsb != null ? fsb.getFile().toString() : "UNDEFINED"));
     if (fsb == null || !Files.isDirectory(fsb.getFile())) {
       throw new IllegalArgumentException("Non existing path related to server's base dir.");
     }
