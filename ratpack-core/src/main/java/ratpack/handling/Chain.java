@@ -85,6 +85,7 @@ import ratpack.server.ServerConfig;
  * import com.google.common.base.Objects;
  * import com.google.common.io.BaseEncoding;
  * import java.util.Arrays;
+ * import java.util.Locale;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -100,7 +101,7 @@ import ratpack.server.ServerConfig;
  *         ctx.render("Hello " + BaseEncoding.base64().encode(ctx.getPathTokens().get("tkn").getBytes("UTF-8")))
  *       )
  *       .get("pi/:precision?:[\\d]+", ctx -> // Optional regular expression path token
- *         ctx.render(String.format("%1." + Objects.firstNonNull(ctx.getPathTokens().get("precision"), "5") + "f", Math.PI))
+ *         ctx.render(String.format(Locale.ENGLISH, "%1." + Objects.firstNonNull(ctx.getPathTokens().get("precision"), "5") + "f", Math.PI))
  *       )
  *       .get("sum/:num1:[\\d]+/:num2:[\\d]+", ctx -> // Mandatory regular expression path tokens
  *         ctx.render(
