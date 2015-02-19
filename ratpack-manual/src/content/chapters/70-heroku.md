@@ -25,7 +25,7 @@ If the wrapper scripts are present in your project, Heroku will detect that your
 
 The Gradle buildpack will invoke `./gradlew stage`.
 The Ratpack Gradle plugins do not add a `stage` task to your build, so you need to add it yourself and make it build your application.
-The simplest way to do this is make the `stage` task depend on the `installApp` task which _is_ added by the Ratpack Gradle plugins.
+The simplest way to do this is make the `stage` task depend on the `installDist` task which _is_ added by the Ratpack Gradle plugins (`installApp` prior to Gradle 2.3).
 
 A minimalistic `build.gradle` looks like this:
 
@@ -42,7 +42,7 @@ buildscript {
 apply plugin: "io.ratpack.ratpack-java"
 
 task stage {
-  dependsOn installApp
+  dependsOn installDist
 }
 ```
 

@@ -16,6 +16,7 @@
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 apply plugin: "application"
+mainClassName = "" // This will not be used, as the run task is overwritten
 
 configurations {
   reports

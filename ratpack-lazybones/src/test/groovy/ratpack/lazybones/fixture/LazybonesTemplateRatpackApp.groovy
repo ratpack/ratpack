@@ -92,10 +92,10 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     }
   }
 
-  private void installApp() {
+  private void installDist() {
     DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
     connector.embedded(true)
-    connector.forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installApp").run()
+    connector.forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installDist").run()
   }
 
   ApplicationInstance ensureLaunched() {
@@ -112,7 +112,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
   private ApplicationInstance launch() {
     copyTemplateFiles()
     modifyBuildFile()
-    installApp()
+    installDist()
 
     def processBuilder = new ProcessBuilder(applicationLaunchScript.absolutePath).redirectErrorStream(true)
     processBuilder.environment().TEMPLATED_OPTS = "-Dratpack.port=0"

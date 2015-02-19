@@ -27,8 +27,8 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.logging.LoggingServiceRegistry
@@ -54,7 +54,7 @@ abstract class FunctionalSpec extends Specification {
   List<ExecutedTask> executedTasks = []
 
   @AutoCleanup
-  DefaultServiceRegistry services = new ServiceRegistryBuilder()
+  ServiceRegistry services = ServiceRegistryBuilder.builder()
     .provider(new GlobalScopeServices(false))
     .parent(LoggingServiceRegistry.newEmbeddableLogging())
     .parent(NativeServices.instance)

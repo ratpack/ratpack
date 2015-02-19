@@ -19,7 +19,7 @@ package ratpack.gradle.functional
 import com.google.common.base.StandardSystemProperty
 import spock.util.concurrent.PollingConditions
 
-class InstallAppSpec extends FunctionalSpec {
+class InstallDistSpec extends FunctionalSpec {
 
   def "everything goes in the right place"() {
     given:
@@ -41,7 +41,7 @@ class InstallAppSpec extends FunctionalSpec {
 
     """
     when:
-    run "installApp"
+    run "installDist"
 
     def process = new ProcessBuilder().directory(file("build/install/test-app")).command(osSpecificCommand()).start()
     def port = scrapePort(process)
