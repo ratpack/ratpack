@@ -259,7 +259,7 @@ ruleset {
   */
 
   // rulesets/imports.xml
-//  DuplicateImport // disabled because it appears to be broken when compilation fails
+  DuplicateImport
   ImportFromSamePackage
 //  ImportFromSunPackages
 //  MisorderedStaticImports

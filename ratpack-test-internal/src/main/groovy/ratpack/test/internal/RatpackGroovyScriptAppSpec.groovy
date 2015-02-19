@@ -19,6 +19,8 @@ package ratpack.test.internal
 import ratpack.groovy.Groovy
 import ratpack.test.embed.EmbeddedApp
 
+// This is a codenarc false positive, due to it excluding "import" statements from counting as usages.
+@SuppressWarnings("UnusedImport")
 abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
 
   @Delegate
