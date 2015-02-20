@@ -56,18 +56,17 @@ import java.util.Properties;
  *     Path yamlFile = Files.createTempFile("mandatoryConfig", ".yaml");
  *     try {
  *       Files.write(yamlFile, "server:\n  threads: 7\n  port: 0".getBytes());
- *
- *       ConfigData config = ConfigData.of(c -> c
- *         .onError(Action.noop()).json(jsonFile)
- *         .onError(Action.throwException()).yaml(yamlFile)
- *       );
- *
- *       RatpackServer server = RatpackServer.of(spec -> spec
- *         .serverConfig(config.getServerConfig())
- *         .handler(registry ->
- *           (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
- *         )
- *       );
+ *       RatpackServer server = RatpackServer.of(spec -> {
+ *         ConfigData config = ConfigData.of(c -> c
+ *           .onError(Action.noop()).json(jsonFile)
+ *           .onError(Action.throwException()).yaml(yamlFile)
+ *         );
+ *         return spec
+ *           .serverConfig(config.getServerConfig())
+ *           .handler(registry ->
+ *             (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
+ *           );
+ *       });
  *       server.start();
  *
  *       TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
@@ -283,6 +282,7 @@ public interface ConfigDataSpec {
 
   /**
    * Sets the error handler that will be used for added configuration sources.
+   * The error handler only applies to configuration sources added after this method is called; it is not applied retroactively.
    *
    * @param errorHandler the error handler
    * @return this

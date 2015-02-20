@@ -44,20 +44,21 @@ import ratpack.server.*;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     ConfigData config = ConfigData.of(d -> d
- *       .props(ImmutableMap.of("server.port", "5060", "app.name", "Ratpack"))
- *       .sysProps()
- *     );
- *
- *     RatpackServer server = RatpackServer.of(spec -> spec
- *       .serverConfig(config.getServerConfig())
- *       .registryOf(r -> r
- *         .add(config)
- *         .add(config.get("/app", MyAppConfig.class))
- *       )
- *       .handler(registry ->
- *         (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName())
- *       ));
+ *     RatpackServer server = RatpackServer.of(spec -> {
+ *       ConfigData config = ConfigData.of(d -> d
+ *         .props(ImmutableMap.of("server.port", "5060", "app.name", "Ratpack"))
+ *         .sysProps()
+ *       );
+ *       return spec
+ *         .serverConfig(config.getServerConfig())
+ *         .registryOf(r -> r
+ *           .add(config)
+ *           .add(config.get("/app", MyAppConfig.class))
+ *         )
+ *         .handler(registry ->
+ *           (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName())
+ *         );
+ *     });
  *     server.start();
  *
  *     assertTrue(server.isRunning());
