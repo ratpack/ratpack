@@ -57,7 +57,7 @@ public class Example {
 }
 ```
 
-See the [`Jackson`](api/ratpack/jackson/Jackson.html) class documention for more examples, including streaming and JSON events.
+See the [`Jackson`](api/ratpack/jackson/Jackson.html) class documentation for more examples, including streaming and JSON events.
 
 ## Reading JSON requests
 
