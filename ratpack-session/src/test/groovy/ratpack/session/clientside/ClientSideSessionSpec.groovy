@@ -24,6 +24,7 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class ClientSideSessionSpec extends RatpackGroovyDslSpec {
@@ -41,7 +42,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   }
 
   private String getSessionPayload() {
-    sessionCookie.split(":")[0]
+    sessionCookie?.split(":")?.getAt(0)
   }
 
   def getDecodedPairs() {
@@ -309,6 +310,43 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
                               macAlgorithm = "HmacMD5"
                             }]
 
+  }
+
+  @Ignore
+  @Unroll
+  def "sessions with value of length #length can be serialized/deserialized"() {
+    given:
+    modules.clear()
+    bindings {
+      add ClientSideSessionsModule, {
+        it.secretKey = "a" * 16
+      }
+    }
+
+    handlers {
+      get("") { SessionStorage storage ->
+        render storage.value.toString()
+      }
+      get("set/:value") { SessionStorage storage ->
+        storage.value = pathTokens.value
+        render storage.value.toString()
+      }
+    }
+
+    expect:
+    get()
+    response.body.text == "null"
+    !sessionCookie
+    !setCookie
+
+    def value = 'a' * length
+    getText("set/$value") == value
+    sessionPayload
+
+    getText() == value
+
+    where:
+    length << (1..256)
   }
 
   @Unroll
