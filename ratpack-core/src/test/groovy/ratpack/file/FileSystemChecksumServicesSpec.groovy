@@ -16,7 +16,6 @@
 
 package ratpack.file
 
-import java.nio.file.Path
 import java.nio.file.NoSuchFileException
 import java.nio.file.InvalidPathException
 
