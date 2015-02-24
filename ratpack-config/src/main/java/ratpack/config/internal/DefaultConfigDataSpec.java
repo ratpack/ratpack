@@ -19,6 +19,7 @@ package ratpack.config.internal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -52,6 +53,10 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
 
   public DefaultConfigDataSpec(ServerEnvironment serverEnvironment) {
     this(serverEnvironment, newDefaultObjectMapper(serverEnvironment));
+  }
+
+  public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, Module... modules) {
+    this(serverEnvironment, newDefaultObjectMapper(serverEnvironment).registerModules(modules));
   }
 
   public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {

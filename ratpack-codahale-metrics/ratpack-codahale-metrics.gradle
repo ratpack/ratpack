@@ -31,5 +31,7 @@ dependencies {
   compile commonDependencies.jackson
 
   testCompile project(":ratpack-jackson")
+  testCompile project(":ratpack-config")
+  testCompile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.4.4'
 }
 

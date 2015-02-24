@@ -73,6 +73,32 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *   }
  * }
  * </pre>
+ *
+ * <h2>External Configuration</h2>
+ * The module can also be configured via external configuration using the
+ * <a href="http://www.ratpack.io/manual/current/api/ratpack/config/ConfigData.html" target="_blank">ratpack-config</a> extension.
+ * For example, to enable the capturing and reporting of metrics to jmx via an external property file which can be overriden with
+ * system properties one would write: (Groovy DSL)
+ *
+ * <pre class="groovy-ratpack-dsl">
+ * import com.google.common.collect.ImmutableMap
+ * import ratpack.codahale.metrics.CodaHaleMetricsModule
+ * import ratpack.config.ConfigData
+ * import static ratpack.groovy.Groovy.ratpack
+ *
+ * ratpack {
+ *   bindings {
+ *     ConfigData configData = ConfigData.of()
+ *       .props(ImmutableMap.of("metrics.jmx.enabled", "true")) // for demo purposes we are using a map to easily see the properties being set
+ *       .sysProps()
+ *       .build()
+ *
+ *     addConfig(new CodaHaleMetricsModule(), configData.get("/metrics", CodaHaleMetricsModule.Config))
+ *   }
+ * }
+ * </pre>
+ *
+ * <h2>Metric Collection</h2>
  * <p>
  * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
  * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
@@ -156,6 +182,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     /**
      * @see #jmx(ratpack.func.Action)
+     * @return this
      */
     public Config jmx() {
       return jmx(Action.noop());
@@ -189,6 +216,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     /**
      * @see #console(ratpack.func.Action)
+     * @return this
      */
     public Config console() {
       return console(Action.noop());
@@ -222,6 +250,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     /**
      * @see #webSocket(ratpack.func.Action)
+     * @return this
      */
     public Config webSocket() {
       return webSocket(Action.noop());
@@ -271,10 +300,49 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       }
     }
 
-    public static class Jmx { }
+    public static class Jmx {
+      private boolean enabled = true;
+
+      /**
+       * The state of the JMX publisher.
+       * @return the state of the JMX publisher
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the JMX publisher.
+       * @param enabled True if metrics are published to JMX. False otherwise
+       * @return this
+       */
+      public Jmx enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
+    }
 
     public static class Console {
       private Duration reporterInterval = DEFAULT_INTERVAL;
+      private boolean enabled = true;
+
+      /**
+       * The state of the Console publisher.
+       * @return the state of the Console publisher
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the Console publisher.
+       * @param enabled True if metrics are published to the console. False otherwise
+       * @return this
+       */
+      public Console enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
 
       /**
        * The interval between metrics reports.
@@ -322,6 +390,25 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     public static class Csv {
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private File reportDirectory;
+      private boolean enabled = true;
+
+      /**
+       * The state of the CSV publisher.
+       * @return the state of the CSV publisher
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the CSV publisher.
+       * @param enabled True if metrics are published to CSV. False otherwise
+       * @return this
+       */
+      public Csv enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
 
       /**
        * The interval between metrics reports.
@@ -402,14 +489,23 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     @Override
     public void onStart(StartEvent event) throws Exception {
-      config.getJmx().ifPresent(jmx ->
-        injector.getInstance(JmxReporter.class).start());
+      config.getJmx().ifPresent(jmx -> {
+         if (jmx.isEnabled()) {
+           injector.getInstance(JmxReporter.class).start();
+         }
+      });
 
-      config.getConsole().ifPresent(console ->
-        injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS));
+      config.getConsole().ifPresent(console -> {
+        if (console.isEnabled()) {
+          injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS);
+        }
+      });
 
-      config.getCsv().ifPresent(csv ->
-        injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS));
+      config.getCsv().ifPresent(csv -> {
+        if (csv.isEnabled()) {
+          injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS);
+        }
+      });
 
       if (config.isJvmMetrics()) {
         final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);

@@ -16,10 +16,13 @@
 
 package ratpack.config;
 
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.config.internal.DefaultConfigDataSpec;
 import ratpack.func.Action;
 import ratpack.server.*;
+
+import java.util.List;
 
 /**
  * Configuration data for the application, potentially built from many sources.
@@ -91,6 +94,20 @@ public interface ConfigData extends ReloadInformant, Service {
 
   static ConfigData of(Action<? super ConfigDataSpec> config) throws Exception {
     return config.with(of()).build();
+  }
+
+  /**
+   * Begins building a new application configuration using a default object mapper with the supplied modules registered.
+   *
+   * @param modules the Jackson modules to register with a default object mapper
+   * @return the new configuration data spec
+   */
+  static ConfigDataSpec of(Module... modules) {
+    return new DefaultConfigDataSpec(ServerEnvironment.env(), modules);
+  }
+
+  static ConfigData of(List<Module> modules, Action<? super ConfigDataSpec> config) throws Exception {
+    return config.with(of(modules.toArray(new Module[modules.size()]))).build();
   }
 
   /**
