@@ -16,9 +16,10 @@
 
 package ratpack.handling
 
+import groovy.io.GroovyPrintStream
+import org.slf4j.LoggerFactory
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 class RequestIdSpec extends RatpackGroovyDslSpec {
 
@@ -38,14 +39,10 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     response.body.text.length() == 36 // not the best test ever but UUIDs should be 36 characters long including the dashes.
   }
 
-  @Ignore
   def "add request logging"() {
-    System.setProperty("org.slf4j.simpleLogger.logFile", "System.out")
-    def origOut = System.out
-    def origErr = System.err
     def loggerOutput = new ByteArrayOutputStream()
-    System.out = new PrintStream(loggerOutput, true)
-    System.err = new PrintStream(loggerOutput, true)
+    def logger = LoggerFactory.getLogger(RequestId)
+    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput)
 
     given: 'a ratpack app with the logging request handler added'
     handlers {
@@ -65,10 +62,5 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     then: 'the request is logged with its correlation id'
     loggerOutput.toString().contains("GET /foo 200 id=$getResponse.body.text")
     loggerOutput.toString().contains("POST /bar 200 id=$postResponse.body.text")
-
-    cleanup:
-    System.out = origOut
-    System.err = origErr
-    System.clearProperty("org.slf4j.simpleLogger.logFile")
   }
 }
