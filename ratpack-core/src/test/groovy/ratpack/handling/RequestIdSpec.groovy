@@ -40,8 +40,10 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   def "add request logging"() {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out")
     def origOut = System.out
+    def origErr = System.err
     def loggerOutput = new ByteArrayOutputStream()
     System.out = new PrintStream(loggerOutput, true)
+    System.err = new PrintStream(loggerOutput, true)
 
     given: 'a ratpack app with the logging request handler added'
     handlers {
@@ -64,6 +66,7 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
 
     cleanup:
     System.out = origOut
+    System.err = origErr
     System.clearProperty("org.slf4j.simpleLogger.logFile")
   }
 }
