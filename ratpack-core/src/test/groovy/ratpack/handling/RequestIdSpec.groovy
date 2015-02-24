@@ -36,4 +36,34 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     then: 'a correlation id was returned'
     response.body.text.length() == 36 // not the best test ever but UUIDs should be 36 characters long including the dashes.
   }
+
+  def "add request logging"() {
+    System.setProperty("org.slf4j.simpleLogger.logFile", "System.out")
+    def origOut = System.out
+    def loggerOutput = new ByteArrayOutputStream()
+    System.out = new PrintStream(loggerOutput, true)
+
+    given: 'a ratpack app with the logging request handler added'
+    handlers {
+      handler RequestId.bindAndLog()
+      handler("foo") {
+        render request.get(RequestId).id
+      }
+      handler("bar") {
+        render request.get(RequestId).id
+      }
+    }
+
+    when: 'a request is sent'
+    ReceivedResponse getResponse = get("foo")
+    ReceivedResponse postResponse = post("bar")
+
+    then: 'the request is logged with its correlation id'
+    loggerOutput.toString().contains("GET /foo 200 id=$getResponse.body.text")
+    loggerOutput.toString().contains("POST /bar 200 id=$postResponse.body.text")
+
+    cleanup:
+    System.out = origOut
+    System.clearProperty("org.slf4j.simpleLogger.logFile")
+  }
 }

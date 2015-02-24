@@ -122,6 +122,8 @@ public interface RequestId {
 
           logger.info(logLine.toString());
         });
+
+        ctx.next();
       }
     });
   }
