@@ -1,6 +1,23 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ratpack.logging
 
 import org.slf4j.MDC
+import org.slf4j.helpers.BasicMDCAdapter
 import ratpack.exec.ExecController
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
@@ -11,7 +28,18 @@ import java.util.concurrent.CountDownLatch
 
 class MDCInterceptorSpec extends Specification {
 
-  def "one level execution"() {
+  def origMdcAdapter
+
+  def setup() {
+    origMdcAdapter = MDC.MDCAdapter
+    MDC.mdcAdapter = new BasicMDCAdapter()
+  }
+
+  def cleanup() {
+    MDC.mdcAdapter = origMdcAdapter
+  }
+
+  def "requests do not share MDC context, run in separate executions"() {
     given:
     def values = []
 
@@ -45,7 +73,7 @@ class MDCInterceptorSpec extends Specification {
     }
   }
 
-  def "blocking execution with interceptor"() {
+  def "blocking operation shares MDC context, runs in the same execution"() {
     given:
     def values = []
 
@@ -58,16 +86,21 @@ class MDCInterceptorSpec extends Specification {
           }
         }
         get("foo1") {
+          // 1
           MDC.put("value", "foo1")
           values << MDC.get("value")
           blocking {
+            // 3
             values << MDC.get("value")
             MDC.put("value", "foo2")
             values << MDC.get("value")
           }.then {
+            // 4
             values << MDC.get("value")
             render "foo1"
           }
+          // 2
+          values << MDC.get("value")
         }
       }
     }
@@ -75,11 +108,11 @@ class MDCInterceptorSpec extends Specification {
     then:
     app.test { TestHttpClient httpClient ->
       assert httpClient.getText("foo1") == "foo1"
-      assert values == ["foo1", "foo1", "foo2", "foo2"]
+      assert values == ["foo1", "foo1", "foo1", "foo2", "foo2"]
     }
   }
 
-  def "more blocking executions with interceptor"() {
+  def "nested blocking operations share the same MDC context, run in the same execution"() {
     given:
     def values = []
 
@@ -92,81 +125,30 @@ class MDCInterceptorSpec extends Specification {
           }
         }
         get("foo1") {
+          // 1
           MDC.put("value", "foo1")
           values << MDC.get("value")
           blocking {
+            // 3
             values << MDC.get("value")
+            MDC.clear()
           }.then {
+            //4
             values << MDC.get("value")
-
+            MDC.put("value", "foo3")
+            values << MDC.get("value")
             blocking {
+              // 5
               values << MDC.get("value")
             }.then {
+              // 6
               values << MDC.get("value")
               render "foo1"
             }
           }
-        }
-        get("foo2") {
+          // 2
           values << MDC.get("value")
-          render "foo2"
-        }
-      }
-    }
-
-    then:
-    app.test { TestHttpClient httpClient ->
-      assert httpClient.getText("foo1") == "foo1"
-      assert httpClient.getText("foo2") == "foo2"
-      assert values == ["foo1", "foo1", "foo1", "foo1", "foo1", null]
-    }
-  }
-
-  def "compute executor with interceptor"() {
-    given:
-    def values = []
-    def values2 = []
-
-    when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers {
-        handler {
-          addInterceptor(new MDCInterceptor(getRequest())) {
-            next()
-          }
-        }
-        get("foo1") { ExecController execController ->
-          System.out.println(">> 1")
-          MDC.put("value", "foo1")
-          values << MDC.get("value")
-          promise { f ->
-            execController.control.exec().start {
-              System.out.println(">> 3")
-              values << MDC.get("value")
-              f.success("foo1")
-            }
-          }.then {
-            System.out.println(">> 4")
-            values << MDC.get("value")
-            render it
-          }
-          System.out.println(">> 2")
-          values << MDC.get("value")
-        }
-        get("foo2") { ExecController execController ->
           MDC.put("value", "foo2")
-          values2 << MDC.get("value")
-          promise { f ->
-            execController.control.exec().start {
-              values2 << MDC.get("value")
-              MDC.put("value", "foo3")
-              values2 << MDC.get("value")
-              f.success("foo2")
-            }
-          }.then {
-            values2 << MDC.get("value")
-            render it
-          }
         }
       }
     }
@@ -174,13 +156,11 @@ class MDCInterceptorSpec extends Specification {
     then:
     app.test { TestHttpClient httpClient ->
       assert httpClient.getText("foo1") == "foo1"
-      assert httpClient.getText("foo2") == "foo2"
-      assert values == ["foo1", "foo1", null, "foo1"]
-      assert values2 == ["foo2", null, "foo3", "foo2"]
+      assert values == ["foo1", "foo1", "foo2", null, "foo3", "foo3", "foo3"]
     }
   }
 
-  def "parallel blocking executions with interceptor"() {
+  def "subsequent blocking operations share MDC context, run in the same execution"() {
     given:
     def values = []
 
@@ -193,26 +173,32 @@ class MDCInterceptorSpec extends Specification {
           }
         }
         get("foo1") {
-          def latch = new CountDownLatch(1)
+          // 1
           MDC.put("value", "foo1")
           values << MDC.get("value")
 
           blocking {
+            // 3
             values << MDC.get("value")
+            MDC.clear()
           }.then {
+            // 4
             values << MDC.get("value")
-            latch.countDown()
+            MDC.put("value", "foo3")
           }
 
           blocking {
+            // 5
             values << MDC.get("value")
           }.then {
-            values << MDC.get("value")
-            latch.await()
-            MDC.put("value", "foo2")
+            // 6
             values << MDC.get("value")
             render "foo1"
           }
+
+          // 2
+          values << MDC.get("value")
+          MDC.put("value", "foo2")
         }
       }
     }
@@ -220,14 +206,13 @@ class MDCInterceptorSpec extends Specification {
     then:
     app.test { TestHttpClient httpClient ->
       assert httpClient.getText("foo1")
-      assert values == ["foo1", "foo1", "foo1", "foo1", "foo1", "foo2"]
+      assert values == ["foo1", "foo1", "foo2", null, "foo3", "foo3"]
     }
   }
 
-  def "parallel compute executors with interceptor"() {
+  def "async operation controlled by promise does not share MDC context, runs in seperate execution"() {
     given:
     def values = []
-    def values2 = []
 
     when:
     EmbeddedApp app = GroovyEmbeddedApp.build {
@@ -238,32 +223,83 @@ class MDCInterceptorSpec extends Specification {
           }
         }
         get("foo1") { ExecController execController ->
-          def latch = new CountDownLatch(1)
+          // 1
+          MDC.put("value", "foo1")
+          values << MDC.get("value")
+          promise { f ->
+            // 3
+            execController.control.exec().start {
+              // 4
+              values << MDC.get("value")
+              MDC.put("value", "foo3")
+              f.success("foo1")
+            }
+          }.then {
+            // 5
+            values << MDC.get("value")
+            render it
+          }
+          // 2
+          values << MDC.get("value")
+          MDC.put("value", "foo2")
+        }
+      }
+    }
+
+    then:
+    app.test { TestHttpClient httpClient ->
+      assert httpClient.getText("foo1") == "foo1"
+      assert values == ["foo1", "foo1", null, "foo2"]
+    }
+  }
+
+  def "subsequent async operations controlled by promised do not share MDC context, run in different executions"() {
+    given:
+    def values = []
+
+    when:
+    EmbeddedApp app = GroovyEmbeddedApp.build {
+      handlers {
+        handler {
+          addInterceptor(new MDCInterceptor(getRequest())) {
+            next()
+          }
+        }
+        get("foo1") { ExecController execController ->
+          // 1
           MDC.put("value", "foo1")
           values << MDC.get("value")
 
           promise { f ->
-            execController.control.exec().start {
-              values2 << MDC.get("value")
+            execController.control.exec().onComplete {
+              // 4
+              values << MDC.get("value")
               f.success{"1"}
+            }.start {
+              // 3
+              values << MDC.get("value")
+              MDC.contextMap = ["value": "foo3"]
+              values << MDC.get("value")
             }
           }.then {
+            // 5
             values << MDC.get("value")
-            latch.countDown()
           }
 
           promise { f ->
             execController.control.exec().start {
-              values2 << MDC.get("value")
+              //6
+              values << MDC.get("value")
               f.success("2")
             }
           }.then {
-            values << MDC.get("value")
-            latch.await()
-            MDC.put("value", "foo2")
+            // 7
             values << MDC.get("value")
             render "foo1"
           }
+          // 2
+          values << MDC.get("value")
+          MDC.put("value", "foo2")
         }
       }
     }
@@ -271,12 +307,11 @@ class MDCInterceptorSpec extends Specification {
     then:
     app.test { TestHttpClient httpClient ->
       assert httpClient.getText("foo1")
-      assert values == ["foo1", "foo1", "foo1", "foo2"]
-      assert values2 == [null, null]
+      assert values == ["foo1", "foo1", null, "foo3", "foo3",  "foo2", null, "foo2"]
     }
   }
 
-  def "async operation in seperate thread"() {
+  def "async operations in seperate threads controlled by promises do not share MDC context"() {
     given:
     def values = []
 
@@ -327,6 +362,98 @@ class MDCInterceptorSpec extends Specification {
     app.test { TestHttpClient httpClient ->
       assert httpClient.getText("foo") == "foo1"
       assert values == ["foo1", "foo1", null, "foo1", null, "foo1"]
+    }
+  }
+
+  def "fork without promise is not intercepted and has the same execution and the same MDC context"() {
+    given:
+    def values = []
+    def values2 = []
+
+    when:
+    EmbeddedApp app = GroovyEmbeddedApp.build {
+      handlers {
+        handler {
+          addInterceptor(new MDCInterceptor(getRequest())) {
+            next()
+          }
+        }
+        get("foo1") { ExecController execController ->
+          def latch = new CountDownLatch(1)
+          // 1
+          //println "1: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+
+          MDC.put("value", "foo1")
+          values << MDC.get("value")
+          execController.control.exec().onComplete {
+            // 3
+            //println "3: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+            values2 << MDC.get("value")
+            latch.countDown()
+          }.start {
+            // 2
+            //println "2: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+            values2 << MDC.get("value")
+            MDC.put("value", "foo2")
+          }
+
+          latch.await()
+          // 4
+          //println "4: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+          values << MDC.get("value")
+          render "foo1"
+        }
+
+        get("foo2") { ExecController execController ->
+          def latch = new CountDownLatch(1)
+          def latch2 = new CountDownLatch(1)
+          // 1
+          //println "1: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+
+          MDC.put("value", "foo1")
+          values << MDC.get("value")
+          execController.control.exec().onComplete {
+            // 4
+            //println "4: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+            values2 << MDC.get("value")
+
+            latch2.countDown()
+
+          }.start {
+
+            latch.await()
+
+            // 3
+            //println "3: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+            values2 << MDC.get("value")
+            MDC.put("value", "foo2")
+          }
+
+          // 2
+          //println "2: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+          values << MDC.get("value")
+
+          latch.countDown()
+
+          latch2.await()
+
+          render "foo2"
+        }
+      }
+    }
+
+    then:
+    app.test { TestHttpClient httpClient ->
+      assert httpClient.getText("foo1") == "foo1"
+      assert values == ["foo1", "foo2"]
+      assert values2 == ["foo1", "foo2"]
+
+      values.clear()
+      values2.clear()
+
+      assert httpClient.getText("foo2") == "foo2"
+      assert values == ["foo1", "foo1"]
+      assert values2 == ["foo1", "foo2"]
     }
   }
 }

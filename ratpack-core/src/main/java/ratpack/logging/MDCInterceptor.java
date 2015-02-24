@@ -44,40 +44,40 @@ import org.slf4j.MDC;
  * After continuation it gets the entries from MDC's context map and stores them in execution's internal map.
  * <pre class="java">{@code
  * import java.util.List;
+ * import java.util.ArrayList;
  * import ratpack.test.handling.RequestFixture;
  * import ratpack.test.handling.HandlingResult;
- * import org.slff4j.MDC;
+ * import org.slf4j.MDC;
  *
- * public static void main(String[] args) throws Exception {
- *   List<String> values = new ArrayList<String>();
- *   HandlingRequest result = RequestFixture.requestFixture().handleChain(chain -> {
- *     return chain
- *        .handler(ctx ->
- *          ctx.addInterceptor(new MDCInterceptor(ctx.getRequest()), ctx::next)
- *        )
- *        .handler(ctx -> {
- *          MDC.put("value", "foo");
- *          values.add(MDC.get("value"));
- *          log.debug("bar")
- *          ctx.blocking(() -> {
- *            log.debug("bar2");
+ * import static org.junit.Assert.assertTrue;
+ *
+ * import ratpack.logging.MDCInterceptor;
+ *
+ * public class MDCInterceptorExample {
+ *   public static void main(String[] args) throws Exception {
+ *     List<String> values = new ArrayList<String>();
+ *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
+ *       chain
+ *          .handler(ctx ->
+ *            ctx.addInterceptor(new MDCInterceptor(ctx.getRequest()), ctx::next)
+ *          )
+ *          .handler(ctx -> {
+ *            MDC.put("value", "foo");
  *            values.add(MDC.get("value"));
- *            return "bar3";
- *          }).then(str -> {
- *            log.debug(str);
- *            values.add(MDC.get("value"));
- *            ctx.render(str);
+ *            ctx.blocking(() -> {
+ *              values.add(MDC.get("value"));
+ *              return "bar3";
+ *            }).then(str -> {
+ *              values.add(MDC.get("value"));
+ *              ctx.render(str);
+ *            });
  *          });
- *        });
- *   });
+ *     });
  *
- *   assertEquals(values.size() == 3);
- *   assertEquals(values[0] == "foo");
- *   assertEquals(values[0] == "foo");
- *   assertEquals(values[0] == "foo");
+ *     assertTrue(values.size() == 3);
+ *   }
  * }
- * }
- * </pre>
+ * }</pre>
  *
  * @see ratpack.exec.ExecControl#addInterceptor(ratpack.exec.ExecInterceptor, ratpack.func.NoArgAction)
  */
@@ -99,8 +99,7 @@ public class MDCInterceptor implements ExecInterceptor {
     MDCMap map = request.get(MDCMap.class);
     if (map != null && map.size() > 0) {
       map.forEach(MDC::put);
-    }
-    else {
+    } else {
       MDC.clear();
     }
 
