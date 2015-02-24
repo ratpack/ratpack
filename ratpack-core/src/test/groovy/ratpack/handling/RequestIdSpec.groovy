@@ -18,6 +18,7 @@ package ratpack.handling
 
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 
 class RequestIdSpec extends RatpackGroovyDslSpec {
 
@@ -37,6 +38,7 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     response.body.text.length() == 36 // not the best test ever but UUIDs should be 36 characters long including the dashes.
   }
 
+  @Ignore
   def "add request logging"() {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out")
     def origOut = System.out
