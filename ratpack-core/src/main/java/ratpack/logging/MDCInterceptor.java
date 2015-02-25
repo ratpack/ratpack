@@ -26,7 +26,7 @@ import java.util.Map;
 import org.slf4j.MDC;
 
 /**
- * Intercept execution and add support for <a href="http://www.slf4j.org/api/org/slf4j/MDC.html">Slf4j MDC</a> described in the <a href="http://www.slf4j.org/manual.html#mdc">manual</a>.
+ * Intercept execution and add support for <a href="http://www.slf4j.org/api/org/slf4j/MDC.html">SLF4J MDC</a> described in the <a href="http://www.slf4j.org/manual.html#mdc">manual</a>.
  * <p>
  * Mapped Diagnostic Context (MDC) is a map of key-value pairs provided by client code and then automatically inserted in log messages.
  * The underlying logging framework has to support MDC logging.
@@ -37,7 +37,7 @@ import org.slf4j.MDC;
  *  </Console>
  * }
  * <p>
- * When interceptor is registered with {@link ratpack.exec.ExecControl#addInterceptor}, it is possible to directly use Slf4j MDC API.
+ * When interceptor is registered with {@link ratpack.exec.ExecControl#addInterceptor}, it is possible to directly use SLF4J MDC API.
  * The {@link ratpack.exec.Execution}, as registry, maintains own map of MDC entries.
  * Before running the continuation, it checks if internal map contains any entry.
  * If yes, it puts all of them from internal map to MDC (bounded to current thread).
