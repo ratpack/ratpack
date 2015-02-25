@@ -16,8 +16,9 @@
 
 package ratpack.logging;
 
+import ratpack.exec.ExecControl;
 import ratpack.exec.ExecInterceptor;
-import ratpack.http.Request;
+import ratpack.exec.Execution;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,7 +60,7 @@ import org.slf4j.MDC;
  *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
  *       chain
  *          .handler(ctx ->
- *            ctx.addInterceptor(new MDCInterceptor(ctx.getRequest()), ctx::next)
+ *            ctx.addInterceptor(new MDCInterceptor(), ctx::next)
  *          )
  *          .handler(ctx -> {
  *            MDC.put("value", "foo");
@@ -86,19 +87,19 @@ public class MDCInterceptor implements ExecInterceptor {
   public static class MDCMap extends HashMap<String, String> {
   }
 
-  private final Request request;
+  private final Execution current;
 
-  public MDCInterceptor(Request request) {
-    this.request = request;
-    if (!request.maybeGet(MDCMap.class).isPresent()) {
-      request.add(new MDCMap());
+  public MDCInterceptor() {
+    current = ExecControl.current().getExecution();
+    if (!current.maybeGet(MDCMap.class).isPresent()) {
+      current.add(new MDCMap());
     }
   }
 
   public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
-    MDCMap map = request.get(MDCMap.class);
+    MDCMap map = current.get(MDCMap.class);
     if (map != null && map.size() > 0) {
-      map.forEach(MDC::put);
+      MDC.setContextMap(map);
     } else {
       MDC.clear();
     }
@@ -110,7 +111,7 @@ public class MDCInterceptor implements ExecInterceptor {
       @SuppressWarnings(value = "unchecked")
       Map<String, String> ctxMap = (Map<String, String>)MDC.getCopyOfContextMap();
       if (ctxMap != null && ctxMap.size() > 0) {
-        ctxMap.forEach(map::put);
+        map.putAll(ctxMap);
         MDC.clear();
       }
     }
