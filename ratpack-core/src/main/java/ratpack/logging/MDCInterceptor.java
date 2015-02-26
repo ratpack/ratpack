@@ -16,7 +16,6 @@
 
 package ratpack.logging;
 
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 
@@ -60,7 +59,7 @@ import org.slf4j.MDC;
  *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
  *       chain
  *          .handler(ctx ->
- *            ctx.addInterceptor(new MDCInterceptor(), ctx::next)
+ *            ctx.addInterceptor(new MDCInterceptor(ctx.getExecution()), ctx::next)
  *          )
  *          .handler(ctx -> {
  *            MDC.put("value", "foo");
@@ -87,17 +86,17 @@ public class MDCInterceptor implements ExecInterceptor {
   public static class MDCMap extends HashMap<String, String> {
   }
 
-  private final Execution current;
+  private final Execution execution;
 
-  public MDCInterceptor() {
-    current = ExecControl.current().getExecution();
-    if (!current.maybeGet(MDCMap.class).isPresent()) {
-      current.add(new MDCMap());
+  public MDCInterceptor(final Execution execution) {
+    this.execution = execution;
+    if (!this.execution.maybeGet(MDCMap.class).isPresent()) {
+      this.execution.add(new MDCMap());
     }
   }
 
   public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
-    MDCMap map = current.get(MDCMap.class);
+    MDCMap map = this.execution.get(MDCMap.class);
     if (map != null && map.size() > 0) {
       MDC.setContextMap(map);
     } else {

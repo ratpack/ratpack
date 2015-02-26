@@ -43,7 +43,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
@@ -73,29 +73,29 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
       get("foo1") {
         // 1
-        //println "1: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+        println "1: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
         MDC.put("value", "foo1")
         values << MDC.get("value")
         blocking {
           // 3
-          //println "3: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+          println "3: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
           values << MDC.get("value")
           MDC.put("value", "foo2")
           values << MDC.get("value")
         }.then {
           // 4
-          //println "4: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+          println "4: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
           values << MDC.get("value")
           render "foo1"
         }
         // 2
-        //println "2: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
+        println "2: ${Thread.currentThread().name}: ${ExecController.current().map{it.control.toString()}}"
         values << MDC.get("value")
       }
     }
@@ -112,7 +112,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
@@ -156,7 +156,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
@@ -202,7 +202,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
@@ -241,7 +241,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
@@ -295,7 +295,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
@@ -346,7 +346,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor()) {
+        addInterceptor(new MDCInterceptor(it.getExecution())) {
           next()
         }
       }
