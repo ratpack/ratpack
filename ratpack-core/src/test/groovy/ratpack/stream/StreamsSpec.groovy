@@ -20,6 +20,8 @@ package ratpack.stream
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.stream.internal.CollectingSubscriber
+import ratpack.test.exec.ExecHarness
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.time.Duration
@@ -32,6 +34,9 @@ import static ratpack.stream.Streams.*
 import static ratpack.test.exec.ExecHarness.yieldSingle
 
 class StreamsSpec extends Specification {
+
+  @AutoCleanup
+  ExecHarness harness = ExecHarness.harness()
 
   def "can buffer publisher"() {
     given:
@@ -181,6 +186,54 @@ class StreamsSpec extends Specification {
     then:
     s1.received == ["0-0", "1-0", "2-0", "3-0"]
     s2.received == ["0-1", "1-1", "2-1", "3-1"]
+  }
+
+  def "flat yielding publisher"() {
+    when:
+    def p = flatYield { r ->
+      harness.blocking {
+        r.requestNum < 4 ? r.requestNum.toString() + "-" + r.subscriberNum.toString() : null
+      }
+    }
+    def s1 = CollectingSubscriber.subscribe(p)
+    def s2 = CollectingSubscriber.subscribe(p)
+
+    then:
+    s1.received.isEmpty()
+    s2.received.isEmpty()
+
+    when:
+    harness.run { s1.subscription.request(1) }
+    harness.run { s2.subscription.request(1) }
+
+    then:
+    s1.received == ["0-0"]
+    s2.received == ["0-1"]
+
+    when:
+    harness.run { s1.subscription.request(3) }
+    harness.run { s2.subscription.request(3) }
+
+    then:
+    s1.received == ["0-0", "1-0", "2-0", "3-0"]
+    s2.received == ["0-1", "1-1", "2-1", "3-1"]
+  }
+
+  def "failed promise stops flat yield"() {
+    given:
+    def p = flatYield { r ->
+      harness.blocking {
+        r.requestNum < 4 ? r.requestNum.toString() + "-" + r.subscriberNum.toString() : { throw new Exception("!") }.run()
+      }
+    }
+    def s1 = CollectingSubscriber.subscribe(p)
+
+    when:
+    harness.run { s1.subscription.request(Long.MAX_VALUE) }
+
+    then:
+    s1.received == ["0-0", "1-0", "2-0", "3-0"]
+    s1.error.message == "!"
   }
 
   def "can multicast with back pressure"() {

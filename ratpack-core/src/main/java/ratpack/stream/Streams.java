@@ -92,6 +92,23 @@ public class Streams {
   }
 
   /**
+   * Creates a new publisher, backed by the given asynchronous data producing function.
+   * <p>
+   * As subscribers request data of the returned stream, the given function is invoked.
+   * The function returns a promise for the item to send downstream.
+   * If the promise provides a value of {@code null}, the stream is terminated.
+   * If the promise produces an error, the stream is terminated and the error is sent downstream.
+   * If the promise producing function throws an exception, the stream is terminated and the error is sent downstream.
+   *
+   * @param producer the data source
+   * @param <T> the type of item emitted
+   * @return a publisher backed by the given producer
+   */
+  public static <T> TransformablePublisher<T> flatYield(Function<? super YieldRequest, ? extends Promise<? extends T>> producer) {
+    return new FlatYieldingPublisher<>(producer);
+  }
+
+  /**
    * Creates a new publisher, that indefinitely streams the given object to all subscribers.
    * <p>
    * This is rarely useful for anything other than testing.

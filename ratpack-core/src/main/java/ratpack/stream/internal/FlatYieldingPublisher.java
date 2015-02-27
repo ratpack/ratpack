@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,21 @@
 package ratpack.stream.internal;
 
 import org.reactivestreams.Subscriber;
+import ratpack.exec.Promise;
 import ratpack.func.Function;
 import ratpack.stream.TransformablePublisher;
 import ratpack.stream.YieldRequest;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class YieldingPublisher<T> implements TransformablePublisher<T> {
+public class FlatYieldingPublisher<T> implements TransformablePublisher<T> {
 
-  private final Function<? super YieldRequest, T> producer;
+  private final Function<? super YieldRequest, ? extends Promise<? extends T>> producer;
   private final AtomicLong subscriptionCounter = new AtomicLong();
 
-  public YieldingPublisher(Function<? super YieldRequest, T> producer) {
+  public FlatYieldingPublisher(Function<? super YieldRequest, ? extends Promise<? extends T>> producer) {
     this.producer = producer;
   }
 
@@ -42,6 +44,8 @@ public class YieldingPublisher<T> implements TransformablePublisher<T> {
 
     private final long subscriptionNum = subscriptionCounter.getAndIncrement();
     private final AtomicInteger requestCounter = new AtomicInteger();
+    private final AtomicLong waiting = new AtomicLong();
+    private final AtomicBoolean draining = new AtomicBoolean();
 
     public Subscription(Subscriber<? super T> subscriber) {
       super(subscriber);
@@ -50,29 +54,44 @@ public class YieldingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     protected void doRequest(long n) {
-      long i = 0;
+      waiting.addAndGet(n);
+      drain();
+    }
 
-      while (i++ < n) {
-        if (isStopped()) {
-          return;
-        }
-
-        T produced;
-        try {
-          produced = producer.apply(new DefaultYieldRequest(subscriptionNum, requestCounter.getAndIncrement()));
-        } catch (Throwable e) {
-          onError(e);
-          return;
-        }
-
-        if (produced == null) { // end of stream
-          onComplete();
-          return;
+    private void drain() {
+      if (!isStopped() && draining.compareAndSet(false, true)) {
+        long l = waiting.getAndDecrement();
+        if (l > 0) {
+          try {
+            Promise<? extends T> promise = producer.apply(new DefaultYieldRequest(subscriptionNum, requestCounter.getAndIncrement()));
+            promise
+              .wiretap(r ->
+                this.draining.set(false)
+              )
+              .onError(this::onError)
+              .then(t -> {
+                if (t == null) {
+                  onComplete();
+                } else {
+                  onNext(t);
+                  drain();
+                }
+              });
+          } catch (Throwable e) {
+            draining.set(false);
+            onError(e);
+            return;
+          }
         } else {
-          onNext(produced);
+          waiting.addAndGet(1);
+          draining.set(false);
+        }
+        if (waiting.get() > 0) {
+          drain();
         }
       }
     }
+
   }
 
 }
