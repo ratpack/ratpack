@@ -82,9 +82,41 @@ public class Streams {
 
   /**
    * Creates a new publisher, backed by the given data producing function.
+   * <p>
+   * As subscribers request data of the returned stream, the given function is invoked.
+   * The function returns the item to send downstream.
+   * If the function returns {@code null}, the stream is terminated.
+   * If the function throws an exception, the stream is terminated and the error is sent downstream.
+   * <pre class="java">{@code
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.Arrays;
+   * import java.util.List;
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> strings = ExecHarness.yieldSingle(execControl ->
+   *       Streams.yield(r -> {
+   *         if (r.getRequestNum() < 2) {
+   *           return Long.toString(r.getRequestNum());
+   *         } else {
+   *           return null;
+   *         }
+   *       }).toList()
+   *     ).getValue();
+   *
+   *     assertEquals(Arrays.asList("0", "1"), strings);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If the value producing function is asynchronous, use {@link #flatYield(Function)}.
    *
    * @param producer the data source
    * @param <T> the type of item emitted
+   * @see #flatYield
    * @return a publisher backed by the given producer
    */
   public static <T> TransformablePublisher<T> yield(Function<? super YieldRequest, T> producer) {
@@ -99,9 +131,36 @@ public class Streams {
    * If the promise provides a value of {@code null}, the stream is terminated.
    * If the promise produces an error, the stream is terminated and the error is sent downstream.
    * If the promise producing function throws an exception, the stream is terminated and the error is sent downstream.
+   * <pre class="java">{@code
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.Arrays;
+   * import java.util.List;
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> strings = ExecHarness.yieldSingle(execControl ->
+   *       Streams.flatYield(r -> {
+   *         if (r.getRequestNum() < 2) {
+   *           return execControl.promiseOf(Long.toString(r.getRequestNum()));
+   *         } else {
+   *           return execControl.promiseOf(null);
+   *         }
+   *       }).toList()
+   *     ).getValue();
+   *
+   *     assertEquals(Arrays.asList("0", "1"), strings);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If the value producing function is not asynchronous, use {@link #yield(Function)}.
    *
    * @param producer the data source
    * @param <T> the type of item emitted
+   * @see #yield
    * @return a publisher backed by the given producer
    */
   public static <T> TransformablePublisher<T> flatYield(Function<? super YieldRequest, ? extends Promise<? extends T>> producer) {
