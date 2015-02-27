@@ -22,6 +22,8 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
+import java.util.List;
+
 /**
  * A wrapper over a {@link Publisher} that makes it more convenient to chain transformations of different kinds.
  * <p>
@@ -108,6 +110,25 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    */
   default Promise<T> toPromise(ExecControl execControl) {
     return Streams.toPromise(execControl, this);
+  }
+
+  /**
+   * See {@link ratpack.stream.Streams#toList(Publisher)}.
+   *
+   * @return a promise for all of this stream's contents as a list
+   */
+  default Promise<List<T>> toList() {
+    return Streams.toList(this);
+  }
+
+  /**
+   * See {@link ratpack.stream.Streams#toList(ExecControl, Publisher)}.
+   *
+   * @param execControl the exec control to create the promise from
+   * @return a promise for all of this stream's contents as a list
+   */
+  default Promise<List<T>> toList(ExecControl execControl) {
+    return Streams.toList(execControl, this);
   }
 
   /**
