@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 import ratpack.gradle.WriteTestConfig
+
+import static org.apache.commons.io.FileUtils.copyURLToFile
 
 buildscript {
   repositories {
@@ -27,7 +30,6 @@ buildscript {
   }
 }
 
-import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang.SystemUtils.*
 
 apply plugin: 'coffeescript-base'
@@ -46,7 +48,7 @@ ext {
     "0.9.3", "0.9.4", "0.9.5",
     "0.9.6", "0.9.7", "0.9.8",
     "0.9.9", "0.9.10", "0.9.11",
-    "0.9.12", "0.9.13"
+    "0.9.12", "0.9.13", "0.9.14"
   ]
 }
 
