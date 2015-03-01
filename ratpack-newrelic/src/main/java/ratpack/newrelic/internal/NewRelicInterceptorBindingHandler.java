@@ -21,27 +21,24 @@ import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.Request;
 import ratpack.newrelic.NewRelicTransaction;
 
 public class NewRelicInterceptorBindingHandler implements Handler {
 
+  private static final NewRelicExecInterceptor INTERCEPTOR = new NewRelicExecInterceptor();
+
   @Override
   public void handle(Context context) throws Exception {
     context.getRequest().add(NewRelicTransaction.class, new DefaultNewRelicTransaction(context));
-    context.addInterceptor(new NewRelicExecInterceptor(context), context::next);
+    context.addInterceptor(INTERCEPTOR, context::next);
   }
 
   private static class NewRelicExecInterceptor implements ExecInterceptor {
-    private final Context context;
-
-    public NewRelicExecInterceptor(Context context) {
-      this.context = context;
-    }
-
     @Override
     @Trace(dispatcher = true)
     public void intercept(Execution execution, ExecType execType, Runnable continuation) {
-      context.getRequest().get(NewRelicTransaction.class).init();
+      execution.get(Request.class).get(NewRelicTransaction.class).init();
       continuation.run();
     }
   }

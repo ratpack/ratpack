@@ -57,6 +57,17 @@ import java.util.function.Supplier;
 public interface Execution extends MutableRegistry, ExecControl {
 
   /**
+   * Provides the currently execution execution.
+   * <p>
+   * This method will fail when called outside of a Ratpack compute thread as it relies on {@link ExecController#require()}.
+   *
+   * @return the currently execution execution
+   */
+  static Execution execution() throws UnmanagedThreadException {
+    return ExecControl.current().getExecution();
+  }
+
+  /**
    * The execution controller that this execution is associated with.
    *
    * @return the execution controller that this execution is associated with

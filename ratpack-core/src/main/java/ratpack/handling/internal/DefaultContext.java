@@ -38,7 +38,6 @@ import ratpack.http.Response;
 import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.MultiMethodHandler;
-import ratpack.server.ServerConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
@@ -51,6 +50,7 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
+import ratpack.server.ServerConfig;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.Types;
@@ -142,10 +142,10 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    //noinspection Convert2MethodRef
     execControl.exec()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
+      .register(s -> s.add(Request.class, requestConstants.request))
       .eventLoop(eventLoop)
       .start(e -> context.next());
   }
