@@ -113,16 +113,64 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#toList(Publisher)}.
+   * Consumes the given publisher's items to a list.
+   * <p>
+   * This method can be useful when testing, but should be uses with care in production code as it will exhaust memory if the stream is very large.
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
    *
-   * @return a promise for all of this stream's contents as a list
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> expected = Arrays.asList("a", "b", "c");
+   *     List<String> result = ExecHarness.yieldSingle(execControl ->
+   *       Streams.publish(expected).toList()
+   *     ).getValue();
+   *
+   *     assertEquals(Arrays.asList("a", "b", "c"), result);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If the publisher emits an error, the promise will fail and the collected items will be discarded.
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     Throwable error = ExecHarness.yieldSingle(execControl ->
+   *       Streams.yield(r -> {
+   *         if (r.getRequestNum() < 1) {
+   *           return "a";
+   *         } else {
+   *           throw new RuntimeException("bang!");
+   *         }
+   *       }).toList()
+   *     ).getThrowable();
+   *
+   *     assertEquals("bang!", error.getMessage());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @return a promise for the stream's contents as a list
    */
   default Promise<List<T>> toList() {
     return Streams.toList(this);
   }
 
   /**
-   * See {@link ratpack.stream.Streams#toList(ExecControl, Publisher)}.
+   * See {@link #toList()}.
    *
    * @param execControl the exec control to create the promise from
    * @return a promise for all of this stream's contents as a list

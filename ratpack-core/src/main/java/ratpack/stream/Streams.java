@@ -205,6 +205,7 @@ public class Streams {
    * <pre class="java">{@code
    * import org.reactivestreams.Publisher;
    * import ratpack.stream.Streams;
+   * import ratpack.stream.TransformablePublisher;
    * import ratpack.stream.WriteStream;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -217,7 +218,7 @@ public class Streams {
    *   public static void main(String... args) throws Exception {
    *     List<String> result = ExecHarness.yieldSingle(execControl -> {
    *       Publisher<String> chars = Streams.publish(Arrays.asList("a", "b", "c"));
-   *       Publisher<String> mapped = Streams.streamMap(chars, out ->
+   *       TransformablePublisher<String> mapped = Streams.streamMap(chars, out ->
    *         new WriteStream<String>() {
    *           public void item(String item) {
    *             out.item(item);
@@ -233,8 +234,7 @@ public class Streams {
    *           }
    *         }
    *       );
-   *
-   *       return Streams.toList(execControl, mapped);
+   *       return mapped.toList();
    *     }).getValue();
    *
    *     assertEquals(Arrays.asList("a", "A", "b", "B", "c", "C"), result);
@@ -488,60 +488,11 @@ public class Streams {
   }
 
   /**
-   * Consumes the given publisher's items to a list.
-   * <p>
-   * This method can be useful when testing, but should be avoided in production code where possible as it will exhaust memory if the stream is very large or infinite.
-   * <pre class="java">{@code
-   * import org.reactivestreams.Publisher;
-   * import ratpack.stream.Streams;
-   * import ratpack.test.exec.ExecHarness;
    *
-   * import java.util.Arrays;
-   * import java.util.List;
-   *
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     List<String> expected = Arrays.asList("a", "b", "c");
-   *     List<String> result = ExecHarness.yieldSingle(execControl ->
-   *       Streams.toList(execControl, Streams.publish(expected))
-   *     ).getValue();
-   *
-   *     assertEquals(Arrays.asList("a", "b", "c"), result);
-   *   }
-   * }
-   * }</pre>
-   * <p>
-   * If the publisher emits an error, the promise will fail and the collected items will be discarded.
-   * <pre class="java">{@code
-   * import org.reactivestreams.Publisher;
-   * import ratpack.stream.Streams;
-   * import ratpack.test.exec.ExecHarness;
-   *
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     Throwable error = ExecHarness.yieldSingle(execControl ->
-   *       Streams.toList(execControl, Streams.yield(r -> {
-   *         if (r.getRequestNum() < 1) {
-   *           return "a";
-   *         } else {
-   *           throw new RuntimeException("bang!");
-   *         }
-   *       }))
-   *     ).getThrowable();
-   *
-   *     assertEquals("bang!", error.getMessage());
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param execControl the execution control
-   * @param publisher the stream to collect to a list
-   * @param <T> the type of item in the stream
-   * @return a promise for the streams contents as a list
+   * @param execControl
+   * @param publisher
+   * @param <T>
+   * @return
    */
   public static <T> Promise<List<T>> toList(ExecControl execControl, Publisher<T> publisher) {
     return execControl.promise(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
