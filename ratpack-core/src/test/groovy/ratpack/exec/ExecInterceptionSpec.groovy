@@ -33,7 +33,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Runnable continuation) {
       record << "$id:$type"
       continuation.run()
     }
@@ -75,9 +75,9 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Runnable continuation) {
       println "$type:$id"
-      super.intercept(type, continuation)
+      super.intercept(execution, type, continuation)
       throw new RuntimeException("$type:$id")
     }
   }

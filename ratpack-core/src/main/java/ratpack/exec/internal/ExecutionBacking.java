@@ -215,7 +215,7 @@ public class ExecutionBacking {
   }
 
   public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {
-    new InterceptedOperation(execType, interceptors) {
+    new InterceptedOperation(execution, execType, interceptors) {
       @Override
       protected void performOperation() throws Exception {
         action.execute();

@@ -19,6 +19,7 @@ package ratpack.exec.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
 import ratpack.util.ExceptionUtils;
 
 import java.util.List;
@@ -26,13 +27,15 @@ import java.util.List;
 public abstract class InterceptedOperation {
   private final static Logger LOGGER = LoggerFactory.getLogger(InterceptedOperation.class);
 
+  private final Execution execution;
   private final ExecInterceptor.ExecType type;
   private final List<ExecInterceptor> interceptors;
   private Throwable thrown;
 
   private int i;
 
-  public InterceptedOperation(ExecInterceptor.ExecType type, List<ExecInterceptor> interceptors) {
+  public InterceptedOperation(Execution execution, ExecInterceptor.ExecType type, List<ExecInterceptor> interceptors) {
+    this.execution = execution;
     this.type = type;
     this.interceptors = interceptors;
     i = 0;
@@ -62,7 +65,7 @@ public abstract class InterceptedOperation {
         }
       };
       try {
-        interceptor.intercept(type, continuation);
+        interceptor.intercept(execution, type, continuation);
       } catch (Throwable e) {
         LOGGER.error("", e);
         if (i == iAtStart) {

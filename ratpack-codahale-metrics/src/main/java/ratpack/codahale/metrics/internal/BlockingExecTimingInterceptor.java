@@ -19,6 +19,7 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
 import ratpack.http.Request;
 
 public class BlockingExecTimingInterceptor implements ExecInterceptor {
@@ -32,7 +33,7 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
   }
 
   @Override
-  public void intercept(ExecType type, Runnable continuation) {
+  public void intercept(Execution execution, ExecType type, Runnable continuation) {
     if (type == ExecType.BLOCKING) {
       String tag = buildBlockingTimerTag(request.getUri(), request.getMethod().getName());
       Timer.Context timer = metricRegistry.timer(tag).time();

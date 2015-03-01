@@ -43,7 +43,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -73,7 +73,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -112,7 +112,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -156,7 +156,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -202,7 +202,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -241,7 +241,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -295,7 +295,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }
@@ -346,7 +346,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        addInterceptor(new MDCInterceptor(it.getExecution())) {
+        addInterceptor(new MDCInterceptor()) {
           next()
         }
       }

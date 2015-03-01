@@ -25,6 +25,7 @@ package ratpack.exec;
  * Request handling execution can be intercepted by the {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)} method.
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
+ * import ratpack.exec.Execution;
  * import ratpack.http.Request;
  * import ratpack.test.handling.RequestFixture;
  * import ratpack.test.handling.HandlingResult;
@@ -73,7 +74,7 @@ package ratpack.exec;
  *       request.add(new Timer());
  *     }
  *
- *     public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+ *     public void intercept(Execution execution, ExecInterceptor.ExecType type, Runnable continuation) {
  *       Timer timer = request.get(Timer.class);
  *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
  *       continuation.run();
@@ -99,7 +100,7 @@ package ratpack.exec;
  *     );
  *
  *     assertEquals("foo", result.rendered(String.class));
- *     
+ *
  *     Timer timer = result.getRequestRegistry().get(Timer.class);
  *     assertTrue(timer.getBlockingTime() >= 100);
  *     assertTrue(timer.getComputeTime() >= 200);
@@ -137,9 +138,11 @@ public interface ExecInterceptor {
    * Execution may involve multiple parallel (but not concurrent) threads of execution because of blocking IO or asynchronous APIs.
    * <p>
    * All exceptions thrown by this method will be <b>ignored</b>.
-   *  @param execType indicates whether this is a compute (e.g. request handling) or blocking IO thread
+   *
+   * @param execution the execution who's segment is being intercepted
+   * @param execType indicates whether this is a compute (e.g. request handling) or blocking IO thread
    * @param continuation the “rest” of the execution
    */
-  void intercept(ExecType execType, Runnable continuation);
+  void intercept(Execution execution, ExecType execType, Runnable continuation);
 
 }

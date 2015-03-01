@@ -17,6 +17,7 @@
 package ratpack.error
 
 import ratpack.exec.ExecInterceptor
+import ratpack.exec.Execution
 import ratpack.func.Action
 import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -30,7 +31,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
       this.error = error
     }
 
-    void intercept(ExecInterceptor.ExecType execType, Runnable continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType execType, Runnable continuation) {
       throw error
     }
   }

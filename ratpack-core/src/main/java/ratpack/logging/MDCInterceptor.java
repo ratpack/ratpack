@@ -16,13 +16,13 @@
 
 package ratpack.logging;
 
+import org.slf4j.MDC;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
+import ratpack.util.Types;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import org.slf4j.MDC;
 
 /**
  * Intercept execution and add support for <a href="http://www.slf4j.org/api/org/slf4j/MDC.html">SLF4J MDC</a> described in the <a href="http://www.slf4j.org/manual.html#mdc">manual</a>.
@@ -59,7 +59,7 @@ import org.slf4j.MDC;
  *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> {
  *       chain
  *          .handler(ctx ->
- *            ctx.addInterceptor(new MDCInterceptor(ctx.getExecution()), ctx::next)
+ *            ctx.addInterceptor(new MDCInterceptor(), ctx::next)
  *          )
  *          .handler(ctx -> {
  *            MDC.put("value", "foo");
@@ -83,36 +83,29 @@ import org.slf4j.MDC;
  */
 public class MDCInterceptor implements ExecInterceptor {
 
-  public static class MDCMap extends HashMap<String, String> {
+  private static class MDCMap extends HashMap<String, String> {
   }
 
-  private final Execution execution;
+  public MDCInterceptor() {
 
-  public MDCInterceptor(final Execution execution) {
-    this.execution = execution;
-    if (!this.execution.maybeGet(MDCMap.class).isPresent()) {
-      this.execution.add(new MDCMap());
-    }
   }
 
-  public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
-    MDCMap map = this.execution.get(MDCMap.class);
-    if (map != null && map.size() > 0) {
-      MDC.setContextMap(map);
-    } else {
-      MDC.clear();
+  public void intercept(Execution execution, ExecType type, Runnable continuation) {
+    MDCMap map = execution.maybeGet(MDCMap.class).orElse(null);
+    if (map == null) {
+      map = new MDCMap();
+      execution.add(map);
     }
+
+    MDC.setContextMap(map);
 
     continuation.run();
 
-    if (map != null) {
-      map.clear();
-      @SuppressWarnings(value = "unchecked")
-      Map<String, String> ctxMap = (Map<String, String>)MDC.getCopyOfContextMap();
-      if (ctxMap != null && ctxMap.size() > 0) {
-        map.putAll(ctxMap);
-        MDC.clear();
-      }
+    map.clear();
+    Map<String, String> ctxMap = Types.cast(MDC.getCopyOfContextMap());
+    if (ctxMap != null && ctxMap.size() > 0) {
+      map.putAll(ctxMap);
+      MDC.clear();
     }
   }
 }
