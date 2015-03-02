@@ -18,11 +18,6 @@ description = "Test time support for Groovy Ratpack apps (or for Groovy based te
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
-def restAssuredVersion = "1.8.1"
-ext.apiLinks = [
-  "http://rest-assured.googlecode.com/svn/tags/$restAssuredVersion/apidocs/"
-]
-
 dependencies {
   compile project(":ratpack-groovy"), project(":ratpack-test")
   compile commonDependencies.jackson
