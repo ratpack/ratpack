@@ -80,19 +80,16 @@ import java.util.Map;
  * }</pre>
  * <p>
  * Given the code above, using the Log4j bindings with configuration such as:
- * <pre>{@code
- * <Console name="Console" target="SYSTEM_OUT">
+ * <pre>{@code <Console name="Console" target="SYSTEM_OUT">
  *   <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg - [%X{clientIp}] %n"/>
- *  </Console>
- * }
- * </pre>
+ * </Console>}</pre>
  * <p>
  * The client IP address will be appended to all log messages made while processing requests.
  * <h3>Inheritance</h3>
  * <p>
  * The MDC is not inherited by forked executions (e.g. {@link ratpack.handling.Context#exec()}).
  * If you wish context to be inherited, you must do so explicitly by capturing the variables you wish to be inherited
- * (i.e. via {@link MDC#get}) as local variables and then add them to the MDC (i.e. via {@link MDC#put}) in the forked execution.
+ * (i.e. via {@link MDC#get(String)}) as local variables and then add them to the MDC (i.e. via {@link MDC#put(String, String)}) in the forked execution.
  *
  * @see ratpack.exec.ExecControl#addInterceptor(ratpack.exec.ExecInterceptor, ratpack.func.NoArgAction)
  */
