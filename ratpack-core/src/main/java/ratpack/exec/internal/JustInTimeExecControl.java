@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
 
 public class JustInTimeExecControl implements ExecControl {
 
-  public static ExecControl INSTANCE = new JustInTimeExecControl();
+  public static final ExecControl INSTANCE = new JustInTimeExecControl();
 
   private ExecControl getDelegate() {
     return ExecControl.current();
