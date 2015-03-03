@@ -50,4 +50,12 @@ public interface Promise<T> extends SuccessPromise<T> {
     onError(t -> resultHandler.execute(Result.<T>failure(t))).then(v -> resultHandler.execute(Result.success(v)));
   }
 
+  /**
+   * Returns {@code this}.
+   *
+   * @return {@code this}
+   * @see SuccessPromise#toPromise()
+   */
+  @Override
+  Promise<T> toPromise();
 }

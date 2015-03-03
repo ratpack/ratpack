@@ -67,6 +67,11 @@ public class CachingPromise<T> implements Promise<T> {
     newPromise().then(then);
   }
 
+  @Override
+  public Promise<T> toPromise() {
+    return this;
+  }
+
   private DefaultSuccessPromise<T> newPromise() {
     return new DefaultSuccessPromise<>(executionSupplier, new Fulfillment(), errorHandler);
   }
@@ -74,6 +79,11 @@ public class CachingPromise<T> implements Promise<T> {
   @Override
   public <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
     return newPromise().map(transformer);
+  }
+
+  @Override
+  public <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {
+    return newPromise().apply(function);
   }
 
   @Override

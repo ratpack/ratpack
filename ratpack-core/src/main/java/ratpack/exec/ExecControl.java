@@ -136,6 +136,10 @@ public interface ExecControl {
     return promise(f -> f.success(item));
   }
 
+  default <T, E extends Throwable> Promise<T> failedPromise(E error) {
+    return promise(f -> f.error(error));
+  }
+
   /**
    * Creates a new execution starter that can be used to initiate a new execution.
    *

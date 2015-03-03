@@ -58,23 +58,23 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   @Override
+  public Promise<T> toPromise() {
+    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new PassThru(downstream)));
+  }
+
+  @Override
   public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> transformer) {
-    return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
-      @Override
-      protected void onSuccess(O transformed) {
-        downstream.success(transformed);
-      }
-    }));
+    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Transform<>(downstream, transformer, downstream::success)));
+  }
+
+  @Override
+  public <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {
+    return new DefaultPromise<>(executionSupplier, fulfillment).apply(function);
   }
 
   @Override
   public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
-    return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
-      @Override
-      protected void onSuccess(Promise<O> transformed) {
-        transformed.onError(downstream::error).then(downstream::success);
-      }
-    }));
+    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Transform<>(downstream, transformer, transformed -> transformed.onError(downstream::error).then(downstream::success))));
   }
 
   @Override
@@ -149,12 +149,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public <O> Promise<O> blockingMap(final Function<? super T, ? extends O> transformer) {
-    return flatMap(new Function<T, Promise<O>>() {
-      @Override
-      public Promise<O> apply(final T t) throws Exception {
-        return executionSupplier.get().getExecution().getControl().blocking(() -> transformer.apply(t));
-      }
-    });
+    return flatMap(t -> executionSupplier.get().getExecution().getControl().blocking(() -> transformer.apply(t)));
   }
 
   @Override
@@ -223,15 +218,17 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public Promise<T> throttled(Throttle throttle) {
-    return throttle.throttle(new DefaultPromise<>(executionSupplier, downstream -> doThen(new PassThru(downstream))));
+    return throttle.throttle(toPromise());
   }
 
-  private abstract class Transform<I, O> extends Step<O> {
+  private class Transform<I, O> extends Step<O> {
     private final Function<? super T, ? extends I> function;
+    private final Consumer<? super I> onSuccess;
 
-    public Transform(Fulfiller<? super O> downstream, Function<? super T, ? extends I> function) {
+    public Transform(Fulfiller<? super O> downstream, Function<? super T, ? extends I> function, Consumer<? super I> onSuccess) {
       super(downstream);
       this.function = function;
+      this.onSuccess = onSuccess;
     }
 
     @Override
@@ -247,7 +244,9 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       onSuccess(transformed);
     }
 
-    protected abstract void onSuccess(I transformed);
+    public void onSuccess(I transformed) {
+      onSuccess.accept(transformed);
+    }
   }
 
   private class UserActionFulfiller implements Fulfiller<T> {

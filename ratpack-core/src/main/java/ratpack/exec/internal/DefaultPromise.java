@@ -49,8 +49,22 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
+  public Promise<T> toPromise() {
+    return this;
+  }
+
+  @Override
   public <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
     return propagatingSuccessPromise().map(transformer);
+  }
+
+  @Override
+  public <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {
+    try {
+      return function.apply(this);
+    } catch (Exception e) {
+      return executionProvider.get().getExecution().failedPromise(e);
+    }
   }
 
   @Override
