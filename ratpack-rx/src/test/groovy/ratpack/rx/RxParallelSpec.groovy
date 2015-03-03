@@ -91,7 +91,7 @@ class RxParallelSpec extends Specification {
     when:
     controller.control.exec()
       .onComplete { latch.countDown() }
-      .start {
+      .start { exec ->
       def o = rx.Observable.from(1, 2, 3, 4, 5)
         .parallel {
         it.flatMap { n ->
@@ -103,7 +103,7 @@ class RxParallelSpec extends Specification {
         }
       }
 
-      RxRatpack.forkAndJoin(it.control, o).toList().subscribe {
+      exec.control.forkAndJoin(o).toList().subscribe {
         nums = it
       }
     }
@@ -137,7 +137,7 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    forkOnNext(control, sequence).subscribe {
+    control.forkOnNext(sequence).subscribe {
       received << it.toUpperCase()
       barrier.await()
     }
@@ -154,7 +154,7 @@ class RxParallelSpec extends Specification {
     Throwable e = null
 
     when:
-    sequence.lift(forkOnNext(control)).serialize().subscribe({
+    sequence.lift(control.forkOnNext()).serialize().subscribe({
       throw new RuntimeException("!")
     }, { e = it; barrier.await() })
     barrier.await()

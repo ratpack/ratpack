@@ -44,6 +44,10 @@ import java.util.concurrent.ScheduledExecutorService;
  * It is not designed to be a fully featured reactive toolkit.
  * If you require more features than provided here, consider using Ratpack's RxJava or Reactor integration.
  * </p>
+ * <p>
+ * The methods in this class are available as <a href="http://docs.groovy-lang.org/latest/html/documentation/#_extension_modules">Groovy Extensions</a>.
+ * When using Groovy, applications can utilize the static methods provided in this class as instance-level methods against the first argument in their variable argument list.
+ * </p>
  */
 public class Streams {
 

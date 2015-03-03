@@ -19,6 +19,7 @@ package ratpack.stream
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.func.Function
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -45,7 +46,7 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    def stream = publish(1..10).wiretap {
+    def stream = (1..10).publish().wiretap {
       if (it.data) {
         sent << it.item
       }
@@ -88,7 +89,7 @@ class StreamsSpec extends Specification {
 
   def "can firehose with buffering publisher"() {
     when:
-    def p = publish(1..100)
+    def p = (1..100).publish()
     def s = CollectingSubscriber.subscribe(p)
     s.subscription.request(Long.MAX_VALUE)
 
@@ -113,7 +114,7 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    def stream = periodically(executor, Duration.ofSeconds(5)) { it < 5 ? it : null }
+    def stream = executor.periodically(Duration.ofSeconds(5)) { it < 5 ? it : null }
 
     stream.subscribe(new Subscriber<Integer>() {
       @Override
@@ -163,7 +164,7 @@ class StreamsSpec extends Specification {
 
   def "yielding publisher"() {
     when:
-    def p = yield { it.requestNum < 4 ? it.requestNum.toString() + "-" + it.subscriberNum.toString() : null }
+    def p = ({ it.requestNum < 4 ? it.requestNum.toString() + "-" + it.subscriberNum.toString() : null } as Function).yield()
     def s1 = CollectingSubscriber.subscribe(p)
     def s2 = CollectingSubscriber.subscribe(p)
 
@@ -190,11 +191,11 @@ class StreamsSpec extends Specification {
 
   def "flat yielding publisher"() {
     when:
-    def p = flatYield { r ->
+    def p = ({ r ->
       harness.blocking {
         r.requestNum < 4 ? r.requestNum.toString() + "-" + r.subscriberNum.toString() : null
       }
-    }
+    } as Function).flatYield()
     def s1 = CollectingSubscriber.subscribe(p)
     def s2 = CollectingSubscriber.subscribe(p)
 
@@ -221,11 +222,11 @@ class StreamsSpec extends Specification {
 
   def "failed promise stops flat yield"() {
     given:
-    def p = flatYield { r ->
+    def p = ({ r ->
       harness.blocking {
         r.requestNum < 4 ? r.requestNum.toString() + "-" + r.subscriberNum.toString() : { throw new Exception("!") }.run()
       }
-    }
+    } as Function).flatYield()
     def s1 = CollectingSubscriber.subscribe(p)
 
     when:
@@ -255,7 +256,7 @@ class StreamsSpec extends Specification {
     Subscription fooSubscription
     Subscription barSubscription
 
-    def stream = periodically(executor, Duration.ofSeconds(5)) { it < 10 ? it : null }.wiretap {
+    def stream = executor.periodically(Duration.ofSeconds(5)) { it < 10 ? it : null }.wiretap {
       if (it.data) {
         sent << it.item
       }
@@ -375,7 +376,7 @@ class StreamsSpec extends Specification {
   def "can reject further multicast subscriptions when the upstream publisher has completed"() {
     given:
     def error
-    def stream = publish([1]).multicast()
+    def stream = [1].publish().multicast()
     stream.subscribe(new Subscriber() {
       @Override
       void onSubscribe(Subscription s) {
@@ -429,7 +430,7 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    def stream = periodically(executor, Duration.ofSeconds(5)) { it < 3 ? [0, 1, 2, 3] : null }
+    def stream = executor.periodically(Duration.ofSeconds(5)) { it < 3 ? [0, 1, 2, 3] : null }
     stream = fanOut(stream)
 
     stream.subscribe(new Subscriber<Integer>() {
@@ -523,8 +524,8 @@ class StreamsSpec extends Specification {
     boolean complete = false
     Subscription subscription
 
-    def stream1 = periodically(executor1, Duration.ofSeconds(5)) { it < 3 ? it + 1 : null }
-    def stream2 = periodically(executor2, Duration.ofSeconds(5)) { it < 3 ? it + 11 : null }
+    def stream1 = executor1.periodically(Duration.ofSeconds(5)) { it < 3 ? it + 1 : null }
+    def stream2 = executor2.periodically(Duration.ofSeconds(5)) { it < 3 ? it + 11 : null }
     def stream = merge(stream1, stream2)
 
     stream.subscribe(new Subscriber<Integer>() {

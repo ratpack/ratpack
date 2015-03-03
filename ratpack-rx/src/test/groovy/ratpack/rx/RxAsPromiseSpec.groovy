@@ -22,9 +22,6 @@ import rx.Observable
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-import static ratpack.rx.RxRatpack.asPromise
-import static ratpack.rx.RxRatpack.asPromiseSingle
-
 class RxAsPromiseSpec extends Specification {
 
   @AutoCleanup
@@ -49,7 +46,7 @@ class RxAsPromiseSpec extends Specification {
 
   def "can test async service"() {
     when:
-    def result = harness.yield { asPromise(service.observe("foo")) }
+    def result = harness.yield { service.observe("foo").asPromise() }
 
     then:
     result.valueOrThrow == ["foo"]
@@ -57,7 +54,7 @@ class RxAsPromiseSpec extends Specification {
 
   def "failed observable causes exception to be thrown"() {
     when:
-    harness.yield { asPromise(service.fail()) }.valueOrThrow
+    harness.yield { service.fail().asPromise() }.valueOrThrow
 
     then:
     def e = thrown RuntimeException
@@ -66,7 +63,7 @@ class RxAsPromiseSpec extends Specification {
 
   def "can unpack single"() {
     when:
-    def result = harness.yield { asPromiseSingle(service.observe("foo")) }
+    def result = harness.yield { service.observe("foo").asPromiseSingle() }
 
     then:
     result.valueOrThrow == "foo"

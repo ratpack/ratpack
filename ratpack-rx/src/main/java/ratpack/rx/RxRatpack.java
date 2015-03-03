@@ -50,6 +50,10 @@ import static ratpack.util.ExceptionUtils.toException;
  * This typically means using {@link ExecControl#promise(Action)} or {@link ExecControl#blocking(java.util.concurrent.Callable)} to initiate the operation and then wrapping with {@link #observe(Promise)} or similar.
  * <p>
  * To test observable based services that use Ratpack's execution semantics, use the {@code ExecHarness} and convert the observable back to a promise with {@link #asPromise(Observable)}.
+ * <p>
+ * The methods in this class are also provided as <a href="http://docs.groovy-lang.org/latest/html/documentation/#_extension_modules">Groovy Extensions</a>.
+ * When using Groovy, each static method in this class is able to act as an instance-level method against the {@link Observable} type.
+ * </p>
  */
 public abstract class RxRatpack {
 

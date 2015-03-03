@@ -19,6 +19,7 @@ package ratpack.websocket
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import ratpack.exec.ExecController
+import ratpack.func.Function
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Timeout
 import spock.util.concurrent.BlockingVariable
@@ -44,10 +45,10 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get {
-        websocket(context) {
+        context.websocket({
           ws = it
           2
-        } connect {
+        } as Function) connect {
           it.onClose {
             closing.set(it)
           } onMessage {
