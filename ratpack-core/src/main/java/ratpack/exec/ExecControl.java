@@ -17,6 +17,7 @@
 package ratpack.exec;
 
 import org.reactivestreams.Publisher;
+import ratpack.exec.internal.JustInTimeExecControl;
 import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 import ratpack.stream.TransformablePublisher;
@@ -75,6 +76,38 @@ public interface ExecControl {
    */
   static ExecControl current() throws UnmanagedThreadException {
     return ExecController.require().getControl();
+  }
+
+  /**
+   * An exec control that binds to the thread's execution on demand.
+   * <p>
+   * Unlike the {@link #current()} method, this method can be called outside of a Ratpack managed thread.
+   * However, the methods of the returned exec control can only be called on managed threads.
+   * If a method is called while not on a managed thread, a {@link UnmanagedThreadException} will be thrown.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecControl;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   // Get an exec control on a non managed thread (i.e. the JVM main thread)
+   *   public static ExecControl control = ExecControl.execControl();
+   *
+   *   public static void main(String... args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       control.blocking(() -> "foo")
+   *     ).getValue();
+   *     assertEquals("foo", value);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @return an exec control
+   */
+  static ExecControl execControl() {
+    return JustInTimeExecControl.INSTANCE;
   }
 
   Execution getExecution();
