@@ -75,7 +75,6 @@ apply plugin: "io.ratpack.ratpack-groovy"
 
 repositories {
   maven { url "${rootDir.toURI()}build/localrepo" }
-  maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots' }
   jcenter()
 }
 
