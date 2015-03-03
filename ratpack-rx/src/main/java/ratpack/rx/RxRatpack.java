@@ -164,22 +164,22 @@ public abstract class RxRatpack {
    * <p>
    * For example, this can be used to observe blocking operations.
    * <pre class="java">{@code
-   * import ratpack.exec.Promise;
-   * import ratpack.test.handling.HandlingResult;
-   *
-   * import static ratpack.rx.RxRatpack.observe;
-   * import static ratpack.test.handling.RequestFixture.requestFixture;
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
+   *   public static String value;
    *   public static void main(String... args) throws Exception {
-   *     HandlingResult result = requestFixture().handle(context -> {
-   *       Promise<String> promise = context.blocking(() -> "hello world");
-   *       observe(promise).map(String::toUpperCase).subscribe(context::render);
-   *     });
+   *     ExecHarness.runSingle(e ->
+   *       e.blocking(() -> "hello world")
+   *         .to(RxRatpack::observe)
+   *         .map(String::toUpperCase)
+   *         .subscribe(s -> value = s)
+   *     );
    *
-   *     assertEquals("HELLO WORLD", result.rendered(String.class));
+   *     assertEquals("HELLO WORLD", value);
    *   }
    * }
    * }</pre>
@@ -267,28 +267,26 @@ public abstract class RxRatpack {
    * For example, this can be used to observe background operations that produce some kind of iterable&hellip;
    *
    * <pre class="java">{@code
-   * import ratpack.exec.Promise;
-   * import ratpack.test.handling.HandlingResult;
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.Arrays;
+   * import java.util.LinkedList;
    * import java.util.List;
-   *
-   * import static ratpack.rx.RxRatpack.observeEach;
-   * import static ratpack.test.handling.RequestFixture.requestFixture;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     HandlingResult result = requestFixture().handle(context -> {
-   *       Promise<List<String>> promise = context.blocking(() -> Arrays.asList("hello", "world"));
-   *       observeEach(promise)
-   *         .map(String::toUpperCase)
-   *         .toList()
-   *         .subscribe(strings -> context.render(String.join(" ", strings)));
-   *     });
+   *   private static final List<String> LOG = new LinkedList<>();
    *
-   *     assertEquals("HELLO WORLD", result.rendered(String.class));
+   *   public static void main(String... args) throws Exception {
+   *     ExecHarness.runSingle(e ->
+   *         e.blocking(() -> Arrays.asList("foo", "bar"))
+   *           .to(RxRatpack::observeEach)
+   *           .subscribe(LOG::add)
+   *     );
+   *
+   *     assertEquals(Arrays.asList("foo", "bar"), LOG);
    *   }
    * }
    * }</pre>

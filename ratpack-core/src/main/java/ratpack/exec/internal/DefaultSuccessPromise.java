@@ -73,6 +73,11 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   @Override
+  public <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception {
+    return toPromise().to(function);
+  }
+
+  @Override
   public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
     return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Transform<>(downstream, transformer, transformed -> transformed.onError(downstream::error).then(downstream::success))));
   }

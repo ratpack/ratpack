@@ -142,6 +142,49 @@ public interface PromiseOperations<T> {
   <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function);
 
   /**
+   * Applies the given function to {@code this} and returns the result.
+   * <p>
+   * This method can be useful when needing to convert a promise to another type as it facilitates doing so without breaking the “code flow”.
+   * For example, this can be used when integrating with RxJava.
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.Arrays;
+   * import java.util.LinkedList;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   private static final List<String> LOG = new LinkedList<>();
+   *
+   *   public static void main(String... args) throws Exception {
+   *     ExecHarness.runSingle(e ->
+   *         e.blocking(() -> "foo")
+   *           .to(RxRatpack::observe)
+   *           .doOnNext(i -> LOG.add("doOnNext"))
+   *           .subscribe(LOG::add)
+   *     );
+   *
+   *     assertEquals(Arrays.asList("doOnNext", "foo"), LOG);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The given function is executed immediately.
+   * <p>
+   * This method should only be used when converting a promise to another type.
+   * See {@link #apply(Function)} for applying custom promise operators.
+   *
+   * @param function the promise conversion function
+   * @param <O> the type the promise will be converted to
+   * @return the output of the given function
+   * @throws Exception any thrown by the given function
+   */
+  <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception;
+
+  /**
    * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
    * <p>
    * This is simply a more convenient form of using {@link ExecControl#blocking(java.util.concurrent.Callable)} and {@link #flatMap(Function)}.

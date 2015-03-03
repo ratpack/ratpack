@@ -68,6 +68,11 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
+  public <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception {
+    return function.apply(this);
+  }
+
+  @Override
   public <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer) {
     return propagatingSuccessPromise().blockingMap(transformer);
   }

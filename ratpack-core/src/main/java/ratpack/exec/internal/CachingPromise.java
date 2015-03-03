@@ -87,6 +87,11 @@ public class CachingPromise<T> implements Promise<T> {
   }
 
   @Override
+  public <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception {
+    return newPromise().to(function);
+  }
+
+  @Override
   public <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer) {
     return newPromise().blockingMap(transformer);
   }
