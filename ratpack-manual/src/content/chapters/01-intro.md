@@ -36,42 +36,13 @@ This could be used to implement support for custom, non HTTP oriented, networkin
 
 [http://vertx.io](http://vertx.io)
 
-Ratpack is similar to Vert.x in some respects: 
+Vert.x and Ratpack share some similarities in that they both use Netty and are primarily non blocking.
 
-* Built on Netty
-* Not based on J2EE or Servlets
-* Non blocking
+Some key differences between Ratpack and Vert.x:
 
-A key difference between Vert.x and Ratpack is that Vert.x is a container, where Ratpack is a set of libraries (Vert.x can be embedded, but is typically not).
-As such, it attempts to address a broader set of concerns than Ratpack.
+* Ratpack focusses primarily on HTTP whereas Vert.x has a much broader set of APIs encompassing other network protocols, file system access, timers, shared data, clustering and many other features
+* Vert.x exposes these features idiomatically in several JVM languages including JavaScript, Groovy, Ruby, Python, Clojure, Scala and of course Java.
 
-Vert.x applications are a composed set of “verticles” communicating via an unstructured JSON (in terms of schema) distributed bus.
-Vert.x provides support for many different programming languages, even making it easy to compose an application out of verticles of different languages.
-  
-Vert.x makes certain irreversible decisions about how applications should be written and architected.
-It provides horizontal scaling, a message bus, development time support and more.
-In contrast Ratpack is less prescriptive, giving you more freedom (and responsibility) to build your app from the ground up with the technologies you choose.
-
-Vert.x has a plugin system and a healthy ecosystem of plugins, generally collaborating around the message bus.
-The [“Architecture”](architecture.html) chapter of this manual discusses why Ratpack does not have a plugin mechanism, and why it doesn't need one.
-
-Vert.x supports many protocols like Netty.
-Its API is closer to Netty's, and completely encapsulates it.
-As such, it is (not significantly) more performant than Ratpack and more suitable for lower level networking.
-
-Ratpack is more focussed on HTTP applications than Vert.x.
-Ratpack provides more support for structuring, composing, evolving and testing request handling logic than Vert.x.
-A more apt comparison than Ratpack and Vert.x would be a HTTP oriented framework built on top of Vert.x, such as [Yoke](http://pmlopes.github.io/yoke).
-  
-Another key difference is that the Vert.x API is callback based.
-Ratpack use the concept of a “promise” instead (see the [“Async”](async.html) chapter for more info).
-Moreover, Ratpack's [handler pipeline](handlers.html) is designed to support composition of asynchronous functions that process requests (called handlers) without callbacks.
-Both Vert.x and Ratpack integrate with [RxJava](https://github.com/Netflix/RxJava) for composition of generic asynchronous functions through add-ons.
-See [RxVertx](https://github.com/vert-x/mod-rxvertx), and the [“RxJava”](rxjava.html) chapter of this manual.
-
-Architecturally Vert.x integrates application components via its own implementation of the Actor model (i.e. via message passing on its own event bus).
-There is no equivalent Ratpack feature.
-You are free to choose your own approach for higher level composition.
 
 ### RxNetty
 
