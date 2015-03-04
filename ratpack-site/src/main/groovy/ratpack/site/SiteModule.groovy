@@ -28,6 +28,7 @@ class SiteModule extends ConfigurableModule<GitHubConfig> {
   @Override
   protected void configure() {
     bind(RatpackVersions)
+    bind(SiteErrorHandler)
   }
 
   @Provides
