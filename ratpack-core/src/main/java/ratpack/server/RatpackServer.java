@@ -18,18 +18,12 @@ package ratpack.server;
 
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.func.Function;
-import ratpack.handling.Chain;
-import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
 import ratpack.server.internal.NettyRatpackServer;
 
 /**
  * The entry point for creating and starting a Ratpack application.
  * <p>
- * The {@link #of(Function)} static method is used to create a server.
+ * The {@link #of(Action)} static method is used to create a server.
  * <pre class="java">{@code
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
@@ -39,10 +33,10 @@ import ratpack.server.internal.NettyRatpackServer;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
- *     RatpackServer server = RatpackServer.of(b -> b
+ *     RatpackServer server = RatpackServer.of(s -> s
  *       .serverConfig(ServerConfig.embedded())            // base server configuration (e.g. port) - optional
- *       .registryOf(r -> r.add(String.class, "foo"))  // registry of supporting objects - optional
- *       .handlers(chain -> chain                    // request handlers - required
+ *       .registryOf(r -> r.add(String.class, "foo"))      // registry of supporting objects - optional
+ *       .handlers(chain -> chain                          // request handlers - required
  *         .get("a", ctx -> ctx.render(ctx.get(String.class) + " 1"))
  *         .get("b", ctx -> ctx.render(ctx.get(String.class) + " 2"))
  *       )
@@ -57,41 +51,38 @@ import ratpack.server.internal.NettyRatpackServer;
  * }
  * }</pre>
  *
- * <h3><a name="def-server-config">Server Config</a></h3>
- * <p>TODO</p>
- * <h3><a name="def-registries">User and server registries</a></h3>
- * <p>TODO</p>
- * <h3><a name="def-handlers">Handlers</a></h3>
- * <p>TODO</p>
- * <p>
  * Server objects are thread safe in that every instance method is {@code synchronized}.
+ *
+ * @see RatpackServerSpec
+ * @see #of(Action)
  */
 public interface RatpackServer {
 
   // TODO document the contents of the server registry, and the way that the user registry is joined on to it
 
   /**
-   * Creates a new, unstarted, Ratpack server from the given function.
+   * Creates a new, unstarted, Ratpack server from the given definition.
    * <p>
-   * The function argument effectively serves as the definition of the server.
-   * It receives a definition builder that it uses to create a definition object.
-   * The function is retained internally by the server, and invoked again if the {@link #reload()} method is called.
+   * The action argument effectively serves as the definition of the server.
+   * It receives a mutable server builder style object, a {@link RatpackServerSpec}.
+   * The action is retained internally by the server, and invoked again if the {@link #reload()} method is called.
    *
-   * @param definition a function that defines the server
+   * @param definition the server definition
    * @return a Ratpack server
+   * @see RatpackServerSpec
    */
-  public static RatpackServer of(Function<? super Definition.Builder, ? extends Definition> definition) throws Exception {
+  public static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
     return new NettyRatpackServer(definition);
   }
 
   /**
-   * Convenience method to {@link #of(Function) define} and {@link #start()} the server in one go.
+   * Convenience method to {@link #of(Action) define} and {@link #start()} the server in one go.
    *
-   * @param serverDefinition a function defines the server, by using the given definition builder
-   * @throws Exception any thrown by {@link #of(Function)} or {@link #start()}
+   * @param definition the server definition
+   * @throws Exception any thrown by {@link #of(Action)} or {@link #start()}
    */
-  public static void start(Function<? super Definition.Builder, ? extends Definition> serverDefinition) throws Exception {
-    of(serverDefinition).start();
+  public static void start(Action<? super RatpackServerSpec> definition) throws Exception {
+    of(definition).start();
   }
 
   /**
@@ -160,7 +151,7 @@ public interface RatpackServer {
    *   public static void main(String... args) throws Exception {
    *     String[] holder = new String[]{"foo"};
    *
-   *     RatpackServer server = RatpackServer.of(b -> b
+   *     RatpackServer server = RatpackServer.of(s -> s
    *       .serverConfig(ServerConfig.embedded())
    *       .registry(r -> r.add(String.class, holder[0]))
    *       .handler(registry -> (ctx) -> ctx.render(ctx.get(String.class)))
@@ -192,152 +183,5 @@ public interface RatpackServer {
    * @throws Exception any thrown from the definition function, {@link #stop()} or {@link #start()} methods.
    */
   RatpackServer reload() throws Exception;
-
-  /**
-   * The internal definition of a Ratpack server.
-   * <p>
-   * See {@link #of(Function)}.
-   */
-  interface Definition {
-
-    /**
-     * The base server configuration.
-     *
-     * @return the base server configuration.
-     * @see Builder#serverConfig(ServerConfig)
-     */
-    ServerConfig getServerConfig();
-
-    /**
-     * The user registry.
-     *
-     * @return the user registry
-     * @see Builder#registry(Registry)
-     */
-    Function<? super Registry, ? extends Registry> getUserRegistryFactory();
-
-    /**
-     * The handler factory.
-     *
-     * @return the handler factory
-     * @see Builder#handler
-     */
-    Function<? super Registry, ? extends Handler> getHandlerFactory();
-
-    /**
-     * A builder for a Ratpack server definition.
-     * <p>
-     * This builder is used by the function given to the {@link #of(Function)} method used to define a server.
-     * <p>
-     * The {@link #handler(Function)} or {@link #handlers(Action)} method “terminates” the build and returns the built definition.
-     * Calling one of these methods is effectively mandatory, while all other methods are optional.
-     * <p>
-     * See the documentation of the {@link #of(Function)} method for more detail on how to use this builder.
-     */
-    interface Builder {
-
-      /**
-       * Specifies the user registry.
-       * <p>
-       * Builds a registry from the given spec, and delegates to {@link #registry(ratpack.registry.Registry)}.
-       *
-       * @param action the definition of the user registry
-       * @return {@code this}
-       * @throws Exception any thrown by {@code action}
-       * @see #registry(Registry)
-       */
-      Builder registryOf(Action<? super RegistrySpec> action) throws Exception;
-
-      /**
-       * Specifies the user registry.
-       * <p>
-       * This method is not additive.
-       * That is, there is only one user registry and subsequent calls to this method override any previous.
-       *
-       * @param registry the user registry
-       * @return {@code this}
-       */
-      Builder registry(Registry registry);
-
-      /**
-       * Specifies the user registry.
-       * <p>
-       * This method is not additive.
-       * That is, there is only one user registry and subsequent calls to this method override any previous.
-       * <p>
-       * The given function receives the “base” registry, and must return the “user” registry.
-       *
-       * @param function a factory for the user registry
-       * @return {@code this}
-       */
-      Builder registry(Function<? super Registry, ? extends Registry> function);
-
-      /**
-       * Specifies the server configuration for the application.
-       * <p>
-       * Server configs can be created by static methods on the {@link ServerConfig} interface, such as {@link ServerConfig#baseDir(java.nio.file.Path)}.
-       * <p>
-       * The server config returned by {@link ServerConfig#noBaseDir()} is used if this method is not called.
-       * <p>
-       * This method is not additive.
-       * That is, there is only one server config and subsequent calls to this method override any previous.
-       *
-       * @param serverConfig the server configuration
-       * @return {@code this}
-       */
-      Builder serverConfig(ServerConfig serverConfig);
-
-      /**
-       * Convenience function that {@link ratpack.server.ServerConfig.Builder#build() builds} the config from the given builder and delegates to {@link #serverConfig(ServerConfig)}.
-       *
-       * @param serverConfigBuilder the server configuration (as a builder)
-       * @return {@code this}
-       */
-      default Builder serverConfig(ServerConfig.Builder serverConfigBuilder) {
-        return serverConfig(serverConfigBuilder.build());
-      }
-
-      /**
-       * Builds the server definition from the given handler type, and state of this builder.
-       * <p>
-       * The handler is retrieved from the registry.
-       *
-       * @param handlerType the type of handler to retrieve from the registry
-       * @return a server definition based on the state of this builder
-       */
-      default Definition handler(Class<? extends Handler> handlerType) {
-        return handler(registry -> registry.get(handlerType));
-      }
-
-      /**
-       * Builds the server definition from the given factory, and state of this builder.
-       * <p>
-       * The registry given to this method is not the same registry that is defined by the {@link #registry(Registry)} methods (i.e. the user registry).
-       * It also contains additional entries added to all Ratpack applications.
-       * <p>
-       * The {@link Handlers} type provides handler implementations that may be of use.
-       *
-       * @param handlerFactory a factory function for the root handler
-       * @return a server definition based on the state of this builder
-       * @see Handlers
-       * @see #handlers(Action)
-       */
-      Definition handler(Function<? super Registry, ? extends Handler> handlerFactory);
-
-      /**
-       * Builds the server definition from the given handler chain definition, and state of this builder.
-       * <p>
-       * The server registry is available during the action via the {@link Chain#getRegistry()} method of the given chain.
-       *
-       * @param handlers a handler defining action
-       * @return a server definition based on the state of this builder
-       * @see Chain
-       */
-      default Definition handlers(Action<? super Chain> handlers) {
-        return handler(r -> Handlers.chain(r, handlers));
-      }
-    }
-
-  }
 
 }

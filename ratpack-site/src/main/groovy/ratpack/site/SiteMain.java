@@ -37,9 +37,6 @@ import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
 
-import java.util.Collections;
-import java.util.List;
-
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
 import static ratpack.registry.Registries.just;
 
@@ -63,7 +60,7 @@ public class SiteMain {
           }
         };
 
-        return b
+        b
           .serverConfig(serverConfig)
           .registry(
             Guice.registry(s -> s

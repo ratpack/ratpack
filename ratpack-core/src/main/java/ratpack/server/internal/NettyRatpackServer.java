@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
+import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.Factory;
 import ratpack.func.Function;
@@ -68,7 +69,7 @@ public class NettyRatpackServer implements RatpackServer {
   public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeToken.of(HandlerDecorator.class);
   private static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
 
-  protected final Function<? super Definition.Builder, ? extends Definition> definitionFactory;
+  protected final Action<? super RatpackServerSpec> definitionFactory;
 
   protected InetSocketAddress boundAddress;
   protected Channel channel;
@@ -81,7 +82,7 @@ public class NettyRatpackServer implements RatpackServer {
   protected SSLEngine sslEngine;
   private final ServerCapturer.Overrides overrides;
 
-  public NettyRatpackServer(Function<? super Definition.Builder, ? extends Definition> definitionFactory) throws Exception {
+  public NettyRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
     this.definitionFactory = definitionFactory;
     this.overrides = ServerCapturer.capture(this);
   }
@@ -116,14 +117,14 @@ public class NettyRatpackServer implements RatpackServer {
     }
   }
 
-  private static class DefinitionBuild implements Definition {
+  private static class DefinitionBuild {
     private final ServerCapturer.Overrides overrides;
-    private final Definition definition;
+    private final RatpackServerDefinition definition;
     private final Throwable error;
     private final ServerConfig serverConfig;
     private final Function<? super Registry, ? extends Registry> userRegistryFactory;
 
-    public DefinitionBuild(ServerCapturer.Overrides overrides, Definition definition, Throwable error) {
+    public DefinitionBuild(ServerCapturer.Overrides overrides, RatpackServerDefinition definition, Throwable error) {
       this.overrides = overrides;
       this.definition = definition;
       this.error = error;
@@ -142,7 +143,7 @@ public class NettyRatpackServer implements RatpackServer {
       Registry serverConfigOverrideRegistry = Registries.just(ServerConfig.class, serverConfig);
       this.userRegistryFactory = baseRegistry -> {
         Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
-        Registry userRegistry = definition.getUserRegistryFactory().apply(actualBaseRegistry);
+        Registry userRegistry = definition.getRegistry().apply(actualBaseRegistry);
         Registry overrideRegistry = overrides.getRegistryFunction().apply(userRegistry);
         return userRegistry.join(overrideRegistry);
       };
@@ -152,27 +153,24 @@ public class NettyRatpackServer implements RatpackServer {
       return overrides;
     }
 
-    @Override
     public ServerConfig getServerConfig() {
       return serverConfig;
     }
 
-    @Override
     public Function<? super Registry, ? extends Registry> getUserRegistryFactory() {
       return userRegistryFactory;
     }
 
-    @Override
     public Function<? super Registry, ? extends Handler> getHandlerFactory() {
-      return definition.getHandlerFactory();
+      return definition.getHandler();
     }
   }
 
   protected DefinitionBuild buildUserDefinition() throws Exception {
     try {
-      return new DefinitionBuild(overrides, definitionFactory.apply(new DefaultRatpackServerDefinitionBuilder()), null);
+      return new DefinitionBuild(overrides, RatpackServerDefinition.build(definitionFactory), null);
     } catch (Exception e) {
-      return new DefinitionBuild(overrides, new DefaultServerDefinition(ServerConfig.noBaseDir().build(), r -> Registries.empty(), r -> ctx -> ctx.error(e)), e);
+      return new DefinitionBuild(overrides, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
     }
   }
 

@@ -21,7 +21,7 @@ import ratpack.registry.Registry;
 /**
  * Decorates a handler, effectively wrapping it.
  * <p>
- * Handler decorators can be used to contribute to the handler chain from the {@link ratpack.server.RatpackServer.Definition.Builder#registry server registry}.
+ * Handler decorators can be used to contribute to the handler chain from the {@link ratpack.server.RatpackServerSpec#registry server registry}.
  * It is often used by libraries/extensions to participate in request handling in order to set up infrastructure for downstream handlers.
  * <p>
  * The {@link #prepend(Handler)} method is a convenient way to create a decorator that simply prepends a given handler to the application handlers.

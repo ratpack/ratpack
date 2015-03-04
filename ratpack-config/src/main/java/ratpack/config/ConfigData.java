@@ -52,7 +52,7 @@ import java.util.List;
  *         .props(ImmutableMap.of("server.port", "5060", "app.name", "Ratpack"))
  *         .sysProps()
  *       );
- *       return spec
+ *       spec
  *         .serverConfig(config.getServerConfig())
  *         .registryOf(r -> r
  *           .add(config)

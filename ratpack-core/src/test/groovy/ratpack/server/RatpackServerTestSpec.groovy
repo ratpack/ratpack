@@ -22,7 +22,7 @@ import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-class RatpackServerSpec extends Specification {
+class RatpackServerTestSpec extends Specification {
 
   @AutoCleanup("stop")
   RatpackServer server

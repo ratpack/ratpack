@@ -61,7 +61,7 @@ import java.util.Properties;
  *           .onError(Action.noop()).json(jsonFile)
  *           .onError(Action.throwException()).yaml(yamlFile)
  *         );
- *         return spec
+ *         spec
  *           .serverConfig(config.getServerConfig())
  *           .handler(registry ->
  *             (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())

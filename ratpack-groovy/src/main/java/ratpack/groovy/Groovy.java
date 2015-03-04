@@ -48,7 +48,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
-import ratpack.server.RatpackServer;
+import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.FileBackedReloadInformant;
@@ -158,19 +158,19 @@ public abstract class Groovy {
       GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
     }
 
-    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app() {
+    public static Action<? super RatpackServerSpec> app() {
       return app(false);
     }
 
-    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(boolean staticCompile) {
+    public static Action<? super RatpackServerSpec> app(boolean staticCompile) {
       return app(staticCompile, DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1));
     }
 
-    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(Path script) {
+    public static Action<? super RatpackServerSpec> app(Path script) {
       return b -> doApp(b, false, script.getParent(), script);
     }
 
-    public static Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> app(boolean staticCompile, String... scriptPaths) {
+    public static Action<? super RatpackServerSpec> app(boolean staticCompile, String... scriptPaths) {
       return b -> {
         String workingDir = StandardSystemProperty.USER_DIR.value();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -184,11 +184,11 @@ public abstract class Groovy {
 
         Path baseDir = baseDirResult.getBaseDir();
         Path scriptFile = baseDirResult.getResource();
-        return doApp(b, staticCompile, baseDir, scriptFile);
+        doApp(b, staticCompile, baseDir, scriptFile);
       };
     }
 
-    private static RatpackServer.Definition doApp(RatpackServer.Definition.Builder definition, boolean staticCompile, Path baseDir, Path scriptFile) throws Exception {
+    private static void doApp(RatpackServerSpec definition, boolean staticCompile, Path baseDir, Path scriptFile) throws Exception {
       String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
 
       RatpackDslClosures closures = new FullRatpackDslCapture(staticCompile).apply(scriptFile, script);
@@ -201,7 +201,7 @@ public abstract class Groovy {
         }).apply(r);
       });
 
-      return definition.handler(r -> {
+      definition.handler(r -> {
         return Groovy.chain(r, closures.getHandlers());
       });
     }

@@ -22,7 +22,7 @@ import ratpack.registry.Registry;
  * Informs when the server should be reloaded, during {@link ServerConfig#isDevelopment() development}.
  * <p>
  * During development mode, all reload informants present in the server registry will be asked if the server should reload before serving each request.
- * The term “reload” here specifically refers to rebuilding the server definition by re-<i>executing</i> the function given to the {@link RatpackServer#of(ratpack.func.Function)} method that defined the server.
+ * The term “reload” here specifically refers to rebuilding the server definition by re-<i>executing</i> the function given to the {@link RatpackServer#of(ratpack.func.Action)} method that defined the server.
  * <p>
  * Reload informants will never be queried concurrently so can be safely stateful.
  * Calls to {@link #shouldReload(ratpack.registry.Registry)} are serialised for any given informant, and informants are queried in sequence.

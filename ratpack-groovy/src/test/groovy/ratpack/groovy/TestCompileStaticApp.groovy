@@ -23,12 +23,12 @@ import ratpack.server.ServerConfig
 @CompileStatic
 class TestCompileStaticApp {
   static void main(String[] args) {
-    RatpackServer.start { RatpackServer.Definition.Builder serverSpec ->
-      serverSpec
+    RatpackServer.start {
+      it
         .serverConfig(ServerConfig.noBaseDir().port(0))
         .handlers(Groovy.chain {
-          get { render "Used @CompileStatic!" }
-        })
+        get { render "Used @CompileStatic!" }
+      })
     }
   }
 }

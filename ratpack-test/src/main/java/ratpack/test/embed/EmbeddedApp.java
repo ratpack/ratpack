@@ -25,8 +25,8 @@ import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
+import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
-import ratpack.server.internal.DefaultServerDefinition;
 import ratpack.test.CloseableApplicationUnderTest;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
 
@@ -67,14 +67,14 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @param definition a function that defines the server
    * @return a newly created embedded application
    * @throws java.lang.Exception if an error is encountered creating the application
-   * @see ratpack.server.RatpackServer#of(ratpack.func.Function)
+   * @see ratpack.server.RatpackServer#of(Action)
    */
-  static EmbeddedApp of(Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
-    return fromServer(RatpackServer.of(d -> definition.apply(d.serverConfig(ServerConfig.embedded()))));
+  static EmbeddedApp of(Action<? super RatpackServerSpec> definition) throws Exception {
+    return fromServer(RatpackServer.of(d -> definition.execute(d.serverConfig(ServerConfig.embedded()))));
   }
 
-  static EmbeddedApp of(Path baseDir, Function<? super RatpackServer.Definition.Builder, ? extends RatpackServer.Definition> definition) throws Exception {
-    return fromServer(RatpackServer.of(d -> definition.apply(d.serverConfig(ServerConfig.embedded(baseDir)))));
+  static EmbeddedApp of(Path baseDir, Action<? super RatpackServerSpec> definition) throws Exception {
+    return fromServer(RatpackServer.of(d -> definition.execute(d.serverConfig(ServerConfig.embedded(baseDir)))));
   }
 
   /**
@@ -96,17 +96,17 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * Creates an embedded application using the given server config, and server creating function.
    *
    * @param serverConfig the server configuration
-   * @param builder a function to create the server to embed
+   * @param definition a function to create the server to embed
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromServer(ServerConfig serverConfig, Function<? super DefaultServerDefinition.Builder, ? extends RatpackServer.Definition> builder) {
-    return fromServer(uncheck(() -> RatpackServer.of(b -> builder.apply(b.serverConfig(serverConfig)))));
+  static EmbeddedApp fromServer(ServerConfig serverConfig, Action<? super RatpackServerSpec> definition) {
+    return fromServer(uncheck(() -> RatpackServer.of(b -> definition.execute(b.serverConfig(serverConfig)))));
   }
 
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
    *
    * @param handlerFactory a handler factory
    * @return a newly created embedded application
@@ -118,7 +118,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
   /**
    * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
    *
    * @param baseDir the base dir for the embedded app
    * @param handlerFactory a handler factory
@@ -131,7 +131,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
    *
    * @param handler the application handler
    * @return a newly created embedded application
@@ -143,7 +143,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
   /**
    * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
    * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
    *
    * @param baseDir the base dir for the embedded app
    * @param handler the application handler
@@ -156,7 +156,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
   /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler chain.
    * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Function)}.
+   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
    *
    * @param action the handler chain definition
    * @return a newly created embedded application
