@@ -19,7 +19,7 @@ package ratpack.handling;
 import ratpack.func.NoArgAction;
 
 /**
- * A specification of how to respond to a request, based on the requeste method.
+ * A specification of how to respond to a request, based on the requested method.
  *
  * @see Context#byMethod(ratpack.func.Action)
  */
