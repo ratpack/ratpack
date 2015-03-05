@@ -16,6 +16,7 @@
 
 package ratpack.site
 
+import groovy.transform.CompileStatic
 import ratpack.exec.ExecControl
 import ratpack.registry.Registries
 import ratpack.registry.Registry
@@ -25,6 +26,7 @@ import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
 import ratpack.test.MainClassApplicationUnderTest
 
+@CompileStatic
 class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   RatpackSiteUnderTest() {
