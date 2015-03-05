@@ -234,6 +234,7 @@ subprojects {
       exceptionFormat "full"
       if (isCloudCi) {
         events "failed", "started"
+        showStandardStreams true
       } else {
         events "failed"
       }
