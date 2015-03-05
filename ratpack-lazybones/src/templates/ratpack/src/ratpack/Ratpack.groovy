@@ -1,18 +1,18 @@
-import ratpack.groovy.template.TextTemplateModule
+import ratpack.groovy.template.MarkupTemplateModule
 
-import static ratpack.groovy.Groovy.groovyTemplate
+import static ratpack.groovy.Groovy.groovyMarkupTemplate
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   bindings {
-    add TextTemplateModule
+    add MarkupTemplateModule
   }
 
   handlers {
     get {
-      render groovyTemplate("index.html", title: "My Ratpack App")
+      render groovyMarkupTemplate("index.gtpl", title: "My Ratpack App")
     }
-        
+
     assets "public"
   }
 }
