@@ -25,7 +25,6 @@ import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecControl
 import ratpack.exec.ExecController
-import ratpack.exec.Execution
 import ratpack.exec.SuccessPromise
 import ratpack.exec.internal.DefaultExecController
 import ratpack.file.FileSystemBinding
@@ -73,7 +72,6 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     injector.getInstance(Key.get(new TypeLiteral<Set<FormParser>>() {})).collect { it.contentType }.sort() == ["application/x-www-form-urlencoded", "multipart/form-data"]
     !injector.getExistingBinding(Key.get(FileSystemBinding))
     injector.getInstance(ExecControl) == baseRegistry.get(ExecController).control
-    injector.getExistingBinding(Key.get(Execution))
     injector.getInstance(HttpClient)
   }
 }

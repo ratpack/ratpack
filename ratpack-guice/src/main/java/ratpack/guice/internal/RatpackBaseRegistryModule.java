@@ -19,7 +19,6 @@ package ratpack.guice.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
-import com.google.inject.OutOfScopeException;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
@@ -27,7 +26,9 @@ import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
-import ratpack.exec.*;
+import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
+import ratpack.exec.SuccessPromise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.form.internal.FormParser;
@@ -103,15 +104,6 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   @Provides
   ExecControl execControl(ExecController execController) {
     return execController.getControl();
-  }
-
-  @Provides
-  Execution execution(ExecControl execControl) {
-    try {
-      return execControl.getExecution();
-    } catch (ExecutionException e) {
-      throw new OutOfScopeException("Cannot provide an instance of " + Execution.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
-    }
   }
 
   @Provides
