@@ -248,6 +248,7 @@ subprojects {
     if (isCloudCi) {
       doFirst {
         maxParallelForks 1
+        forkEvery 10
       }
     }
   }
