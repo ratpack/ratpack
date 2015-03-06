@@ -105,9 +105,10 @@ class PromiseOperationsApplySpec extends Specification {
     exec({
       it.blocking { throw new Exception("!@") }
         .apply {
-        events << "in apply"; it.onError { events << "in apply onError" }.toPromise()
+        events << "in apply"
+        it.onError { events << "in apply onError" }
       }
-      .onError { events << "in outer onError" }
+      .onError { events << "in outer onError" + it }
         .then { events << it }
     })
 
@@ -120,7 +121,7 @@ class PromiseOperationsApplySpec extends Specification {
     exec({
       it.blocking { 1 }
         .apply {
-        events << "in apply"; it.onError { events << "in apply onError" }.toPromise()
+        events << "in apply"; it.onError { events << "in apply onError" }
       }
       .then { events << it }
     })

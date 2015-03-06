@@ -25,7 +25,7 @@ import ratpack.exec.internal.DefaultThrottle;
  * <p>
  * The queueing employed by the throttle is generally fair (i.e. oldest promises execute first), but this is not completely guaranteed.
  *
- * @see PromiseOperations#throttled(Throttle)
+ * @see Promise#throttled(Throttle)
  */
 public interface Throttle {
 

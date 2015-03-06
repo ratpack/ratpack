@@ -281,7 +281,7 @@ public interface Context extends ExecControl, Registry {
    * Executes a blocking operation, returning a promise for its result.
    * <p>
    * This method executes asynchronously, in that it does not invoke the {@code operation} before returning the promise.
-   * When the returned promise is subscribed to (i.e. its {@link ratpack.exec.SuccessPromise#then(Action)} method is called),
+   * When the returned promise is subscribed to (i.e. its {@link ratpack.exec.Promise#then(Action)} method is called),
    * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
    * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
    * <p>
@@ -472,7 +472,7 @@ public interface Context extends ExecControl, Registry {
    * <ul>
    * <li>{@link java.nio.file.Path}</li>
    * <li>{@link java.lang.CharSequence}</li>
-   * <li>{@link SuccessPromise} (renders the promised value, using this {@code render()} method)</li>
+   * <li>{@link Promise} (renders the promised value, using this {@code render()} method)</li>
    * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)} and renders it)</li>
    * </ul>
    * <p>

@@ -17,18 +17,17 @@
 package ratpack.render.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.SuccessPromise;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
-public class PromiseRenderer extends RendererSupport<SuccessPromise<?>> {
+public class PromiseRenderer extends RendererSupport<Promise<?>> {
 
-  public static final TypeToken<Renderer<SuccessPromise<?>>> TYPE = new TypeToken<Renderer<SuccessPromise<?>>>() {
-  };
+  public static final TypeToken<Renderer<Promise<?>>> TYPE = new TypeToken<Renderer<Promise<?>>>() {};
 
   @Override
-  public void render(Context context, SuccessPromise<?> promise) throws Exception {
+  public void render(Context context, Promise<?> promise) throws Exception {
     promise.then(context::render);
   }
 

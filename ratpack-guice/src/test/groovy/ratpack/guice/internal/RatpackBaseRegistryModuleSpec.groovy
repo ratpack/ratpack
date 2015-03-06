@@ -25,7 +25,7 @@ import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecControl
 import ratpack.exec.ExecController
-import ratpack.exec.SuccessPromise
+import ratpack.exec.Promise
 import ratpack.exec.internal.DefaultExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
@@ -65,7 +65,7 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     injector.getInstance(ServerErrorHandler) == baseRegistry.get(ServerErrorHandler)
     injector.getInstance(RatpackServer) == ratpackServer
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Path>>() {}))
-    injector.getInstance(Key.get(new TypeLiteral<Renderer<SuccessPromise>>() {}))
+    injector.getInstance(Key.get(new TypeLiteral<Renderer<Promise>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Publisher>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Renderable>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<CharSequence>>() {}))

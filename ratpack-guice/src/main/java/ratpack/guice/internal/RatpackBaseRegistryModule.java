@@ -28,7 +28,7 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.exec.SuccessPromise;
+import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.form.internal.FormParser;
@@ -67,7 +67,7 @@ public class RatpackBaseRegistryModule extends AbstractModule {
       Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class
     );
     List<TypeToken<?>> genericTypes = ImmutableList.of(
-      new TypeToken<Renderer<Path>>() {}, new TypeToken<Renderer<SuccessPromise>>() {}, new TypeToken<Renderer<Publisher>>() {},
+      new TypeToken<Renderer<Path>>() {}, new TypeToken<Renderer<Promise>>() {}, new TypeToken<Renderer<Publisher>>() {},
       new TypeToken<Renderer<Renderable>>() {}, new TypeToken<Renderer<CharSequence>>() {}
     );
     List<Class<?>> setTypes = ImmutableList.of(FormParser.class);

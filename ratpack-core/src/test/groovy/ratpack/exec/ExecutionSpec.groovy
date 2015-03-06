@@ -332,7 +332,7 @@ class ExecutionSpec extends Specification {
     when:
     exec({ e ->
       e.promise { f1 ->
-        e.promise { f -> f.success("foo") }.asResult { r -> f1.accept(r) }
+        e.promise { f -> f.success("foo") }.result { r -> f1.accept(r) }
       } then {
         events << it
       }

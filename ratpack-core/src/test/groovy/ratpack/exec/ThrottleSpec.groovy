@@ -55,7 +55,7 @@ class ThrottleSpec extends Specification {
     jobs.times {
       execHarness.exec().onComplete { latch.countDown() }.start {
         def exec = it
-        it.control.promise { q << it }.throttled(t).asResult {
+        it.control.promise { q << it }.throttled(t).result {
           assert execHarness.control.execution.is(exec)
           e << it
         }
