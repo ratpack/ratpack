@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static ratpack.func.Action.noop;
 
@@ -141,15 +142,20 @@ public class DefaultExecControl implements ExecControl {
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     final ExecutionBacking backing = getBacking();
     return directPromise(f ->
-        backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(() -> {
-            List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
-            try {
-              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
-                  holder.add(0, Result.success(blockingOperation.call()))
-              );
-              return holder.get(0);
-            } catch (Exception e) {
-              return Result.<T>failure(e);
+        backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(
+          new Supplier<Result<T>>() {
+            Result<T> result;
+
+            @Override
+            public Result<T> get() {
+              try {
+                backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
+                    result = Result.success(blockingOperation.call())
+                );
+                return result;
+              } catch (Exception e) {
+                return Result.<T>failure(e);
+              }
             }
           }, execController.getBlockingExecutor()
         ).thenAcceptAsync(v -> streamHandle.complete(() -> f.accept(v)), backing.getEventLoop()))
@@ -168,7 +174,7 @@ public class DefaultExecControl implements ExecControl {
             @Override
             public void onSubscribe(final Subscription subscription) {
               handle.event(() ->
-                subscriber.onSubscribe(subscription)
+                  subscriber.onSubscribe(subscription)
               );
             }
 

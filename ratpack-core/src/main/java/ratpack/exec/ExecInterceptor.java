@@ -16,6 +16,8 @@
 
 package ratpack.exec;
 
+import ratpack.func.NoArgAction;
+
 /**
  * Intercepts execution, primarily for traceability and recording metrics.
  * <p>
@@ -26,6 +28,7 @@ package ratpack.exec;
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.exec.Execution;
+ * import ratpack.func.NoArgAction;
  * import ratpack.http.Request;
  * import ratpack.test.handling.RequestFixture;
  * import ratpack.test.handling.HandlingResult;
@@ -74,11 +77,14 @@ package ratpack.exec;
  *       request.add(new Timer());
  *     }
  *
- *     public void intercept(Execution execution, ExecInterceptor.ExecType type, Runnable continuation) {
+ *     public void intercept(Execution execution, ExecInterceptor.ExecType type, NoArgAction continuation) throws Exception {
  *       Timer timer = request.get(Timer.class);
  *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
- *       continuation.run();
- *       timer.stop();
+ *       try {
+ *         continuation.execute();
+ *       } finally {
+ *         timer.stop();
+ *       }
  *     }
  *   }
  *
@@ -133,16 +139,15 @@ public interface ExecInterceptor {
   /**
    * Intercepts the “rest” of the execution on the current thread.
    * <p>
-   * The given {@code Runnable} argument represents the rest of the execution to occur on this thread.
+   * The given action argument represents the rest of the execution to occur on this thread.
    * This does not necessarily mean the rest of the execution until the work (e.g. responding to a request) is complete.
    * Execution may involve multiple parallel (but not concurrent) threads of execution because of blocking IO or asynchronous APIs.
-   * <p>
-   * All exceptions thrown by this method will be <b>ignored</b>.
    *
    * @param execution the execution who's segment is being intercepted
-   * @param execType indicates whether this is a compute (e.g. request handling) or blocking IO thread
+   * @param execType indicates whether this is a compute (e.g. request handling) segment or blocking segment
    * @param continuation the “rest” of the execution
+   * @throws Exception any
    */
-  void intercept(Execution execution, ExecType execType, Runnable continuation);
+  void intercept(Execution execution, ExecType execType, NoArgAction continuation) throws Exception;
 
 }

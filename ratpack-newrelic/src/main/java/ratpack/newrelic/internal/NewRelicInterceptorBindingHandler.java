@@ -19,6 +19,7 @@ package ratpack.newrelic.internal;
 import com.newrelic.api.agent.Trace;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
+import ratpack.func.NoArgAction;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
@@ -37,9 +38,9 @@ public class NewRelicInterceptorBindingHandler implements Handler {
   private static class NewRelicExecInterceptor implements ExecInterceptor {
     @Override
     @Trace(dispatcher = true)
-    public void intercept(Execution execution, ExecType execType, Runnable continuation) {
+    public void intercept(Execution execution, ExecType execType, NoArgAction continuation) throws Exception {
       execution.get(Request.class).get(NewRelicTransaction.class).init();
-      continuation.run();
+      continuation.execute();
     }
   }
 

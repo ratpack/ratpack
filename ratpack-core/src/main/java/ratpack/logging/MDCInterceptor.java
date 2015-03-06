@@ -19,6 +19,7 @@ package ratpack.logging;
 import org.slf4j.MDC;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
+import ratpack.func.NoArgAction;
 import ratpack.util.Types;
 
 import java.util.LinkedHashMap;
@@ -109,7 +110,7 @@ public class MDCInterceptor implements ExecInterceptor {
     return INSTANCE;
   }
 
-  public void intercept(Execution execution, ExecType type, Runnable continuation) {
+  public void intercept(Execution execution, ExecType type, NoArgAction continuation) throws Exception {
     MDC.clear();
 
     MDCMap map = execution.maybeGet(MDCMap.class).orElse(null);
@@ -120,14 +121,15 @@ public class MDCInterceptor implements ExecInterceptor {
       MDC.setContextMap(map);
     }
 
-    continuation.run();
-
-    map.clear();
-
-    Map<String, String> ctxMap = Types.cast(MDC.getCopyOfContextMap());
-    if (ctxMap != null && ctxMap.size() > 0) {
-      map.putAll(ctxMap);
-      MDC.clear();
+    try {
+      continuation.execute();
+    } finally {
+      map.clear();
+      Map<String, String> ctxMap = Types.cast(MDC.getCopyOfContextMap());
+      if (ctxMap != null && ctxMap.size() > 0) {
+        map.putAll(ctxMap);
+        MDC.clear();
+      }
     }
   }
 }

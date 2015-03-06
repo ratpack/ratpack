@@ -18,7 +18,9 @@ package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.func.NoArgAction
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
@@ -33,9 +35,9 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Runnable continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType type, NoArgAction continuation) {
       record << "$id:$type"
-      continuation.run()
+      continuation.execute()
     }
   }
 
@@ -75,19 +77,23 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Runnable continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType type, NoArgAction continuation) {
       println "$type:$id"
       super.intercept(execution, type, continuation)
       throw new RuntimeException("$type:$id")
     }
   }
 
-  def "errors thrown by interceptors are ignored"() {
+  def "errors thrown by interceptors bubble up"() {
     given:
     def interceptor1 = new ErroringInterceptor("1")
     def interceptor2 = new ErroringInterceptor("2")
 
+    when:
     handlers {
+      register {
+        add(new SimpleErrorHandler())
+      }
       handler {
         addInterceptor(interceptor1) {
           addInterceptor(interceptor2) {
@@ -104,11 +110,9 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when:
-    get("1")
-
     then:
-    record == ["1:COMPUTE", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
+    getText("1") == "java.lang.RuntimeException: COMPUTE:2"
+    record == ["1:COMPUTE", "2:COMPUTE"]
   }
 
   def "intercepted handlers can throw exceptions"() {

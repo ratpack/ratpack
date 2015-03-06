@@ -27,10 +27,7 @@ import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -215,12 +212,19 @@ public class ExecutionBacking {
   }
 
   public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {
-    new InterceptedOperation(execution, execType, interceptors) {
-      @Override
-      protected void performOperation() throws Exception {
-        action.execute();
-      }
-    }.run();
+    if (interceptors.isEmpty()) {
+      action.execute();
+    } else {
+      nextInterceptor(execution, action, execType, interceptors.iterator());
+    }
+  }
+
+  private static void nextInterceptor(Execution execution, NoArgAction action, ExecInterceptor.ExecType type, Iterator<ExecInterceptor> interceptors) throws Exception {
+    if (interceptors.hasNext()) {
+      interceptors.next().intercept(execution, type, () -> nextInterceptor(execution, action, type, interceptors));
+    } else {
+      action.execute();
+    }
   }
 
 }
