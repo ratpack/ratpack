@@ -110,7 +110,7 @@ public interface ExecControl {
     return JustInTimeExecControl.INSTANCE;
   }
 
-  Execution getExecution();
+  Execution getExecution() throws UnmanagedThreadException;
 
   ExecController getController();
 

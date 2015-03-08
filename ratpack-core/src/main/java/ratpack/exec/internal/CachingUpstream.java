@@ -23,20 +23,17 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 public class CachingUpstream<T> implements Upstream<T> {
 
   private final Upstream<T> upstream;
-  private final Supplier<ExecutionBacking> executionSupplier;
   private final AtomicBoolean fired = new AtomicBoolean();
   private final Queue<Job> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<ExecResult<T>> result = new AtomicReference<>();
 
-  public CachingUpstream(Upstream<T> upstream, Supplier<ExecutionBacking> executionSupplier) {
+  public CachingUpstream(Upstream<T> upstream) {
     this.upstream = upstream;
-    this.executionSupplier = executionSupplier;
   }
 
   private class Job {
@@ -99,7 +96,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         }
       });
     } else {
-      executionSupplier.get().streamSubscribe((streamHandle) -> {
+      ExecutionBacking.require().streamSubscribe((streamHandle) -> {
         waiting.add(new Job(downstream, streamHandle));
         if (result.get() != null) {
           tryDrain();
@@ -109,7 +106,7 @@ public class CachingUpstream<T> implements Upstream<T> {
   }
 
   private void doDrainInNewSegment() {
-    executionSupplier.get().getEventLoop().execute(this::tryDrain);
+    ExecutionBacking.require().getEventLoop().execute(this::tryDrain);
   }
 
 }

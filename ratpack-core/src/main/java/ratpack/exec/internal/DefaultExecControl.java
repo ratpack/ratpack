@@ -46,24 +46,14 @@ public class DefaultExecControl implements ExecControl {
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecController execController;
-  private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
 
   public DefaultExecControl(ExecController execController) {
     this.execController = execController;
   }
 
-  private ExecutionBacking getBacking() {
-    ExecutionBacking executionBacking = threadBinding.get();
-    if (executionBacking == null) {
-      throw new ExecutionException("Current thread (" + Thread.currentThread().getName() + ") has no bound execution.");
-    } else {
-      return executionBacking;
-    }
-  }
-
   @Override
-  public Execution getExecution() {
-    return getBacking().getExecution();
+  public Execution getExecution() throws UnmanagedThreadException {
+    return ExecutionBacking.require().getExecution();
   }
 
   @Override
@@ -73,7 +63,7 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
-    ExecutionBacking backing = getBacking();
+    ExecutionBacking backing = ExecutionBacking.require();
     backing.getInterceptors().add(execInterceptor);
     backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
   }
@@ -124,10 +114,10 @@ public class DefaultExecControl implements ExecControl {
         Optional<StackTraceElement[]> startTrace = ExecutionBacking.TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
 
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
-        if (eventLoop.inEventLoop() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete);
+        if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
+          new ExecutionBacking(execController, eventLoop, startTrace, effectiveAction, onError, onComplete);
         } else {
-          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete));
+          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, startTrace, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -135,12 +125,12 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return directPromise(upstream(this::getBacking, action));
+    return directPromise(upstream(action));
   }
 
   @Override
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
-    final ExecutionBacking backing = getBacking();
+    final ExecutionBacking backing = ExecutionBacking.get();
     return directPromise(downstream ->
         backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(
           new Supplier<Result<T>>() {
@@ -163,76 +153,70 @@ public class DefaultExecControl implements ExecControl {
   }
 
   private <T> Promise<T> directPromise(Upstream<T> upstream) {
-    return new DefaultPromise<>(this::getBacking, upstream);
+    return new DefaultPromise<>(upstream);
   }
 
   public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return Streams.transformable(subscriber -> {
-      final ExecutionBacking executionBacking = getBacking();
-      executionBacking.streamSubscribe((handle) ->
-          publisher.subscribe(new Subscriber<T>() {
-            @Override
-            public void onSubscribe(final Subscription subscription) {
-              handle.event(() ->
-                  subscriber.onSubscribe(subscription)
-              );
-            }
+    return Streams.transformable(subscriber -> ExecutionBacking.require().streamSubscribe((handle) ->
+        publisher.subscribe(new Subscriber<T>() {
+          @Override
+          public void onSubscribe(final Subscription subscription) {
+            handle.event(() ->
+                subscriber.onSubscribe(subscription)
+            );
+          }
 
-            @Override
-            public void onNext(final T element) {
-              handle.event(() -> subscriber.onNext(element));
-            }
+          @Override
+          public void onNext(final T element) {
+            handle.event(() -> subscriber.onNext(element));
+          }
 
-            @Override
-            public void onComplete() {
-              handle.complete(subscriber::onComplete);
-            }
+          @Override
+          public void onComplete() {
+            handle.complete(subscriber::onComplete);
+          }
 
-            @Override
-            public void onError(final Throwable cause) {
-              handle.complete(() -> subscriber.onError(cause));
-            }
-          })
-      );
-    });
+          @Override
+          public void onError(final Throwable cause) {
+            handle.complete(() -> subscriber.onError(cause));
+          }
+        })
+    ));
   }
 
-  public static <T> Upstream<T> upstream(Supplier<? extends ExecutionBacking> backingSupplier, Action<? super Fulfiller<T>> action) {
-    return downstream -> {
-      ExecutionBacking backing = backingSupplier.get();
-      backing.streamSubscribe((streamHandle) -> {
-        final AtomicBoolean fulfilled = new AtomicBoolean();
-        try {
-          action.execute(new Fulfiller<T>() {
-            @Override
-            public void error(Throwable throwable) {
-              if (!fulfilled.compareAndSet(false, true)) {
-                LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-                return;
-              }
-
-              streamHandle.complete(() -> downstream.error(throwable));
+  public static <T> Upstream<T> upstream(Action<? super Fulfiller<T>> action) {
+    return downstream -> ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+      final AtomicBoolean fulfilled = new AtomicBoolean();
+      try {
+        action.execute(new Fulfiller<T>() {
+          @Override
+          public void error(Throwable throwable) {
+            if (!fulfilled.compareAndSet(false, true)) {
+              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
+              return;
             }
 
-            @Override
-            public void success(T value) {
-              if (!fulfilled.compareAndSet(false, true)) {
-                LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-                return;
-              }
-
-              streamHandle.complete(() -> downstream.success(value));
-            }
-          });
-        } catch (Throwable throwable) {
-          if (!fulfilled.compareAndSet(false, true)) {
-            LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
-          } else {
-            downstream.error(throwable);
+            streamHandle.complete(() -> downstream.error(throwable));
           }
+
+          @Override
+          public void success(T value) {
+            if (!fulfilled.compareAndSet(false, true)) {
+              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+              return;
+            }
+
+            streamHandle.complete(() -> downstream.success(value));
+          }
+        });
+      } catch (Throwable throwable) {
+        if (!fulfilled.compareAndSet(false, true)) {
+          LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
+        } else {
+          downstream.error(throwable);
         }
-      });
-    };
+      }
+    });
   }
 
 }

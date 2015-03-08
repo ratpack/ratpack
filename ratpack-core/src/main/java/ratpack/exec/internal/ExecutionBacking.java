@@ -20,10 +20,7 @@ import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Execution;
-import ratpack.exec.ExecutionException;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 
@@ -34,9 +31,10 @@ import java.util.function.Consumer;
 
 public class ExecutionBacking {
 
-  public static final boolean TRACE = Boolean.getBoolean("ratpack.execution.trace");
-
   final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
+
+  public static final boolean TRACE = Boolean.getBoolean("ratpack.execution.trace");
+  private final static ThreadLocal<ExecutionBacking> THREAD_BINDING = new ThreadLocal<>();
 
   // package access to allow direct field access by inners
   final List<ExecInterceptor> interceptors = Lists.newLinkedList();
@@ -50,16 +48,14 @@ public class ExecutionBacking {
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
-  private final ThreadLocal<ExecutionBacking> threadBinding;
 
   private volatile boolean done;
   private final Execution execution;
 
-  public ExecutionBacking(ExecController controller, EventLoop eventLoop, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
+  public ExecutionBacking(ExecController controller, EventLoop eventLoop, Optional<StackTraceElement[]> startTrace, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
     this.eventLoop = eventLoop;
     this.onError = onError;
     this.onComplete = onComplete;
-    this.threadBinding = threadBinding;
     this.execution = new DefaultExecution(eventLoop, controller, closeables);
 
     Deque<NoArgAction> event = Lists.newLinkedList();
@@ -72,6 +68,20 @@ public class ExecutionBacking {
     stream.add(doneEvent);
     drain();
   }
+
+  public static ExecutionBacking get() throws UnmanagedThreadException {
+    return THREAD_BINDING.get();
+  }
+
+  public static ExecutionBacking require() throws UnmanagedThreadException {
+    ExecutionBacking executionBacking = get();
+    if (executionBacking == null) {
+      throw new UnmanagedThreadException();
+    } else {
+      return executionBacking;
+    }
+  }
+
 
   // Marker interface used to detect user code vs infrastructure code, for error handling and interception
   public interface UserCode extends NoArgAction {
@@ -131,7 +141,7 @@ public class ExecutionBacking {
   }
 
   private void drain() {
-    ExecutionBacking threadBoundExecutionBacking = threadBinding.get();
+    ExecutionBacking threadBoundExecutionBacking = THREAD_BINDING.get();
     if (this.equals(threadBoundExecutionBacking)) {
       return;
     }
@@ -146,7 +156,7 @@ public class ExecutionBacking {
     }
 
     try {
-      threadBinding.set(this);
+      THREAD_BINDING.set(this);
       while (true) {
         if (stream.isEmpty()) {
           return;
@@ -191,7 +201,7 @@ public class ExecutionBacking {
         }
       }
     } finally {
-      threadBinding.remove();
+      THREAD_BINDING.remove();
     }
   }
 

@@ -29,18 +29,15 @@ import ratpack.util.internal.InternalRatpackError;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static ratpack.exec.ExecControl.execControl;
 import static ratpack.func.Action.ignoreArg;
 
 public class DefaultPromise<T> implements Promise<T> {
 
-  private final Supplier<ExecutionBacking> executionSupplier;
   private final Upstream<T> upstream;
 
-  public DefaultPromise(Supplier<ExecutionBacking> executionSupplier, Upstream<T> upstream) {
-    this.executionSupplier = executionSupplier;
+  public DefaultPromise(Upstream<T> upstream) {
     this.upstream = upstream;
   }
 
@@ -73,19 +70,15 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   private void throwError(Throwable throwable) {
-    getExecution().streamSubscribe(h ->
+    ExecutionBacking.require().streamSubscribe(h ->
         h.complete(() -> {
           throw ExceptionUtils.toException(throwable);
         })
     );
   }
 
-  private ExecutionBacking getExecution() {
-    return executionSupplier.get();
-  }
-
   private <O> Promise<O> connect(Upstream<O> upstream) {
-    return new DefaultPromise<>(executionSupplier, upstream);
+    return new DefaultPromise<>(upstream);
   }
 
   @Override
@@ -169,7 +162,7 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public Promise<T> cache() {
-    return connect(new CachingUpstream<>(upstream, executionSupplier));
+    return connect(new CachingUpstream<>(upstream));
   }
 
   @Override
@@ -187,18 +180,15 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public Promise<T> defer(Action<? super Runnable> releaser) {
-    return connect(downstream -> {
-      ExecutionBacking executionBacking = getExecution();
-      executionBacking.streamSubscribe((streamHandle) -> {
-        try {
-          releaser.execute((Runnable) () ->
-              streamHandle.complete(() -> upstream.connect(downstream))
-          );
-        } catch (Throwable t) {
-          downstream.error(t);
-        }
-      });
-    });
+    return connect(downstream -> ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+      try {
+        releaser.execute((Runnable) () ->
+            streamHandle.complete(() -> upstream.connect(downstream))
+        );
+      } catch (Throwable t) {
+        downstream.error(t);
+      }
+    }));
   }
 
   @Override
