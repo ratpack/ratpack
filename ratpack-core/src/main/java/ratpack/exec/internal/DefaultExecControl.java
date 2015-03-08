@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static ratpack.func.Action.noop;
@@ -135,13 +135,13 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return directPromise(SafeFulfiller.wrapping(this::getBacking, action));
+    return directPromise(upstream(this::getBacking, action));
   }
 
   @Override
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     final ExecutionBacking backing = getBacking();
-    return directPromise(f ->
+    return directPromise(downstream ->
         backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(
           new Supplier<Result<T>>() {
             Result<T> result;
@@ -158,12 +158,12 @@ public class DefaultExecControl implements ExecControl {
               }
             }
           }, execController.getBlockingExecutor()
-        ).thenAcceptAsync(v -> streamHandle.complete(() -> f.accept(v)), backing.getEventLoop()))
+        ).thenAcceptAsync(v -> streamHandle.complete(() -> downstream.accept(v)), backing.getEventLoop()))
     );
   }
 
-  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<? super T>> action) {
-    return new DefaultPromise<>(this::getBacking, action);
+  private <T> Promise<T> directPromise(Upstream<T> upstream) {
+    return new DefaultPromise<>(this::getBacking, upstream);
   }
 
   public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
@@ -195,6 +195,44 @@ public class DefaultExecControl implements ExecControl {
           })
       );
     });
+  }
+
+  public static <T> Upstream<T> upstream(Supplier<? extends ExecutionBacking> backingSupplier, Action<? super Fulfiller<T>> action) {
+    return downstream -> {
+      ExecutionBacking backing = backingSupplier.get();
+      backing.streamSubscribe((streamHandle) -> {
+        final AtomicBoolean fulfilled = new AtomicBoolean();
+        try {
+          action.execute(new Fulfiller<T>() {
+            @Override
+            public void error(Throwable throwable) {
+              if (!fulfilled.compareAndSet(false, true)) {
+                LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
+                return;
+              }
+
+              streamHandle.complete(() -> downstream.error(throwable));
+            }
+
+            @Override
+            public void success(T value) {
+              if (!fulfilled.compareAndSet(false, true)) {
+                LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+                return;
+              }
+
+              streamHandle.complete(() -> downstream.success(value));
+            }
+          });
+        } catch (Throwable throwable) {
+          if (!fulfilled.compareAndSet(false, true)) {
+            LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
+          } else {
+            downstream.error(throwable);
+          }
+        }
+      });
+    };
   }
 
 }

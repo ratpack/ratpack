@@ -48,7 +48,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * import ratpack.exec.ExecControl;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
+   * import ratpack.exec.ExecResult;
    *
    * import static org.junit.Assert.assertEquals;
    *

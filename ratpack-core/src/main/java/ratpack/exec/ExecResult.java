@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.test.exec;
-
-import ratpack.exec.Result;
+package ratpack.exec;
 
 /**
- * The result of an {@link ExecHarness#yield(ratpack.func.Function)} operation.
+ * The result of an execution.
  *
  * @param <T> the type of promised value
  */

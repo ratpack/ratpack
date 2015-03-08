@@ -59,7 +59,7 @@ public interface Promise<T> {
    * Transforms the promised value by applying the given function to it.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
+   * import ratpack.exec.ExecResult;
    *
    * import static org.junit.Assert.assertEquals;
    *
@@ -226,7 +226,7 @@ public interface Promise<T> {
    * This is useful when the transformation involves an asynchronous operation.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
+   * import ratpack.exec.ExecResult;
    *
    * import static org.junit.Assert.assertEquals;
    *
@@ -260,7 +260,7 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import com.google.common.collect.Lists;
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
+   * import ratpack.exec.ExecResult;
    *
    * import java.util.List;
    *
@@ -483,7 +483,7 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.exec.Throttle;
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
+   * import ratpack.exec.ExecResult;
    *
    * import java.util.concurrent.atomic.AtomicInteger;
    *

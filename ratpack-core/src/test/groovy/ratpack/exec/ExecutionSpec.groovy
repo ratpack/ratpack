@@ -343,4 +343,14 @@ class ExecutionSpec extends Specification {
     then:
     events == ["foo", "complete"]
   }
+
+  def "can have multiple on error"() {
+    when:
+    exec {
+      it.failedPromise(new Exception("!")).onError { events << "1" }.onError { events << "2" }.then { events << "3" }
+    }
+
+    then:
+    events == ["1", "complete"]
+  }
 }

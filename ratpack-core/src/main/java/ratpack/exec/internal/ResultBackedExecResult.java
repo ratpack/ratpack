@@ -14,44 +14,51 @@
  * limitations under the License.
  */
 
-package ratpack.test.exec.internal;
+package ratpack.exec.internal;
 
-import ratpack.test.exec.ExecResult;
+import ratpack.exec.Result;
+import ratpack.exec.ExecResult;
 
-public class CompleteExecResult<T> implements ExecResult<T> {
+public class ResultBackedExecResult<T> implements ExecResult<T> {
+
+  private final Result<T> result;
+
+  public ResultBackedExecResult(Result<T> result) {
+    this.result = result;
+  }
 
   @Override
   public boolean isComplete() {
-    return true;
+    return false;
   }
 
   @Override
   public Throwable getThrowable() {
-    return null;
+    return result.getThrowable();
   }
 
   @Override
   public T getValue() {
-    return null;
+    return result.getValue();
   }
 
   @Override
   public boolean isSuccess() {
-    return false;
+    return result.isSuccess();
   }
 
   @Override
   public boolean isFailure() {
-    return false;
+    return result.isFailure();
   }
 
   @Override
   public T getValueOrThrow() throws Exception {
-    return null;
+    return result.getValueOrThrow();
   }
 
   @Override
   public String toString() {
-    return "ExecResult{complete=true}";
+    return "ExecResult{complete=false, failure=" + getThrowable() + ", value=" + getValue() + '}';
   }
 }

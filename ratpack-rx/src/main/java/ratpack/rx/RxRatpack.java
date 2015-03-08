@@ -198,7 +198,7 @@ public abstract class RxRatpack {
    * For example, this can be used unit test Rx observables.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
+   * import ratpack.exec.ExecResult;
    * import rx.Observable;
    *
    * import java.util.List;

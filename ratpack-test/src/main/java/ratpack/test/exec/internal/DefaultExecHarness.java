@@ -17,10 +17,12 @@
 package ratpack.test.exec.internal;
 
 import ratpack.exec.*;
+import ratpack.exec.internal.CompleteExecResult;
+import ratpack.exec.internal.ResultBackedExecResult;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.ExecHarness;
-import ratpack.test.exec.ExecResult;
+import ratpack.exec.ExecResult;
 import ratpack.util.ExceptionUtils;
 
 import java.util.concurrent.CountDownLatch;
@@ -49,7 +51,7 @@ public class DefaultExecHarness implements ExecHarness {
         public void execute(Execution execution) throws Exception {
           execution.onCleanup(() -> {
             if (latch.getCount() > 0) {
-              reference.set(new CompleteExecResult<>());
+              reference.set(CompleteExecResult.instance());
               latch.countDown();
             }
           });

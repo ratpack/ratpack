@@ -16,7 +16,10 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.*;
+import ratpack.exec.ExecutionException;
+import ratpack.exec.Promise;
+import ratpack.exec.Result;
+import ratpack.exec.Throttle;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.NoArgAction;
@@ -34,30 +37,33 @@ import static ratpack.func.Action.ignoreArg;
 public class DefaultPromise<T> implements Promise<T> {
 
   private final Supplier<ExecutionBacking> executionSupplier;
-  private final Consumer<? super Fulfiller<T>> fulfillment;
+  private final Upstream<T> upstream;
 
-  public DefaultPromise(Supplier<ExecutionBacking> executionSupplier, Consumer<? super Fulfiller<T>> fulfillment) {
+  public DefaultPromise(Supplier<ExecutionBacking> executionSupplier, Upstream<T> upstream) {
     this.executionSupplier = executionSupplier;
-    this.fulfillment = fulfillment;
+    this.upstream = upstream;
   }
 
   @Override
   public void then(final Action<? super T> then) {
     try {
-      doThen(new Fulfiller<T>() {
+      upstream.connect(new Downstream<T>() {
         @Override
-        public void error(final Throwable throwable) {
+        public void success(T value) {
+          try {
+            then.execute(value);
+          } catch (Throwable e) {
+            throwError(e);
+          }
+        }
+
+        @Override
+        public void error(Throwable throwable) {
           throwError(throwable);
         }
 
         @Override
-        public void success(final T value) {
-          try {
-            then.execute(value);
-          } catch (Throwable throwable) {
-            throwError(throwable);
-          }
-        }
+        public void complete() {}
       });
     } catch (ExecutionException e) {
       throw e;
@@ -78,33 +84,28 @@ public class DefaultPromise<T> implements Promise<T> {
     return executionSupplier.get();
   }
 
+  private <O> Promise<O> connect(Upstream<O> upstream) {
+    return new DefaultPromise<>(executionSupplier, upstream);
+  }
+
   @Override
   public Promise<T> onError(Action<? super Throwable> errorHandler) {
-    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Fulfiller<T>() {
+    return connect(downstream -> upstream.connect(new ValuePassThru(downstream) {
       @Override
       public void error(Throwable throwable) {
         try {
           errorHandler.execute(throwable);
+          super.complete();
         } catch (Throwable e) {
-          downstream.error(e);
+          super.error(e);
         }
       }
-
-      @Override
-      public void success(T value) {
-        downstream.success(value);
-      }
     }));
-
-  }
-
-  private void doThen(final Fulfiller<T> fulfiller) {
-    fulfillment.accept(fulfiller);
   }
 
   @Override
-  public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> transformer) {
-    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Transform<>(downstream, transformer, downstream::success)));
+  public <O> Promise<O> map(final Function<? super T, ? extends O> transformer) {
+    return connect(downstream -> upstream.connect(new Transform<>(downstream, transformer, downstream::success)));
   }
 
   @Override
@@ -123,12 +124,14 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
-    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Transform<>(downstream, transformer, transformed -> transformed.onError(downstream::error).then(downstream::success))));
+    return connect(downstream -> upstream.connect(
+        new Transform<>(downstream, transformer, promise -> promise.onError(downstream::error).then(downstream::success)))
+    );
   }
 
   @Override
   public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> fulfillment) {
-    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Operation<T>(downstream) {
+    return connect(downstream -> upstream.connect(new Operation<T>(downstream) {
       @Override
       public void success(T value) {
         boolean apply;
@@ -142,6 +145,7 @@ public class DefaultPromise<T> implements Promise<T> {
         if (apply) {
           try {
             fulfillment.execute(value);
+            complete();
           } catch (Throwable e) {
             error(e);
           }
@@ -157,51 +161,38 @@ public class DefaultPromise<T> implements Promise<T> {
     return route(Objects::isNull, ignoreArg(onNull));
   }
 
-  private abstract class Operation<O> implements Fulfiller<T> {
-    protected final Fulfiller<? super O> downstream;
-
-    public Operation(Fulfiller<? super O> downstream) {
-      this.downstream = downstream;
-    }
-
-    @Override
-    public void error(Throwable throwable) {
-      downstream.error(throwable);
-    }
-  }
 
   @Override
   public <O> Promise<O> blockingMap(final Function<? super T, ? extends O> transformer) {
-    return flatMap(t -> getExecution().getExecution().getControl().blocking(() -> transformer.apply(t)));
+    return flatMap(t -> execControl().blocking(() -> transformer.apply(t)));
   }
 
   @Override
   public Promise<T> cache() {
-    Consumer<Fulfiller<T>> cachingFulfillment = new CachingFulfillment<>(fulfillment, executionSupplier);
-    return new DefaultPromise<>(executionSupplier, cachingFulfillment);
+    return connect(new CachingUpstream<>(upstream, executionSupplier));
   }
 
   @Override
   public Promise<T> onYield(Runnable onYield) {
-    return new DefaultPromise<>(executionSupplier, downstream -> {
+    return connect(downstream -> {
       try {
         onYield.run();
       } catch (Throwable e) {
         downstream.error(e);
         return;
       }
-      fulfillment.accept(downstream);
+      upstream.connect(downstream);
     });
   }
 
   @Override
   public Promise<T> defer(Action<? super Runnable> releaser) {
-    return new DefaultPromise<>(executionSupplier, downstream -> {
+    return connect(downstream -> {
       ExecutionBacking executionBacking = getExecution();
       executionBacking.streamSubscribe((streamHandle) -> {
         try {
           releaser.execute((Runnable) () ->
-              streamHandle.complete(() -> fulfillment.accept(downstream))
+              streamHandle.complete(() -> upstream.connect(downstream))
           );
         } catch (Throwable t) {
           downstream.error(t);
@@ -212,7 +203,7 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public Promise<T> wiretap(Action<? super Result<T>> listener) {
-    return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Operation<T>(downstream) {
+    return connect(downstream -> upstream.connect(new ValuePassThru(downstream) {
       @Override
       public void success(T value) {
         try {
@@ -222,7 +213,7 @@ public class DefaultPromise<T> implements Promise<T> {
           return;
         }
 
-        downstream.success(value);
+        super.success(value);
       }
 
       @Override
@@ -245,11 +236,29 @@ public class DefaultPromise<T> implements Promise<T> {
     return throttle.throttle(this);
   }
 
+  private abstract class Operation<O> implements Downstream<T> {
+    protected final Downstream<? super O> downstream;
+
+    public Operation(Downstream<? super O> downstream) {
+      this.downstream = downstream;
+    }
+
+    @Override
+    public void error(Throwable throwable) {
+      downstream.error(throwable);
+    }
+
+    @Override
+    public void complete() {
+      downstream.complete();
+    }
+  }
+
   private class Transform<I, O> extends Operation<O> {
     private final Function<? super T, ? extends I> function;
     private final Consumer<? super I> onSuccess;
 
-    public Transform(Fulfiller<? super O> downstream, Function<? super T, ? extends I> function, Consumer<? super I> onSuccess) {
+    public Transform(Downstream<? super O> downstream, Function<? super T, ? extends I> function, Consumer<? super I> onSuccess) {
       super(downstream);
       this.function = function;
       this.onSuccess = onSuccess;
@@ -271,6 +280,18 @@ public class DefaultPromise<T> implements Promise<T> {
     public void onSuccess(I transformed) {
       onSuccess.accept(transformed);
     }
+
   }
 
+  private abstract class ValuePassThru extends Operation<T> {
+
+    public ValuePassThru(Downstream<? super T> downstream) {
+      super(downstream);
+    }
+
+    @Override
+    public void success(T value) {
+      downstream.success(value);
+    }
+  }
 }

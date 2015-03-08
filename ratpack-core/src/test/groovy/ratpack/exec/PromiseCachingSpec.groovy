@@ -34,7 +34,10 @@ class PromiseCachingSpec extends Specification {
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness.exec()
       .onError(onError)
-      .onComplete({ events << "complete"; latch.countDown() })
+      .onComplete({
+      events << "complete"
+      latch.countDown()
+    })
       .start { action.execute(it.control) }
     latch.await()
   }
@@ -142,7 +145,7 @@ class PromiseCachingSpec extends Specification {
     }
 
     then:
-    events.toList() == [e, "custom", "complete"]
+    events.toList() == [e, "complete"]
   }
 
 }

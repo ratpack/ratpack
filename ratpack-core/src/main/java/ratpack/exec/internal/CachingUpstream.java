@@ -16,36 +16,35 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Fulfiller;
+import ratpack.exec.ExecResult;
 import ratpack.exec.Result;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class CachingFulfillment<T> implements Consumer<Fulfiller<T>> {
+public class CachingUpstream<T> implements Upstream<T> {
 
-  private final Consumer<? super Fulfiller<T>> delegate;
-  private final Supplier<? extends ExecutionBacking> executionSupplier;
+  private final Upstream<T> upstream;
+  private final Supplier<ExecutionBacking> executionSupplier;
   private final AtomicBoolean fired = new AtomicBoolean();
   private final Queue<Job> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
-  private final AtomicReference<Result<T>> result = new AtomicReference<>();
+  private final AtomicReference<ExecResult<T>> result = new AtomicReference<>();
 
-  public CachingFulfillment(Consumer<? super Fulfiller<T>> delegate, Supplier<? extends ExecutionBacking> executionSupplier) {
-    this.delegate = delegate;
+  public CachingUpstream(Upstream<T> upstream, Supplier<ExecutionBacking> executionSupplier) {
+    this.upstream = upstream;
     this.executionSupplier = executionSupplier;
   }
 
   private class Job {
-    final Fulfiller<? super T> fulfiller;
+    final Downstream<? super T> downstream;
     final ExecutionBacking.StreamHandle streamHandle;
 
-    private Job(Fulfiller<? super T> fulfiller, ExecutionBacking.StreamHandle streamHandle) {
-      this.fulfiller = fulfiller;
+    private Job(Downstream<? super T> downstream, ExecutionBacking.StreamHandle streamHandle) {
+      this.downstream = downstream;
       this.streamHandle = streamHandle;
     }
   }
@@ -53,12 +52,16 @@ public class CachingFulfillment<T> implements Consumer<Fulfiller<T>> {
   private void tryDrain() {
     if (draining.compareAndSet(false, true)) {
       try {
-        Result<T> result = this.result.get();
+        ExecResult<T> result = this.result.get();
 
         Job job = waiting.poll();
         while (job != null) {
           Job finalJob = job;
-          job.streamHandle.complete(() -> finalJob.fulfiller.accept(result));
+          job.streamHandle.complete(() -> {
+            if (result != null) {
+              finalJob.downstream.accept(result);
+            }
+          });
           job = waiting.poll();
         }
       } finally {
@@ -71,31 +74,43 @@ public class CachingFulfillment<T> implements Consumer<Fulfiller<T>> {
   }
 
   @Override
-  public void accept(Fulfiller<T> fulfiller) {
+  public void connect(Downstream<? super T> downstream) {
     if (fired.compareAndSet(false, true)) {
-      delegate.accept(new Fulfiller<T>() {
+      upstream.connect(new Downstream<T>() {
         @Override
         public void error(Throwable throwable) {
-          result.set(Result.<T>failure(throwable));
-          fulfiller.error(throwable);
-          executionSupplier.get().getEventLoop().execute(CachingFulfillment.this::tryDrain);
+          result.set(Result.<T>failure(throwable).toExecResult());
+          downstream.error(throwable);
+          doDrainInNewSegment();
         }
 
         @Override
         public void success(T value) {
-          result.set(Result.success(value));
-          fulfiller.success(value);
-          executionSupplier.get().getEventLoop().execute(CachingFulfillment.this::tryDrain);
+          result.set(Result.success(value).toExecResult());
+          downstream.success(value);
+          doDrainInNewSegment();
+        }
+
+        @Override
+        public void complete() {
+          result.set(CompleteExecResult.instance());
+          downstream.complete();
+          doDrainInNewSegment();
         }
       });
     } else {
       executionSupplier.get().streamSubscribe((streamHandle) -> {
-        waiting.add(new Job(fulfiller, streamHandle));
+        waiting.add(new Job(downstream, streamHandle));
         if (result.get() != null) {
           tryDrain();
         }
       });
     }
   }
+
+  private void doDrainInNewSegment() {
+    executionSupplier.get().getEventLoop().execute(this::tryDrain);
+  }
+
 }
 
