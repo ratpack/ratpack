@@ -90,6 +90,7 @@ public class DefaultPromise<T> implements Promise<T> {
           errorHandler.execute(throwable);
           super.complete();
         } catch (Throwable e) {
+          e.addSuppressed(throwable);
           super.error(e);
         }
       }
