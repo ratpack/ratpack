@@ -19,7 +19,7 @@ package ratpack.exec;
 /**
  * Can be thrown when something is attempted on a non Ratpack managed thread where a managed thread is required.
  */
-public class UnmanagedThreadException extends RuntimeException {
+public class UnmanagedThreadException extends ExecutionException {
 
   /**
    * Constructor.
