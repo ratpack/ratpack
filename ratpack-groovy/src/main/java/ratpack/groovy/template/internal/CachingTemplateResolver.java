@@ -21,7 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import groovy.text.markup.MarkupTemplateEngine;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -54,7 +54,7 @@ public class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplat
       return urlCache.get(templatePath);
     } catch (ExecutionException e) {
       Throwables.propagateIfInstanceOf(e, IOException.class);
-      throw ExceptionUtils.uncheck(e);
+      throw Exceptions.uncheck(e);
     }
   }
 }

@@ -26,7 +26,7 @@ import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderable;
 import ratpack.stream.Streams;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -141,7 +141,7 @@ public class ResponseChunks implements Renderable {
    * @return a publisher of byte buffers
    */
   public Publisher<? extends ByteBuf> publisher(ByteBufAllocator byteBufAllocator) {
-    return ExceptionUtils.uncheck(() -> publisherFactory.apply(byteBufAllocator));
+    return Exceptions.uncheck(() -> publisherFactory.apply(byteBufAllocator));
   }
 
   /**

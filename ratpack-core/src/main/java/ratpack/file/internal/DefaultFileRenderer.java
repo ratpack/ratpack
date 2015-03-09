@@ -23,7 +23,7 @@ import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.render.RendererSupport;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,7 +66,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
       try {
         response.sendFile(attributes, file);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     });
   }

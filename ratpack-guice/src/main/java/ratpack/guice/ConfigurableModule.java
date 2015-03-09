@@ -23,7 +23,7 @@ import com.google.inject.Provides;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.server.ServerConfig;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import javax.inject.Singleton;
 import java.lang.reflect.Constructor;
@@ -169,7 +169,7 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
         }
       }
 
-      return ExceptionUtils.uncheck(factory);
+      return Exceptions.uncheck(factory);
     } else {
       throw new IllegalStateException("Can't auto instantiate configuration type " + typeToken + " as it is not a simple class");
     }
@@ -201,7 +201,7 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
     try {
       configurer.execute(config);
     } catch (Exception e) {
-      throw ExceptionUtils.uncheck(e);
+      throw Exceptions.uncheck(e);
     }
     return config;
   }

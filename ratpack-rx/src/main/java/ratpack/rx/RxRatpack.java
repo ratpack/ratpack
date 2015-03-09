@@ -22,7 +22,7 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static ratpack.util.ExceptionUtils.toException;
+import static ratpack.util.Exceptions.toException;
 
 /**
  * Provides integration with <a href="https://github.com/Netflix/RxJava">RxJava</a>.
@@ -164,7 +164,7 @@ public abstract class RxRatpack {
    * @see #promise(Observable)
    */
   public static <T> Observable<T> bindExec(Observable<T> source) {
-    return ExceptionUtils.uncheck(() -> promise(source).to(RxRatpack::observeEach));
+    return Exceptions.uncheck(() -> promise(source).to(RxRatpack::observeEach));
   }
 
   /**
@@ -318,7 +318,7 @@ public abstract class RxRatpack {
    * <p>
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
-   * import ratpack.util.ExceptionUtils;
+   * import ratpack.util.Exceptions;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
@@ -343,7 +343,7 @@ public abstract class RxRatpack {
    *         RxRatpack.promise(
    *           Observable.just(1, 2, 3, 4, 5)
    *             .compose(RxRatpack::forkEach) // parallelize
-   *             .doOnNext(value -> ExceptionUtils.uncheck(() -> barrier.await())) // wait for all values
+   *             .doOnNext(value -> Exceptions.uncheck(() -> barrier.await())) // wait for all values
    *             .map(integer -> integer.intValue() * 2)
    *             .serialize()
    *         )
@@ -441,7 +441,7 @@ public abstract class RxRatpack {
             }
           });
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     }
 

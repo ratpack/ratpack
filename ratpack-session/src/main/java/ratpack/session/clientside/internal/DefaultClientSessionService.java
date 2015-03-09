@@ -25,7 +25,7 @@ import io.netty.util.CharsetUtil;
 import ratpack.session.clientside.Crypto;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.clientside.Signer;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.nio.CharBuffer;
 import java.util.*;
@@ -128,7 +128,7 @@ public class DefaultClientSessionService implements SessionService {
             }
           }
         } catch (Exception e) {
-          throw ExceptionUtils.uncheck(e);
+          throw Exceptions.uncheck(e);
         }
       }
     }

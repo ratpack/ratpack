@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static ratpack.util.ExceptionUtils.toException;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.toException;
+import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultSessionStore implements SessionStore, SessionListener {
 

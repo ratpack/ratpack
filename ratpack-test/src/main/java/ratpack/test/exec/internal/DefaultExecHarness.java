@@ -23,7 +23,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.ExecHarness;
 import ratpack.exec.ExecResult;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,7 +90,7 @@ public class DefaultExecHarness implements ExecHarness {
 
     Throwable throwable = thrown.get();
     if (throwable != null) {
-      throw ExceptionUtils.toException(throwable);
+      throw Exceptions.toException(throwable);
     }
   }
 

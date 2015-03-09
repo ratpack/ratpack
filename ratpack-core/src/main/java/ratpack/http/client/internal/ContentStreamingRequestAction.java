@@ -45,7 +45,7 @@ import ratpack.stream.TransformablePublisher;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
   private final AtomicBoolean subscribedTo = new AtomicBoolean();

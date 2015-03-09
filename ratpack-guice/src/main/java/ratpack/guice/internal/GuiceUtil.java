@@ -25,7 +25,7 @@ import ratpack.util.Types;
 
 import java.util.Map;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public abstract class GuiceUtil {
 

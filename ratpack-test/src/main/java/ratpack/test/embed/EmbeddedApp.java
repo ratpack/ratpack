@@ -33,7 +33,7 @@ import ratpack.test.embed.internal.EmbeddedAppSupport;
 import java.net.URI;
 import java.nio.file.Path;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * An application created and used at runtime, useful for functionally testing subsets of functionality.

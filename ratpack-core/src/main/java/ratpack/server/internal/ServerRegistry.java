@@ -46,7 +46,7 @@ import ratpack.render.internal.PublisherRenderer;
 import ratpack.render.internal.RenderableRenderer;
 import ratpack.sse.ServerSentEventStreamClient;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 

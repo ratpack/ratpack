@@ -18,7 +18,7 @@ package ratpack.session.clientside.internal;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.session.clientside.Signer;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,7 +33,7 @@ public class DefaultSigner implements Signer {
 
   @Override
   public byte[] sign(ByteBuf message) {
-    return ExceptionUtils.uncheck(() -> {
+    return Exceptions.uncheck(() -> {
       Mac mac = Mac.getInstance(secretKeySpec.getAlgorithm());
       mac.init(secretKeySpec);
       mac.update(message.nioBuffer());

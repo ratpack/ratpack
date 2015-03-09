@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import ratpack.config.ConfigSource;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.util.Iterator;
 
@@ -41,7 +41,7 @@ public class ConfigDataLoader {
         merge(source.loadConfigData(objectMapper), node);
       }
     } catch (Exception ex) {
-      throw ExceptionUtils.uncheck(ex);
+      throw Exceptions.uncheck(ex);
     }
     return node;
   }

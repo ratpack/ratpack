@@ -40,7 +40,7 @@ import java.util.Optional;
 
 import static com.google.inject.Scopes.SINGLETON;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * An extension module that provides support for Coda Hale's Metrics.

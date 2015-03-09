@@ -21,7 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.api.Nullable;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.util.concurrent.ExecutionException;
 
@@ -53,7 +53,7 @@ public class CachingFileSystemChecksumService implements FileSystemChecksumServi
     try {
       return cache.get(path).checksum;
     } catch (ExecutionException | UncheckedExecutionException e) {
-      throw ExceptionUtils.toException(e.getCause());
+      throw Exceptions.toException(e.getCause());
     }
   }
 

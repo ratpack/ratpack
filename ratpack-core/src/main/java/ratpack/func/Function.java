@@ -16,7 +16,7 @@
 
 package ratpack.func;
 
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.util.Objects;
 
@@ -103,7 +103,7 @@ public interface Function<I, O> {
   /**
    * Converts {@code this} function into the equivalent JDK type.
    * <p>
-   * Any exceptions thrown by {@code this} function will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} function will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a JDK style function.
    */
@@ -112,7 +112,7 @@ public interface Function<I, O> {
       try {
         return apply(t);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     };
   }
@@ -120,7 +120,7 @@ public interface Function<I, O> {
   /**
    * Converts {@code this} function into the equivalent Guava type.
    * <p>
-   * Any exceptions thrown by {@code this} function will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} function will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a Guava style function.
    */
@@ -129,7 +129,7 @@ public interface Function<I, O> {
       try {
         return apply(t);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     };
   }

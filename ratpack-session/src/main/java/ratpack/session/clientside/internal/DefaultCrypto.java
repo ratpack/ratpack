@@ -19,7 +19,7 @@ package ratpack.session.clientside.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Crypto;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -40,7 +40,7 @@ public class DefaultCrypto implements Crypto {
 
   @Override
   public byte[] encrypt(ByteBuf message) {
-    return ExceptionUtils.uncheck(() -> {
+    return Exceptions.uncheck(() -> {
       Cipher cipher = Cipher.getInstance(algorithm);
       cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
       ByteBuf messageBuf = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(message.readableBytes())]);
@@ -69,7 +69,7 @@ public class DefaultCrypto implements Crypto {
 
   @Override
   public byte[] decrypt(ByteBuf message) {
-    return ExceptionUtils.uncheck(() -> {
+    return Exceptions.uncheck(() -> {
       Cipher cipher = Cipher.getInstance(algorithm);
 
       if (isInitializationVectorRequired) {

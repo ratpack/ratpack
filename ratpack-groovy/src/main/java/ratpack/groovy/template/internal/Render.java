@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import static ratpack.util.ExceptionUtils.toException;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.toException;
+import static ratpack.util.Exceptions.uncheck;
 
 public class Render {
 

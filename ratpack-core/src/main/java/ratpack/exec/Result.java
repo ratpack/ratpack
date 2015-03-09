@@ -18,7 +18,7 @@ package ratpack.exec;
 
 import ratpack.exec.internal.DefaultResult;
 import ratpack.exec.internal.ResultBackedExecResult;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 /**
  * The result of an asynchronous operation, which may be a failure.
@@ -85,7 +85,7 @@ public interface Result<T> {
    */
   default T getValueOrThrow() throws Exception {
     if (isFailure()) {
-      throw ExceptionUtils.toException(getThrowable());
+      throw Exceptions.toException(getThrowable());
     } else {
       return getValue();
     }

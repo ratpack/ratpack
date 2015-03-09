@@ -21,7 +21,7 @@ import ratpack.server.RatpackServer;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public abstract class ServerBackedApplicationUnderTest implements CloseableApplicationUnderTest {
 

@@ -28,7 +28,7 @@ import java.nio.file.Path;
 
 import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 import static ratpack.file.internal.DefaultFileRenderer.sendFile;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public class AssetHandler implements Handler {
 

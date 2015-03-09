@@ -22,7 +22,7 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import ratpack.manual.snippets.TestCodeSnippet;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public class SnippetRunner extends Runner {
 

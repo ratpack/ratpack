@@ -26,7 +26,7 @@ import ratpack.guice.internal.GuiceUtil;
 import ratpack.server.ServerConfig;
 import ratpack.util.Types;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * A buildable specification of Guice bindings.

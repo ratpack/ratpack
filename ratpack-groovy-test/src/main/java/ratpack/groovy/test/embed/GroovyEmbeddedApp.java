@@ -37,7 +37,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * A highly configurable {@link ratpack.test.embed.EmbeddedApp} implementation that allows the application to be defined in code at runtime.

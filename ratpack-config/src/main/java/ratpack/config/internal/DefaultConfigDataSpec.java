@@ -36,7 +36,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import ratpack.util.internal.Paths2;
 
 import java.net.URL;
@@ -80,7 +80,7 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
     try {
       action.execute(objectMapper);
     } catch (Exception ex) {
-      throw ExceptionUtils.uncheck(ex);
+      throw Exceptions.uncheck(ex);
     }
     return this;
   }

@@ -26,7 +26,7 @@ import ratpack.config.ConfigSource;
 import ratpack.registry.Registry;
 import ratpack.server.StartEvent;
 import ratpack.server.StopEvent;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.io.IOException;
 
@@ -54,7 +54,7 @@ public class DefaultConfigData implements ConfigData {
     try {
       return objectMapper.readValue(new TreeTraversingParser(node, objectMapper), type);
     } catch (IOException ex) {
-      throw ExceptionUtils.uncheck(ex);
+      throw Exceptions.uncheck(ex);
     }
   }
 

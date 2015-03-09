@@ -52,7 +52,7 @@ import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
 import ratpack.stream.TransformablePublisher;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import ratpack.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
@@ -416,7 +416,7 @@ public class DefaultContext implements Context {
     try {
       get(ClientErrorHandler.class).error(this, statusCode);
     } catch (Throwable e) {
-      error(ExceptionUtils.toException(e));
+      error(Exceptions.toException(e));
     }
   }
 

@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.google.inject.Guice.createInjector;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * Static utility methods for creating Google Guice based Ratpack infrastructure.

@@ -25,7 +25,7 @@ import ratpack.func.NoArgAction;
 /**
  * Utility methods for dealing with exceptions.
  */
-public abstract class ExceptionUtils {
+public abstract class Exceptions {
 
   /**
    * Converts the given throwable to a {@link RuntimeException} if necessary.

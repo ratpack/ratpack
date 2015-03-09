@@ -27,7 +27,7 @@ import ratpack.groovy.script.internal.ScriptEngine;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public class RatpackDslCapture<T extends Groovy.Ratpack, V> implements BiFunction<Path, String, V> {
 

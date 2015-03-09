@@ -23,7 +23,7 @@ import com.google.common.net.HostAndPort;
 import ratpack.handling.Context;
 import ratpack.http.Headers;
 import ratpack.server.PublicAddress;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import ratpack.util.internal.ProtocolUtil;
 
 import java.net.*;
@@ -92,7 +92,7 @@ public class DefaultPublicAddress implements PublicAddress {
       try {
         return new URI(scheme, null, host, port, null, null, null);
       } catch (URISyntaxException ex) {
-        throw ExceptionUtils.uncheck(ex);
+        throw Exceptions.uncheck(ex);
       }
     });
   }

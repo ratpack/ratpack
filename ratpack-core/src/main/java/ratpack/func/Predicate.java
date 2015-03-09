@@ -16,7 +16,7 @@
 
 package ratpack.func;
 
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 /**
  * A function that returns {@code true} or {@code false} for a value.
@@ -41,7 +41,7 @@ public interface Predicate<T> {
   /**
    * Creates a JDK {@link java.util.function.Predicate} from this predicate.
    * <p>
-   * Any exceptions thrown by {@code this} action will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a JDK style predicate.
    */
@@ -50,7 +50,7 @@ public interface Predicate<T> {
       try {
         return apply(t);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     };
   }
@@ -58,7 +58,7 @@ public interface Predicate<T> {
   /**
    * Creates a Guava {@link com.google.common.base.Predicate} from this predicate.
    * <p>
-   * Any exceptions thrown by {@code this} action will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a Guava style predicate.
    */
@@ -67,7 +67,7 @@ public interface Predicate<T> {
       try {
         return apply(t);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     };
   }

@@ -24,7 +24,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.NoArgAction;
 import ratpack.func.Predicate;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.Objects;
@@ -72,7 +72,7 @@ public class DefaultPromise<T> implements Promise<T> {
   private void throwError(Throwable throwable) {
     ExecutionBacking.require().streamSubscribe(h ->
         h.complete(() -> {
-          throw ExceptionUtils.toException(throwable);
+          throw Exceptions.toException(throwable);
         })
     );
   }

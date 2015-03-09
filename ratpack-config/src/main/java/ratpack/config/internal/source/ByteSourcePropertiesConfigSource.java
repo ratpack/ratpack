@@ -17,7 +17,7 @@
 package ratpack.config.internal.source;
 
 import com.google.common.io.ByteSource;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +38,7 @@ public class ByteSourcePropertiesConfigSource extends AbstractPropertiesConfigSo
     try (InputStream inputStream = byteSource.openStream()) {
       properties.load(inputStream);
     } catch (IOException ex) {
-      throw ExceptionUtils.uncheck(ex);
+      throw Exceptions.uncheck(ex);
     }
     return properties;
   }

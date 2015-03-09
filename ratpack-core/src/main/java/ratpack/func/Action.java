@@ -17,7 +17,7 @@
 package ratpack.func;
 
 import ratpack.api.Nullable;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.util.function.Consumer;
 
@@ -91,14 +91,14 @@ public interface Action<T> {
    */
   static Action<Throwable> throwException() {
     return throwable -> {
-      throw ExceptionUtils.toException(throwable);
+      throw Exceptions.toException(throwable);
     };
   }
 
   /**
    * Returns an action that immediately throws the given exception.
    * <p>
-   * The exception is thrown via {@link ratpack.util.ExceptionUtils#toException(Throwable)}
+   * The exception is thrown via {@link ratpack.util.Exceptions#toException(Throwable)}
    *
    * @param <T> the argument type (anything, as the argument is ignored)
    * @param throwable the throwable to immediately throw when the returned action is executed
@@ -106,7 +106,7 @@ public interface Action<T> {
    */
   static <T> Action<T> throwException(final Throwable throwable) {
     return t -> {
-      throw ExceptionUtils.toException(throwable);
+      throw Exceptions.toException(throwable);
     };
   }
 
@@ -168,7 +168,7 @@ public interface Action<T> {
   }
 
   /**
-   * Like {@link #with(Object, Action)}, but unchecks any exceptions thrown by the action via {@link ExceptionUtils#uncheck(Throwable)}.
+   * Like {@link #with(Object, Action)}, but unchecks any exceptions thrown by the action via {@link ratpack.util.Exceptions#uncheck(Throwable)}.
    *
    * @param t the argument to execute the given action with
    * @param action the action to execute with the given argument
@@ -180,14 +180,14 @@ public interface Action<T> {
   }
 
   /**
-   * Like {@link #with(Object)}, but unchecks any exceptions thrown by the action via {@link ExceptionUtils#uncheck(Throwable)}.
+   * Like {@link #with(Object)}, but unchecks any exceptions thrown by the action via {@link ratpack.util.Exceptions#uncheck(Throwable)}.
    *
    * @param o the argument to execute  with
    * @param <O> the type of the argument
    * @return the given argument (i.e. {@code o})
    */
   default <O extends T> O uncheckedWith(O o) {
-    return ExceptionUtils.uncheck(() -> {
+    return Exceptions.uncheck(() -> {
       execute(o);
       return o;
     });
@@ -196,7 +196,7 @@ public interface Action<T> {
   /**
    * Creates a JDK {@link Consumer} from this action.
    * <p>
-   * Any exceptions thrown by {@code this} action will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a JDK style consumer.
    */
@@ -205,7 +205,7 @@ public interface Action<T> {
       try {
         execute(t);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     };
   }

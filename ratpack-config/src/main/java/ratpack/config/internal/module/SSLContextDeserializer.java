@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.ssl.SSLContexts;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -38,7 +38,7 @@ public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
       String keyStorePassword = node.path("keyStorePassword").asText();
       return SSLContexts.sslContext(new File(keyStorePath), keyStorePassword);
     } catch (GeneralSecurityException ex) {
-      throw ExceptionUtils.uncheck(ex);
+      throw Exceptions.uncheck(ex);
     }
   }
 }

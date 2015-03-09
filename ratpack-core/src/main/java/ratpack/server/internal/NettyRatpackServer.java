@@ -44,7 +44,7 @@ import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.*;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public class NettyRatpackServer implements RatpackServer {
 
@@ -101,7 +101,7 @@ public class NettyRatpackServer implements RatpackServer {
         LOGGER.warn("Exception raised getting server config (will use default config until reload):", definitionBuild.error);
         needsReload.set(true);
       } else {
-        throw ExceptionUtils.toException(definitionBuild.error);
+        throw Exceptions.toException(definitionBuild.error);
       }
     }
 

@@ -26,7 +26,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.Optional;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public abstract class BaseDirFinder {
 

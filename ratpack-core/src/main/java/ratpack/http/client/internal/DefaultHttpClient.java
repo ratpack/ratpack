@@ -29,7 +29,7 @@ import ratpack.http.client.StreamedResponse;
 
 import java.net.URI;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultHttpClient implements HttpClient {
 

@@ -47,7 +47,7 @@ import ratpack.server.internal.ServerRegistry;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
@@ -127,7 +127,7 @@ public class DefaultRequestFixture implements RequestFixture {
         handler
       );
     } catch (Exception e) {
-      throw ExceptionUtils.uncheck(e);
+      throw Exceptions.uncheck(e);
     } finally {
       registry.get(ExecController.class).close();
     }
@@ -235,7 +235,7 @@ public class DefaultRequestFixture implements RequestFixture {
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();
-    return ExceptionUtils.uncheck(() -> {
+    return Exceptions.uncheck(() -> {
       ServerConfig serverConfig = serverConfigBuilder.build();
       ExecController execController = new DefaultExecController(serverConfig.getThreads());
       return ServerRegistry.serverRegistry(new TestServer(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));

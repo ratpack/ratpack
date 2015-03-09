@@ -19,7 +19,7 @@ package ratpack.test.embed.internal;
 import ratpack.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public abstract class EmbeddedAppSupport implements EmbeddedApp {
 

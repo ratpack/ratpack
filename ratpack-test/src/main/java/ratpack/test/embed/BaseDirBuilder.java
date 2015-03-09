@@ -19,7 +19,7 @@ package ratpack.test.embed;
 import com.google.common.io.Files;
 import ratpack.test.embed.internal.JarFileBaseDirBuilder;
 import ratpack.test.embed.internal.PathBaseDirBuilder;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.io.Closeable;
 import java.io.File;
@@ -37,7 +37,7 @@ public interface BaseDirBuilder extends Closeable {
   }
 
   public static BaseDirBuilder tmpJar() {
-    return jar(ExceptionUtils.uncheck(() -> File.createTempFile("ratpack", ".jar")));
+    return jar(Exceptions.uncheck(() -> File.createTempFile("ratpack", ".jar")));
   }
 
   public static BaseDirBuilder jar(File jarFile) {

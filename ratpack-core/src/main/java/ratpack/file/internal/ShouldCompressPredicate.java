@@ -26,8 +26,8 @@ import ratpack.func.Pair;
 
 import java.util.concurrent.ExecutionException;
 
-import static ratpack.util.ExceptionUtils.toException;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.toException;
+import static ratpack.util.Exceptions.uncheck;
 
 public class ShouldCompressPredicate implements Predicate<Pair<Long, String>> {
 

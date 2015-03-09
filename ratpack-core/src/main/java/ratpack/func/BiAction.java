@@ -16,7 +16,7 @@
 
 package ratpack.func;
 
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.util.function.BiConsumer;
 
@@ -44,7 +44,7 @@ public interface BiAction<T, U> {
   /**
    * Creates a JDK {@link java.util.function.BiConsumer} from this action.
    * <p>
-   * Any exceptions thrown by {@code this} action will be unchecked via {@link ratpack.util.ExceptionUtils#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a JDK style consumer.
    */
@@ -53,7 +53,7 @@ public interface BiAction<T, U> {
       try {
         execute(t, u);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     };
   }

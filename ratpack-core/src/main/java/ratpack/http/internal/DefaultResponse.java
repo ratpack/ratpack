@@ -31,7 +31,7 @@ import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.nio.CharBuffer;
@@ -288,7 +288,7 @@ public class DefaultResponse implements Response {
       readAttributes(execControl, file, fileAttributes -> sendFile(fileAttributes, file));
     } catch (Exception e) {
       // Shouldn't happen
-      throw ExceptionUtils.uncheck(e);
+      throw Exceptions.uncheck(e);
     }
   }
 
@@ -330,7 +330,7 @@ public class DefaultResponse implements Response {
       try {
         responseFinalizer.execute(this);
       } catch (Exception e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
     }
   }

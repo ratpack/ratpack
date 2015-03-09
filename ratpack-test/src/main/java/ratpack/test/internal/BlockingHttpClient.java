@@ -30,7 +30,7 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.internal.DefaultReceivedResponse;
 import ratpack.http.internal.ByteBufBackedTypedData;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.net.URI;
 import java.time.Duration;
@@ -54,7 +54,7 @@ public class BlockingHttpClient {
           throw new IllegalStateException("Request to " + uri + " took more than " + duration.get(unit) + " "+ unit.toString() +" to complete");
         }
       } catch (InterruptedException e) {
-        throw ExceptionUtils.uncheck(e);
+        throw Exceptions.uncheck(e);
       }
 
       return requestAction.result.getValueOrThrow();

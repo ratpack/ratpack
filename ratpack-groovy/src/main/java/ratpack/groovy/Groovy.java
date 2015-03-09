@@ -61,7 +61,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * Static methods for specialized Groovy integration.
