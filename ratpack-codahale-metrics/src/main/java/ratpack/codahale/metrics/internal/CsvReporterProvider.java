@@ -17,7 +17,6 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.CsvReporter;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.server.ServerConfig;
