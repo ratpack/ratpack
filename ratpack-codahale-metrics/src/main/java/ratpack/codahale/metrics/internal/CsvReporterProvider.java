@@ -17,6 +17,7 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.CsvReporter;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.server.ServerConfig;
@@ -42,7 +43,7 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
 
   @Override
   public CsvReporter get() {
-    return CsvReporter.forRegistry(metricRegistry).build(
+    return CsvReporter.forRegistry(metricRegistry).filter(config.getCsv().isPresent() ? new RegexMetricFilter(config.getCsv().get().getFilter()) : MetricFilter.ALL).build(
       config.getCsv().isPresent() ? config.getCsv().get().getReportDirectory() : defaultReportDirectory
     );
   }

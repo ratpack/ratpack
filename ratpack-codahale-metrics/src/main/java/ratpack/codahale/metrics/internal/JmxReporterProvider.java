@@ -17,7 +17,9 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -27,15 +29,17 @@ import javax.inject.Provider;
  */
 public class JmxReporterProvider implements Provider<JmxReporter> {
   private final MetricRegistry metricRegistry;
+  private final CodaHaleMetricsModule.Config config;
 
   @Inject
-  public JmxReporterProvider(MetricRegistry metricRegistry) {
+  public JmxReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
     this.metricRegistry = metricRegistry;
+    this.config = config;
   }
 
   @Override
   public JmxReporter get() {
-    return JmxReporter.forRegistry(metricRegistry).build();
+    return JmxReporter.forRegistry(metricRegistry).filter(config.getJmx().isPresent() ? new RegexMetricFilter(config.getJmx().get().getFilter()) : MetricFilter.ALL).build();
   }
 }
 

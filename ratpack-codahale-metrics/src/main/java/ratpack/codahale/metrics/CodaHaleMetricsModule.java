@@ -302,6 +302,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     public static class Jmx {
       private boolean enabled = true;
+      private String filter;
 
       /**
        * The state of the JMX publisher.
@@ -318,6 +319,23 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
        */
       public Jmx enable(boolean enabled) {
         this.enabled = enabled;
+        return this;
+      }
+
+      /**
+       * The filter on the reporter.
+       * @return
+       */
+      public String getFilter() {
+        return filter;
+      }
+
+      /**
+       * Set the filter of the reporter.
+       * @param filter the regular expression to match on.
+       */
+      public Jmx filter(String filter) {
+        this.filter = filter;
         return this;
       }
     }
@@ -345,12 +363,21 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
         return this;
       }
 
+      /**
+       * The filter on the reporter.
+       * @return
+       */
       public String getFilter() {
         return filter;
       }
 
-      public void filter(String filter) {
+      /**
+       * Set the filter of the reporter.
+       * @param filter the regular expression to match on.
+       */
+      public Console filter(String filter) {
         this.filter = filter;
+        return this;
       }
 
       /**
@@ -400,6 +427,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private File reportDirectory;
       private boolean enabled = true;
+      private String filter;
 
       /**
        * The state of the CSV publisher.
@@ -416,6 +444,23 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
        */
       public Csv enable(boolean enabled) {
         this.enabled = enabled;
+        return this;
+      }
+
+      /**
+       * The filter on the reporter.
+       * @return
+       */
+      public String getFilter() {
+        return filter;
+      }
+
+      /**
+       * Set the filter of the reporter.
+       * @param filter the regular expression to match on.
+       */
+      public Csv filter(String filter) {
+        this.filter = filter;
         return this;
       }
 

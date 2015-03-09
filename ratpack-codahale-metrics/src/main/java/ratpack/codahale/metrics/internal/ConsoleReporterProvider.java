@@ -17,6 +17,7 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
@@ -38,13 +39,7 @@ public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
 
   @Override
   public ConsoleReporter get() {
-    ConsoleReporter.Builder builder = ConsoleReporter.forRegistry(metricRegistry);
-    config.getConsole().ifPresent(console -> {
-      if (console.getFilter() != null) {
-        builder.filter(new RegexMetricFilter(console.getFilter()));
-      }
-    });
-    return builder.build();
+    return ConsoleReporter.forRegistry(metricRegistry).filter(config.getConsole().isPresent() ? new RegexMetricFilter(config.getConsole().get().getFilter()) : MetricFilter.ALL).build();
   }
 }
 

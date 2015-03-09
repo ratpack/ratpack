@@ -475,9 +475,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     and:
     bindings {
       add new CodaHaleMetricsModule(), {
-        it.console {
-          it.reporterInterval(Duration.ofSeconds(1)).filter(".*foo.*")
-        }
+        it.console { it.reporterInterval(Duration.ofSeconds(1)).filter(".*foo.*") }
+        it.jmx { it.filter(".*foo.*") }
+        it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).filter(".*foo.*") }
       }
     }
 
@@ -506,6 +506,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     and:
     !output.toString().contains("[bar]~GET~Request")
+
+    and:
+    reportDirectory.root.listFiles().length == 1
+    reportDirectory.root.listFiles()[0].name.contains("foo")
 
     cleanup:
     System.out = origOut
