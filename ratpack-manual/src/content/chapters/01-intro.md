@@ -75,3 +75,7 @@ It is typically used to unit test asynchronous code that uses Ratpack constructs
 
 Being able to understand how to read the examples littered throughout the documentation is very important.
  
+#### Java 8
+
+Ratpack is built on, and requires, Java 8. The code samples extensively use Java 8 constructs such as lambda expressions and method references.
+If you are experienced with Java but not the new constructs in Java 8, you may find the examples “exotic”.
