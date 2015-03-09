@@ -23,30 +23,27 @@ want to use these features however, then your application should depend on the `
 
 Hystrix provides three types of Command execution, [synchronous](https://github.com/Netflix/Hystrix/wiki/How-To-Use#Synchronous-Execution), [asynchronous](https://github.com/Netflix/Hystrix/wiki/How-To-Use#asynchronous-execution) and [reactive](https://github.com/Netflix/Hystrix/wiki/How-To-Use#reactive-execution).
 Out of the three only reactive is actually non-blocking.  Synchronous and asynchronous command execution will work with Ratpack, as is demonstrated in the [integration tests](https://github.com/ratpack/ratpack/blob/master/ratpack-hystrix/src/test/groovy/ratpack/hystrix/HystrixRequestCachingSpec.groovy#L128), 
-but for maximum performance only reactive execution is recommended.  If you do not wish to use Observables however, then you can convert them to Ratpack Promises instead using [RxRatpack#asPromise](api/ratpack/rx/RxRatpack.html#asPromise-rx.Observable-)
-or [RxRatpack#asPromiseSingle](api/ratpack/rx/RxRatpack.html#asPromiseSingle-rx.Observable-).
+but for maximum performance only reactive execution is recommended.  If you do not wish to use Observables however, then you can convert them to Ratpack Promises instead using [RxRatpack#promise](api/ratpack/rx/RxRatpack.html#promise-rx.Observable-)
+or [RxRatpack#promiseSingle](api/ratpack/rx/RxRatpack.html#promiseSingle-rx.Observable-).
 
 ```language-java
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import ratpack.exec.Promise;
+import ratpack.rx.RxRatpack;
 import rx.Observable;
-
-import static ratpack.rx.RxRatpack.asPromiseSingle;
-
 public class CommandFactory {
 
   public static Promise<String> fooCommand() {
     Observable<String> command = new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("foo-command")) {
       @Override
-      protected rx.Observable<String> run() {
-        return rx.Observable.just("foo");
+      protected Observable<String> run() {
+        return Observable.just("foo");
       }
     }.toObservable();
 
-    return asPromiseSingle(command);
+    return RxRatpack.promiseSingle(command);
   }
-
 }
 ```
 

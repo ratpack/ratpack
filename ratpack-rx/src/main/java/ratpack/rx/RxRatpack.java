@@ -49,7 +49,7 @@ import static ratpack.util.ExceptionUtils.toException;
  * When using observables for asynchronous actions, it is generally required to wrap promises created by an {@link ExecControl} in order to integrate with Ratpack's execution model.
  * This typically means using {@link ExecControl#promise(Action)} or {@link ExecControl#blocking(java.util.concurrent.Callable)} to initiate the operation and then wrapping with {@link #observe(Promise)} or similar.
  * <p>
- * To test observable based services that use Ratpack's execution semantics, use the {@code ExecHarness} and convert the observable back to a promise with {@link #asPromise(Observable)}.
+ * To test observable based services that use Ratpack's execution semantics, use the {@code ExecHarness} and convert the observable back to a promise with {@link #promise(Observable)}.
  * <p>
  * The methods in this class are also provided as <a href="http://docs.groovy-lang.org/latest/html/documentation/#_extension_modules">Groovy Extensions</a>.
  * When using Groovy, each static method in this class is able to act as an instance-level method against the {@link Observable} type.
@@ -124,39 +124,47 @@ public abstract class RxRatpack {
   }
 
   /**
-   * Forks the current execution in order to subscribe to the given source, then joining the original execution with the source values.
+   * Binds the given observable to the current execution, allowing integration of third-party asynchronous observables with Ratpack's execution model.
    * <p>
-   * This method supports parallelism in the observable stream.
+   * This method is useful when you want to consume an asynchronous observable within a Ratpack execution, as an observable.
+   * It is just a combination of {@link #promise(Observable)} and {@link #observeEach(Promise)}.
    * <p>
-   * This method uses {@link rx.Observable#toList()} on the given source to collect all values before returning control to the original execution.
-   * As such, {@code source} should not be an infinite or extremely large stream.
+   * <pre class="java">{@code
+   * import rx.Observable;
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.rx.RxRatpack;
+   * import java.util.Arrays;
+   * import java.util.List;
+   * import static org.junit.Assert.*;
    *
-   * @param execControl the execution control
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     Observable<String> asyncObservable = Observable.create(subscriber ->
+   *       new Thread(() -> {
+   *         subscriber.onNext("foo");
+   *         subscriber.onNext("bar");
+   *         subscriber.onCompleted();
+   *       }).start()
+   *     );
+   *
+   *     List<String> strings = ExecHarness.yieldSingle(e ->
+   *       RxRatpack.promise(asyncObservable.compose(RxRatpack::bindExec))
+   *     ).getValue();
+   *
+   *     assertEquals(Arrays.asList("foo", "bar"), strings);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   *
    * @param source the observable source
    * @param <T> the type of item observed
    * @return an observable stream equivalent to the given source
+   * @see #observeEach(Promise)
+   * @see #promise(Observable)
    */
-  public static <T> Observable<T> forkAndJoin(final ExecControl execControl, final Observable<T> source) {
-    Promise<List<T>> promise = execControl.promise(fulfiller -> execControl.exec().start(execution -> source
-      .toList()
-      .subscribe(new Subscriber<List<T>>() {
-        @Override
-        public void onCompleted() {
-
-        }
-
-        @Override
-        public void onError(Throwable e) {
-          fulfiller.error(e);
-        }
-
-        @Override
-        public void onNext(List<T> ts) {
-          fulfiller.success(ts);
-        }
-      })));
-
-    return observeEach(promise);
+  public static <T> Observable<T> bindExec(Observable<T> source) {
+    return ExceptionUtils.uncheck(() -> promise(source).to(RxRatpack::observeEach));
   }
 
   /**
@@ -173,7 +181,7 @@ public abstract class RxRatpack {
    *   public static String value;
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(e ->
-   *       e.blocking(() -> "hello world")
+   *       e.promiseOf("hello world")
    *         .to(RxRatpack::observe)
    *         .map(String::toUpperCase)
    *         .subscribe(s -> value = s)
@@ -200,10 +208,10 @@ public abstract class RxRatpack {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
    * import rx.Observable;
+   * import ratpack.rx.RxRatpack;
    *
    * import java.util.List;
    *
-   * import static ratpack.rx.RxRatpack.asPromise;
    *
    * import static org.junit.Assert.assertEquals;
    *
@@ -224,7 +232,7 @@ public abstract class RxRatpack {
    *     final AsyncService service = new AsyncService();
    *
    *     // exercise the async code using the harness, blocking until the promised value is available
-   *     ExecResult<List<String>> result = ExecHarness.yieldSingle(execution -> asPromise(service.observe("foo")));
+   *     ExecResult<List<String>> result = ExecHarness.yieldSingle(execution -> RxRatpack.promise(service.observe("foo")));
    *
    *     List<String> results = result.getValue();
    *     assertEquals(1, results.size());
@@ -236,16 +244,16 @@ public abstract class RxRatpack {
    * @param observable the observable
    * @param <T> the type of the value observed
    * @return a promise that returns all values from the observable
-   * @see #asPromiseSingle(Observable)
+   * @see #promiseSingle(Observable)
    */
-  public static <T> Promise<List<T>> asPromise(Observable<T> observable) {
+  public static <T> Promise<List<T>> promise(Observable<T> observable) {
     return ExecControl.current().promise(f -> observable.toList().subscribe(f::success, f::error));
   }
 
   /**
    * Convenience for converting an {@link Observable} to a {@link Promise} when it is known that the observable sequence is of zero or one elements.
    * <p>
-   * Has the same behavior as {@link #asPromise(Observable)}, except that the list representation of the sequence is “unpacked”.
+   * Has the same behavior as {@link #promise(Observable)}, except that the list representation of the sequence is “unpacked”.
    * <p>
    * If the observable sequence produces no elements, the promised value will be {@code null}.
    * If the observable sequence produces one element, the promised value will be that element.
@@ -254,9 +262,9 @@ public abstract class RxRatpack {
    * @param observable the observable
    * @param <T> the type of the value observed
    * @return a promise that returns the sole value from the observable
-   * @see #asPromise(Observable)
+   * @see #promise(Observable)
    */
-  public static <T> Promise<T> asPromiseSingle(Observable<T> observable) {
+  public static <T> Promise<T> promiseSingle(Observable<T> observable) {
     return ExecControl.current().promise(f -> observable.single().subscribe(f::success, f::error));
   }
 
@@ -306,77 +314,57 @@ public abstract class RxRatpack {
   }
 
   /**
-   * Alternative method for forking the execution to process each observable element.
+   * Parallelize an observable by creating a new Ratpack execution for each element.
    * <p>
-   * This method is alternative to {@link #forkOnNext(ExecControl)} and is functionally equivalent.
-   *
-   * @param execControl the execution control to use to fork executions
-   * @param observable the observable sequence to process each element of in a forked execution
-   * @param <T> the element type
-   * @return an observable
-   */
-  public static <T> Observable<T> forkOnNext(ExecControl execControl, Observable<T> observable) {
-    return observable.lift(RxRatpack.<T>forkOnNext(execControl));
-  }
-
-  /**
-   * An operator to parallelize an observable stream by forking a new execution for each omitted item.
-   * This allows downstream processing to occur in concurrent executions.
-   * <p>
-   * To be used with the {@link Observable#lift(Observable.Operator)} method.
-   * <p>
-   * The {@code onCompleted()} or {@code onError()} downstream methods are guaranteed to be called <strong>after</strong> the last item has been given to the downstream {@code onNext()} method.
-   * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
-   * <p>
-   * This is generally a more performant alternative to using plain Rx parallelization due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
+   * import ratpack.util.ExceptionUtils;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
    *
    * import java.util.List;
    * import java.util.Arrays;
+   * import java.util.LinkedList;
+   * import java.util.Collection;
+   * import java.util.Collections;
    * import java.util.concurrent.CyclicBarrier;
-   * import java.util.concurrent.BrokenBarrierException;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
-   *
    *   public static void main(String[] args) throws Exception {
    *     RxRatpack.initialize();
-   *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
-   *       CyclicBarrier barrier = new CyclicBarrier(5);
-   *       Integer[] myArray = {1, 2, 3, 4, 5};
-   *       Observable<Integer> source = Observable.from(myArray);
-   *       List<Integer> doubledAndSorted = source
-   *         .lift(RxRatpack.<Integer>forkOnNext(execHarness))
-   *         .map(integer -> {
-   *             try {
-   *               barrier.await(); // prove stream is processed concurrently
-   *             } catch (InterruptedException | BrokenBarrierException e) {
-   *               throw new RuntimeException(e);
-   *             }
-   *             return integer.intValue() * 2;
-   *         })
-   *         .serialize()
-   *         .toSortedList()
-   *         .toBlocking()
-   *         .single();
    *
-   *       assertEquals(Arrays.asList(2, 4, 6, 8, 10), doubledAndSorted);
+   *     CyclicBarrier barrier = new CyclicBarrier(5);
+   *
+   *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
+   *       List<Integer> values = execHarness.yield(execution ->
+   *         RxRatpack.promise(
+   *           Observable.just(1, 2, 3, 4, 5)
+   *             .compose(RxRatpack::forkEach) // parallelize
+   *             .doOnNext(value -> ExceptionUtils.uncheck(() -> barrier.await())) // wait for all values
+   *             .map(integer -> integer.intValue() * 2)
+   *             .serialize()
+   *         )
+   *       ).getValue();
+   *
+   *       List<Integer> sortedValues = new LinkedList<>(values);
+   *       Collections.sort(sortedValues);
+   *       assertEquals(Arrays.asList(2, 4, 6, 8, 10), sortedValues);
    *     }
    *   }
    * }
    * }</pre>
    *
-   * @param execControl the execution control to use to fork executions
-   * @param <T> the type of item in the stream
-   * @return an observable operator
+   * @param observable the observable sequence to process each element of in a forked execution
+   * @param <T> the element type
+   * @return an observable
    */
-  public static <T> Observable.Operator<T, T> forkOnNext(final ExecControl execControl) {
-    return downstream -> new Subscriber<T>(downstream) {
+  public static <T> Observable<T> forkEach(Observable<T> observable) {
+    ExecControl current = ExecControl.current();
+
+    return observable.<T>lift(downstream -> new Subscriber<T>(downstream) {
 
       private final AtomicInteger wip = new AtomicInteger(1);
       private final AtomicBoolean closed = new AtomicBoolean();
@@ -411,7 +399,7 @@ public abstract class RxRatpack {
         }
 
         wip.incrementAndGet();
-        execControl.exec()
+        current.exec()
           .onComplete(e -> this.maybeDone())
           .onError(this::onError)
           .start(e -> {
@@ -420,7 +408,7 @@ public abstract class RxRatpack {
             }
           });
       }
-    };
+    });
   }
 
   private static class PromiseSubscribe<T, S> implements Observable.OnSubscribe<S> {

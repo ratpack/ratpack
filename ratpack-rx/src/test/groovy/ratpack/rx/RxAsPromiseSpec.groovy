@@ -46,7 +46,7 @@ class RxAsPromiseSpec extends Specification {
 
   def "can test async service"() {
     when:
-    def result = harness.yield { service.observe("foo").asPromise() }
+    def result = harness.yield { service.observe("foo").promise() }
 
     then:
     result.valueOrThrow == ["foo"]
@@ -54,7 +54,7 @@ class RxAsPromiseSpec extends Specification {
 
   def "failed observable causes exception to be thrown"() {
     when:
-    harness.yield { service.fail().asPromise() }.valueOrThrow
+    harness.yield { service.fail().promise() }.valueOrThrow
 
     then:
     def e = thrown RuntimeException
@@ -63,7 +63,7 @@ class RxAsPromiseSpec extends Specification {
 
   def "can unpack single"() {
     when:
-    def result = harness.yield { service.observe("foo").asPromiseSingle() }
+    def result = harness.yield { service.observe("foo").promiseSingle() }
 
     then:
     result.valueOrThrow == "foo"

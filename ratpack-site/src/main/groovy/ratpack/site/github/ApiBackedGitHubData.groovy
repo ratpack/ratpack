@@ -37,7 +37,7 @@ class ApiBackedGitHubData implements GitHubData {
 
   @Override
   Promise<IssueSet> closed(RatpackVersion version) {
-    RxRatpack.asPromiseSingle(gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").map { JsonNode issues ->
+    RxRatpack.promiseSingle(gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").map { JsonNode issues ->
       def issuesBuilder = ImmutableList.builder()
       def pullRequestsBuilder = ImmutableList.builder()
 
@@ -69,13 +69,13 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
   Promise<List<RatpackVersion>> getReleasedVersions() {
-    RxRatpack.asPromiseSingle(gitHubApi.milestones(state: "closed", sort: "due_date").map {
+    RxRatpack.promiseSingle(gitHubApi.milestones(state: "closed", sort: "due_date").map {
       RatpackVersion.fromJson(it as JsonNode) as List
     })
   }
 
   Promise<List<RatpackVersion>> getUnreleasedVersions() {
-    RxRatpack.asPromiseSingle(gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc").map {
+    RxRatpack.promiseSingle(gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc").map {
       RatpackVersion.fromJson(it as JsonNode) as List
     })
   }

@@ -16,7 +16,7 @@
 
 package ratpack.rx
 
-import ratpack.exec.internal.DefaultExecController
+import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -25,14 +25,12 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
 
-import static ratpack.rx.RxRatpack.forkOnNext
 import static ratpack.rx.RxRatpack.observe
 
 class RxParallelSpec extends Specification {
 
   @AutoCleanup
-  def controller = new DefaultExecController(12)
-  def control = controller.control
+  def harness = ExecHarness.harness(12)
 
   def setup() {
     RxRatpack.initialize()
@@ -45,7 +43,7 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    controller.control.exec().start {
+    harness.exec().start {
       rx.Observable.from((0..9).toList())
         .parallel { it.map { received << it; latch.countDown() } }
         .subscribe()
@@ -89,7 +87,7 @@ class RxParallelSpec extends Specification {
     List<Integer> nums = []
 
     when:
-    controller.control.exec()
+    harness.exec()
       .onComplete { latch.countDown() }
       .start { exec ->
       def o = rx.Observable.from(1, 2, 3, 4, 5)
@@ -103,7 +101,7 @@ class RxParallelSpec extends Specification {
         }
       }
 
-      exec.control.forkAndJoin(o).toList().subscribe {
+      o.compose(RxRatpack.&bindExec).toList().subscribe {
         nums = it
       }
     }
@@ -120,11 +118,13 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    sequence.lift(forkOnNext(control)).subscribe {
-      received << it
+    harness.run {
+      sequence.compose(RxRatpack.&forkEach).subscribe {
+        received << it
+        barrier.await()
+      }
       barrier.await()
     }
-    barrier.await()
 
     then:
     received.sort() == [1, 2, 3, 4, 5]
@@ -137,11 +137,13 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    control.forkOnNext(sequence).subscribe {
-      received << it.toUpperCase()
+    harness.run {
+      sequence.compose(RxRatpack.&forkEach).subscribe {
+        received << it.toUpperCase()
+        barrier.await()
+      }
       barrier.await()
     }
-    barrier.await()
 
     then:
     received.sort() == ["A", "B", "C", "D", "E"]
@@ -154,10 +156,12 @@ class RxParallelSpec extends Specification {
     Throwable e = null
 
     when:
-    sequence.lift(control.forkOnNext()).serialize().subscribe({
-      throw new RuntimeException("!")
-    }, { e = it; barrier.await() })
-    barrier.await()
+    harness.run {
+      sequence.compose(RxRatpack.&forkEach).serialize().subscribe({
+        throw new RuntimeException("!")
+      }, { e = it; barrier.await() })
+      barrier.await()
+    }
 
     then:
     e.message == "!"
