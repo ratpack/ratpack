@@ -20,6 +20,6 @@ import ratpack.manual.snippets.TestCodeSnippet;
 
 public interface SnippetExecuter {
 
-  void execute(TestCodeSnippet snippet);
+  void execute(TestCodeSnippet snippet) throws Exception;
 
 }

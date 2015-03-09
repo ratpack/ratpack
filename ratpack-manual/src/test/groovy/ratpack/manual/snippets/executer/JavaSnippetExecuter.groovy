@@ -17,17 +17,17 @@
 package ratpack.manual.snippets.executer
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import ratpack.manual.snippets.TestCodeSnippet
 
 import javax.tools.*
 import java.lang.reflect.InvocationTargetException
-import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
 public class JavaSnippetExecuter implements SnippetExecuter {
   @Override
-  public void execute(TestCodeSnippet snippet) {
+  public void execute(TestCodeSnippet snippet) throws Exception {
     def compiler = ToolProvider.getSystemJavaCompiler()
     List<ByteArrayJavaClass> classFileObjects = []
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>()
@@ -74,7 +74,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {
-     throw e.cause
+      throw e.cause
     } finally {
       Thread.currentThread().setContextClassLoader(previousContextClassLoader)
     }
@@ -82,7 +82,14 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
   private static String detectClassName(String snippet) {
     def match = snippet =~ /public class (\w+)/
-    return match ? match.group(1) : "Example"
+    def className = match ? match.group(1) : "Example"
+    def packageName = detectPackage(snippet)
+    packageName ? "${packageName}.$className".toString() : className
+  }
+
+  private static String detectPackage(String snippet) {
+    def match = snippet =~ /package ([\w.]+);/
+    return match ? match.group(1) : null;
   }
 
   static class StringJavaSource extends SimpleJavaFileObject {

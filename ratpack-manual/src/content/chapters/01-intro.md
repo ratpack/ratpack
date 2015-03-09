@@ -1,10 +1,32 @@
 # Introduction
 
 Ratpack is a set of Java libraries that facilitate fast, efficient, evolvable and well tested HTTP applications.
-
 It is built on the highly performant and efficient Netty event-driven networking engine.
 
-Ratpack focuses on allowing HTTP applications to be efficient, modular, adaptive to new requirements and technologies, and well-tested over time.
+Ratpack is purely a runtime.
+There is no installable package and no coupled build tooling (e.g. Rails, Play, Grails).
+To build Ratpack applications, you can use any JVM build tool.
+The Ratpack project provides specific support for [Gradle](http://www.gradle.org) through plugins, but any could be used.
+
+Ratpack is published as a set of library JARs.
+The `ratpack-core` library is the only strictly required library.
+Others such as `ratpack-groovy`, `ratpack-guice`, `ratpack-jackson`, `ratpack-test` etc. are optional.
+
+## Goals
+
+Ratpack's goals are:
+  
+1. To be fast, scalable, and efficient
+2. To allow applications to evolve in complexity without compromise
+3. To leverage the benefits of non-blocking programming and reduce the costs
+4. To be flexible and unopinionated when it comes to integrating other tools and libraries
+5. To allow applications to be easily and thoroughly tested
+ 
+Ratpacks's goals are **not**:
+
+1. To be a fully integrated, “full stack” solution
+2. Provide every feature you might need in a neat box
+3. To provide an architecture or framework for “business logic”
 
 ## About this documentation
 

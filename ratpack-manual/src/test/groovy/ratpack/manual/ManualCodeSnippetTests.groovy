@@ -30,7 +30,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy groovy-handlers" : new GroovyHandlersFixture(),
     "language-groovy gradle"          : new GradleFixture(),
     "language-groovy tested"          : new GroovyScriptFixture(),
-    "language-java"                   : new JavaExampleClassFixture()
+    "language-java"                   : new JavaExampleClassFixture(),
+    "language-java main"              : new JavaMainClassFixture()
   ]
 
   @Override

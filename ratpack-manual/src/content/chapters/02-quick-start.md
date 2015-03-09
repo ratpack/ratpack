@@ -1,22 +1,22 @@
-# Setup
+# Quick Start
 
-Ratpack is purely a runtime.
-There is no installable package.
-To build Ratpack applications, you can use any JVM build tool.
-The Ratpack project provides specific support for [Gradle](http://www.gradle.org) through plugins, but any could be used.
-
-Ratpack is published as a set of library JARs.
-The `ratpack-core` library is the only strictly required library.
-Others such as `ratpack-groovy`, `ratpack-guice`, `ratpack-jackson`, `ratpack-test` etc. are optional.
-
-With Ratpack on the classpath, you can use the API described in the next chapter to launch the application.
+This chapter provides instructions on how to get a Ratpack application up and running to play with.
 
 ## Using the Gradle plugin(s)
 
-First, [install Gradle](http://www.gradle.org/docs/current/userguide/installation.html) if you haven't already.
-On Mac OS X, if you have [Homebrew](http://brew.sh/) installed, you can simply run `brew install gradle`.
+We recommend the use of the [Gradle build system](http:///www.gradle.org) to build Ratpack applications.
+Ratpack does not require Gradle; any build system can be used.
 
+> The following instructions assume you have already installed Gradle.
+> See the [Gradle User Guide](http://www.gradle.org/docs/current/userguide/installation.html) for installation instructions.
+
+The Ratpack project provides two Gradle plugins:
+
+1. [io.ratpack.ratpack-java](http://plugins.gradle.org/plugin/io.ratpack.ratpack-java) - for Ratpack applications implemented in Java
+2. [io.ratpack.ratpack-groovy](http://plugins.gradle.org/plugin/io.ratpack.ratpack-groovy)  - for Ratpack applications implemented in [Groovy](http://groovy-lang.org)
+ 
 ### Using the Gradle Java plugin
+
 Create a `build.gradle` file with the following contents:
 
 ```language-groovy gradle
@@ -30,7 +30,7 @@ buildscript {
 }
 
 apply plugin: "io.ratpack.ratpack-java"
-apply plugin: "idea"
+apply plugin: "org.gradle.idea"
 
 repositories {
   jcenter()
@@ -39,15 +39,31 @@ repositories {
 dependencies {
   runtime "org.slf4j:slf4j-simple:@slf4j-version@"
 }
+
+mainClassName = "my.app.Main"
 ```
 
-Create directories `src/ratpack` and `src/main/java`.
+Create the file `src/main/java/my/app/Main.java`, with the following content:
 
-If desired, run `gradle idea` to generate project files for IntelliJ and open the project.
+```language-java main
+package my.app;
 
-TODO - fix after launch changes in 0.9.13
+import ratpack.server.RatpackServer;
 
-Run the project by running `gradle run`, or create a distribution archive by running `gradle distZip`.
+public class Main {
+  public static void main(String... args) throws Exception {
+    RatpackServer.start(server -> server 
+      .handlers(chain -> chain
+        .get(ctx -> ctx.render("Hello World!"))
+        .get(":name", ctx -> ctx.render("Hello " + ctx.getPathTokens().get("name")))     
+      )
+    );
+  }
+}
+```
+
+You can now start the application either by executing the `run` task with Gradle (i.e. `gradle run` on the command line),
+or by importing the project into your IDE and executing the `my.app.Main` class.
 
 For further information on using Ratpack with Gradle, please the [Gradle chapter](gradle.html).
 
