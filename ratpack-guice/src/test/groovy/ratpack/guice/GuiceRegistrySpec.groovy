@@ -30,7 +30,7 @@ class GuiceRegistrySpec extends Specification {
 
   Injector injector = Mock(Injector)
   @Delegate
-  Registry registry = ratpack.guice.Guice.registry(injector)
+  Registry registry = Guice.registry(injector)
 
   // Used to back the impl of injector modk methods
   Injector realInjector
@@ -128,8 +128,8 @@ class GuiceRegistrySpec extends Specification {
     expect:
     otherRegistry.equals(registry)
     registry.equals(otherRegistry)
-    registry.equals(null) == false
-    registry.equals(new Object()) == false
+    !registry.equals(null)
+    !registry.equals(new Object())
     registry.equals(registry)
     otherRegistry.hashCode() == registry.hashCode()
   }
