@@ -499,7 +499,6 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get("bar")
 
     then:
-    true
     polling.within(2) {
       output.toString().contains("[foo]~GET~Request")
     }
