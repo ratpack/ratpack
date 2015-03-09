@@ -17,7 +17,7 @@
 package ratpack.exec;
 
 /**
- * Can be thrown when something is attempted on a non Ratpack managed thread where a managed thread is required.
+ * Thrown when something is attempted outside of a Ratpack execution, that can only succeed during a Ratpack execution.
  */
 public class UnmanagedThreadException extends ExecutionException {
 
