@@ -325,6 +325,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     public static class Console {
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private boolean enabled = true;
+      private String filter;
 
       /**
        * The state of the Console publisher.
@@ -342,6 +343,14 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       public Console enable(boolean enabled) {
         this.enabled = enabled;
         return this;
+      }
+
+      public String getFilter() {
+        return filter;
+      }
+
+      public void filter(String filter) {
+        this.filter = filter;
       }
 
       /**
