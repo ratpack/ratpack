@@ -312,7 +312,7 @@ public abstract class RxRatpack {
    * <p>
    * This method is useful when you want to consume an asynchronous observable within a Ratpack execution, as an observable.
    * It is just a combination of {@link #promise(Observable)} and {@link #observeEach(Promise)}.
-   * <p>
+   *
    * <pre class="java">{@code
    * import rx.Observable;
    * import ratpack.test.exec.ExecHarness;
@@ -353,7 +353,7 @@ public abstract class RxRatpack {
 
   /**
    * Parallelize an observable by creating a new Ratpack execution for each element.
-   * <p>
+   *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
    * import ratpack.util.Exceptions;

@@ -92,8 +92,19 @@ public interface ConfigData extends ReloadInformant, Service {
     return new DefaultConfigDataSpec(ServerEnvironment.env());
   }
 
-  static ConfigData of(Action<? super ConfigDataSpec> config) throws Exception {
-    return config.with(of()).build();
+  /**
+   * Begins building a new application configuration using a default object mapper, from the given definition.
+   * <p>
+   * The action argument effectively serves as the definition of the config data.
+   * It receives a mutable config data builder style object, a {@link ConfigDataSpec}.
+   *
+   * @param definition the config data definition
+   * @return a config data
+   * @throws Exception any thrown by building the config data
+   * @see ConfigDataSpec
+   */
+  static ConfigData of(Action<? super ConfigDataSpec> definition) throws Exception {
+    return definition.with(of()).build();
   }
 
   /**
@@ -106,8 +117,17 @@ public interface ConfigData extends ReloadInformant, Service {
     return new DefaultConfigDataSpec(ServerEnvironment.env(), modules);
   }
 
-  static ConfigData of(List<Module> modules, Action<? super ConfigDataSpec> config) throws Exception {
-    return config.with(of(modules.toArray(new Module[modules.size()]))).build();
+  /**
+   * Begins building a new application configuration using a default object mapper with the supplied modules registered, from the given definition.
+   *
+   * @param modules the Jackson modules to register with a default object mapper
+   * @param definition the config data definition
+   * @return a config data
+   * @throws Exception any thrown by building the config data
+   * @see ConfigDataSpec
+   */
+  static ConfigData of(List<Module> modules, Action<? super ConfigDataSpec> definition) throws Exception {
+    return definition.with(of(modules.toArray(new Module[modules.size()]))).build();
   }
 
   /**
@@ -120,8 +140,16 @@ public interface ConfigData extends ReloadInformant, Service {
     return new DefaultConfigDataSpec(ServerEnvironment.env(), objectMapper);
   }
 
-  static ConfigData of(ObjectMapper objectMapper, Action<? super ConfigDataSpec> config) throws Exception {
-    return config.with(of(objectMapper)).build();
+  /**
+   * Begins building a new application configuration using a specified object mapper, from the given definition.
+   *
+   * @param objectMapper the object mapper to use for configuration purposes
+   * @param definition the config data definition
+   * @return a config data
+   * @throws Exception any thrown by building the config data
+   */
+  static ConfigData of(ObjectMapper objectMapper, Action<? super ConfigDataSpec> definition) throws Exception {
+    return definition.with(of(objectMapper)).build();
   }
 
   /**
@@ -146,10 +174,22 @@ public interface ConfigData extends ReloadInformant, Service {
     return get(null, type);
   }
 
+  /**
+   * Binds the path "/server" in the configuration data to a {@link ratpack.server.ServerConfig} instance.
+   *
+   * @return a server config
+   */
   default ServerConfig getServerConfig() {
     return getServerConfig("/server");
   }
 
+  /**
+   * Binds the specified segment of the configuration data to a {@link ratpack.server.ServerConfig} instance.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying
+   * the point in the configuration data to bind from
+   * @return a server config
+   */
   default ServerConfig getServerConfig(String pointer) {
     return get(pointer, ServerConfig.class);
   }

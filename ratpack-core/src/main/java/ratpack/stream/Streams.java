@@ -492,11 +492,12 @@ public class Streams {
   }
 
   /**
+   * Creates a promise for the given publisher's items as a List.
    *
-   * @param execControl
-   * @param publisher
-   * @param <T>
-   * @return
+   * @param execControl the exec control to create the promise from
+   * @param publisher the stream to collect to a list
+   * @param <T> the type of item in the stream
+   * @return a promise for the streams contents as a list
    */
   public static <T> Promise<List<T>> toList(ExecControl execControl, Publisher<T> publisher) {
     return execControl.promise(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));

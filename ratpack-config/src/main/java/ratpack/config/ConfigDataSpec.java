@@ -207,6 +207,24 @@ public interface ConfigDataSpec {
   /**
    * Adds a configuration source for a Map (flat key-value pairs).
    *
+   * This signature is particularly useful for providing default values as shown below:
+   *
+   * <pre class="java">{@code
+   * import com.google.common.collect.ImmutableMap;
+   * import ratpack.config.ConfigData;
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     ConfigData config = ConfigData.of(d -> d
+   *       .props(ImmutableMap.of("server.port", "5060"))
+   *       .sysProps()
+   *     );
+   *     assertEquals(5060, config.getServerConfig().getPort());
+   *   }
+   * }
+   * }</pre>
+   *
    * @param map the map
    * @return this
    */

@@ -70,6 +70,7 @@ public interface RatpackServer {
    * @param definition the server definition
    * @return a Ratpack server
    * @see RatpackServerSpec
+   * @throws Exception any thrown by creating the server
    */
   public static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
     return new NettyRatpackServer(definition);

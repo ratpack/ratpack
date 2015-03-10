@@ -38,7 +38,7 @@ import javax.inject.Singleton;
  * <li>{@link ratpack.session.store.SessionStorage} - deserialized from the client's cookie</li>
  * </ul>
  * <h3>Getting the session storage</h3>
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.session.store.SessionStorage;

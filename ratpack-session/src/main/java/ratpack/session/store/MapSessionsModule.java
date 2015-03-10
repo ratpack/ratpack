@@ -37,7 +37,7 @@ import javax.inject.Singleton;
  * <li>{@link SessionManager} (can be provided by {@link ratpack.session.SessionModule})</li>
  * </ul>
  * <h3>Getting the session storage</h3>
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.session.store.SessionStorage;
