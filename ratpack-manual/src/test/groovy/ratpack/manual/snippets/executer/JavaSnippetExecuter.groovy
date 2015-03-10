@@ -89,7 +89,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
   private static String detectPackage(String snippet) {
     def match = snippet =~ /package ([\w.]+);/
-    return match ? match.group(1) : null;
+    match ? match.group(1) : null
   }
 
   static class StringJavaSource extends SimpleJavaFileObject {
