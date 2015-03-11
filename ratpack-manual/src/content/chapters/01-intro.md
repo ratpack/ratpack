@@ -61,10 +61,15 @@ The `import` statements are collapsed by default for clarity.
 Click them to show/hide them.
 
 This example is a complete Ratpack application.
-However, the [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) is not the entry point that is typically used for applications proper (see the next chapter for details on that).
+However, the [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) is not the entry point that is typically used for applications proper (see the [Launching chapter](launching.html) for details on the typical entry point).
 `EmbeddedApp` is testing oriented.
 It makes it easy to start/stop very small (or fully fledged) apps during a larger application, and provides a convenient way to make HTTP requests against the app.
 It is used in the examples to keep the amount of bootstrapping to a minimum in order to focus on the API being demonstrated.
+
+In this example we are starting a Ratpack server on an ephemeral port with default configuration that responds to all HTTP requests with the plain text string “Hello World”.
+The [`test()`](api/ratpack/test/CloseableApplicationUnderTest.html#test-ratpack.func.Action-) method being used here provides a [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) to the given function, that is configured to make requests of the server under test.
+This example and all others like it are making HTTP requests to a Ratpack server.
+[`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) and [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) are provided as part of Ratpack's [testing support](testing.html).
 
 Another key testing utility that is used in many examples is [`ExecHarness`](api/ratpack/test/exec/ExecHarness.html).
 
@@ -94,10 +99,9 @@ public class Example {
 
 Where `EmbeddedApp` supports creating an entire Ratpack application, `ExecHarness` provides just the infrastructure for Ratpack's execution model.
 It is typically used to unit test asynchronous code that uses Ratpack constructs like [`Promise`](api/ratpack/exec/Promise.html) (see the [“Asynchronous & Non Blocking”](async.html) chapter for more info on the execution model).
+[`ExecHarness`](api/ratpack/test/exec/ExecHarness.html) is also provided as part of Ratpack's [testing support](testing.html).
 
-Being able to understand how to read the examples littered throughout the documentation is very important.
- 
-#### Java 8
+#### Java 8 style
 
 Ratpack is built on, and requires, Java 8. The code samples extensively use Java 8 constructs such as lambda expressions and method references.
 If you are experienced with Java but not the new constructs in Java 8, you may find the examples “exotic”.

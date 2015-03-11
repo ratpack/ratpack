@@ -35,8 +35,11 @@ public interface CloseableApplicationUnderTest extends ApplicationUnderTest, Aut
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.fromHandler(ctx -> ctx.render("ok"))
-   *       .test(httpClient -> assertEquals("ok", httpClient.get().getBody().getText()) );
+   *     EmbeddedApp.fromHandler(ctx ->
+   *       ctx.render("ok")
+   *     ).test(httpClient ->
+   *       assertEquals("ok", httpClient.get().getBody().getText())
+   *     );
    *   }
    * }
    * }</pre>
