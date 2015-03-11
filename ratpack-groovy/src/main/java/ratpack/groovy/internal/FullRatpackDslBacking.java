@@ -19,7 +19,7 @@ package ratpack.groovy.internal;
 import groovy.lang.Closure;
 import ratpack.groovy.Groovy;
 
-class FullRatpackDslBacking implements Groovy.Ratpack {
+public class FullRatpackDslBacking implements Groovy.Ratpack {
 
   Closure<?> bindingsConfigurer;
   Closure<?> handlersConfigurer;
@@ -37,7 +37,7 @@ class FullRatpackDslBacking implements Groovy.Ratpack {
     this.serverConfigConfigurer = configConfigurer;
   }
 
-  RatpackDslClosures getClosures() {
+  public RatpackDslClosures getClosures() {
     return new RatpackDslClosures(serverConfigConfigurer, handlersConfigurer, bindingsConfigurer);
   }
 

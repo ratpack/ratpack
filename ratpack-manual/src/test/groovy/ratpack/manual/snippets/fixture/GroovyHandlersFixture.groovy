@@ -19,14 +19,6 @@ package ratpack.manual.snippets.fixture
 class GroovyHandlersFixture extends GroovyScriptFixture {
 
   @Override
-  public void setup() {
-  }
-
-  @Override
-  public void cleanup() {
-  }
-
-  @Override
   public String pre() {
 """
 def handlers(@DelegatesTo(value = ratpack.groovy.handling.GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }

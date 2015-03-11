@@ -19,7 +19,7 @@ package ratpack.manual.snippets.fixture;
 import ratpack.manual.snippets.executer.JavaSnippetExecuter;
 import ratpack.manual.snippets.executer.SnippetExecuter;
 
-public class JavaExampleClassFixture extends SnippetFixture {
+public class JavaClassFixture extends SnippetFixture {
 
   @Override
   public SnippetExecuter getExecuter() {

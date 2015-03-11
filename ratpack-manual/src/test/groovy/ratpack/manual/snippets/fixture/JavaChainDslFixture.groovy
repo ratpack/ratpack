@@ -19,14 +19,6 @@ package ratpack.manual.snippets.fixture
 class JavaChainDslFixture extends GroovyScriptFixture {
 
   @Override
-  public void setup() {
-  }
-
-  @Override
-  public void cleanup() {
-  }
-
-  @Override
   public String pre() {
     """
 import ratpack.func.Action;

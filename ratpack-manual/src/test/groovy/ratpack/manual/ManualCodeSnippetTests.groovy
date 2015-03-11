@@ -17,12 +17,21 @@
 package ratpack.manual
 
 import com.google.common.base.StandardSystemProperty
+import ratpack.func.NoArgAction
+import ratpack.groovy.Groovy
+import ratpack.groovy.internal.FullRatpackDslBacking
+import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
+import ratpack.manual.snippets.executer.GroovySnippetExecuter
+import ratpack.manual.snippets.executer.JavaSnippetExecuter
 import ratpack.manual.snippets.extractor.ManualSnippetExtractor
 import ratpack.manual.snippets.fixture.*
+import ratpack.test.embed.EmbeddedApp
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
+
+  static delegate = new GroovyRatpackDslFixture()
 
   public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
     "language-groovy groovy-chain-dsl": new GroovyChainDslFixture(),
@@ -30,8 +39,18 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy groovy-handlers" : new GroovyHandlersFixture(),
     "language-groovy gradle"          : new GradleFixture(),
     "language-groovy tested"          : new GroovyScriptFixture(),
-    "language-java"                   : new JavaExampleClassFixture(),
-    "language-java main"              : new JavaMainClassFixture()
+    "language-java"                   : new JavaClassFixture(),
+    "language-java hello-world"       : new HelloWorldAppSnippetFixture(new JavaSnippetExecuter()),
+    "language-groovy hello-world"     : new HelloWorldAppSnippetFixture(new GroovySnippetExecuter(true)) {
+      @Override
+      void around(NoArgAction action) throws Exception {
+        RatpackScriptBacking.withBacking({
+          def backing = new FullRatpackDslBacking()
+          backing.with(it)
+          EmbeddedApp.fromHandlers(Groovy.chain(backing.getClosures().handlers))
+        }, action.toRunnable())
+      }
+    }
   ]
 
   @Override

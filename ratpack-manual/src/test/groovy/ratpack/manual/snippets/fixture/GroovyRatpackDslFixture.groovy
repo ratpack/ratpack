@@ -16,23 +16,14 @@
 
 package ratpack.manual.snippets.fixture
 
+import ratpack.func.NoArgAction
 import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.func.Action
 
-class GroovyRatpackDslFixture  extends GroovyScriptFixture {
-
-  private Action<Closure<?>> previousBacking
+class GroovyRatpackDslFixture extends GroovyScriptFixture {
 
   @Override
-  public void setup() {
-    previousBacking = RatpackScriptBacking.swapBacking {
-      // do nothing
-    }
-  }
-
-  @Override
-  public void cleanup() {
-    RatpackScriptBacking.swapBacking(previousBacking)
+  void around(NoArgAction action) throws Exception {
+    RatpackScriptBacking.withBacking({}, { action.execute() })
   }
 
   @Override

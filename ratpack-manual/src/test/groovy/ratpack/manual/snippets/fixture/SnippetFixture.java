@@ -16,14 +16,13 @@
 
 package ratpack.manual.snippets.fixture;
 
+import ratpack.func.NoArgAction;
 import ratpack.manual.snippets.executer.SnippetExecuter;
 
 public abstract class SnippetFixture {
 
-  public void setup() {
-  }
-
-  public void cleanup() {
+  public void around(NoArgAction action) throws Exception {
+    action.execute();
   }
 
   public String pre() {
