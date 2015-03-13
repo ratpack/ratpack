@@ -80,7 +80,7 @@ public class SiteMain {
           )
           .handlers(c -> {
 
-            int longCache = 60 * 60 * 24 * 365;
+            int longCache = 60 * 60 * 24 * 365; // one year
             int shortCache = 60 * 10; // ten mins
 
             c
@@ -100,7 +100,7 @@ public class SiteMain {
 
               .prefix("assets", assets -> assets
                   .handler(ctx -> {
-                    int cacheFor = ctx.getRequest().getQuery().isEmpty() ? longCache : shortCache;
+                    int cacheFor = ctx.getRequest().getQuery().isEmpty() ? shortCache : longCache;
                     ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
                     ctx.next();
                   })
