@@ -79,7 +79,7 @@ public class SiteMain {
                 .add(TextTemplateModule.class, conf ->
                     conf.setStaticallyCompile(true)
                 )
-                .bindInstance(CompressionConfig.of().compressResponses(true).minSize(0).blackListMimeTypes(Collections.emptyList()).build())
+                .bindInstance(CompressionConfig.of().compressResponses(true).minSize(0).blackListMimeTypes(Collections.emptyList()).whiteListMimeTypes("image/x-icon").build())
             )
           )
           .handlers(c -> {
@@ -189,6 +189,10 @@ public class SiteMain {
 
               )
 
+              .get("favicon.ico", ctx -> {
+                ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
+                ctx.next();
+              })
               .assets("public", "index.html");
           });
       }
