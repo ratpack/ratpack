@@ -28,6 +28,7 @@ import ratpack.guice.Guice;
 import ratpack.jackson.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
 import ratpack.rx.RxRatpack;
+import ratpack.server.CompressionConfig;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
@@ -36,6 +37,8 @@ import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
+
+import java.util.Collections;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
 import static ratpack.registry.Registries.just;
@@ -76,6 +79,7 @@ public class SiteMain {
                 .add(TextTemplateModule.class, conf ->
                     conf.setStaticallyCompile(true)
                 )
+                .bindInstance(CompressionConfig.of().compressResponses(true).minSize(0).blackListMimeTypes(Collections.emptyList()).build())
             )
           )
           .handlers(c -> {
