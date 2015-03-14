@@ -16,10 +16,8 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
@@ -50,23 +48,12 @@ public class SingleEntryRegistry implements Registry {
   }
 
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return maybeGet(type).filter(predicate::apply);
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return first(type, predicate).map(ImmutableList::of).orElse(ImmutableList.of());
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    Optional<T> first = first(type, predicate);
-    if (!first.isPresent()) {
-      return false;
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    Optional<T> item = maybeGet(type);
+    if (item.isPresent()) {
+      return Optional.ofNullable(function.apply(item.get()));
     } else {
-      action.execute(first.get());
-      return true;
+      return Optional.empty();
     }
   }
 

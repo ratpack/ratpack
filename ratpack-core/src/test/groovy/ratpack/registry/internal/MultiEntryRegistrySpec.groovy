@@ -16,9 +16,9 @@
 
 package ratpack.registry.internal
 
-import com.google.common.base.Predicates
 import com.google.common.collect.ImmutableList
 import com.google.common.reflect.TypeToken
+import ratpack.func.Function
 import spock.lang.Specification
 
 class MultiEntryRegistrySpec extends Specification {
@@ -27,10 +27,8 @@ class MultiEntryRegistrySpec extends Specification {
     def r = new MultiEntryRegistry(ImmutableList.of())
 
     expect:
-    !r.first(TypeToken.of(Object), Predicates.alwaysTrue()).present
-    !r.first(TypeToken.of(Object), Predicates.alwaysFalse()).present
-    r.all(TypeToken.of(Object), Predicates.alwaysTrue()) == []
-    r.all(TypeToken.of(Object), Predicates.alwaysFalse()) == []
+    !r.first(TypeToken.of(Object), Function.identity()).present
+    !r.first(TypeToken.of(Object), Function.constant(null)).present
   }
 
   def "search with one item"() {
@@ -42,15 +40,10 @@ class MultiEntryRegistrySpec extends Specification {
     def r = new MultiEntryRegistry(ImmutableList.of(new DefaultRegistryEntry(type, value)))
 
     expect:
-    r.first(type, Predicates.alwaysTrue()).get() == value
-    !r.first(type, Predicates.alwaysFalse()).present
-    !r.first(other, Predicates.alwaysTrue()).present
-    !r.first(other, Predicates.alwaysFalse()).present
-
-    r.all(type, Predicates.alwaysTrue()) == [value]
-    r.all(type, Predicates.alwaysFalse()) == []
-    r.all(other, Predicates.alwaysTrue()) == []
-    r.all(other, Predicates.alwaysFalse()) == []
+    r.first(type, Function.identity()).get() == value
+    !r.first(type, Function.constant(null)).present
+    !r.first(other, Function.identity()).present
+    !r.first(other, Function.constant(null)).present
   }
 
   def "search with multiple items"() {
@@ -65,14 +58,9 @@ class MultiEntryRegistrySpec extends Specification {
       new DefaultRegistryEntry(number, c), new DefaultRegistryEntry(number, d)))
 
     expect:
-    r.first(string, Predicates.alwaysTrue()).get() == a
-    r.first(string, { s -> s.startsWith('B') }).get() == b
-    r.first(number, Predicates.alwaysTrue()).get() == c
-    r.first(number, { n -> n < 20 }).get() == d
-
-    r.all(string, Predicates.alwaysTrue()) == [a, b]
-    r.all(string, { s -> s.startsWith('B') }) == [b]
-    r.all(number, { n -> n < 50 }) == [c, d]
-    r.all(number, Predicates.alwaysFalse()) == []
+    r.first(string, Function.identity()).get() == a
+    r.first(string, { s -> s.startsWith('B') ? s : null }).get() == b
+    r.first(number, Function.identity()).get() == c
+    r.first(number, { n -> n < 20 ? n : null }).get() == d
   }
 }

@@ -16,12 +16,12 @@
 
 package ratpack.guice
 
-import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
 import com.google.inject.Binder
 import com.google.inject.Injector
 import com.google.inject.Module
 import com.google.inject.Provider
+import ratpack.func.Function
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.registry.Registry
 import spock.lang.Specification
@@ -111,15 +111,10 @@ class GuiceRegistrySpec extends Specification {
     injector.getAllBindings() >> realInjector.getAllBindings()
 
     expect:
-    registry.first(charseq, Predicates.alwaysTrue()).get() == a
-    registry.first(charseq, { CharSequence s -> s.startsWith('B') }).get() == b
-    registry.first(number, Predicates.alwaysTrue()).get() == c
-    registry.first(number, { Number n -> n < 20 }).get() == d
-
-    registry.all(charseq, Predicates.alwaysTrue()) as List == [a, b]
-    registry.all(charseq, { s -> s.startsWith('B') }) as List == [b]
-    registry.all(number, { n -> n < 50 }) as List == [c, d]
-    registry.all(number, Predicates.alwaysFalse()) as List == []
+    registry.first(charseq, Function.identity()).get() == a
+    registry.first(charseq, { CharSequence s -> s.startsWith('B') ? s : null }).get() == b
+    registry.first(number, Function.identity()).get() == c
+    registry.first(number, { Number n -> n < 20 ? n : null }).get() == d
   }
 
   def "equals and hashCode should be implemented"() {

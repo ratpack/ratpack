@@ -16,12 +16,9 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
-import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBacking;
 import ratpack.util.Types;
@@ -34,14 +31,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 public class CachingBackedRegistry implements Registry {
+
   private final RegistryBacking registryBacking;
+  private final ConcurrentMap<TypeToken<?>, Iterable<? extends Supplier<?>>> supplierCache = new ConcurrentHashMap<>();
 
   public CachingBackedRegistry(RegistryBacking registryBacking) {
     this.registryBacking = registryBacking;
   }
-
-  private final ConcurrentMap<TypeToken<?>, Iterable<? extends Supplier<?>>> supplierCache = new ConcurrentHashMap<>();
-  private final ConcurrentMap<PredicateCacheability.CacheKey<?>, Iterable<? extends Supplier<?>>> predicateCache = new ConcurrentHashMap<>();
 
   public <T> Optional<T> maybeGet(TypeToken<T> type) {
     Iterator<? extends Supplier<T>> suppliers = getSuppliers(type).iterator();
@@ -73,62 +69,6 @@ public class CachingBackedRegistry implements Registry {
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {
     return Types.cast(compute(supplierCache, type, t -> registryBacking.provide(type)));
-  }
-
-  protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type, Predicate<? super T> predicate) {
-    return Types.cast(
-      compute(predicateCache, new PredicateCacheability.CacheKey<>(type, predicate), key ->
-          Iterables.filter(getSuppliers(type), new Predicate<Supplier<T>>() {
-            @Override
-            public boolean apply(Supplier<T> input) {
-              return predicate.apply(input.get());
-            }
-          })
-      )
-    );
-  }
-
-  @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    Iterator<? extends T> matching = all(type, predicate).iterator();
-    if (!matching.hasNext()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(matching.next());
-    }
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    if (PredicateCacheability.isCacheable(predicate)) {
-      return transformToInstances(getSuppliers(type, predicate));
-    } else {
-      return Iterables.filter(getAll(type), predicate);
-    }
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    if (PredicateCacheability.isCacheable(predicate)) {
-      Iterable<? extends T> all = all(type, predicate);
-      boolean any = false;
-      for (T t : all) {
-        any = true;
-        action.execute(t);
-      }
-      return any;
-    } else {
-      boolean foundMatch = false;
-      Iterable<? extends Supplier<T>> suppliers = getSuppliers(type);
-      for (Supplier<T> supplier : suppliers) {
-        T instance = supplier.get();
-        if (predicate.apply(instance)) {
-          action.execute(instance);
-          foundMatch = true;
-        }
-      }
-      return foundMatch;
-    }
   }
 
   @Override

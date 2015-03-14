@@ -25,9 +25,7 @@ import ratpack.func.NoArgAction;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
-import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -539,10 +537,9 @@ public interface Context extends ExecControl, Registry {
    * @param type the type to parse to
    * @param <T> the type to parse to
    * @return The parsed object
-   * @throws NoSuchParserException if no suitable parser could be found in the registry
-   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T> T parse(Class<T> type) throws NoSuchParserException, ParserException;
+  <T> T parse(Class<T> type) throws Exception;
 
   /**
    * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
@@ -567,10 +564,9 @@ public interface Context extends ExecControl, Registry {
    * @param type the type to parse to
    * @param <T> the type to parse to
    * @return The parsed object
-   * @throws NoSuchParserException if no suitable parser could be found in the registry
-   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException;
+  <T> T parse(TypeToken<T> type) throws Exception;
 
   /**
    * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
@@ -580,10 +576,9 @@ public interface Context extends ExecControl, Registry {
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
    * @return The parsed object
-   * @throws NoSuchParserException if no suitable parser could be found in the registry
-   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException;
+  <T, O> T parse(Class<T> type, O options) throws Exception;
 
   /**
    * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
@@ -593,10 +588,9 @@ public interface Context extends ExecControl, Registry {
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
    * @return The parsed object
-   * @throws NoSuchParserException if no suitable parser could be found in the registry
-   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T, O> T parse(TypeToken<T> type, O options) throws NoSuchParserException, ParserException;
+  <T, O> T parse(TypeToken<T> type, O options) throws Exception;
 
   /**
    * Parses the request body into an object.
@@ -610,7 +604,7 @@ public interface Context extends ExecControl, Registry {
    * <li>Found parsers are checked (in order returned by {@code getAll()}) for compatibility with the current request content type and options type;</li>
    * <li>If a parser is found that is compatible, its {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method is called;</li>
    * <li>If the parser returns {@code null} the next parser will be tried, if it returns a value it will be returned by this method;</li>
-   * <li>If no compatible parser could be found, a {@link NoSuchParserException} will be thrown.</li>
+   * <li>If no compatible parser could be found, a {@link ratpack.parse.NoSuchParserException} will be thrown.</li>
    * </ol>
    * <h3>Parser Compatibility</h3>
    * <p>
@@ -653,13 +647,12 @@ public interface Context extends ExecControl, Registry {
    * @param <T> The type of object the request is parsed into
    * @param <O> the type of the parse options object
    * @return The parsed object
-   * @throws NoSuchParserException if no suitable parser could be found in the registry
-   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   * @throws Exception any thrown by the eventual parser implementation
    * @see #parse(Class)
    * @see #parse(Class, Object)
    * @see ratpack.parse.Parser
    */
-  <T, O> T parse(Parse<T, O> parse) throws NoSuchParserException, ParserException;
+  <T, O> T parse(Parse<T, O> parse) throws Exception;
 
   /**
    * Provides direct access to the backing Netty channel.

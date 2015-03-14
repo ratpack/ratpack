@@ -345,7 +345,7 @@ public class NettyRatpackServer implements RatpackServer {
         if (inner == null || definitionBuild.error != null) {
           rebuild = true;
         } else {
-          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry));
+          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry) ? r : null);
           if (reloadInformant.isPresent()) {
             LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
             rebuild = true;

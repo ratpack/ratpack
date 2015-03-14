@@ -16,11 +16,9 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
 
 import java.util.Optional;
@@ -52,28 +50,13 @@ public class HierarchicalRegistry implements Registry {
     return Iterables.concat(childAll, parentAll);
   }
 
-  @Nullable
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    Optional<T> first = child.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    Optional<O> first = child.first(type, function);
     if (!first.isPresent()) {
-      first = parent.first(type, predicate);
+      first = parent.first(type, function);
     }
     return first;
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    Iterable<? extends T> childAll = child.all(type, predicate);
-    Iterable<? extends T> parentAll = parent.all(type, predicate);
-    return Iterables.concat(childAll, parentAll);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    boolean childFound = child.each(type, predicate, action);
-    boolean parentFound = parent.each(type, predicate, action);
-    return childFound || parentFound;
   }
 
   @Override

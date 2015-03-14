@@ -16,9 +16,8 @@
 
 package ratpack.registry.internal
 
-import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
-import ratpack.func.Action
+import ratpack.func.Function
 import spock.lang.Specification
 
 class SingleEntryRegistrySpec extends Specification {
@@ -34,41 +33,10 @@ class SingleEntryRegistrySpec extends Specification {
 
   def "find first"() {
     expect:
-    r.first(sameType, Predicates.alwaysTrue()).get() == value
-    !r.first(sameType, Predicates.alwaysFalse()).present
-    !r.first(differentType, Predicates.alwaysTrue()).present
-    !r.first(differentType, Predicates.alwaysFalse()).present
+    r.first(sameType, Function.identity()).get() == value
+    !r.first(sameType, Function.constant(null)).present
+    !r.first(differentType, Function.identity()).present
+    !r.first(differentType, Function.constant(null)).present
   }
 
-  def "find all"() {
-    expect:
-    r.all(sameType, Predicates.alwaysTrue()) == [value]
-    r.all(sameType, Predicates.alwaysFalse()) == []
-    r.all(differentType, Predicates.alwaysTrue()) == []
-    r.all(differentType, Predicates.alwaysFalse()) == []
-  }
-
-  def "each with action"() {
-    given:
-    Action action = Mock()
-
-    when:
-    r.each(sameType, Predicates.alwaysTrue(), action)
-
-    then:
-    1 * action.execute(value)
-
-    when:
-    r.each(sameType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
-
-    when:
-    r.each(differentType, Predicates.alwaysTrue(), action)
-    r.each(differentType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
-  }
 }
