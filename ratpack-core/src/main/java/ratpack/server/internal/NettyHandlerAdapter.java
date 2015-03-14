@@ -62,7 +62,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ExecController execController;
 
   private final Registry serverRegistry;
-
+  private final boolean development;
   private final ExecControl execControl;
 
   public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
@@ -73,6 +73,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), Handlers.notFound());
     this.execController = serverRegistry.get(ExecController.class);
     this.execControl = execController.getControl();
+    this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
   }
 
   @Override
@@ -98,7 +99,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-    final ServerConfig serverConfig = serverRegistry.get(ServerConfig.class);
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.method(), nettyRequest.uri(), remoteAddress, socketAddress, nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
@@ -146,7 +146,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
         response.status(500);
 
-        if (serverConfig.isDevelopment()) {
+        if (development) {
           response.send(message);
         } else {
           response.send();
