@@ -17,12 +17,14 @@
 package ratpack.file
 
 import com.google.common.net.UrlEscapers
+import com.google.inject.AbstractModule
+import com.google.inject.multibindings.Multibinder
 import org.apache.commons.lang3.RandomStringUtils
 import ratpack.func.Action
+import ratpack.handling.HandlerDecorator
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
-import ratpack.server.CompressionConfig
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -39,8 +41,18 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   boolean compressResponses
 
   def setup() {
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(compressResponses).build())
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        Multibinder.newSetBinder(binder(), HandlerDecorator).addBinding().toInstance(HandlerDecorator.prepend({
+          it.response.beforeSend {
+            if (!compressResponses) {
+              it.noCompress()
+            }
+          }
+          it.next()
+        }))
+      }
     }
   }
 

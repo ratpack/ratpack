@@ -17,8 +17,6 @@
 package ratpack.sse
 
 import ratpack.http.client.HttpClientSpec
-import ratpack.http.client.RequestSpec
-import ratpack.server.CompressionConfig
 import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
@@ -31,11 +29,6 @@ import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.*
 
 class ServerSentEventsSpec extends HttpClientSpec {
-
-  @Override
-  void configureRequest(RequestSpec requestSpecification) {
-    requestSpecification.headers.add("Accept-Encoding", "gzip")
-  }
 
   def "can send server sent event"() {
     given:
@@ -105,9 +98,7 @@ id: 3
 
   def "can send compressed server sent event"() {
     given:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).build())
-    }
+    requestSpec { it.headers.add("Accept-Encoding", "gzip") }
     handlers {
       handler {
         render serverSentEvents(publish(1..3)) {

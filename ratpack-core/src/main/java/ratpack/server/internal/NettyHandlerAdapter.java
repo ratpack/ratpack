@@ -120,7 +120,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       applicationConstants, request, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
-    final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter, requestConstants);
+    final Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, serverRegistry, handlers, execution -> {
