@@ -61,17 +61,17 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final DefaultContext.ApplicationConstants applicationConstants;
   private final ExecController execController;
 
-  private final Registry rootRegistry;
+  private final Registry serverRegistry;
 
   private final ExecControl execControl;
 
-  public NettyHandlerAdapter(Registry registry, Handler handler) throws Exception {
+  public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
     super(false);
 
     this.handlers = ChainHandler.unpack(handler);
-    this.rootRegistry = registry;
-    this.applicationConstants = new DefaultContext.ApplicationConstants(this.rootRegistry, new DefaultRenderController(), Handlers.notFound());
-    this.execController = registry.get(ExecController.class);
+    this.serverRegistry = serverRegistry;
+    this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), Handlers.notFound());
+    this.execController = serverRegistry.get(ExecController.class);
     this.execControl = execController.getControl();
   }
 
@@ -98,7 +98,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-    final ServerConfig serverConfig = rootRegistry.get(ServerConfig.class);
+    final ServerConfig serverConfig = serverRegistry.get(ServerConfig.class);
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.method(), nettyRequest.uri(), remoteAddress, socketAddress, nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
@@ -123,7 +123,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter, requestConstants);
     requestConstants.response = response;
 
-    DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, rootRegistry, handlers, execution -> {
+    DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, serverRegistry, handlers, execution -> {
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
