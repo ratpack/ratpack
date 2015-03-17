@@ -30,8 +30,9 @@ import static ratpack.websocket.WebSockets.websocketByteBufBroadcast;
  * This handler should be bound to an application path, and most likely only for the GET method…
  * <pre class="java-chain-dsl">
  * import ratpack.codahale.metrics.MetricsWebsocketBroadcastHandler;
+ * import static org.junit.Assert.*;
  *
- * chain instanceof ratpack.handling.Chain;
+ * assertTrue(chain instanceof ratpack.handling.Chain);
  * chain.get("admin/metrics", new MetricsWebsocketBroadcastHandler());
  * </pre>
  */

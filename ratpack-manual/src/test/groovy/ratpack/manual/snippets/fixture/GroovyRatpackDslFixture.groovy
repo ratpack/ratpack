@@ -21,6 +21,15 @@ import ratpack.groovy.internal.RatpackScriptBacking
 
 class GroovyRatpackDslFixture extends GroovyScriptFixture {
 
+  private Action<Closure<?>> previousBacking
+
+  @Override
+  public void setup() {
+    previousBacking = RatpackScriptBacking.swapBacking {
+      // do nothing
+    }
+  }
+
   @Override
   void around(NoArgAction action) throws Exception {
     RatpackScriptBacking.withBacking({}, { action.execute() })

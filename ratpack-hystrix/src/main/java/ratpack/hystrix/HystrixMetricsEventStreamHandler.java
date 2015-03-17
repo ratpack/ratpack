@@ -34,8 +34,9 @@ import static ratpack.stream.Streams.merge;
  * This handler should be bound to an application path, and most likely only for the GET method…
  * <pre class="java-chain-dsl">
  * import ratpack.hystrix.HystrixMetricsEventStreamHandler;
+ * import static org.junit.Assert.*;
  *
- * chain instanceof ratpack.handling.Chain;
+ * assertTrue(chain instanceof ratpack.handling.Chain);
  * chain.get("admin/hystrix.stream", new HystrixMetricsEventStreamHandler());
  * </pre>
  * <p>
