@@ -20,7 +20,6 @@ import com.github.jknack.handlebars.io.TemplateSource;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -37,11 +36,6 @@ public class PathTemplateSource implements TemplateSource {
   @Override
   public String content() throws IOException {
     return new String(Files.readAllBytes(path), CharsetUtil.UTF_8);
-  }
-
-  @Override
-  public Reader reader() throws IOException {
-    return Files.newBufferedReader(path, CharsetUtil.UTF_8);
   }
 
   @Override
