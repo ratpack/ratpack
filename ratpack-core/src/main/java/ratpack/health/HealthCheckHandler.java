@@ -151,7 +151,7 @@ public class HealthCheckHandler implements Handler {
   }
 
   /**
-   * Execute all registered health check with the given {@link ratpack.health.HealthCheckHandler#concurrencyLevel}.
+   * Execute all registered health check with the given {@link concurrencyLevel}.
    *
    * @param concurrencyLevel the level of parallelism for health check promises execution
    */
@@ -172,8 +172,26 @@ public class HealthCheckHandler implements Handler {
   }
 
   /**
+   * Get the level of parallelism in non-blocking health check execution.
+   *
+   * @return concurrency level as defined in {@link concurrencyLevel}
+   */
+  public int getConcurrencyLevel() {
+    return concurrencyLevel;
+  }
+
+  /**
+   * Get assigned health check name. If defined health check of this name is executed.
+   *
+   * @return health check name to be executed
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
    * Run individual health check with the given name or all health checks.
-   * The {@link ratpack.health.HealthCheckHandler#concurrencyLevel} determines parallelism in health check execution.
+   * The {@link concurrencyLevel} determines parallelism in health check execution.
    *
    * @param context request context and exec control as well
    * @throws Exception if anything goes wrong, exception will be implicitly passed to the context's {@link Context#error(Throwable)} method
