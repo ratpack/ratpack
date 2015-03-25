@@ -21,11 +21,8 @@ import groovy.json.JsonOutput
 import ratpack.exec.ExecControl
 import ratpack.exec.ExecController
 import ratpack.exec.Promise
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.MediaType
 import ratpack.render.Renderer
-import ratpack.test.embed.EmbeddedApp
-import ratpack.test.http.TestHttpClient
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
