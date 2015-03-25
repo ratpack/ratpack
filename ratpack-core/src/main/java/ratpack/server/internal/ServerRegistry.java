@@ -35,6 +35,7 @@ import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
+import ratpack.health.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
 import ratpack.server.*;
 import ratpack.registry.Registries;
@@ -100,7 +101,8 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT));
+        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT))
+        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer());
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);

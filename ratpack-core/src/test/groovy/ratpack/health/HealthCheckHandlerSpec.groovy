@@ -26,7 +26,7 @@ import ratpack.http.MediaType
 import ratpack.render.Renderer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
-import spock.lang.Specification
+import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
 
@@ -98,163 +98,132 @@ class HealthCheckParallel implements HealthCheck {
   }
 }
 
-class HealthCheckHandlerSpec extends Specification {
+class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
   def "render healthy check"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooHealthy
+    bindings {
+      bind HealthCheckFooHealthy
+    }
+    handlers {
+      register {
       }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-        }
-        get("health-checks", new HealthCheckHandler())
-      }
+      get("health-checks", new HealthCheckHandler())
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      assert result.startsWith("foo")
-      assert result.contains("HEALTHY")
-    }
+    def result = getText("health-checks")
+    assert result.startsWith("foo")
+    assert result.contains("HEALTHY")
   }
 
   def "render unhealthy check"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooUnhealthy
+    bindings {
+      bind HealthCheckFooUnhealthy
+    }
+    handlers {
+      register {
       }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-        }
-        get("health-checks", new HealthCheckHandler())
-      }
+      get("health-checks", new HealthCheckHandler())
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      assert result.startsWith("foo")
-      assert result.contains("UNHEALTHY")
-      assert result.contains("EXECUTION TIMEOUT")
-    }
+    def result = getText("health-checks")
+    assert result.startsWith("foo")
+    assert result.contains("UNHEALTHY")
+    assert result.contains("EXECUTION TIMEOUT")
   }
 
   def "render unhealthy check while promise itself throwning exception"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bindInstance(HealthCheck, HealthCheck.of("bar") { execControl ->
-          execControl.promise { f ->
-            throw new Exception("EXCEPTION FROM PROMISE")
-          }
-        })
-      }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
+    bindings {
+      bindInstance(HealthCheck, HealthCheck.of("bar") { execControl ->
+        execControl.promise { f ->
+          throw new Exception("EXCEPTION FROM PROMISE")
         }
-        get("health-checks", new HealthCheckHandler())
+      })
+    }
+    handlers {
+      register {
       }
+      get("health-checks", new HealthCheckHandler())
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      assert result.startsWith("bar")
-      assert result.contains("UNHEALTHY")
-      assert result.contains("EXCEPTION FROM PROMISE")
-      assert result.contains("Exception")
-    }
+    def result = getText("health-checks")
+    assert result.startsWith("bar")
+    assert result.contains("UNHEALTHY")
+    assert result.contains("EXCEPTION FROM PROMISE")
+    assert result.contains("Exception")
   }
 
   def "render unhealthy check while promise creation throwning exception"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooUnhealthy2
+    bindings {
+      bind HealthCheckFooUnhealthy2
+    }
+    handlers {
+      register {
       }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-        }
-        get("health-checks", new HealthCheckHandler())
-      }
+      get("health-checks", new HealthCheckHandler())
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      assert result.startsWith("foo")
-      assert result.contains("UNHEALTHY")
-      assert result.contains("EXCEPTION PROMISE CREATION")
-    }
+    def result = getText("health-checks")
+    assert result.startsWith("foo")
+    assert result.contains("UNHEALTHY")
+    assert result.contains("EXCEPTION PROMISE CREATION")
   }
 
   def "render nothing if no health check in registry"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-        }
-        get("health-checks", new HealthCheckHandler())
+    handlers {
+      register {
       }
+      get("health-checks", new HealthCheckHandler())
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      assert httpClient.getText("health-checks").isEmpty()
-    }
+    assert getText("health-checks").isEmpty()
   }
 
   def "render healthy check results for more health checks"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooHealthy
-        bind HealthCheckBarHealthy
+    bindings {
+      bind HealthCheckFooHealthy
+      bind HealthCheckBarHealthy
+    }
+    handlers {
+      register {
+        add HealthCheck.of("baz") { ec ->
+          ec.promise { f ->
+            f.success(HealthCheck.Result.healthy())
+          }
+        }
+        add HealthCheck.of("quux") { ec ->
+          ec.promise { f ->
+            f.success(HealthCheck.Result.healthy())
+          }
+        }
       }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-          add HealthCheck.of("baz") { ec ->
-            ec.promise { f ->
-              f.success(HealthCheck.Result.healthy())
-            }
-          }
-          add HealthCheck.of("quux") { ec ->
-            ec.promise { f ->
-              f.success(HealthCheck.Result.healthy())
-            }
-          }
-        }
-        get("health-checks", new HealthCheckHandler())
-        get("health-checks/:name") { ctx ->
-          new HealthCheckHandler(pathTokens["name"]).handle(ctx)
-        }
+      get("health-checks", new HealthCheckHandler())
+      get("health-checks/:name") { ctx ->
+        new HealthCheckHandler(pathTokens["name"]).handle(ctx)
       }
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      //assert result == "zzz"
-      String[] results = result.split("\n")
-      assert results.length == 4
-      assert results[0].startsWith("bar")
-      assert results[0].contains("HEALTHY")
-      assert results[1].startsWith("baz")
-      assert results[1].contains("HEALTHY")
-      assert results[2].startsWith("foo")
-      assert results[2].contains("HEALTHY")
-      assert results[3].startsWith("quux")
-      assert results[3].contains("HEALTHY")
-    }
+    def result = getText("health-checks")
+    String[] results = result.split("\n")
+    assert results.length == 4
+    assert results[0].startsWith("bar")
+    assert results[0].contains("HEALTHY")
+    assert results[1].startsWith("baz")
+    assert results[1].contains("HEALTHY")
+    assert results[2].startsWith("foo")
+    assert results[2].contains("HEALTHY")
+    assert results[3].startsWith("quux")
+    assert results[3].contains("HEALTHY")
   }
 
   def "health checks run in parallel"() {
@@ -262,107 +231,96 @@ class HealthCheckHandlerSpec extends Specification {
     CountDownLatch latch = new CountDownLatch(1)
 
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-          add HealthCheck.of("baz") { ec ->
-            ec.promise { f ->
-              latch.await()
-              f.success(HealthCheck.Result.healthy())
-            }
-          }
-          add HealthCheck.of("quux") { ec ->
-            ec.promise { f ->
-              latch.countDown()
-              f.success(HealthCheck.Result.healthy())
-            }
+    handlers {
+      register {
+        add HealthCheck.of("baz") { ec ->
+          ec.promise { f ->
+            latch.await()
+            f.success(HealthCheck.Result.healthy())
           }
         }
-        get("health-checks", new HealthCheckHandler())
+        add HealthCheck.of("quux") { ec ->
+          ec.promise { f ->
+            latch.countDown()
+            f.success(HealthCheck.Result.healthy())
+          }
+        }
       }
+      get("health-checks", new HealthCheckHandler())
     }
+
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      String[] results = result.split("\n")
-      assert results[0].startsWith("baz")
-      assert results[0].contains("HEALTHY")
-      assert results[1].startsWith("quux")
-      assert results[1].contains("HEALTHY")
-    }
+    def result = getText("health-checks")
+    String[] results = result.split("\n")
+    assert results[0].startsWith("baz")
+    assert results[0].contains("HEALTHY")
+    assert results[1].startsWith("quux")
+    assert results[1].contains("HEALTHY")
   }
 
   def "duplicated health checks renders only once"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooHealthy
-        bind HealthCheckFooHealthy
-      }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-          add HealthCheck.of("foo") { ec ->
-            ec.promise { f ->
-              latch.await()
-              f.success(HealthCheck.Result.unhealthy("Unhealthy"))
-            }
+    bindings {
+      bind HealthCheckFooHealthy
+      bind HealthCheckFooHealthy
+    }
+    handlers {
+      register {
+        add HealthCheck.of("foo") { ec ->
+          ec.promise { f ->
+            latch.await()
+            f.success(HealthCheck.Result.unhealthy("Unhealthy"))
           }
         }
-        get("health-checks", new HealthCheckHandler())
       }
+      get("health-checks", new HealthCheckHandler())
     }
+
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks")
-      String[] results = result.split("\n")
-      assert results.size() == 1
-      assert results[0].startsWith("foo")
-      assert results[0].contains("HEALTHY")
-    }
+    def result = getText("health-checks")
+    String[] results = result.split("\n")
+    assert results.size() == 1
+    assert results[0].startsWith("foo")
+    assert results[0].contains("HEALTHY")
   }
 
   def "render health check by token if more health checks in registry"() {
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooHealthy
-        bind HealthCheckBarHealthy
+    bindings {
+      bind HealthCheckFooHealthy
+      bind HealthCheckBarHealthy
+    }
+    handlers {
+      register {
+        add HealthCheck.of("baz") { ec ->
+          ec.promise { f ->
+            f.success(HealthCheck.Result.unhealthy("Unhealthy"))
+          }
+        }
+        add HealthCheck.of("quux") { ec ->
+          ec.promise { f ->
+            f.success(HealthCheck.Result.healthy())
+          }
+        }
       }
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-          add HealthCheck.of("baz") { ec ->
-            ec.promise { f ->
-              f.success(HealthCheck.Result.unhealthy("Unhealthy"))
-            }
-          }
-          add HealthCheck.of("quux") { ec ->
-            ec.promise { f ->
-              f.success(HealthCheck.Result.healthy())
-            }
-          }
-        }
-        get("health-checks/:name") { ctx ->
-          new HealthCheckHandler(pathTokens["name"]).handle(ctx)
-        }
+      get("health-checks/:name") { ctx ->
+        new HealthCheckHandler(pathTokens["name"]).handle(ctx)
       }
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      def result = httpClient.getText("health-checks/foo")
-      String[] results = result.split("\n")
-      assert results.length == 1
-      assert results[0].startsWith("foo")
-      assert results[0].contains("HEALTHY")
+    def result = getText("health-checks/foo")
+    String[] results = result.split("\n")
+    assert results.length == 1
+    assert results[0].startsWith("foo")
+    assert results[0].contains("HEALTHY")
 
-      result = httpClient.getText("health-checks/baz")
-      results = result.split("\n")
-      assert results[0].startsWith("baz")
-      assert results[0].contains("UNHEALTHY")
-    }
+    then:
+    def result2 = getText("health-checks/baz")
+    String[] results2 = result2.split("\n")
+    assert results.length == 1
+    assert results2[0].startsWith("baz")
+    assert results2[0].contains("UNHEALTHY")
   }
 
   def "render json health check results for custom renderer"() {
@@ -370,51 +328,47 @@ class HealthCheckHandlerSpec extends Specification {
     def json = new JsonSlurper()
 
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      bindings {
-        bind HealthCheckFooHealthy
-        bind HealthCheckBarHealthy
-      }
-      handlers {
-        register {
-          add(Renderer.of(HealthCheckResults) { ctx, r ->
-            def headers = ctx.request.headers
-            if (headers?.get("Accept") == "application/json" || headers?.get("Content-Type") == "application/json") {
-              ctx.response.headers
-                .add("Cache-Control", "no-cache, no-store, must-revalidate")
-                .add("Pragma", "no-cache")
-                .add("Expires", 0)
-                .add("Content-Type", "application/json")
-              ctx.render(JsonOutput.toJson(r.getResults()))
-            }
-            else {
-              // no caching headers are set inside default renderer
-              new HealthCheckResultsRenderer().render(ctx, r)
-            }
-          })
-          add HealthCheck.of("baz") { ec ->
-            ec.promise { f ->
-              f.success(HealthCheck.Result.unhealthy("Unhealthy"))
-            }
+    bindings {
+      bind HealthCheckFooHealthy
+      bind HealthCheckBarHealthy
+    }
+    handlers {
+      register {
+        add(Renderer.of(HealthCheckResults) { ctx, r ->
+          def headers = ctx.request.headers
+          if (headers?.get("Accept") == "application/json" || headers?.get("Content-Type") == "application/json") {
+            ctx.response.headers
+              .add("Cache-Control", "no-cache, no-store, must-revalidate")
+              .add("Pragma", "no-cache")
+              .add("Expires", 0)
+              .add("Content-Type", "application/json")
+            ctx.render(JsonOutput.toJson(r.getResults()))
+          }
+          else {
+            // no caching headers are set inside default renderer
+            new HealthCheckResultsRenderer().render(ctx, r)
+          }
+        })
+        add HealthCheck.of("baz") { ec ->
+          ec.promise { f ->
+            f.success(HealthCheck.Result.unhealthy("Unhealthy"))
           }
         }
-        get("health-checks", new HealthCheckHandler())
       }
+      get("health-checks", new HealthCheckHandler())
     }
 
     then:
-    app.test{TestHttpClient httpClient ->
-      httpClient.requestSpec{ spec ->
-        spec.headers.add("Accept", "application/json")
-      }
-      def result = httpClient.get("health-checks")
-      assert result.body.contentType.toString() == MediaType.APPLICATION_JSON
-      def results = json.parse(result.body.inputStream)
-      assert results.foo.healthy == true
-      assert results.bar.healthy == true
-      assert results.baz.healthy == false
-      assert results.baz.message == "Unhealthy"
+    requestSpec{ spec ->
+      spec.headers.add("Accept", "application/json")
     }
+    def result = get("health-checks")
+    assert result.body.contentType.toString() == MediaType.APPLICATION_JSON
+    def results = json.parse(result.body.inputStream)
+    assert results.foo.healthy == true
+    assert results.bar.healthy == true
+    assert results.baz.healthy == false
+    assert results.baz.message == "Unhealthy"
   }
 
   def "handler with concurrencyLevel=0 run ordered (by name) health checks in parallel"() {
@@ -424,33 +378,27 @@ class HealthCheckHandlerSpec extends Specification {
     int eventLoopThreads = 0
 
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers { ExecController ec ->
-        register {
-          add new HealthCheckResultsRenderer()
+    handlers { ExecController ec ->
+      register {
+        eventLoopThreads = ec.getNumThreads()
+        for (int i=0; i<eventLoopThreads; i++) {
+          countDownLatches.add(new CountDownLatch(1))
 
-          eventLoopThreads = ec.getNumThreads()
-          for (int i=0; i<eventLoopThreads; i++) {
-            countDownLatches.add(new CountDownLatch(1))
-
-          }
-          for (int i=0; i<eventLoopThreads; i++) {
-            add new HealthCheckParallel("foo${i+1}", i == (eventLoopThreads-1) ? null : countDownLatches[i+1], countDownLatches[i], output)
-          }
         }
-        get("health-checks", new HealthCheckHandler(0))
+        for (int i=0; i<eventLoopThreads; i++) {
+          add new HealthCheckParallel("foo${i+1}", i == (eventLoopThreads-1) ? null : countDownLatches[i+1], countDownLatches[i], output)
+        }
       }
+      get("health-checks", new HealthCheckHandler(0))
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      httpClient.getText("health-checks")
-      def expectedOutput = []
-      for (int i=eventLoopThreads-1; i>=0; i--) {
-        expectedOutput.add("foo${i+1}")
-      }
-      assert output == expectedOutput
+    getText("health-checks")
+    def expectedOutput = []
+    for (int i=eventLoopThreads-1; i>=0; i--) {
+      expectedOutput.add("foo${i+1}")
     }
+    assert output == expectedOutput
   }
 
   def "handler with concurrencyLevel=1 run ordered (by name) health checks in sequence"() {
@@ -459,27 +407,22 @@ class HealthCheckHandlerSpec extends Specification {
     int numOfHealthChecks = 8
 
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-          for (int i=0; i<numOfHealthChecks; i++) {
-            add new HealthCheckParallel("foo${i+1}", null, null, output)
-          }
+    handlers {
+      register {
+        for (int i=0; i<numOfHealthChecks; i++) {
+          add new HealthCheckParallel("foo${i+1}", null, null, output)
         }
-        get("health-checks", new HealthCheckHandler(1))
       }
+      get("health-checks", new HealthCheckHandler(1))
     }
 
     then:
-    app.test { TestHttpClient httpClient ->
-      httpClient.getText("health-checks")
-      def expectedOutput = []
-      for (int i=0; i<numOfHealthChecks; i++) {
-        expectedOutput.add("foo${i+1}")
-      }
-      assert output == expectedOutput
+    getText("health-checks")
+    def expectedOutput = []
+    for (int i=0; i<numOfHealthChecks; i++) {
+      expectedOutput.add("foo${i+1}")
     }
+    assert output == expectedOutput
   }
 
   def "handler with currencyLevel=2 run ordered (by name) health checks in sequence of 2 parallel"() {
@@ -492,27 +435,21 @@ class HealthCheckHandlerSpec extends Specification {
     }
 
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
-
-          for (int i=0; i<numOfHealthChecks; i++) {
-            // second in group is waiting for the first one
-            // pairs run in parallel while groups of two in sequence
-            add new HealthCheckParallel("foo${i+1}", i%2 ?  null : countDownLatches[i+1], countDownLatches[i], output)
-          }
+    handlers {
+      register {
+        for (int i=0; i<numOfHealthChecks; i++) {
+          // second in group is waiting for the first one
+          // pairs run in parallel while groups of two in sequence
+          add new HealthCheckParallel("foo${i+1}", i%2 ?  null : countDownLatches[i+1], countDownLatches[i], output)
         }
-        get("health-checks", new HealthCheckHandler(2))
       }
+      get("health-checks", new HealthCheckHandler(2))
     }
 
     then:
-    app.test{ TestHttpClient httpClient ->
-      httpClient.getText("health-checks")
-      def expectedOutput = ["foo2", "foo1", "foo4", "foo3", "foo6", "foo5", "foo8", "foo7"]
-      assert output == expectedOutput
-    }
+    getText("health-checks")
+    def expectedOutput = ["foo2", "foo1", "foo4", "foo3", "foo6", "foo5", "foo8", "foo7"]
+    assert output == expectedOutput
   }
 
   def "handler with currencyLevel=3 run ordered (by name) health checks in sequence of 3 parallel"() {
@@ -525,31 +462,25 @@ class HealthCheckHandlerSpec extends Specification {
     }
 
     when:
-    EmbeddedApp app = GroovyEmbeddedApp.build {
-      handlers {
-        register {
-          add new HealthCheckResultsRenderer()
+    handlers {
+      register {
+        int k = 0
+        for (int i=0; i<numOfHealthChecks; i++) {
+          // third in group is waiting for second and second is waiting for the first one
+          // triples run in parallel while groups of three in sequence
 
-          int k = 0
-          for (int i=0; i<numOfHealthChecks; i++) {
-            // third in group is waiting for second and second is waiting for the first one
-            // triples run in parallel while groups of three in sequence
-
-            add new HealthCheckParallel("foo${i+1}", k in [0,1] ? countDownLatches[i+1] : null , countDownLatches[i], output)
-            if (++k == 3) {
-              k = 0
-            }
+          add new HealthCheckParallel("foo${i+1}", k in [0,1] ? countDownLatches[i+1] : null , countDownLatches[i], output)
+          if (++k == 3) {
+            k = 0
           }
         }
-        get("health-checks", new HealthCheckHandler(3))
       }
+      get("health-checks", new HealthCheckHandler(3))
     }
 
     then:
-    app.test{ TestHttpClient httpClient ->
-      httpClient.getText("health-checks")
-      def expectedOutput = ["foo3", "foo2", "foo1", "foo6", "foo5", "foo4", "foo9", "foo8", "foo7"]
-      assert output == expectedOutput
-    }
+    getText("health-checks")
+    def expectedOutput = ["foo3", "foo2", "foo1", "foo6", "foo5", "foo4", "foo9", "foo8", "foo7"]
+    assert output == expectedOutput
   }
 }

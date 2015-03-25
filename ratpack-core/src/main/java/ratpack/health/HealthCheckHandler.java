@@ -34,8 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * This handler queries {@code context} for either all {@link ratpack.health.HealthCheck}s or health check with th given name.
  * Then handler gets {@link ratpack.exec.Promise} returning {@link ratpack.health.HealthCheck.Result} for every health check to execute.
- * Promises are executed depending on the {@code concurrencyLevel} either in parallel (if {@code concurrencyLevel=0}) or
- * in sequence (if {@code concurrencyLevel=1}) or in groups of parallel (if {@code concurrencyLevel >= 2}).
+ * {@code concurrencyLevel} determines if promises are executed:
+ * <ul>
+ *   <li>in parallel (if {@code concurrencyLevel=0})</li>
+ *   <li>in sequence (if {@code concurrencyLevel=1})</li>
+ *   <li>in groups (if {@code concurrencyLevel >= 2}). Groups are executed in sequence while promises inside group in parallel</li>
+ * </ul>
  * <p>
  * This handler should be bound to an application path, and most likely only for the GET method.
  * <pre class="java-chain-dsl">
@@ -51,7 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The default token name is {@value #DEFAULT_NAME_TOKEN} and is used if the no-arg constructor is used.
  * <p>
  * If the token is present, the health check whose name is the value of the token will be rendered.
- * If no health check exists by that name, the client will receive a 404.
+ * If no health check exists by that name, the client will receive a {@code HTTP 404}.
  * <p>
  * When a single health check is selected (by presence of the path token)
  * the {@link ratpack.health.HealthCheckResults} with one {@link ratpack.health.HealthCheck.Result}
@@ -60,6 +64,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * The default {@link ratpack.health.HealthCheckResultsRenderer} is added to base registry. It renders in plain text.
  * If you wish to change the output, to JSON for example, you can register your own renderer for {@link ratpack.health.HealthCheckResults}.
+ * See example in test cases {@code HealthCheckHandlerSpec}.
  * <pre class="java">{@code
  * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
@@ -151,9 +156,15 @@ public class HealthCheckHandler implements Handler {
   }
 
   /**
-   * Execute all registered health check with the given {@link concurrencyLevel}.
-   *
-   * @param concurrencyLevel the level of parallelism for health check promises execution
+   * Execute all registered health check with the given {@code concurrencyLevel}.
+   * @param concurrencyLevel the level of parallelism for health check promises execution. Define number of health checks (as promises) to be run in parallel.
+   * <ul>
+   *   <li><strong>0</strong> - infinite potential parallelism - up to the event loop number of threads</li>
+   *   <li><strong>1</strong> - serial, promises run one by one in sequence</li>
+   *   <li><strong>2</strong> - max 2 at a time promises run in parallel</li>
+   *   <li><strong>3</strong> - max 3 at a time promises run in parallel</li>
+   *   <li><strong>n</strong> - max n at a time promises run in parallel</li>
+   * </ul>
    */
   public HealthCheckHandler(int concurrencyLevel) {
     this(DEFAULT_NAME_TOKEN, concurrencyLevel);
@@ -164,7 +175,14 @@ public class HealthCheckHandler implements Handler {
    * given {@code concurrencyLevel}.
    *
    * @param healthCheckName the name of health check
-   * @param concurrencyLevel the level of parallelism for health check promises execution
+   * @param concurrencyLevel the level of parallelism for health check promises execution. Define number of health checks (as promises) to be run in parallel.
+   * <ul>
+   *   <li><strong>0</strong> - infinite potential parallelism - up to the event loop number of threads</li>
+   *   <li><strong>1</strong> - serial, promises run one by one in sequence</li>
+   *   <li><strong>2</strong> - max 2 at a time promises run in parallel</li>
+   *   <li><strong>3</strong> - max 3 at a time promises run in parallel</li>
+   *   <li><strong>n</strong> - max n at a time promises run in parallel</li>
+   * </ul>
    */
   protected HealthCheckHandler(String healthCheckName, int concurrencyLevel) {
     this.name = healthCheckName;
@@ -174,7 +192,7 @@ public class HealthCheckHandler implements Handler {
   /**
    * Get the level of parallelism in non-blocking health check execution.
    *
-   * @return concurrency level as defined in {@link concurrencyLevel}
+   * @return concurrency level as defined in {@link ratpack.health.HealthCheckHandler#HealthCheckHandler} constructor. Parameter {@code concurrencyLevel}.
    */
   public int getConcurrencyLevel() {
     return concurrencyLevel;
@@ -191,7 +209,7 @@ public class HealthCheckHandler implements Handler {
 
   /**
    * Run individual health check with the given name or all health checks.
-   * The {@link concurrencyLevel} determines parallelism in health check execution.
+   * The {@code concurrencyLevel} determines parallelism in health check execution.
    *
    * @param context request context and exec control as well
    * @throws Exception if anything goes wrong, exception will be implicitly passed to the context's {@link Context#error(Throwable)} method
