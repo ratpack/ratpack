@@ -41,8 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <pre class="java-chain-dsl">
  * import ratpack.health.HealthCheckHandler;
  *
- * chain instanceof ratpack.handling.Chain;
- * chain.get("health-checks/:name?", new HealthCheckHandler());
+ * chain.get("health-checks", new HealthCheckHandler());
  * </pre>
  * <p>
  * The handler can render the result of all of the health checks or an individual health check, depending on the presence of a path token.
@@ -84,11 +83,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
- *       .registryOf(r -> r
- *         .add(new HealthCheckResultsRenderer())
- *       )
  *       .registry(Guice.registry(b -> b
  *         .bind(FooHealthCheck.class)
+ *         .bindInstance(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
+ *         .bindInstance(HealthCheckHandler.class, new HealthCheckHandler())
  *       ))
  *       .handler(HealthCheckHandler.class)
  *     ).test(httpClient -> {
@@ -96,9 +94,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     });
  *
  *     EmbeddedApp.of(s -> s
- *       .registryOf(r -> r
- *         .add(new HealthCheckResultsRenderer())
- *       )
  *       .registry(Guice.registry(b -> b
  *         .bind(FooHealthCheck.class)
  *         .bindInstance(HealthCheck.class, HealthCheck.of("bar", execControl -> {
@@ -106,14 +101,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  *             f.success(HealthCheck.Result.unhealthy("FAILED"));
  *           });
  *         }))
+ *         .bindInstance(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
+ *         .bindInstance(HealthCheckHandler.class, new HealthCheckHandler("bar"))
  *       ))
- *       .handler(r -> {
- *         return new HealthCheckHandler("bar");
- *       })
+ *       .handler(r -> new HealthCheckHandler("bar"))
  *       ).test(httpClient -> {
- *         assertEquals("bar : FAILED", httpClient.getText());
+ *         assertEquals("bar : UNHEALTHY [FAILED]", httpClient.getText());
  *       });
- *     }
  *   }
  * }
  * }</pre>

@@ -43,15 +43,18 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
       return;
     }
     StringBuilder builder = new StringBuilder();
+    boolean first = true;
     healthCheckResults.getResults().forEach((name, result) -> {
+      if (builder.length() > 0) {
+        builder.append("\n");
+      }
       builder.append(name).append(" : ").append(result.isHealthy() ? "HEALTHY" : "UNHEALTHY");
       if (!result.isHealthy()) {
-        builder.append(" [").append(result.getMessage()).append(" ]");
+        builder.append(" [").append(result.getMessage()).append("]");
         if (result.getError() != null) {
-          builder.append(" [").append(result.getError().toString()).append(" ]");
+          builder.append(" [").append(result.getError().toString()).append("]");
         }
       }
-      builder.append("\n");
     });
     context.getResponse().getHeaders()
             .add("Cache-Control", "no-cache, no-store, must-revalidate")
