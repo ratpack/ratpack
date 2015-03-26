@@ -87,8 +87,9 @@ public class SiteMain {
             c
               .handler(ctx -> {
                 //noinspection ConstantConditions
-                if (ctx.getRequest().getHeaders().get("host").endsWith("ratpack-framework.org")) {
-                  ctx.redirect(301, "http://www.ratpack.io");
+                String host = ctx.getRequest().getHeaders().get("host");
+                if (host != null && (host.endsWith("ratpack-framework.org") || host.equals("www.ratpack.io"))) {
+                  ctx.redirect(301, "http://ratpack.io");
                   return;
                 }
 
