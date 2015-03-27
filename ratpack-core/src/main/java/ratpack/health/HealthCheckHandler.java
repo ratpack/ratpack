@@ -210,8 +210,11 @@ public class HealthCheckHandler implements Handler {
       return;
     }
     Optional<HealthCheck> hcheck = context.first(TypeToken.of(HealthCheck.class), hc -> {
-      hc.getName().equals(name);
-      return hc;
+      if (hc.getName().equals(name)) {
+        return hc;
+      } else {
+        return null;
+      }
     });
     if (!hcheck.isPresent()) {
       context.clientError(404);
