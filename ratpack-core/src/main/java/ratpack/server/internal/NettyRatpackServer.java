@@ -204,8 +204,8 @@ public class NettyRatpackServer implements RatpackServer {
           }
 
           pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-          pipeline.addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxContentLength()));
           pipeline.addLast("encoder", new HttpResponseEncoder());
+          pipeline.addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxContentLength()));
           pipeline.addLast("deflater", new SmartHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);
