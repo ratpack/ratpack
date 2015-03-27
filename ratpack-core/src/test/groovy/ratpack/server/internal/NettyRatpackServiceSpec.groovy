@@ -21,6 +21,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
+import ratpack.test.ApplicationUnderTest
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -51,6 +52,28 @@ class NettyRatpackServiceSpec extends Specification {
         it.stop()
       }
     }
+  }
+
+  def "responds to Expect: 100-continue header"() {
+    given:
+    def config = ServerConfig.embedded().port(0)
+    def client = ApplicationUnderTest.of(
+      RatpackServer.of {
+        it.serverConfig(config).handlers {
+          it.post { it.render("Hello") }
+        }
+      }
+    ).getHttpClient()
+    .requestSpec{
+      it.headers.add("Expect", "100-continue")
+    }
+
+    when:
+    client.post()
+
+    then:
+    client.response.statusCode == 100
+    client.response.body.text == ""
   }
 
 }
