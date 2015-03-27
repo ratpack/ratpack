@@ -242,8 +242,8 @@ subprojects {
 
     jvmArgs "-Xss320k"
     // Same min and max heap to fail fast if we can't allocate memory
-    minHeapSize "312m"
-    maxHeapSize "312m"
+    minHeapSize "368m"
+    maxHeapSize "368m"
 
     if (isCloudCi) {
       doFirst {
