@@ -42,7 +42,7 @@ import java.util.List;
  *
  * public class Example {
  *   public static class FormHandler implements Handler {
- *     public void handle(Context context) {
+ *     public void handle(Context context) throws Exception {
  *       Form form = context.parse(Form.class);
  *       UploadedFile file = form.file("someFile.txt");
  *       String param = form.get("param");

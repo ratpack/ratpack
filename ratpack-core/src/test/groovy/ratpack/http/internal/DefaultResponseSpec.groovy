@@ -17,11 +17,7 @@
 package ratpack.http.internal
 
 import io.netty.buffer.Unpooled
-import ratpack.http.ResponseMetaData
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import java.nio.file.Files
-import java.nio.file.attribute.BasicFileAttributes
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
@@ -231,11 +227,12 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   def "can send files"() {
     given:
     def file = File.createTempFile("ratpackTest", "jpg")
-    file << "abcd".bytes
+    file << "abcd".getBytes("US-ASCII")
     def path = file.toPath()
     handlers {
       get {
-        response.sendFile Files.readAttributes(path, BasicFileAttributes), path
+        response.headers.set('content-length', 4)
+        response.sendFile path
       }
     }
 
@@ -250,9 +247,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get {
-        response.beforeSend { ResponseMetaData responseMetaData ->
-          responseMetaData.status(ACCEPTED.code())
-        }
+        response.beforeSend { it.status(ACCEPTED) }
         response.send()
       }
     }

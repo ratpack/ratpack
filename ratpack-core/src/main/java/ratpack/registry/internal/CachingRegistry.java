@@ -16,11 +16,7 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
-import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 import ratpack.util.Types;
 
@@ -36,7 +32,6 @@ public class CachingRegistry implements Registry {
 
   private final ConcurrentMap<TypeToken<?>, Optional<?>> cache = new ConcurrentHashMap<>();
   private final ConcurrentMap<TypeToken<?>, Iterable<?>> allCache = new ConcurrentHashMap<>();
-  private ConcurrentMap<PredicateCacheability.CacheKey<?>, Iterable<?>> predicateCache = new ConcurrentHashMap<>();
 
   public static Registry of(Registry registry) {
     if (registry instanceof CachingRegistry) {
@@ -67,41 +62,6 @@ public class CachingRegistry implements Registry {
   @Override
   public <O> Iterable<O> getAll(TypeToken<O> type) {
     return Types.cast(compute(allCache, type, delegate::getAll));
-  }
-
-  private <T> Iterable<? extends T> getFromPredicateCache(TypeToken<T> type, Predicate<? super T> predicate) {
-    return Types.cast(compute(predicateCache, new PredicateCacheability.CacheKey<>(type, predicate), k -> delegate.all(type, predicate)));
-  }
-
-  @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    if (PredicateCacheability.isCacheable(predicate)) {
-      Iterable<? extends T> objects = getFromPredicateCache(type, predicate);
-      return Optional.ofNullable(Iterables.getFirst(objects, null));
-    } else {
-      return delegate.first(type, predicate);
-    }
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    if (PredicateCacheability.isCacheable(predicate)) {
-      return getFromPredicateCache(type, predicate);
-    } else {
-      return delegate.all(type, predicate);
-    }
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    Iterable<? extends T> all = all(type, predicate);
-    boolean any = false;
-    for (T item : all) {
-      any = true;
-      action.execute(item);
-    }
-
-    return any;
   }
 
   @Override

@@ -16,10 +16,9 @@
 
 package ratpack.spring
 
-import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
 import org.springframework.context.support.StaticApplicationContext
-import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.registry.NotInRegistryException
 import spock.lang.Specification
 
@@ -52,8 +51,7 @@ class SpringRegistrySpec extends Specification {
 
   def "search empty registry with always false predicate"() {
     expect:
-    !r.first(TypeToken.of(Object), Predicates.alwaysFalse()).isPresent()
-    r.all(TypeToken.of(Object), Predicates.alwaysFalse()) as List == []
+    !r.first(TypeToken.of(Object), Function.constant(null)).isPresent()
   }
 
   def "search with one item"() {
@@ -65,15 +63,10 @@ class SpringRegistrySpec extends Specification {
     beanFactory.registerSingleton("value", value)
 
     expect:
-    r.first(type, Predicates.alwaysTrue()).get() == value
-    !r.first(type, Predicates.alwaysFalse()).present
-    !r.first(other, Predicates.alwaysTrue()).present
-    !r.first(other, Predicates.alwaysFalse()).present
-
-    r.all(type, Predicates.alwaysTrue()) as List == [value]
-    r.all(type, Predicates.alwaysFalse()) as List == []
-    r.all(other, Predicates.alwaysTrue()) as List == []
-    r.all(other, Predicates.alwaysFalse()) as List == []
+    r.first(type, Function.identity()).get() == value
+    !r.first(type, Function.constant(null)).present
+    !r.first(other, Function.identity()).present
+    !r.first(other, Function.constant(null)).present
   }
 
   def "search with multiple items"() {
@@ -90,43 +83,10 @@ class SpringRegistrySpec extends Specification {
     beanFactory.registerSingleton("d", d)
 
     expect:
-    r.first(string, Predicates.alwaysTrue()).get() == a
-    r.first(string, { s -> s.startsWith('B') }).get() == b
-    r.first(number, Predicates.alwaysTrue()).get() == c
-    r.first(number, { n -> n < 20 }).get() == d
-
-    r.all(string, Predicates.alwaysTrue()) as List == [a, b]
-    r.all(string, { s -> s.startsWith('B') }) as List == [b]
-    r.all(number, { n -> n < 50 }) as List == [c, d]
-    r.all(number, Predicates.alwaysFalse()) as List == []
-  }
-
-  def "each with action"() {
-    given:
-    Action action = Mock()
-    def sameType = TypeToken.of(String)
-    def differentType = TypeToken.of(Number)
-    def value = "Something"
-    beanFactory.registerSingleton("value", value)
-
-    when:
-    r.each(sameType, Predicates.alwaysTrue(), action)
-
-    then:
-    1 * action.execute(value)
-
-    when:
-    r.each(sameType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
-
-    when:
-    r.each(differentType, Predicates.alwaysTrue(), action)
-    r.each(differentType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
+    r.first(string, Function.identity()).get() == a
+    r.first(string, { s -> s.startsWith('B') ? s : null }).get() == b
+    r.first(number, Function.identity()).get() == c
+    r.first(number, { n -> n < 20 ? n : null }).get() == d
   }
 
   def "find first"() {
@@ -136,23 +96,10 @@ class SpringRegistrySpec extends Specification {
     def value = "Something"
     beanFactory.registerSingleton("value", value)
     expect:
-    r.first(sameType, Predicates.alwaysTrue()).get() == value
-    !r.first(sameType, Predicates.alwaysFalse()).present
-    !r.first(differentType, Predicates.alwaysTrue()).present
-    !r.first(differentType, Predicates.alwaysFalse()).present
-  }
-
-  def "find all"() {
-    given:
-    def sameType = TypeToken.of(String)
-    def differentType = TypeToken.of(Number)
-    def value = "Something"
-    beanFactory.registerSingleton("value", value)
-    expect:
-    r.all(sameType, Predicates.alwaysTrue()).toList() == [value]
-    r.all(sameType, Predicates.alwaysFalse()).toList() == []
-    r.all(differentType, Predicates.alwaysTrue()).toList() == []
-    r.all(differentType, Predicates.alwaysFalse()).toList() == []
+    r.first(sameType, Function.identity()).get() == value
+    !r.first(sameType, Function.constant(null)).present
+    !r.first(differentType, Function.identity()).present
+    !r.first(differentType, Function.constant(null)).present
   }
 
   def "equals and hashCode should be implemented"() {

@@ -16,9 +16,8 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
@@ -42,17 +41,8 @@ public final class EmptyRegistry implements Registry {
   }
 
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
     return Optional.empty();
   }
 
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return false;
-  }
 }

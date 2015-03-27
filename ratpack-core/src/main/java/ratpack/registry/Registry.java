@@ -16,9 +16,8 @@
 
 package ratpack.registry;
 
-import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.registry.internal.EmptyRegistry;
 import ratpack.registry.internal.HierarchicalRegistryCaching;
 
@@ -145,36 +144,30 @@ public interface Registry {
   <O> Iterable<? extends O> getAll(TypeToken<O> type);
 
   /**
-   * Returns the first object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
+   * Find and transform an item.
+   * <p>
+   * This method will apply the given function to items in the order returned by {@link #getAll(TypeToken)} until the function returns a non null value.
+   * The first non null value will be returned by this method immediately (as an optional).
+   * If the function returns a null value for every item, an empty optional is returned.
    *
    * @param type the type of object to search for
-   * @param predicate a predicate to check objects against
+   * @param function a function to apply to each item
    * @param <T> the type of the object to search for
+   * @param <O> the type of transformed object
+   * @throws Exception any thrown by the function
    * @return An optional of the object of the specified type that satisfied the specified predicate
    */
-  <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate);
+  default <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    Iterable<? extends T> all = getAll(type);
+    for (T t : all) {
+      O out = function.apply(t);
+      if (out != null) {
+        return Optional.of(out);
+      }
+    }
 
-  /**
-   * Returns all of the objects whose declared type is assignment compatible with the given type and who satisfy the given predicate.
-   *
-   * @param type the type of objects to search for
-   * @param predicate a predicate to check objects against
-   * @param <T> the type of objects to search for
-   * @return All objects of the given type that satisfy the specified predicate
-   */
-  <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
-
-  /**
-   * Calls the given action with each object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
-   *
-   * @param type the type of object to search for
-   * @param predicate a predicate to check objects against
-   * @param action an action to call with each matching object
-   * @param <T> the type of object to search for
-   * @return true if the predicate ever returned true
-   * @throws Exception any thrown by {@code action}
-   */
-  <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
+    return Optional.empty();
+  }
 
   /**
    * Creates a new registry by joining {@code this} registry with the given registry

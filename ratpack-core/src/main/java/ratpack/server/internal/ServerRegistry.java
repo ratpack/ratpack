@@ -37,7 +37,6 @@ import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
 import ratpack.health.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
-import ratpack.server.*;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -45,6 +44,7 @@ import ratpack.render.internal.CharSequenceRenderer;
 import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
 import ratpack.render.internal.RenderableRenderer;
+import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import static ratpack.util.Exceptions.uncheck;
@@ -76,7 +76,6 @@ public abstract class ServerRegistry {
     try {
       baseRegistryBuilder = Registries.registry()
         .add(ServerConfig.class, serverConfig)
-        .add(CompressionConfig.class, CompressionConfig.of().build())
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(ExecControl.class, execController.getControl())

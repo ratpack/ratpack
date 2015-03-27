@@ -16,9 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -30,31 +27,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
-import ratpack.file.internal.ActivationBackedMimeTypes;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.file.internal.ShouldCompressPredicate;
-import ratpack.func.Pair;
-import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
-import ratpack.server.CompressionConfig;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.io.FileInputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
   private static final Runnable NOOP_RUNNABLE = () -> {
-
   };
 
   private final AtomicBoolean transmitted;
@@ -106,12 +96,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   @Override
-  public void transmit(final Context context, final HttpResponseStatus responseStatus, final ByteBuf body) {
-    responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
-    transmit(context, responseStatus, new DefaultHttpContent(body));
+  public void transmit(HttpResponseStatus responseStatus, ByteBuf body) {
+    transmit(responseStatus, new DefaultHttpContent(body));
   }
 
-  private void transmit(final Context context, final HttpResponseStatus responseStatus, final Object body) {
+  private void transmit(final HttpResponseStatus responseStatus, Object body) {
     ChannelFuture channelFuture = pre(responseStatus);
     if (channelFuture == null) {
       return;
@@ -126,52 +115,29 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   @Override
-  public void transmit(final Context context, final HttpResponseStatus responseStatus, final BasicFileAttributes basicFileAttributes, final Path file) {
-    String contentType = responseHeaders.get(HttpHeaderConstants.CONTENT_TYPE);
-    final long size = basicFileAttributes.size();
-
-    Pair<Long, String> fileDetails = Pair.of(size, contentType);
-
-    CompressionConfig compressionConfig = context.get(CompressionConfig.class);
-    final boolean compressionEnabled = compressionConfig.isCompressResponses();
-    final Predicate<? super Pair<Long, String>> shouldCompress;
-    if (compressionEnabled) {
-      ImmutableSet<String> blacklist = compressionConfig.getMimeTypeBlackList();
-      shouldCompress = new ShouldCompressPredicate(
-        compressionConfig.getMinSize(),
-        compressionConfig.getMimeTypeWhiteList(),
-        blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist
-      );
-    } else {
-      shouldCompress = Predicates.alwaysFalse();
-    }
-    final boolean compressThis = compressionEnabled && (contentType != null && shouldCompress.apply(fileDetails));
-    if (!compressThis) {
-      // Signal to the compressor not to compress this
-      responseHeaders.set(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY);
-    }
+  public void transmit(HttpResponseStatus status, Path file) {
+    String sizeString = responseHeaders.get(HttpHeaderConstants.CONTENT_LENGTH);
+    long size = sizeString == null ? 0 : Long.parseLong(sizeString);
+    boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
     responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, size);
 
-    if (!isSsl && !compressThis && file.getFileSystem().equals(FileSystems.getDefault())) {
+    if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
       execControl.blocking(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
         FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
-        transmit(context, responseStatus, defaultFileRegion);
+        transmit(status, defaultFileRegion);
       });
     } else {
-      execControl.blocking(() -> Files.newByteChannel(file)).then(fileChannel ->
-          transmit(context, responseStatus, new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
+      execControl.blocking(() ->
+          Files.newByteChannel(file)
+      ).then(fileChannel ->
+          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
       );
     }
   }
 
   @Override
-  public Subscriber<ByteBuf> transmitter(final Context context, final HttpResponseStatus responseStatus) {
-    CompressionConfig compressionConfig = context.get(CompressionConfig.class);
-    if (!compressionConfig.isCompressResponses()) {
-      // Signal to the compressor not to compress this
-      responseHeaders.set(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY);
-    }
+  public Subscriber<ByteBuf> transmitter(HttpResponseStatus responseStatus) {
     return new Subscriber<ByteBuf>() {
       private Subscription subscription;
       private final AtomicBoolean done = new AtomicBoolean();

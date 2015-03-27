@@ -49,7 +49,6 @@ import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.UnexpectedHandlerException;
 
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -95,7 +94,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
       @Override
-      public void transmit(Context context, HttpResponseStatus status, ByteBuf byteBuf) {
+      public void transmit(HttpResponseStatus status, ByteBuf byteBuf) {
         sentResponse = true;
         body = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(body);
@@ -105,14 +104,14 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public void transmit(Context context, HttpResponseStatus responseStatus, BasicFileAttributes basicFileAttributes, Path file) {
+      public void transmit(HttpResponseStatus status, Path file) {
         sentFile = file;
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, DefaultHandlingResult.this.status), System.currentTimeMillis()));
         latch.countDown();
       }
 
       @Override
-      public Subscriber<ByteBuf> transmitter(Context context, HttpResponseStatus status) {
+      public Subscriber<ByteBuf> transmitter(HttpResponseStatus status) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
     };
@@ -124,7 +123,7 @@ public class DefaultHandlingResult implements HandlingResult {
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, request, null, eventController.getRegistry()
     );
-    Response response = new DefaultResponse(execControl, responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter, requestConstants);
+    Response response = new DefaultResponse(responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
     requestConstants.response = response;
     DefaultContext.start(execController.getEventLoopGroup().next(), execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 

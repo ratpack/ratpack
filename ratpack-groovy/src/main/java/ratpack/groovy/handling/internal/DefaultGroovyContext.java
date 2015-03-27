@@ -16,7 +16,6 @@
 
 package ratpack.groovy.handling.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import org.reactivestreams.Publisher;
@@ -24,6 +23,7 @@ import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.func.NoArgAction;
 import ratpack.groovy.handling.GroovyByContentSpec;
 import ratpack.groovy.handling.GroovyByMethodSpec;
@@ -37,13 +37,11 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.MultiMethodHandler;
-import ratpack.server.ServerConfig;
-import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
-import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
@@ -229,27 +227,27 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+  public <T> T parse(Class<T> type) throws Exception {
     return delegate.parse(type);
   }
 
   @Override
-  public <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException {
+  public <T> T parse(TypeToken<T> type) throws Exception {
     return delegate.parse(type);
   }
 
   @Override
-  public <T, O> T parse(TypeToken<T> type, O options) throws NoSuchParserException, ParserException {
+  public <T, O> T parse(TypeToken<T> type, O options) throws Exception {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException {
+  public <T, O> T parse(Class<T> type, O options) throws Exception {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> T parse(Parse<T, O> parse) {
+  public <T, O> T parse(Parse<T, O> parse) throws Exception {
     return delegate.parse(parse);
   }
 
@@ -289,17 +287,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return delegate.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return delegate.first(type, function);
   }
 
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return delegate.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return delegate.each(type, predicate, action);
-  }
 }

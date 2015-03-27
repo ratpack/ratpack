@@ -28,7 +28,6 @@ import ratpack.guice.Guice;
 import ratpack.jackson.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
 import ratpack.rx.RxRatpack;
-import ratpack.server.CompressionConfig;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
@@ -37,8 +36,6 @@ import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
-
-import java.util.Collections;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
 import static ratpack.registry.Registries.just;
@@ -69,7 +66,8 @@ public class SiteMain {
             Guice.registry(s -> s
                 .add(JacksonModule.class)
                 .add(NewRelicModule.class)
-                .add(new CodaHaleMetricsModule(), c -> {})
+                .add(new CodaHaleMetricsModule(), c -> {
+                })
                 .addConfig(SiteModule.class, config.get("/github", SiteModule.GitHubConfig.class))
                 .add(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
@@ -79,7 +77,6 @@ public class SiteMain {
                 .add(TextTemplateModule.class, conf ->
                     conf.setStaticallyCompile(true)
                 )
-                .bindInstance(CompressionConfig.of().compressResponses(true).minSize(0).blackListMimeTypes(Collections.emptyList()).whiteListMimeTypes("image/x-icon").build())
             )
           )
           .handlers(c -> {
@@ -90,8 +87,9 @@ public class SiteMain {
             c
               .handler(ctx -> {
                 //noinspection ConstantConditions
-                if (ctx.getRequest().getHeaders().get("host").endsWith("ratpack-framework.org")) {
-                  ctx.redirect(301, "http://www.ratpack.io");
+                String host = ctx.getRequest().getHeaders().get("host");
+                if (host != null && (host.endsWith("ratpack-framework.org") || host.equals("www.ratpack.io"))) {
+                  ctx.redirect(301, "http://ratpack.io" + ctx.getRequest().getRawUri());
                   return;
                 }
 

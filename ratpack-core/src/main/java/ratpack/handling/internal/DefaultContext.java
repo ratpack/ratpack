@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
@@ -30,6 +29,7 @@ import ratpack.event.internal.EventRegistry;
 import ratpack.exec.*;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.func.NoArgAction;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
@@ -41,8 +41,6 @@ import ratpack.http.internal.MultiMethodHandler;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
-import ratpack.parse.ParserException;
-import ratpack.parse.internal.ParserForParsePredicate;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.path.internal.DefaultPathTokens;
@@ -296,40 +294,39 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T, O> T parse(Parse<T, O> parse) throws ParserException, NoSuchParserException {
+  public <T, O> T parse(Parse<T, O> parse) throws Exception {
     String requestContentType = requestConstants.request.getBody().getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
-
     final String finalRequestContentType = requestContentType;
-    return getRegistry().first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType))
-      .<T>map(parser -> {
-        Parser<O> castParser = Types.cast(parser);
-        try {
-          return castParser.parse(this, getRequest().getBody(), parse);
-        } catch (Exception e) {
-          throw new ParserException(parser, e);
+
+    return getRegistry()
+      .first(PARSER_TYPE_TOKEN, parser -> {
+        if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
+          Parser<O> cast = Types.cast(parser);
+          return cast.parse(DefaultContext.this, getRequest().getBody(), parse);
         }
+        return null;
       })
       .orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType));
   }
 
   @Override
-  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+  public <T> T parse(Class<T> type) throws Exception {
     return parse(Parse.of(type));
   }
 
   @Override
-  public <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException {
+  public <T> T parse(TypeToken<T> type) throws Exception {
     return parse(Parse.of(type));
   }
 
-  public <T, O> T parse(Class<T> type, O opts) {
+  public <T, O> T parse(Class<T> type, O opts) throws Exception {
     return parse(Parse.of(type, opts));
   }
 
-  public <T, O> T parse(TypeToken<T> type, O opts) {
+  public <T, O> T parse(TypeToken<T> type, O opts) throws Exception {
     return parse(Parse.of(type, opts));
   }
 
@@ -450,18 +447,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return getRegistry().first(type, predicate);
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return getRegistry().all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return getRegistry().each(type, predicate, action);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return getRegistry().first(type, function);
   }
 
 }
