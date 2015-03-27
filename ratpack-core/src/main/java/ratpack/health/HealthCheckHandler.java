@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Handler that runs and renders health checks executing in non-blocking mode
  * <p>
- * This handler queries {@code context} for either all {@link ratpack.health.HealthCheck}s or health check with th given name.
+ * This handler queries {@code context} for either all {@link ratpack.health.HealthCheck}s or health check with the given name.
  * Then handler gets {@link ratpack.exec.Promise} returning {@link ratpack.health.HealthCheck.Result} for every health check to execute.
  * {@code concurrencyLevel} determines if promises are executed:
  * <ul>
@@ -40,19 +40,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li>in sequence (if {@code concurrencyLevel=1})</li>
  *   <li>in groups (if {@code concurrencyLevel >= 2}). Groups are executed in sequence while promises inside group in parallel</li>
  * </ul>
+ * IMPORTANT: the real concurrency level depends on the event loop size. Event loop sets the higher limit of concurrency.
+ * If event loop size is 8 ({@link ratpack.exec.internal.DefaultExecController#DefaultExecController}), the 9th health check will wait for the first.
+
  * <p>
  * This handler should be bound to an application path, and most likely only for the GET method.
- * <pre class="java-chain-dsl">
- * import ratpack.health.HealthCheckHandler;
- *
- * chain.get("health-checks", new HealthCheckHandler());
- * </pre>
  * <p>
  * The handler can render the result of all of the health checks or an individual health check, depending on the presence of a path token.
  * The path token provides the name of the health check to render.
  * If the path token is not present, all health checks will be rendered.
  * The token name to use can be provided as the construction argument to this handler.
- * The default token name is {@value #DEFAULT_NAME_TOKEN} and is used if the no-arg constructor is used.
  * <p>
  * If the token is present, the health check whose name is the value of the token will be rendered.
  * If no health check exists by that name, the client will receive a {@code HTTP 404}.
@@ -90,28 +87,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b -> b
  *         .bind(FooHealthCheck.class)
- *         .bindInstance(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
- *         .bindInstance(HealthCheckHandler.class, new HealthCheckHandler())
- *       ))
- *       .handler(HealthCheckHandler.class)
- *     ).test(httpClient -> {
- *       assertEquals("foo : HEALTHY", httpClient.getText());
- *     });
- *
- *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b
- *         .bind(FooHealthCheck.class)
  *         .bindInstance(HealthCheck.class, HealthCheck.of("bar", execControl -> {
  *           return execControl.promise(f -> {
  *             f.success(HealthCheck.Result.unhealthy("FAILED"));
  *           });
  *         }))
- *         .bindInstance(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
  *         .bindInstance(HealthCheckHandler.class, new HealthCheckHandler("bar"))
  *       ))
- *       .handler(r -> new HealthCheckHandler("bar"))
+ *       .handler(r -> new HealthCheckHandler())
  *       ).test(httpClient -> {
- *         assertEquals("bar : UNHEALTHY [FAILED]", httpClient.getText());
+ *         String result = httpClient.getText();
+ *         assertNotNull(result);
+ *         assertTrue(!"".equals(result));
+ *         String[] results = result.split("\n");
+ *         assertEquals(results.length, 2);
+ *         assertEquals("bar : UNHEALTHY [FAILED]", results[0]);
+ *         assertEquals("foo : HEALTHY", results[1]);
  *       });
  *   }
  * }
@@ -122,21 +113,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see ratpack.health.HealthCheckResultsRenderer
  */
 public class HealthCheckHandler implements Handler {
-  public static final String DEFAULT_NAME_TOKEN = "DEFAULT";
+  /**
+   * Default concurrency level is 0 - potentially infinite parallelism in health checks execution
+   */
   public static final int DEFAULT_CONCURRENCY_LEVEL = 0;
-  /**
-   * If defined, run only health check with the given name.
-   */
-  private final String name;
 
-  /**
-   * Define number of health checks (as promises) to be run in parallel.
-   * 0 - infinite potential parallelism - up to the event loop number of threads
-   * 1 - serial, promises run one by one in sequence
-   * 2 - max 2 at a time promises run in parallel
-   * 3 - max 3 at a time promises run in parallel
-   * ...
-   */
+  private final String name;
   private final int concurrencyLevel;
 
   /**
@@ -144,7 +126,7 @@ public class HealthCheckHandler implements Handler {
    * undefined health check name.
    */
   public HealthCheckHandler() {
-    this(DEFAULT_NAME_TOKEN, DEFAULT_CONCURRENCY_LEVEL);
+    this(null, DEFAULT_CONCURRENCY_LEVEL);
   }
 
   /**
@@ -167,12 +149,11 @@ public class HealthCheckHandler implements Handler {
    * </ul>
    */
   public HealthCheckHandler(int concurrencyLevel) {
-    this(DEFAULT_NAME_TOKEN, concurrencyLevel);
+    this(null, concurrencyLevel);
   }
 
   /**
-   * Execute health check of the given name (if different than {@link ratpack.health.HealthCheckHandler#DEFAULT_NAME_TOKEN} and
-   * given {@code concurrencyLevel}.
+   * Execute health check of the given name and given {@code concurrencyLevel}.
    *
    * @param healthCheckName the name of health check
    * @param concurrencyLevel the level of parallelism for health check promises execution. Define number of health checks (as promises) to be run in parallel.
@@ -216,26 +197,18 @@ public class HealthCheckHandler implements Handler {
    */
   @Override
   public void handle(Context context) throws Exception {
-    if (!name.equals(DEFAULT_NAME_TOKEN)) {
+    if (name != null && !"".equals(name)) {
       handleByName(context, name);
     } else {
       handleAll(context);
     }
   }
 
-  /**
-   * Run health check with the given name. If it is not registered HTTP 404 is send to the client
-   * All exceptions from health check are wrapped in unhealthy result with error=Exception.
-   * @param context request context
-   * @param name health check name
-   * @throws Exception
-   */
   private void handleByName(Context context, String name) throws Exception {
-    if (name == null || "".equals(name) || DEFAULT_NAME_TOKEN.equals(name)) {
+    if (name == null || "".equals(name)) {
       context.clientError(404);
       return;
     }
-    SortedMap<String, HealthCheck.Result> hcheckResults = new ConcurrentSkipListMap<>();
     Optional<HealthCheck> hcheck = context.first(TypeToken.of(HealthCheck.class), hc -> hc.getName().equals(name));
     if (!hcheck.isPresent()) {
       context.clientError(404);
@@ -244,29 +217,15 @@ public class HealthCheckHandler implements Handler {
     try {
       Promise<HealthCheck.Result> promise = hcheck.get().check(context.getExecution().getControl());
       promise.onError(throwable -> {
-        hcheckResults.put(hcheck.get().getName(), HealthCheck.Result.unhealthy(throwable));
-        context.render(new HealthCheckResults(ImmutableSortedMap.<String, HealthCheck.Result>copyOfSorted(hcheckResults)));
+        context.render(new HealthCheckResults(ImmutableSortedMap.<String, HealthCheck.Result>of(hcheck.get().getName(), HealthCheck.Result.unhealthy(throwable))));
       }).then(r -> {
-        hcheckResults.put(hcheck.get().getName(), r);
-        context.render(new HealthCheckResults(ImmutableSortedMap.<String, HealthCheck.Result>copyOfSorted(hcheckResults)));
+        context.render(new HealthCheckResults(ImmutableSortedMap.<String, HealthCheck.Result>of(hcheck.get().getName(), r)));
       });
     } catch (Exception ex) {
-      hcheckResults.put(hcheck.get().getName(), HealthCheck.Result.unhealthy(ex));
-      context.render(new HealthCheckResults(ImmutableSortedMap.<String, HealthCheck.Result>copyOfSorted(hcheckResults)));
+      context.render(new HealthCheckResults(ImmutableSortedMap.<String, HealthCheck.Result>of(hcheck.get().getName(), HealthCheck.Result.unhealthy(ex))));
     }
   }
 
-  /**
-   * Run all health checks. The concurrencyLevel determines how many health checks could be run in parallel.
-   * If concurrencyLevel>1 and there is more health checks than concurrencyLevel they are grouped in chanks of size
-   * equal to concurrencyLevel.
-   * concurrencyLevel equal to 0 runs all health checks in parallel.
-   * IMPORTANT: the real concurrency level depends on the event loop size. Event loop sets the higher limit of concurrency.
-   * If event loop size is 8 ({@link ratpack.exec.internal.DefaultExecController#DefaultExecController}), the 9th health check will wait for the first.
-   *
-   * @param context request context and exec control as well
-   * @throws Exception
-   */
   private void handleAll(Context context) throws Exception {
     SortedMap<String, HealthCheck.Result> hcheckResults = new ConcurrentSkipListMap<>();
 
