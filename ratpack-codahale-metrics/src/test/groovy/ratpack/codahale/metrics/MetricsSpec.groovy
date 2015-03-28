@@ -464,4 +464,53 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
     blockingTimer.count == 2
   }
+
+  def "can filter reporters"() {
+    given:
+    def output = new ByteArrayOutputStream()
+
+    def origOut = System.out
+    System.out = new PrintStream(output, true)
+
+    and:
+    bindings {
+      add new CodaHaleMetricsModule(), {
+        it.console { it.reporterInterval(Duration.ofSeconds(1)).filter(".*foo.*") }
+        it.jmx { it.filter(".*foo.*") }
+        it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).filter(".*foo.*") }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      prefix("foo") {
+        handler {
+          render ""
+        }
+      }
+      prefix("bar") {
+        handler {
+          render ""
+        }
+      }
+    }
+
+    when:
+    get("foo")
+    get("bar")
+
+    then:
+    polling.within(2) {
+      output.toString().contains("[foo]~GET~Request")
+    }
+
+    and:
+    !output.toString().contains("[bar]~GET~Request")
+
+    and:
+    reportDirectory.root.listFiles().length == 1
+    reportDirectory.root.listFiles()[0].name.contains("foo")
+
+    cleanup:
+    System.out = origOut
+  }
 }
