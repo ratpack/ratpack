@@ -50,6 +50,9 @@ public class CachingFileSystemChecksumService implements FileSystemChecksumServi
   @Nullable
   @Override
   public String checksum(String path) throws Exception {
+    if (path == null) {
+      return null;
+    }
     try {
       return cache.get(path).checksum;
     } catch (ExecutionException | UncheckedExecutionException e) {

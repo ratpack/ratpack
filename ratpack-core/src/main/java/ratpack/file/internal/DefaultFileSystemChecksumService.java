@@ -21,25 +21,48 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.FileSystemChecksumService;
 import ratpack.func.Function;
 
+import java.util.List;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.NoSuchFileException;
 
 public class DefaultFileSystemChecksumService implements FileSystemChecksumService {
 
   private final Function<? super InputStream, ? extends String> checksummer;
   private final FileSystemBinding fileSystemBinding;
+  private final List<String> fileEndsWith;
 
-  public DefaultFileSystemChecksumService(FileSystemBinding fileSystemBinding, Function<? super InputStream, ? extends String> checksummer) {
+  public DefaultFileSystemChecksumService(FileSystemBinding fileSystemBinding, Function<? super InputStream, ? extends String> checksummer, List<String> fileEndsWith) {
     this.checksummer = checksummer;
     this.fileSystemBinding = fileSystemBinding;
+    this.fileEndsWith = fileEndsWith;
   }
 
+  /**
+   *  Calculate checksum for file given by ```path``` relative to ```fileSystemBinding```.
+   *  If fileEndsWith list is present and given file extenstion no match then NoSuchFileException is thrown.
+   *
+   *  @param path file pathe relative to root defined by ```fileSystemBinding```
+   *  @return calculated checksum
+   *  @throws Exception NoSuchFileException
+   */
   @Nullable
   @Override
   public String checksum(String path) throws Exception {
+    if (path == null) {
+      return null;
+    }
     Path child = fileSystemBinding.file(path);
+    if (child == null) {
+      throw new NoSuchFileException(path);
+    }
+    if (fileEndsWith != null && !fileEndsWith.isEmpty()) {
+      if (!fileEndsWith.stream().anyMatch(s -> path.endsWith(s))) {
+        throw new NoSuchFileException(child.toString());
+      }
+    }
     return getChecksum(child);
   }
 

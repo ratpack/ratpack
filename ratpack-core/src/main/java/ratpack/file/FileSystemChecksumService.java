@@ -20,7 +20,13 @@ import ratpack.api.Nullable;
 
 public interface FileSystemChecksumService {
 
+  /**
+   *  Calculate checksum for file given by {@code path} relative to server's {@code baseDir}.
+   *
+   *  @param path file path relative to root defined by server's ```baseDir```
+   *  @return calculated checksum
+   *  @throws Exception NoSuchFileException
+   */
   @Nullable
   String checksum(String path) throws Exception;
-
 }
