@@ -38,7 +38,7 @@ import java.nio.file.Files;
  *  If checksummer function is not provided then Noop (no operation) calculation method is used. It does nothing, returns empty string as checksum.
  *
  *
- * <pre class="java">{@code
+ * <pre>{@code
  * import ratpack.file.FileSystemChecksumService;
  * import ratpack.file.FileSystemChecksumServices;
  * import ratpack.handling.Context;
