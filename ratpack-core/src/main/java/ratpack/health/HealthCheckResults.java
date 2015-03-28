@@ -19,26 +19,27 @@ package ratpack.health;
 import com.google.common.collect.ImmutableSortedMap;
 
 /**
- * A type used to render results of non-blocking health checks with {@link ratpack.handling.Context#render(Object) renderable}.
+ * A value type representing the result of running multiple health checks.
  *
  * @see ratpack.health.HealthCheckHandler
  */
 public class HealthCheckResults {
+
   private final ImmutableSortedMap<String, HealthCheck.Result> results;
 
   /**
-   * Create wrapper for health check results.
+   * Constructor.
    *
-   * @param results immutable map of health check name and its result
+   * @param results the results
    */
   public HealthCheckResults(ImmutableSortedMap<String, HealthCheck.Result> results) {
     this.results = results;
   }
 
   /**
-   * Return immutable and sorted map of health checks.
+   * The results.
    *
-   * @return Immutable sorted map of health name and its {@code HealthCheck.Result}
+   * @return the results
    */
   public ImmutableSortedMap<String, HealthCheck.Result> getResults() {
     return results;

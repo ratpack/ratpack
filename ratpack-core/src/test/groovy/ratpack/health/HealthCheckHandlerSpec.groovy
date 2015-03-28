@@ -16,86 +16,87 @@
 
 package ratpack.health
 
-import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import ratpack.exec.ExecControl
 import ratpack.exec.ExecController
 import ratpack.exec.Promise
+import ratpack.func.NoArgAction
 import ratpack.http.MediaType
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
 
-class HealthCheckFooHealthy implements HealthCheck {
-  String getName() { return "foo" }
-
-  Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
-    return execControl.promise { f ->
-      f.success(HealthCheck.Result.healthy())
-    }
-  }
-}
-
-class HealthCheckBarHealthy implements HealthCheck {
-  String getName() { return "bar" }
-
-  Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
-    return execControl.promise { f ->
-      f.success(HealthCheck.Result.healthy())
-    }
-  }
-}
-
-
-class HealthCheckFooUnhealthy implements HealthCheck {
-  String getName() { return "foo" }
-
-  Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
-    return execControl.promise { f ->
-      f.success(HealthCheck.Result.unhealthy("EXECUTION TIMEOUT"))
-    }
-  }
-}
-
-class HealthCheckFooUnhealthy2 implements HealthCheck {
-  String getName() { return "foo"}
-
-  Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
-    throw new Exception("EXCEPTION PROMISE CREATION")
-  }
-}
-
-class HealthCheckParallel implements HealthCheck {
-  private final String name
-  private CountDownLatch waitingFor
-  private CountDownLatch finalized
-  private List<String> output
-
-  HealthCheckParallel(String name, CountDownLatch waitingFor, CountDownLatch finalized, List<String> output) {
-    this.name = name
-    this.waitingFor = waitingFor
-    this.finalized = finalized
-    this.output = output
-  }
-
-  String getName() { return this.name }
-
-  Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
-    return execControl.promise { f ->
-      if (waitingFor) {
-        waitingFor.await()
-      }
-      output << name
-      f.success(HealthCheck.Result.healthy())
-      if (finalized) {
-        finalized.countDown()
-      }
-    }
-  }
-}
-
 class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
+
+  static class HealthCheckFooHealthy implements HealthCheck {
+    String getName() { return "foo" }
+
+    Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
+      return execControl.promise { f ->
+        f.success(HealthCheck.Result.healthy())
+      }
+    }
+  }
+
+  static class HealthCheckBarHealthy implements HealthCheck {
+    String getName() { return "bar" }
+
+    Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
+      return execControl.promise { f ->
+        f.success(HealthCheck.Result.healthy())
+      }
+    }
+  }
+
+  static class HealthCheckFooUnhealthy implements HealthCheck {
+    String getName() { return "foo" }
+
+    Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
+      return execControl.promise { f ->
+        f.success(HealthCheck.Result.unhealthy("EXECUTION TIMEOUT"))
+      }
+    }
+  }
+
+  static class HealthCheckFooUnhealthy2 implements HealthCheck {
+    String getName() { return "foo" }
+
+    Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
+      throw new Exception("EXCEPTION PROMISE CREATION")
+    }
+  }
+
+  static class HealthCheckParallel implements HealthCheck {
+    private final String name
+    private CountDownLatch waitingFor
+    private CountDownLatch finalized
+    private List<String> output
+
+    HealthCheckParallel(String name, CountDownLatch waitingFor, CountDownLatch finalized, List<String> output) {
+      this.name = name
+      this.waitingFor = waitingFor
+      this.finalized = finalized
+      this.output = output
+    }
+
+    String getName() { return this.name }
+
+    Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
+      return execControl.promise { f ->
+        if (waitingFor) {
+          waitingFor.await()
+        }
+        output << name
+        f.success(HealthCheck.Result.healthy())
+        if (finalized) {
+          finalized.countDown()
+        }
+      }
+    }
+  }
+
   def "render healthy check"() {
     when:
     bindings {
@@ -300,9 +301,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
           }
         }
       }
-      get("health-checks/:name") { ctx ->
-        new HealthCheckHandler(pathTokens["name"]).handle(ctx)
-      }
+      get("health-checks/:name", new HealthCheckHandler())
     }
 
     then:
@@ -332,18 +331,10 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       register {
         add(Renderer.of(HealthCheckResults) { ctx, r ->
-          def headers = ctx.request.headers
-          if (headers?.get("Accept") == "application/json" || headers?.get("Content-Type") == "application/json") {
-            ctx.response.headers
-              .add("Cache-Control", "no-cache, no-store, must-revalidate")
-              .add("Pragma", "no-cache")
-              .add("Expires", 0)
-              .add("Content-Type", "application/json")
-            ctx.render(JsonOutput.toJson(r.getResults()))
-          }
-          else {
-            // no caching headers are set inside default renderer
-            new HealthCheckResultsRenderer().render(ctx, r)
+          ctx.byContent {
+            it.json({ ->
+              ctx.render(JsonOutput.toJson(r.results))
+            } as NoArgAction)
           }
         })
         add HealthCheck.of("baz") { ec ->
@@ -356,7 +347,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    requestSpec{ spec ->
+    requestSpec { spec ->
       spec.headers.add("Accept", "application/json")
     }
     def result = get("health-checks")
@@ -378,12 +369,12 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers { ExecController ec ->
       register {
         eventLoopThreads = ec.getNumThreads()
-        for (int i=0; i<eventLoopThreads; i++) {
+        for (int i = 0; i < eventLoopThreads; i++) {
           countDownLatches.add(new CountDownLatch(1))
 
         }
-        for (int i=0; i<eventLoopThreads; i++) {
-          add new HealthCheckParallel("foo${i+1}", i == (eventLoopThreads-1) ? null : countDownLatches[i+1], countDownLatches[i], output)
+        for (int i = 0; i < eventLoopThreads; i++) {
+          add new HealthCheckParallel("foo${i + 1}", i == (eventLoopThreads - 1) ? null : countDownLatches[i + 1], countDownLatches[i], output)
         }
       }
       get("health-checks", new HealthCheckHandler(0))
@@ -392,8 +383,8 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     then:
     getText("health-checks")
     def expectedOutput = []
-    for (int i=eventLoopThreads-1; i>=0; i--) {
-      expectedOutput.add("foo${i+1}")
+    for (int i = eventLoopThreads - 1; i >= 0; i--) {
+      expectedOutput.add("foo${i + 1}")
     }
     assert output == expectedOutput
   }
@@ -406,8 +397,8 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       register {
-        for (int i=0; i<numOfHealthChecks; i++) {
-          add new HealthCheckParallel("foo${i+1}", null, null, output)
+        for (int i = 0; i < numOfHealthChecks; i++) {
+          add new HealthCheckParallel("foo${i + 1}", null, null, output)
         }
       }
       get("health-checks", new HealthCheckHandler(1))
@@ -416,8 +407,8 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     then:
     getText("health-checks")
     def expectedOutput = []
-    for (int i=0; i<numOfHealthChecks; i++) {
-      expectedOutput.add("foo${i+1}")
+    for (int i = 0; i < numOfHealthChecks; i++) {
+      expectedOutput.add("foo${i + 1}")
     }
     assert output == expectedOutput
   }
@@ -427,17 +418,17 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     def output = []
     int numOfHealthChecks = 8
     def countDownLatches = []
-    for (int i=0; i<numOfHealthChecks; i++) {
+    for (int i = 0; i < numOfHealthChecks; i++) {
       countDownLatches.add(new CountDownLatch(1))
     }
 
     when:
     handlers {
       register {
-        for (int i=0; i<numOfHealthChecks; i++) {
+        for (int i = 0; i < numOfHealthChecks; i++) {
           // second in group is waiting for the first one
           // pairs run in parallel while groups of two in sequence
-          add new HealthCheckParallel("foo${i+1}", i%2 ?  null : countDownLatches[i+1], countDownLatches[i], output)
+          add new HealthCheckParallel("foo${i + 1}", i % 2 ? null : countDownLatches[i + 1], countDownLatches[i], output)
         }
       }
       get("health-checks", new HealthCheckHandler(2))
@@ -454,7 +445,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     def output = []
     int numOfHealthChecks = 9
     def countDownLatches = []
-    for (int i=0; i<numOfHealthChecks; i++) {
+    for (int i = 0; i < numOfHealthChecks; i++) {
       countDownLatches.add(new CountDownLatch(1))
     }
 
@@ -462,11 +453,11 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       register {
         int k = 0
-        for (int i=0; i<numOfHealthChecks; i++) {
+        for (int i = 0; i < numOfHealthChecks; i++) {
           // third in group is waiting for second and second is waiting for the first one
           // triples run in parallel while groups of three in sequence
 
-          add new HealthCheckParallel("foo${i+1}", k in [0,1] ? countDownLatches[i+1] : null , countDownLatches[i], output)
+          add new HealthCheckParallel("foo${i + 1}", k in [0, 1] ? countDownLatches[i + 1] : null, countDownLatches[i], output)
           if (++k == 3) {
             k = 0
           }

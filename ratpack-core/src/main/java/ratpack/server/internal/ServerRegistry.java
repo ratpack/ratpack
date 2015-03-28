@@ -35,7 +35,7 @@ import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
-import ratpack.health.HealthCheckResultsRenderer;
+import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;

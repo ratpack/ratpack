@@ -14,36 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.health;
+package ratpack.health.internal;
 
 import ratpack.handling.Context;
+import ratpack.health.HealthCheckResults;
 import ratpack.render.RendererSupport;
 
-/**
- * A renderer for results of non-blocking health checks used by {@link ratpack.handling.Context#render(Object) renderable}
- * <p>
- * Renders in plain text in the following format
- * <pre>{@code
- *  name : HEALTHY|UNHEALTHY [message] [exception]
- * }</pre>
- * <p>
- * Renderer sets no caching HTTP pragmas on {@code Context#getResponse()} object.
- * <p>
- * Renderer is automatically added to <strong>Ratpack's</strong> base registry.
- *
- * @see ratpack.health.HealthCheckResults
- * @see ratpack.health.HealthCheckHandler
- * @see ratpack.handling.Context
- */
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
   @Override
   public void render(Context context, HealthCheckResults healthCheckResults) throws Exception {
-    if (healthCheckResults == null) {
-      context.clientError(405);
-      return;
-    }
     StringBuilder builder = new StringBuilder();
-    boolean first = true;
     healthCheckResults.getResults().forEach((name, result) -> {
       if (builder.length() > 0) {
         builder.append("\n");
@@ -56,10 +36,7 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
         }
       }
     });
-    context.getResponse().getHeaders()
-            .add("Cache-Control", "no-cache, no-store, must-revalidate")
-            .add("Pragma", "no-cache")
-            .add("Expires", 0);
+
     context.getResponse().send(builder.toString());
   }
 }
