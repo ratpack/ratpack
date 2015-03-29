@@ -119,7 +119,6 @@ public abstract class FileSystemChecksumServices {
     Function<? super InputStream, ? extends String> checksummer = checksummerFunc != null ? checksummerFunc : noopChecksummer();
     FileSystemBinding fsb = path != null ? serverConfig.getBaseDir().binding(path) : serverConfig.getBaseDir();
     List<String> exts = Arrays.asList(fileEndsWith);
-    System.out.println("===> FSB: " + (fsb != null ? fsb.getFile().toString() : "UNDEFINED"));
     if (fsb == null || !Files.isDirectory(fsb.getFile())) {
       throw new IllegalArgumentException("Non existing path related to server's base dir.");
     }
