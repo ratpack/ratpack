@@ -174,6 +174,8 @@ public interface HealthCheck {
    * If the implementation does not need to be asynchronous, the result can be returned via {@link ExecControl#promiseOf(Object)}.
    * <p>
    * If this method throws an exception, it is logically equivalent to returned an unhealthy result with the thrown exception.
+   * <p>
+   * If the method returns a failed promise, it will be converted to a result using {@link Result#unhealthy(Throwable)}.
    *
    * @param execControl an execution control
    * @return a promise for the result
