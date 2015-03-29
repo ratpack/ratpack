@@ -33,7 +33,7 @@ public class DefaultThrottle implements Throttle {
 
   public DefaultThrottle(int size) {
     if (size < 1) {
-      throw new IllegalArgumentException("throttle size must be greater than 1");
+      throw new IllegalArgumentException("throttle size must be greater than 0");
     }
     this.size = size;
   }
