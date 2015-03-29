@@ -51,6 +51,13 @@ public interface Promise<T> {
    */
   Promise<T> onError(Action<? super Throwable> errorHandler);
 
+  /**
+   * Consume the promised value as a {@link Result}.
+   * <p>
+   * This method is an alternative to {@link #then} and {@link #onError}.
+   *
+   * @param resultHandler the consumer of the result
+   */
   default void result(Action<? super Result<T>> resultHandler) {
     onError(t -> resultHandler.execute(Result.<T>failure(t))).then(v -> resultHandler.execute(Result.success(v)));
   }
