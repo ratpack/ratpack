@@ -103,6 +103,30 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
+  public Promise<T> mapError(Function<? super Throwable, ? extends T> transformer) {
+    return connect(downstream -> upstream.connect(new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        downstream.success(value);
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        try {
+          downstream.success(transformer.apply(throwable));
+        } catch (Throwable t) {
+          downstream.error(t);
+        }
+      }
+
+      @Override
+      public void complete() {
+        downstream.complete();
+      }
+    }));
+  }
+
+  @Override
   public <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {
     try {
       return function.apply(this);

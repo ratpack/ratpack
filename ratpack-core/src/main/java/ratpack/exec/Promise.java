@@ -90,6 +90,52 @@ public interface Promise<T> {
   <O> Promise<O> map(Function<? super T, ? extends O> transformer);
 
   /**
+   * Transforms the promise failure (potentially into a value) by applying the given function to it.
+   * <p>
+   * If the function returns a value, the promise will now be considered successful.
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         c.<String>failedPromise(new Exception("!"))
+   *           .mapError(e -> "value")
+   *     );
+   *
+   *     assertEquals("value", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If the function throws an exception, that exception will now represent the promise failure.
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         c.<String>failedPromise(new Exception("!"))
+   *           .mapError(e -> { throw new RuntimeException("mapped", e); })
+   *     );
+   *
+   *     assertEquals("mapped", result.getThrowable().getMessage());
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The function will not be called if the promise is successful.
+   *
+   * @param transformer the transformation to apply to the promise failure
+   * @return a promise
+   */
+  Promise<T> mapError(Function<? super Throwable, ? extends T> transformer);
+
+  /**
    * Applies the custom operation function to this promise.
    * <p>
    * This method can be used to apply custom operations without breaking the “code flow”.
