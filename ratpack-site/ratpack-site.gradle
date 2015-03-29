@@ -188,6 +188,9 @@ task browserTest(type: Test) {
   classpath = sourceSets.browserTest.runtimeClasspath
 
   shouldRunAfter test
+  testLogging {
+    showStandardStreams true
+  }
 }
 
 if (isSnapCi || !isCloudCi) {

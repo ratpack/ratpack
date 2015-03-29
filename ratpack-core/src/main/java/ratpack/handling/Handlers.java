@@ -134,7 +134,7 @@ public abstract class Handlers {
    */
   public static Handler chain(Handler... handlers) {
     if (handlers.length == 0) {
-      return Context::next;
+      return Handlers.next();
     } else if (handlers.length == 1) {
       return handlers[0];
     } else {

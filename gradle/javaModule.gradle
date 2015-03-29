@@ -18,12 +18,6 @@ apply plugin: "groovy"
 apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/codenarc.gradle"
 
-sourceSets.main {
-  resources {
-    srcDir rootProject.file("shared-resources")
-  }
-}
-
 dependencies {
   testCompile commonDependencies.groovy
   testCompile commonDependencies.spock
@@ -96,7 +90,7 @@ configurations {
 javadoc {
   doFirst {
     if (project.ext.has("apiLinks")) {
-      options.links(* project.apiLinks)
+      options.links(*project.apiLinks)
     }
   }
 }

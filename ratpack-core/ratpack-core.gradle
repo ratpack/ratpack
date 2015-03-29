@@ -17,6 +17,7 @@
 description = "The core HTTP and composition mechanisms of Ratpack"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
+apply from: "$rootDir/gradle/versionFile.gradle"
 
 ext.apiLinks = [
     "http://netty.io/4.0/api/",
@@ -24,7 +25,6 @@ ext.apiLinks = [
     "http://docs.oracle.com/javase/8/docs/api/",
     "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc/"
 ]
-
 
 dependencies {
   compile "io.netty:netty-codec-http:$commonVersions.netty"

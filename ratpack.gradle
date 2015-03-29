@@ -71,7 +71,7 @@ task bintrayPublish << {
 
 allprojects {
   group = "io.ratpack"
-  version = rootProject.file("shared-resources/ratpack/ratpack-version.txt").text.trim()
+  version = "0.9.15-SNAPSHOT"
 
   apply plugin: "base"
   apply plugin: "idea"
