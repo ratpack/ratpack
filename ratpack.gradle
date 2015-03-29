@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import groovy.json.JsonSlurper
-
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 
@@ -232,27 +229,12 @@ subprojects {
   tasks.withType(Test) {
     testLogging {
       exceptionFormat "full"
-      if (isCloudCi) {
-        events "failed", "started"
-        showStandardStreams true
-      } else {
-        events "failed"
-      }
+      events "failed"
     }
 
     jvmArgs "-Xss320k"
-    // Same min and max heap to fail fast if we can't allocate memory
     minHeapSize "368m"
     maxHeapSize "368m"
-
-    if (isCloudCi) {
-      doFirst {
-        maxParallelForks 1
-        if (isTravis) {
-          forkEvery 1
-        }
-      }
-    }
   }
 }
 
@@ -304,20 +286,20 @@ def lock = new ReentrantLock()
 def available = lock.newCondition()
 def busy = new AtomicBoolean()
 allprojects {
-    tasks.withType(Upload) { uploadTask ->
-        doFirst {
-            lock.lock()
-            while (busy.get()) {
-                available.await()
-            }
-            busy.set(true)
-        }
+  tasks.withType(Upload) { uploadTask ->
+    doFirst {
+      lock.lock()
+      while (busy.get()) {
+        available.await()
+      }
+      busy.set(true)
     }
+  }
 }
 gradle.taskGraph.afterTask {
-    if (it instanceof Upload && lock.heldByCurrentThread) {
-        busy.set(false)
-        available.signal()
-        lock.unlock()
-    }
+  if (it instanceof Upload && lock.heldByCurrentThread) {
+    busy.set(false)
+    available.signal()
+    lock.unlock()
+  }
 }
