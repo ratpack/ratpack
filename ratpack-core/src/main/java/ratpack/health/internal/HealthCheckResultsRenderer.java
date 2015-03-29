@@ -21,6 +21,8 @@ import ratpack.health.HealthCheckResults;
 import ratpack.render.RendererSupport;
 
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
+
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Override
   public void render(Context context, HealthCheckResults healthCheckResults) throws Exception {
     StringBuilder builder = new StringBuilder();

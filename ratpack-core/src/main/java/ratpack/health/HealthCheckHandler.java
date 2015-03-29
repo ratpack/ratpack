@@ -16,19 +16,19 @@
 
 package ratpack.health;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Fulfiller;
+import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
+import ratpack.exec.Throttle;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -91,15 +91,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <pre>{@code name : HEALTHY|UNHEALTHY [message] [exception]}</pre>
  * <p>
  * To change the output format, simply add your own renderer for this type to the registry.
- * <p>
- * When reporting a single health check, the {@link HealthCheck.Result} object is rendered directly.
- * Ratpack also provides a default renderer for this type.
  *
  * <h3>Concurrency</h3>
  * <p>
- * By default, health checks are executed concurrently.
- * An individual {@link ratpack.exec.Execution} is created for each health check to be executed and all are initiated simultaneously.
- * A {@code concurrency} parameter can be specified when {@link #HealthCheckHandler(String, int) constructing} this handler to alter this behaviour.
+ * The concurrency of the health check execution is managed by a {@link Throttle}.
+ * By default, an {@link Throttle#unlimited() unlimited throttle} is used.
+ * A sized throttle can be exlicit given to the constructor.
  *
  * <h3>Rendering single health checks</h3>
  * <p>
@@ -113,52 +110,46 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HealthCheckHandler implements Handler {
 
   /**
-   * The default concurrency level for executing health checks, 0, meaning unlimited concurrency.
-   *
-   * @see #HealthCheckHandler(String, int)
-   */
-  public static final int DEFAULT_CONCURRENCY_LEVEL = 0;
-
-  /**
    * The default path token name that indicates the individual health check to run.
    *
    * Value: {@value}
    *
-   * @see #HealthCheckHandler(String, int)
+   * @see #HealthCheckHandler(String, Throttle)
    */
   public static final String DEFAULT_NAME_TOKEN = "name";
+
   private static final TypeToken<HealthCheck> HEALTH_CHECK_TYPE_TOKEN = TypeToken.of(HealthCheck.class);
 
   private final String name;
-  private final int concurrencyLevel;
+  private final Throttle throttle;
 
   /**
-   * Uses the default values of {@link #DEFAULT_NAME_TOKEN} and {@link #DEFAULT_CONCURRENCY_LEVEL}.
+   * Uses the default values of {@link #DEFAULT_NAME_TOKEN} and an unlimited throttle.
    *
-   * @see #HealthCheckHandler(String, int)
+   * @see #HealthCheckHandler(String, Throttle)
    */
   public HealthCheckHandler() {
-    this(DEFAULT_NAME_TOKEN, DEFAULT_CONCURRENCY_LEVEL);
+    this(DEFAULT_NAME_TOKEN, Throttle.unlimited());
   }
 
   /**
-   * Uses the {@link #DEFAULT_CONCURRENCY_LEVEL} and the given name for the health check identifying path token.
+   * Uses an unlimited throttle and the given name for the health check identifying path token.
    *
    * @param pathTokenName health check name
-   * @see #HealthCheckHandler(String, int)
+   * @see #HealthCheckHandler(String, Throttle)
    */
   public HealthCheckHandler(String pathTokenName) {
-    this(pathTokenName, DEFAULT_CONCURRENCY_LEVEL);
+    this(pathTokenName, Throttle.unlimited());
   }
 
   /**
-   * Uses the {@link #DEFAULT_NAME_TOKEN} and the given concurrency level.
+   * Uses the {@link #DEFAULT_NAME_TOKEN} and the given throttle.
    *
-   * @param concurrencyLevel the concurrency level
-   * @see #HealthCheckHandler(String, int)
+   * @param throttle the throttle for health check execution
+   * @see #HealthCheckHandler(String, Throttle)
    */
-  public HealthCheckHandler(int concurrencyLevel) {
-    this(null, concurrencyLevel);
+  public HealthCheckHandler(Throttle throttle) {
+    this(DEFAULT_NAME_TOKEN, throttle);
   }
 
   /**
@@ -178,21 +169,20 @@ public class HealthCheckHandler implements Handler {
    * General, the default value of {@code 0} (i.e. unbounded) is appropriate unless there are many health checks that are executed frequently as this may degrade the performance of other requests.
    *
    * @param pathTokenName the name of health check
-   * @param concurrencyLevel the level of concurrency to use when executing health checks
+   * @param throttle the throttle for health check execution
    */
-  protected HealthCheckHandler(String pathTokenName, int concurrencyLevel) {
+  protected HealthCheckHandler(String pathTokenName, Throttle throttle) {
     this.name = pathTokenName;
-    this.concurrencyLevel = concurrencyLevel;
+    this.throttle = throttle;
   }
 
   /**
-   * The level of concurrency to use when executing health checks.
+   * The throttle for executing health checks.
    *
-   * @return the level of concurrency to use when executing health checks
-   * @see #HealthCheckHandler(String, int)
+   * @return the throttle for executing health checks.
    */
-  public int getConcurrencyLevel() {
-    return concurrencyLevel;
+  public Throttle getThrottle() {
+    return throttle;
   }
 
   /**
@@ -207,190 +197,65 @@ public class HealthCheckHandler implements Handler {
   /**
    * Renders health checks.
    *
-   * @param context the request context
+   * @param ctx the request context
    */
   @Override
-  public void handle(Context context) {
-    context.getResponse().getHeaders()
+  public void handle(Context ctx) {
+    ctx.getResponse().getHeaders()
       .add("Cache-Control", "no-cache, no-store, must-revalidate")
       .add("Pragma", "no-cache")
       .add("Expires", 0);
 
     try {
-      if (name != null) {
-        String checkName = context.getPathTokens().get(name);
-        if (checkName != null) {
-          handleByName(context, checkName);
-          return;
+      String checkName = ctx.getPathTokens().get(name);
+      if (checkName != null) {
+        Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
+        if (first.isPresent()) {
+          ctx.render(execute(ctx, Collections.singleton(first.get())));
+        } else {
+          ctx.clientError(404);
         }
+      } else {
+        ctx.render(execute(ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
       }
-
-      handleAll(context);
     } catch (Exception e) {
-      context.error(e);
+      ctx.error(e);
     }
   }
 
-  private void handleByName(Context context, String name) throws Exception {
-    Optional<HealthCheck> healthCheck = context.first(HEALTH_CHECK_TYPE_TOKEN, it -> it.getName().equals(name) ? it : null);
-
-    if (!healthCheck.isPresent()) {
-      context.clientError(404);
-      return;
-    }
+  private Promise<HealthCheck.Result> execute(ExecControl execControl, HealthCheck healthCheck) {
     try {
-      Promise<HealthCheck.Result> promise = healthCheck.get().check(context.getExecution().getControl());
-      promise.onError(throwable -> {
-        context.render(new HealthCheckResults(ImmutableSortedMap.of(healthCheck.get().getName(), HealthCheck.Result.unhealthy(throwable))));
-      }).then(r -> {
-        context.render(new HealthCheckResults(ImmutableSortedMap.of(healthCheck.get().getName(), r)));
-      });
-    } catch (Exception ex) {
-      context.render(new HealthCheckResults(ImmutableSortedMap.of(healthCheck.get().getName(), HealthCheck.Result.unhealthy(ex))));
+      return healthCheck.check(execControl).mapError(HealthCheck.Result::unhealthy);
+    } catch (Exception e) {
+      return execControl.promiseOf(HealthCheck.Result.unhealthy(e));
     }
   }
 
-  private void handleAll(Context context) throws Exception {
-    SortedMap<String, HealthCheck.Result> hcheckResults = new ConcurrentSkipListMap<>();
-
-    SortedMap<String, Promise<HealthCheck.Result>> promises = new ConcurrentSkipListMap<>();
-    context.getAll(HealthCheck.class).forEach(hcheck -> {
-      try {
-        Promise<HealthCheck.Result> promise = hcheck.check(context.getExecution().getControl());
-        promises.put(hcheck.getName(), promise);
-      } catch (Exception ex) {
-        hcheckResults.put(hcheck.getName(), HealthCheck.Result.unhealthy(ex));
-      }
-    });
-
-    if (promises.size() == 0) {
-      context.render(new HealthCheckResults(ImmutableSortedMap.copyOfSorted(hcheckResults)));
-      return;
+  private Promise<HealthCheckResults> execute(ExecControl execControl, Iterable<? extends HealthCheck> healthChecks) {
+    Iterator<? extends HealthCheck> iterator = healthChecks.iterator();
+    if (!iterator.hasNext()) {
+      return execControl.promiseOf(new HealthCheckResults(ImmutableSortedMap.of()));
     }
 
-    context.promise(f -> {
-      // execute promises in parallel based on the concurrencyLevel
-      // count finished health checks. If all are done, render results
-      AtomicInteger executedPromisesCountDown = new AtomicInteger(promises.size());
-      // count health checks waiting for execution.
-      AtomicInteger toExecPromisesCountDown = new AtomicInteger(promises.size());
-      // collect health checks to execute in the next run. Used when concurrencyLevel > 1
-      Map<String, Promise<HealthCheck.Result>> toExecPromises = new ConcurrentHashMap<>();
-
-      promises.forEach((name, p) -> {
-        boolean execParallel = false;
-        if (concurrencyLevel <= 0) {
-          // execute all health checks in parallel
-          execParallel = true;
-        } else if (concurrencyLevel == 1) {
-          // execute promise by promise, in sequence
-          execParallel = false;
-        } else {
-          // collect promises into group of concurrencyLevel size or into group of last promises to execute
-          toExecPromises.put(name, p);
-          if (toExecPromisesCountDown.decrementAndGet() > 0 && toExecPromises.size() < concurrencyLevel) {
-            return;
-          }
-          // execute promises in group in parallel
-          execParallel = true;
-        }
-
-        if (toExecPromises.size() > 0) {
-          // promise of immutable map of promises to execute, controls construction and their parallel execution while allows
-          // safe freeing of toExecPromises map.
-          context.promiseOf(ImmutableMap.copyOf(toExecPromises)).then(map -> {
-            // control finalization of parent promise
-            AtomicInteger groupOfPromisesCountDown = new AtomicInteger(map.size());
-            context.promise(f2 -> {
-              map.forEach((name2, p2) -> {
-                // execute promise p2 and check end condition: either last promise in group or last promise globally
-                execPromiseWithEndCondition(context, name2, p2, f2, hcheckResults, groupOfPromisesCountDown, executedPromisesCountDown);
-              });
-            }).then(finish -> {
-              if (finish == Boolean.TRUE) {
-                f.success(hcheckResults);
-              }
-            });
-          });
-
-          toExecPromises.clear();
-
-        } else {
-          if (execParallel) {
-            // execute promise and if last promise globally, return health check results
-            execPromiseWithEndResult(context, name, p, f, hcheckResults, executedPromisesCountDown);
-          } else {
-            context.promise(f2 -> {
-              // execute promise p and check end condition: if last promise globally
-              execPromiseWithEndCondition(context, name, p, f2, hcheckResults, null, executedPromisesCountDown);
-            }).then(finish -> {
-              if (finish == Boolean.TRUE) {
-                f.success(hcheckResults);
-              }
-            });
-          }
-        }
-      });
-    }).then(results -> {
-      context.render(new HealthCheckResults(ImmutableSortedMap.copyOfSorted(hcheckResults)));
-    });
-  }
-
-  private void execPromiseWithEndResult(
-    Context context,
-    String name,
-    Promise<HealthCheck.Result> promise,
-    Fulfiller<Object> fulfiller,
-    SortedMap<String, HealthCheck.Result> hcheckResults,
-    AtomicInteger executedPromisesCountDown) {
-
-    context.exec().onComplete(execution -> {
-      if (executedPromisesCountDown.decrementAndGet() == 0) {
-        fulfiller.success(hcheckResults);
+    return execControl.<Map<String, HealthCheck.Result>>promise(f -> {
+      AtomicInteger counter = new AtomicInteger();
+      Map<String, HealthCheck.Result> results = Maps.newConcurrentMap();
+      while (iterator.hasNext()) {
+        counter.incrementAndGet();
+        HealthCheck healthCheck = iterator.next();
+        execControl.exec().start(e ->
+            execute(e, healthCheck)
+              .throttled(throttle)
+              .then(r -> {
+                results.put(healthCheck.getName(), r);
+                if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
+                  f.success(results);
+                }
+              })
+        );
       }
-    }).onError(throwable -> {
-      hcheckResults.put(name, HealthCheck.Result.unhealthy(throwable));
-      if (executedPromisesCountDown.decrementAndGet() == 0) {
-        fulfiller.success(hcheckResults);
-      }
-    }).start(execution -> {
-      promise.then(r -> {
-        hcheckResults.put(name, r);
-      });
-    });
-  }
-
-  private void execPromiseWithEndCondition(
-    Context context,
-    String name,
-    Promise<HealthCheck.Result> promise,
-    Fulfiller<Object> fulfiller,
-    SortedMap<String, HealthCheck.Result> hcheckResults,
-    AtomicInteger groupOfPromisesCountDown, AtomicInteger executedPromisesCountDown) {
-
-    context.exec().onComplete(execution -> {
-      int i = executedPromisesCountDown != null ? executedPromisesCountDown.decrementAndGet() : 0;
-      if (groupOfPromisesCountDown != null) {
-        if (groupOfPromisesCountDown.decrementAndGet() == 0 || i == 0) {
-          fulfiller.success(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-        }
-      } else {
-        fulfiller.success(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-      }
-    }).onError(throwable -> {
-      hcheckResults.put(name, HealthCheck.Result.unhealthy(throwable));
-      int i = executedPromisesCountDown != null ? executedPromisesCountDown.decrementAndGet() : 0;
-      if (groupOfPromisesCountDown != null) {
-        if (groupOfPromisesCountDown.decrementAndGet() == 0 || i == 0) {
-          fulfiller.success(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-        }
-      } else {
-        fulfiller.success(i == 0 ? Boolean.TRUE : Boolean.FALSE);
-      }
-    }).start(execution -> {
-      promise.then(r -> {
-        hcheckResults.put(name, r);
-      });
-    });
+    })
+      .map(ImmutableSortedMap::copyOf)
+      .map(HealthCheckResults::new);
   }
 }

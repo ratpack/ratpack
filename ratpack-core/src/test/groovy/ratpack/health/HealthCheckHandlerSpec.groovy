@@ -19,7 +19,6 @@ package ratpack.health
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import ratpack.exec.ExecControl
-import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.func.NoArgAction
 import ratpack.http.MediaType
@@ -266,7 +265,6 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
       register {
         add HealthCheck.of("foo") { ec ->
           ec.promise { f ->
-            latch.await()
             f.success(HealthCheck.Result.unhealthy("Unhealthy"))
           }
         }
@@ -359,116 +357,4 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     assert results.baz.message == "Unhealthy"
   }
 
-  def "handler with concurrencyLevel=0 run ordered (by name) health checks in parallel"() {
-    given:
-    def output = []
-    def countDownLatches = []
-    int eventLoopThreads = 0
-
-    when:
-    handlers { ExecController ec ->
-      register {
-        eventLoopThreads = ec.getNumThreads()
-        for (int i = 0; i < eventLoopThreads; i++) {
-          countDownLatches.add(new CountDownLatch(1))
-
-        }
-        for (int i = 0; i < eventLoopThreads; i++) {
-          add new HealthCheckParallel("foo${i + 1}", i == (eventLoopThreads - 1) ? null : countDownLatches[i + 1], countDownLatches[i], output)
-        }
-      }
-      get("health-checks", new HealthCheckHandler(0))
-    }
-
-    then:
-    getText("health-checks")
-    def expectedOutput = []
-    for (int i = eventLoopThreads - 1; i >= 0; i--) {
-      expectedOutput.add("foo${i + 1}")
-    }
-    assert output == expectedOutput
-  }
-
-  def "handler with concurrencyLevel=1 run ordered (by name) health checks in sequence"() {
-    given:
-    def output = []
-    int numOfHealthChecks = 8
-
-    when:
-    handlers {
-      register {
-        for (int i = 0; i < numOfHealthChecks; i++) {
-          add new HealthCheckParallel("foo${i + 1}", null, null, output)
-        }
-      }
-      get("health-checks", new HealthCheckHandler(1))
-    }
-
-    then:
-    getText("health-checks")
-    def expectedOutput = []
-    for (int i = 0; i < numOfHealthChecks; i++) {
-      expectedOutput.add("foo${i + 1}")
-    }
-    assert output == expectedOutput
-  }
-
-  def "handler with currencyLevel=2 run ordered (by name) health checks in sequence of 2 parallel"() {
-    given:
-    def output = []
-    int numOfHealthChecks = 8
-    def countDownLatches = []
-    for (int i = 0; i < numOfHealthChecks; i++) {
-      countDownLatches.add(new CountDownLatch(1))
-    }
-
-    when:
-    handlers {
-      register {
-        for (int i = 0; i < numOfHealthChecks; i++) {
-          // second in group is waiting for the first one
-          // pairs run in parallel while groups of two in sequence
-          add new HealthCheckParallel("foo${i + 1}", i % 2 ? null : countDownLatches[i + 1], countDownLatches[i], output)
-        }
-      }
-      get("health-checks", new HealthCheckHandler(2))
-    }
-
-    then:
-    getText("health-checks")
-    def expectedOutput = ["foo2", "foo1", "foo4", "foo3", "foo6", "foo5", "foo8", "foo7"]
-    assert output == expectedOutput
-  }
-
-  def "handler with currencyLevel=3 run ordered (by name) health checks in sequence of 3 parallel"() {
-    given:
-    def output = []
-    int numOfHealthChecks = 9
-    def countDownLatches = []
-    for (int i = 0; i < numOfHealthChecks; i++) {
-      countDownLatches.add(new CountDownLatch(1))
-    }
-
-    when:
-    handlers {
-      register {
-        int k = 0
-        for (int i = 0; i < numOfHealthChecks; i++) {
-          // third in group is waiting for second and second is waiting for the first one
-          // triples run in parallel while groups of three in sequence
-
-          add new HealthCheckParallel("foo${i + 1}", k in [0, 1] ? countDownLatches[i + 1] : null, countDownLatches[i], output)
-          if (++k == 3) {
-            k = 0
-          }
-        }
-      }
-      get("health-checks", new HealthCheckHandler(3))
-    }
-
-    then:
-    getText("health-checks")
-    def expectedOutput = ["foo3", "foo2", "foo1", "foo6", "foo5", "foo4", "foo9", "foo8", "foo7"]
-    assert output == expectedOutput
-  }
 }

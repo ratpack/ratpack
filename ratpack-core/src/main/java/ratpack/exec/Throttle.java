@@ -63,7 +63,7 @@ public interface Throttle {
    * <p>
    * The throttle guarantees that no more than this number of promises that were throttled via {@link #throttle(Promise)} will execute at the same time.
    * <p>
-   * Returns < 1 if the throttle is unlimited.
+   * Returns &lt; 1 if the throttle is unlimited.
    *
    * @return the throttle size
    */
