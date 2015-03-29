@@ -44,9 +44,3 @@ Ratpack supports metric reporters for the following outputs:
 * [Websockets](api/ratpack/codahale/metrics/CodaHaleMetricsModule.Config.html#webSocket-ratpack.func.Action-)
 
 For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/ratpack.groovy) project.
-
-## Health checks
-
-Health checks verify that your application components or responsibilities are performing as expected.
-
-For detailed information on how to create your own application health checks and how to run them, see [`CodaHaleHealthCheckModule`](api/ratpack/codahale/healthcheck/CodaHaleHealthCheckModule.html).
