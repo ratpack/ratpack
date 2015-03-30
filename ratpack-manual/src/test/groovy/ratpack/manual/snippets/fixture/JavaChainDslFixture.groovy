@@ -16,15 +16,7 @@
 
 package ratpack.manual.snippets.fixture
 
-class JavaChainDslFixture extends GroovyScriptFixture {
-
-  @Override
-  public void setup() {
-  }
-
-  @Override
-  public void cleanup() {
-  }
+class JavaChainDslFixture extends JavaClassFixture {
 
   @Override
   public String pre() {
@@ -35,13 +27,22 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 import ratpack.handling.internal.DefaultChain;
+import com.google.common.collect.Lists;
+import java.util.List;
 
-Chain chain = new ratpack.handling.internal.DefaultChain([], [isDevelopment: { false }] as ServerConfig, null)
+public class Example {
+  public static void main(String... args) throws Exception {
+    List<Handler> handlers = Lists.newLinkedList();
+    ServerConfig serverConfig = ServerConfig.noBaseDir().development(false).build();
+    Chain chain = new DefaultChain(handlers, serverConfig, null);
 """
   }
 
   @Override
   public String post() {
-    ""
+    """
+  }
+}
+"""
   }
 }

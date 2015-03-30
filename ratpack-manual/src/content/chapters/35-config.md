@@ -62,8 +62,15 @@ When enabled, the configuration data sources are polled periodically.
 If any changes are detected, it triggers a server reload.
 For this to work properly, all construction of the `ConfigData` object should take place within the [RatpackServer](api/ratpack/server/RatpackServer.html) `of`/`start` block.
 
-### Binding
-TODO
-
 ### Object Mapper
-TODO
+`ratpack-config` uses Jackson for object binding.
+The default `ObjectMapper` used is configured with commonly used Jackson modules pre-loaded, and set to allow unquoted field names, allow single quotes, and ignore unknown field names.
+This is intended to make it easy to use, out-of-the-box.
+However, there will sometimes be cases where you may want to change a Jackson configuration setting or add additional Jackson modules.
+If so, this can be accomplished via various signatures of `ConfigData.of(...)` or via `ConfigDataSpec.configureObjectMapper(...)`.
+
+### Binding
+Once you've built your [`ConfigData`](api/ratpack/config/ConfigData.html) instance, you can bind the data to configuration objects.
+The simplest option is to define a class that represents the entirety of your application's configuration, and bind to it all at once using [`ConfigData.get(Class)`](api/ratpack/config/ConfigData.html#get-java.lang.Class-).
+Alternatively, you can bind objects one-at-a-time at specified paths within the data using [`ConfigData.get(String, Class)`](api/ratpack/config/ConfigData.html#get-java.lang.String-java.lang.Class-).
+For the common case of binding to a [`ServerConfig`](api/ratpack/server/ServerConfig.html) object, `ConfigData.getServerConfig(...)` signatures are provided as a convenience.

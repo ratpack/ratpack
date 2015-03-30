@@ -477,7 +477,7 @@ public interface Chain {
    * <pre class="java-chain-dsl">
    *   chain
    *     .prefix("person/:id", new Action&lt;Chain&gt;() {
-   *       public void execute(Chain personChain) {
+   *       public void execute(Chain personChain) throws Exception {
    *         personChain
    *           .get("info", new Handler() {
    *             public void handle(Context context) {

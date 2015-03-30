@@ -18,6 +18,7 @@ package ratpack.manual.snippets.executer
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import ratpack.func.NoArgAction
 import ratpack.manual.snippets.TestCodeSnippet
 
 import javax.tools.*
@@ -40,8 +41,9 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       }
     }
 
-    def className = detectClassName(snippet.completeSnippet)
-    def source = new StringJavaSource(className, snippet.completeSnippet)
+    def fullSnippet = assembleFullSnippet(snippet)
+    def className = detectClassName(fullSnippet)
+    def source = new StringJavaSource(className, fullSnippet)
 
     def task = compiler.getTask(null, fileManager, diagnostics, ["-Xlint:deprecation", "-Xlint:unchecked"], null, Arrays.asList(source))
     def result = task.call()
@@ -70,7 +72,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     try {
       Thread.currentThread().setContextClassLoader(classLoader)
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
-      mainMethod.invoke(null, [[] as String[]] as Object[])
+      snippet.fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as NoArgAction)
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {
@@ -90,6 +92,17 @@ public class JavaSnippetExecuter implements SnippetExecuter {
   private static String detectPackage(String snippet) {
     def match = snippet =~ /package ([\w.]+);/
     match ? match.group(1) : null
+  }
+
+  private static String assembleFullSnippet(TestCodeSnippet snippet) {
+    def imports = new StringBuilder()
+    def snippetMinusImports = new StringBuilder()
+    snippet.snippet.readLines().each { line ->
+      ["package ", "import "].any { line.trim().startsWith(it) } ? imports.append(line).append("\n") : snippetMinusImports.append(line).append("\n")
+    }
+    def fixture = snippet.fixture
+    def fullSnippet = imports.toString() + fixture.pre() + snippetMinusImports.toString() + fixture.post()
+    fullSnippet
   }
 
   static class StringJavaSource extends SimpleJavaFileObject {

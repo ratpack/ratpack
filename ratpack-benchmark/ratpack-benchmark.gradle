@@ -31,3 +31,10 @@ idea {
     scopes.COMPILE.plus += [configurations.jmh]
   }
 }
+
+eclipse {
+  classpath {
+    plusConfigurations += [configurations.jmh]
+  }
+}
+

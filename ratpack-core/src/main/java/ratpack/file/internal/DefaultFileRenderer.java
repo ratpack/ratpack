@@ -22,6 +22,7 @@ import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
 import ratpack.util.Exceptions;
 
@@ -62,9 +63,9 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
       }
 
       response.contentTypeIfNotSet(() -> context.get(MimeTypes.class).getContentType(file.getFileName().toString()));
-
+      response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, Long.toString(attributes.size()));
       try {
-        response.sendFile(attributes, file);
+        response.sendFile(file);
       } catch (Exception e) {
         throw Exceptions.uncheck(e);
       }

@@ -14,9 +14,34 @@
  * limitations under the License.
  */
 
-/**
- * Integration with <a href="https://dropwizard.github.io/metrics/3.1.0/manual/healthchecks/">Coda Hale's Metrics Library for health checks</a>.
- *
- * See {@link ratpack.codahale.healthcheck.CodaHaleHealthCheckModule} to get started.
- */
-package ratpack.codahale.healthcheck;
+package ratpack.exec.internal;
+
+import ratpack.exec.Promise;
+import ratpack.exec.Throttle;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class UnlimitedThrottle implements Throttle {
+
+  private final AtomicInteger active = new AtomicInteger();
+
+  @Override
+  public <T> Promise<T> throttle(Promise<T> promise) {
+    return promise.onYield(active::incrementAndGet).wiretap(r -> active.decrementAndGet());
+  }
+
+  @Override
+  public int getSize() {
+    return -1;
+  }
+
+  @Override
+  public int getActive() {
+    return active.get();
+  }
+
+  @Override
+  public int getWaiting() {
+    return 0;
+  }
+}

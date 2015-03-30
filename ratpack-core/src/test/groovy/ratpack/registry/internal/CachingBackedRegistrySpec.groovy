@@ -16,10 +16,9 @@
 
 package ratpack.registry.internal
 
-import com.google.common.base.Predicates
 import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
-import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.registry.NotInRegistryException
 import ratpack.registry.RegistryBacking
 import spock.lang.Specification
@@ -51,10 +50,8 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "search empty registry"() {
     expect:
-    !r.first(TypeToken.of(Object), Predicates.alwaysTrue()).present
-    !r.first(TypeToken.of(Object), Predicates.alwaysFalse()).present
-    r.all(TypeToken.of(Object), Predicates.alwaysTrue()).toList() == []
-    r.all(TypeToken.of(Object), Predicates.alwaysFalse()).toList() == []
+    !r.first(TypeToken.of(Object), Function.identity()).present
+    !r.first(TypeToken.of(Object), Function.constant(null)).present
   }
 
   def "search with one item"() {
@@ -66,15 +63,10 @@ class CachingBackedRegistrySpec extends Specification {
     r.register(value)
 
     expect:
-    r.first(type, Predicates.alwaysTrue()).get() == value
-    !r.first(type, Predicates.alwaysFalse()).present
-    !r.first(other, Predicates.alwaysTrue()).present
-    !r.first(other, Predicates.alwaysFalse()).present
-
-    r.all(type, Predicates.alwaysTrue()) as List == [value]
-    r.all(type, Predicates.alwaysFalse()) as List == []
-    r.all(other, Predicates.alwaysTrue()) as List == []
-    r.all(other, Predicates.alwaysFalse()) as List == []
+    r.first(type, Function.identity()).get() == value
+    !r.first(type, Function.constant(null)).present
+    !r.first(other, Function.identity()).present
+    !r.first(other, Function.constant(null)).present
   }
 
   def "search with multiple items"() {
@@ -91,43 +83,10 @@ class CachingBackedRegistrySpec extends Specification {
     r.register(d)
 
     expect:
-    r.first(string, Predicates.alwaysTrue()).get() == a
-    r.first(string, { s -> s.startsWith('B') }).get() == b
-    r.first(number, Predicates.alwaysTrue()).get() == c
-    r.first(number, { n -> n < 20 }).get() == d
-
-    r.all(string, Predicates.alwaysTrue()) as List == [a, b]
-    r.all(string, { s -> s.startsWith('B') }) as List == [b]
-    r.all(number, { n -> n < 50 })  as List == [c, d]
-    r.all(number, Predicates.alwaysFalse()) as List == []
-  }
-
-  def "each with action"() {
-    given:
-    Action action = Mock()
-    def sameType = TypeToken.of(String)
-    def differentType = TypeToken.of(Number)
-    def value = "Something"
-    r.register(value)
-
-    when:
-    r.each(sameType, Predicates.alwaysTrue(), action)
-
-    then:
-    1 * action.execute(value)
-
-    when:
-    r.each(sameType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
-
-    when:
-    r.each(differentType, Predicates.alwaysTrue(), action)
-    r.each(differentType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
+    r.first(string, Function.identity()).get() == a
+    r.first(string, { s -> s.startsWith('B') ? s : null }).get() == b
+    r.first(number, Function.identity()).get() == c
+    r.first(number, { n -> n < 20 ? n : null }).get() == d
   }
 
   def "find first"() {
@@ -137,24 +96,12 @@ class CachingBackedRegistrySpec extends Specification {
     def value = "Something"
     r.register(value)
     expect:
-    r.first(sameType, Predicates.alwaysTrue()).get() == value
-    !r.first(sameType, Predicates.alwaysFalse()).present
-    !r.first(differentType, Predicates.alwaysTrue()).present
-    !r.first(differentType, Predicates.alwaysFalse()).present
+    r.first(sameType, Function.identity()).get() == value
+    !r.first(sameType, Function.constant(null)).present
+    !r.first(differentType, Function.identity()).present
+    !r.first(differentType, Function.constant(null)).present
   }
 
-  def "find all"() {
-    given:
-    def sameType = TypeToken.of(String)
-    def differentType = TypeToken.of(Number)
-    def value = "Something"
-    r.register(value)
-    expect:
-    r.all(sameType, Predicates.alwaysTrue()).toList() == [value]
-    r.all(sameType, Predicates.alwaysFalse()).toList() == []
-    r.all(differentType, Predicates.alwaysTrue()).toList() == []
-    r.all(differentType, Predicates.alwaysFalse()).toList() == []
-  }
 
   def "lookups are cached when all or first method is used"() {
     given:
@@ -164,17 +111,13 @@ class CachingBackedRegistrySpec extends Specification {
     RegistryBacking supplierFunc = Mock()
     def registry = new CachingBackedRegistry(supplierFunc)
     when:
-    def result = registry.all(string, Predicates.alwaysTrue()) as List
-    def result2 = registry.all(string, Predicates.alwaysTrue()) as List
-    def sresult = registry.first(string, Predicates.alwaysTrue())
-    def sresult2 = registry.first(string, Predicates.alwaysTrue())
+    def sresult = registry.first(string, Function.identity())
+    def sresult2 = registry.first(string, Function.identity())
     then:
     1 * supplierFunc.provide(string) >> { TypeToken<?> input ->
-      [{-> a} as Supplier, {-> b} as Supplier]
+      [{ -> a } as Supplier, { -> b } as Supplier]
     }
     0 * supplierFunc._
-    result == [a, b]
-    result2 == [a, b]
     sresult.get() == a
     sresult2.get() == a
   }
@@ -194,7 +137,7 @@ class CachingBackedRegistrySpec extends Specification {
 
     then:
     1 * supplierFunc.provide(string) >> { TypeToken<?> input ->
-      [{-> a} as Supplier, {-> b} as Supplier]
+      [{ -> a } as Supplier, { -> b } as Supplier]
     }
     0 * supplierFunc._
     result == [a, b]

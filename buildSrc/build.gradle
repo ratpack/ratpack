@@ -16,6 +16,7 @@
 
 apply plugin: 'groovy'
 apply plugin: 'idea'
+apply from: '../gradle/versionFile.gradle'
 
 repositories {
   jcenter()
@@ -29,6 +30,6 @@ dependencies {
 sourceSets {
   main {
     groovy.srcDirs = ["src/main/groovy", "../ratpack-gradle/src/main/groovy"]
-    resources.srcDirs = ["../ratpack-gradle/src/main/resources", "../shared-resources"]
+    resources.srcDirs = ["src/main/resources", "../ratpack-gradle/src/main/resources"]
   }
 }

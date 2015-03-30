@@ -52,7 +52,7 @@ import ratpack.http.TypedData;
  *   }
  *
  *   public static class ExampleHandler implements Handler {
- *     public void handle(Context context) {
+ *     public void handle(Context context) throws Exception {
  *       Integer integer = context.parse(Integer.class);
  *       context.render(integer.toString());
  *     }

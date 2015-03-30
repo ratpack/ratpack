@@ -17,6 +17,7 @@
 package ratpack.exec;
 
 import ratpack.exec.internal.DefaultThrottle;
+import ratpack.exec.internal.UnlimitedThrottle;
 
 /**
  * Limits the concurrency of operations, typically access to an external resource.
@@ -40,6 +41,15 @@ public interface Throttle {
   }
 
   /**
+   * Create a new throttle that does not limit concurrency.
+   *
+   * @return an unlimited throttle
+   */
+  static Throttle unlimited() {
+    return new UnlimitedThrottle();
+  }
+
+  /**
    * Throttles the given promise.
    *
    * @param promise the promise to throttle
@@ -52,6 +62,8 @@ public interface Throttle {
    * The size of this throttle.
    * <p>
    * The throttle guarantees that no more than this number of promises that were throttled via {@link #throttle(Promise)} will execute at the same time.
+   * <p>
+   * Returns &lt; 1 if the throttle is unlimited.
    *
    * @return the throttle size
    */

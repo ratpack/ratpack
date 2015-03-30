@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.healthcheck;
+package ratpack.health;
 
-import com.codahale.metrics.health.HealthCheck;
 import com.google.common.collect.ImmutableSortedMap;
 
 /**
- * A {@link ratpack.handling.Context#render(Object) renderable} type for the result of running health checks.
+ * A value type representing the result of running multiple health checks.
  *
- * @see ratpack.codahale.healthcheck.HealthCheckHandler
+ * @see ratpack.health.HealthCheckHandler
  */
 public class HealthCheckResults {
 
-  private final ImmutableSortedMap<String, HealthCheck.Result> healthChecks;
+  private final ImmutableSortedMap<String, HealthCheck.Result> results;
 
   /**
    * Constructor.
    *
-   * @param healthChecks the health check results
+   * @param results the results
    */
-  public HealthCheckResults(ImmutableSortedMap<String, HealthCheck.Result> healthChecks) {
-    this.healthChecks = healthChecks;
+  public HealthCheckResults(ImmutableSortedMap<String, HealthCheck.Result> results) {
+    this.results = results;
   }
 
   /**
-   * The health check results.
+   * The results.
    *
-   * @return the health check results
+   * @return the results
    */
   public ImmutableSortedMap<String, HealthCheck.Result> getResults() {
-    return healthChecks;
+    return results;
   }
-
 }

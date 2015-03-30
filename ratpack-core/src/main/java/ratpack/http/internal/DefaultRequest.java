@@ -16,13 +16,15 @@
 
 package ratpack.http.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.*;
-import ratpack.func.Action;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieDecoder;
+import ratpack.func.Function;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
 import ratpack.http.Request;
@@ -237,17 +239,7 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.first(type, predicate);
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.each(type, predicate, action);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return registry.first(type, function);
   }
 }

@@ -15,6 +15,8 @@ The Ratpack project provides two Gradle plugins:
 1. [io.ratpack.ratpack-java](http://plugins.gradle.org/plugin/io.ratpack.ratpack-java) - for Ratpack applications implemented in Java
 2. [io.ratpack.ratpack-groovy](http://plugins.gradle.org/plugin/io.ratpack.ratpack-groovy)  - for Ratpack applications implemented in [Groovy](http://groovy-lang.org)
  
+> For a more detailed explanation of the Gradle build support, please see the [dedicated chapter](gradle.html).
+
 ### Using the Gradle Java plugin
 
 Create a `build.gradle` file with the following contents:
@@ -45,7 +47,7 @@ mainClassName = "my.app.Main"
 
 Create the file `src/main/java/my/app/Main.java`, with the following content:
 
-```language-java main
+```language-java hello-world
 package my.app;
 
 import ratpack.server.RatpackServer;
@@ -55,7 +57,7 @@ public class Main {
     RatpackServer.start(server -> server 
       .handlers(chain -> chain
         .get(ctx -> ctx.render("Hello World!"))
-        .get(":name", ctx -> ctx.render("Hello " + ctx.getPathTokens().get("name")))     
+        .get(":name", ctx -> ctx.render("Hello " + ctx.getPathTokens().get("name") + "!"))     
       )
     );
   }
@@ -65,7 +67,8 @@ public class Main {
 You can now start the application either by executing the `run` task with Gradle (i.e. `gradle run` on the command line),
 or by importing the project into your IDE and executing the `my.app.Main` class.
 
-For further information on using Ratpack with Gradle, please the [Gradle chapter](gradle.html).
+The [`handlers()` method](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) takes a function that receives a [`Chain`](api/ratpack/handling/Chain.html) object.
+The “Handler Chain API” is used to build the response handling strategy.
 
 ### Using the Gradle Groovy plugin
 
@@ -93,30 +96,33 @@ dependencies {
 }
 ```
 
-Create directories `src/ratpack` and `src/main/groovy`.
+Create the file `src/ratpack/ratpack.groovy`, with the following content:
 
-If desired, run `gradle idea` to generate project files for IntelliJ and open the project.
-
-Create a `src/ratpack/ratpack.groovy` file with the following contents:
-
-```language-groovy
+```language-groovy hello-world
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
     handlers {
-        get("foo") {
-            render "from the foo handler"
+        get {
+            render "Hello World!"
         }
-        get("bar") {
-            render "from the bar handler"
+        get(":name") {
+            render "Hello $pathTokens.name!"
         }
     }
 }
 ```
 
-Run the project by running `gradle run`, or create a distribution archive by running `gradle distZip`.
+You can now start the application either by executing the `run` task with Gradle (i.e. `gradle run` on the command line),
+or by importing the project into your IDE and executing the [`ratpack.groovy.GroovyRatpackMain`](api/ratpack/groovy/GroovyRatpackMain.html) class.
 
-For further information on using Ratpack with Gradle and Groovy, please the [Gradle](gradle.html) and [Groovy](groovy.html) chapters.
+The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
+The “Groovy Handler Chain DSL” is used to build the response handling strategy.
+
+Changes to the `ratpack.groovy` file are live during development.
+You can edit the file, and the changes will take effect on the next request.
+
+For further information on using Ratpack with Groovy, please the [Groovy](groovy.html) chapter.
 
 ## Using Lazybones project templates
 

@@ -47,4 +47,15 @@ public interface NoArgAction {
     };
   }
 
+  /**
+   * Converts this action to a runnable.
+   * <p>
+   * Any thrown exceptions will be {@link Exceptions#uncheck(NoArgAction) unchecked}.
+   *
+   * @return a runnable
+   */
+  default Runnable toRunnable() {
+    return () -> Exceptions.uncheck(this);
+  }
+
 }

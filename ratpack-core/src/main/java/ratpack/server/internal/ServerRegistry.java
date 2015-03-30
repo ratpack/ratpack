@@ -35,8 +35,8 @@ import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.internal.DefaultRedirector;
+import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
-import ratpack.server.*;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -44,6 +44,7 @@ import ratpack.render.internal.CharSequenceRenderer;
 import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
 import ratpack.render.internal.RenderableRenderer;
+import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import static ratpack.util.Exceptions.uncheck;
@@ -75,7 +76,6 @@ public abstract class ServerRegistry {
     try {
       baseRegistryBuilder = Registries.registry()
         .add(ServerConfig.class, serverConfig)
-        .add(CompressionConfig.class, CompressionConfig.of().build())
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(ExecControl.class, execController.getControl())
@@ -100,7 +100,8 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT));
+        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT))
+        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer());
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);

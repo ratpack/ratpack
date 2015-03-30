@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixture;
+task writeVersionNumberFile {
+  def versionFile = file("src/main/resources/ratpack/ratpack-version.txt")
+  inputs.property "version", project.version
+  outputs.file versionFile
 
-import ratpack.manual.snippets.executer.JavaSnippetExecuter;
-import ratpack.manual.snippets.executer.SnippetExecuter;
-
-public class JavaExampleClassFixture extends SnippetFixture {
-
-  @Override
-  public SnippetExecuter getExecuter() {
-    return new JavaSnippetExecuter();
+  doFirst {
+    assert versionFile.parentFile.mkdirs() || versionFile.parentFile.directory
+    versionFile.text = project.version
   }
+}
 
+processResources.dependsOn writeVersionNumberFile
+
+plugins.withType(EclipsePlugin) {
+  eclipseProject.dependsOn writeVersionNumberFile
+}
+plugins.withType(IdeaPlugin) {
+  ideaModule.dependsOn writeVersionNumberFile
 }

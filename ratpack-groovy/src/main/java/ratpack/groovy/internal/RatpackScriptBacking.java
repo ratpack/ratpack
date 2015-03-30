@@ -53,17 +53,6 @@ public abstract class RatpackScriptBacking {
     }
   }
 
-  public static Action<Closure<?>> swapBacking(Action<Closure<?>> backing) {
-    LOCK_HOLDER.get().lock();
-    try {
-      Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
-      BACKING_HOLDER.set(backing);
-      return previousBacking;
-    } finally {
-      LOCK_HOLDER.get().unlock();
-    }
-  }
-
   public static void execute(Closure<?> closure) throws Exception {
     LOCK_HOLDER.get().lock();
     try {

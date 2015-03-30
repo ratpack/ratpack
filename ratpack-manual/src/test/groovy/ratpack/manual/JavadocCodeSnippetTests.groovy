@@ -30,7 +30,7 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
     "java-chain-dsl"    : new JavaChainDslFixture(),
     "groovy-chain-dsl"  : new GroovyChainDslFixture(),
     "groovy-ratpack-dsl": new GroovyRatpackDslFixture(),
-    "java"              : new JavaExampleClassFixture(),
+    "java"              : new JavaClassFixture(),
   ]
 
   @Override

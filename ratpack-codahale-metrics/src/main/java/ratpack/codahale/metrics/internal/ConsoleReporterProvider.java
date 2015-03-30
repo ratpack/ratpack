@@ -18,6 +18,7 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
+import ratpack.codahale.metrics.CodaHaleMetricsModule;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -27,15 +28,23 @@ import javax.inject.Provider;
  */
 public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
   private final MetricRegistry metricRegistry;
+  private final CodaHaleMetricsModule.Config config;
 
   @Inject
-  public ConsoleReporterProvider(MetricRegistry metricRegistry) {
+  public ConsoleReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
     this.metricRegistry = metricRegistry;
+    this.config = config;
   }
 
   @Override
   public ConsoleReporter get() {
-    return ConsoleReporter.forRegistry(metricRegistry).build();
+    ConsoleReporter.Builder builder = ConsoleReporter.forRegistry(metricRegistry);
+    config.getConsole().ifPresent(console -> {
+      if (console.getFilter() != null) {
+        builder.filter(new RegexMetricFilter(console.getFilter()));
+      }
+    });
+    return builder.build();
   }
 }
 

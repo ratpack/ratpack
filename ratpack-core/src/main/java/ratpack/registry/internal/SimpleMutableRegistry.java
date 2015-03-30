@@ -16,11 +16,10 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
-import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -70,19 +69,9 @@ public class SimpleMutableRegistry implements MutableRegistry {
     return registry.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return registry.first(type, function);
   }
 
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.each(type, predicate, action);
-  }
 }

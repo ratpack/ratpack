@@ -24,12 +24,12 @@ class RenderableDecorationSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       register {
-        add(RenderableDecorator.of(String) { c, i -> i + "1" })
-        add(RenderableDecorator.of(String) { c, i -> i + "2" })
+        with(RenderableDecorator.of(String) { c, i -> i + "1" }.register())
+        with(RenderableDecorator.of(String) { c, i -> i + "2" }.register())
       }
       register {
-        add(RenderableDecorator.of(String) { c, i -> i + "3" })
-        add(RenderableDecorator.of(String) { c, i -> i + "4" })
+        with(RenderableDecorator.of(String) { c, i -> i + "3" }.register())
+        with(RenderableDecorator.of(String) { c, i -> i + "4" }.register())
       }
       get { render("a") }
     }

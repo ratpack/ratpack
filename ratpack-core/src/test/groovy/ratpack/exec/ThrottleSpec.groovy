@@ -32,6 +32,17 @@ class ThrottleSpec extends Specification {
 
   PollingConditions polling = new PollingConditions(timeout: 5)
 
+  def "can use unlimited throttle"() {
+    def t = Throttle.unlimited()
+    def v = execHarness.yield {
+      execHarness.control.promise { it.success("foo") }.throttled(t)
+    }
+
+    expect:
+    v.value == "foo"
+  }
+
+
   def "can use throttle"() {
     def t = Throttle.ofSize(1)
     def v = execHarness.yield {

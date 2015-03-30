@@ -16,12 +16,10 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
+import ratpack.util.Types;
 
 import java.util.Iterator;
 import java.util.List;
@@ -95,48 +93,18 @@ public class MultiEntryRegistry implements Registry {
     };
   }
 
-  @Nullable
   @Override
-  public <O> Optional<O> first(TypeToken<O> type, Predicate<? super O> predicate) {
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          return Optional.of(cast);
+        RegistryEntry<? extends T> cast = Types.cast(entry);
+        O result = function.apply(cast.get());
+        if (result != null) {
+          return Optional.of(result);
         }
       }
     }
     return Optional.empty();
-  }
-
-  @Override
-  public <O> Iterable<? extends O> all(TypeToken<O> type, Predicate<? super O> predicate) {
-
-    ImmutableList.Builder<O> builder = ImmutableList.builder();
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          builder.add(cast);
-        }
-      }
-    }
-    return builder.build();
-  }
-
-  @Override
-  public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
-    boolean foundMatch = false;
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          action.execute(cast);
-          foundMatch = true;
-        }
-      }
-    }
-    return foundMatch;
   }
 
   @Override

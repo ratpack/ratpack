@@ -16,21 +16,25 @@
 
 package ratpack.util.internal;
 
+import com.google.common.primitives.Ints;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 
 public abstract class IoUtils {
 
   public static ByteBuf read(ByteBufAllocator allocator, Path path) throws IOException {
-    try (FileChannel byteChannel = FileChannel.open(path, Collections.emptySet())) {
-      int size = (int) byteChannel.size();
+    try (SeekableByteChannel sbc = Files.newByteChannel(path);
+         InputStream in = Channels.newInputStream(sbc)) {
+      int size = Ints.checkedCast(sbc.size());
       ByteBuf byteBuf = allocator.directBuffer(size, size);
-      byteBuf.writeBytes(byteChannel, size);
+      byteBuf.writeBytes(in, size);
       return byteBuf;
     }
   }

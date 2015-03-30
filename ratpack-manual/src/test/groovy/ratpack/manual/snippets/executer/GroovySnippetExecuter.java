@@ -44,7 +44,7 @@ public class GroovySnippetExecuter implements SnippetExecuter {
   }
 
   @Override
-  public void execute(TestCodeSnippet snippet) {
+  public void execute(TestCodeSnippet snippet) throws Exception {
     CompilerConfiguration config = new CompilerConfiguration();
     config.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
       @Override
@@ -82,12 +82,7 @@ public class GroovySnippetExecuter implements SnippetExecuter {
     ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(groovyShell.getClassLoader());
-      fixture.setup();
-      try {
-        script.run();
-      } finally {
-        fixture.cleanup();
-      }
+      fixture.around(script::run);
     } finally {
       Thread.currentThread().setContextClassLoader(previousContextClassLoader);
     }

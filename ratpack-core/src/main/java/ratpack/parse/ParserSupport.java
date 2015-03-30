@@ -74,7 +74,7 @@ import com.google.common.reflect.TypeToken;
  *   }
  *
  *   public static class ToUpperCaseHandler implements Handler {
- *     public void handle(Context context) throws ParseException {
+ *     public void handle(Context context) throws Exception {
  *       String string = context.parse(String.class, new StringParseOpts(5));
  *       context.render(string);
  *     }

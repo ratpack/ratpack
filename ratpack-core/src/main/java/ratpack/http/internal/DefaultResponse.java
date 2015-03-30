@@ -26,45 +26,37 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
-import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
 import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
 
 public class DefaultResponse implements Response {
 
   private HttpResponseStatus status = HttpResponseStatus.OK;
   private final MutableHeaders headers;
-  private final ExecControl execControl;
   private final ByteBufAllocator byteBufAllocator;
   private final ResponseTransmitter responseTransmitter;
-  private final DefaultContext.RequestConstants requestConstants;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
   private List<Action<? super ResponseMetaData>> responseFinalizers;
 
-  public DefaultResponse(ExecControl execControl, MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter, DefaultContext.RequestConstants requestConstants) {
-    this.execControl = execControl;
+  public DefaultResponse(MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
     this.byteBufAllocator = byteBufAllocator;
     this.responseTransmitter = responseTransmitter;
-    this.requestConstants = requestConstants;
     this.headers = new MutableHeadersWrapper(headers);
-    responseFinalizers = Lists.newArrayList();
+    this.responseFinalizers = Lists.newArrayList();
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -202,13 +194,24 @@ public class DefaultResponse implements Response {
   }
 
   public Response status(int code) {
-    status = HttpResponseStatus.valueOf(code);
+    return status(HttpResponseStatus.valueOf(code));
+  }
+
+  @Override
+  public Response status(HttpResponseStatus status) {
+    this.status = status;
     return this;
   }
 
   @Override
   public Response status(Status status) {
     return status(status.getCode());
+  }
+
+  @Override
+  public Response noCompress() {
+    headers.set(HttpHeaderNames.CONTENT_ENCODING, HttpHeaderValues.IDENTITY);
+    return this;
   }
 
   @Override
@@ -263,33 +266,23 @@ public class DefaultResponse implements Response {
     commit(buffer);
   }
 
-  @Override
-  public void sendFile(BasicFileAttributes attributes, Path file) {
+  public void sendFile(Path file) {
     finalizeResponse();
     setCookieHeader();
-    responseTransmitter.transmit(requestConstants.context, status, attributes, file);
+    responseTransmitter.transmit(status, file);
   }
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
     finalizeResponse();
     setCookieHeader();
-    stream.subscribe(responseTransmitter.transmitter(requestConstants.context, status));
+    stream.subscribe(responseTransmitter.transmitter(status));
   }
 
   @Override
   public Response beforeSend(Action<? super ResponseMetaData> responseFinalizer) {
     responseFinalizers.add(responseFinalizer);
     return this;
-  }
-
-  public void sendFile(final Path file) {
-    try {
-      readAttributes(execControl, file, fileAttributes -> sendFile(fileAttributes, file));
-    } catch (Exception e) {
-      // Shouldn't happen
-      throw Exceptions.uncheck(e);
-    }
   }
 
   public Set<Cookie> getCookies() {
@@ -319,10 +312,11 @@ public class DefaultResponse implements Response {
     }
   }
 
-  private void commit(ByteBuf byteBuf) {
+  private void commit(ByteBuf buffer) {
+    headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
     finalizeResponse();
     setCookieHeader();
-    responseTransmitter.transmit(requestConstants.context, status, byteBuf);
+    responseTransmitter.transmit(status, buffer);
   }
 
   private void finalizeResponse() {

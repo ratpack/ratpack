@@ -16,175 +16,56 @@
 
 package ratpack.file.internal
 
-import ratpack.http.client.RequestSpec
-import ratpack.server.CompressionConfig
+import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpHeaderValues
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
+import java.nio.charset.StandardCharsets
 
 class FileCompressionSpec extends RatpackGroovyDslSpec {
 
-  private static final String CONTENT_ENC_HDR = "Content-Encoding"
-  private static final String CONTENT_LEN_HDR = "Content-Length"
-  private static final String CONTENT_TYPE_HDR = "Content-Type"
-  private static final String TEST_ENCODING = "gzip"
-  private static final String SMALL_CONTENT = "foo"
-  private static final String MEDIUM_CONTENT = "1234567890" * 100
-  private static final String LARGE_CONTENT = "1234567890" * 200
-  private static final String SMALL_LEN = SMALL_CONTENT.length().toString()
-  private static final String LARGE_LEN = LARGE_CONTENT.length().toString()
+  def content = "abc" * 1000
+  def bytes = content.getBytes(StandardCharsets.US_ASCII)
 
   def setup() {
-    file "public/small.txt", SMALL_CONTENT
-    file "public/medium.txt", MEDIUM_CONTENT
-    file "public/large.txt", LARGE_CONTENT
-    file "public/large.css", LARGE_CONTENT
-    file "public/large.html", LARGE_CONTENT
-    file "public/large.json", LARGE_CONTENT
-    file "public/large.xml", LARGE_CONTENT
-    file "public/large.gif", LARGE_CONTENT
-    file "public/large.jpg", LARGE_CONTENT
-    file "public/large.png", LARGE_CONTENT
-    file "public/large.svg", LARGE_CONTENT
-    file "public/large.mp3", LARGE_CONTENT
-    file "public/large", LARGE_CONTENT
+    file("public/file.txt") << bytes
+  }
 
-    handlers {
-      assets("public")
+  void requestCompression(boolean flag) {
+    requestSpec {
+      it.headers {
+        it.set(HttpHeaderNames.ACCEPT_ENCODING, flag ? "gzip" : HttpHeaderValues.IDENTITY)
+      }
     }
   }
 
-  @Override
-  void configureRequest(RequestSpec requestSpecification) {
-    requestSpecification.headers.add("Accept-Encoding", TEST_ENCODING)
-  }
-
-  @Unroll
   def "doesn't encode when compression disabled"() {
-    when:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(false).build())
+    given:
+    requestCompression(true)
+    handlers {
+      handler { it.response.noCompress(); it.next() }
+      assets "public"
     }
-    def response = get(path)
+
+    when:
+    def response = get("file.txt")
 
     then:
-    !response.headers.get(CONTENT_ENC_HDR)
-    response.headers.get(CONTENT_LEN_HDR) == length
-
-    where:
-    path        | length
-    "small.txt" | SMALL_LEN
-    "large.txt" | LARGE_LEN
+    response.headers.get("Content-Encoding") == null
+    response.headers.get("Content-Length") == bytes.length.toString()
   }
 
-  @Unroll
-  def "encodes when compression enabled, larger than min size, and not an excluded content type"() {
+  def "encodes when requested"() {
     when:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).build())
-    }
-    def response = get(path)
-
-    then:
-    response.headers.get(CONTENT_TYPE_HDR) == type
-    response.headers.get(CONTENT_ENC_HDR) == enc
-    response.headers.get(CONTENT_LEN_HDR) == length
-
-    //These fail currently because our client doesn't get the response chunked like rest assured so all lengths are set
-    where:
-    path         | type                       | length    | enc
-//    "small.txt"  | "text/plain"               | SMALL_LEN | null
-//    "large.txt"  | "text/plain"               | "53"      | TEST_ENCODING
-//    "large.css"  | "text/css"                 | "53"      | TEST_ENCODING
-//    "large.html" | "text/html"                | "53"      | TEST_ENCODING
-//    "large.json" | "application/json"         | "53"      | TEST_ENCODING
-//    "large.xml"  | "application/xml"          | "53"      | TEST_ENCODING
-//    "large.gif"  | "image/gif"                | LARGE_LEN | null
-//    "large.jpg"  | "image/jpeg"               | LARGE_LEN | null
-    "large.png"  | "image/png"                | LARGE_LEN | null
-//    "large.svg"  | "image/svg+xml"            | "53"      | TEST_ENCODING
-//    "large"      | "application/octet-stream" | "53"      | TEST_ENCODING
-  }
-
-  @Unroll
-  def "minimum compression size can be configured"() {
-    when:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).minSize(minSize).build())
-    }
-    def response = get(path)
-
-    then:
-    response.headers.get(CONTENT_ENC_HDR) == enc
-
-    where:
-    path         | minSize | enc
-    "small.txt"  | 0       | TEST_ENCODING
-    "small.txt"  | 500     | null
-    "medium.txt" | 500     | TEST_ENCODING
-    "medium.txt" | 1500    | null
-    "large.txt"  | 1500    | TEST_ENCODING
-    "large.txt"  | 2500    | null
-  }
-
-  @Unroll
-  def "images, videos, audio, archives are not compressed by default"() {
-    when:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).build())
+    requestCompression(true)
+    handlers {
+      assets "public"
     }
 
     then:
-    get(path).headers.get(CONTENT_ENC_HDR) == enc
-
-    where:
-    path        | enc
-    "large.txt" | TEST_ENCODING
-    "large.png" | null
-    "large.jpg" | null
-    "large.mp3" | null
+    get("file.txt")
+    response.headers.get("Content-Encoding") == "gzip"
+    response.headers.get("Content-Length").toInteger() < bytes.length
   }
 
-  @Unroll
-  def "compression white list can be configured"() {
-    when:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).whiteListMimeTypes("image/png").build())
-    }
-
-    then:
-    get(path).headers.get(CONTENT_ENC_HDR) == enc
-
-    where:
-    path         | enc
-    "large.txt"  | TEST_ENCODING
-    "large.css"  | TEST_ENCODING
-    "large.html" | TEST_ENCODING
-    "large.json" | TEST_ENCODING
-    "large.png"  | TEST_ENCODING
-    "large"      | TEST_ENCODING
-  }
-
-  @Unroll
-  def "compression black list can be configured"() {
-    when:
-    bindings {
-      bindInstance(CompressionConfig, CompressionConfig.of().compressResponses(true).blackListMimeTypes("text/plain", "application/xml").build())
-    }
-
-    then:
-    get(path).headers.get(CONTENT_ENC_HDR) == enc
-
-    where:
-    path         | enc
-    "large.txt"  | null
-    "large.css"  | TEST_ENCODING
-    "large.html" | TEST_ENCODING
-    "large.json" | TEST_ENCODING
-    "large.xml"  | null
-    "large.gif"  | TEST_ENCODING
-    "large.jpg"  | TEST_ENCODING
-    "large.png"  | TEST_ENCODING
-    "large"      | TEST_ENCODING
-  }
 }

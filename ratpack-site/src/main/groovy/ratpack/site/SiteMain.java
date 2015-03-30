@@ -66,7 +66,8 @@ public class SiteMain {
             Guice.registry(s -> s
                 .add(JacksonModule.class)
                 .add(NewRelicModule.class)
-                .add(new CodaHaleMetricsModule(), c -> {})
+                .add(new CodaHaleMetricsModule(), c -> {
+                })
                 .addConfig(SiteModule.class, config.get("/github", SiteModule.GitHubConfig.class))
                 .add(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
@@ -80,14 +81,15 @@ public class SiteMain {
           )
           .handlers(c -> {
 
-            int longCache = 60 * 60 * 24 * 365;
+            int longCache = 60 * 60 * 24 * 365; // one year
             int shortCache = 60 * 10; // ten mins
 
             c
               .handler(ctx -> {
                 //noinspection ConstantConditions
-                if (ctx.getRequest().getHeaders().get("host").endsWith("ratpack-framework.org")) {
-                  ctx.redirect(301, "http://www.ratpack.io");
+                String host = ctx.getRequest().getHeaders().get("host");
+                if (host != null && (host.endsWith("ratpack-framework.org") || host.equals("www.ratpack.io"))) {
+                  ctx.redirect(301, "http://ratpack.io" + ctx.getRequest().getRawUri());
                   return;
                 }
 
@@ -100,7 +102,7 @@ public class SiteMain {
 
               .prefix("assets", assets -> assets
                   .handler(ctx -> {
-                    int cacheFor = ctx.getRequest().getQuery().isEmpty() ? longCache : shortCache;
+                    int cacheFor = ctx.getRequest().getQuery().isEmpty() ? shortCache : longCache;
                     ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
                     ctx.next();
                   })
@@ -185,6 +187,10 @@ public class SiteMain {
 
               )
 
+              .get("favicon.ico", ctx -> {
+                ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
+                ctx.next();
+              })
               .assets("public", "index.html");
           });
       }

@@ -165,11 +165,29 @@ public interface ExecControl {
    */
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
+  /**
+   * Creates a promise for the given value.
+   * <p>
+   * This method can be used when a promise is called for, but the value is immediately available.
+   *
+   * @param item the promised value
+   * @param <T> the type of promised value
+   * @return a promise for the given item
+   */
   default <T> Promise<T> promiseOf(T item) {
     return promise(f -> f.success(item));
   }
 
-  default <T, E extends Throwable> Promise<T> failedPromise(E error) {
+  /**
+   * Creates a failed promise with the given error.
+   * <p>
+   * This method can be used when a promise is called for, but the failure is immediately available.
+   *
+   * @param error the promise failure
+   * @param <T> the type of promised value
+   * @return a failed promise
+   */
+  default <T> Promise<T> failedPromise(Throwable error) {
     return promise(f -> f.error(error));
   }
 

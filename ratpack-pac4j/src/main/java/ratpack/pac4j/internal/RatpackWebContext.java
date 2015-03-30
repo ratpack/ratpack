@@ -29,6 +29,7 @@ import ratpack.http.MediaType;
 import ratpack.http.Request;
 import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
+import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
@@ -162,7 +163,7 @@ public class RatpackWebContext implements WebContext {
 
   private Form getForm() {
     if (form == null) {
-      form = context.parse(Form.class);
+      form = Exceptions.uncheck(() -> context.parse(Form.class));
     }
     return form;
   }

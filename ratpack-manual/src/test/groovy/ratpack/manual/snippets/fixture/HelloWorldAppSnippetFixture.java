@@ -16,24 +16,26 @@
 
 package ratpack.manual.snippets.fixture;
 
-import ratpack.manual.snippets.TestCodeSnippet;
-import ratpack.manual.snippets.executer.JavaSnippetExecuter;
 import ratpack.manual.snippets.executer.SnippetExecuter;
-import ratpack.server.internal.ServerCapturer;
-import ratpack.util.Exceptions;
+import ratpack.server.RatpackServer;
+import ratpack.test.http.TestHttpClient;
 
-public class JavaMainClassFixture extends SnippetFixture {
+import static org.junit.Assert.assertEquals;
 
-  @Override
-  public SnippetExecuter getExecuter() {
-    return new JavaSnippetExecuter() {
-      @Override
-      public void execute(TestCodeSnippet snippet) throws Exception {
-        ServerCapturer.capture(() ->
-            super.execute(snippet)
-        ).ifPresent(server -> Exceptions.uncheck(server::stop));
-      }
-    };
+public class HelloWorldAppSnippetFixture extends ServerCaptureSnippetExecuter {
+
+  public HelloWorldAppSnippetFixture(SnippetExecuter executer) {
+    super(executer);
   }
 
+  @Override
+  protected void withServer(RatpackServer server) throws Exception {
+    try {
+      TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
+      assertEquals("Hello World!", httpClient.getText());
+      assertEquals("Hello Thing!", httpClient.getText("Thing"));
+    } finally {
+      server.stop();
+    }
+  }
 }

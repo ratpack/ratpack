@@ -16,39 +16,29 @@
 
 package ratpack.path.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.util.Types;
 
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class PathHandler implements Handler {
-
-  private static final TypeToken<PathBinding> TYPE = TypeToken.of(PathBinding.class);
 
   private static final LoadingCache<CacheKey, Optional<Registry>> CACHE = CacheBuilder.newBuilder()
     .maximumSize(2048) // TODO - make this tuneable
     .build(new CacheLoader<CacheKey, Optional<Registry>>() {
       @Override
       public Optional<Registry> load(CacheKey key) throws Exception {
-        Optional<PathBinding> binding = key.pathBinder.bind(key.path, key.parentBinding);
-        if (binding.isPresent()) {
-          return Optional.of(new PathBindingRegistry(binding));
-        } else {
-          return Optional.empty();
-        }
+        return key.pathBinder.bind(key.path, key.parentBinding).map(b ->
+            Registries.just(PathBinding.class, b)
+        );
       }
     });
 
@@ -103,76 +93,4 @@ public class PathHandler implements Handler {
     }
   }
 
-  private static class PathBindingRegistry implements Registry {
-
-    private final Optional<PathBinding> pathBindingOptional;
-
-    public PathBindingRegistry(Optional<PathBinding> pathBindingOptional) {
-      this.pathBindingOptional = pathBindingOptional;
-    }
-
-    private <O> Set<? extends O> asSet() {
-      return Types.cast(Collections.singleton(pathBindingOptional.orElse(null)));
-    }
-
-    @Override
-    public <O> Optional<O> maybeGet(Class<O> type) {
-      return PathBinding.class.isAssignableFrom(type) ? Types.cast(pathBindingOptional) : Optional.empty();
-    }
-
-    @Override
-    public <O> Optional<O> maybeGet(TypeToken<O> type) {
-      return TYPE.isAssignableFrom(type) ? Types.cast(pathBindingOptional) : Optional.empty();
-    }
-
-    @Override
-    public <O> Set<? extends O> getAll(TypeToken<O> type) {
-      return TYPE.isAssignableFrom(type) ? asSet() : Collections.emptySet();
-    }
-
-    @Override
-    public <O> Set<? extends O> getAll(Class<O> type) {
-      return PathBinding.class.isAssignableFrom(type) ? asSet() : Collections.emptySet();
-    }
-
-    @Override
-    public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
-      return Types.cast(pathBindingOptional.filter(p -> TYPE.isAssignableFrom(type) && predicate.apply(Types.<T>cast(p))));
-    }
-
-    @Override
-    public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-      return first(type, predicate).map(Collections::singleton).orElseGet(Collections::emptySet);
-    }
-
-    @Override
-    public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-      Optional<T> first = first(type, predicate);
-      if (first.isPresent()) {
-        action.execute(first.get());
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      PathBindingRegistry that = (PathBindingRegistry) o;
-
-      return pathBindingOptional.equals(that.pathBindingOptional);
-    }
-
-    @Override
-    public int hashCode() {
-      return pathBindingOptional.hashCode();
-    }
-  }
 }

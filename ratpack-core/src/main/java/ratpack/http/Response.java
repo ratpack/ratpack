@@ -17,12 +17,12 @@
 package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Supplier;
 
 /**
@@ -37,6 +37,9 @@ public interface Response extends ResponseMetaData {
 
   @Override
   Response status(Status status);
+
+  @Override
+  Response status(HttpResponseStatus responseStatus);
 
   /**
    * Sends the response back to the client, with no body.
@@ -113,23 +116,16 @@ public interface Response extends ResponseMetaData {
   }
 
   /**
-   * Sends the response, using the given content type and the content of the given type as the response body.
+   * Sends the response, using the file as the response body.
    * <p>
-   * Prefer {@link #sendFile(java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
-   * the file attributes have already been retrieved to avoid another IO operation.
+   * This method does not set the content length, content type or anything else.
+   * It is generally preferable to use the {@link ratpack.handling.Context#render(Object)} method with a file/path object,
+   * or an {@link ratpack.handling.Chain#assets(String, String...)}.
    *
-   * @param file The file whose contents are to be used as the response body
+   * @param file the response body
    */
   @NonBlocking
   void sendFile(Path file);
-
-  /**
-   * Sends the response, using the given content type and the content of the given type as the response body.
-   * @param attributes The attributes of the file, used for the headers
-   * @param file The file whose contents are to be used as the response body
-   */
-  @NonBlocking
-  void sendFile(BasicFileAttributes attributes, Path file);
 
   /**
    * Sends the response, streaming the bytes emitted by the given publisher.
@@ -173,4 +169,6 @@ public interface Response extends ResponseMetaData {
    */
   Response beforeSend(Action<? super ResponseMetaData> responseFinalizer);
 
+  @Override
+  Response noCompress();
 }

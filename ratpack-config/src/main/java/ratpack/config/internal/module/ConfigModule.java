@@ -17,10 +17,8 @@
 package ratpack.config.internal.module;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import ratpack.server.CompressionConfig;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerEnvironment;
-import ratpack.server.internal.DefaultCompressionConfig;
 
 import javax.net.ssl.SSLContext;
 
@@ -29,6 +27,5 @@ public class ConfigModule extends SimpleModule {
     super("ratpack-config");
     addDeserializer(ServerConfig.class, new ServerConfigDeserializer(serverEnvironment));
     addDeserializer(SSLContext.class, new SSLContextDeserializer());
-    addAbstractTypeMapping(CompressionConfig.class, DefaultCompressionConfig.class);
   }
 }

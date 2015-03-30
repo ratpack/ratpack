@@ -17,6 +17,7 @@
 description = "Build time Ratpack support with the Gradle build tool - http://gradle.org"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
+apply from: "$rootDir/gradle/versionFile.gradle"
 
 configurations.testCompile.dependencies.clear()
 

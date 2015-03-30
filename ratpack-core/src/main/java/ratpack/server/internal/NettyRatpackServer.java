@@ -204,8 +204,8 @@ public class NettyRatpackServer implements RatpackServer {
           }
 
           pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-          pipeline.addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxContentLength()));
           pipeline.addLast("encoder", new HttpResponseEncoder());
+          pipeline.addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxContentLength()));
           pipeline.addLast("deflater", new SmartHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);
@@ -345,7 +345,7 @@ public class NettyRatpackServer implements RatpackServer {
         if (inner == null || definitionBuild.error != null) {
           rebuild = true;
         } else {
-          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry));
+          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry) ? r : null);
           if (reloadInformant.isPresent()) {
             LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
             rebuild = true;

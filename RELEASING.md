@@ -20,7 +20,7 @@ When you've got the release announcement set, copy it to the description of the 
 
 ## Go time…
 
-1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. drop the -SNAPSHOT)
+1. (a) Update the `version` property in `ratpack.gradle` (i.e. drop the -SNAPSHOT)
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 1. Tag commit with name “v«number»” (don't push yet)
@@ -40,7 +40,7 @@ When you've got the release announcement set, copy it to the description of the 
 
 ## Post
 
-1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. increment the patch number and add -SNAPSHOT)
+1. (a) Update `version` property in `ratpack.gradle` (i.e. increment the patch number and add -SNAPSHOT)
 1. Update the `manualVersions` list in `ratpack-site.gradle` so the new manual is included in the site
 1. (a) Update `release-notes.md` to remove the content specific to the freshly-completed release (i.e. set it back to a fresh template)
 1. Commit with message 'Begin version «version»', and push (make sure you push the tag)
