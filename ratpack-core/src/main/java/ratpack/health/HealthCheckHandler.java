@@ -159,8 +159,9 @@ public class HealthCheckHandler implements Handler {
    * If this path token is not present, all checks will be run.
    * <p>
    * The throttle controls the concurrency of health check execution.
-   * The actual <i>parallelism</i> of the health check executions is ultimately determined by the size of the application event loop.
-   * General, the default value of {@code 0} (i.e. unbounded) is appropriate unless there are many health checks that are executed frequently as this may degrade the performance of other requests.
+   * The actual <i>parallelism</i> of the health check executions is ultimately determined by the size of the application event loop in conjunction with the throttle size.
+   * Generally, an {@link Throttle#unlimited() unlimited throttle} is appropriate unless there are many health checks that are executed frequently as this may degrade the performance of other requests.
+   * To serialize health check execution, use a throttle of size 1.
    *
    * @param pathTokenName the name of health check
    * @param throttle the throttle for health check execution
