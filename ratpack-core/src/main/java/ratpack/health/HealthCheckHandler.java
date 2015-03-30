@@ -158,14 +158,8 @@ public class HealthCheckHandler implements Handler {
    * The path token name parameter specifies the name of the path token that, if present, indicates the single health check to execute.
    * If this path token is not present, all checks will be run.
    * <p>
-   * The concurrency level indicates  the maximum allowed concurrency of health check execution.
-   * <ul>
-   * <li><code>&lt; 1</code> - infinite concurrency</li>
-   * <li><code>= 1</code> - serialised (i.e. maximum concurrency of 1)</li>
-   * <li><code>&gt; 1</code> - bounded concurrency</li>
-   * </ul>
-   * <p>
-   * The actual parallelism of the health check executions is ultimately determined by the size of the application event loop.
+   * The throttle controls the concurrency of health check execution.
+   * The actual <i>parallelism</i> of the health check executions is ultimately determined by the size of the application event loop.
    * General, the default value of {@code 0} (i.e. unbounded) is appropriate unless there are many health checks that are executed frequently as this may degrade the performance of other requests.
    *
    * @param pathTokenName the name of health check
