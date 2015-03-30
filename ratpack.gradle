@@ -233,8 +233,14 @@ subprojects {
     }
 
     jvmArgs "-Xss320k"
-    minHeapSize "368m"
-    maxHeapSize "368m"
+    minHeapSize "312m"
+    maxHeapSize "312m"
+
+    doFirst {
+      if (isCloudCi) {
+        maxParallelForks 1
+      }
+    }
   }
 }
 
