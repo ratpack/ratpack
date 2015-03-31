@@ -14,32 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.internal;
+package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
 
-public class RatpackDslClosures {
+public class HandlersOnly extends RatpackDslBacking {
 
-  private final Closure<?> handlers;
-  private final Closure<?> bindings;
-  private final Closure<?> serverConfig;
-
-  public RatpackDslClosures(Closure<?> serverConfig, Closure<?> handlers, Closure<?> bindings) {
-    this.serverConfig = serverConfig;
-    this.handlers = handlers;
-    this.bindings = bindings;
+  public HandlersOnly(RatpackDslClosures closures) {
+    super(closures);
   }
 
-  public Closure<?> getHandlers() {
-    return handlers;
+  @Override
+  public void bindings(Closure<?> configurer) {
+    throw new IllegalStateException("bindings {} not supported for this script");
   }
 
-  public Closure<?> getBindings() {
-    return bindings;
+  @Override
+  public void serverConfig(Closure<?> configurer) {
+    throw new IllegalStateException("serverConfig {} not supported for this script");
   }
-
-  public Closure<?> getServerConfig() {
-    return serverConfig;
-  }
-
 }

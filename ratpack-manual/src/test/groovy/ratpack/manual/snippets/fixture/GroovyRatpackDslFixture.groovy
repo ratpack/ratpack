@@ -17,7 +17,7 @@
 package ratpack.manual.snippets.fixture
 
 import ratpack.func.NoArgAction
-import ratpack.groovy.internal.RatpackScriptBacking
+import ratpack.groovy.internal.capture.RatpackScriptBacking
 
 class GroovyRatpackDslFixture extends GroovyScriptFixture {
 

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.internal;
+package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
 import ratpack.func.Action;
+import ratpack.func.NoArgAction;
+import ratpack.groovy.internal.StandaloneScriptBacking;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -38,13 +40,13 @@ public abstract class RatpackScriptBacking {
     }
   };
 
-  public static void withBacking(Action<Closure<?>> backing, Runnable runnable) {
+  public static void withBacking(Action<Closure<?>> backing, NoArgAction runnable) throws Exception {
     LOCK_HOLDER.get().lock();
     try {
       Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
       BACKING_HOLDER.set(backing);
       try {
-        runnable.run();
+        runnable.execute();
       } finally {
         BACKING_HOLDER.set(previousBacking);
       }

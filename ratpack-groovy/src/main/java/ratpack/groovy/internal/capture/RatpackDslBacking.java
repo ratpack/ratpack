@@ -14,31 +14,32 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.internal;
+package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
 import ratpack.groovy.Groovy;
 
-public class FullRatpackDslBacking implements Groovy.Ratpack {
+public class RatpackDslBacking implements Groovy.Ratpack {
 
-  Closure<?> bindingsConfigurer;
-  Closure<?> handlersConfigurer;
-  Closure<?> serverConfigConfigurer;
+  private final RatpackDslClosures closures;
 
-  public void bindings(Closure<?> bindingsConfigurer) {
-    this.bindingsConfigurer = bindingsConfigurer;
+  public RatpackDslBacking(RatpackDslClosures closures) {
+    this.closures = closures;
   }
 
-  public void handlers(Closure<?> handlersConfigurer) {
-    this.handlersConfigurer = handlersConfigurer;
+  @Override
+  public void bindings(Closure<?> configurer) {
+    closures.setBindings(configurer);
   }
 
-  public void serverConfig(Closure<?> configConfigurer) {
-    this.serverConfigConfigurer = configConfigurer;
+  @Override
+  public void handlers(Closure<?> configurer) {
+    closures.setHandlers(configurer);
   }
 
-  public RatpackDslClosures getClosures() {
-    return new RatpackDslClosures(serverConfigConfigurer, handlersConfigurer, bindingsConfigurer);
+  @Override
+  public void serverConfig(Closure<?> configurer) {
+    closures.setServerConfig(configurer);
   }
 
 }

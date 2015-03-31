@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.internal;
+package ratpack.groovy.internal.capture;
 
-public class FullRatpackDslCapture extends RatpackDslCapture<FullRatpackDslBacking, RatpackDslClosures> {
+import groovy.lang.Closure;
 
-  public FullRatpackDslCapture(boolean compileStatic) {
-    super(compileStatic, FullRatpackDslBacking::new, FullRatpackDslBacking::getClosures);
+public class BindingsOnly extends RatpackDslBacking {
+
+  public BindingsOnly(RatpackDslClosures closures) {
+    super(closures);
   }
 
+  @Override
+  public void handlers(Closure<?> configurer) {
+    throw new IllegalStateException("handlers {} not supported for this script");
+  }
+
+  @Override
+  public void serverConfig(Closure<?> configurer) {
+    throw new IllegalStateException("serverConfig {} not supported for this script");
+  }
 }

@@ -19,8 +19,8 @@ package ratpack.manual
 import com.google.common.base.StandardSystemProperty
 import ratpack.func.NoArgAction
 import ratpack.groovy.Groovy
-import ratpack.groovy.internal.FullRatpackDslBacking
-import ratpack.groovy.internal.RatpackScriptBacking
+import ratpack.groovy.internal.capture.HandlersOnly
+import ratpack.groovy.internal.capture.RatpackDslClosures
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.executer.GroovySnippetExecuter
@@ -44,11 +44,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy hello-world"     : new HelloWorldAppSnippetFixture(new GroovySnippetExecuter(true)) {
       @Override
       void around(NoArgAction action) throws Exception {
-        RatpackScriptBacking.withBacking({
-          def backing = new FullRatpackDslBacking()
-          backing.with(it)
-          EmbeddedApp.fromHandlers(Groovy.chain(backing.getClosures().handlers))
-        }, action.toRunnable())
+        def handlers = RatpackDslClosures.capture({ new HandlersOnly(it) }, action).handlers
+        EmbeddedApp.fromHandlers(Groovy.chain(handlers))
       }
     }
   ]
