@@ -19,20 +19,11 @@ package ratpack.manual.snippets.fixture
 import ratpack.func.NoArgAction
 import ratpack.groovy.internal.capture.RatpackScriptBacking
 
-class GroovyRatpackDslFixture extends GroovyScriptFixture {
+class GroovyRatpackDslNoRunFixture extends GroovyScriptFixture {
 
   @Override
   void around(NoArgAction action) throws Exception {
     RatpackScriptBacking.withBacking({}, { action.execute() })
   }
 
-  @Override
-  public String pre() {
-    ""
-  }
-
-  @Override
-  public String post() {
-    ""
-  }
 }

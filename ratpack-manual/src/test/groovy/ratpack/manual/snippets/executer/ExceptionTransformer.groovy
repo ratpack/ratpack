@@ -16,24 +16,19 @@
 
 package ratpack.manual.snippets.executer
 
-import ratpack.func.Function
-
-class ExceptionTransformer implements Function<Throwable, Throwable> {
+class ExceptionTransformer {
 
   final String sourceClassName
-  final String pre
   final String sourceFileName
-  final int lineNumber
+  final Integer lineNumber
 
-  ExceptionTransformer(String sourceClassName, String pre, String sourceFileName, int lineNumber) {
+  ExceptionTransformer(String sourceClassName, String sourceFileName, Integer lineNumber) {
     this.sourceClassName = sourceClassName
-    this.pre = pre
     this.sourceFileName = sourceFileName
     this.lineNumber = lineNumber
   }
 
-  @Override
-  Throwable apply(Throwable throwable) throws Exception {
+  Throwable transform(Throwable throwable, Integer offset) throws Exception {
     def errorLine = 0
 
     if (throwable instanceof CompileException) {
@@ -49,7 +44,7 @@ class ExceptionTransformer implements Function<Throwable, Throwable> {
         }
       }
     }
-    errorLine = errorLine - pre.split("\n").size()
+    errorLine = errorLine - offset
     StackTraceElement[] stack = throwable.getStackTrace()
     List<StackTraceElement> newStack = new ArrayList<StackTraceElement>(stack.length + 1)
     newStack.add(new StackTraceElement(sourceClassName, "javadoc", sourceFileName, lineNumber + errorLine))

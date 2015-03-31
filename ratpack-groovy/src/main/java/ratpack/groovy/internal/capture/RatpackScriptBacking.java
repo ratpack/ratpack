@@ -21,17 +21,7 @@ import ratpack.func.Action;
 import ratpack.func.NoArgAction;
 import ratpack.groovy.internal.StandaloneScriptBacking;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public abstract class RatpackScriptBacking {
-
-  private static final ThreadLocal<Lock> LOCK_HOLDER = new ThreadLocal<Lock>() {
-    @Override
-    protected Lock initialValue() {
-      return new ReentrantLock();
-    }
-  };
 
   private static final ThreadLocal<Action<Closure<?>>> BACKING_HOLDER = new InheritableThreadLocal<Action<Closure<?>>>() {
     @Override
@@ -41,27 +31,17 @@ public abstract class RatpackScriptBacking {
   };
 
   public static void withBacking(Action<Closure<?>> backing, NoArgAction runnable) throws Exception {
-    LOCK_HOLDER.get().lock();
+    Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
+    BACKING_HOLDER.set(backing);
     try {
-      Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
-      BACKING_HOLDER.set(backing);
-      try {
-        runnable.execute();
-      } finally {
-        BACKING_HOLDER.set(previousBacking);
-      }
+      runnable.execute();
     } finally {
-      LOCK_HOLDER.get().unlock();
+      BACKING_HOLDER.set(previousBacking);
     }
   }
 
   public static void execute(Closure<?> closure) throws Exception {
-    LOCK_HOLDER.get().lock();
-    try {
-      BACKING_HOLDER.get().execute(closure);
-    } finally {
-      LOCK_HOLDER.get().unlock();
-    }
+    BACKING_HOLDER.get().execute(closure);
   }
 
 }

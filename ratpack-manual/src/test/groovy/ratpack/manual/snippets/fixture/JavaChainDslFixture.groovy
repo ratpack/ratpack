@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixture
 
-class JavaChainDslFixture extends JavaClassFixture {
+class JavaChainDslFixture extends SnippetFixture {
 
   @Override
   public String pre() {

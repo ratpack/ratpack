@@ -19,18 +19,25 @@ package ratpack.manual
 import com.google.common.base.StandardSystemProperty
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
+import ratpack.manual.snippets.executer.GroovySnippetExecuter
+import ratpack.manual.snippets.executer.JavaSnippetExecuter
+import ratpack.manual.snippets.executer.SnippetExecuter
 import ratpack.manual.snippets.extractor.JavadocSnippetExtractor
-import ratpack.manual.snippets.fixture.*
+import ratpack.manual.snippets.fixture.GroovyChainDslFixture
+import ratpack.manual.snippets.fixture.GroovyRatpackDslNoRunFixture
+import ratpack.manual.snippets.fixture.GroovyScriptFixture
+import ratpack.manual.snippets.fixture.JavaChainDslFixture
+import ratpack.manual.snippets.fixture.SnippetFixture
 
 class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 
-  public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
-    "tested"            : new GroovyScriptFixture(),
-    "tested-dynamic"    : new GroovyScriptFixture(false),
-    "java-chain-dsl"    : new JavaChainDslFixture(),
-    "groovy-chain-dsl"  : new GroovyChainDslFixture(),
-    "groovy-ratpack-dsl": new GroovyRatpackDslFixture(),
-    "java"              : new JavaClassFixture(),
+  public static final LinkedHashMap<String, SnippetExecuter> FIXTURES = [
+    "tested"            : new GroovySnippetExecuter(true, new GroovyScriptFixture()),
+    "tested-dynamic"    : new GroovySnippetExecuter(false, new GroovyScriptFixture()),
+    "java-chain-dsl"    : new JavaSnippetExecuter(new JavaChainDslFixture()),
+    "groovy-chain-dsl"  : new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
+    "groovy-ratpack-dsl": new GroovySnippetExecuter(true, new GroovyRatpackDslNoRunFixture()),
+    "java"              : new JavaSnippetExecuter(new SnippetFixture()),
   ]
 
   @Override
@@ -46,8 +53,8 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
     root.eachDirMatch(~/ratpack-.+/) {
       def mainSrc = new File(it, "src/main")
       if (mainSrc.exists()) {
-        FIXTURES.each { selector, snippetFixture ->
-          JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, snippetFixture).each {
+        FIXTURES.each { selector, executer ->
+          JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, executer).each {
             tests.add(it)
           }
         }

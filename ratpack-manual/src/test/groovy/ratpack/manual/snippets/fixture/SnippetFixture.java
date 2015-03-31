@@ -17,12 +17,15 @@
 package ratpack.manual.snippets.fixture;
 
 import ratpack.func.NoArgAction;
-import ratpack.manual.snippets.executer.SnippetExecuter;
 
-public abstract class SnippetFixture {
+public class SnippetFixture {
 
   public void around(NoArgAction action) throws Exception {
     action.execute();
+  }
+
+  public String transform(String text) {
+    return text;
   }
 
   public String pre() {
@@ -33,6 +36,8 @@ public abstract class SnippetFixture {
     return "";
   }
 
-  abstract public SnippetExecuter getExecuter();
+  public Integer getOffset() {
+    return pre().split("\n").length;
+  }
 
 }

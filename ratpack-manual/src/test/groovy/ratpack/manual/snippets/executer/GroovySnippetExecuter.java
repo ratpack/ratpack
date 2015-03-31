@@ -38,9 +38,16 @@ import java.util.List;
 public class GroovySnippetExecuter implements SnippetExecuter {
 
   private final boolean compileStatic;
+  private final SnippetFixture fixture;
 
-  public GroovySnippetExecuter(boolean compileStatic) {
+  public GroovySnippetExecuter(boolean compileStatic, SnippetFixture fixture) {
     this.compileStatic = compileStatic;
+    this.fixture = fixture;
+  }
+
+  @Override
+  public SnippetFixture getFixture() {
+    return fixture;
   }
 
   @Override
@@ -60,11 +67,8 @@ public class GroovySnippetExecuter implements SnippetExecuter {
     List<String> importsAndSnippet = extractImports(snippet.getSnippet());
 
     String imports = importsAndSnippet.get(0);
-    String snippetMinusImports = importsAndSnippet.get(1);
-
-    SnippetFixture fixture = snippet.getFixture();
+    String snippetMinusImports = fixture.transform(importsAndSnippet.get(1));
     String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post();
-
 
     Script script;
     try {
@@ -73,6 +77,7 @@ public class GroovySnippetExecuter implements SnippetExecuter {
       Message error = e.getErrorCollector().getError(0);
       if (error instanceof SyntaxErrorMessage) {
         //noinspection ThrowableResultOfMethodCallIgnored
+        System.out.println(snippet.getSnippet());
         throw new CompileException(e, ((SyntaxErrorMessage) error).getCause().getLine());
       } else {
         throw e;

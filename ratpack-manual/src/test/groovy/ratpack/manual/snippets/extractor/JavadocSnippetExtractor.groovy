@@ -19,7 +19,7 @@ package ratpack.manual.snippets.extractor
 import org.apache.commons.lang3.StringEscapeUtils
 import ratpack.manual.snippets.TestCodeSnippet
 import ratpack.manual.snippets.executer.ExceptionTransformer
-import ratpack.manual.snippets.fixture.SnippetFixture
+import ratpack.manual.snippets.executer.SnippetExecuter
 
 import java.util.regex.MatchResult
 import java.util.regex.Pattern
@@ -29,7 +29,7 @@ class JavadocSnippetExtractor {
   private static Pattern javadocPattern =
     Pattern.compile(/(?ims)\/\*\*.*?\*\//)
 
-  static List<TestCodeSnippet> extract(File root, String include, String cssClass, SnippetFixture fixture) {
+  static List<TestCodeSnippet> extract(File root, String include, String cssClass, SnippetExecuter executer) {
     List<TestCodeSnippet> snippets = []
 
     def snippetTagPattern = Pattern.compile(/(?ims)<([a-z]+)\s+class\s*=\s*['"]$cssClass['"]\s*>.*?<\s*\/\s*\1>/)
@@ -37,20 +37,20 @@ class JavadocSnippetExtractor {
 
     filenames.each { filename ->
       def file = new File(filename)
-      addSnippets(snippets, file, snippetTagPattern, fixture)
+      addSnippets(snippets, file, snippetTagPattern, executer)
     }
 
     snippets
   }
 
-  private static void addSnippets(List<TestCodeSnippet> snippets, File file, Pattern snippetTagPattern, SnippetFixture snippetFixture) {
+  private static void addSnippets(List<TestCodeSnippet> snippets, File file, Pattern snippetTagPattern, SnippetExecuter executer) {
     def source = file.text
     String testName = calculateBaseName(file, source)
     Map<Integer, String> snippetsByLine = findSnippetsByLine(source, snippetTagPattern)
 
     snippetsByLine.each { lineNumber, snippetBlocks ->
       snippetBlocks.each { snippet ->
-        snippets << createSnippet(testName, file, lineNumber, snippet, snippetFixture)
+        snippets << createSnippet(testName, file, lineNumber, snippet, executer)
       }
     }
   }
@@ -99,8 +99,8 @@ class JavadocSnippetExtractor {
     snippet
   }
 
-  private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetFixture fixture) {
-    new TestCodeSnippet(snippet, sourceClassName, sourceClassName + ":$lineNumber", fixture, new ExceptionTransformer(sourceClassName, fixture.pre(), sourceFile.name, lineNumber))
+  private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetExecuter executer) {
+    new TestCodeSnippet(snippet, sourceClassName, sourceClassName + ":$lineNumber", executer, new ExceptionTransformer(sourceClassName, sourceFile.name, lineNumber))
   }
 
 }

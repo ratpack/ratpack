@@ -17,37 +17,33 @@
 package ratpack.manual
 
 import com.google.common.base.StandardSystemProperty
-import ratpack.func.NoArgAction
-import ratpack.groovy.Groovy
-import ratpack.groovy.internal.capture.HandlersOnly
-import ratpack.groovy.internal.capture.RatpackDslClosures
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.executer.GroovySnippetExecuter
 import ratpack.manual.snippets.executer.JavaSnippetExecuter
+import ratpack.manual.snippets.executer.SnippetExecuter
 import ratpack.manual.snippets.extractor.ManualSnippetExtractor
 import ratpack.manual.snippets.fixture.*
-import ratpack.test.embed.EmbeddedApp
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
-  static delegate = new GroovyRatpackDslFixture()
+  static delegate = new GroovyRatpackDslNoRunFixture()
 
-  public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
-    "language-groovy groovy-chain-dsl": new GroovyChainDslFixture(),
-    "language-groovy groovy-ratpack"  : new GroovyRatpackDslFixture(),
-    "language-groovy groovy-handlers" : new GroovyHandlersFixture(),
-    "language-groovy gradle"          : new GradleFixture(),
-    "language-groovy tested"          : new GroovyScriptFixture(),
-    "language-java"                   : new JavaClassFixture(),
-    "language-java hello-world"       : new HelloWorldAppSnippetFixture(new JavaSnippetExecuter()),
-    "language-groovy hello-world"     : new HelloWorldAppSnippetFixture(new GroovySnippetExecuter(true)) {
+  public static final LinkedHashMap<String, SnippetExecuter> FIXTURES = [
+    "language-groovy groovy-chain-dsl": new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
+    "language-groovy groovy-ratpack"  : new GroovySnippetExecuter(true, new GroovyRatpackDslNoRunFixture()),
+    "language-groovy groovy-handlers" : new GroovySnippetExecuter(true, new GroovyHandlersFixture()),
+    "language-groovy gradle"          : new GroovySnippetExecuter(false, new GradleFixture()),
+    "language-groovy tested"          : new GroovySnippetExecuter(true, new GroovyScriptFixture()),
+    "language-java"                   : new JavaSnippetExecuter(new SnippetFixture()),
+    "language-java hello-world"       : new HelloWorldAppSnippetExecuter(new JavaSnippetExecuter(new SnippetFixture())),
+    "language-groovy hello-world"     : new HelloWorldAppSnippetExecuter(new GroovySnippetExecuter(true, new GroovyScriptRatpackDslFixture())),
+    "language-groovy hello-world-grab": new HelloWorldAppSnippetExecuter(new GroovySnippetExecuter(true, new GroovyScriptRatpackDslFixture() {
       @Override
-      void around(NoArgAction action) throws Exception {
-        def handlers = RatpackDslClosures.capture({ new HandlersOnly(it) }, action).handlers
-        EmbeddedApp.fromHandlers(Groovy.chain(handlers))
+      String transform(String text) {
+        return text.readLines()[1..-1].join("\n")
       }
-    }
+    }))
   ]
 
   @Override
@@ -62,8 +58,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
     def content = new File(root, "ratpack-manual/src/content/chapters")
 
-    FIXTURES.each { selector, fixture ->
-      ManualSnippetExtractor.extract(content, selector, fixture).each {
+    FIXTURES.each { selector, executer ->
+      ManualSnippetExtractor.extract(content, selector, executer).each {
         tests.add(it)
       }
     }

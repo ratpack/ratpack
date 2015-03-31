@@ -43,11 +43,11 @@ public class SnippetRunner extends Runner {
   public void run(RunNotifier notifier) {
     try {
       notifier.fireTestStarted(getDescription());
-      snippet.getFixture().getExecuter().execute(snippet);
+      snippet.getExecuter().execute(snippet);
     } catch (Throwable t) {
       Throwable transform;
       try {
-        transform = snippet.getExceptionTransformer().apply(t);
+        transform = snippet.getExceptionTransformer().transform(t, snippet.getExecuter().getFixture().getOffset());
       } catch (Exception e) {
         throw uncheck(e);
       }

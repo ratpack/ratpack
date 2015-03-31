@@ -22,9 +22,9 @@ import ratpack.test.http.TestHttpClient;
 
 import static org.junit.Assert.assertEquals;
 
-public class HelloWorldAppSnippetFixture extends ServerCaptureSnippetExecuter {
+public class HelloWorldAppSnippetExecuter extends ServerCaptureSnippetExecuter {
 
-  public HelloWorldAppSnippetFixture(SnippetExecuter executer) {
+  public HelloWorldAppSnippetExecuter(SnippetExecuter executer) {
     super(executer);
   }
 

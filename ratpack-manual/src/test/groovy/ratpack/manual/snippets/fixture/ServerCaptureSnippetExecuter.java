@@ -16,12 +16,13 @@
 
 package ratpack.manual.snippets.fixture;
 
+import ratpack.manual.snippets.TestCodeSnippet;
 import ratpack.manual.snippets.executer.SnippetExecuter;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
 import ratpack.util.Exceptions;
 
-public abstract class ServerCaptureSnippetExecuter extends SnippetFixture {
+public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
   private final SnippetExecuter executer;
 
@@ -30,8 +31,13 @@ public abstract class ServerCaptureSnippetExecuter extends SnippetFixture {
   }
 
   @Override
-  public SnippetExecuter getExecuter() {
-    return snippet -> ServerCapturer.capture(() ->
+  public SnippetFixture getFixture() {
+    return executer.getFixture();
+  }
+
+  @Override
+  public void execute(TestCodeSnippet snippet) throws Exception {
+    ServerCapturer.capture(() ->
         executer.execute(snippet)
     ).ifPresent(server ->
         Exceptions.uncheck(() -> withServer(server))

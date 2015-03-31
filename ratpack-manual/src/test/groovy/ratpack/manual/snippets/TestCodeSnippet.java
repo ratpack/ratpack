@@ -16,22 +16,22 @@
 
 package ratpack.manual.snippets;
 
-import ratpack.func.Function;
-import ratpack.manual.snippets.fixture.SnippetFixture;
+import ratpack.manual.snippets.executer.ExceptionTransformer;
+import ratpack.manual.snippets.executer.SnippetExecuter;
 
 public class TestCodeSnippet {
 
   private final String snippet;
   private final String className;
   private final String testName;
-  private final SnippetFixture fixture;
-  private final Function<Throwable, Throwable> exceptionTransformer;
+  private final SnippetExecuter executer;
+  private final ExceptionTransformer exceptionTransformer;
 
-  public TestCodeSnippet(String snippet, String className, String testName, SnippetFixture fixture, Function<Throwable, Throwable> exceptionTransformer) {
+  public TestCodeSnippet(String snippet, String className, String testName, SnippetExecuter executer, ExceptionTransformer exceptionTransformer) {
     this.snippet = snippet;
     this.className = className;
     this.testName = testName;
-    this.fixture = fixture;
+    this.executer = executer;
     this.exceptionTransformer = exceptionTransformer;
   }
 
@@ -47,16 +47,11 @@ public class TestCodeSnippet {
     return testName;
   }
 
-  public SnippetFixture getFixture() {
-    return fixture;
-  }
-
-  public String getCompleteSnippet() {
-    return fixture.pre() + snippet + fixture.post();
-  }
-
-  public Function<Throwable, Throwable> getExceptionTransformer() {
+  public ExceptionTransformer getExceptionTransformer() {
     return exceptionTransformer;
   }
 
+  public SnippetExecuter getExecuter() {
+    return executer;
+  }
 }

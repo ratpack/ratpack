@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import ratpack.func.NoArgAction
 import ratpack.manual.snippets.TestCodeSnippet
+import ratpack.manual.snippets.fixture.SnippetFixture
 
 import javax.tools.*
 import java.lang.reflect.InvocationTargetException
@@ -27,6 +28,18 @@ import java.lang.reflect.InvocationTargetException
 @Slf4j
 @CompileStatic
 public class JavaSnippetExecuter implements SnippetExecuter {
+
+  private final SnippetFixture fixture
+
+  JavaSnippetExecuter(SnippetFixture fixture) {
+    this.fixture = fixture
+  }
+
+  @Override
+  SnippetFixture getFixture() {
+    return fixture
+  }
+
   @Override
   public void execute(TestCodeSnippet snippet) throws Exception {
     def compiler = ToolProvider.getSystemJavaCompiler()
@@ -72,7 +85,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     try {
       Thread.currentThread().setContextClassLoader(classLoader)
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
-      snippet.fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as NoArgAction)
+      fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as NoArgAction)
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {
@@ -94,14 +107,13 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     match ? match.group(1) : null
   }
 
-  private static String assembleFullSnippet(TestCodeSnippet snippet) {
+  private String assembleFullSnippet(TestCodeSnippet snippet) {
     def imports = new StringBuilder()
     def snippetMinusImports = new StringBuilder()
     snippet.snippet.readLines().each { line ->
       ["package ", "import "].any { line.trim().startsWith(it) } ? imports.append(line).append("\n") : snippetMinusImports.append(line).append("\n")
     }
-    def fixture = snippet.fixture
-    def fullSnippet = imports.toString() + fixture.pre() + snippetMinusImports.toString() + fixture.post()
+    def fullSnippet = imports.toString() + fixture.pre() + snippet.executer.fixture.transform(snippetMinusImports.toString()) + fixture.post()
     fullSnippet
   }
 
