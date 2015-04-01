@@ -39,7 +39,7 @@ import ratpack.registry.RegistrySpec;
  * <p>
  * The other methods of this interface are alternate, sometimes more convenient or concise, variants of those methods.
  * <p>
- * None of the methods of this interface are additive.
+ * None of the methods of this interface are additive (i.e. calling {@link #handlers(Action)} twice will result in the second “value” being used).
  * <p>
  * All of the methods are effectively optional, as there are default values for the three different aspects (each of the base methods details what the default value is).
  * However, in practice you almost always want to at least set a request handler.

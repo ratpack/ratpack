@@ -52,22 +52,56 @@ public interface ServerConfig {
    */
   public int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
+  /**
+   * Creates a builder configured to use no base dir, development mode and an ephemeral port.
+   *
+   * @return a server config builder
+   */
   static Builder embedded() {
     return noBaseDir().development(true).port(0);
   }
 
+  /**
+   * Creates a builder configured to use the given base dir, development mode and an ephemeral port.
+   *
+   * @return a server config builder
+   */
   static Builder embedded(Path baseDir) {
     return baseDir(baseDir).development(true).port(0);
   }
 
+  /**
+   * Creates a builder configured to use no base dir.
+   *
+   * @return a server config builder
+   */
   static Builder noBaseDir() {
     return DefaultServerConfigBuilder.noBaseDir(ServerEnvironment.env());
   }
 
+  /**
+   * Creates a builder by finding a properties file with the default name ({@value ServerConfig.Builder#DEFAULT_PROPERTIES_FILE_NAME}).
+   *
+   * @return a server config builder
+   * @see #findBaseDirProps(String)
+   */
   static Builder findBaseDirProps() {
     return findBaseDirProps(Builder.DEFAULT_PROPERTIES_FILE_NAME);
   }
 
+  /**
+   * Creates a builder based on a properties file with the given path either on the classpath or relative to the working directory.
+   * <p>
+   * The file is first searched for relative to the JVM's working directory, and then as a classpath resource via the context class loader.
+   * <p>
+   * If found, the file will be loaded as a properties file, where entries effectively map to methods of this builder.
+   * The parent directory of the file will be used as the {@link ServerConfig#getBaseDir()}.
+   * <p>
+   * It is typical for the properties file to be empty, and just be used to find the base dir.
+   *
+   * @param propertiesPath the relative path to the properties file
+   * @return a server config builder
+   */
   static Builder findBaseDirProps(String propertiesPath) {
     return DefaultServerConfigBuilder.findBaseDirProps(ServerEnvironment.env(), propertiesPath);
   }
@@ -175,8 +209,25 @@ public interface ServerConfig {
 
     String DEFAULT_ENV_PREFIX = "RATPACK_";
     String DEFAULT_PROP_PREFIX = "ratpack.";
+
+    /**
+     * The default name for the base dir sentinel properties file.
+     * <p>
+     * Value: {@value}
+     *
+     * @see #findBaseDirProps()
+     */
     String DEFAULT_PROPERTIES_FILE_NAME = "ratpack.properties";
 
+    /**
+     * Sets the port to listen for requests on.
+     * <p>
+     * Defaults to {@value ServerConfig#DEFAULT_PORT}.
+     *
+     * @param port the port to listen for requests on
+     * @return {@code this}
+     * @see ServerConfig#getPort()
+     */
     Builder port(int port);
 
     /**
@@ -185,7 +236,7 @@ public interface ServerConfig {
      * Default value is {@code null}.
      *
      * @param address The address to bind to
-     * @return this
+     * @return {@code this}
      * @see ServerConfig#getAddress()
      */
     Builder address(InetAddress address);
@@ -196,7 +247,7 @@ public interface ServerConfig {
      * Default value is {@code false}.
      *
      * @param development Whether or not the application is "development".
-     * @return this
+     * @return {@code this}
      * @see ServerConfig#isDevelopment()
      */
     Builder development(boolean development);
@@ -207,7 +258,7 @@ public interface ServerConfig {
      * Defaults to {@link ServerConfig#DEFAULT_THREADS}
      *
      * @param threads the size of the event loop thread pool
-     * @return this
+     * @return {@code this}
      * @see ServerConfig#getThreads()
      */
     Builder threads(int threads);
@@ -217,8 +268,8 @@ public interface ServerConfig {
      * <p>
      * Default value is {@code null}.
      *
-     * @param publicAddress The public address of the application
-     * @return this
+     * @param publicAddress the public address of the application
+     * @return {@code this}
      * @see ServerConfig#getPublicAddress()
      */
     Builder publicAddress(URI publicAddress);
@@ -228,8 +279,8 @@ public interface ServerConfig {
      *
      * Default value is {@code 1048576} (1 megabyte).
      *
-     * @param maxContentLength The max content length to accept.
-     * @return this
+     * @param maxContentLength the max content length to accept
+     * @return {@code this}
      * @see ServerConfig#getMaxContentLength()
      */
     Builder maxContentLength(int maxContentLength);
@@ -237,8 +288,8 @@ public interface ServerConfig {
     /**
      * The SSL context to use if the application serves content over HTTPS.
      *
-     * @param sslContext the SSL context.
-     * @return this
+     * @param sslContext the SSL context
+     * @return {@code this}
      * @see ratpack.ssl.SSLContexts
      * @see ServerConfig#getSSLContext()
      */
@@ -247,7 +298,7 @@ public interface ServerConfig {
     /**
      * Adds a configuration source for environment variables starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_ENV_PREFIX}.
      *
-     * @return this
+     * @return {@code this}
      */
     Builder env();
 
@@ -256,7 +307,7 @@ public interface ServerConfig {
      *
      * @param prefix the prefix which should be used to identify relevant environment variables;
      * the prefix will be removed before loading the data
-     * @return this
+     * @return {@code this}
      */
     Builder env(String prefix);
 
@@ -264,7 +315,7 @@ public interface ServerConfig {
      * Adds a configuration source for a properties file.
      *
      * @param byteSource the source of the properties data
-     * @return this
+     * @return {@code this}
      */
     Builder props(ByteSource byteSource);
 
@@ -272,7 +323,7 @@ public interface ServerConfig {
      * Adds a configuration source for a properties file.
      *
      * @param path the source of the properties data
-     * @return this
+     * @return {@code this}
      */
     Builder props(String path);
 
@@ -280,7 +331,7 @@ public interface ServerConfig {
      * Adds a configuration source for a properties file.
      *
      * @param path the source of the properties data
-     * @return this
+     * @return {@code this}
      */
     Builder props(Path path);
 
@@ -288,7 +339,7 @@ public interface ServerConfig {
      * Adds a configuration source for a properties object.
      *
      * @param properties the properties object
-     * @return this
+     * @return {@code this}
      */
     Builder props(Properties properties);
 
@@ -296,7 +347,7 @@ public interface ServerConfig {
      * Adds a configuration source for a Map (flat key-value pairs).
      *
      * @param map the map
-     * @return this
+     * @return {@code this}
      */
     Builder props(Map<String, String> map);
 
@@ -304,14 +355,14 @@ public interface ServerConfig {
      * Adds a configuration source for a properties file.
      *
      * @param url the source of the properties data
-     * @return this
+     * @return {@code this}
      */
     Builder props(URL url);
 
     /**
      * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_PROP_PREFIX}
      *
-     * @return this
+     * @return {@code this}
      */
     Builder sysProps();
 
@@ -320,10 +371,15 @@ public interface ServerConfig {
      *
      * @param prefix the prefix which should be used to identify relevant system properties;
      * the prefix will be removed before loading the data
-     * @return this
+     * @return {@code this}
      */
     Builder sysProps(String prefix);
 
+    /**
+     * Builds the server config.
+     *
+     * @return a server config
+     */
     ServerConfig build();
   }
 }
