@@ -169,6 +169,11 @@ public interface Response extends ResponseMetaData {
    */
   Response beforeSend(Action<? super ResponseMetaData> responseFinalizer);
 
+  /**
+   * Prevents the response from being compressed.
+   *
+   * @return {@code this}
+   */
   @Override
   Response noCompress();
 }
