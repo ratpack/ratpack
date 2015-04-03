@@ -181,6 +181,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);
 
     // Close the connection as soon as the error message is sent.
-    ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
 }
