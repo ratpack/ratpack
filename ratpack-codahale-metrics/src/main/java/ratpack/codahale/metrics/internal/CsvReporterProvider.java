@@ -43,7 +43,7 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
   @Override
   public CsvReporter get() {
     CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
-    config.getConsole().ifPresent(csv -> {
+    config.getCsv().ifPresent(csv -> {
       if (csv.getFilter() != null) {
         builder.filter(new RegexMetricFilter(csv.getFilter()));
       }
