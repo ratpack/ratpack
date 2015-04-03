@@ -89,6 +89,7 @@ apply plugin: "idea"
 
 repositories {
   jcenter()
+  maven { url 'http://clinker.netty.io/nexus/content/repositories/snapshots' }
 }
 
 dependencies {
