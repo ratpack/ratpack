@@ -20,8 +20,10 @@ description = "Support for Handlebars server side template rendering in Ratpack 
 
 dependencies {
   compile project(":ratpack-guice")
-  compile ('com.github.jknack:handlebars:1.2.1'){
+  compile ('com.github.jknack:handlebars:2.0.0') {
     exclude group: 'org.slf4j', module: 'slf4j-api'
+    exclude group: 'org.antlr', module: 'antlr4-runtime' // Work around https://github.com/antlr/antlr4/issues/487, present in Antlr < 4.5
   }
+  compile 'org.antlr:antlr4-runtime:4.5'
   runtime commonDependencies.slf4j
 }
