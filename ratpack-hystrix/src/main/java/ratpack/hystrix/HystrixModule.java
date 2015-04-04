@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,6 +103,10 @@ public class HystrixModule extends ConfigurableModule<HystrixModule.Config> {
       bind(HystrixThreadPoolMetricsPeriodicPublisher.class).in(Singleton.class);
       bind(HystrixThreadPoolMetricsBroadcaster.class).in(Singleton.class);
       bind(HystrixThreadPoolMetricsJsonMapper.class).in(Singleton.class);
+
+      bind(HystrixCollapserMetricsPeriodicPublisher.class).in(Singleton.class);
+      bind(HystrixCollapserMetricsBroadcaster.class).in(Singleton.class);
+      bind(HystrixCollapserMetricsJsonMapper.class).in(Singleton.class);
     }
   }
 

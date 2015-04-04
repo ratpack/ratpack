@@ -37,7 +37,7 @@ public class CommandFactory {
   public static Promise<String> fooCommand() {
     Observable<String> command = new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("foo-command")) {
       @Override
-      protected Observable<String> run() {
+      protected Observable<String> construct() {
         return Observable.just("foo");
       }
     }.toObservable();

@@ -19,10 +19,7 @@ package ratpack.hystrix;
 import org.reactivestreams.Publisher;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.hystrix.internal.HystrixCommandMetricsBroadcaster;
-import ratpack.hystrix.internal.HystrixCommandMetricsJsonMapper;
-import ratpack.hystrix.internal.HystrixThreadPoolMetricsBroadcaster;
-import ratpack.hystrix.internal.HystrixThreadPoolMetricsJsonMapper;
+import ratpack.hystrix.internal.*;
 
 import static ratpack.sse.ServerSentEvents.serverSentEvents;
 import static ratpack.stream.Streams.fanOut;
@@ -56,10 +53,13 @@ public class HystrixMetricsEventStreamHandler implements Handler {
     HystrixCommandMetricsJsonMapper commandMetricsMapper = context.get(HystrixCommandMetricsJsonMapper.class);
     HystrixThreadPoolMetricsBroadcaster threadPoolMetricsBroadcaster = context.get(HystrixThreadPoolMetricsBroadcaster.class);
     HystrixThreadPoolMetricsJsonMapper threadPoolMetricsMapper = context.get(HystrixThreadPoolMetricsJsonMapper.class);
+    HystrixCollapserMetricsBroadcaster collapserMetricsBroadcaster = context.get(HystrixCollapserMetricsBroadcaster.class);
+    HystrixCollapserMetricsJsonMapper collapserMetricsMapper = context.get(HystrixCollapserMetricsJsonMapper.class);
 
     Publisher<String> metricsStream = merge(
       fanOut(commandMetricsBroadcasterbroadcaster).map(commandMetricsMapper),
-      fanOut(threadPoolMetricsBroadcaster).map(threadPoolMetricsMapper)
+      fanOut(threadPoolMetricsBroadcaster).map(threadPoolMetricsMapper),
+      fanOut(collapserMetricsBroadcaster).map(collapserMetricsMapper)
     );
 
     context.render(serverSentEvents(metricsStream, spec -> spec.data(spec.getItem())));
