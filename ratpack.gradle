@@ -22,13 +22,8 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
-
-    // Artifactory plugin pulls in very old Guava, which conflicts with child projects.
-    // Force to newer version here.
-    classpath 'com.google.guava:guava:18.0'
-
-    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.1.0"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.0"
+    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
   }
 }
@@ -42,9 +37,9 @@ if (!JavaVersion.current().java8Compatible) {
   throw new IllegalStateException("Must be built with Java 8 or higher")
 }
 
-apply plugin: 'artifactory'
-apply plugin: 'com.github.kt3k.coveralls'
-apply plugin: 'com.github.ben-manes.versions'
+apply plugin: "com.jfrog.artifactory"
+apply plugin: "com.github.kt3k.coveralls"
+apply plugin: "com.github.ben-manes.versions"
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
@@ -182,7 +177,7 @@ subprojects {
   }
 
   if (project in publishedModules) {
-    apply plugin: "artifactory"
+    apply plugin: "com.jfrog.artifactory"
     artifactoryPublish { task ->
       rootProject.artifactory {
         publish {

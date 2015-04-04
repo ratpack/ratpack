@@ -91,24 +91,24 @@ dependencies {
   compile project(":ratpack-rx")
   compile project(":ratpack-newrelic")
   compile project(":ratpack-config")
-  compile 'org.pegdown:pegdown:1.4.1'
+  compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
   compass commonDependencies.compass
 
   runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.0-rc2'
   runtime 'org.apache.logging.log4j:log4j-api:2.0-rc2'
   runtime 'org.apache.logging.log4j:log4j-core:2.0-rc2'
-  runtime 'com.lmax:disruptor:3.2.1'
+  runtime 'com.lmax:disruptor:3.3.2'
 
   testCompile project(":ratpack-groovy-test")
   testCompile project(":ratpack-remote-test")
   testCompile project(":ratpack-test-internal")
   testCompile commonDependencies.spock
-  testCompile 'org.jsoup:jsoup:1.7.2'
+  testCompile 'org.jsoup:jsoup:1.8.1'
   latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(":ratpack-manual")
 
-  browserTestCompile "org.gebish:geb-spock:0.9.3"
-  browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.43.1", {
+  browserTestCompile "org.gebish:geb-spock:0.10.0"
+  browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.45.0", {
     exclude module: 'guava'
   }
 

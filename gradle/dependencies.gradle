@@ -26,6 +26,8 @@ ext {
     hystrix: "1.4.0-RC5",
     jackson: "2.5.2",
     codahaleMetrics: "3.1.1",
+    pegdown: "1.5.0",
+    spock: "0.7-groovy-2.0",
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -52,7 +54,7 @@ ext {
   }
 
   commonDependencies = [
-    spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
+    spock: dependencies.create("org.spockframework:spock-core:${commonVersions.spock}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
     groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
@@ -61,6 +63,6 @@ ext {
     jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
     h2: "com.h2database:h2:1.3.174",
-    compass: "rubygems:compass:1.0.1"
+    compass: "rubygems:compass:1.0.3"
   ]
 }
