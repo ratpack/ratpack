@@ -148,7 +148,7 @@ abstract class FunctionalSpec extends Specification {
         jcenter()
       }
       dependencies {
-        compile 'org.slf4j:slf4j-simple:1.7.7'
+        compile 'org.slf4j:slf4j-simple:1.7.12'
       }
     """
 

@@ -11,7 +11,7 @@ Library options include:
 * Simple - logs messages at INFO level and higher to System.err
 * Jakarta Commons Logging
 
-Simply add <em>one</em> logging library as a dependency and use slf4j syntax to log.
+Simply add <em>one</em> logging library as a dependency and use SLF4J syntax to log.
 If you are currently using another logging library, SLF4J provides a [migration tool](http://www.slf4j.org/migrator.html) to automate the transition.  
 Examples for Java and Groovy are below and more details can be found in the [SLF4J manual](http://www.slf4j.org/manual.html).
 

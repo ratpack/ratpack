@@ -25,7 +25,7 @@ configurations {
 dependencies {
   compile commonDependencies.groovy
   compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
-  compile 'org.slf4j:slf4j-simple:1.7.7'
+  compile "org.slf4j:slf4j-simple:${commonVersions.slf4j}"
   testCompile commonDependencies.spock
 }
 
@@ -79,7 +79,7 @@ repositories {
 }
 
 dependencies {
-  compile 'org.slf4j:slf4j-simple:1.7.7'
+  compile 'org.slf4j:slf4j-simple:${commonVersions.slf4j}'
 }
 
 version = "$params.version"
