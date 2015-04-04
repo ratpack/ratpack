@@ -82,7 +82,7 @@ import ratpack.server.ServerConfig;
  * <p>The following example shows different kinds of binding paths in action.</p>
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import com.google.common.base.Objects;
+ * import com.google.common.base.MoreObjects;
  * import com.google.common.io.BaseEncoding;
  * import java.util.Arrays;
  * import java.util.Locale;
@@ -95,13 +95,13 @@ import ratpack.server.ServerConfig;
  *       .get("favorites/::colou?r", ctx -> ctx.render("blue")) // Regular expression literal
  *       .get("optionalToken/:tkn?", ctx -> ctx.render(ctx.getPathTokens().toString())) // Optional path token
  *       .get("greeting/:name?", ctx -> // Optional path token with default handling
- *         ctx.render("Hello " + Objects.firstNonNull(ctx.getPathTokens().get("name"), "world"))
+ *         ctx.render("Hello " + MoreObjects.firstNonNull(ctx.getPathTokens().get("name"), "world"))
  *       )
  *       .get("convert/hex/:tkn", ctx -> // Mandatory path token
  *         ctx.render("Hello " + BaseEncoding.base64().encode(ctx.getPathTokens().get("tkn").getBytes("UTF-8")))
  *       )
  *       .get("pi/:precision?:[\\d]+", ctx -> // Optional regular expression path token
- *         ctx.render(String.format(Locale.ENGLISH, "%1." + Objects.firstNonNull(ctx.getPathTokens().get("precision"), "5") + "f", Math.PI))
+ *         ctx.render(String.format(Locale.ENGLISH, "%1." + MoreObjects.firstNonNull(ctx.getPathTokens().get("precision"), "5") + "f", Math.PI))
  *       )
  *       .get("sum/:num1:[\\d]+/:num2:[\\d]+", ctx -> // Mandatory regular expression path tokens
  *         ctx.render(
