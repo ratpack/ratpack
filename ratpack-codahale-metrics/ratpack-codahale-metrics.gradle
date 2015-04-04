@@ -22,12 +22,10 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
 
-  def codahaleMetricsVersion = "3.1.0"
-
-  compile "io.dropwizard.metrics:metrics-core:$codahaleMetricsVersion"
-  compile "io.dropwizard.metrics:metrics-healthchecks:$codahaleMetricsVersion"
-  compile "io.dropwizard.metrics:metrics-jvm:$codahaleMetricsVersion"
-  compile "io.dropwizard.metrics:metrics-annotation:$codahaleMetricsVersion"
+  compile "io.dropwizard.metrics:metrics-core:${commonVersions.codahaleMetrics}"
+  compile "io.dropwizard.metrics:metrics-healthchecks:${commonVersions.codahaleMetrics}"
+  compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.codahaleMetrics}"
+  compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.codahaleMetrics}"
   compile commonDependencies.jackson
 
   testCompile project(":ratpack-jackson")
