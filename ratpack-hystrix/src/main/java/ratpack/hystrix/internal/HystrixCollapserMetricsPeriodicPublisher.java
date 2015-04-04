@@ -18,7 +18,6 @@ package ratpack.hystrix.internal;
 
 import com.google.inject.Inject;
 import com.netflix.hystrix.HystrixCollapserMetrics;
-import com.netflix.hystrix.HystrixThreadPoolMetrics;
 import ratpack.exec.ExecController;
 import ratpack.hystrix.HystrixModule;
 import ratpack.stream.internal.PeriodicPublisher;

@@ -20,8 +20,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.netflix.hystrix.HystrixCollapserKey;
 import com.netflix.hystrix.HystrixCollapserMetrics;
-import com.netflix.hystrix.HystrixThreadPoolKey;
-import com.netflix.hystrix.HystrixThreadPoolMetrics;
 import com.netflix.hystrix.util.HystrixRollingNumberEvent;
 import ratpack.func.Function;
 
