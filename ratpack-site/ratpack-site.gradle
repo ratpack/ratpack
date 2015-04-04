@@ -116,7 +116,7 @@ dependencies {
     delegate."manual-$it" "io.ratpack:ratpack-manual:$it@zip"
   }
 
-  newrelicAgent "com.newrelic.agent.java:newrelic-agent:3.11.0"
+  newrelicAgent "com.newrelic.agent.java:newrelic-agent:${commonVersions.newrelic}"
 }
 
 task gatherManuals(type: Sync) {
