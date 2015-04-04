@@ -16,8 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import javassist.ClassPool;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -26,8 +24,8 @@ import javassist.bytecode.ClassFile;
 import ratpack.handling.Handler;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DescribingHandlers {
 
@@ -40,11 +38,11 @@ public class DescribingHandlers {
       try {
         ctClass = pool.get(clazz.getName());
         CtBehavior[] behaviors = ctClass.getDeclaredBehaviors();
-        Iterable<CtBehavior> withLineNumberIterable = Iterables.filter(Arrays.asList(behaviors), input -> input.getMethodInfo().getLineNumber(0) > 0);
-
-        LinkedList<CtBehavior> withLineNumber = Lists.newLinkedList(withLineNumberIterable);
-        Collections.sort(withLineNumber, (o1, o2) -> Integer.valueOf(o1.getMethodInfo().getLineNumber(0)).compareTo(o2.getMethodInfo().getLineNumber(0)));
-
+        List<CtBehavior> withLineNumber =
+          Arrays.asList(behaviors).stream()
+            .filter(input -> input.getMethodInfo().getLineNumber(0) > 0)
+            .sorted((o1, o2) -> Integer.valueOf(o1.getMethodInfo().getLineNumber(0)).compareTo(o2.getMethodInfo().getLineNumber(0)))
+            .collect(Collectors.toList());
         if (!withLineNumber.isEmpty()) {
           CtBehavior method = withLineNumber.get(0);
           int lineNumber = method.getMethodInfo().getLineNumber(0);
