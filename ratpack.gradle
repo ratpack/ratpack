@@ -22,7 +22,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.0"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
   }
@@ -37,7 +37,7 @@ if (!JavaVersion.current().java8Compatible) {
   throw new IllegalStateException("Must be built with Java 8 or higher")
 }
 
-apply plugin: "com.jfrog.artifactory"
+apply plugin: "artifactory"
 apply plugin: "com.github.kt3k.coveralls"
 apply plugin: "com.github.ben-manes.versions"
 
@@ -177,7 +177,7 @@ subprojects {
   }
 
   if (project in publishedModules) {
-    apply plugin: "com.jfrog.artifactory"
+    apply plugin: "artifactory"
     artifactoryPublish { task ->
       rootProject.artifactory {
         publish {
