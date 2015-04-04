@@ -34,7 +34,7 @@ dependencies {
   compile commonDependencies.slf4j
   compile 'org.reactivestreams:reactive-streams:1.0.0.RC1'
 
-  compile 'org.javassist:javassist:3.18.1-GA'
+  compile 'org.javassist:javassist:3.19.0-GA'
 
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
   testCompile 'org.reactivestreams:reactive-streams-tck:1.0.0.RC1'
