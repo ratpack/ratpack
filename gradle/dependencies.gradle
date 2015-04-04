@@ -64,7 +64,7 @@ ext {
     "remote-http": "io.remotecontrol:remote-transport-http:${commonVersions.remote}",
     jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
-    h2: "com.h2database:h2:1.3.174",
+    h2: "com.h2database:h2:1.4.186",
     compass: "rubygems:compass:1.0.3"
   ]
 }

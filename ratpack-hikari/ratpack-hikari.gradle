@@ -4,7 +4,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")
-  compile "com.zaxxer:HikariCP:2.0.1"
+  compile "com.zaxxer:HikariCP:2.3.5"
   testCompile commonDependencies.h2
 }
 
