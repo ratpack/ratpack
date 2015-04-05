@@ -63,7 +63,7 @@ idea {
         if (!javacSettings) {
           node.append(new XmlParser().parseText("""
           <component name="JavacSettings">
-            <option name="ADDITIONAL_OPTIONS_STRING" value="-Werror -Xlint:all -Xlint:-options -Xlint:-serial" />
+            <option name="ADDITIONAL_OPTIONS_STRING" value="-Werror -Xlint:all -Xlint:-options -Xlint:-serial -Xlint:-classfile" />
           </component>
           """))
         }
