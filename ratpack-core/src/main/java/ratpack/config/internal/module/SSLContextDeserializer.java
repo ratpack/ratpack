@@ -24,19 +24,18 @@ import ratpack.ssl.SSLContexts;
 import ratpack.util.Exceptions;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 
 public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
   @Override
   public SSLContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-    // TODO: add a signature to SSLContexts for Path objects
     ObjectNode node = jp.readValueAsTree();
     try {
       String keyStorePath = node.path("keyStorePath").asText();
       String keyStorePassword = node.path("keyStorePassword").asText();
-      return SSLContexts.sslContext(new File(keyStorePath), keyStorePassword);
+      return SSLContexts.sslContext(Paths.get(keyStorePath), keyStorePassword);
     } catch (GeneralSecurityException ex) {
       throw Exceptions.uncheck(ex);
     }
