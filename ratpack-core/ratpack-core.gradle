@@ -24,7 +24,8 @@ ext.apiLinks = [
     "http://www.slf4j.org/apidocs/",
     "http://docs.oracle.com/javase/8/docs/api/",
     "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc/",
-    "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams}-javadoc/"
+    "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams}-javadoc/",
+    "http://fasterxml.github.io/jackson-databind/javadoc/2.5/",
 ]
 
 dependencies {
@@ -36,6 +37,12 @@ dependencies {
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
 
   compile 'org.javassist:javassist:3.19.0-GA'
+
+  compile commonDependencies.jackson
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
   testCompile "org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}"

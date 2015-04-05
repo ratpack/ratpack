@@ -26,10 +26,7 @@ dependencies {
   compile "io.dropwizard.metrics:metrics-healthchecks:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.codahaleMetrics}"
-  compile commonDependencies.jackson
 
   testCompile project(":ratpack-jackson")
-  testCompile project(":ratpack-config")
-  testCompile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 }
 

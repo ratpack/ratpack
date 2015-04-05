@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-description = "Support for application configuration via Jackson"
+package ratpack.config.internal.module;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import ratpack.server.ServerConfig;
+import ratpack.server.internal.ServerEnvironment;
 
-ext.apiLinks = [
-  "http://fasterxml.github.io/jackson-databind/javadoc/2.4/"
-]
+import javax.net.ssl.SSLContext;
 
-dependencies {
-  compile project(":ratpack-core")
-  compile commonDependencies.jackson
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
+public class ConfigModule extends SimpleModule {
+  public ConfigModule(ServerEnvironment serverEnvironment) {
+    super("ratpack");
+    addDeserializer(ServerConfig.class, new ServerConfigDeserializer(serverEnvironment));
+    addDeserializer(SSLContext.class, new SSLContextDeserializer());
+  }
 }

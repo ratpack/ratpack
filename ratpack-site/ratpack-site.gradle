@@ -90,7 +90,6 @@ dependencies {
   compile project(":ratpack-remote")
   compile project(":ratpack-rx")
   compile project(":ratpack-newrelic")
-  compile project(":ratpack-config")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
   compass commonDependencies.compass
