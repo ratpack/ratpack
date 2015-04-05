@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package ratpack.server;
+package ratpack.server.internal;
 
 import ratpack.registry.Registry;
+import ratpack.server.StartEvent;
+import ratpack.server.StopEvent;
 
-/**
- * A start event.
- *
- * @see Service#onStart(StartEvent)
- */
-public interface StartEvent {
+public class DefaultEvent implements StartEvent, StopEvent {
 
-  /**
-   * The server registry.
-   *
-   * @return the server registry
-   */
-  Registry getRegistry();
+  private final Registry registry;
+  private final boolean reload;
 
-  /**
-   * If the server is starting in response to a reload (during development), as opposed to for the first time.
-   *
-   * @return if the server is starting in response to a reload
-   */
-  boolean isReload();
+  public DefaultEvent(Registry registry, boolean reload) {
+    this.registry = registry;
+    this.reload = reload;
+  }
+
+  @Override
+  public Registry getRegistry() {
+    return registry;
+  }
+
+  @Override
+  public boolean isReload() {
+    return reload;
+  }
 
 }

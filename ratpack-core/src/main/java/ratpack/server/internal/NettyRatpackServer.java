@@ -222,7 +222,7 @@ public class NettyRatpackServer implements RatpackServer {
     Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    executeEvents(serverRegistry, StartEvent.build(serverRegistry, reloading), Service::onStart);
+    executeEvents(serverRegistry, new DefaultEvent(serverRegistry, reloading), Service::onStart);
 
     return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
   }
@@ -257,7 +257,7 @@ public class NettyRatpackServer implements RatpackServer {
         return;
       }
       if (serverRegistry != null) {
-        executeEvents(serverRegistry, StopEvent.build(serverRegistry, reloading), Service::onStop);
+        executeEvents(serverRegistry, new DefaultEvent(serverRegistry, reloading), Service::onStop);
       }
     } finally {
       Optional.ofNullable(channel).ifPresent(Channel::close);

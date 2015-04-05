@@ -19,42 +19,24 @@ package ratpack.server;
 import ratpack.registry.Registry;
 
 /**
- * Meta information about a server stop event.
+ * A stop event.
+ *
+ * @see Service#onStop(StopEvent)
  */
-public class StopEvent {
-
-  private final Registry registry;
-  private final boolean reload;
-
-  private StopEvent(Registry registry, boolean reload) {
-    this.registry = registry;
-    this.reload = reload;
-  }
+public interface StopEvent {
 
   /**
-   * Retrieves the server registry for this instance
-   * @return the server's registry
-   */
-  public Registry getRegistry() {
-    return registry;
-  }
-
-  /**
-   * Indicates if this stop event is part of reloading the server.
-   * @return true if this stop event is part of a server reload. False otherwise.
-   */
-  public boolean isReload() {
-    return reload;
-  }
-
-  /**
-   * Builder for stop events.
+   * The server registry.
    *
-   * @param registry the server registry for this server
-   * @param reload true if this is stop event during a server reload
-   * @return a new stop event
+   * @return the server registry
    */
-  public static StopEvent build(Registry registry, boolean reload) {
-    return new StopEvent(registry, reload);
-  }
+  Registry getRegistry();
+
+  /**
+   * If the server is stopping in response to a reload (during development), as opposed to for the first time.
+   *
+   * @return if the server is stopping in response to a reload
+   */
+  public boolean isReload();
+
 }
