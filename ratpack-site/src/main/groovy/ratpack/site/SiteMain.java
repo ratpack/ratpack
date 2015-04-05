@@ -20,7 +20,7 @@ import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.config.ConfigData;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
 import ratpack.groovy.template.TextTemplateModule;
@@ -118,7 +118,7 @@ public class SiteMain {
               .handler("reset", ctx -> {
                 GitHubApi gitHubApi = ctx.get(GitHubApi.class);
                 ctx.byMethod(methods -> {
-                  NoArgAction impl = () -> {
+                  Block impl = () -> {
                     gitHubApi.invalidateCache();
                     ctx.render("ok");
                   };

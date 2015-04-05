@@ -16,13 +16,13 @@
 
 package ratpack.manual.snippets.fixture
 
-import ratpack.func.NoArgAction
+import ratpack.func.Block
 import ratpack.groovy.internal.capture.RatpackScriptBacking
 
 class GroovyRatpackDslNoRunFixture extends GroovyScriptFixture {
 
   @Override
-  void around(NoArgAction action) throws Exception {
+  void around(Block action) throws Exception {
     RatpackScriptBacking.withBacking({}, { action.execute() })
   }
 

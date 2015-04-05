@@ -18,7 +18,7 @@ package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
 import ratpack.func.Action;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.groovy.internal.StandaloneScriptBacking;
 
 public abstract class RatpackScriptBacking {
@@ -30,7 +30,7 @@ public abstract class RatpackScriptBacking {
     }
   };
 
-  public static void withBacking(Action<Closure<?>> backing, NoArgAction runnable) throws Exception {
+  public static void withBacking(Action<Closure<?>> backing, Block runnable) throws Exception {
     Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
     BACKING_HOLDER.set(backing);
     try {

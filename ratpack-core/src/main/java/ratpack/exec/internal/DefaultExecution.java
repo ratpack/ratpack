@@ -21,7 +21,7 @@ import io.netty.channel.EventLoop;
 import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
@@ -108,7 +108,7 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     getControl().addInterceptor(execInterceptor, continuation);
   }
 }

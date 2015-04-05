@@ -18,7 +18,7 @@ package ratpack.groovy.handling.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyByMethodSpec;
 import ratpack.groovy.handling.GroovyContext;
@@ -70,7 +70,7 @@ public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
   }
 
   @Override
-  public ByMethodSpec get(NoArgAction handler) {
+  public ByMethodSpec get(Block handler) {
     return delegate.get(handler);
   }
 
@@ -80,7 +80,7 @@ public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
   }
 
   @Override
-  public ByMethodSpec post(NoArgAction handler) {
+  public ByMethodSpec post(Block handler) {
     return delegate.post(handler);
   }
 
@@ -90,7 +90,7 @@ public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
   }
 
   @Override
-  public ByMethodSpec put(NoArgAction handler) {
+  public ByMethodSpec put(Block handler) {
     return delegate.put(handler);
   }
 
@@ -100,7 +100,7 @@ public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
   }
 
   @Override
-  public ByMethodSpec patch(NoArgAction handler) {
+  public ByMethodSpec patch(Block handler) {
     return delegate.patch(handler);
   }
 
@@ -110,7 +110,7 @@ public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
   }
 
   @Override
-  public ByMethodSpec delete(NoArgAction handler) {
+  public ByMethodSpec delete(Block handler) {
     return delegate.delete(handler);
   }
 
@@ -120,7 +120,7 @@ public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
   }
 
   @Override
-  public ByMethodSpec named(String methodName, NoArgAction handler) {
+  public ByMethodSpec named(String methodName, Block handler) {
     return delegate.named(methodName, handler);
   }
 

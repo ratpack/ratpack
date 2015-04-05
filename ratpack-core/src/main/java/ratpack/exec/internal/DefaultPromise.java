@@ -22,7 +22,7 @@ import ratpack.exec.Result;
 import ratpack.exec.Throttle;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.func.Predicate;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.InternalRatpackError;
@@ -175,7 +175,7 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
-  public Promise<T> onNull(final NoArgAction onNull) {
+  public Promise<T> onNull(final Block onNull) {
     return route(Objects::isNull, ignoreArg(onNull));
   }
 

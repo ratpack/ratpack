@@ -16,11 +16,11 @@
 
 package ratpack.manual.snippets.fixture;
 
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 
 public class SnippetFixture {
 
-  public void around(NoArgAction action) throws Exception {
+  public void around(Block action) throws Exception {
     action.execute();
   }
 

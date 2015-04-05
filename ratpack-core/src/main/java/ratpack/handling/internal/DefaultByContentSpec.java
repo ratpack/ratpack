@@ -16,7 +16,7 @@
 
 package ratpack.handling.internal;
 
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.Handler;
 
@@ -37,7 +37,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec type(String mimeType, NoArgAction handler) {
+  public ByContentSpec type(String mimeType, Block handler) {
     return type(mimeType, ctx -> handler.execute());
   }
 
@@ -61,7 +61,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec plainText(NoArgAction handler) {
+  public ByContentSpec plainText(Block handler) {
     return type(TYPE_PLAIN_TEXT, handler);
   }
 
@@ -71,7 +71,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec html(NoArgAction handler) {
+  public ByContentSpec html(Block handler) {
     return type(TYPE_HTML, handler);
   }
 
@@ -81,7 +81,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec json(NoArgAction handler) {
+  public ByContentSpec json(Block handler) {
     return type(TYPE_JSON, handler);
   }
 
@@ -91,7 +91,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec xml(NoArgAction handler) {
+  public ByContentSpec xml(Block handler) {
     return type(TYPE_XML, handler);
   }
 
@@ -101,7 +101,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec noMatch(NoArgAction handler) {
+  public ByContentSpec noMatch(Block handler) {
     noMatchHandler = ctx -> handler.execute();
     return this;
   }

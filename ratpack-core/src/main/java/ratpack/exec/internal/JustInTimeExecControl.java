@@ -19,7 +19,7 @@ package ratpack.exec.internal;
 import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.Callable;
@@ -43,7 +43,7 @@ public class JustInTimeExecControl implements ExecControl {
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     getDelegate().addInterceptor(execInterceptor, continuation);
   }
 

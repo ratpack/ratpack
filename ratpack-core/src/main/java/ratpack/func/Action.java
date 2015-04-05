@@ -110,8 +110,8 @@ public interface Action<T> {
     };
   }
 
-  static <T> Action<T> ignoreArg(final NoArgAction noArgAction) {
-    return t -> noArgAction.execute();
+  static <T> Action<T> ignoreArg(final Block block) {
+    return t -> block.execute();
   }
 
   /**

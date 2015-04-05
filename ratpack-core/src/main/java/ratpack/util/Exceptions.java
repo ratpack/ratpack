@@ -20,7 +20,7 @@ import ratpack.api.UncheckedException;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.Factory;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 
 /**
  * Utility methods for dealing with exceptions.
@@ -101,7 +101,7 @@ public abstract class Exceptions {
     }
   }
 
-  public static void uncheck(NoArgAction action) {
+  public static void uncheck(Block action) {
     try {
       action.execute();
     } catch (Exception e) {

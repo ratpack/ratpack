@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixture
 
-import ratpack.func.NoArgAction
+import ratpack.func.Block
 import ratpack.groovy.Groovy
 import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec
 import ratpack.groovy.internal.ClosureUtil
@@ -29,7 +29,7 @@ import ratpack.server.ServerConfig
 class GroovyScriptRatpackDslFixture extends GroovyScriptFixture {
 
   @Override
-  void around(NoArgAction action) throws Exception {
+  void around(Block action) throws Exception {
     def closures = RatpackDslClosures.capture({ new RatpackDslBacking(it) }, action)
     RatpackServer.start {
       it.serverConfig(ServerConfig.embedded())

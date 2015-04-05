@@ -18,7 +18,7 @@ package ratpack.manual.snippets.executer
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import ratpack.func.NoArgAction
+import ratpack.func.Block
 import ratpack.manual.snippets.TestCodeSnippet
 import ratpack.manual.snippets.fixture.SnippetFixture
 
@@ -85,7 +85,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     try {
       Thread.currentThread().setContextClassLoader(classLoader)
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
-      fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as NoArgAction)
+      fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as Block)
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {

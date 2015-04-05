@@ -18,7 +18,7 @@ package ratpack.exec;
 
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.func.Predicate;
 
 /**
@@ -390,7 +390,7 @@ public interface Promise<T> {
    * @param action the action to route to if the promised value is null
    * @return a routed promise
    */
-  Promise<T> onNull(NoArgAction action);
+  Promise<T> onNull(Block action);
 
   /**
    * Caches the promised value (or error) and returns it to all subscribers.

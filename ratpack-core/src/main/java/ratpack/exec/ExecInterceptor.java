@@ -16,7 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 
 /**
  * Intercepts execution, primarily for traceability and recording metrics.
@@ -24,11 +24,11 @@ import ratpack.func.NoArgAction;
  * The interception methods <i>wrap</i> the rest of the execution.
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
  * <p>
- * Request handling execution can be intercepted by the {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)} method.
+ * Request handling execution can be intercepted by the {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Block)} method.
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.exec.Execution;
- * import ratpack.func.NoArgAction;
+ * import ratpack.func.Block;
  * import ratpack.http.Request;
  * import ratpack.test.handling.RequestFixture;
  * import ratpack.test.handling.HandlingResult;
@@ -77,7 +77,7 @@ import ratpack.func.NoArgAction;
  *       request.add(new Timer());
  *     }
  *
- *     public void intercept(Execution execution, ExecInterceptor.ExecType type, NoArgAction continuation) throws Exception {
+ *     public void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) throws Exception {
  *       Timer timer = request.get(Timer.class);
  *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
  *       try {
@@ -113,10 +113,10 @@ import ratpack.func.NoArgAction;
  *   }
  * }
  * }</pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)}.
+ * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Block)}.
  *
  * @see Execution
- * @see ExecControl#addInterceptor(ExecInterceptor, ratpack.func.NoArgAction)
+ * @see ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Block)
  */
 public interface ExecInterceptor {
 
@@ -148,6 +148,6 @@ public interface ExecInterceptor {
    * @param continuation the “rest” of the execution
    * @throws Exception any
    */
-  void intercept(Execution execution, ExecType execType, NoArgAction continuation) throws Exception;
+  void intercept(Execution execution, ExecType execType, Block continuation) throws Exception;
 
 }

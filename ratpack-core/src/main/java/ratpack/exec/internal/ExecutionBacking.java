@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -41,7 +41,7 @@ public class ExecutionBacking {
 
   // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
   // All other collections do not need to be concurrent safe because they are only accessed on the event loop
-  Queue<Deque<NoArgAction>> stream = new ConcurrentLinkedQueue<>();
+  Queue<Deque<Block>> stream = new ConcurrentLinkedQueue<>();
 
   private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newLinkedList();
@@ -58,12 +58,12 @@ public class ExecutionBacking {
     this.onComplete = onComplete;
     this.execution = new DefaultExecution(eventLoop, controller, closeables);
 
-    Deque<NoArgAction> event = Lists.newLinkedList();
+    Deque<Block> event = Lists.newLinkedList();
     //noinspection RedundantCast
     event.add((UserCode) () -> action.execute(execution));
     stream.add(event);
 
-    Deque<NoArgAction> doneEvent = Lists.newLinkedList();
+    Deque<Block> doneEvent = Lists.newLinkedList();
     doneEvent.add(() -> done = true);
     stream.add(doneEvent);
     drain();
@@ -84,7 +84,7 @@ public class ExecutionBacking {
 
 
   // Marker interface used to detect user code vs infrastructure code, for error handling and interception
-  public interface UserCode extends NoArgAction {
+  public interface UserCode extends Block {
   }
 
   public Execution getExecution() {
@@ -100,10 +100,10 @@ public class ExecutionBacking {
   }
 
   public class StreamHandle {
-    final Queue<Deque<NoArgAction>> parent;
-    final Queue<Deque<NoArgAction>> stream;
+    final Queue<Deque<Block>> parent;
+    final Queue<Deque<Block>> stream;
 
-    private StreamHandle(Queue<Deque<NoArgAction>> parent, Queue<Deque<NoArgAction>> stream) {
+    private StreamHandle(Queue<Deque<Block>> parent, Queue<Deque<Block>> stream) {
       this.parent = parent;
       this.stream = stream;
     }
@@ -120,8 +120,8 @@ public class ExecutionBacking {
       });
     }
 
-    private void streamEvent(NoArgAction s) {
-      Deque<NoArgAction> event = Lists.newLinkedList();
+    private void streamEvent(Block s) {
+      Deque<Block> event = Lists.newLinkedList();
       event.add(s);
       stream.add(event);
       drain();
@@ -130,7 +130,7 @@ public class ExecutionBacking {
 
   public void streamSubscribe(Consumer<? super StreamHandle> consumer) {
     stream.element().add(() -> {
-      Queue<Deque<NoArgAction>> parent = stream;
+      Queue<Deque<Block>> parent = stream;
       stream = new ConcurrentLinkedDeque<>();
       stream.add(Lists.newLinkedList());
       StreamHandle handle = new StreamHandle(parent, stream);
@@ -162,7 +162,7 @@ public class ExecutionBacking {
           return;
         }
 
-        NoArgAction segment = stream.element().poll();
+        Block segment = stream.element().poll();
         if (segment == null) {
           stream.remove();
           if (stream.isEmpty()) {
@@ -178,7 +178,7 @@ public class ExecutionBacking {
             try {
               intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, segment);
             } catch (final Throwable e) {
-              Deque<NoArgAction> event = stream.element();
+              Deque<Block> event = stream.element();
               event.clear();
               event.addFirst(() -> {
                 try {
@@ -221,7 +221,7 @@ public class ExecutionBacking {
     }
   }
 
-  public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, NoArgAction action) throws Exception {
+  public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, Block action) throws Exception {
     if (interceptors.isEmpty()) {
       action.execute();
     } else {
@@ -229,7 +229,7 @@ public class ExecutionBacking {
     }
   }
 
-  private static void nextInterceptor(Execution execution, NoArgAction action, ExecInterceptor.ExecType type, Iterator<ExecInterceptor> interceptors) throws Exception {
+  private static void nextInterceptor(Execution execution, Block action, ExecInterceptor.ExecType type, Iterator<ExecInterceptor> interceptors) throws Exception {
     if (interceptors.hasNext()) {
       interceptors.next().intercept(execution, type, () -> nextInterceptor(execution, action, type, interceptors));
     } else {

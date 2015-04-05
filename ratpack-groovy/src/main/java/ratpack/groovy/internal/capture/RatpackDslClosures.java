@@ -18,7 +18,7 @@ package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
 import ratpack.func.Function;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.internal.ClosureUtil;
 
@@ -52,7 +52,7 @@ public class RatpackDslClosures {
     this.serverConfig = serverConfig;
   }
 
-  public static RatpackDslClosures capture(Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function, NoArgAction action) throws Exception {
+  public static RatpackDslClosures capture(Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function, Block action) throws Exception {
     RatpackDslClosures closures = new RatpackDslClosures();
     Groovy.Ratpack receiver = function.apply(closures);
     RatpackScriptBacking.withBacking(closure -> ClosureUtil.configureDelegateFirst(receiver, closure), action);

@@ -19,7 +19,7 @@ package ratpack.logging;
 import org.slf4j.MDC;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.util.Types;
 
 import java.util.LinkedHashMap;
@@ -92,7 +92,7 @@ import java.util.Map;
  * If you wish context to be inherited, you must do so explicitly by capturing the variables you wish to be inherited
  * (i.e. via {@link MDC#get(String)}) as local variables and then add them to the MDC (i.e. via {@link MDC#put(String, String)}) in the forked execution.
  *
- * @see ratpack.exec.ExecControl#addInterceptor(ratpack.exec.ExecInterceptor, ratpack.func.NoArgAction)
+ * @see ratpack.exec.ExecControl#addInterceptor(ratpack.exec.ExecInterceptor, ratpack.func.Block)
  */
 public class MDCInterceptor implements ExecInterceptor {
 
@@ -110,7 +110,7 @@ public class MDCInterceptor implements ExecInterceptor {
     return INSTANCE;
   }
 
-  public void intercept(Execution execution, ExecType type, NoArgAction continuation) throws Exception {
+  public void intercept(Execution execution, ExecType type, Block continuation) throws Exception {
     MDC.clear();
 
     MDCMap map = execution.maybeGet(MDCMap.class).orElse(null);

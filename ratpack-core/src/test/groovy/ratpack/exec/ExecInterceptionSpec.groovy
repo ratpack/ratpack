@@ -18,7 +18,7 @@ package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
-import ratpack.func.NoArgAction
+import ratpack.func.Block
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
@@ -35,7 +35,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, NoArgAction continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) {
       record << "$id:$type"
       continuation.execute()
     }
@@ -77,7 +77,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, NoArgAction continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) {
       println "$type:$id"
       super.intercept(execution, type, continuation)
       throw new RuntimeException("$type:$id")

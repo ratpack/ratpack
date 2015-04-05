@@ -19,12 +19,12 @@ package ratpack.func;
 import ratpack.util.Exceptions;
 
 /**
- * An action that takes no arguments.
+ * A block of code.
  * <p>
- * Used instead of {@link Runnable} to allow the throwing of checked exceptions.
+ * Similar to {@link Runnable}, but allows throwing of checked exceptions.
  */
 @FunctionalInterface
-public interface NoArgAction {
+public interface Block {
 
   /**
    * Execute the action.
@@ -41,7 +41,7 @@ public interface NoArgAction {
    * @param throwable the throwable to immediately throw when the returned action is executed
    * @return an action that immediately throws the given exception.
    */
-  static NoArgAction throwException(final Throwable throwable) {
+  static Block throwException(final Throwable throwable) {
     return () -> {
       throw Exceptions.toException(throwable);
     };
@@ -50,7 +50,7 @@ public interface NoArgAction {
   /**
    * Converts this action to a runnable.
    * <p>
-   * Any thrown exceptions will be {@link Exceptions#uncheck(NoArgAction) unchecked}.
+   * Any thrown exceptions will be {@link Exceptions#uncheck(Block) unchecked}.
    *
    * @return a runnable
    */

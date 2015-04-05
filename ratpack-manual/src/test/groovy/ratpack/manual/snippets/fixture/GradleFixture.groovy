@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixture
 
-import ratpack.func.NoArgAction
+import ratpack.func.Block
 
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
@@ -29,7 +29,7 @@ class GradleFixture extends GroovyScriptFixture {
   private volatile boolean busy
 
   @Override
-  void around(NoArgAction action) throws Exception {
+  void around(Block action) throws Exception {
     try {
       lock.lock()
       while (busy) {

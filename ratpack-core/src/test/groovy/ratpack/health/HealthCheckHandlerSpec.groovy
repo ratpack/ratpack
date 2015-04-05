@@ -20,7 +20,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import ratpack.exec.ExecControl
 import ratpack.exec.Promise
-import ratpack.func.NoArgAction
+import ratpack.func.Block
 import ratpack.http.MediaType
 import ratpack.registry.Registry
 import ratpack.render.Renderer
@@ -333,7 +333,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
           ctx.byContent {
             it.json({ ->
               ctx.render(JsonOutput.toJson(r.results))
-            } as NoArgAction)
+            } as Block)
           }
         })
         add HealthCheck.of("baz") { ec, r ->

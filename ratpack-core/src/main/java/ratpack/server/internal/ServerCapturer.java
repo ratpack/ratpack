@@ -17,7 +17,7 @@
 package ratpack.server.internal;
 
 import ratpack.func.Function;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
@@ -65,11 +65,11 @@ public abstract class ServerCapturer {
     }
   }
 
-  public static Optional<RatpackServer> capture(NoArgAction bootstrap) throws Exception {
+  public static Optional<RatpackServer> capture(Block bootstrap) throws Exception {
     return capture(new Overrides(), bootstrap);
   }
 
-  public static Optional<RatpackServer> capture(Overrides overrides, NoArgAction bootstrap) throws Exception {
+  public static Optional<RatpackServer> capture(Overrides overrides, Block bootstrap) throws Exception {
     OVERRIDES_HOLDER.set(overrides);
     try {
       bootstrap.execute();

@@ -16,7 +16,7 @@
 
 package ratpack.handling.internal;
 
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.handling.ByMethodSpec;
 import ratpack.handling.Handler;
 
@@ -36,7 +36,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     this.handlers = handlers;
   }
 
-  public ByMethodSpec get(NoArgAction handler) {
+  public ByMethodSpec get(Block handler) {
     return named(METHOD_GET, handler);
   }
 
@@ -44,7 +44,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return named(METHOD_GET, handler);
   }
 
-  public ByMethodSpec post(NoArgAction handler) {
+  public ByMethodSpec post(Block handler) {
     return named(METHOD_POST, handler);
   }
 
@@ -52,7 +52,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return named(METHOD_POST, handler);
   }
 
-  public ByMethodSpec put(NoArgAction handler) {
+  public ByMethodSpec put(Block handler) {
     return named(METHOD_PUT, handler);
   }
 
@@ -60,7 +60,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return named(METHOD_PUT, handler);
   }
 
-  public ByMethodSpec patch(NoArgAction handler) {
+  public ByMethodSpec patch(Block handler) {
     return named(METHOD_PATCH, handler);
   }
 
@@ -68,7 +68,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return named(METHOD_PATCH, handler);
   }
 
-  public ByMethodSpec delete(NoArgAction handler) {
+  public ByMethodSpec delete(Block handler) {
     return named(METHOD_DELETE, handler);
   }
 
@@ -76,7 +76,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return named(METHOD_DELETE, handler);
   }
 
-  public ByMethodSpec named(String methodName, NoArgAction handler) {
+  public ByMethodSpec named(String methodName, Block handler) {
     return named(methodName, ctx -> handler.execute());
   }
 

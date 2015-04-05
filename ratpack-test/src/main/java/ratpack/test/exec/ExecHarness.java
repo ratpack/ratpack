@@ -21,7 +21,7 @@ import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.stream.TransformablePublisher;
 import ratpack.test.exec.internal.DefaultExecHarness;
 
@@ -208,7 +208,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * {@inheritDoc}
    */
   @Override
-  default void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
+  default void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     getControl().addInterceptor(execInterceptor, continuation);
   }
 

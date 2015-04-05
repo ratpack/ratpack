@@ -24,7 +24,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
@@ -62,7 +62,7 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception {
+  public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     ExecutionBacking backing = ExecutionBacking.require();
     backing.getInterceptors().add(execInterceptor);
     backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);

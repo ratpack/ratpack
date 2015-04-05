@@ -18,7 +18,7 @@ package ratpack.groovy.handling.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyByContentSpec;
 import ratpack.groovy.handling.GroovyContext;
@@ -70,7 +70,7 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
-  public ByContentSpec type(String mimeType, NoArgAction handler) {
+  public ByContentSpec type(String mimeType, Block handler) {
     return delegate.type(mimeType, handler);
   }
 
@@ -80,7 +80,7 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
-  public ByContentSpec plainText(NoArgAction handler) {
+  public ByContentSpec plainText(Block handler) {
     return delegate.plainText(handler);
   }
 
@@ -90,7 +90,7 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
-  public ByContentSpec html(NoArgAction handler) {
+  public ByContentSpec html(Block handler) {
     return delegate.html(handler);
   }
 
@@ -100,7 +100,7 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
-  public ByContentSpec json(NoArgAction handler) {
+  public ByContentSpec json(Block handler) {
     return delegate.json(handler);
   }
 
@@ -110,7 +110,7 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
-  public ByContentSpec xml(NoArgAction handler) {
+  public ByContentSpec xml(Block handler) {
     return delegate.xml(handler);
   }
 
@@ -120,7 +120,7 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
-  public ByContentSpec noMatch(NoArgAction handler) {
+  public ByContentSpec noMatch(Block handler) {
     return delegate.noMatch(handler);
   }
 

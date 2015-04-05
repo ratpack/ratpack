@@ -16,7 +16,7 @@
 
 package ratpack.handling;
 
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 
 /**
  * A specification of how to respond to a request, based on the requested method.
@@ -28,10 +28,10 @@ public interface ByMethodSpec {
   /**
    * Defines the action to to take if the request has a HTTP method of GET.
    *
-   * @param handler The handler to invoke if the request method matches
+   * @param block the code to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec get(NoArgAction handler);
+  ByMethodSpec get(Block block);
 
   /**
    * Defines the action to to take if the request has a HTTP method of GET.
@@ -44,10 +44,10 @@ public interface ByMethodSpec {
   /**
    * Defines the action to to take if the request has a HTTP method of POST.
    *
-   * @param handler The handler to invoke if the request method matches
+   * @param block the code to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec post(NoArgAction handler);
+  ByMethodSpec post(Block block);
 
   /**
    * Defines the action to to take if the request has a HTTP method of POST.
@@ -60,10 +60,10 @@ public interface ByMethodSpec {
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
    *
-   * @param handler The handler to invoke if the request method matches
+   * @param block the code to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec put(NoArgAction handler);
+  ByMethodSpec put(Block block);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -76,10 +76,10 @@ public interface ByMethodSpec {
   /**
    * Defines the action to to take if the request has a HTTP method of PATCH.
    *
-   * @param handler The handler to invoke if the request method matches
+   * @param block the code to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec patch(NoArgAction handler);
+  ByMethodSpec patch(Block block);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PATCH.
@@ -92,10 +92,10 @@ public interface ByMethodSpec {
   /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
    *
-   * @param handler The handler to invoke if the request method matches
+   * @param block the code to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec delete(NoArgAction handler);
+  ByMethodSpec delete(Block block);
 
   /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
@@ -111,10 +111,10 @@ public interface ByMethodSpec {
    * The method name is case insensitive.
    *
    * @param methodName The HTTP method to map the given action to
-   * @param handler The handler to invoke if the request method matches
+   * @param block the code to invoke if the request method matches
    * @return this
    */
-  ByMethodSpec named(String methodName, NoArgAction handler);
+  ByMethodSpec named(String methodName, Block block);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.

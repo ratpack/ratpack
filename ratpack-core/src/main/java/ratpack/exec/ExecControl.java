@@ -19,7 +19,7 @@ package ratpack.exec;
 import org.reactivestreams.Publisher;
 import ratpack.exec.internal.JustInTimeExecControl;
 import ratpack.func.Action;
-import ratpack.func.NoArgAction;
+import ratpack.func.Block;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.Callable;
@@ -128,7 +128,7 @@ public interface ExecControl {
    * @throws Exception any thrown by {@code continuation}
    * @see ExecInterceptor
    */
-  void addInterceptor(ExecInterceptor execInterceptor, NoArgAction continuation) throws Exception;
+  void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception;
 
   /**
    * Performs a blocking operation on a separate thread, returning a promise for its value.
