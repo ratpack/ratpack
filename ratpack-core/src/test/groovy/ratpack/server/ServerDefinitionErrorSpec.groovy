@@ -18,6 +18,7 @@ package ratpack.server
 
 import ratpack.handling.Handler
 import ratpack.registry.Registries
+import ratpack.server.internal.ServerEnvironment
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup

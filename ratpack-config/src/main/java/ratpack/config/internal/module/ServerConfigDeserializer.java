@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerEnvironment;
+import ratpack.server.internal.ServerEnvironment;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.config.internal.DefaultConfigDataSpec;
 import ratpack.func.Action;
 import ratpack.server.*;
+import ratpack.server.internal.ServerEnvironment;
 
 import java.util.List;
 

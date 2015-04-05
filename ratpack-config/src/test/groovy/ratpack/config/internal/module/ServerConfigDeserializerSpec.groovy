@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import ratpack.server.ServerConfig
-import ratpack.server.ServerEnvironment
+import ratpack.server.internal.ServerEnvironment
 import ratpack.test.embed.BaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification

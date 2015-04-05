@@ -27,7 +27,6 @@ import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Predicate;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerEnvironment;
 import ratpack.ssl.SSLContexts;
 import ratpack.util.internal.Paths2;
 

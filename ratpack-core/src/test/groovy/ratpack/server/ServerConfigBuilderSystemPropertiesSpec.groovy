@@ -17,6 +17,7 @@
 package ratpack.server
 
 import ratpack.server.internal.DefaultServerConfigBuilder
+import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext

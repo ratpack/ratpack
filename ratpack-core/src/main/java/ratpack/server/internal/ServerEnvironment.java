@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.server;
+package ratpack.server.internal;
 
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.server.ServerConfig;
 
 import java.net.URI;
 import java.net.URISyntaxException;

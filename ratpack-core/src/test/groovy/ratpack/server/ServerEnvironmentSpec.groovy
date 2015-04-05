@@ -16,6 +16,7 @@
 
 package ratpack.server
 
+import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
 class ServerEnvironmentSpec extends Specification {

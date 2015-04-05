@@ -17,7 +17,7 @@
 package ratpack.config.internal.source
 
 import ratpack.config.internal.DefaultConfigDataSpec
-import ratpack.server.ServerEnvironment
+import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -35,7 +35,7 @@ import ratpack.config.internal.source.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerEnvironment;
+import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.Paths2;
 

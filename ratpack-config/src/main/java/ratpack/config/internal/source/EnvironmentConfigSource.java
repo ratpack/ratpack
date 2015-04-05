@@ -29,7 +29,7 @@ import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.func.Predicate;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerEnvironment;
+import ratpack.server.internal.ServerEnvironment;
 
 import java.util.List;
 import java.util.Map;

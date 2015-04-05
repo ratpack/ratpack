@@ -18,7 +18,7 @@ package ratpack.config
 
 import ratpack.config.internal.DefaultConfigDataSpec
 import ratpack.server.ServerConfig
-import ratpack.server.ServerEnvironment
+import ratpack.server.internal.ServerEnvironment
 
 class PropsConfigSpec extends BaseConfigSpec {
   def "supports properties"() {
