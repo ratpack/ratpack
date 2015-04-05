@@ -19,7 +19,8 @@ package ratpack.health;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
-import ratpack.func.Function;
+import ratpack.func.BiFunction;
+import ratpack.registry.Registry;
 
 /**
  * Reports on the health of some aspect of the system.
@@ -27,7 +28,7 @@ import ratpack.func.Function;
  * Health checks are typically used for reporting and monitoring purposes.
  * The results exposed by health checks can be reported via HTTP by a {@link ratpack.health.HealthCheckHandler}.
  * <p>
- * The actual check is implemented by the {@link #check(ExecControl)} method, that returns a promise for a {@link Result}.
+ * The actual check is implemented by the {@link #check(ExecControl, Registry)} method, that returns a promise for a {@link Result}.
  * <p>
  * The inspiration for health checks in Ratpack comes from the <a href="https://dropwizard.github.io/metrics/3.1.0/manual/healthchecks/">Dropwizard Metrics</a> library.
  * Ratpack health checks are different in that they support non blocking checks, and all health checks require a unique name.
@@ -173,29 +174,33 @@ public interface HealthCheck {
    * This method returns a promise to allow check implementations to be asynchronous.
    * If the implementation does not need to be asynchronous, the result can be returned via {@link ExecControl#promiseOf(Object)}.
    * <p>
+   * The {@code registry} argument is the server registry, from which other supporting objects can be obtained.
+   * <p>
    * If this method throws an exception, it is logically equivalent to returned an unhealthy result with the thrown exception.
    * <p>
    * If the method returns a failed promise, it will be converted to a result using {@link Result#unhealthy(Throwable)}.
    *
    * @param execControl an execution control
+   * @param registry the server registry
    * @return a promise for the result
    * @throws Exception any
    */
-  Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception;
+  Promise<HealthCheck.Result> check(ExecControl execControl, Registry registry) throws Exception;
 
   /**
    * Convenience factory for health check implementations.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.registry.Registries;
    * import ratpack.health.HealthCheck;
    * import static org.junit.Assert.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     HealthCheck.Result result = ExecHarness.yieldSingle(e ->
-   *       HealthCheck.of("test", execControl ->
+   *       HealthCheck.of("test", (execControl, registry) ->
    *         execControl.promiseOf(HealthCheck.Result.healthy())
-   *       ).check(e)
+   *       ).check(e, Registries.empty())
    *     ).getValue();
    *
    *     assertTrue(result.isHealthy());
@@ -207,7 +212,7 @@ public interface HealthCheck {
    * @param func a health check implementation
    * @return a named health check implementation
    */
-  static HealthCheck of(String name, Function<? super ExecControl, ? extends Promise<HealthCheck.Result>> func) {
+  static HealthCheck of(String name, BiFunction<? super ExecControl, ? super Registry, ? extends Promise<Result>> func) {
     return new HealthCheck() {
       @Override
       public String getName() {
@@ -215,8 +220,8 @@ public interface HealthCheck {
       }
 
       @Override
-      public Promise<Result> check(ExecControl execControl) throws Exception {
-        return func.apply(execControl);
+      public Promise<Result> check(ExecControl execControl, Registry registry) throws Exception {
+        return func.apply(execControl, registry);
       }
     };
   }

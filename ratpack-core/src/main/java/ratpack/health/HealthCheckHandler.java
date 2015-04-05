@@ -24,6 +24,7 @@ import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.registry.Registry;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <pre class="java">{@code
  * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
+ * import ratpack.registry.Registry;
  * import ratpack.health.HealthCheck;
  * import ratpack.health.HealthCheckHandler;
  * import ratpack.test.embed.EmbeddedApp;
@@ -52,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *       return "example"; // must be unique within the application
  *     }
  *
- *     public Promise<HealthCheck.Result> check(ExecControl execControl) throws Exception {
+ *     public Promise<HealthCheck.Result> check(ExecControl execControl, Registry registry) throws Exception {
  *       return execControl.promiseOf(HealthCheck.Result.healthy());
  *     }
  *   }
@@ -61,7 +63,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     EmbeddedApp.of(s -> s
  *       .registryOf(r -> r
  *         .add(new ExampleHealthCheck())
- *         .add(HealthCheck.of("inline", execControl -> // alternative way to implement health checks
+ *         .add(HealthCheck.of("inline", (execControl, registry) -> // alternative way to implement health checks
  *           execControl.promiseOf(HealthCheck.Result.unhealthy("FAILED"))
  *         ))
  *       )
@@ -206,27 +208,27 @@ public class HealthCheckHandler implements Handler {
       if (checkName != null) {
         Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
         if (first.isPresent()) {
-          ctx.render(execute(ctx, Collections.singleton(first.get())));
+          ctx.render(execute(ctx, ctx, Collections.singleton(first.get())));
         } else {
           ctx.clientError(404);
         }
       } else {
-        ctx.render(execute(ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
+        ctx.render(execute(ctx, ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
       }
     } catch (Exception e) {
       ctx.error(e);
     }
   }
 
-  private Promise<HealthCheck.Result> execute(ExecControl execControl, HealthCheck healthCheck) {
+  private Promise<HealthCheck.Result> execute(ExecControl execControl, Registry registry, HealthCheck healthCheck) {
     try {
-      return healthCheck.check(execControl).mapError(HealthCheck.Result::unhealthy);
+      return healthCheck.check(execControl, registry).mapError(HealthCheck.Result::unhealthy);
     } catch (Exception e) {
       return execControl.promiseOf(HealthCheck.Result.unhealthy(e));
     }
   }
 
-  private Promise<HealthCheckResults> execute(ExecControl execControl, Iterable<? extends HealthCheck> healthChecks) {
+  private Promise<HealthCheckResults> execute(ExecControl execControl, Registry registry, Iterable<? extends HealthCheck> healthChecks) {
     Iterator<? extends HealthCheck> iterator = healthChecks.iterator();
     if (!iterator.hasNext()) {
       return execControl.promiseOf(new HealthCheckResults(ImmutableSortedMap.of()));
@@ -239,7 +241,7 @@ public class HealthCheckHandler implements Handler {
         counter.incrementAndGet();
         HealthCheck healthCheck = iterator.next();
         execControl.exec().start(e ->
-            execute(e, healthCheck)
+            execute(e, registry, healthCheck)
               .throttled(throttle)
               .then(r -> {
                 results.put(healthCheck.getName(), r);
