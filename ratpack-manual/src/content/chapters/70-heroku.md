@@ -116,5 +116,4 @@ See the [launching chapter](launching.html) chapter for more detail on starting 
 ### Port
 
 Heroku assigns each application an ephemeral port number, made available by the `PORT` environment variable. Ratpack honors this environment variable by default
-if the `ratpack.port` system property is not set. This automatic configuration takes place through the [`ServerEnvironment`](api/ratpack/server/ServerEnvironment.html) 
-as part of creating the server's [`Builder`](api/ratpack/server/ServerConfig.Builder.html).
+if the `ratpack.port` system property is not set.
