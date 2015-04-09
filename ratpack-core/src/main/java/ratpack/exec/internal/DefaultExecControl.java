@@ -130,26 +130,26 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
-    final ExecutionBacking backing = ExecutionBacking.get();
-    return directPromise(downstream ->
-        backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(
-          new Supplier<Result<T>>() {
-            Result<T> result;
+    return directPromise(downstream -> {
+      ExecutionBacking backing = ExecutionBacking.require();
+      backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(
+        new Supplier<Result<T>>() {
+          Result<T> result;
 
-            @Override
-            public Result<T> get() {
-              try {
-                backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
-                    result = Result.success(blockingOperation.call())
-                );
-                return result;
-              } catch (Exception e) {
-                return Result.<T>failure(e);
-              }
+          @Override
+          public Result<T> get() {
+            try {
+              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
+                  result = Result.success(blockingOperation.call())
+              );
+              return result;
+            } catch (Exception e) {
+              return Result.<T>failure(e);
             }
-          }, execController.getBlockingExecutor()
-        ).thenAcceptAsync(v -> streamHandle.complete(() -> downstream.accept(v)), backing.getEventLoop()))
-    );
+          }
+        }, execController.getBlockingExecutor()
+      ).thenAcceptAsync(v -> streamHandle.complete(() -> downstream.accept(v)), backing.getEventLoop()));
+    });
   }
 
   private <T> Promise<T> directPromise(Upstream<T> upstream) {
