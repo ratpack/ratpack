@@ -90,23 +90,6 @@ public interface Promise<T> {
   <O> Promise<O> map(Function<? super T, ? extends O> transformer);
 
   /**
-   * Consumes the promised value, turning the promise into a promise for {@code null}.
-   * <p>
-   * This method is effectively a stronger typed version of {@link #map(Function)}, where the result is {@code null}.
-   * <p>
-   * If the action throws an exception, it will propagate as the promise failure.
-   *
-   * @param action the consumer of the promised value
-   * @return a promise for the {@code null} value
-   */
-  default Promise<Void> consume(Action<? super T> action) {
-    return map(t -> {
-      action.execute(t);
-      return null;
-    });
-  }
-
-  /**
    * Transforms the promise failure (potentially into a value) by applying the given function to it.
    * <p>
    * If the function returns a value, the promise will now be considered successful.

@@ -193,15 +193,6 @@ public interface ExecControl {
   }
 
   /**
-   * Creates a promise for the {@code null} value.
-   *
-   * @return a promise for the {@code null} value
-   */
-  default Promise<Void> voidPromise() {
-    return promiseOf(null);
-  }
-
-  /**
    * Executes the given promise producing factory, converting any thrown exception into a failed promise.
    * <p>
    * Can be used to wrap execution of promise returning functions that may themselves throw errors.
@@ -232,23 +223,6 @@ public interface ExecControl {
   default <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
     try {
       return factory.create();
-    } catch (Exception e) {
-      return failedPromise(e);
-    }
-  }
-
-  /**
-   * Executes the given block, returning a promise for a {@code null} value.
-   * <p>
-   * If the given block throws an exception, the the returned promise will be a failed promise for the exception.
-   *
-   * @param block a block
-   * @return a promise for the {@code null} value
-   */
-  default Promise<Void> voidPromise(Block block) {
-    try {
-      block.execute();
-      return voidPromise();
     } catch (Exception e) {
       return failedPromise(e);
     }
