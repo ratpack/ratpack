@@ -600,4 +600,14 @@ class StreamsSpec extends Specification {
     yieldSingle { publish(1..10).toPromise() }.throwable instanceof IllegalStateException
     yieldSingle { publish([]).toPromise() }.value == null
   }
+
+  def "flatmap"() {
+    when:
+    def result = harness.yield { c ->
+      Streams.publish(["a", "b", "c"]).flatMap { c.promiseOf(it) }.toList()
+    }
+
+    then:
+    result.valueOrThrow == ["a", "b", "c"]
+  }
 }

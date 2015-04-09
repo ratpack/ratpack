@@ -19,6 +19,7 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
 import ratpack.stream.TransformablePublisher;
@@ -85,16 +86,20 @@ public class FlatMapPublisher<O, I> implements TransformablePublisher<O> {
 
       @Override
       public void onError(Throwable t) {
-        if (done.compareAndSet(false, true)) {
-          outSubscriber.onError(t);
-        }
+        ExecControl.current().promiseOf(t).then(e -> {
+          if (done.compareAndSet(false, true)) {
+            outSubscriber.onError(t);
+          }
+        });
       }
 
       @Override
       public void onComplete() {
-        if (done.compareAndSet(false, true)) {
-          outSubscriber.onComplete();
-        }
+        ExecControl.current().promiseOf(true).then(e -> {
+          if (done.compareAndSet(false, true)) {
+            outSubscriber.onComplete();
+          }
+        });
       }
     });
   }
