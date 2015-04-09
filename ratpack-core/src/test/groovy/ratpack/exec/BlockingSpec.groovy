@@ -17,9 +17,14 @@
 package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
+import ratpack.func.Block
 import ratpack.http.client.RequestSpec
+import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
+import ratpack.util.internal.InternalRatpackError
+
+import static ratpack.util.Exceptions.uncheck
 
 class BlockingSpec extends RatpackGroovyDslSpec {
 
@@ -246,5 +251,24 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     events == ["compute", "blocking", "inner compute", "inner blocking"]
   }
 
+  def "should throw UnmanagedThreadException when trying to use blocking outside of Execution"() {
+    given:
+    def promise = ExecHarness.harness().blocking { }
 
+    when:
+    promise.onError { t ->
+      throw t
+    }.then {}
+
+    then:
+    thrown(UnmanagedThreadException)
+
+    when:
+    promise.onError { t ->
+      throw t
+    }.then {}
+
+    then:
+    thrown(UnmanagedThreadException)
+  }
 }
