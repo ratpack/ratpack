@@ -20,6 +20,7 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.internal.JustInTimeExecControl;
 import ratpack.func.Action;
 import ratpack.func.Block;
+import ratpack.func.Factory;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.Callable;
@@ -189,6 +190,68 @@ public interface ExecControl {
    */
   default <T> Promise<T> failedPromise(Throwable error) {
     return promise(f -> f.error(error));
+  }
+
+  /**
+   * Creates a promise for the {@code null} value.
+   *
+   * @return a promise for the {@code null} value
+   */
+  default Promise<Void> voidPromise() {
+    return promiseOf(null);
+  }
+
+  /**
+   * Executes the given promise producing factory, converting any thrown exception into a failed promise.
+   * <p>
+   * Can be used to wrap execution of promise returning functions that may themselves throw errors.
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.ExecControl;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.test.exec.ExecHarness;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static Promise<String> someMethod() throws Exception {
+   *     throw new Exception("bang!");
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(e ->
+   *       e.wrap(() -> someMethod())
+   *     );
+   *
+   *     assertEquals("bang!", result.getThrowable().getMessage());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @return the promise returned by the factory, or a promise for the exception it threw
+   */
+  default <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
+    try {
+      return factory.create();
+    } catch (Exception e) {
+      return failedPromise(e);
+    }
+  }
+
+  /**
+   * Executes the given block, returning a promise for a {@code null} value.
+   * <p>
+   * If the given block throws an exception, the the returned promise will be a failed promise for the exception.
+   *
+   * @param block a block
+   * @return a promise for the {@code null} value
+   */
+  default Promise<Void> voidPromise(Block block) {
+    try {
+      block.execute();
+      return voidPromise();
+    } catch (Exception e) {
+      return failedPromise(e);
+    }
   }
 
   /**

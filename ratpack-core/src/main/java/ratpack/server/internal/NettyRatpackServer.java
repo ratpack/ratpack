@@ -30,6 +30,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
@@ -51,8 +52,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -222,7 +226,11 @@ public class NettyRatpackServer implements RatpackServer {
     Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    executeEvents(serverRegistry, new DefaultEvent(serverRegistry, reloading), Service::onStart);
+    ExecControl execControl = serverRegistry.get(ExecControl.class);
+    Iterator<? extends Service> services = serverRegistry.getAll(Service.class).iterator();
+    executeEvents(services, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStart, (service, error) -> {
+      throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
+    });
 
     return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
   }
@@ -257,7 +265,11 @@ public class NettyRatpackServer implements RatpackServer {
         return;
       }
       if (serverRegistry != null) {
-        executeEvents(serverRegistry, new DefaultEvent(serverRegistry, reloading), Service::onStop);
+        Iterator<? extends Service> services = serverRegistry.getAll(Service.class).iterator();
+        ExecControl execControl = serverRegistry.get(ExecControl.class);
+        executeEvents(services, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStop, (service, error) ->
+            LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
+        );
       }
     } finally {
       Optional.ofNullable(channel).ifPresent(Channel::close);
@@ -311,9 +323,44 @@ public class NettyRatpackServer implements RatpackServer {
     return (serverConfig.getAddress() == null) ? new InetSocketAddress(serverConfig.getPort()) : new InetSocketAddress(serverConfig.getAddress(), serverConfig.getPort());
   }
 
-  private <E> void executeEvents(Registry registry, E event, BiAction<Service, E> action) throws Exception {
-    for (Service service : registry.getAll(Service.class)) {
-      action.execute(service, event);
+  private <E> void executeEvents(Iterator<? extends Service> services, E event, ExecControl execControl, BiAction<Service, E> action, BiAction<? super Service, ? super Throwable> onError) throws Exception {
+    if (!services.hasNext()) {
+      return;
+    }
+
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Throwable> error = new AtomicReference<>();
+    executeEvents(services, latch, error, event, execControl, action, onError);
+    latch.await();
+
+    Throwable thrown = error.get();
+    if (thrown != null) {
+      throw Exceptions.toException(thrown);
+    }
+  }
+
+  private <E> void executeEvents(Iterator<? extends Service> services, CountDownLatch latch, AtomicReference<Throwable> error, E event, ExecControl execControl, BiAction<Service, E> action, BiAction<? super Service, ? super Throwable> onError) throws Exception {
+    if (services.hasNext()) {
+      Service service = services.next();
+      execControl.exec()
+        .onError(t -> {
+          try {
+            onError.execute(service, t);
+          } catch (Throwable e) {
+            error.set(e);
+          }
+        })
+        .onComplete(e -> {
+          //noinspection ThrowableResultOfMethodCallIgnored
+          if (error.get() == null) {
+            executeEvents(services, latch, error, event, execControl, action, onError);
+          } else {
+            latch.countDown();
+          }
+        })
+        .start(e -> action.execute(service, event));
+    } else {
+      latch.countDown();
     }
   }
 
@@ -333,6 +380,7 @@ public class NettyRatpackServer implements RatpackServer {
         this.inner = buildAdapter(definitionBuild);
       } catch (Exception e) {
         this.inner = null;
+        serverRegistry = buildServerRegistry(lastServerConfig, r -> r);
       }
     }
 
@@ -371,7 +419,7 @@ public class NettyRatpackServer implements RatpackServer {
 
     private NettyHandlerAdapter buildErrorRenderingAdapter(Exception e) {
       try {
-        return new NettyHandlerAdapter(buildServerRegistry(lastServerConfig, (r) -> Registries.empty()), context -> context.error(e));
+        return new NettyHandlerAdapter(serverRegistry, context -> context.error(e));
       } catch (Exception e1) {
         throw uncheck(e);
       }

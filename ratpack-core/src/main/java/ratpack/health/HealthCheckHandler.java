@@ -221,11 +221,7 @@ public class HealthCheckHandler implements Handler {
   }
 
   private Promise<HealthCheck.Result> execute(ExecControl execControl, Registry registry, HealthCheck healthCheck) {
-    try {
-      return healthCheck.check(execControl, registry).mapError(HealthCheck.Result::unhealthy);
-    } catch (Exception e) {
-      return execControl.promiseOf(HealthCheck.Result.unhealthy(e));
-    }
+    return execControl.wrap(() -> healthCheck.check(execControl, registry)).mapError(HealthCheck.Result::unhealthy);
   }
 
   private Promise<HealthCheckResults> execute(ExecControl execControl, Registry registry, Iterable<? extends HealthCheck> healthChecks) {

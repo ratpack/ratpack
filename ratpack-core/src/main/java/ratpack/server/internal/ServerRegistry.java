@@ -64,12 +64,12 @@ public abstract class ServerRegistry {
       userRegistry = userRegistryFactory.apply(baseRegistry);
     } catch (Exception e) {
       Throwables.propagateIfPossible(e);
-      throw new LaunchException("Failed to build user registry", e);
+      throw new StartupFailureException("Failed to build user registry", e);
     }
     return userRegistry;
   }
 
-  private static Registry buildBaseRegistry(RatpackServer ratpackServer, ExecController execController, ServerConfig serverConfig) {
+  public static Registry buildBaseRegistry(RatpackServer ratpackServer, ExecController execController, ServerConfig serverConfig) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
 
     RegistryBuilder baseRegistryBuilder;

@@ -544,9 +544,9 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     @Override
     public void onStart(StartEvent event) throws Exception {
       config.getJmx().ifPresent(jmx -> {
-         if (jmx.isEnabled()) {
-           injector.getInstance(JmxReporter.class).start();
-         }
+        if (jmx.isEnabled()) {
+          injector.getInstance(JmxReporter.class).start();
+        }
       });
 
       config.getConsole().ifPresent(console -> {

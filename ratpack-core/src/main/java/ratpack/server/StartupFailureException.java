@@ -17,9 +17,9 @@
 package ratpack.server;
 
 /**
- * Thrown if something goes wrong at launch time.
+ * Thrown when a server fails to start.
  */
-public class LaunchException extends RuntimeException {
+public class StartupFailureException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
@@ -28,7 +28,7 @@ public class LaunchException extends RuntimeException {
    *
    * @param message The exception message
    */
-  public LaunchException(String message) {
+  public StartupFailureException(String message) {
     super(message);
   }
 
@@ -38,7 +38,7 @@ public class LaunchException extends RuntimeException {
    * @param message The exception message
    * @param cause The nested exception
    */
-  public LaunchException(String message, Throwable cause) {
+  public StartupFailureException(String message, Throwable cause) {
     super(message, cause);
   }
 }

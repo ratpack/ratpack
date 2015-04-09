@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import ratpack.exec.ExecControl;
 import ratpack.registry.Registry;
 import ratpack.server.StartEvent;
 import ratpack.server.StopEvent;
@@ -23,11 +24,17 @@ import ratpack.server.StopEvent;
 public class DefaultEvent implements StartEvent, StopEvent {
 
   private final Registry registry;
+  private final ExecControl execControl;
   private final boolean reload;
 
-  public DefaultEvent(Registry registry, boolean reload) {
+  public DefaultEvent(Registry registry, ExecControl execControl, boolean reload) {
     this.registry = registry;
+    this.execControl = execControl;
     this.reload = reload;
+  }
+
+  public ExecControl getExecControl() {
+    return execControl;
   }
 
   @Override

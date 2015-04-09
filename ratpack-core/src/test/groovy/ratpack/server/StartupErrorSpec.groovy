@@ -57,13 +57,19 @@ class StartupErrorSpec extends Specification {
     server.start()
 
     then:
-    def e = thrown(LaunchException)
+    def e = thrown(StartupFailureException)
     e.cause.is ex
   }
 
   def "registry building errors are not fatal when in development"() {
     when:
-    server = RatpackServer.of { it.serverConfig(ServerConfig.embedded().development(true)).registry { throw ex }.handlers { it.handler { it.render "ok" } } }
+    server = RatpackServer.of {
+      it.serverConfig(ServerConfig.embedded().development(true))
+        .registry { throw ex }
+        .handlers {
+        it.handler { it.render "ok" }
+      }
+    }
 
     then:
     noExceptionThrown()

@@ -39,9 +39,15 @@ package ratpack.server;
  * public class Example {
  *
  *   static class RecordingService implements Service {
- *     public List<String> events = new LinkedList<>();
- *     public void onStart(StartEvent startEvent) { events.add("start"); }
- *     public void onStop(StopEvent startEvent) { events.add("stop"); }
+ *     public final List<String> events = new LinkedList<>();
+ *
+ *     public void onStart(StartEvent startEvent) {
+ *       events.add("start");
+ *     }
+ *
+ *     public void onStop(StopEvent startEvent) {
+ *       events.add("stop");
+ *     }
  *   }
  *
  *   public static void main(String... args) throws Exception {
@@ -69,6 +75,17 @@ package ratpack.server;
 public interface Service {
 
   // TODO define semantics of on* methods throwing exceptions, and test coverage
+
+  /**
+   * The name of this service, used for display purposes.
+   * <p>
+   * The default implementation is to return {@code getClass().getName()}.
+   *
+   * @return the name of this service, used for display purposes
+   */
+  default String getName() {
+    return this.getClass().getName();
+  }
 
   /**
    * Server startup event.

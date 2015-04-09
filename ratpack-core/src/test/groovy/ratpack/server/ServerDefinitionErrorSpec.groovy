@@ -120,7 +120,9 @@ class ServerDefinitionErrorSpec extends Specification {
 
   def "registry build error is not fatal when in development"() {
     given:
-    server = RatpackServer.of { it.registry { throw new IllegalStateException("boom") }.handler {} }
+    server = RatpackServer.of { it.registry {
+      throw new IllegalStateException("boom")
+    }.handler {} }
 
     when:
     server.start()

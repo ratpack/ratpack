@@ -17,7 +17,7 @@
 package ratpack.groovy
 
 import ratpack.groovy.internal.StandaloneScriptBacking
-import ratpack.server.LaunchException
+import ratpack.server.StartupFailureException
 import ratpack.server.RatpackServer
 
 class ScriptBackedServer implements RatpackServer {
@@ -32,7 +32,7 @@ class ScriptBackedServer implements RatpackServer {
 
 
   @Override
-  void start() throws LaunchException {
+  void start() throws StartupFailureException {
     StandaloneScriptBacking.captureNext { RatpackServer it ->
       nestedServer = it
     }
