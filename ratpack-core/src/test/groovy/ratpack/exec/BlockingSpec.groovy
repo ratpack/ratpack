@@ -256,17 +256,13 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     def promise = ExecHarness.harness().blocking { }
 
     when:
-    promise.onError { t ->
-      throw t
-    }.then {}
+    uncheck({ promise.then {} } as Block)
 
     then:
     thrown(UnmanagedThreadException)
 
     when:
-    promise.onError { t ->
-      throw t
-    }.then {}
+    uncheck({ promise.then {} } as Block)
 
     then:
     thrown(UnmanagedThreadException)
