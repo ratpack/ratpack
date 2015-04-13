@@ -22,7 +22,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
-import ratpack.util.internal.InternalRatpackError
 
 import static ratpack.util.Exceptions.uncheck
 
