@@ -30,6 +30,7 @@ ext {
     spock: "0.7-groovy-2.0",
     log4j: "2.2",
     newrelic: "3.15.0",
+    reactiveStreams: "1.0.0.RC5"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {

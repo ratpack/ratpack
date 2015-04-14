@@ -19,30 +19,28 @@ package ratpack.stream.tck
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
+import ratpack.stream.Streams
+import ratpack.test.exec.ExecHarness
 
-import static ratpack.stream.Streams.publish
+import java.time.Duration
 
 class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   public BufferingPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(300L))
   }
+
+  ExecHarness harness = ExecHarness.harness()
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    publish(0..<elements).buffer()
+    Streams.periodically(harness.controller.executor, Duration.ofNanos(100)) {
+      it < elements ? it : null
+    }
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000 // otherwise we explode the buffer
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Integer> createFailedPublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 

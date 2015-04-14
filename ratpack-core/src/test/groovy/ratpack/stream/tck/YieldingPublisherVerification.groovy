@@ -15,7 +15,6 @@
  */
 
 
-
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
@@ -25,11 +24,8 @@ import ratpack.stream.Streams
 
 class YieldingPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   YieldingPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(300L))
   }
 
   @Override
@@ -37,15 +33,10 @@ class YieldingPublisherVerification extends PublisherVerification<Integer> {
     Streams.yield { it.requestNum < elements ? it.requestNum : null }
   }
 
-  @Override
-  long maxElementsFromPublisher() {
-    1000
-  }
 
   @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Integer> createFailedPublisher() {
     return null
   }
-
 
 }

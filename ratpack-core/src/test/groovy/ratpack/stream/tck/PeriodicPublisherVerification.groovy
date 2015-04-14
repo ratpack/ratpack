@@ -27,11 +27,8 @@ import java.util.concurrent.ScheduledExecutorService
 
 class PeriodicPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 1000L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   PeriodicPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(1000L))
   }
 
   ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor()
@@ -44,7 +41,7 @@ class PeriodicPublisherVerification extends PublisherVerification<Integer> {
   }
 
   @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Integer> createFailedPublisher() {
     null
   }
 }

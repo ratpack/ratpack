@@ -23,12 +23,10 @@ import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.FullHttpRequest
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.codec.http.HttpResponseStatus
-import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.event.internal.DefaultEventController
-import ratpack.func.Function
 import ratpack.handling.RequestOutcome
 import ratpack.server.internal.DefaultResponseTransmitter
 
@@ -36,15 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.mockito.Matchers.any
 import static org.mockito.Mockito.*
-import static ratpack.stream.Streams.constant
-import static ratpack.stream.Streams.publish
 
-class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxVerification<Integer> {
-
-  public static final long DEFAULT_TIMEOUT_MILLIS = 3000L
+class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxVerification<ByteBuf> {
 
   public DefaultResponseTransmitterBlackboxVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS))
+    super(new TestEnvironment(3000L))
   }
 
   @Override
@@ -72,21 +66,8 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
   }
 
   @Override
-  Publisher<ByteBuf> createHelperPublisher(long elements) {
-    if (elements == Long.MAX_VALUE) {
-      constant(1).map(integerToByteBuf)
-    } else if (elements > 0) {
-      publish(0..<elements).map(integerToByteBuf)
-    } else {
-      publish([])
-    }
-  }
-
-  def integerToByteBuf = new Function<Integer, ByteBuf>() {
-    @Override
-    ByteBuf apply(Integer i) throws Exception {
-      Unpooled.wrappedBuffer([i.byteValue()] as byte[])
-    }
+  ByteBuf createElement(int element) {
+    Unpooled.wrappedBuffer([element.byteValue()] as byte[])
   }
 
 }

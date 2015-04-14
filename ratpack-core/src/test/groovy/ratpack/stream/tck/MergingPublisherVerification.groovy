@@ -27,11 +27,8 @@ import java.util.concurrent.Executors
 
 class MergingPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 1000L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   MergingPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(1000L))
   }
 
   @Override
@@ -48,12 +45,7 @@ class MergingPublisherVerification extends PublisherVerification<Integer> {
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Integer> createFailedPublisher() {
     null
   }
 }

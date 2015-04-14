@@ -158,28 +158,31 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       }
 
       @Override
-      public void onSubscribe(Subscription s) {
+      public void onSubscribe(Subscription subscription) {
+        if (subscription == null) {
+          throw new NullPointerException("'subscription' is null");
+        }
         if (this.subscription != null) {
-          s.cancel();
+          subscription.cancel();
           return;
         }
 
-        this.subscription = s;
+        this.subscription = subscription;
 
         onWritabilityChanged = () -> {
           if (channel.isWritable() && !done.get()) {
-            subscription.request(1);
+            this.subscription.request(1);
           }
         };
 
         ChannelFuture channelFuture = pre(responseStatus);
         if (channelFuture == null) {
-          s.cancel();
+          subscription.cancel();
           notifyListeners(responseStatus, channel.close());
         } else {
           channelFuture.addListener(cancelOnFailure);
           if (channel.isWritable()) {
-            subscription.request(1);
+            this.subscription.request(1);
           }
         }
       }
@@ -196,6 +199,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
       @Override
       public void onError(Throwable t) {
+        if (t == null) {
+          throw new NullPointerException("error is null");
+        }
         LOGGER.warn("Exception thrown transmitting stream", t);
         if (done.compareAndSet(false, true)) {
           post(responseStatus);

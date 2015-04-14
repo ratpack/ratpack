@@ -24,25 +24,17 @@ import ratpack.stream.Streams
 
 class TransformingPublisherVerification extends PublisherVerification<String> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   TransformingPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(1000L))
   }
 
   @Override
-  Publisher<Integer> createPublisher(long elements) {
-    Streams.map(Streams.publish(1..elements)) { it.toString() }
+  Publisher<String> createPublisher(long elements) {
+    Streams.publish(1..elements).map { it.toString() }
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000 // otherwise we explode the buffer
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<String> createFailedPublisher() {
     null
   }
 }

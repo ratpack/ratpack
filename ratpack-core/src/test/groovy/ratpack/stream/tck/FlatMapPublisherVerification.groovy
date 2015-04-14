@@ -26,11 +26,8 @@ import ratpack.test.exec.ExecHarness
 
 class FlatMapPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 500L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   public FlatMapPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(500L))
   }
 
   private ExecHarness execHarness = ExecHarness.harness()
@@ -40,6 +37,10 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
     return new Publisher<Integer>() {
       @Override
       void subscribe(Subscriber<? super Integer> s) {
+        if (s == null) {
+          throw null
+        }
+
         execHarness.exec().start {
           def stream = Streams.yield {
             it.requestNum < elements ? elements : null
@@ -54,12 +55,7 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Integer> createFailedPublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 

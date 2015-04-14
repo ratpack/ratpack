@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.stream.tck
+package ratpack.stream.internal
 
-import org.reactivestreams.Publisher
-import org.reactivestreams.tck.PublisherVerification
-import org.reactivestreams.tck.TestEnvironment
-import ratpack.func.Action
 import ratpack.stream.Streams
+import spock.lang.Specification
 
-class WiretapPublisherVerification extends PublisherVerification<Integer> {
+class FanOutPublisherSpec extends Specification {
 
-  WiretapPublisherVerification() {
-    super(new TestEnvironment(300L))
+  def "only sends requested amount"() {
+    when:
+    def p = Streams.fanOut(Streams.publish([[1, 2], [3, 4]]))
+    List r
+    def s = new CollectingSubscriber({ r = it.value }, { it.request(3) })
+    p.subscribe(s)
+
+    then:
+    s.received == [1, 2, 3]
   }
 
-  @Override
-  Publisher<Integer> createPublisher(long elements) {
-    Streams.wiretap(Streams.publish(1..elements), Action.noop())
-  }
-
-  @Override
-  Publisher<Integer> createFailedPublisher() {
-    return null
-  }
 }

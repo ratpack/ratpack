@@ -80,7 +80,9 @@ public class GatedPublisher<T> implements TransformablePublisher<T> {
         try {
           if (open.get()) {
             long requested = waiting.getAndSet(0);
-            upstreamSubscription.request(requested);
+            if (requested > 0) {
+              upstreamSubscription.request(requested);
+            }
           }
         } finally {
           draining.set(false);

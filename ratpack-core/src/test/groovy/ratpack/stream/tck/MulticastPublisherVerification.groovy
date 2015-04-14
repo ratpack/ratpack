@@ -20,30 +20,26 @@ package ratpack.stream.tck
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
+import ratpack.stream.Streams
 
-import static ratpack.stream.Streams.publish
+import java.time.Duration
+import java.util.concurrent.Executors
 
 class MulticastPublisherVerification extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   public MulticastPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(300L))
   }
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    publish(0..<elements).multicast()
+    Streams.periodically(Executors.newSingleThreadScheduledExecutor(), Duration.ofNanos(100)) {
+      it < elements ? it : null
+    }.multicast()
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Integer> createFailedPublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 

@@ -20,7 +20,6 @@ package ratpack.stream.tck
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
-import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
@@ -28,15 +27,11 @@ import ratpack.websocket.WebSocket
 import ratpack.websocket.internal.WebsocketBroadcastSubscriber
 
 import static org.mockito.Mockito.mock
-import static ratpack.stream.Streams.constant
-import static ratpack.stream.Streams.publish
 
 class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackboxVerification<ByteBuf> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 3000L
-
   public WebsocketBroadcastSubscriberBlackboxVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS))
+    super(new TestEnvironment(1000L))
   }
 
   @Override
@@ -46,14 +41,7 @@ class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackbo
   }
 
   @Override
-  Publisher<ByteBuf> createHelperPublisher(long elements) {
-    if (elements == Long.MAX_VALUE) {
-      constant(Unpooled.copiedBuffer("foo", CharsetUtil.UTF_8))
-    } else if (elements > 0) {
-      publish(0..<elements).map { Unpooled.copiedBuffer(it.toString(), CharsetUtil.UTF_8) }
-    } else {
-      publish([])
-    }
+  ByteBuf createElement(int element) {
+    Unpooled.copiedBuffer(element.toString(), CharsetUtil.UTF_8)
   }
-
 }

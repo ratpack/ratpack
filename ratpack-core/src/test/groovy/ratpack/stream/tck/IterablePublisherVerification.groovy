@@ -24,11 +24,8 @@ import static ratpack.stream.Streams.publish
 
 class IterablePublisherVerification extends PublisherVerification<Long> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
-
   IterablePublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment())
   }
 
   @Override
@@ -37,12 +34,8 @@ class IterablePublisherVerification extends PublisherVerification<Long> {
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<Long> createFailedPublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
+
 }

@@ -22,28 +22,33 @@ import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.stream.Streams
 
-class FanOutPublisherVerification extends PublisherVerification<Integer> {
+import java.time.Duration
+import java.util.concurrent.Executors
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
+class FanOutPublisherVerification extends PublisherVerification<String> {
 
   FanOutPublisherVerification() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
+    super(new TestEnvironment(300L))
   }
 
   @Override
-  Publisher<Integer> createPublisher(long elements) {
-    def publish = Streams.publish([0..<elements])
-    Streams.fanOut(publish)
+  Publisher<String> createPublisher(long elements) {
+    def i = 0
+    Streams.fanOut(Streams.periodically(Executors.newSingleThreadScheduledExecutor(), Duration.ofNanos(100)) {
+      if (i >= elements) {
+        null
+      } else {
+        def v = ["${i++}"]
+        if (i++ < elements) {
+          v << ["$i-a"]
+        }
+        v
+      }
+    })
   }
 
   @Override
-  long maxElementsFromPublisher() {
-    1000
-  }
-
-  @Override
-  Publisher<Integer> createErrorStatePublisher() {
+  Publisher<String> createFailedPublisher() {
     null
   }
 }

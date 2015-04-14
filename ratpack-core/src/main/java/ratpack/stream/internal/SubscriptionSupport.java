@@ -53,14 +53,12 @@ abstract class SubscriptionSupport<T> implements Subscription {
     }
 
     if (!stopped.get()) {
-      long waiting = waitingRequests.addAndGet(n);
-      if (waiting >= 0) {
-        onError(new IllegalStateException("3.17 If demand becomes higher than 2^63-1 then the Publisher MUST signal an onError with java.lang.IllegalStateException on the given Subscriber"));
-        cancel();
-      } else {
-        if (started.get()) {
-          drainRequests();
-        }
+      long waiting = waitingRequests.get();
+      if (waiting < 0) {
+        waitingRequests.addAndGet(n);
+      }
+      if (started.get()) {
+        drainRequests();
       }
     }
   }
@@ -72,10 +70,21 @@ abstract class SubscriptionSupport<T> implements Subscription {
   private void drainRequests() {
     if (drainingRequests.compareAndSet(false, true)) {
       try {
-        long n = waitingRequests.getAndSet(Long.MIN_VALUE) + Long.MIN_VALUE;
-        while (!stopped.get() && n > 0) {
-          doRequest(n);
-          n = waitingRequests.getAndSet(Long.MIN_VALUE) + Long.MIN_VALUE;
+        long n = waitingRequests.getAndSet(Long.MIN_VALUE);
+        if (n == Long.MAX_VALUE) {
+          return;
+        }
+
+        while (!stopped.get() && n > Long.MIN_VALUE) {
+          if (n >= 0) {
+            doRequest(Long.MAX_VALUE);
+            waitingRequests.set(Long.MAX_VALUE);
+            return;
+          } else {
+            long r = n + Long.MIN_VALUE;
+            doRequest(r);
+            n = waitingRequests.getAndSet(Long.MIN_VALUE);
+          }
         }
       } finally {
         drainingRequests.set(false);

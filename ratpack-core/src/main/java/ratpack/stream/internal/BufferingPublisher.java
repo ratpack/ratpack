@@ -72,13 +72,11 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         } else {
           if (bufferingSubscriber == null) {
             upstreamSubscription.get().request(n);
-          } else {
-            if (bufferingSubscriber.wanted.addAndGet(n) < 0) {
-              bufferingSubscriber.tryDrain();
-            } else {
-              onError(new IllegalStateException("3.17 If demand becomes higher than 2^63-1 then the Publisher MUST signal an onError with java.lang.IllegalStateException on the given Subscriber"));
-              cancel();
+          } else if (!bufferingSubscriber.open.get()) {
+            if (bufferingSubscriber.wanted.addAndGet(n) >= 0) {
+              bufferingSubscriber.open.set(true);
             }
+            bufferingSubscriber.tryDrain();
           }
         }
       }
@@ -119,11 +117,15 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     class BufferingSubscriber implements Subscriber<T> {
       private final AtomicLong wanted = new AtomicLong(Long.MIN_VALUE);
+      private final AtomicBoolean open = new AtomicBoolean();
       private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
       private final AtomicBoolean draining = new AtomicBoolean();
 
       @Override
       public void onSubscribe(org.reactivestreams.Subscription s) {
+        if (isStopped()) {
+          s.cancel();
+        }
         upstreamSubscription.set(s);
       }
 
@@ -150,7 +152,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         if (draining.compareAndSet(false, true)) {
           try {
             long i = wanted.get();
-            while (i > Long.MIN_VALUE) {
+            while (open.get() || i > Long.MIN_VALUE) {
               T item = buffer.poll();
               if (item == null) {
                 if (upstreamFinished.get()) {
