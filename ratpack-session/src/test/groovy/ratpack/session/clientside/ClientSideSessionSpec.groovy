@@ -25,6 +25,7 @@ import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Ignore
+import spock.lang.IgnoreRest
 import spock.lang.Unroll
 
 class ClientSideSessionSpec extends RatpackGroovyDslSpec {
@@ -312,7 +313,6 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   }
 
-  @Ignore
   @Unroll
   def "sessions with value of length #length can be serialized/deserialized"() {
     given:
@@ -349,6 +349,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     length << (1..256)
   }
 
+  @IgnoreRest
   @Unroll
   def "secretKey with #algorithm renders session unreadable"() {
     given:
@@ -411,13 +412,13 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 //      "AES/ECB/NoPadding",
       "AES/ECB/PKCS5Padding",
 //      "DES/CBC/NoPadding",
-//      "DES/CBC/PKCS5Padding",
+      "DES/CBC/PKCS5Padding",
 //      "DES/ECB/NoPadding",
-//      "DES/ECB/PKCS5Padding",
+      "DES/ECB/PKCS5Padding",
 //      "DESede/CBC/NoPadding",
-//      "DESede/CBC/PKCS5Padding",
+      "DESede/CBC/PKCS5Padding",
 //      "DESede/ECB/NoPadding",
-//      "DESede/ECB/PKCS5Padding"
+      "DESede/ECB/PKCS5Padding"
       ]
 
   }

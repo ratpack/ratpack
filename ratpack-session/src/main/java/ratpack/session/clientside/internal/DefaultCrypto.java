@@ -24,6 +24,7 @@ import ratpack.util.Exceptions;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
 
 public class DefaultCrypto implements Crypto {
 
@@ -44,9 +45,16 @@ public class DefaultCrypto implements Crypto {
       Cipher cipher = Cipher.getInstance(algorithm);
       cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
       ByteBuf messageBuf = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(message.readableBytes())]);
-      cipher.update(message.nioBuffer(), messageBuf.nioBuffer());
+      //cipher.update(message.nioBuffer(), messageBuf.nioBuffer());
+      //byte[] payload = cipher.doFinal();
 
-      byte[] payload = cipher.doFinal();
+      ByteBuffer outniobuf = messageBuf.nioBuffer();
+      int count = cipher.doFinal(message.nioBuffer(), outniobuf/*messageBuf.nioBuffer()*/);
+      //byte[] payload = messageBuf.array();
+      byte[] payload = new byte[count];
+      outniobuf.position(0);
+      outniobuf.get(payload, 0, count);
+
       if (isInitializationVectorRequired) {
         byte[] ivBytes = cipher.getIV();
         messageBuf.release();
@@ -85,9 +93,15 @@ public class DefaultCrypto implements Crypto {
 
       int messageLength = message.readableBytes();
       ByteBuf output = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(messageLength)]);
-      cipher.update(message.readBytes(messageLength).nioBuffer(), output.nioBuffer());
+      //cipher.update(message.readBytes(messageLength).nioBuffer(), output.nioBuffer());
 
-      byte[] decrypted = cipher.doFinal();
+      //byte[] decrypted = cipher.doFinal();
+      ByteBuffer outniobuf = output.nioBuffer();
+      int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), outniobuf);
+      byte[] decrypted = new byte[count];
+      outniobuf.position(0);
+      outniobuf.get(decrypted, 0, count);
+
       output.release();
 
       return decrypted;
