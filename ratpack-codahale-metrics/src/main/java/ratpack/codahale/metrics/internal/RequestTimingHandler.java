@@ -18,42 +18,68 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 
+import java.util.Map;
+
 /**
  * A handler implementation that collects {@link Timer} metrics for a {@link Request}.
  * <p>
- * Metrics are grouped by {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
+ * Metrics are grouped by default using {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
  * For example, the following requests...
  *
  * <pre>
  * /
  * /book
  * /author/1/books
- * /js/jquery.min.js
- * /css/bootstrap.min.css
  * </pre>
  *
  * will be reported as...
  *
  * <pre>
- * [root]~GET~Request
- * [book]~GET~Request
- * [author][1][books]~GET~Request
- * [js][jquery.min.js]~GET~Request
- * [css][bootstrap.min.css]~GET~Request
+ * root.get-requests
+ * book.get-requests
+ * author.1.books.get-requests
+ * </pre>
+ *
+ * However, custom groupings can be defined using {@link CodaHaleMetricsModule.Config#getRequestMetricGroups()}.
+ * For example, applying the following config
+ *
+ * <pre class="groovy-ratpack-dsl">
+ * import ratpack.codahale.metrics.CodaHaleMetricsModule
+ * import static ratpack.groovy.Groovy.ratpack
+ *
+ * ratpack {
+ *   bindings {
+ *     add new CodaHaleMetricsModule(), { it.requestMetricGroups(['book':'.*book.*']) }
+ *   }
+ * }
+ * </pre>
+ *
+ * will be reported as...
+ *
+ * <pre>
+ * root.get-requests
+ * book.get-requests
  * </pre>
  *
  */
 public class RequestTimingHandler implements Handler {
 
+  private final CodaHaleMetricsModule.Config config;
+
+  public RequestTimingHandler(CodaHaleMetricsModule.Config config) {
+    this.config = config;
+  }
+
   @Override
   public void handle(final Context context) throws Exception {
     final MetricRegistry metricRegistry = context.get(MetricRegistry.class);
     final Request request = context.getRequest();
-    BlockingExecTimingInterceptor blockingExecTimingInterceptor = new BlockingExecTimingInterceptor(metricRegistry, request);
+    BlockingExecTimingInterceptor blockingExecTimingInterceptor = new BlockingExecTimingInterceptor(metricRegistry, request, config);
 
     context.addInterceptor(blockingExecTimingInterceptor, () -> {
       String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());
@@ -64,8 +90,18 @@ public class RequestTimingHandler implements Handler {
   }
 
   private String buildRequestTimerTag(String requestUri, String requestMethod) {
-    return (requestUri.equals("/") ? "[root" : requestUri.replaceFirst("/", "[").replace("/", "][")) + "]~" + requestMethod + "~Request";
+    String tagName = (requestUri.equals("/") ? "root" : requestUri.replaceFirst("/", "").replace("/", "."));
+
+    if (config.getRequestMetricGroups() != null) {
+      for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
+        if (requestUri.matches(metricGrouping.getValue())) {
+          tagName = metricGrouping.getKey();
+          break;
+        }
+      }
+    }
+
+    return tagName + "." + requestMethod.toLowerCase() + "-requests";
   }
 
 }
-

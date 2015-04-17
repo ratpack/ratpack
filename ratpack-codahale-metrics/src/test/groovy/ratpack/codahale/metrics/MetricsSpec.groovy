@@ -92,7 +92,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       reportDirectory.root.listFiles().length > 0
     }
     polling.within(2) {
-      output.toString().contains("[root]~GET~Request")
+      output.toString().contains("root.get-requests")
     }
 
     cleanup:
@@ -312,9 +312,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     2.times { get("foo/bar") }
 
     then:
-    1 * reporter.onTimerAdded("[root]~GET~Request", !null)
-    1 * reporter.onTimerAdded("[foo]~GET~Request", !null)
-    1 * reporter.onTimerAdded("[foo][bar]~GET~Request", !null)
+    1 * reporter.onTimerAdded("root.get-requests", !null)
+    1 * reporter.onTimerAdded("foo.get-requests", !null)
+    1 * reporter.onTimerAdded("foo.bar.get-requests", !null)
   }
 
   def "can collect jvm metrics"() {
@@ -376,9 +376,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
       timers.size() == 2
-      timers[0].name == "[admin][metrics-report]~GET~Request"
+      timers[0].name == "admin.metrics-report.get-requests"
       timers[0].count == 0
-      timers[1].name == "[root]~GET~Request"
+      timers[1].name == "root.get-requests"
       timers[1].count == 2
 
       gauges.size() == 1
@@ -404,9 +404,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
       timers.size() == 2
-      timers[0].name == "[admin][metrics-report]~GET~Request"
+      timers[0].name == "admin.metrics-report.get-requests"
       timers[0].count == 0
-      timers[1].name == "[root]~GET~Request"
+      timers[1].name == "root.get-requests"
       timers[1].count == 4
 
       gauges.size() == 1
@@ -459,7 +459,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     2.times { get("foo") }
 
     then:
-    1 * reporter.onTimerAdded("[foo]~GET~Blocking", !null) >> { arguments ->
+    1 * reporter.onTimerAdded("foo.get-blocking", !null) >> { arguments ->
       blockingTimer = arguments[1]
     }
     blockingTimer.count == 2
@@ -500,11 +500,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     polling.within(2) {
-      output.toString().contains("[foo]~GET~Request")
+      output.toString().contains("foo.get-requests")
     }
 
     and:
-    !output.toString().contains("[bar]~GET~Request")
+    !output.toString().contains("bar.get-requests")
 
     and:
     reportDirectory.root.listFiles().length == 1
@@ -512,5 +512,46 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     cleanup:
     System.out = origOut
+  }
+
+  def "can apply custom groups for request timer metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      add new CodaHaleMetricsModule(), {
+        it.requestMetricGroups(["bar":"/bar/.*", "foo":"/foo/.*", "f":"/f.*"])
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      prefix("foo/:id") {
+        handler("bar") {
+          render ""
+        }
+        handler("tar") {
+          render ""
+        }
+        handler {
+          render ""
+        }
+      }
+      handler("far") { render "" }
+      handler("tar") { render "" }
+    }
+
+    when:
+    get("foo/1")
+    get("foo/2/tar")
+    get("far")
+    get("foo/3/bar")
+    get("tar")
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-requests", !null)
+    1 * reporter.onTimerAdded("f.get-requests", !null)
+    1 * reporter.onTimerAdded("tar.get-requests", !null)
   }
 }

@@ -36,6 +36,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.inject.Scopes.SINGLETON;
@@ -77,7 +78,7 @@ import static ratpack.util.Exceptions.uncheck;
  * <h2>External Configuration</h2>
  * The module can also be configured via external configuration using the
  * <a href="http://www.ratpack.io/manual/current/api/ratpack/config/ConfigData.html" target="_blank">ratpack-config</a> extension.
- * For example, to enable the capturing and reporting of metrics to jmx via an external property file which can be overriden with
+ * For example, to enable the capturing and reporting of metrics to jmx via an external property file which can be overridden with
  * system properties one would write: (Groovy DSL)
  *
  * <pre class="groovy-ratpack-dsl">
@@ -147,7 +148,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
     private boolean jvmMetrics;
-
+    private Map<String, String> requestMetricGroups;
     private Optional<Jmx> jmx = Optional.empty();
     private Optional<Console> console = Optional.empty();
     private Optional<WebSocket> webSocket = Optional.empty();
@@ -169,6 +170,33 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
      */
     public Config jvmMetrics(boolean jvmMetrics) {
       this.jvmMetrics = jvmMetrics;
+      return this;
+    }
+
+    /**
+     * A map of regular expressions used to group request metrics.
+     * <p>
+     * The value is a regular expression to test the current URI against for a match.
+     * If matched, the key is the name to use when recording the metric.
+     * <p>
+     * As soon as a match is made against a regular expression no further matches are attempted.
+     * <p>
+     * Should no matches be made the default metric grouping will be used.
+     *
+     * @return the request metric group expressions
+     * @see RequestTimingHandler
+     */
+    public Map<String, String> getRequestMetricGroups() {
+      return requestMetricGroups;
+    }
+
+    /**
+     * Configure the request metric groups
+     * @param requestMetricGroups the request metric groups
+     * @return this
+     */
+    public Config requestMetricGroups(Map<String, String> requestMetricGroups) {
+      this.requestMetricGroups = requestMetricGroups;
       return this;
     }
 
@@ -571,9 +599,16 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
   }
 
   private static class HandlerDecoratorProvider implements Provider<HandlerDecorator> {
+    private Config config;
+
+    @Inject
+    public HandlerDecoratorProvider(Config config) {
+      this.config = config;
+    }
+
     @Override
     public HandlerDecorator get() {
-      return HandlerDecorator.prepend(new RequestTimingHandler());
+      return HandlerDecorator.prepend(new RequestTimingHandler(config));
     }
   }
 
