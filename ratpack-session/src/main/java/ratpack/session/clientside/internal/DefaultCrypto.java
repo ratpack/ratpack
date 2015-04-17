@@ -110,8 +110,11 @@ public class DefaultCrypto implements Crypto {
 
       int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), nioDecMessageBuf);
       for (int i = count - 1; i >= 0; i--) {
-        if (nioDecMessageBuf.get(i) == 0x00) count--;
-        else break;
+        if (nioDecMessageBuf.get(i) == 0x00) {
+          count--;
+        } else {
+          break;
+        }
       }
       byte[] decrypted = new byte[count];
       nioDecMessageBuf.position(0);

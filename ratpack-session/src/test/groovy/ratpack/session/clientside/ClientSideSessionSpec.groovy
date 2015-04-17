@@ -24,8 +24,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
 import spock.lang.Unroll
 
 class ClientSideSessionSpec extends RatpackGroovyDslSpec {
