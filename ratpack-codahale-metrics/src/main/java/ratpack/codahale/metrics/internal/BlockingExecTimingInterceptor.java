@@ -41,7 +41,7 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
   @Override
   public void intercept(Execution execution, ExecType type, Block continuation) throws Exception {
     if (type == ExecType.BLOCKING) {
-      String tag = buildBlockingTimerTag(request.getUri(), request.getMethod().getName());
+      String tag = buildBlockingTimerTag(request.getPath(), request.getMethod().getName());
       Timer.Context timer = metricRegistry.timer(tag).time();
       try {
         continuation.execute();
@@ -53,12 +53,12 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
     }
   }
 
-  private String buildBlockingTimerTag(String requestUri, String requestMethod) {
-    String tagName = requestUri.equals("/") ? "root" : requestUri.replaceFirst("/", "").replace("/", ".");
+  private String buildBlockingTimerTag(String requestPath, String requestMethod) {
+    String tagName = requestPath.equals("") ? "root" : requestPath.replace("/", ".");
 
     if (config.getRequestMetricGroups() != null) {
       for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
-        if (requestUri.matches(metricGrouping.getValue())) {
+        if (requestPath.matches(metricGrouping.getValue())) {
           tagName = metricGrouping.getKey();
           break;
         }

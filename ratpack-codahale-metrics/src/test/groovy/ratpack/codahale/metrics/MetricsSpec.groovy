@@ -520,26 +520,13 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       add new CodaHaleMetricsModule(), {
-        it.requestMetricGroups(["bar":"/bar/.*", "foo":"/foo/.*", "f":"/f.*"])
+        it.requestMetricGroups(["bar":"bar/.*", "foo":"foo/.*", "f":"f.*"])
       }
     }
 
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
-
-      prefix("foo/:id") {
-        handler("bar") {
-          render ""
-        }
-        handler("tar") {
-          render ""
-        }
-        handler {
-          render ""
-        }
-      }
-      handler("far") { render "" }
-      handler("tar") { render "" }
+      handler { render "" }
     }
 
     when:
@@ -547,7 +534,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get("foo/2/tar")
     get("far")
     get("foo/3/bar")
-    get("tar")
+    get("tar?id=3")
 
     then:
     1 * reporter.onTimerAdded("foo.get-requests", !null)

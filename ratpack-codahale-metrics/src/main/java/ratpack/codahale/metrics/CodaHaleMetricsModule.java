@@ -176,8 +176,9 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     /**
      * A map of regular expressions used to group request metrics.
      * <p>
-     * The value is a regular expression to test the current URI against for a match.
-     * If matched, the key is the name to use when recording the metric.
+     * The value is a regular expression to test the current request path against for a match.
+     * If matched, the key is the name to use when recording the metric.  Please note that request
+     * paths do not start with a <code>/</code>
      * <p>
      * As soon as a match is made against a regular expression no further matches are attempted.
      * <p>

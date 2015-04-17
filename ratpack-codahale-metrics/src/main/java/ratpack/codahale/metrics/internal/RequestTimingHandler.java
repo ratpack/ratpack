@@ -82,19 +82,19 @@ public class RequestTimingHandler implements Handler {
     BlockingExecTimingInterceptor blockingExecTimingInterceptor = new BlockingExecTimingInterceptor(metricRegistry, request, config);
 
     context.addInterceptor(blockingExecTimingInterceptor, () -> {
-      String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());
+      String tag = buildRequestTimerTag(request.getPath(), request.getMethod().getName());
       final Timer.Context timer = metricRegistry.timer(tag).time();
       context.onClose(thing -> timer.stop());
       context.next();
     });
   }
 
-  private String buildRequestTimerTag(String requestUri, String requestMethod) {
-    String tagName = requestUri.equals("/") ? "root" : requestUri.replaceFirst("/", "").replace("/", ".");
+  private String buildRequestTimerTag(String requestPath, String requestMethod) {
+    String tagName = requestPath.equals("") ? "root" : requestPath.replace("/", ".");
 
     if (config.getRequestMetricGroups() != null) {
       for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
-        if (requestUri.matches(metricGrouping.getValue())) {
+        if (requestPath.matches(metricGrouping.getValue())) {
           tagName = metricGrouping.getKey();
           break;
         }
