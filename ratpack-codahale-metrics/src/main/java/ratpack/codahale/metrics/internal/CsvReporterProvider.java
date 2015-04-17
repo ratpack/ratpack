@@ -44,8 +44,8 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
   public CsvReporter get() {
     CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
     config.getCsv().ifPresent(csv -> {
-      if (csv.getFilter() != null) {
-        builder.filter(new RegexMetricFilter(csv.getFilter()));
+      if (csv.getIncludeFilter() != null || csv.getExcludeFilter() != null) {
+        builder.filter(new RegexMetricFilter(csv.getIncludeFilter(), csv.getExcludeFilter()));
       }
     });
 

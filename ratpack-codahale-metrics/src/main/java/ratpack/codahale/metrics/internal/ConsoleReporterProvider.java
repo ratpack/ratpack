@@ -40,8 +40,8 @@ public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
   public ConsoleReporter get() {
     ConsoleReporter.Builder builder = ConsoleReporter.forRegistry(metricRegistry);
     config.getConsole().ifPresent(console -> {
-      if (console.getFilter() != null) {
-        builder.filter(new RegexMetricFilter(console.getFilter()));
+      if (console.getIncludeFilter() != null || console.getExcludeFilter() != null) {
+        builder.filter(new RegexMetricFilter(console.getIncludeFilter(), console.getExcludeFilter()));
       }
     });
     return builder.build();

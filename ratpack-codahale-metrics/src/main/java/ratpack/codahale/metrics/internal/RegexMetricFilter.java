@@ -23,14 +23,19 @@ import com.codahale.metrics.MetricFilter;
  * A filter that uses a regular expression for filtering.
  */
 public class RegexMetricFilter implements MetricFilter {
-  private final String regex;
+  private static final String DEFAULT_INCLUDE_REGEX = ".*";
+  private static final String DEFAULT_EXCLUDE_REGEX = "";
 
-  public RegexMetricFilter(String regex) {
-    this.regex = regex;
+  private final String includeRegex;
+  private final String excludeRegex;
+
+  public RegexMetricFilter(String includeRegex, String excludeRegex) {
+    this.includeRegex = includeRegex != null ? includeRegex : DEFAULT_INCLUDE_REGEX;
+    this.excludeRegex = excludeRegex != null ? excludeRegex : DEFAULT_EXCLUDE_REGEX;
   }
 
   @Override
   public boolean matches(String name, Metric metric) {
-    return name.matches(regex);
+    return name.matches(includeRegex) && !name.matches(excludeRegex);
   }
 }
