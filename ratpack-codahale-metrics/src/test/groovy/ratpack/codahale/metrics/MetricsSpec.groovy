@@ -541,4 +541,38 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     1 * reporter.onTimerAdded("f.get-requests", !null)
     1 * reporter.onTimerAdded("tar.get-requests", !null)
   }
+
+  def "can collect status code metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+    def twoxxCounter
+    def fourxxCounter
+
+    given:
+    bindings {
+      add new CodaHaleMetricsModule(), {}
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+      handler("foo") { render "" }
+      handler("bar") {
+        clientError(401)
+      }
+    }
+
+    when:
+    get("foo")
+    get("bar")
+    get("tar")
+
+    then:
+    1 * reporter.onCounterAdded("2xx-responses", !null) >> { arguments ->
+      twoxxCounter = arguments[1]
+    }
+    1 * reporter.onCounterAdded("4xx-responses", !null) >> { arguments ->
+      fourxxCounter = arguments[1]
+    }
+    twoxxCounter.count == 1
+    fourxxCounter.count == 2
+  }
 }

@@ -84,7 +84,12 @@ public class RequestTimingHandler implements Handler {
     context.addInterceptor(blockingExecTimingInterceptor, () -> {
       String tag = buildRequestTimerTag(request.getPath(), request.getMethod().getName());
       final Timer.Context timer = metricRegistry.timer(tag).time();
-      context.onClose(thing -> timer.stop());
+      context.onClose(requestOutcome -> {
+        metricRegistry.counter(
+          String.valueOf(requestOutcome.getResponse().getStatus().getCode()).substring(0, 1) + "xx-responses"
+        ).inc();
+        timer.stop();
+      });
       context.next();
     });
   }
