@@ -90,7 +90,7 @@ public class RequestTimingHandler implements Handler {
   }
 
   private String buildRequestTimerTag(String requestUri, String requestMethod) {
-    String tagName = (requestUri.equals("/") ? "root" : requestUri.replaceFirst("/", "").replace("/", "."));
+    String tagName = requestUri.equals("/") ? "root" : requestUri.replaceFirst("/", "").replace("/", ".");
 
     if (config.getRequestMetricGroups() != null) {
       for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
