@@ -16,11 +16,10 @@
 
 package ratpack.server;
 
+import ratpack.api.NonBlocking;
+
 /**
  * A service participates in the application lifecycle.
- * <p>
- * This interface denotes a “Ratpack service”, which is something that gets notified of server start and stop.
- * It has no further application level semantics (e.g. the database service).
  * <p>
  * When the application starts, all services in the server registry will be notified.
  * Similarly when the application stops.
@@ -30,7 +29,6 @@ package ratpack.server;
  * import ratpack.server.Service;
  * import ratpack.server.StartEvent;
  * import ratpack.server.StopEvent;
- * import ratpack.test.http.TestHttpClient;
  *
  * import java.util.List;
  * import java.util.LinkedList;
@@ -41,11 +39,11 @@ package ratpack.server;
  *   static class RecordingService implements Service {
  *     public final List<String> events = new LinkedList<>();
  *
- *     public void onStart(StartEvent startEvent) {
+ *     public void onStart(StartEvent event) {
  *       events.add("start");
  *     }
  *
- *     public void onStop(StopEvent startEvent) {
+ *     public void onStop(StopEvent event) {
  *       events.add("stop");
  *     }
  *   }
@@ -56,9 +54,7 @@ package ratpack.server;
  *     RatpackServer server = RatpackServer.of(s -> s
  *       .serverConfig(ServerConfig.embedded())
  *       .registryOf(r -> r.add(service))
- *       .handler(r ->
- *         ctx -> ctx.render("ok")
- *       )
+ *       .handler(r -> ctx -> ctx.render("ok"))
  *     );
  *
  *     assertEquals("[]", service.events.toString());
@@ -71,10 +67,141 @@ package ratpack.server;
  *   }
  * }
  * }</pre>
+ *
+ * <h3>Execution order</h3>
+ * <p>
+ * Services are notified of start events in the order returned by the {@link ratpack.registry.Registry#getAll} method.
+ * They are notified in reverse order for stop events.
+ * The order in that services are returned from the server registry is dependent on the registry implementation.
+ * Generally, most implementations return objects in the order in which they are added to the registry.
+ *
+ * <h3>Async services</h3>
+ * <p>
+ * The {@link #onStart} and {@link #onStop} methods are always executed within a distinct {@link ratpack.exec.Execution}, for each service.
+ * This means that implementations of these methods are free to perform async ops (e.g. use the {@link ratpack.http.client.HttpClient}, or {@link ratpack.exec.ExecControl#blocking block}).
+ * <pre class="java">{@code
+ * import ratpack.server.RatpackServer;
+ * import ratpack.server.ServerConfig;
+ * import ratpack.server.Service;
+ * import ratpack.server.StartEvent;
+ * import ratpack.server.StopEvent;
+ *
+ * import java.util.List;
+ * import java.util.LinkedList;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *
+ *   static class RecordingService implements Service {
+ *     public final List<String> events = new LinkedList<>();
+ *
+ *     public void onStart(StartEvent event) {
+ *       event.getExecControl().promiseOf("start").map(String::toUpperCase).then(events::add);
+ *     }
+ *
+ *     public void onStop(StopEvent event) {
+ *       event.getExecControl().promiseOf("stop").map(String::toUpperCase).then(events::add);
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     RecordingService service = new RecordingService();
+ *
+ *     RatpackServer server = RatpackServer.of(s -> s
+ *       .serverConfig(ServerConfig.embedded())
+ *       .registryOf(r -> r.add(service))
+ *       .handler(r -> ctx -> ctx.render("ok"))
+ *     );
+ *
+ *     server.start();
+ *     assertEquals("[START]", service.events.toString());
+ *     server.stop();
+ *     assertEquals("[START, STOP]", service.events.toString());
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * There is no need to catch promise errors.
+ * An error handler for the execution is installed that effectively treats any exceptions as if they were thrown by the method.
+ *
+ * <h3>Relationship with “business-logic”</h3>
+ * <p>
+ * This interface does need to be used for business-logic type services, unless such services need to participate in the application lifecycle.
+ * Even in such a case, it is generally better to decouple the business-logic type service from Ratpack (i.e. this interface) and have a
+ * {@link Service} implementation that drives the business-logic service.
+ *
+ * <h3>Dependencies</h3>
+ * <p>
+ * The event objects given to the start/stop methods provide access to the server registry.
+ * This can be used, for example, to get hold of a database connection that was added to the server registry as part of the server definition.
+ * <p>
+ * Alternatively, when using the Guice support the service can be injected by Guice.
+ * <pre class="java">{@code
+ * import ratpack.server.RatpackServer;
+ * import ratpack.server.ServerConfig;
+ * import ratpack.server.Service;
+ * import ratpack.server.StartEvent;
+ * import ratpack.server.StopEvent;
+ * import ratpack.guice.Guice;
+ * import ratpack.util.Types;
+ * import javax.inject.Inject;
+ *
+ * import java.util.List;
+ * import java.util.LinkedList;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *
+ *   static class RecordingService implements Service {
+ *     public final List<String> events;
+ *
+ *     {@literal @}Inject
+ *     public RecordingService(List<String> events) {
+ *       this.events = events;
+ *     }
+ *
+ *     public void onStart(StartEvent event) {
+ *       events.add("start");
+ *     }
+ *
+ *     public void onStop(StopEvent event) {
+ *       events.add("stop");
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     List<String> list = new LinkedList<>();
+ *
+ *     RatpackServer server = RatpackServer.of(s -> s
+ *       .serverConfig(ServerConfig.embedded())
+ *       .registry(Guice.registry(b -> b
+ *         .bindInstance(Types.listOf(String.class), list)
+ *         .bind(RecordingService.class)
+ *       ))
+ *       .handler(r -> ctx -> ctx.render("ok"))
+ *     );
+ *
+ *     server.start();
+ *     assertEquals("[start]", list.toString());
+ *     server.stop();
+ *     assertEquals("[start, stop]", list.toString());
+ *   }
+ * }
+ * }</pre>
+ *
+ * <h3>Errors</h3>
+ * <p>
+ * If an {@code onStart} method errors, it will prevent the “application” from launching.
+ * In {@link ratpack.server.ServerConfig#isDevelopment() development mode}, the application will start and display the error page for all requests with the error.
+ * When not in development mode, the exception will be thrown from the {@link RatpackServer#start()} method.
+ * If starting the app in a “main method”, this will prevent the JVM from starting.
+ * <p>
+ * If an {@code onStop} method errors, the error will be logged and then the next service invoked.
+ * That is, a failed {@code onStop} method is not considered fatal.
+ * <p>
+ * When a startup failure occurs, the server effectively shuts down which includes executing all the {@code onStop} methods.
  */
 public interface Service {
-
-  // TODO define semantics of on* methods throwing exceptions, and test coverage
 
   /**
    * The name of this service, used for display purposes.
@@ -94,6 +221,7 @@ public interface Service {
    * @param event meta information about the startup event
    * @throws Exception any
    */
+  @NonBlocking
   default void onStart(StartEvent event) throws Exception { }
 
   /**
@@ -103,5 +231,6 @@ public interface Service {
    * @param event meta information about the stop event
    * @throws Exception any
    */
+  @NonBlocking
   default void onStop(StopEvent event) throws Exception { }
 }

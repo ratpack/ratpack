@@ -19,6 +19,7 @@ package ratpack.groovy.guice;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
@@ -80,13 +81,13 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec bind(Class<T> publicType, Class<? extends T> implType);
+  <T> GroovyBindingsSpec bind(TypeLiteral<T> publicType, Class<? extends T> implType);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec bindInstance(Class<? super T> publicType, T instance);
+  <T> GroovyBindingsSpec bindInstance(TypeLiteral<? super T> publicType, T instance);
 
   /**
    * {@inheritDoc}
@@ -98,12 +99,12 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+  <T> GroovyBindingsSpec providerType(TypeLiteral<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec provider(Class<T> publicType, Provider<? extends T> provider);
+  <T> GroovyBindingsSpec provider(TypeLiteral<T> publicType, Provider<? extends T> provider);
 
 }
