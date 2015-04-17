@@ -44,20 +44,35 @@ public class DefaultCrypto implements Crypto {
     return Exceptions.uncheck(() -> {
       Cipher cipher = Cipher.getInstance(algorithm);
       cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-      ByteBuf messageBuf = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(message.readableBytes())]);
-      //cipher.update(message.nioBuffer(), messageBuf.nioBuffer());
-      //byte[] payload = cipher.doFinal();
 
-      ByteBuffer outniobuf = messageBuf.nioBuffer();
-      int count = cipher.doFinal(message.nioBuffer(), outniobuf/*messageBuf.nioBuffer()*/);
-      //byte[] payload = messageBuf.array();
-      byte[] payload = new byte[count];
-      outniobuf.position(0);
-      outniobuf.get(payload, 0, count);
+      int blockSize = cipher.getBlockSize();
+      int messageSize = message.readableBytes();
+      int encMessageSize = cipher.getOutputSize(messageSize);
+
+      ByteBuf paddedMessage = null;
+      if (messageSize == encMessageSize && (encMessageSize % blockSize) != 0) {
+        int paddedMessageSize = messageSize + blockSize - (messageSize % blockSize);
+        paddedMessage = Unpooled.wrappedBuffer(new byte[paddedMessageSize]);
+        paddedMessage.setZero(0, paddedMessageSize);
+        paddedMessage.setBytes(0, message, messageSize);
+        encMessageSize = cipher.getOutputSize(paddedMessageSize);
+      }
+
+      ByteBuf encMessage = Unpooled.wrappedBuffer(new byte[encMessageSize]);
+
+      ByteBuffer nioMessageBuf = paddedMessage != null ? paddedMessage.nioBuffer() : message.nioBuffer();
+      ByteBuffer nioEncMessageBuf = encMessage.nioBuffer();
+
+      cipher.doFinal(nioMessageBuf, nioEncMessageBuf);
+      byte[] payload = encMessage.array();
+
+      if (paddedMessage != null) {
+        paddedMessage.release();
+      }
+      encMessage.release();
 
       if (isInitializationVectorRequired) {
         byte[] ivBytes = cipher.getIV();
-        messageBuf.release();
 
         int outputLength = 1 + ivBytes.length + payload.length;
         ByteBuf output = Unpooled.wrappedBuffer(new byte[outputLength])
@@ -92,17 +107,22 @@ public class DefaultCrypto implements Crypto {
       }
 
       int messageLength = message.readableBytes();
-      ByteBuf output = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(messageLength)]);
-      //cipher.update(message.readBytes(messageLength).nioBuffer(), output.nioBuffer());
+      ByteBuf decMessage = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(messageLength)]);
 
-      //byte[] decrypted = cipher.doFinal();
-      ByteBuffer outniobuf = output.nioBuffer();
-      int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), outniobuf);
+      ByteBuffer nioMessageBuf = message.readBytes(messageLength).nioBuffer();
+      ByteBuffer nioDecMessageBuf = decMessage.nioBuffer();
+
+      int count = cipher.doFinal(nioMessageBuf, nioDecMessageBuf);
+      for (int i = count - 1; i >= 0; i--) {
+        if (nioDecMessageBuf.get(i) == 0x00) {
+          count--;
+        }
+      }
       byte[] decrypted = new byte[count];
-      outniobuf.position(0);
-      outniobuf.get(decrypted, 0, count);
+      nioDecMessageBuf.position(0);
+      nioDecMessageBuf.get(decrypted, 0, count);
 
-      output.release();
+      decMessage.release();
 
       return decrypted;
     });

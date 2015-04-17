@@ -406,18 +406,18 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     where:
     algorithm << [
-//      "Blowfish",
-//      "AES/CBC/NoPadding",
+      "Blowfish",
+      "AES/CBC/NoPadding",
       "AES/CBC/PKCS5Padding",
-//      "AES/ECB/NoPadding",
+      "AES/ECB/NoPadding",
       "AES/ECB/PKCS5Padding",
-//      "DES/CBC/NoPadding",
+      "DES/CBC/NoPadding",
       "DES/CBC/PKCS5Padding",
-//      "DES/ECB/NoPadding",
+      "DES/ECB/NoPadding",
       "DES/ECB/PKCS5Padding",
-//      "DESede/CBC/NoPadding",
+      "DESede/CBC/NoPadding",
       "DESede/CBC/PKCS5Padding",
-//      "DESede/ECB/NoPadding",
+      "DESede/ECB/NoPadding",
       "DESede/ECB/PKCS5Padding"
       ]
 
