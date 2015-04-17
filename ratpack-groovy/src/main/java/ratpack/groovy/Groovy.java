@@ -16,7 +16,6 @@
 
 package ratpack.groovy;
 
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -171,16 +170,19 @@ public abstract class Groovy {
     }
 
     public static Action<? super RatpackServerSpec> app(Path script) {
-      return b -> doApp(b, false, script.getParent(), script);
+      return app(false, script);
+    }
+
+    public static Action<? super RatpackServerSpec> app(boolean compileStatic, Path script) {
+      return b -> doApp(b, compileStatic, script.getParent(), script);
     }
 
     public static Action<? super RatpackServerSpec> app(boolean staticCompile, String... scriptPaths) {
       return b -> {
-        String workingDir = StandardSystemProperty.USER_DIR.value();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
         BaseDirFinder.Result baseDirResult = Arrays.stream(scriptPaths)
-          .map(scriptPath -> BaseDirFinder.find(workingDir, classLoader, scriptPath))
+          .map(scriptPath -> BaseDirFinder.find(classLoader, scriptPath))
           .filter(Optional::isPresent)
           .map(Optional::get)
           .findFirst()
@@ -211,7 +213,7 @@ public abstract class Groovy {
     }
 
     private static ServerConfig.Builder loadPropsIfPresent(ServerConfig.Builder serverConfigBuilder, Path baseDir) {
-      Path propsFile = baseDir.resolve(ServerConfig.Builder.DEFAULT_PROPERTIES_FILE_NAME);
+      Path propsFile = baseDir.resolve(ServerConfig.Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
       if (Files.exists(propsFile)) {
         serverConfigBuilder.props(propsFile);
       }

@@ -66,12 +66,11 @@ class RatpackPlugin implements Plugin<Project> {
 
     JavaExec run = project.run {
       dependsOn configureRun
-      workingDir = project.file("src/ratpack")
     }
 
     SourceSetContainer sourceSets = project.sourceSets
-    def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
-    testSourceSet.resources.srcDir(run.workingDir)
+    def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+    mainSourceSet.resources.srcDir(project.file("src/ratpack"))
 
     def prepareBaseDirTask = project.tasks.create("prepareBaseDir")
     prepareBaseDirTask.with {
@@ -80,29 +79,18 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
-    appPluginConvention.applicationDistribution.from(run.workingDir) {
+    appPluginConvention.applicationDistribution.from("src/ratpack") {
       into "app"
     }
 
     appPluginConvention.applicationDistribution.from prepareBaseDirTask.taskDependencies
-    run.dependsOn prepareBaseDirTask
-    project.tasks.getByName("processTestResources").dependsOn prepareBaseDirTask
+    project.tasks.getByName("processResources").dependsOn prepareBaseDirTask
 
     CreateStartScripts startScripts = project.startScripts
     startScripts.with {
       doLast {
         unixScript.text = unixScript.text.replaceAll('CLASSPATH=.+\n', '$0cd "\\$APP_HOME/app"\n')
         windowsScript.text = windowsScript.text.replaceAll('CLASSPATH=.+\r\n', '$0cd "%APP_HOME%/app"\r\n')
-      }
-    }
-
-    project.plugins.all {
-      if (project.plugins.hasPlugin('com.github.johnrengelman.shadow')) {
-        def shadowJarTask = project.tasks.findByName('shadowJar')
-        shadowJarTask.with {
-          dependsOn prepareBaseDirTask
-          from run.workingDir
-        }
       }
     }
 

@@ -17,7 +17,6 @@
 package ratpack.server.internal;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
@@ -84,12 +83,10 @@ public class DefaultServerConfigBuilder implements ServerConfig.Builder {
     return new DefaultServerConfigBuilder(serverEnvironment, Optional.of(baseDir.toAbsolutePath().normalize()));
   }
 
-  public static ServerConfig.Builder findBaseDirProps(ServerEnvironment serverEnvironment, String propertiesPath) {
-    String workingDir = StandardSystemProperty.USER_DIR.value();
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    BaseDirFinder.Result result = BaseDirFinder.find(workingDir, classLoader, propertiesPath)
-      .orElseThrow(() -> new IllegalStateException("Could not find properties file '" + propertiesPath + "' in working dir '" + workingDir + "' or context class loader classpath"));
-    return baseDir(serverEnvironment, result.getBaseDir()).props(result.getResource());
+  public static ServerConfig.Builder findBaseDir(ServerEnvironment serverEnvironment, String markerFilePath) {
+    return BaseDirFinder.find(Thread.currentThread().getContextClassLoader(), markerFilePath)
+      .map(b -> baseDir(serverEnvironment, b.getBaseDir()))
+      .orElseThrow(() -> new IllegalStateException("Could not find marker file '" + markerFilePath + "' via context class loader"));
   }
 
   @Override
