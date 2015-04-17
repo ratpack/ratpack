@@ -349,7 +349,6 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     length << (1..256)
   }
 
-  @IgnoreRest
   @Unroll
   def "secretKey with #algorithm renders session unreadable"() {
     given:

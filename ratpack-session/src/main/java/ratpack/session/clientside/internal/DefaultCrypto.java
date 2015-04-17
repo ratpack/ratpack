@@ -46,24 +46,21 @@ public class DefaultCrypto implements Crypto {
       cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
 
       int blockSize = cipher.getBlockSize();
-      int messageSize = message.readableBytes();
-      int encMessageSize = cipher.getOutputSize(messageSize);
+      int messageLength = message.readableBytes();
+      int encMessageLength = cipher.getOutputSize(messageLength);
 
       ByteBuf paddedMessage = null;
-      if (messageSize == encMessageSize && (encMessageSize % blockSize) != 0) {
-        int paddedMessageSize = messageSize + blockSize - (messageSize % blockSize);
+      if (messageLength == encMessageLength && (encMessageLength % blockSize) != 0) {
+        int paddedMessageSize = messageLength + blockSize - (messageLength % blockSize);
         paddedMessage = Unpooled.wrappedBuffer(new byte[paddedMessageSize]);
         paddedMessage.setZero(0, paddedMessageSize);
-        paddedMessage.setBytes(0, message, messageSize);
-        encMessageSize = cipher.getOutputSize(paddedMessageSize);
+        paddedMessage.setBytes(0, message, messageLength);
+        encMessageLength = cipher.getOutputSize(paddedMessageSize);
       }
 
-      ByteBuf encMessage = Unpooled.wrappedBuffer(new byte[encMessageSize]);
+      ByteBuf encMessage = Unpooled.wrappedBuffer(new byte[encMessageLength]);
 
-      ByteBuffer nioMessageBuf = paddedMessage != null ? paddedMessage.nioBuffer() : message.nioBuffer();
-      ByteBuffer nioEncMessageBuf = encMessage.nioBuffer();
-
-      cipher.doFinal(nioMessageBuf, nioEncMessageBuf);
+      cipher.doFinal(paddedMessage != null ? paddedMessage.nioBuffer() : message.nioBuffer(), encMessage.nioBuffer());
       byte[] payload = encMessage.array();
 
       if (paddedMessage != null) {
@@ -109,14 +106,12 @@ public class DefaultCrypto implements Crypto {
       int messageLength = message.readableBytes();
       ByteBuf decMessage = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(messageLength)]);
 
-      ByteBuffer nioMessageBuf = message.readBytes(messageLength).nioBuffer();
       ByteBuffer nioDecMessageBuf = decMessage.nioBuffer();
 
-      int count = cipher.doFinal(nioMessageBuf, nioDecMessageBuf);
+      int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), nioDecMessageBuf);
       for (int i = count - 1; i >= 0; i--) {
-        if (nioDecMessageBuf.get(i) == 0x00) {
-          count--;
-        }
+        if (nioDecMessageBuf.get(i) == 0x00) count--;
+        else break;
       }
       byte[] decrypted = new byte[count];
       nioDecMessageBuf.position(0);
