@@ -77,7 +77,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     server.stop()
 
     then:
-    events == ["1 start", "2 start", "1 stop", "2 stop"]
+    events == ["1 start", "2 start", "2 stop", "1 stop"]
   }
 
   def "startup stops when the first service errors"() {
@@ -104,7 +104,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     then:
     def e = thrown StartupFailureException
     e.cause.message == "!"
-    events == [] // no other services started
+    events == ["2 stop"] // no other services started
   }
 
   def "startup stops when the first service errors async"() {
@@ -115,6 +115,11 @@ class ServiceSpec extends RatpackGroovyDslSpec {
         @Override
         void onStart(StartEvent event) throws Exception {
           event.execControl.blocking { throw new Exception("!") }.then {}
+        }
+
+        @Override
+        void onStop(StopEvent event) throws Exception {
+          events << "error-stop"
         }
       })
       multiBindInstance new RecordingService(prefix: "2 ")
@@ -131,7 +136,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     then:
     def e = thrown StartupFailureException
     e.cause.message == "!"
-    events == [] // no other services started
+    events == ["2 stop", "error-stop"] // no other services started
   }
 
 }

@@ -29,24 +29,14 @@ class BaseDirFinderSpec extends Specification {
 
   def "returns empty when not found"() {
     expect:
-    !BaseDirFinder.find(b1.build().toString(), classLoader, "foo").isPresent()
-  }
-
-  def "returns when found in working dir"() {
-    when:
-    def dir = b1.build { it.file("foo") << "bar" }
-    def r = BaseDirFinder.find(dir.toString(), classLoader, "foo").get()
-
-    then:
-    r.baseDir == dir
-    r.resource.text == "bar"
+    !BaseDirFinder.find(classLoader, "foo").isPresent()
   }
 
   def "returns when found in classloader dir"() {
     when:
     def dir = b1.build { it.file("foo") << "bar" }
     classLoader.addURL(dir.toUri().toURL())
-    def r = BaseDirFinder.find("no", classLoader, "foo").get()
+    def r = BaseDirFinder.find(classLoader, "foo").get()
 
     then:
     r.baseDir == dir
@@ -62,25 +52,7 @@ class BaseDirFinderSpec extends Specification {
     dir.getFileSystem().close()
     classLoader.addURL(f.toURI().toURL())
 
-    def r = BaseDirFinder.find("no", classLoader, "foo").get()
-
-    then:
-    r.baseDir == dir
-    r.resource.text == "bar"
-  }
-
-  def "prefers classpath to working dir"() {
-    when:
-    def f = File.createTempFile("ratpack", "test")
-    f.delete()
-    f.deleteOnExit()
-    def dir = BaseDirBuilder.jar(f).build { it.file("foo") << "bar" }
-    dir.getFileSystem().close()
-    classLoader.addURL(f.toURI().toURL())
-
-    def d = b1.build { it.file("foo") << "baz" }
-
-    def r = BaseDirFinder.find(d.absolute.toString(), classLoader, "foo").get()
+    def r = BaseDirFinder.find(classLoader, "foo").get()
 
     then:
     r.baseDir == dir

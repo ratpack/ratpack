@@ -19,6 +19,7 @@ package ratpack.groovy.guice.internal;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
 import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.guice.BindingsSpec;
@@ -45,13 +46,13 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public <T> GroovyBindingsSpec bind(Class<T> publicType, Class<? extends T> implType) {
+  public <T> GroovyBindingsSpec bind(TypeLiteral<T> publicType, Class<? extends T> implType) {
     delegate.bind(publicType, implType);
     return this;
   }
 
   @Override
-  public <T> GroovyBindingsSpec bindInstance(Class<? super T> publicType, T instance) {
+  public <T> GroovyBindingsSpec bindInstance(TypeLiteral<? super T> publicType, T instance) {
     delegate.bindInstance(publicType, instance);
     return this;
   }
@@ -63,13 +64,13 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public <T> GroovyBindingsSpec providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {
+  public <T> GroovyBindingsSpec providerType(TypeLiteral<T> publicType, Class<? extends Provider<? extends T>> providerType) {
     delegate.providerType(publicType, providerType);
     return this;
   }
 
   @Override
-  public <T> GroovyBindingsSpec provider(Class<T> publicType, Provider<? extends T> provider) {
+  public <T> GroovyBindingsSpec provider(TypeLiteral<T> publicType, Provider<? extends T> provider) {
     delegate.provider(publicType, provider);
     return this;
   }

@@ -75,7 +75,7 @@ class ServerConfigDeserializerSpec extends Specification {
   }
 
   def "empty baseDirProps uses default"() {
-    def dir = b1.build { it.file(ServerConfig.Builder.DEFAULT_PROPERTIES_FILE_NAME, "") }
+    def dir = b1.build { it.file(ServerConfig.Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH, "") }
     classLoader.addURL(dir.toUri().toURL())
 
     when:

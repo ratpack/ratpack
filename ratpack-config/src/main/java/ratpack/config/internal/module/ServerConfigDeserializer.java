@@ -83,8 +83,8 @@ public class ServerConfigDeserializer extends JsonDeserializer<ServerConfig> {
     JsonNode baseDirPropsNode = serverNode.get("baseDirProps");
     if (baseDirPropsNode != null) {
       if (baseDirPropsNode.isTextual()) {
-        String propertiesPath = Optional.ofNullable(Strings.emptyToNull(baseDirPropsNode.asText())).orElse(ServerConfig.Builder.DEFAULT_PROPERTIES_FILE_NAME);
-        return DefaultServerConfigBuilder.findBaseDirProps(serverEnvironment, propertiesPath);
+        String propertiesPath = Optional.ofNullable(Strings.emptyToNull(baseDirPropsNode.asText())).orElse(ServerConfig.Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
+        return DefaultServerConfigBuilder.findBaseDir(serverEnvironment, propertiesPath);
       } else {
         throw ctxt.mappingException(ServerConfig.class, baseDirPropsNode.asToken());
       }

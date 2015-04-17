@@ -81,13 +81,13 @@ public interface ServerConfig {
   }
 
   /**
-   * Creates a builder by finding a properties file with the default name ({@value ServerConfig.Builder#DEFAULT_PROPERTIES_FILE_NAME}).
+   * Creates a builder by finding a properties file with the default name ({@value ServerConfig.Builder#DEFAULT_BASE_DIR_MARKER_FILE_PATH}).
    *
    * @return a server config builder
-   * @see #findBaseDirProps(String)
+   * @see #findBaseDir(String)
    */
-  static Builder findBaseDirProps() {
-    return findBaseDirProps(Builder.DEFAULT_PROPERTIES_FILE_NAME);
+  static Builder findBaseDir() {
+    return findBaseDir(Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
   }
 
   /**
@@ -100,11 +100,11 @@ public interface ServerConfig {
    * <p>
    * It is typical for the properties file to be empty, and just be used to find the base dir.
    *
-   * @param propertiesPath the relative path to the properties file
+   * @param markerFilePath the relative path to the properties file
    * @return a server config builder
    */
-  static Builder findBaseDirProps(String propertiesPath) {
-    return DefaultServerConfigBuilder.findBaseDirProps(ServerEnvironment.env(), propertiesPath);
+  static Builder findBaseDir(String markerFilePath) {
+    return DefaultServerConfigBuilder.findBaseDir(ServerEnvironment.env(), markerFilePath);
   }
 
   /**
@@ -216,9 +216,9 @@ public interface ServerConfig {
      * <p>
      * Value: {@value}
      *
-     * @see #findBaseDirProps()
+     * @see #findBaseDir()
      */
-    String DEFAULT_PROPERTIES_FILE_NAME = "ratpack.properties";
+    String DEFAULT_BASE_DIR_MARKER_FILE_PATH = ".ratpack";
 
     /**
      * Sets the port to listen for requests on.

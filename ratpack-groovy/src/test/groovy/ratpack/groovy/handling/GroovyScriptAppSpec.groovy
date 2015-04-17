@@ -32,7 +32,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalPath))
+        RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalFile.toPath()))
       }
     }
   }

@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -228,9 +229,18 @@ public class NettyRatpackServer implements RatpackServer {
 
     ExecControl execControl = serverRegistry.get(ExecControl.class);
     Iterator<? extends Service> services = serverRegistry.getAll(Service.class).iterator();
-    executeEvents(services, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStart, (service, error) -> {
-      throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
-    });
+    try {
+      executeEvents(services, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStart, (service, error) -> {
+        throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
+      });
+    } catch (StartupFailureException e) {
+      try {
+        shutdownServices();
+      } catch (Exception e1) {
+        e.addSuppressed(e1);
+      }
+      throw e;
+    }
 
     return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
   }
@@ -264,18 +274,23 @@ public class NettyRatpackServer implements RatpackServer {
       if (!isRunning()) {
         return;
       }
-      if (serverRegistry != null) {
-        Iterator<? extends Service> services = serverRegistry.getAll(Service.class).iterator();
-        ExecControl execControl = serverRegistry.get(ExecControl.class);
-        executeEvents(services, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStop, (service, error) ->
-            LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
-        );
-      }
+      shutdownServices();
     } finally {
       Optional.ofNullable(channel).ifPresent(Channel::close);
       Optional.ofNullable(execController).ifPresent(ExecController::close);
       channel = null;
       execController = null;
+    }
+  }
+
+  private void shutdownServices() throws Exception {
+    if (serverRegistry != null) {
+      Iterable<? extends Service> services = serverRegistry.getAll(Service.class);
+      Iterator<Service> reverseServices = ImmutableList.copyOf(services).reverse().iterator();
+      ExecControl execControl = serverRegistry.get(ExecControl.class);
+      executeEvents(reverseServices, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStop, (service, error) ->
+          LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
+      );
     }
   }
 

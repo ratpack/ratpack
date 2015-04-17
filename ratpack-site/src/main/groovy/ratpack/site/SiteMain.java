@@ -45,7 +45,7 @@ public class SiteMain {
     RatpackServer.start(b -> {
         RxRatpack.initialize();
         ConfigData config = ConfigData.of(c -> c.env().sysProps());
-        ServerConfig innerServerConfig = ServerConfig.findBaseDirProps().build();
+        ServerConfig innerServerConfig = ServerConfig.findBaseDir().build();
 
         // This is needed because the config loading stuff doesn't quite handle portable base dir
         ServerConfig serverConfig = new DelegatingServerConfig(config.getServerConfig()) {

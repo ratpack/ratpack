@@ -74,25 +74,17 @@ public abstract class BaseDirFinder {
     }
   }
 
-  public static Optional<Result> find(String workingDir, ClassLoader classLoader, String resourcePathString) {
+  public static Optional<Result> find(ClassLoader classLoader, String resourcePathString) {
     Path resourcePath;
     URL resourceUrl = classLoader.getResource(resourcePathString);
     if (resourceUrl == null) {
-      resourcePath = Paths.get(resourcePathString);
-      if (!resourcePath.isAbsolute()) {
-        resourcePath = Paths.get(workingDir, resourcePathString);
-      }
-
-      if (!Files.exists(resourcePath)) {
-        return Optional.empty();
-      }
+      return Optional.empty();
     } else {
       resourcePath = toPath(resourceUrl);
     }
 
     return Optional.of(new Result(determineBaseDir(resourcePath), resourcePath));
   }
-
 
   private static Path toPath(URL resource) {
     URI uri = uncheck(resource::toURI);
