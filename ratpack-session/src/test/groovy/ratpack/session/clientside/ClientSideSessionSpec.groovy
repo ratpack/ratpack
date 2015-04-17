@@ -24,7 +24,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class ClientSideSessionSpec extends RatpackGroovyDslSpec {
@@ -312,7 +311,6 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   }
 
-  @Ignore
   @Unroll
   def "sessions with value of length #length can be serialized/deserialized"() {
     given:
@@ -405,19 +403,19 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     where:
     algorithm << [
-//      "Blowfish",
-//      "AES/CBC/NoPadding",
+      "Blowfish",
+      "AES/CBC/NoPadding",
       "AES/CBC/PKCS5Padding",
-//      "AES/ECB/NoPadding",
+      "AES/ECB/NoPadding",
       "AES/ECB/PKCS5Padding",
-//      "DES/CBC/NoPadding",
-//      "DES/CBC/PKCS5Padding",
-//      "DES/ECB/NoPadding",
-//      "DES/ECB/PKCS5Padding",
-//      "DESede/CBC/NoPadding",
-//      "DESede/CBC/PKCS5Padding",
-//      "DESede/ECB/NoPadding",
-//      "DESede/ECB/PKCS5Padding"
+      "DES/CBC/NoPadding",
+      "DES/CBC/PKCS5Padding",
+      "DES/ECB/NoPadding",
+      "DES/ECB/PKCS5Padding",
+      "DESede/CBC/NoPadding",
+      "DESede/CBC/PKCS5Padding",
+      "DESede/ECB/NoPadding",
+      "DESede/ECB/PKCS5Padding"
       ]
 
   }
