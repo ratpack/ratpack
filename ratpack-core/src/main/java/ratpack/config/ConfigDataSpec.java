@@ -17,6 +17,7 @@
 package ratpack.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -41,7 +42,6 @@ import java.util.Properties;
  * <pre class="java">{@code
  * import java.nio.file.Files;
  * import java.nio.file.Path;
- * import ratpack.config.ConfigData;
  * import ratpack.func.Action;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
@@ -57,12 +57,13 @@ import java.util.Properties;
  *     try {
  *       Files.write(yamlFile, "server:\n  threads: 7\n  port: 0".getBytes());
  *       RatpackServer server = RatpackServer.of(spec -> {
- *         ConfigData config = ConfigData.of(c -> c
+ *         ServerConfig serverConfig = ServerConfig
+ *           .embedded()
  *           .onError(Action.noop()).json(jsonFile)
  *           .onError(Action.throwException()).yaml(yamlFile)
- *         );
+ *           .build();
  *         spec
- *           .serverConfig(config.getServerConfig())
+ *           .serverConfig(serverConfig)
  *           .handler(registry ->
  *             (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
  *           );
@@ -212,15 +213,17 @@ public interface ConfigDataSpec {
    * <pre class="java">{@code
    * import com.google.common.collect.ImmutableMap;
    * import ratpack.config.ConfigData;
+   * import ratpack.server.ServerConfig;
    * import static org.junit.Assert.*;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
-   *     ConfigData config = ConfigData.of(d -> d
+   *     ServerConfig serverConfig = ServerConfig
+   *       .noBaseDir()
    *       .props(ImmutableMap.of("server.port", "5060"))
    *       .sysProps()
-   *     );
-   *     assertEquals(5060, config.getServerConfig().getPort());
+   *       .build();
+   *     assertEquals(5060, serverConfig.getPort());
    *   }
    * }
    * }</pre>
@@ -308,4 +311,19 @@ public interface ConfigDataSpec {
    * @see ratpack.func.Action#throwException()
    */
   ConfigDataSpec onError(Action<? super Throwable> errorHandler);
+
+
+  /**
+   * Returns the object mapper used for configuration binding.
+   *
+   * @return the object mapper
+   */
+  ObjectMapper getObjectMapper();
+
+  /**
+   * Returns the config sources used for configuration binding.
+   *
+   * @return the config sources
+   */
+  ImmutableList<ConfigSource> getConfigSources();
 }

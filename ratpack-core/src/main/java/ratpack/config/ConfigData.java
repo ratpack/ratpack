@@ -33,8 +33,8 @@ import java.util.List;
  * The static methods of this interface can be used to build a configuration data object.
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
- * import ratpack.config.ConfigData;
  * import ratpack.server.RatpackServer;
+ * import ratpack.server.ServerConfig;
  * import ratpack.test.http.TestHttpClient;
  * import static org.junit.Assert.*;
  *
@@ -49,27 +49,25 @@ import java.util.List;
  *
  *   public static void main(String[] args) throws Exception {
  *     RatpackServer server = RatpackServer.of(spec -> {
- *       ConfigData config = ConfigData.of(d -> d
- *         .props(ImmutableMap.of("server.port", "5060", "app.name", "Ratpack"))
- *         .sysProps()
- *       );
+ *       ServerConfig serverConfig = ServerConfig.embedded()
+  *        .props(ImmutableMap.of("server.publicAddress", "http://app.example.com", "app.name", "Ratpack"))
+  *        .sysProps()
+ *         .build();
  *       spec
- *         .serverConfig(config.getServerConfig())
+ *         .serverConfig(serverConfig)
  *         .registryOf(r -> r
- *           .add(config)
- *           .add(config.get("/app", MyAppConfig.class))
+ *           .add(serverConfig.get("/app", MyAppConfig.class))
  *         )
  *         .handler(registry ->
- *           (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName())
+ *           (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName() + " at " + ctx.getServerConfig().getPublicAddress())
  *         );
  *     });
  *     server.start();
  *
  *     assertTrue(server.isRunning());
- *     assertEquals(5060, server.getBindPort());
  *
  *     TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
- *     assertEquals("Hi, my name is Ratpack", httpClient.getText());
+ *     assertEquals("Hi, my name is Ratpack at http://app.example.com", httpClient.getText());
  *
  *     server.stop();
  *   }
@@ -173,26 +171,6 @@ public interface ConfigData extends ReloadInformant, Service {
    */
   default <O> O get(Class<O> type) {
     return get(null, type);
-  }
-
-  /**
-   * Binds the path "/server" in the configuration data to a {@link ratpack.server.ServerConfig} instance.
-   *
-   * @return a server config
-   */
-  default ServerConfig getServerConfig() {
-    return getServerConfig("/server");
-  }
-
-  /**
-   * Binds the specified segment of the configuration data to a {@link ratpack.server.ServerConfig} instance.
-   *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying
-   * the point in the configuration data to bind from
-   * @return a server config
-   */
-  default ServerConfig getServerConfig(String pointer) {
-    return get(pointer, ServerConfig.class);
   }
 
 }

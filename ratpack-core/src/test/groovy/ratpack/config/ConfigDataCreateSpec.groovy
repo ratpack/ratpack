@@ -28,6 +28,7 @@ import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import ratpack.server.Service
 import ratpack.server.StartEvent
+import ratpack.server.internal.ServerConfigData
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
@@ -54,10 +55,10 @@ class ConfigDataCreateSpec extends Specification {
 
     when:
     def server = RatpackServer.of {
-      def configData = ConfigData.of().props(propsFile).build()
-      it.serverConfig(configData.get("/server", ServerConfig))
+      def serverConfig = ServerConfig.noBaseDir().props(propsFile).build()
+      it.serverConfig(serverConfig)
         .registryOf {
-        it.add(MyAppConfig, configData.get("/app", MyAppConfig))
+        it.add(MyAppConfig, serverConfig.get("/app", MyAppConfig))
       }
       .handler {
         return {
@@ -153,7 +154,7 @@ class ConfigDataCreateSpec extends Specification {
     when:
     def configData = ConfigData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
     def appConfig = configData.get(MyAppConfig)
-    def serverConfig = configData.get(ServerConfig)
+    def serverConfig = configData.get(ServerConfigData)
     def serviceConfig = configData.get(ServiceConfig)
 
     then:
@@ -180,7 +181,7 @@ class ConfigDataCreateSpec extends Specification {
 
     when:
     def configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
-    def serverConfig = configData.get(ServerConfig)
+    def serverConfig = configData.get(ServerConfigData)
 
     then:
     notThrown(Exception)
@@ -202,7 +203,7 @@ class ConfigDataCreateSpec extends Specification {
     when:
     jsonFile.text = '{"threads":7}'
     def configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
-    def serverConfig = configData.get(ServerConfig)
+    def serverConfig = configData.get(ServerConfigData)
 
     then:
     notThrown(Exception)
@@ -212,7 +213,7 @@ class ConfigDataCreateSpec extends Specification {
     when:
     yamlFile.text = 'publicAddress: http://example.com'
     configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
-    serverConfig = configData.get(ServerConfig)
+    serverConfig = configData.get(ServerConfigData)
 
     then:
     notThrown(Exception)

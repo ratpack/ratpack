@@ -16,22 +16,22 @@
 
 package ratpack.config.internal.module
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import ratpack.server.ServerConfig
+import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 import ratpack.test.embed.BaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-class ServerConfigDeserializerSpec extends Specification {
+class ServerConfigDataDeserializerSpec extends Specification {
   @AutoCleanup
   def b1 = BaseDirBuilder.tmpDir()
   def originalClassLoader
   def classLoader = new GroovyClassLoader()
-  def deserializer = new ServerConfigDeserializer(new ServerEnvironment([:], new Properties()))
-  def objectMapper = new ObjectMapper()
+  def serverEnvironment = new ServerEnvironment([:], new Properties())
+  def deserializer = new ServerConfigDataDeserializer(serverEnvironment)
+  def objectMapper = DefaultConfigDataSpec.newDefaultObjectMapper(serverEnvironment)
 
   def setup() {
     originalClassLoader = Thread.currentThread().contextClassLoader
@@ -49,57 +49,15 @@ class ServerConfigDeserializerSpec extends Specification {
     def serverConfig = deserialize(objectMapper.createObjectNode().put("baseDir", dir.toString()))
 
     then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == dir
+    serverConfig.baseDir == dir
   }
 
-  def "non-text baseDir results in error"() {
-    when:
-    deserialize(objectMapper.createObjectNode().set("baseDir", objectMapper.createArrayNode()))
-
-    then:
-    thrown(JsonMappingException)
-  }
-
-  def "can specify baseDirProps"() {
-    def propsFileName = "foo.properties"
-    def dir = b1.build { it.file(propsFileName, "") }
-    classLoader.addURL(dir.toUri().toURL())
-
-    when:
-    def serverConfig = deserialize(objectMapper.createObjectNode().put("baseDirProps", propsFileName))
-
-    then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == dir
-  }
-
-  def "empty baseDirProps uses default"() {
-    def dir = b1.build { it.file(ServerConfig.Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH, "") }
-    classLoader.addURL(dir.toUri().toURL())
-
-    when:
-    def serverConfig = deserialize(objectMapper.createObjectNode().put("baseDirProps", ""))
-
-    then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == dir
-  }
-
-  def "non-text baseDirProps results in error"() {
-    when:
-    deserialize(objectMapper.createObjectNode().set("baseDirProps", objectMapper.createArrayNode()))
-
-    then:
-    thrown(JsonMappingException)
-  }
-
-  def "neither baseDir nor baseDirProps results in no base dir"() {
+  def "without baseDir results in no base dir"() {
     when:
     def serverConfig = deserialize(objectMapper.createObjectNode())
 
     then:
-    !serverConfig.hasBaseDir
+    !serverConfig.baseDir
   }
 
   def "without any config uses default from server config builder"() {
@@ -112,7 +70,7 @@ class ServerConfigDeserializerSpec extends Specification {
     !serverConfig.publicAddress
   }
 
-  private ServerConfig deserialize(JsonNode node) {
+  private ServerConfigData deserialize(JsonNode node) {
     deserializer.deserialize(node.traverse(objectMapper), objectMapper.deserializationContext)
   }
 }

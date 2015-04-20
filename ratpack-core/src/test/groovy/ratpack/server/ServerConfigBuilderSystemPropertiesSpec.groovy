@@ -16,11 +16,13 @@
 
 package ratpack.server
 
+import com.google.common.io.Resources
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext
+import java.nio.file.Paths
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
@@ -34,7 +36,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "set port"() {
     given:
-    properties.setProperty('ratpack.port', '5060')
+    properties.setProperty('ratpack.server.port', '5060')
 
     when:
     def config = builder.sysProps().build()
@@ -45,7 +47,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "set property from custom prefix"() {
     given:
-    properties.setProperty('app.port', '6060')
+    properties.setProperty('app.server.port', '6060')
 
     when:
     def config = builder.sysProps('app.').build()
@@ -56,8 +58,8 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "multiple sources override"() {
     given:
-    properties.setProperty('ratpack.port', '5060')
-    properties.setProperty('app.port', '8080')
+    properties.setProperty('ratpack.server.port', '5060')
+    properties.setProperty('app.server.port', '8080')
 
     when:
     def config = builder.sysProps('app.').sysProps().build()
@@ -72,20 +74,20 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     config.port == 8080
   }
 
-  def "malformed port property throws exception"() {
+  def "malformed port property uses default"() {
     given:
-    properties.setProperty('ratpack.port', 'abcd')
+    properties.setProperty('ratpack.server.port', 'abcd')
 
     when:
-    builder.sysProps()
+    def config = builder.sysProps().build()
 
     then:
-    thrown NumberFormatException
+    config.port == ServerConfig.DEFAULT_PORT
   }
 
   def "set address"() {
     given:
-    properties.setProperty('ratpack.address', 'localhost')
+    properties.setProperty('ratpack.server.address', 'localhost')
 
     when:
     def config = builder.sysProps().build()
@@ -96,18 +98,18 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "malformed address property throws exception"() {
     given:
-    properties.setProperty('ratpack.address', 'blah')
+    properties.setProperty('ratpack.server.address', 'blah')
 
     when:
-    builder.sysProps()
+    builder.sysProps().build()
 
     then:
-    thrown RuntimeException
+    thrown IllegalArgumentException
   }
 
   def "set development"() {
     given:
-    properties.setProperty('ratpack.development', 'true')
+    properties.setProperty('ratpack.server.development', 'true')
 
     when:
     def config = builder.sysProps().build()
@@ -118,7 +120,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "non boolean development properties are false"() {
     given:
-    properties.setProperty('ratpack.development', 'hi')
+    properties.setProperty('ratpack.server.development', 'hi')
 
     when:
     def config = builder.sysProps().build()
@@ -129,7 +131,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "set threads"() {
     given:
-    properties.setProperty('ratpack.threads', '10')
+    properties.setProperty('ratpack.server.threads', '10')
 
     when:
     def config = builder.sysProps().build()
@@ -138,20 +140,20 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     config.threads == 10
   }
 
-  def "malformed threads throws exception"() {
+  def "malformed threads uses default"() {
     given:
-    properties.setProperty('ratpack.threads', 'abcd')
+    properties.setProperty('ratpack.server.threads', 'abcd')
 
     when:
-    builder.sysProps()
+    def config = builder.sysProps().build()
 
     then:
-    thrown NumberFormatException
+    config.threads == ServerConfig.DEFAULT_THREADS
   }
 
   def "set public address"() {
     given:
-    properties.setProperty('ratpack.publicAddress', 'http://ratpack.io')
+    properties.setProperty('ratpack.server.publicAddress', 'http://ratpack.io')
 
     when:
     def config = builder.sysProps().build()
@@ -162,7 +164,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "set max content length"() {
     given:
-    properties.setProperty('ratpack.maxContentLength', '256')
+    properties.setProperty('ratpack.server.maxContentLength', '256')
 
     when:
     def config = builder.sysProps().build()
@@ -173,21 +175,21 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "malformed max content length throws exception"() {
     given:
-    properties.setProperty('ratpack.maxContentLength', 'abcd')
+    properties.setProperty('ratpack.server.maxContentLength', 'abcd')
 
     when:
-    builder.sysProps()
+    def config = builder.sysProps().build()
 
     then:
-    thrown NumberFormatException
+    config.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
   }
 
   def "set ssl context"() {
     given:
-    String keystoreFile = 'ratpack/launch/internal/keystore.jks'
+    String keystoreFile = Paths.get(Resources.getResource('ratpack/launch/internal/keystore.jks').toURI()).toString()
     String keystorePassword = 'password'
-    properties.setProperty('ratpack.sslKeystoreFile', keystoreFile)
-    properties.setProperty('ratpack.sslKeystorePassword', keystorePassword)
+    properties.setProperty('ratpack.server.ssl.keystoreFile', keystoreFile)
+    properties.setProperty('ratpack.server.ssl.keystorePassword', keystorePassword)
 
     when:
     SSLContext sslContext = builder.sysProps().build().SSLContext

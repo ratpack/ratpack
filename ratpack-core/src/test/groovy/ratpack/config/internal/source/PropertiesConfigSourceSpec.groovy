@@ -17,7 +17,6 @@
 package ratpack.config.internal.source
 
 import ratpack.config.internal.DefaultConfigDataSpec
-import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,7 +24,7 @@ import static ratpack.server.ServerConfig.Builder.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
-  def mapper = DefaultConfigDataSpec.newDefaultObjectMapper(new ServerEnvironment([:], new Properties()))
+  def mapper = DefaultConfigDataSpec.newDefaultObjectMapper()
 
   @Unroll
   def "supports no prefix (#prefix)"() {

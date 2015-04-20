@@ -16,7 +16,7 @@
 
 package ratpack.config
 
-import ratpack.server.ServerConfig
+import ratpack.server.internal.ServerConfigData
 
 class YamlConfigSpec extends BaseConfigSpec {
   def "supports yaml"() {
@@ -39,23 +39,22 @@ class YamlConfigSpec extends BaseConfigSpec {
     |    - index.html
     |    - index.htm
     |ssl:
-    |    keyStorePath: ${keyStoreFile.toString()}
-    |    keyStorePassword: ${keyStorePassword}
+    |    keystoreFile: ${keyStoreFile.toString()}
+    |    keystorePassword: ${keyStorePassword}
     |...
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigData.of().yaml(configFile).build().get(ServerConfig)
+    def serverConfig = ConfigData.of().yaml(configFile).build().get(ServerConfigData)
 
     then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == baseDir
+    serverConfig.baseDir == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.SSLContext
+    serverConfig.sslContext
   }
 }

@@ -17,7 +17,7 @@
 package ratpack.config.internal.module;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import ratpack.server.ServerConfig;
+import ratpack.server.internal.ServerConfigData;
 import ratpack.server.internal.ServerEnvironment;
 
 import javax.net.ssl.SSLContext;
@@ -25,7 +25,7 @@ import javax.net.ssl.SSLContext;
 public class ConfigModule extends SimpleModule {
   public ConfigModule(ServerEnvironment serverEnvironment) {
     super("ratpack");
-    addDeserializer(ServerConfig.class, new ServerConfigDeserializer(serverEnvironment));
+    addDeserializer(ServerConfigData.class, new ServerConfigDataDeserializer(serverEnvironment));
     addDeserializer(SSLContext.class, new SSLContextDeserializer());
   }
 }

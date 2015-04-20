@@ -16,7 +16,7 @@
 
 package ratpack.config
 
-import ratpack.server.ServerConfig
+import ratpack.server.internal.ServerConfigData
 
 class JsonConfigSpec extends BaseConfigSpec {
     def "supports json"() {
@@ -38,24 +38,23 @@ class JsonConfigSpec extends BaseConfigSpec {
     "timeResponses": true,
     "indexFiles": ["index.html", "index.htm"],
     "ssl": {
-        "keyStorePath": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-        "keyStorePassword": "${keyStorePassword}"
+        "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
+        "keystorePassword": "${keyStorePassword}"
     }
 }
 """
 
         when:
-        def serverConfig = ConfigData.of().json(configFile).build().get(ServerConfig)
+        def serverConfig = ConfigData.of().json(configFile).build().get(ServerConfigData)
 
         then:
-        serverConfig.hasBaseDir
-        serverConfig.baseDir.file == baseDir
+        serverConfig.baseDir == baseDir
         serverConfig.port == 8080
         serverConfig.address == InetAddress.getByName("localhost")
         serverConfig.development
         serverConfig.threads == 3
         serverConfig.publicAddress == URI.create("http://localhost:8080")
         serverConfig.maxContentLength == 50000
-        serverConfig.SSLContext
+        serverConfig.sslContext
     }
 }

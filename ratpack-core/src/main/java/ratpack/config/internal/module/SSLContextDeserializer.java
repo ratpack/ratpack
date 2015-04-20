@@ -33,9 +33,9 @@ public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
   public SSLContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectNode node = jp.readValueAsTree();
     try {
-      String keyStorePath = node.path("keyStorePath").asText();
-      String keyStorePassword = node.path("keyStorePassword").asText();
-      return SSLContexts.sslContext(Paths.get(keyStorePath), keyStorePassword);
+      String keyStoreFile = node.path("keystoreFile").asText();
+      String keyStorePassword = node.path("keystorePassword").asText();
+      return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword);
     } catch (GeneralSecurityException ex) {
       throw Exceptions.uncheck(ex);
     }

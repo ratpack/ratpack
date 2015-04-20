@@ -70,7 +70,7 @@ class EnvironmentConfigSourceSpec extends Specification {
 
   private static ObjectNode loadConfig(Map<String, String> input, String prefix = DEFAULT_ENV_PREFIX) {
     def environment = new ServerEnvironment(input, new Properties())
-    def mapper = DefaultConfigDataSpec.newDefaultObjectMapper(environment)
+    def mapper = DefaultConfigDataSpec.newDefaultObjectMapper()
     def source = new EnvironmentConfigSource(environment, prefix)
     source.loadConfigData(mapper)
   }

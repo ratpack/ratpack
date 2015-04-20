@@ -17,7 +17,7 @@
 package ratpack.config
 
 import ratpack.config.internal.DefaultConfigDataSpec
-import ratpack.server.ServerConfig
+import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 
 class PropsConfigSpec extends BaseConfigSpec {
@@ -38,23 +38,22 @@ class PropsConfigSpec extends BaseConfigSpec {
     |maxContentLength: 50000
     |indexFiles[0]: index.html
     |indexFiles[1]: index.htm
-    |ssl.keyStorePath: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
-    |ssl.keyStorePassword: ${keyStorePassword}
+    |ssl.keystoreFile: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
+    |ssl.keystorePassword: ${keyStorePassword}
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigData.of().props(configFile).build().get(ServerConfig)
+    def serverConfig = ConfigData.of().props(configFile).build().get(ServerConfigData)
 
     then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == baseDir
+    serverConfig.baseDir == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.SSLContext
+    serverConfig.sslContext
   }
 
   @SuppressWarnings(["UnnecessaryObjectReferences"])
@@ -74,22 +73,21 @@ class PropsConfigSpec extends BaseConfigSpec {
       setProperty("ratpack.maxContentLength", "50000")
       setProperty("ratpack.indexFiles[0]", "index.html")
       setProperty("ratpack.indexFiles[1]", "index.htm")
-      setProperty("ratpack.ssl.keyStorePath", keyStoreFile.toString())
-      setProperty("ratpack.ssl.keyStorePassword", keyStorePassword)
+      setProperty("ratpack.ssl.keystoreFile", keyStoreFile.toString())
+      setProperty("ratpack.ssl.keystorePassword", keyStorePassword)
     }
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfigData)
 
     then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == baseDir
+    serverConfig.baseDir == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.SSLContext
+    serverConfig.sslContext
   }
 }

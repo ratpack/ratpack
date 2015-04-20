@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.google.common.collect.ImmutableList;
@@ -60,6 +61,11 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
     this(serverEnvironment, newDefaultObjectMapper(serverEnvironment).registerModules(modules));
   }
 
+  public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, Optional<ObjectMapper> objectMapper) {
+    this.serverEnvironment = serverEnvironment;
+    this.objectMapper = objectMapper.orElse(newDefaultObjectMapper(serverEnvironment));
+  }
+
   public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {
     this.serverEnvironment = serverEnvironment;
     this.objectMapper = objectMapper;
@@ -73,7 +79,7 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
 
   @Override
   public ConfigData build() {
-    return new DefaultConfigData(objectMapper, sources.build());
+    return new DefaultConfigData(this);
   }
 
   @Override
@@ -180,6 +186,7 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
   public static ObjectMapper newDefaultObjectMapper(ServerEnvironment serverEnvironment) {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    objectMapper.registerModule(new Jdk7Module());
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new JSR310Module());
@@ -188,5 +195,15 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
     factory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
     return objectMapper;
+  }
+
+  @Override
+  public ObjectMapper getObjectMapper() {
+    return objectMapper;
+  }
+
+  @Override
+  public ImmutableList<ConfigSource> getConfigSources() {
+    return sources.build();
   }
 }

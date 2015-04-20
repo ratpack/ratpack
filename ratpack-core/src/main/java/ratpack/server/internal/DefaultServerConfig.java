@@ -17,94 +17,74 @@
 package ratpack.server.internal;
 
 import ratpack.api.Nullable;
+import ratpack.config.ConfigData;
+import ratpack.config.internal.DelegatingConfigData;
 import ratpack.file.FileSystemBinding;
+import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.ServerConfig;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Optional;
 
-public class DefaultServerConfig implements ServerConfig {
+public class DefaultServerConfig extends DelegatingConfigData implements ServerConfig {
 
-  private final FileSystemBinding baseDir;
-  private final int port;
-  private final InetAddress address;
-  private final boolean development;
-  private final int threads;
-  private final URI publicAddress;
-  private final SSLContext sslContext;
-  private final int maxContentLength;
+  private final ServerConfigData serverConfigData;
+  private final Optional<FileSystemBinding> baseDir;
 
-  public DefaultServerConfig(
-    FileSystemBinding baseDir,
-    int port,
-    InetAddress address,
-    boolean development,
-    int threads,
-    URI publicAddress,
-    SSLContext sslContext,
-    int maxContentLength
-  ) {
-    this.baseDir = baseDir;
-    this.port = port;
-    this.address = address;
-    this.development = development;
-    this.threads = threads;
-    this.publicAddress = publicAddress;
-    this.sslContext = sslContext;
-    this.maxContentLength = maxContentLength;
+  public DefaultServerConfig(ConfigData configData) {
+    super(configData);
+    this.serverConfigData = get("/server", ServerConfigData.class);
+    baseDir = Optional.ofNullable(serverConfigData.getBaseDir()).map(DefaultFileSystemBinding::new);
   }
 
   @Override
   public int getPort() {
-    return port;
+    return serverConfigData.getPort();
   }
 
   @Nullable
   @Override
   public InetAddress getAddress() {
-    return address;
+    return serverConfigData.getAddress();
   }
 
   @Override
   public boolean isDevelopment() {
-    return development;
+    return serverConfigData.isDevelopment();
   }
 
   @Override
   public int getThreads() {
-    return threads;
+    return serverConfigData.getThreads();
   }
 
   @Override
   public URI getPublicAddress() {
-    return publicAddress;
+    return serverConfigData.getPublicAddress();
   }
 
   @Nullable
   @Override
   public SSLContext getSSLContext() {
-    return sslContext;
+    return serverConfigData.getSslContext();
   }
 
   @Override
   public int getMaxContentLength() {
-    return maxContentLength;
+    return serverConfigData.getMaxContentLength();
   }
 
   @Override
   public boolean isHasBaseDir() {
-    return baseDir != null;
+    return serverConfigData.getBaseDir() != null;
   }
 
   @Override
   public FileSystemBinding getBaseDir() throws NoBaseDirException {
-    if (baseDir == null) {
-      throw new NoBaseDirException("No base dir has been set");
-    } else {
-      return baseDir;
-    }
+    return baseDir.orElseThrow(() -> new NoBaseDirException("No base dir has been set"));
   }
 
 }

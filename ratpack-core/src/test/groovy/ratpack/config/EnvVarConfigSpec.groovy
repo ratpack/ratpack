@@ -17,7 +17,7 @@
 package ratpack.config
 
 import ratpack.config.internal.DefaultConfigDataSpec
-import ratpack.server.ServerConfig
+import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Unroll
 
@@ -26,7 +26,7 @@ class EnvVarConfigSpec extends BaseConfigSpec {
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
 
     then:
     serverConfig.port == expectedPort
@@ -52,22 +52,21 @@ class EnvVarConfigSpec extends BaseConfigSpec {
       RATPACK_PUBLIC_ADDRESS: "http://localhost:8080",
       RATPACK_MAX_CONTENT_LENGTH: "50000",
       RATPACK_TIME_RESPONSES: "true",
-      RATPACK_SSL__KEY_STORE_PATH: keyStoreFile.toString(),
-      RATPACK_SSL__KEY_STORE_PASSWORD: keyStorePassword,
+      RATPACK_SSL__KEYSTORE_FILE: keyStoreFile.toString(),
+      RATPACK_SSL__KEYSTORE_PASSWORD: keyStorePassword,
     ]
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfig)
+    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
 
     then:
-    serverConfig.hasBaseDir
-    serverConfig.baseDir.file == baseDir
+    serverConfig.baseDir == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
     serverConfig.threads == 3
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
-    serverConfig.SSLContext
+    serverConfig.sslContext
   }
 }

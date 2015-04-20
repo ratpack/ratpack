@@ -19,6 +19,7 @@ package ratpack.config.server
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.server.ServerConfig
+import ratpack.server.internal.ServerConfigData
 
 import java.nio.file.Path
 import java.security.KeyStore
@@ -29,16 +30,16 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
 
   def "can get ServerConfig with defaults from no data"() {
     when:
-    def config = noData().get(ServerConfig)
+    def config = noData().get(ServerConfigData)
 
     then:
-    !config.hasBaseDir
+    !config.baseDir
     config.port == ServerConfig.DEFAULT_PORT
     !config.address
     !config.development
     config.threads == ServerConfig.DEFAULT_THREADS
     !config.publicAddress
-    !config.SSLContext
+    !config.sslContext
     config.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
   }
 
@@ -56,23 +57,22 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     |threads: 5
     |publicAddress: http://app.ratpack.com
     |ssl:
-    |  keyStorePath: ${keyStoreFile.toString()}
-    |  keyStorePassword: ${keyStorePassword}
+    |  keystoreFile: ${keyStoreFile.toString()}
+    |  keystorePassword: ${keyStorePassword}
     |maxContentLength: 54321
     """.stripMargin()
 
     when:
-    def config = yamlConfig(data).get(ServerConfig)
+    def config = yamlConfig(data).get(ServerConfigData)
 
     then:
-    config.hasBaseDir
-    config.baseDir.file == baseDir
+    config.baseDir == baseDir
     config.port == 1234
     config.address == InetAddress.getByAddress([1, 2, 3, 4] as byte[])
     config.development
     config.threads == 5
     config.publicAddress == URI.create("http://app.ratpack.com")
-    config.SSLContext
+    config.sslContext
     config.maxContentLength == 54321L
   }
 
