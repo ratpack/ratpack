@@ -18,6 +18,7 @@ package ratpack.thymeleaf
 
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.cache.StandardCacheManager
+import org.thymeleaf.fragment.DOMSelectorFragmentSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -299,5 +300,29 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     then:
     text == '<p>Hello, World!</p>'
+  }
+
+  void 'can select a template fragment'() {
+    given:
+    file 'thymeleaf/with-fragment.html', '''
+      <html>
+        <head><title>Whatever</title></head>
+        <body>Just show me this bit</body>
+      </html>'''
+
+    when:
+    bindings {
+      add new ThymeleafModule()
+    }
+
+    handlers {
+      handler {
+        render thymeleafTemplate('with-fragment', new DOMSelectorFragmentSpec('body'))
+      }
+    }
+
+    then:
+    text == '<body>Just show me this bit</body>'
+
   }
 }
