@@ -17,11 +17,13 @@
 package ratpack.session.clientside.internal;
 
 import com.google.common.collect.Iterables;
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
+import ratpack.session.clientside.ClientSideSessionsModule;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.internal.DefaultSessionStorage;
@@ -66,7 +68,15 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
           } else {
             ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
             String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
-            responseMetaData.cookie(sessionName, cookieValue);
+            Cookie cookie = responseMetaData.cookie(sessionName, cookieValue);
+
+            ClientSideSessionsModule.Config config = context.get(ClientSideSessionsModule.Config.COOKIE_SESSION_CONFIG_TYPE_TOKEN);
+            if (config.getPath() != null) {
+              cookie.setPath(config.getPath());
+            }
+            if (config.getDomain() != null) {
+              cookie.setDomain(config.getDomain());
+            }
           }
         }
       }

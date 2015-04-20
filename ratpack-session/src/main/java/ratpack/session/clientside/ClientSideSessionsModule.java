@@ -16,6 +16,7 @@
 
 package ratpack.session.clientside;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import io.netty.util.CharsetUtil;
@@ -202,11 +203,19 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
   }
 
   public static class Config {
+    /**
+     * Used to get cookie based session configuration.
+     */
+    public static final TypeToken<Config> COOKIE_SESSION_CONFIG_TYPE_TOKEN = TypeToken.of(Config.class);
+
     private String sessionName = "ratpack_session";
     private String secretToken = Long.toString(System.currentTimeMillis() / 10000);
     private String macAlgorithm = "HmacSHA1";
     private String secretKey;
     private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
+    private String path = "/";
+    private String domain;
+    private Integer maxCookieSize = 2048;
     private SessionService sessionService;
 
     public String getSessionName() {
@@ -247,6 +256,75 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
 
     public void setCipherAlgorithm(String cipherAlgorithm) {
       this.cipherAlgorithm = cipherAlgorithm;
+    }
+
+    /**
+     * Use the session cookie only when requesting from the {@code path}.
+     * <p>
+     * Define the scope of the cookie.
+     * <p>
+     * Session should be send for every request. The {@code path} of value {@code "/"} does this.
+     * @return the URI path to which session cookie will be attached to.
+     */
+    public String getPath() { return path; }
+
+    /**
+     * Set the {@code path} for session cookie.
+     * <p>
+     * Define the scope of the cookie.
+     *
+     * @param path a path to which session cookie will be attached to
+     */
+    public void setPath(String path) { this.path = path; }
+
+    /**
+     * Use the session cookie only when requesting from the {@code domain}.
+     * <p>
+     * Define the scope for the cookie.
+     *
+     * @return the URI domain to which session cookie will be attached to.
+     */
+    public String getDomain() {
+      return domain;
+    }
+
+    /**
+     * Set the {@code domain} for session cookie.
+     * <p>
+     * Define the scope of the cookie
+     *
+     * @param domain a domain to which session cokkie will be attached to
+     */
+    public void setDomain(String domain) {
+      this.domain = domain;
+    }
+
+    /**
+     * Maximum size of the session cookie. If encrypted cookie exceeds it, it will be partitioned.
+     * <p>
+     * According to the {@link <a href="http://www.ietf.org/rfc/rfc2109.txt">RFC 2109</a>} web cookies should be at least
+     * 4096 bytes per cookie and at least 20 cookies per domain should be supported.
+     * <p>
+     * Default value of maximum cookie size is set to {@code 2048}.
+     * @return the maximum size of the cookie session.
+     */
+    public Integer getMaxCookieSize() {
+      return maxCookieSize;
+    }
+
+    /**
+     * Set maximum size of the session cookie. If encrypted cookie session exceeds it, it wil be partitioned.
+     * <p>
+     * If it is less than {@code 1024} or greater than {@code 4096} default value will be used.
+     *
+     * @param maxCookieSize a maximum size of one session cookie.
+     */
+    public void setMaxCookieSize(int maxCookieSize) {
+      if (maxCookieSize < 1024 || maxCookieSize > 4096) {
+        this.maxCookieSize = 2048;
+      } else {
+        this.maxCookieSize = maxCookieSize;
+      }
     }
 
     public SessionService getSessionService() {

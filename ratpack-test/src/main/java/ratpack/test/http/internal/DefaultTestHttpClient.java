@@ -17,8 +17,7 @@
 package ratpack.test.http.internal;
 
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.*;
 import ratpack.func.Action;
@@ -35,6 +34,7 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static ratpack.util.Exceptions.uncheck;
@@ -45,6 +45,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private final BlockingHttpClient client = new BlockingHttpClient();
   private final Action<? super RequestSpec> defaultRequestConfig;
   private final List<Cookie> cookies = Lists.newLinkedList();
+  private final Map<String,List<Cookie>> cookies2 = Maps.newLinkedHashMap();
 
   private Action<? super RequestSpec> request = Action.noop();
   private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
@@ -213,7 +214,24 @@ public class DefaultTestHttpClient implements TestHttpClient {
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
 
-        String encodedCookie = cookies.isEmpty() ? "" : ClientCookieEncoder.encode(cookies);
+        // filter cookies only for the given path and its subpaths or that are assigned to root path
+        List<Cookie> requestCookies = Lists.newLinkedList();
+        if (path == null || "".equals(path) || "/".equals(path)) {
+          List<Cookie> list = cookies2.get("/");
+          if (list != null) {
+            requestCookies.addAll(list);
+          }
+        } else {
+          cookies2.forEach((key, list) -> {
+            if ("/".equals(key)) {
+              requestCookies.addAll(list);
+            } else if (path.startsWith(key)) {
+              requestCookies.addAll(list);
+            }
+          });
+        }
+
+        String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.encode(requestCookies);
 
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
@@ -224,13 +242,28 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
     List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
     for (String cookieHeader : cookieHeaders) {
-      Set<Cookie> decodedCookies = ServerCookieDecoder.decode(cookieHeader);
-      for (Cookie decodedCookie : decodedCookies) {
+      System.out.println("TEST CLIENT COOKIE HEADER: " + cookieHeader);
+      Cookie decodedCookie = ClientCookieDecoder.decode(cookieHeader);
+      if (decodedCookie != null) {
+        System.out.println("TEST CLIENT DECODED COOKIE: " + decodedCookie.name() + " PATH: " + decodedCookie.path());
         if (cookies.contains(decodedCookie)) {
           cookies.remove(decodedCookie);
         }
         if (!decodedCookie.isDiscard()) {
           cookies.add(decodedCookie);
+        }
+        String cookiePath = decodedCookie.path();
+        cookiePath = (cookiePath != null && !("".equals(cookiePath))) ? cookiePath : "/";
+        List<Cookie> pathCookies = cookies2.get(cookiePath);
+        if (pathCookies == null) {
+          pathCookies = Lists.newLinkedList();
+          cookies2.put(cookiePath, pathCookies);
+        }
+        if (pathCookies.contains(decodedCookie)) {
+          pathCookies.remove(decodedCookie);
+        }
+        if (!decodedCookie.isDiscard()) {
+          pathCookies.add(decodedCookie);
         }
       }
     }
@@ -255,6 +288,18 @@ public class DefaultTestHttpClient implements TestHttpClient {
     List<Cookie> clonedList = new ArrayList<>();
     if (cookies != null) {
       cookies.stream().forEach(c -> clonedList.add(new DefaultCookie(c.name(), c.value())));
+    }
+    return clonedList;
+  }
+
+  public List<Cookie> getCookies(String path) {
+    List<Cookie> clonedList = Lists.newLinkedList();
+    if (cookies2 == null) {
+      return clonedList;
+    }
+    List<Cookie> pathCookies = path == null ? cookies2.get("/") : cookies2.get(path);
+    if (pathCookies != null) {
+      clonedList.addAll(pathCookies);
     }
     return clonedList;
   }

@@ -277,4 +277,5 @@ public interface TestHttpClient {
   String deleteText(String path);
 
   List<Cookie> getCookies();
+  List<Cookie> getCookies(String path);
 }
