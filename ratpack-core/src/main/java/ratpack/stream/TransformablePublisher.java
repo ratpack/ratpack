@@ -21,6 +21,7 @@ import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.func.Predicate;
 
 import java.util.List;
 
@@ -202,6 +203,16 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    */
   default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<T>> function) {
     return Streams.streamMap(this, function);
+  }
+
+  /**
+   * See {@link ratpack.stream.Streams#filter(Publisher, Predicate)}.
+   *
+   * @param filter the filter
+   * @return the filtered publisher
+   */
+  default TransformablePublisher<T> filter(Predicate<T> filter) {
+    return Streams.filter(this, filter);
   }
 
 }

@@ -22,6 +22,7 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.func.Predicate;
 import ratpack.registry.Registry;
 import ratpack.stream.internal.*;
 import ratpack.util.Types;
@@ -199,6 +200,64 @@ public class Streams {
    */
   public static <I, O> TransformablePublisher<O> map(Publisher<I> input, Function<? super I, ? extends O> function) {
     return new MapPublisher<>(input, function);
+  }
+
+  /**
+   * Returns a publisher that filters items from the given input stream by applying the given filter predicate.
+   * <p>
+   * The returned stream is {@link #buffer buffered}, which means that if the downstream requests, say 5 items, which is filtered into only 3 items
+   * the publisher will ask for more from the upstream to meet the downstream demand.
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.stream.TransformablePublisher;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<Integer> result = ExecHarness.yieldSingle(execControl -> {
+   *       TransformablePublisher<Integer> evens = Streams.publish(Arrays.asList(1, 2, 3, 4, 5, 6)).filter(i -> i % 2 == 0);
+   *       return evens.toList();
+   *     }).getValue();
+   *
+   *     assertEquals(Arrays.asList(2, 4, 6), result);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param input the stream to filter
+   * @param filter the filter predicate
+   * @param <T> the type of item emitted
+   * @return the input stream filtered
+   */
+  public static <T> TransformablePublisher<T> filter(Publisher<T> input, Predicate<T> filter) {
+    return streamMap(input, out -> new WriteStream<T>() {
+      @Override
+      public void item(T item) {
+        try {
+          if (filter.apply(item)) {
+            out.item(item);
+          }
+        } catch (Throwable throwable) {
+          out.error(throwable);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        out.error(throwable);
+      }
+
+      @Override
+      public void complete() {
+        out.complete();
+      }
+    });
   }
 
   /**
