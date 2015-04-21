@@ -30,6 +30,9 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
   def setup() {
     origMdcAdapter = MDC.MDCAdapter
     MDC.mdcAdapter = new BasicMDCAdapter()
+    serverConfig {
+      threads 16
+    }
   }
 
   def cleanup() {
