@@ -120,6 +120,10 @@ public class ExecutionBacking {
       });
     }
 
+    public EventLoop getEventLoop() {
+      return execution.getEventLoop();
+    }
+
     private void streamEvent(Block s) {
       Deque<Block> event = Lists.newLinkedList();
       event.add(s);
@@ -141,13 +145,13 @@ public class ExecutionBacking {
   }
 
   private void drain() {
+    if (done) {
+      throw new ExecutionException("execution is complete");
+    }
+
     ExecutionBacking threadBoundExecutionBacking = THREAD_BINDING.get();
     if (this.equals(threadBoundExecutionBacking)) {
       return;
-    }
-
-    if (done) {
-      throw new ExecutionException("execution is complete");
     }
 
     if (!eventLoop.inEventLoop() || threadBoundExecutionBacking != null) {

@@ -49,13 +49,14 @@ class PromiseCachingSpec extends Specification {
   def "can cache promise"() {
     when:
     exec { e ->
-      def cached = e.blocking { "foo" }.cache()
+      def i = 0
+      def cached = e.blocking { "foo-${i++}" }.cache()
       cached.then { events << it }
       cached.map { it + "-bar" }.then { events << it }
     }
 
     then:
-    events.toList() == ["foo", "foo-bar", "complete"]
+    events.toList() == ["foo-0", "foo-0-bar", "complete"]
   }
 
   def "can use cached promise in different execution"() {
@@ -116,12 +117,14 @@ class PromiseCachingSpec extends Specification {
 
   def "promise can be massively reused"() {
     when:
-    def num = 100000
+    def num = 10000
     def latch = new CountDownLatch(num)
+      def cached = execHarness.promiseOf("foo").cache()
     exec { e ->
-      def cached = e.blocking { "foo" }.cache()
       num.times {
-        e.exec().onComplete({ latch.countDown() }).start({ cached.then { events << it } })
+        e.exec().start({ cached.then {
+          events << it
+          latch.countDown() } })
       }
     }
 
