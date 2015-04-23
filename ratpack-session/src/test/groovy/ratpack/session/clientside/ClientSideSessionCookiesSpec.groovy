@@ -19,17 +19,10 @@ package ratpack.session.clientside
 import io.netty.handler.codec.http.Cookie
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.IgnoreRest
-import spock.lang.Specification
-
 
 class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   def setup() {
     modules << new ClientSideSessionsModule()
-  }
-
-  private String[] getSetCookies() {
-    response.headers.getAll("Set-Cookie")
   }
 
   private String[] getSessionCookies(String path) {

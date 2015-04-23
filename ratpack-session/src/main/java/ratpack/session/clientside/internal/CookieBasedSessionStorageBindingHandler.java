@@ -17,7 +17,6 @@
 package ratpack.session.clientside.internal;
 
 import com.google.common.collect.Iterables;
-import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.handling.Context;

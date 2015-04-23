@@ -266,7 +266,9 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
      * Session should be send for every request. The {@code path} of value {@code "/"} does this.
      * @return the URI path to which session cookie will be attached to.
      */
-    public String getPath() { return path; }
+    public String getPath() {
+      return path;
+    }
 
     /**
      * Set the {@code path} for session cookie.
@@ -275,7 +277,9 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
      *
      * @param path a path to which session cookie will be attached to
      */
-    public void setPath(String path) { this.path = path; }
+    public void setPath(String path) {
+      this.path = path;
+    }
 
     /**
      * Use the session cookie only when requesting from the {@code domain}.
@@ -302,7 +306,7 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     /**
      * Maximum size of the session cookie. If encrypted cookie exceeds it, it will be partitioned.
      * <p>
-     * According to the {@link <a href="http://www.ietf.org/rfc/rfc2109.txt">RFC 2109</a>} web cookies should be at least
+     * According to the <a href="http://www.ietf.org/rfc/rfc2109.txt">RFC 2109</a> web cookies should be at least
      * 4096 bytes per cookie and at least 20 cookies per domain should be supported.
      * <p>
      * Default value of maximum cookie size is set to {@code 2048}.

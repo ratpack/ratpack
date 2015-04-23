@@ -37,7 +37,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   }
 
   private String getSessionCookie() {
-    cookies.find { it.name() == "ratpack_session" }?.value()
+    getCookies("/").find { it.name() == "ratpack_session" }?.value()
   }
 
   private String getSessionPayload() {
