@@ -32,7 +32,7 @@ buildscript {
 }
 
 apply plugin: "io.ratpack.ratpack-java"
-apply plugin: "org.gradle.idea"
+apply plugin: "idea"
 
 repositories {
   jcenter()
