@@ -23,6 +23,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import ratpack.exec.Execution;
 import ratpack.exec.Fulfiller;
 import ratpack.func.Action;
@@ -45,6 +46,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Fulfiller<? super ReceivedResponse> fulfiller) {
+    p.addLast(new HttpContentDecompressor());
     p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
     p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
       @Override

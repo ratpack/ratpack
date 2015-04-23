@@ -17,6 +17,9 @@
 package ratpack.http.client
 
 import ratpack.http.MutableHeaders
+import ratpack.http.internal.HttpHeaderConstants
+
+import java.util.zip.GZIPOutputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.stream.Streams.publish
@@ -191,6 +194,34 @@ transfer-encoding: chunked
 """)
       contains("A server error occurred")
     }
+  }
+
+  def "can handle compressed responses"() {
+    given:
+    def stringBuf = new ByteArrayOutputStream()
+    def writer = new OutputStreamWriter(new GZIPOutputStream(stringBuf))
+    writer.write("bar")
+    writer.close()
+
+    otherApp {
+      get("foo") {
+        response.headers.add(HttpHeaderConstants.CONTENT_ENCODING, "gzip")
+        response.send(stringBuf.toByteArray())
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) {
+        } then { ReceivedResponse receivedResponse ->
+          render receivedResponse.body.text
+        }
+      }
+    }
+
+    expect:
+    text == "bar"
   }
 
 }

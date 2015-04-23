@@ -35,6 +35,8 @@ dependencies {
   compile "com.google.guava:guava:$commonVersions.guava"
   compile commonDependencies.slf4j
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
+  compile 'org.reactivestreams:reactive-streams:1.0.0.RC1'
+  runtime 'com.jcraft:jzlib:1.1.3'
 
   compile 'org.javassist:javassist:3.19.0-GA'
 
