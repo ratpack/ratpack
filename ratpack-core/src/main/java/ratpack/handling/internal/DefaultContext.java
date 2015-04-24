@@ -29,8 +29,8 @@ import ratpack.event.internal.EventRegistry;
 import ratpack.exec.*;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
-import ratpack.func.Function;
 import ratpack.func.Block;
+import ratpack.func.Function;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -143,7 +143,10 @@ public class DefaultContext implements Context {
     execControl.exec()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
-      .register(s -> s.add(Request.class, requestConstants.request))
+      .register(s -> s
+          .add(Context.class, context)
+          .add(Request.class, requestConstants.request)
+      )
       .eventLoop(eventLoop)
       .start(e -> context.next());
   }

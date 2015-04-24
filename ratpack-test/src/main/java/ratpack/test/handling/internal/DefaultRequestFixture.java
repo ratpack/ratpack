@@ -237,7 +237,7 @@ public class DefaultRequestFixture implements RequestFixture {
       build();
     return Exceptions.uncheck(() -> {
       ServerConfig serverConfig = serverConfigBuilder.build();
-      ExecController execController = new DefaultExecController(serverConfig.getThreads());
+      DefaultExecController execController = new DefaultExecController(serverConfig.getThreads());
       return ServerRegistry.serverRegistry(new TestServer(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
     });
   }

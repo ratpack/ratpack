@@ -16,6 +16,8 @@
 
 package ratpack.exec;
 
+import ratpack.registry.Registry;
+
 /**
  * The result of an execution.
  *
@@ -34,5 +36,12 @@ public interface ExecResult<T> extends Result<T> {
    * @return true if the execution the promise was bound to completed before the promised value was provided.
    */
   boolean isComplete();
+
+  /**
+   * The execution registry.
+   *
+   * @return the execution registry.
+   */
+  Registry getRegistry();
 
 }

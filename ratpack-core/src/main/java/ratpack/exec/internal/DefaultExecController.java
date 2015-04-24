@@ -18,7 +18,6 @@ package ratpack.exec.internal;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.util.internal.ChannelImplDetector;
 
@@ -66,7 +65,7 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public ExecControl getControl() {
+  public ExecControlInternal getControl() {
     return control;
   }
 

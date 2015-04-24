@@ -78,7 +78,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   protected InetSocketAddress boundAddress;
   protected Channel channel;
-  protected ExecController execController;
+  protected DefaultExecController execController;
   protected Registry serverRegistry = Registries.empty();
 
   protected boolean reloading;

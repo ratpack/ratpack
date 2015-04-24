@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.newrelic;
+package ratpack.exec.internal;
 
-import com.google.inject.AbstractModule;
-import ratpack.newrelic.internal.NewRelicExecInterceptor;
+import com.google.common.collect.ImmutableList;
+import ratpack.exec.ExecControl;
+import ratpack.exec.ExecInterceptor;
 
-public class NewRelicModule extends AbstractModule {
+public interface ExecControlInternal extends ExecControl {
 
-  @Override
-  protected void configure() {
-    bind(NewRelicExecInterceptor.class).toInstance(NewRelicExecInterceptor.INSTANCE);
-  }
+  void setDefaultInterceptors(ImmutableList<? extends ExecInterceptor> interceptors);
 
 }

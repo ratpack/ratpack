@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,27 +21,23 @@ import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Block;
 import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.http.Request;
 import ratpack.newrelic.NewRelicTransaction;
 
-public class NewRelicInterceptorBindingHandler implements Handler {
+public class NewRelicExecInterceptor implements ExecInterceptor {
 
-  private static final NewRelicExecInterceptor INTERCEPTOR = new NewRelicExecInterceptor();
+  public static final NewRelicExecInterceptor INSTANCE = new NewRelicExecInterceptor();
 
   @Override
-  public void handle(Context context) throws Exception {
-    context.getRequest().add(NewRelicTransaction.class, new DefaultNewRelicTransaction(context));
-    context.addInterceptor(INTERCEPTOR, context::next);
+  @Trace(dispatcher = true)
+  public void intercept(Execution execution, ExecType execType, Block continuation) throws Exception {
+    execution.maybeGet(Context.class).ifPresent(context -> {
+      NewRelicTransaction transaction = execution.maybeGet(NewRelicTransaction.class).orElse(null);
+      if (transaction == null) {
+        transaction = new DefaultNewRelicTransaction(context);
+        execution.add(NewRelicTransaction.class, transaction);
+      }
+      transaction.init();
+    });
+    continuation.execute();
   }
-
-  private static class NewRelicExecInterceptor implements ExecInterceptor {
-    @Override
-    @Trace(dispatcher = true)
-    public void intercept(Execution execution, ExecType execType, Block continuation) throws Exception {
-      execution.get(Request.class).get(NewRelicTransaction.class).init();
-      continuation.execute();
-    }
-  }
-
 }
