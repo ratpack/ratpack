@@ -62,19 +62,22 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
         if (hasChanged) {
           Set<Map.Entry<String, Object>> entries = storage.entrySet();
 
+          Cookie sessionCookie = null;
           if (entries.isEmpty()) {
-            invalidateSession(responseMetaData);
+            sessionCookie = invalidateSession(responseMetaData);
           } else {
             ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
             String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
-            Cookie cookie = responseMetaData.cookie(sessionName, cookieValue);
+            sessionCookie = responseMetaData.cookie(sessionName, cookieValue);
+          }
 
+          if (sessionCookie != null) {
             ClientSideSessionsModule.Config config = context.get(ClientSideSessionsModule.Config.COOKIE_SESSION_CONFIG_TYPE_TOKEN);
             if (config.getPath() != null) {
-              cookie.setPath(config.getPath());
+              sessionCookie.setPath(config.getPath());
             }
             if (config.getDomain() != null) {
-              cookie.setDomain(config.getDomain());
+              sessionCookie.setDomain(config.getDomain());
             }
           }
         }
@@ -84,8 +87,8 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.next();
   }
 
-  private void invalidateSession(ResponseMetaData responseMetaData) {
-    responseMetaData.expireCookie(sessionName);
+  private Cookie invalidateSession(ResponseMetaData responseMetaData) {
+    return responseMetaData.expireCookie(sessionName);
   }
 
 }

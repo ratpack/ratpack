@@ -17,14 +17,12 @@
 package ratpack.session.clientside
 
 import io.netty.handler.codec.http.Cookie
+import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
-  def setup() {
-    modules << new ClientSideSessionsModule()
-  }
-
   private String[] getSessionCookies(String path) {
     List<Cookie> pathCookies = getCookies(path)
     if (pathCookies == null) {
@@ -33,9 +31,28 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     pathCookies.stream().findAll { it.name.startsWith("ratpack_session")?.value }.toArray()
   }
 
+  private def getSessionAttrs(SessionService sessionService, String path) {
+    List<Cookie> cookies = getCookies(path)
+    def attrs = [:]
+    println "COOKIES: " + cookies
+    cookies
+      .stream()
+      .filter{ c ->
+        c.name().startsWith("ratpack_session") == true
+      }
+      .map { c ->
+        def m = sessionService.deserializeSession(c)
+        if (m) {
+          attrs.putAll(m)
+        }
+        return c
+      }
+      .collect()
+    return attrs
+  }
+
   def "cookies assigned to path are send for this path only"() {
     given:
-    modules.clear()
     bindings {
       add ClientSideSessionsModule, {
         it.with {
@@ -85,7 +102,6 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "cookie is send in request for the given path only"() {
     given:
-    modules.clear()
     bindings {
       add ClientSideSessionsModule, {
         it.with {
@@ -119,5 +135,108 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
     then:
     response.body.text == "val1"
+  }
+
+  def "removed session attribute is no longer accessible"() {
+    given:
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+        }
+      }
+    }
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService.class)
+      }
+      get("foo/:value") { SessionStorage sessionStorage ->
+        sessionStorage.foo = pathTokens.value
+        render sessionStorage.foo?.toString()
+      }
+      get("clear") { SessionStorage sessionStorage ->
+        sessionStorage.remove("foo")
+        render sessionStorage.foo?.toString()
+      }
+    }
+
+    when:
+    get("foo/val1")
+    String[] setCookies = getSessionCookies("/")
+    clientSessionService
+    def attrs = getSessionAttrs(clientSessionService, "/")
+
+    then:
+    setCookies.length == 1
+    attrs.size() == 1
+    attrs.foo == "val1"
+
+    when:
+    get("clear")
+    (setCookies = getSessionCookies("/"))
+    (attrs = getSessionAttrs(clientSessionService, "/"))
+
+    then:
+    setCookies.length == 0
+    attrs.size() == 0
+  }
+
+  def "removed session attribute does not clear the other attributes"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+        }
+      }
+    }
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService.class)
+      }
+      get("s/:attr/:value") { SessionStorage sessionStorage ->
+        String attr = pathTokens.attr
+        String value = pathTokens.value
+        if (attr && value) {
+          sessionStorage.put(attr, value)
+        } else {
+          clientError(404)
+        }
+        render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+      }
+      get("clear/:attr") { SessionStorage sessionStorage ->
+        String attr = pathTokens.attr
+        if (attr) {
+          sessionStorage.remove(attr)
+        } else {
+          clientError(404)
+        }
+        render sessionStorage[attr]?.toString()
+      }
+    }
+
+    when:
+    get("s/foo/bar")
+    get("s/baz/quux")
+    String[] setCookies = getSessionCookies("/")
+    def attrs = getSessionAttrs(clientSessionService, "/")
+
+    then:
+    setCookies.length == 1
+    attrs.size() == 2
+    attrs["foo"] == "bar"
+    attrs["baz"] == "quux"
+
+    when:
+    get("clear/foo")
+    setCookies = getSessionAttrs(clientSessionService, "/")
+    attrs = getSessionAttrs(clientSessionService, "/")
+
+    then:
+    setCookies.length == 1
+    attrs.size() == 1
+    !attrs["foo"]
+    attrs["baz"] == "quux"
   }
 }
