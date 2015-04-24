@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class ExecutionBacking {
@@ -56,7 +57,7 @@ public class ExecutionBacking {
   private final BiAction<? super Execution, ? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
-  private volatile boolean done;
+  private final AtomicBoolean done = new AtomicBoolean();
   private final Execution execution;
 
   public ExecutionBacking(
@@ -84,7 +85,7 @@ public class ExecutionBacking {
     stream.add(event);
 
     Deque<Block> doneEvent = Lists.newLinkedList();
-    doneEvent.add(() -> done = true);
+    doneEvent.add(() -> done.set(true));
     stream.add(doneEvent);
     drain();
   }
@@ -168,7 +169,7 @@ public class ExecutionBacking {
   }
 
   private void drain() {
-    if (done) {
+    if (done.get()) {
       throw new ExecutionException("execution is complete");
     }
 
@@ -193,7 +194,7 @@ public class ExecutionBacking {
         if (segment == null) {
           stream.remove();
           if (stream.isEmpty()) {
-            if (done) {
+            if (done.get()) {
               done();
               return;
             } else {
@@ -243,6 +244,10 @@ public class ExecutionBacking {
   }
 
   private void done() {
+    if (!stream.isEmpty()) {
+      throw new IllegalStateException("execution segment stream is not empty");
+    }
+
     try {
       onComplete.execute(getExecution());
     } catch (Throwable e) {
