@@ -432,7 +432,11 @@ public class NettyRatpackServer implements RatpackServer {
             }
           })
             .throttled(reloadThrottle)
-            .then(adapter -> delegate(ctx, adapter, msg))
+            .blockingMap(adapter -> {
+              delegate(ctx, adapter, msg);
+              return true;
+            })
+            .then(Action.noop())
       );
     }
 
