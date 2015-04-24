@@ -53,9 +53,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         Job job = waiting.poll();
         while (job != null) {
           Job finalJob = job;
-          job.streamHandle.getEventLoop().submit(() ->
-              finalJob.streamHandle.complete(() -> finalJob.downstream.accept(result))
-          );
+          job.streamHandle.complete(() -> finalJob.downstream.accept(result));
           job = waiting.poll();
         }
       } finally {

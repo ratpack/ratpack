@@ -22,7 +22,10 @@ import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.*;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
+import ratpack.exec.UnmanagedThreadException;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.Block;
@@ -34,7 +37,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class ExecutionBacking {
@@ -43,10 +45,9 @@ public class ExecutionBacking {
 
   private final static ThreadLocal<ExecutionBacking> THREAD_BINDING = new ThreadLocal<>();
 
-  // package access to allow direct field access by inners
-  final ImmutableList<? extends ExecInterceptor> globalInterceptors;
-  final ImmutableList<? extends ExecInterceptor> registryInterceptors;
-  List<ExecInterceptor> adhocInterceptors;
+  private final ImmutableList<? extends ExecInterceptor> globalInterceptors;
+  private final ImmutableList<? extends ExecInterceptor> registryInterceptors;
+  private List<ExecInterceptor> adhocInterceptors;
 
   // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
   // All other collections do not need to be concurrent safe because they are only accessed on the event loop
@@ -57,7 +58,7 @@ public class ExecutionBacking {
   private final BiAction<? super Execution, ? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
-  private final AtomicBoolean done = new AtomicBoolean();
+  private volatile boolean done;
   private final Execution execution;
 
   public ExecutionBacking(
@@ -85,7 +86,7 @@ public class ExecutionBacking {
     stream.add(event);
 
     Deque<Block> doneEvent = Lists.newLinkedList();
-    doneEvent.add(() -> done.set(true));
+    doneEvent.add(() -> done = true);
     stream.add(doneEvent);
     drain();
   }
@@ -144,10 +145,6 @@ public class ExecutionBacking {
       });
     }
 
-    public EventLoop getEventLoop() {
-      return execution.getEventLoop();
-    }
-
     private void streamEvent(Block s) {
       Deque<Block> event = Lists.newLinkedList();
       event.add(s);
@@ -169,8 +166,8 @@ public class ExecutionBacking {
   }
 
   private void drain() {
-    if (done.get()) {
-      throw new ExecutionException("execution is complete");
+    if (done) {
+      return;
     }
 
     ExecutionBacking threadBoundExecutionBacking = THREAD_BINDING.get();
@@ -179,7 +176,9 @@ public class ExecutionBacking {
     }
 
     if (!eventLoop.inEventLoop() || threadBoundExecutionBacking != null) {
-      eventLoop.execute(this::drain);
+      if (!done) {
+        eventLoop.execute(this::drain);
+      }
       return;
     }
 
@@ -194,7 +193,7 @@ public class ExecutionBacking {
         if (segment == null) {
           stream.remove();
           if (stream.isEmpty()) {
-            if (done.get()) {
+            if (done) {
               done();
               return;
             } else {
@@ -244,10 +243,6 @@ public class ExecutionBacking {
   }
 
   private void done() {
-    if (!stream.isEmpty()) {
-      throw new IllegalStateException("execution segment stream is not empty");
-    }
-
     try {
       onComplete.execute(getExecution());
     } catch (Throwable e) {
