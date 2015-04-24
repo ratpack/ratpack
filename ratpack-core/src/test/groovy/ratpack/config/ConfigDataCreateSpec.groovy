@@ -88,6 +88,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     when:
     serverConfig {
       development true
+      threads 4
     }
     bindings {
       def configData = ConfigData.of().props(propsFile).build()
