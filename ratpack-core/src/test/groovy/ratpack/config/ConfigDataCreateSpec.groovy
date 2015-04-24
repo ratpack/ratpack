@@ -22,15 +22,10 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.api.UncheckedException
 import ratpack.func.Action
-import ratpack.handling.Context
-import ratpack.handling.Handler
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
 import ratpack.server.Service
 import ratpack.server.StartEvent
 import ratpack.server.internal.ServerConfigData
-import ratpack.test.ApplicationUnderTest
-import spock.lang.Specification
+import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.PollingConditions
 
 import java.nio.file.Files
@@ -38,7 +33,7 @@ import java.nio.file.NoSuchFileException
 import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressWarnings(["MethodName"])
-class ConfigDataCreateSpec extends Specification {
+class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
   @SuppressWarnings("GroovyUnusedDeclaration")
   PollingConditions polling = new PollingConditions()
 
@@ -54,19 +49,18 @@ class ConfigDataCreateSpec extends Specification {
     propsFile.withOutputStream { props.store(it, null) }
 
     when:
-    def server = RatpackServer.of {
-      def serverConfig = ServerConfig.noBaseDir().props(propsFile).build()
-      it.serverConfig(serverConfig)
-        .registryOf {
-        it.add(MyAppConfig, serverConfig.get("/app", MyAppConfig))
-      }
-      .handler {
-        return {
-          it.render("Hi, my name is ${it.get(MyAppConfig).name}")
-        } as Handler
+    serverConfig {
+      it.props(props)
+    }
+    bindings {
+      bindInstance(MyAppConfig, serverConfig.get("/app", MyAppConfig))
+    }
+    handlers {
+      handler {
+        render("Hi, my name is ${get(MyAppConfig).name}")
       }
     }
-    def client = ApplicationUnderTest.of(server).httpClient
+
     server.start()
 
     then:
@@ -92,21 +86,21 @@ class ConfigDataCreateSpec extends Specification {
     def listener = new StartCountService()
 
     when:
-    def server = RatpackServer.of {
+    serverConfig {
+      development true
+    }
+    bindings {
       def configData = ConfigData.of().props(propsFile).build()
-      it.serverConfig(ServerConfig.embedded())
-        .registryOf {
-        it.add(listener)
-          .add(configData.get(MyAppConfig))
-          .add(configData)
-      }
-      .handler {
-        return { Context context ->
-          context.render("Hi, my name is ${it.get(MyAppConfig).name}")
-        } as Handler
+      bindInstance(listener)
+      bindInstance(configData.get(MyAppConfig))
+      bindInstance(configData)
+    }
+    handlers {
+      handler {
+        render("Hi, my name is ${get(MyAppConfig).name}")
       }
     }
-    def client = ApplicationUnderTest.of(server).httpClient
+
     server.start()
 
     then:
