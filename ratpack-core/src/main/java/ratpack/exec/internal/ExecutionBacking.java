@@ -22,10 +22,7 @@ import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Execution;
-import ratpack.exec.UnmanagedThreadException;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.Block;
@@ -152,6 +149,10 @@ public class ExecutionBacking {
   }
 
   public void streamSubscribe(Consumer<? super StreamHandle> consumer) {
+    if (done) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
     stream.element().add(() -> {
       Queue<Deque<Block>> parent = stream;
       stream = new ConcurrentLinkedDeque<>();
