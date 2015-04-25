@@ -344,7 +344,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     getText() == value
 
     where:
-    length << (1..256)
+    length << [1, 3, 129, 255, 256]
   }
 
   @Unroll
