@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Function;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -44,12 +43,13 @@ public class MetricRegistryJsonMapper implements Function<MetricRegistry, ByteBu
   private final double durationFactor;
   private final double rateFactor;
   private final ByteBufAllocator byteBufAllocator;
+  private final MetricFilter filter;
 
-  @Inject
-  public MetricRegistryJsonMapper(ByteBufAllocator byteBufAllocator) {
+  public MetricRegistryJsonMapper(ByteBufAllocator byteBufAllocator, MetricFilter filter) {
     this.byteBufAllocator = byteBufAllocator;
     this.durationFactor = 1.0 / DEFAULT_DURATION_UNIT.toNanos(1);
     this.rateFactor = DEFAULT_RATE_UNIT.toSeconds(1);
+    this.filter = filter;
   }
 
   @Override
@@ -61,11 +61,11 @@ public class MetricRegistryJsonMapper implements Function<MetricRegistry, ByteBu
 
       json.writeStartObject();
       json.writeNumberField("timestamp", clock.getTime());
-      writeTimers(json, metricRegistry.getTimers());
-      writeGauges(json, metricRegistry.getGauges());
-      writeMeters(json, metricRegistry.getMeters());
-      writeCounters(json, metricRegistry.getCounters());
-      writeHistograms(json, metricRegistry.getHistograms());
+      writeTimers(json, metricRegistry.getTimers(filter));
+      writeGauges(json, metricRegistry.getGauges(filter));
+      writeMeters(json, metricRegistry.getMeters(filter));
+      writeCounters(json, metricRegistry.getCounters(filter));
+      writeHistograms(json, metricRegistry.getHistograms(filter));
       json.writeEndObject();
 
       json.flush();
