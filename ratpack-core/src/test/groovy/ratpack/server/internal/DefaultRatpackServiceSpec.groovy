@@ -21,9 +21,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
-import ratpack.test.ApplicationUnderTest
 import ratpack.test.embed.EmbeddedApp
-import ratpack.test.http.TestHttpClient
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
