@@ -75,7 +75,7 @@ public interface ExecControl {
    *
    * @return the execution control bound to the current thread
    */
-  public static ExecControl current() throws UnmanagedThreadException {
+  static ExecControl current() throws UnmanagedThreadException {
     return ExecController.require().getControl();
   }
 

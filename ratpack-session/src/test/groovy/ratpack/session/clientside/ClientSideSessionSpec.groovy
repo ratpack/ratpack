@@ -185,7 +185,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
       }
       get("clear") { SessionStorage storage ->
         storage.clear()
-        response.status 200
+        render "ok"
       }
     }
 
@@ -346,7 +346,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     getText() == value
 
     where:
-    length << (1..256)
+    length << [1, 3, 129, 255, 256]
   }
 
   @Unroll

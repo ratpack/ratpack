@@ -35,7 +35,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   def "load from properties object"() {
     given:
     Properties properties = new Properties()
-    properties.put("port", "5060")
+    properties.put("server.port", "5060")
 
     when:
     def config = builder.props(properties).build()
@@ -46,7 +46,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
 
   def "load from map"() {
     given:
-    def map = [port: "5060"]
+    def map = ["server.port": "5060"]
 
     when:
     def config = builder.props(map).build()
@@ -58,7 +58,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   def "load from properties path"() {
     given:
     def properties = tempFolder.newFile('test.properties').toPath()
-    properties << 'port=5060'
+    properties << 'server.port=5060'
 
     when:
     def config = builder.props(properties).build()
@@ -70,7 +70,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   def "load from properties string path"() {
     given:
     def properties = tempFolder.newFile('test.properties').toPath()
-    properties << 'port=5060'
+    properties << 'server.port=5060'
 
     when:
     def config = builder.props(properties.toString()).build()
@@ -82,7 +82,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   def "load from byte source"() {
     given:
     def file = tempFolder.newFile('test.properties')
-    file << 'port=5060'
+    file << 'server.port=5060'
     def properties = Files.asByteSource(file)
 
     when:
@@ -95,7 +95,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   def "load from URL"() {
     given:
     def file = tempFolder.newFile('test.properties')
-    file << 'port=5060'
+    file << 'server.port=5060'
     def url = file.toURI().toURL()
 
     when:

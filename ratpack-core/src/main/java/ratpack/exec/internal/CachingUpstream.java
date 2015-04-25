@@ -16,8 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.ExecResult;
-import ratpack.exec.Result;
+import ratpack.exec.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -26,13 +25,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CachingUpstream<T> implements Upstream<T> {
 
-  private final Upstream<T> upstream;
+  private final Upstream<? extends T> upstream;
   private final AtomicBoolean fired = new AtomicBoolean();
   private final Queue<Job> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<ExecResult<T>> result = new AtomicReference<>();
 
-  public CachingUpstream(Upstream<T> upstream) {
+  public CachingUpstream(Upstream<? extends T> upstream) {
     this.upstream = upstream;
   }
 
@@ -54,11 +53,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         Job job = waiting.poll();
         while (job != null) {
           Job finalJob = job;
-          job.streamHandle.complete(() -> {
-            if (result != null) {
-              finalJob.downstream.accept(result);
-            }
-          });
+          job.streamHandle.complete(() -> finalJob.downstream.accept(result));
           job = waiting.poll();
         }
       } finally {
@@ -71,28 +66,28 @@ public class CachingUpstream<T> implements Upstream<T> {
   }
 
   @Override
-  public void connect(Downstream<? super T> downstream) {
+  public void connect(Downstream<? super T> downstream) throws Exception {
     if (fired.compareAndSet(false, true)) {
       upstream.connect(new Downstream<T>() {
         @Override
         public void error(Throwable throwable) {
-          result.set(Result.<T>failure(throwable).toExecResult());
-          downstream.error(throwable);
+          result.set(new ResultBackedExecResult<>(Result.<T>failure(throwable), Execution.execution()));
           doDrainInNewSegment();
+          downstream.error(throwable);
         }
 
         @Override
         public void success(T value) {
-          result.set(Result.success(value).toExecResult());
-          downstream.success(value);
+          result.set(new ResultBackedExecResult<>(Result.success(value), Execution.execution()));
           doDrainInNewSegment();
+          downstream.success(value);
         }
 
         @Override
         public void complete() {
-          result.set(CompleteExecResult.instance());
-          downstream.complete();
+          result.set(new CompleteExecResult<>(Execution.execution()));
           doDrainInNewSegment();
+          downstream.complete();
         }
       });
     } else {

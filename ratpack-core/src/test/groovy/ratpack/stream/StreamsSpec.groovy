@@ -610,4 +610,18 @@ class StreamsSpec extends Specification {
     then:
     result.valueOrThrow == ["a", "b", "c"]
   }
+
+  def "can filter stream elements"() {
+    given:
+    def p = (1..20).publish().filter { v ->
+      v % 2 == 0
+    }
+
+    when:
+    def s = CollectingSubscriber.subscribe(p)
+    s.subscription.request(Long.MAX_VALUE)
+
+    then:
+    s.received == [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+  }
 }

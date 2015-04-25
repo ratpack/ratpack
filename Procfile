@@ -1,1 +1,1 @@
-web: ratpack-site/build/install/ratpack-site/bin/ratpack-site
+web: deploy/bin/ratpack-site

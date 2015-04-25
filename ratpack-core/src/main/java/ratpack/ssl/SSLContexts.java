@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Security;
@@ -58,6 +60,21 @@ public class SSLContexts {
    */
   public static SSLContext sslContext(File keyStoreFile, String password) throws GeneralSecurityException, IOException {
     try (InputStream stream = new FileInputStream(keyStoreFile)) {
+      return sslContext(stream, password);
+    }
+  }
+
+  /**
+   * Creates an SSL context using a password-protected keystore file.
+   *
+   * @param keyStoreFile a keystore file
+   * @param password the password for the keystore file
+   * @return A newly created ssl context
+   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
+   * @throws IOException if the url cannot be read
+   */
+  public static SSLContext sslContext(Path keyStoreFile, String password) throws GeneralSecurityException, IOException {
+    try (InputStream stream = Files.newInputStream(keyStoreFile)) {
       return sslContext(stream, password);
     }
   }

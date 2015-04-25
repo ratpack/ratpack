@@ -18,7 +18,7 @@ package ratpack.server;
 
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.server.internal.NettyRatpackServer;
+import ratpack.server.internal.DefaultRatpackServer;
 
 /**
  * The entry point for creating and starting a Ratpack application.
@@ -72,8 +72,8 @@ public interface RatpackServer {
    * @see RatpackServerSpec
    * @throws Exception any thrown by creating the server
    */
-  public static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
-    return new NettyRatpackServer(definition);
+  static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
+    return new DefaultRatpackServer(definition);
   }
 
   /**
@@ -82,7 +82,7 @@ public interface RatpackServer {
    * @param definition the server definition
    * @throws Exception any thrown by {@link #of(Action)} or {@link #start()}
    */
-  public static void start(Action<? super RatpackServerSpec> definition) throws Exception {
+  static void start(Action<? super RatpackServerSpec> definition) throws Exception {
     of(definition).start();
   }
 

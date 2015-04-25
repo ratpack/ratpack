@@ -475,40 +475,33 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     and:
     bindings {
       add new CodaHaleMetricsModule(), {
-        it.console { it.reporterInterval(Duration.ofSeconds(1)).filter(".*foo.*") }
-        it.jmx { it.filter(".*foo.*") }
-        it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).filter(".*bar.*") }
+        it.console { it.reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*") }
+        it.jmx { it.includeFilter(".*ar.*") }
+        it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
       }
     }
 
     handlers { MetricRegistry metrics ->
-      prefix("foo") {
-        handler {
-          render ""
-        }
-      }
-      prefix("bar") {
-        handler {
-          render ""
-        }
-      }
+      handler { render "" }
     }
 
     when:
     get("foo")
     get("bar")
+    get("tar")
 
     then:
     polling.within(2) {
-      output.toString().contains("foo.get-requests")
+      output.toString().contains("tar.get-requests")
     }
 
     and:
+    !output.toString().contains("foo.get-requests")
     !output.toString().contains("bar.get-requests")
 
     and:
     reportDirectory.root.listFiles().length == 1
-    reportDirectory.root.listFiles()[0].name.contains("bar")
+    reportDirectory.root.listFiles()[0].name.contains("foo")
 
     cleanup:
     System.out = origOut

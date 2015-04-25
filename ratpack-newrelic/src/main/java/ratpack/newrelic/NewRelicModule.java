@@ -17,15 +17,13 @@
 package ratpack.newrelic;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.Multibinder;
-import ratpack.handling.HandlerDecorator;
-import ratpack.newrelic.internal.NewRelicInterceptorBindingHandler;
+import ratpack.newrelic.internal.NewRelicExecInterceptor;
 
 public class NewRelicModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toInstance(HandlerDecorator.prepend(new NewRelicInterceptorBindingHandler()));
+    bind(NewRelicExecInterceptor.class).toInstance(NewRelicExecInterceptor.INSTANCE);
   }
 
 }

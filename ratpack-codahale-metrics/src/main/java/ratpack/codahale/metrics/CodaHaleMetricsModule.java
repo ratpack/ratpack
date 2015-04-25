@@ -331,7 +331,8 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     public static class Jmx {
       private boolean enabled = true;
-      private String filter;
+      private String includeFilter;
+      private String excludeFilter;
 
       /**
        * The state of the JMX publisher.
@@ -352,19 +353,36 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       }
 
       /**
-       * The filter on the reporter.
+       * The include metric filter expression of the reporter.
        * @return
        */
-      public String getFilter() {
-        return filter;
+      public String getIncludeFilter() {
+        return includeFilter;
       }
 
       /**
-       * Set the filter of the reporter.
-       * @param filter the regular expression to match on.
+       * Set the include metric filter expression of the reporter.
+       * @param includeFilter the regular expression to match on.
        */
-      public Jmx filter(String filter) {
-        this.filter = filter;
+      public Jmx includeFilter(String includeFilter) {
+        this.includeFilter = includeFilter;
+        return this;
+      }
+
+      /**
+       * The exclude metric filter expression of the reporter.
+       * @return
+       */
+      public String getExcludeFilter() {
+        return excludeFilter;
+      }
+
+      /**
+       * Set the exclude metric filter expression of the reporter.
+       * @param excludeFilter the regular expression to match on.
+       */
+      public Jmx excludeFilter(String excludeFilter) {
+        this.excludeFilter = excludeFilter;
         return this;
       }
     }
@@ -372,7 +390,8 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     public static class Console {
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private boolean enabled = true;
-      private String filter;
+      private String includeFilter;
+      private String excludeFilter;
 
       /**
        * The state of the Console publisher.
@@ -393,19 +412,36 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       }
 
       /**
-       * The filter on the reporter.
+       * The include metric filter expression of the reporter.
        * @return
        */
-      public String getFilter() {
-        return filter;
+      public String getIncludeFilter() {
+        return includeFilter;
       }
 
       /**
-       * Set the filter of the reporter.
-       * @param filter the regular expression to match on.
+       * Set the include metric filter of the reporter.
+       * @param includeFilter the regular expression to match on.
        */
-      public Console filter(String filter) {
-        this.filter = filter;
+      public Console includeFilter(String includeFilter) {
+        this.includeFilter = includeFilter;
+        return this;
+      }
+
+      /**
+       * The exclude metric filter expression of the reporter.
+       * @return
+       */
+      public String getExcludeFilter() {
+        return excludeFilter;
+      }
+
+      /**
+       * Set the exclude metric filter expression of the reporter.
+       * @param excludeFilter the regular expression to match on.
+       */
+      public Console excludeFilter(String excludeFilter) {
+        this.excludeFilter = excludeFilter;
         return this;
       }
 
@@ -456,7 +492,8 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private File reportDirectory;
       private boolean enabled = true;
-      private String filter;
+      private String includeFilter;
+      private String excludeFilter;
 
       /**
        * The state of the CSV publisher.
@@ -477,19 +514,36 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       }
 
       /**
-       * The filter on the reporter.
+       * The include metric filter expression of the reporter.
        * @return
        */
-      public String getFilter() {
-        return filter;
+      public String getIncludeFilter() {
+        return includeFilter;
       }
 
       /**
-       * Set the filter of the reporter.
-       * @param filter the regular expression to match on.
+       * Set the include metric filter expression of the reporter.
+       * @param includeFilter the regular expression to match on.
        */
-      public Csv filter(String filter) {
-        this.filter = filter;
+      public Csv includeFilter(String includeFilter) {
+        this.includeFilter = includeFilter;
+        return this;
+      }
+
+      /**
+       * The exclude metric filter expression of the reporter.
+       * @return
+       */
+      public String getExcludeFilter() {
+        return excludeFilter;
+      }
+
+      /**
+       * Set the exclude metric filter expression of the reporter.
+       * @param excludeFilter the regular expression to match on.
+       */
+      public Csv excludeFilter(String excludeFilter) {
+        this.excludeFilter = excludeFilter;
         return this;
       }
 

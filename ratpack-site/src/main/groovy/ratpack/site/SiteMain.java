@@ -17,8 +17,6 @@
 package ratpack.site;
 
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
-import ratpack.config.ConfigData;
-import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Block;
 import ratpack.func.Pair;
@@ -28,10 +26,8 @@ import ratpack.guice.Guice;
 import ratpack.jackson.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
 import ratpack.rx.RxRatpack;
-import ratpack.server.NoBaseDirException;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.server.internal.DelegatingServerConfig;
 import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
@@ -44,21 +40,7 @@ public class SiteMain {
   public static void main(String... args) throws Exception {
     RatpackServer.start(b -> {
         RxRatpack.initialize();
-        ConfigData config = ConfigData.of(c -> c.env().sysProps());
-        ServerConfig innerServerConfig = ServerConfig.findBaseDir().build();
-
-        // This is needed because the config loading stuff doesn't quite handle portable base dir
-        ServerConfig serverConfig = new DelegatingServerConfig(config.getServerConfig()) {
-          @Override
-          public FileSystemBinding getBaseDir() throws NoBaseDirException {
-            return innerServerConfig.getBaseDir();
-          }
-
-          @Override
-          public boolean isHasBaseDir() {
-            return true;
-          }
-        };
+        ServerConfig serverConfig = ServerConfig.findBaseDir().env().sysProps().build();
 
         b
           .serverConfig(serverConfig)
@@ -66,9 +48,10 @@ public class SiteMain {
             Guice.registry(s -> s
                 .add(JacksonModule.class)
                 .add(NewRelicModule.class)
-                .add(new CodaHaleMetricsModule(), c -> {
-                })
-                .addConfig(SiteModule.class, config.get("/github", SiteModule.GitHubConfig.class))
+                .add(new CodaHaleMetricsModule(), c ->
+                    c.csv(csv -> csv.enable(false))
+                )
+                .addConfig(SiteModule.class, serverConfig.get("/github", SiteModule.GitHubConfig.class))
                 .add(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
                   conf.setUseDoubleQuotes(true);

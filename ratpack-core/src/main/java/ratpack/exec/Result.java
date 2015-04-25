@@ -17,7 +17,6 @@
 package ratpack.exec;
 
 import ratpack.exec.internal.DefaultResult;
-import ratpack.exec.internal.ResultBackedExecResult;
 import ratpack.util.Exceptions;
 
 /**
@@ -91,7 +90,4 @@ public interface Result<T> {
     }
   }
 
-  default ExecResult<T> toExecResult() {
-    return new ResultBackedExecResult<>(this);
-  }
 }

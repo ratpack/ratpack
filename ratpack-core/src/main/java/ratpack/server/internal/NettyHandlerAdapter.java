@@ -16,6 +16,8 @@
 
 package ratpack.server.internal;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -46,6 +48,7 @@ import ratpack.server.ServerConfig;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.CharBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
@@ -144,13 +147,19 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         String message = description.toString();
         LOGGER.warn(message);
 
-        response.status(500);
+        response.getHeaders().clear();
 
+        ByteBuf body;
         if (development) {
-          response.send(message);
+          CharBuffer charBuffer = CharBuffer.wrap(message);
+          body = ByteBufUtil.encodeString(ctx.alloc(), charBuffer, CharsetUtil.UTF_8);
+          response.contentType(HttpHeaderConstants.PLAIN_TEXT_UTF8);
         } else {
-          response.send();
+          body = ctx.alloc().buffer(0, 0);
         }
+
+        response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
+        responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body);
       }
     });
   }

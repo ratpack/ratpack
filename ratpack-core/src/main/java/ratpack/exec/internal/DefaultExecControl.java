@@ -16,6 +16,7 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import org.reactivestreams.Publisher;
@@ -24,14 +25,15 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.BiAction;
 import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.util.Exceptions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,16 +41,22 @@ import java.util.function.Supplier;
 
 import static ratpack.func.Action.noop;
 
-public class DefaultExecControl implements ExecControl {
+public class DefaultExecControl implements ExecControl, ExecControlInternal {
 
   private static final Logger LOGGER = ExecutionBacking.LOGGER;
-  private static final Action<Throwable> LOG_UNCAUGHT = t -> LOGGER.error("Uncaught execution exception", t);
+  private static final BiAction<Execution, Throwable> LOG_UNCAUGHT = (o, t) -> LOGGER.error("Uncaught execution exception", t);
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecController execController;
+  private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
 
   public DefaultExecControl(ExecController execController) {
     this.execController = execController;
+  }
+
+  @Override
+  public void setDefaultInterceptors(ImmutableList<? extends ExecInterceptor> interceptors) {
+    this.interceptors = interceptors;
   }
 
   @Override
@@ -64,16 +72,16 @@ public class DefaultExecControl implements ExecControl {
   @Override
   public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     ExecutionBacking backing = ExecutionBacking.require();
-    backing.getInterceptors().add(execInterceptor);
-    backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
+    backing.addInterceptor(execInterceptor);
+    backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor).iterator(), continuation);
   }
 
   @Override
   public ExecStarter exec() {
     return new ExecStarter() {
-      private Action<? super Throwable> onError = LOG_UNCAUGHT;
+      private BiAction<? super Execution, ? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
-      private Action<? super RegistrySpec> registry;
+      private Action<? super RegistrySpec> registry = noop();
       private EventLoop eventLoop = execController.getEventLoopGroup().next();
 
       @Override
@@ -83,18 +91,23 @@ public class DefaultExecControl implements ExecControl {
       }
 
       @Override
-      public ExecStarter onError(Action<? super Throwable> onError) {
+      public ExecStarter onError(BiAction<? super Execution, ? super Throwable> onError) {
         List<Throwable> seen = Lists.newLinkedList();
-        this.onError = t -> {
+        this.onError = (e, t) -> {
           if (seen.size() < MAX_ERRORS_THRESHOLD) {
             seen.add(t);
-            onError.execute(t);
+            onError.execute(e, t);
           } else {
             seen.forEach(t::addSuppressed);
             LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
           }
         };
         return this;
+      }
+
+      @Override
+      public ExecStarter onError(Action<? super Throwable> onError) {
+        return onError((e, t) -> onError.execute(t));
       }
 
       @Override
@@ -111,13 +124,10 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void start(Action<? super Execution> action) {
-        Optional<StackTraceElement[]> startTrace = ExecutionBacking.TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
-
-        Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
         if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
-          new ExecutionBacking(execController, eventLoop, startTrace, effectiveAction, onError, onComplete);
+          Exceptions.uncheck(() -> new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete));
         } else {
-          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, startTrace, effectiveAction, onError, onComplete));
+          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete));
         }
       }
     };
@@ -139,7 +149,7 @@ public class DefaultExecControl implements ExecControl {
           @Override
           public Result<T> get() {
             try {
-              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), () ->
+              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getAllInterceptors().iterator(), () ->
                   result = Result.success(blockingOperation.call())
               );
               return result;

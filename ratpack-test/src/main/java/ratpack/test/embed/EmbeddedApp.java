@@ -178,7 +178,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * {@inheritDoc}
    */
   @Override
-  default public URI getAddress() {
+  default URI getAddress() {
     RatpackServer server = getServer();
     try {
       if (!server.isRunning()) {
@@ -196,7 +196,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * Exceptions thrown by calling {@link RatpackServer#stop()} are suppressed and written to {@link System#err System.err}.
    */
   @Override
-  default public void close() {
+  default void close() {
     try {
       getServer().stop();
     } catch (Exception e) {

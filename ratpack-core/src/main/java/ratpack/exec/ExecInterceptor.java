@@ -28,12 +28,9 @@ import ratpack.func.Block;
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.exec.Execution;
+ * import ratpack.exec.ExecResult;
  * import ratpack.func.Block;
- * import ratpack.http.Request;
- * import ratpack.test.handling.RequestFixture;
- * import ratpack.test.handling.HandlingResult;
- *
- * import java.util.concurrent.atomic.AtomicLong;
+ * import ratpack.test.exec.ExecHarness;
  *
  * import static java.lang.Thread.sleep;
  * import static org.junit.Assert.assertEquals;
@@ -42,43 +39,43 @@ import ratpack.func.Block;
  * public class Example {
  *
  *   public static class Timer {
- *     private final AtomicLong totalCompute = new AtomicLong();
- *     private final AtomicLong totalBlocking = new AtomicLong();
+ *     private long totalCompute;
+ *     private long totalBlocking;
  *     private boolean blocking;
  *
- *     private final ThreadLocal<Long> startedAt = ThreadLocal.withInitial(() -> 0l);
+ *     private long startedAt;
  *
  *     public void start(boolean blocking) {
  *       this.blocking = blocking;
- *       startedAt.set(System.currentTimeMillis());
+ *       startedAt = System.currentTimeMillis();
  *     }
  *
  *     public void stop() {
- *       long startedAtTime = startedAt.get();
- *       startedAt.remove();
- *       AtomicLong counter = blocking ? totalBlocking : totalCompute;
- *       counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0);
+ *       long duration = System.currentTimeMillis() - startedAt;
+ *       if (blocking) {
+ *         totalBlocking += duration;
+ *       } else {
+ *         totalCompute += duration;
+ *       }
  *     }
  *
  *     public long getBlockingTime() {
- *       return totalBlocking.get();
+ *       return totalBlocking;
  *     }
  *
  *     public long getComputeTime() {
- *       return totalCompute.get();
+ *       return totalCompute;
  *     }
  *   }
  *
  *   public static class ProcessingTimingInterceptor implements ExecInterceptor {
- *     private final Request request;
- *
- *     public ProcessingTimingInterceptor(Request request) {
- *       this.request = request;
- *       request.add(new Timer());
- *     }
- *
  *     public void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) throws Exception {
- *       Timer timer = request.get(Timer.class);
+ *       Timer timer = execution.maybeGet(Timer.class).orElse(null);
+ *       if (timer == null) { // this is the first execution segment
+ *         timer = new Timer();
+ *         execution.add(Timer.class, timer);
+ *       }
+ *
  *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
  *       try {
  *         continuation.execute();
@@ -89,25 +86,24 @@ import ratpack.func.Block;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     HandlingResult result = RequestFixture.requestFixture().handleChain(chain -> chain
- *         .handler(context ->
- *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), context::next)
- *         )
- *         .handler(context -> {
- *           sleep(100);
- *           context.blocking(() -> {
- *             sleep(100);
- *             return "foo";
- *           }).then(string -> {
- *             sleep(100);
- *             context.render(string);
- *           });
+ *     ExecResult<String> result = ExecHarness.yieldSingle(
+ *       r -> r.add(new ProcessingTimingInterceptor()), // add the interceptor to the registry
+ *       e -> {
+ *         Thread.sleep(100);
+ *         return e.blocking(() -> {
+ *           Thread.sleep(100);
+ *           return "foo";
  *         })
+ *         .map(s -> {
+ *           Thread.sleep(100);
+ *           return s.toUpperCase();
+ *         });
+ *       }
  *     );
  *
- *     assertEquals("foo", result.rendered(String.class));
+ *     assertEquals("FOO", result.getValue());
  *
- *     Timer timer = result.getRequestRegistry().get(Timer.class);
+ *     Timer timer = result.getRegistry().get(Timer.class);
  *     assertTrue(timer.getBlockingTime() >= 100);
  *     assertTrue(timer.getComputeTime() >= 200);
  *   }

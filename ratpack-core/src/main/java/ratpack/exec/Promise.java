@@ -16,10 +16,17 @@
 
 package ratpack.exec;
 
+import ratpack.exec.internal.CachingUpstream;
+import ratpack.exec.internal.ExecutionBacking;
 import ratpack.func.Action;
-import ratpack.func.Function;
 import ratpack.func.Block;
+import ratpack.func.Function;
 import ratpack.func.Predicate;
+
+import java.util.Objects;
+
+import static ratpack.exec.ExecControl.execControl;
+import static ratpack.func.Action.ignoreArg;
 
 /**
  * A promise for a single value.
@@ -44,12 +51,71 @@ public interface Promise<T> {
   void then(Action<? super T> then);
 
   /**
+   * Apply a custom transform to this promise.
+   * <p>
+   * This method is the basis for the standard operations of this interface, such as {@link #map}.
+   * The following is a non generic implementation of a map that converts the value to upper case.
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *       c.promiseOf("foo")
+   *         .transform(up -> down ->
+   *           up.connect(down.<String>onSuccess(value -> {
+   *             try {
+   *               down.success(value.toUpperCase());
+   *             } catch (Throwable e) {
+   *               down.error(e);
+   *             }
+   *           }))
+   *         )
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The “upstreamTransformer” function takes an upstream data source, and returns another upstream that wraps it.
+   * It is typical for the returned upstream to invoke the {@link Upstream#connect(Downstream)} method of the given upstream during its connect method.
+   * <p>
+   * For more examples of transform implementations, please see the implementations of the methods of this interface.
+   *
+   * @param upstreamTransformer a function that returns a new upstream, typically wrapping the given upstream argument
+   * @param <O> the type of item emitted by the transformed upstream
+   * @return a new promise
+   */
+  <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer);
+
+  /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.
    *
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
    */
-  Promise<T> onError(Action<? super Throwable> errorHandler);
+  default Promise<T> onError(Action<? super Throwable> errorHandler) {
+    return transform(up -> down -> up.connect(
+        new Downstream.SameTypeDecorator<T>(down) {
+          @Override
+          public void error(Throwable throwable) {
+            try {
+              errorHandler.execute(throwable);
+            } catch (Throwable e) {
+              e.addSuppressed(throwable);
+              super.error(e);
+              return;
+            }
+            super.complete();
+          }
+        }
+      )
+    );
+  }
 
   /**
    * Consume the promised value as a {@link Result}.
@@ -87,7 +153,19 @@ public interface Promise<T> {
    * @param <O> the type of the transformed object
    * @return a promise for the transformed value
    */
-  <O> Promise<O> map(Function<? super T, ? extends O> transformer);
+  default <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
+    return transform(up -> down -> up.connect(
+        down.<T>onSuccess(value -> {
+          try {
+            O apply = transformer.apply(value);
+            down.success(apply);
+          } catch (Throwable e) {
+            down.error(e);
+          }
+        })
+      )
+    );
+  }
 
   /**
    * Transforms the promise failure (potentially into a value) by applying the given function to it.
@@ -133,7 +211,22 @@ public interface Promise<T> {
    * @param transformer the transformation to apply to the promise failure
    * @return a promise
    */
-  Promise<T> mapError(Function<? super Throwable, ? extends T> transformer);
+  default Promise<T> mapError(Function<? super Throwable, ? extends T> transformer) {
+    return transform(up -> down -> up.connect(
+        new Downstream.SameTypeDecorator<T>(down) {
+          @Override
+          public void error(Throwable throwable) {
+            try {
+              delegate.success(transformer.apply(throwable));
+            } catch (Throwable t) {
+              t.addSuppressed(throwable);
+              delegate.error(t);
+            }
+          }
+        }
+      )
+    );
+  }
 
   /**
    * Applies the custom operation function to this promise.
@@ -207,7 +300,7 @@ public interface Promise<T> {
    *     assertEquals("bang!", error.getMessage());
    *   }
    *
-   *   public static Promise<Integer> dubble(Promise<Integer> input) throws Exception {
+   *   public static Promise<Integer> dubble(Promise<Integer> input) {
    *     return input.map(i -> i * 2);
    *   }
    * }
@@ -217,7 +310,13 @@ public interface Promise<T> {
    * @param function the operation implementation
    * @return the transformed promise
    */
-  <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function);
+  default <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {
+    try {
+      return function.apply(this);
+    } catch (Throwable e) {
+      return ExecControl.current().failedPromise(e);
+    }
+  }
 
   /**
    * Applies the given function to {@code this} and returns the result.
@@ -260,7 +359,9 @@ public interface Promise<T> {
    * @return the output of the given function
    * @throws Exception any thrown by the given function
    */
-  <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception;
+  default <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception {
+    return function.apply(this);
+  }
 
   /**
    * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
@@ -271,7 +372,9 @@ public interface Promise<T> {
    * @param <O> the type of the transformed object
    * @return a promise for the transformed value
    */
-  <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer);
+  default <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer) {
+    return flatMap(t -> execControl().blocking(() -> transformer.apply(t)));
+  }
 
   /**
    * Transforms the promised value by applying the given function to it that returns a promise for the transformed value.
@@ -304,7 +407,21 @@ public interface Promise<T> {
    * @see #blockingMap(Function)
    * @return a promise for the transformed value
    */
-  <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer);
+  default <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {
+    return transform(up -> down -> up.connect(
+        new Downstream.Decorator<T, O>(down) {
+          @Override
+          public void success(T value) {
+            try {
+              transformer.apply(value).result(delegate::accept);
+            } catch (Throwable e) {
+              error(e);
+            }
+          }
+        }
+      )
+    );
+  }
 
   /**
    * Allows the promised value to be handled specially if it meets the given predicate, instead of being handled by the promise subscriber.
@@ -380,7 +497,34 @@ public interface Promise<T> {
    * @param action the terminal action for the value
    * @return a routed promise
    */
-  Promise<T> route(Predicate<? super T> predicate, Action<? super T> action);
+  default Promise<T> route(Predicate<? super T> predicate, Action<? super T> action) {
+    return transform(up -> down -> up.connect(
+        new Downstream.SameTypeDecorator<T>(down) {
+          @Override
+          public void success(T value) {
+            boolean apply;
+            try {
+              apply = predicate.apply(value);
+            } catch (Throwable e) {
+              error(e);
+              return;
+            }
+
+            if (apply) {
+              try {
+                action.execute(value);
+                complete();
+              } catch (Throwable e) {
+                error(e);
+              }
+            } else {
+              delegate.success(value);
+            }
+          }
+        }
+      )
+    );
+  }
 
   /**
    * A convenience shorthand for {@link #route(Predicate, Action) routing} {@code null} values.
@@ -390,7 +534,9 @@ public interface Promise<T> {
    * @param action the action to route to if the promised value is null
    * @return a routed promise
    */
-  Promise<T> onNull(Block action);
+  default Promise<T> onNull(Block action) {
+    return route(Objects::isNull, ignoreArg(action));
+  }
 
   /**
    * Caches the promised value (or error) and returns it to all subscribers.
@@ -398,27 +544,27 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import java.util.concurrent.atomic.AtomicInteger;
+   * import java.util.concurrent.atomic.AtomicLong;
    *
-   * import static org.junit.Assert.assertTrue;
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
-   *       AtomicInteger counter = new AtomicInteger();
-   *       Promise<Integer> uncached = c.promise(f -> f.success(counter.getAndIncrement()));
+   *       AtomicLong counter = new AtomicLong();
+   *       Promise<Long> uncached = c.promise(f -> f.success(counter.getAndIncrement()));
    *
-   *       uncached.then(i -> assertTrue(i == 0));
-   *       uncached.then(i -> assertTrue(i == 1));
-   *       uncached.then(i -> assertTrue(i == 2));
+   *       uncached.then(i -> assertEquals(0l, i.longValue()));
+   *       uncached.then(i -> assertEquals(1l, i.longValue()));
+   *       uncached.then(i -> assertEquals(2l, i.longValue()));
    *
-   *       Promise<Integer> cached = uncached.cache();
+   *       Promise<Long> cached = uncached.cache();
    *
-   *       cached.then(i -> assertTrue(i == 3));
-   *       cached.then(i -> assertTrue(i == 3));
+   *       cached.then(i -> assertEquals(3l, i.longValue()));
+   *       cached.then(i -> assertEquals(3l, i.longValue()));
    *
-   *       uncached.then(i -> assertTrue(i == 4));
-   *       cached.then(i -> assertTrue(i == 3));
+   *       uncached.then(i -> assertEquals(4l, i.longValue()));
+   *       cached.then(i -> assertEquals(3l, i.longValue()));
    *     });
    *   }
    * }
@@ -446,7 +592,9 @@ public interface Promise<T> {
    *
    * @return a caching promise.
    */
-  Promise<T> cache();
+  default Promise<T> cache() {
+    return transform(CachingUpstream::new);
+  }
 
   /**
    * Allows the execution of the promise to be deferred to a later time.
@@ -459,7 +607,19 @@ public interface Promise<T> {
    * @param releaser the action that will initiate the execution some time later
    * @return a deferred promise
    */
-  Promise<T> defer(Action<? super Runnable> releaser);
+  default Promise<T> defer(Action<? super Runnable> releaser) {
+    return transform(up -> down ->
+        ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+          try {
+            releaser.execute((Runnable) () ->
+                streamHandle.complete(() -> up.connect(down))
+            );
+          } catch (Throwable t) {
+            down.error(t);
+          }
+        })
+    );
+  }
 
   /**
    * Registers a listener that is invoked when {@code this} promise is initiated.
@@ -491,7 +651,17 @@ public interface Promise<T> {
    * @param onYield the action to take when the promise is initiated
    * @return effectively, {@code this} promise
    */
-  Promise<T> onYield(Runnable onYield);
+  default Promise<T> onYield(Runnable onYield) {
+    return transform(up -> down -> {
+      try {
+        onYield.run();
+      } catch (Throwable e) {
+        down.error(e);
+        return;
+      }
+      up.connect(down);
+    });
+  }
 
   /**
    * Registers a listener for the promise outcome.
@@ -524,7 +694,36 @@ public interface Promise<T> {
    * @param listener the result listener
    * @return effectively, {@code this} promise
    */
-  Promise<T> wiretap(Action<? super Result<T>> listener);
+  default Promise<T> wiretap(Action<? super Result<T>> listener) {
+    return transform(up -> down -> up.connect(
+        new Downstream.SameTypeDecorator<T>(down) {
+          @Override
+          public void success(T value) {
+            try {
+              listener.execute(Result.success(value));
+            } catch (Throwable t) {
+              error(t);
+              return;
+            }
+
+            super.success(value);
+          }
+
+          @Override
+          public void error(Throwable throwable) {
+            try {
+              listener.execute(Result.<T>failure(throwable));
+            } catch (Throwable t) {
+              t.addSuppressed(throwable);
+              super.error(t);
+              return;
+            }
+
+            super.error(throwable);
+          }
+        })
+    );
+  }
 
   /**
    * Throttles {@code this} promise, using the given {@link Throttle throttle}.
@@ -583,6 +782,8 @@ public interface Promise<T> {
    * @param throttle the particular throttle to use to throttle the operation
    * @return the throttled promise
    */
-  Promise<T> throttled(Throttle throttle);
+  default Promise<T> throttled(Throttle throttle) {
+    return throttle.throttle(this);
+  }
 
 }

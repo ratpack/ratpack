@@ -108,7 +108,7 @@ public class ServerEnvironment {
     return null;
   }
 
-  private Integer parsePortValue(String description, String value) {
+  public Integer parsePortValue(String description, String value) {
     if (value == null) {
       return null;
     } else {

@@ -16,9 +16,16 @@
 
 package ratpack.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
+import ratpack.config.ConfigData;
+import ratpack.config.ConfigDataSpec;
+import ratpack.config.ConfigSource;
+import ratpack.config.EnvironmentParser;
 import ratpack.file.FileSystemBinding;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
 
@@ -34,7 +41,7 @@ import java.util.Properties;
 /**
  * Server configuration holder
  */
-public interface ServerConfig {
+public interface ServerConfig extends ConfigData {
 
   /**
    * The default port for Ratpack applications, {@value}.
@@ -206,7 +213,7 @@ public interface ServerConfig {
    */
   public FileSystemBinding getBaseDir() throws NoBaseDirException;
 
-  interface Builder {
+  interface Builder extends ConfigDataSpec {
 
     String DEFAULT_ENV_PREFIX = "RATPACK_";
     String DEFAULT_PROP_PREFIX = "ratpack.";
@@ -301,6 +308,7 @@ public interface ServerConfig {
      *
      * @return {@code this}
      */
+    @Override
     Builder env();
 
     /**
@@ -310,6 +318,7 @@ public interface ServerConfig {
      * the prefix will be removed before loading the data
      * @return {@code this}
      */
+    @Override
     Builder env(String prefix);
 
     /**
@@ -318,6 +327,7 @@ public interface ServerConfig {
      * @param byteSource the source of the properties data
      * @return {@code this}
      */
+    @Override
     Builder props(ByteSource byteSource);
 
     /**
@@ -326,6 +336,7 @@ public interface ServerConfig {
      * @param path the source of the properties data
      * @return {@code this}
      */
+    @Override
     Builder props(String path);
 
     /**
@@ -334,6 +345,7 @@ public interface ServerConfig {
      * @param path the source of the properties data
      * @return {@code this}
      */
+    @Override
     Builder props(Path path);
 
     /**
@@ -342,6 +354,7 @@ public interface ServerConfig {
      * @param properties the properties object
      * @return {@code this}
      */
+    @Override
     Builder props(Properties properties);
 
     /**
@@ -350,6 +363,7 @@ public interface ServerConfig {
      * @param map the map
      * @return {@code this}
      */
+    @Override
     Builder props(Map<String, String> map);
 
     /**
@@ -358,6 +372,7 @@ public interface ServerConfig {
      * @param url the source of the properties data
      * @return {@code this}
      */
+    @Override
     Builder props(URL url);
 
     /**
@@ -365,6 +380,7 @@ public interface ServerConfig {
      *
      * @return {@code this}
      */
+    @Override
     Builder sysProps();
 
     /**
@@ -374,13 +390,54 @@ public interface ServerConfig {
      * the prefix will be removed before loading the data
      * @return {@code this}
      */
+    @Override
     Builder sysProps(String prefix);
+
+    @Override
+    Builder onError(Action<? super Throwable> errorHandler);
+
+    @Override
+    Builder configureObjectMapper(Action<ObjectMapper> action);
+
+    @Override
+    Builder add(ConfigSource configSource);
+
+    @Override
+    Builder env(String prefix, Function<String, String> mapFunc);
+
+    @Override
+    Builder env(EnvironmentParser environmentParser);
+
+    @Override
+    Builder json(ByteSource byteSource);
+
+    @Override
+    Builder json(Path path);
+
+    @Override
+    Builder json(String path);
+
+    @Override
+    Builder json(URL url);
+
+    @Override
+    Builder yaml(ByteSource byteSource);
+
+    @Override
+    Builder yaml(Path path);
+
+    @Override
+    Builder yaml(String path);
+
+    @Override
+    Builder yaml(URL url);
 
     /**
      * Builds the server config.
      *
      * @return a server config
      */
+    @Override
     ServerConfig build();
   }
 }

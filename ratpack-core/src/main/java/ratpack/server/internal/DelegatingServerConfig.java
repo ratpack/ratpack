@@ -17,6 +17,7 @@
 package ratpack.server.internal;
 
 import ratpack.api.Nullable;
+import ratpack.config.internal.DelegatingConfigData;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.ServerConfig;
@@ -25,11 +26,12 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 
-public class DelegatingServerConfig implements ServerConfig {
+public class DelegatingServerConfig extends DelegatingConfigData implements ServerConfig {
 
   private final ServerConfig delegate;
 
   public DelegatingServerConfig(ServerConfig delegate) {
+    super(delegate);
     this.delegate = delegate;
   }
 
