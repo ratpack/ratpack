@@ -26,4 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 public interface SessionService {
   public String serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries);
   public ConcurrentMap<String, Object> deserializeSession(Cookie cookieSession);
+
+  public String[] serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries, int maxCookieSize);
+  public ConcurrentMap<String, Object> deserializeSession(Cookie[] sessionCookies);
 }

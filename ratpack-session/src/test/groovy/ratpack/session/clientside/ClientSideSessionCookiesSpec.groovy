@@ -174,8 +174,8 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
     when:
     get("clear")
-    (setCookies = getSessionCookies("/"))
-    (attrs = getSessionAttrs(clientSessionService, "/"))
+    setCookies = getSessionCookies("/")
+    attrs = getSessionAttrs(clientSessionService, "/")
 
     then:
     setCookies.length == 0
@@ -238,5 +238,62 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     attrs.size() == 1
     !attrs["foo"]
     attrs["baz"] == "quux"
+  }
+
+  def "large session partitioned into session cookies"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+        }
+      }
+    }
+
+    handlers {
+      get("set") { SessionStorage sessionStorage ->
+        String value = ""
+        for (int i = 0; i < 1024; i++) {
+          value += "ab"
+        }
+        sessionStorage.put("foo", value)
+        render value
+      }
+      get("setsmall") { SessionStorage sessionStorage ->
+        sessionStorage.put("foo", "val1")
+      }
+      get("clear") { SessionStorage sessionStorage ->
+        sessionStorage.remove("foo")
+      }
+    }
+
+    when:
+    get("set")
+
+    then:
+    getCookies("/").size() == 2
+
+    when:
+    get("setsmall")
+
+    then:
+    getCookies("/").size() == 1
+
+    when:
+    get("clear")
+
+    then:
+    getCookies("/").size == 0
+
+    when:
+    get("set")
+
+    then:
+    getCookies("/").size() == 2
+
+    when:
+    get("clear")
+
+    then:
+    getCookies("/").size() == 0
   }
 }

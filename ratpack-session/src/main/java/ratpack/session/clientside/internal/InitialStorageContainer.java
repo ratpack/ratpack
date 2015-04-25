@@ -29,4 +29,7 @@ public class InitialStorageContainer {
     return this.storage.equals(storage);
   }
 
+  public int size() {
+    return this.storage.size();
+  }
 }

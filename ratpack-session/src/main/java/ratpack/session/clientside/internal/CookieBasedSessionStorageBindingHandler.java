@@ -46,8 +46,8 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   public void handle(final Context context) {
     context.getRequest().addLazy(SessionStorage.class, () -> {
-      Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
-      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookie);
+      Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
+      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
       DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
       ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
       context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap)));
@@ -60,25 +60,20 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
         SessionStorage storage = storageOptional.get();
         boolean hasChanged = !context.getRequest().get(InitialStorageContainer.class).isSameAsInitial(storage);
         if (hasChanged) {
+          int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
           Set<Map.Entry<String, Object>> entries = storage.entrySet();
-
-          Cookie sessionCookie = null;
-          if (entries.isEmpty()) {
-            sessionCookie = invalidateSession(responseMetaData);
-          } else {
+          int currentSessionCookieCount = 0;
+          ClientSideSessionsModule.Config config = context.get(ClientSideSessionsModule.Config.COOKIE_SESSION_CONFIG_TYPE_TOKEN);
+          if (!entries.isEmpty()) {
             ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-            String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
-            sessionCookie = responseMetaData.cookie(sessionName, cookieValue);
+            String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, config.getMaxCookieSize());
+            for (int i = 0; i < cookieValuePartitions.length; i++) {
+              sessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], config.getPath(), config.getDomain());
+            }
+            currentSessionCookieCount = cookieValuePartitions.length;
           }
-
-          if (sessionCookie != null) {
-            ClientSideSessionsModule.Config config = context.get(ClientSideSessionsModule.Config.COOKIE_SESSION_CONFIG_TYPE_TOKEN);
-            if (config.getPath() != null) {
-              sessionCookie.setPath(config.getPath());
-            }
-            if (config.getDomain() != null) {
-              sessionCookie.setDomain(config.getDomain());
-            }
+          for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
+            invalidateSessionCookie(responseMetaData, sessionName + "_" + i, config.getPath(), config.getDomain());
           }
         }
       }
@@ -87,8 +82,36 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.next();
   }
 
-  private Cookie invalidateSession(ResponseMetaData responseMetaData) {
-    return responseMetaData.expireCookie(sessionName);
+  private Cookie[] findSessionCookies(Set<Cookie> cookies) {
+    if (cookies == null) {
+      return new Cookie[0];
+    }
+    return cookies
+      .stream()
+      .filter(c -> c.name().startsWith(sessionName))
+      .sorted((c1, c2) -> c1.name().compareTo(c2.name()))
+      .toArray(Cookie[]::new);
   }
 
+  private Cookie invalidateSessionCookie(ResponseMetaData responseMetaData, String cookieName, String path, String domain) {
+    Cookie sessionCookie = responseMetaData.expireCookie(cookieName);
+    if (path != null) {
+      sessionCookie.setPath(path);
+    }
+    if (domain != null) {
+      sessionCookie.setDomain(domain);
+    }
+    return sessionCookie;
+  }
+
+  private Cookie sessionCookie(ResponseMetaData responseMetaData, String name, String value, String path, String domain) {
+    Cookie sessionCookie = responseMetaData.cookie(name, value);
+    if (path != null) {
+      sessionCookie.setPath(path);
+    }
+    if (domain != null) {
+      sessionCookie.setDomain(domain);
+    }
+    return sessionCookie;
+  }
 }
