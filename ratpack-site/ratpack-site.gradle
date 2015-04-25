@@ -270,3 +270,10 @@ idea {
     scopes.TEST.plus += [configurations.browserTestCompile]
   }
 }
+
+def deployDir = rootProject.file("deploy")
+
+task prepareDeployment(type: Sync) {
+  into deployDir
+  with distributions.main.contents
+}

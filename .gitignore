@@ -20,3 +20,4 @@ ratpack-groovy/Expression$*.class
 Expression$*.class
 ratpack-lazybones/templates/**/VERSION
 ratpack-version.txt
+deploy
