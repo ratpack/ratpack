@@ -16,92 +16,84 @@
 
 package ratpack.session.store.internal;
 
+import ratpack.exec.ExecControl;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.Promise;
+import ratpack.exec.Result;
 import ratpack.session.store.SessionStorage;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultSessionStorage implements SessionStorage {
 
-  private final ConcurrentMap<String, Object> delegate;
+  private final ConcurrentMap<String, Object> store;
+  private ExecControl execControl;
 
-  public DefaultSessionStorage(ConcurrentMap<String, Object> delegate) {
-    this.delegate = delegate;
+  public DefaultSessionStorage(ConcurrentMap<String, Object> store, ExecControl execControl) {
+    this.store = store;
+    this.execControl = execControl;
   }
 
-  public Object putIfAbsent(String key, Object value) {
-    return delegate.putIfAbsent(key, value);
-  }
 
-  public boolean remove(Object key, Object value) {
-    return delegate.remove(key, value);
-  }
-
-  public boolean replace(String key, Object oldValue, Object newValue) {
-    return delegate.replace(key, oldValue, newValue);
-  }
-
-  public Object replace(String key, Object value) {
-    return delegate.replace(key, value);
-  }
-
-  public int size() {
-    return delegate.size();
-  }
-
-  public boolean isEmpty() {
-    return delegate.isEmpty();
-  }
-
-  public boolean containsKey(Object key) {
-    return delegate.containsKey(key);
-  }
-
-  public boolean containsValue(Object value) {
-    return delegate.containsValue(value);
-  }
-
-  public Object get(Object key) {
-    return delegate.get(key);
-  }
-
-  public Object put(String key, Object value) {
-    return delegate.put(key, value);
-  }
-
-  public Object remove(Object key) {
-    return delegate.remove(key);
-  }
-
-  public void putAll(Map<? extends String, ?> m) {
-    delegate.putAll(m);
-  }
-
-  public void clear() {
-    delegate.clear();
-  }
-
-  public Set<String> keySet() {
-    return delegate.keySet();
-  }
-
-  public Collection<Object> values() {
-    return delegate.values();
-  }
-
-  public Set<Entry<String, Object>> entrySet() {
-    return delegate.entrySet();
+  @Override
+  public <T> Promise<Optional<T>> get(String key, Class<T> type) {
+    return execControl.blocking(() -> {
+      Object value = store.get(key);
+      if (value == null) {
+        return Optional.empty();
+      } else {
+        return Optional.of(type.cast(value));
+      }
+    });
   }
 
   @Override
+  public Promise<Boolean> set(String key, Object value) {
+    return execControl.blocking(() -> {
+      store.put(key, value);
+      return true;
+    });
+  }
+
+
+  @Override
+  public Promise<Integer> remove(String key) {
+    return execControl.blocking(() -> {
+      Object lastValue = store.remove(key);
+      if (lastValue == null) {
+        return 0;
+      } else {
+        return 1;
+      }
+    });
+  }
+
+  @Override
+  public Promise<Integer> clear() {
+    return execControl.blocking(() -> {
+      store.clear();
+      return 1;
+    });
+  }
+
+  @Override
+  public Promise<Set<String>> getKeys() {
+    return execControl.blocking(store::keySet);
+  }
+
+
+  @Override
   public boolean equals(Object o) {
-    return delegate.equals(o);
+    return store.equals(o);
   }
 
   @Override
   public int hashCode() {
-    return delegate.hashCode();
+    return store.hashCode();
   }
 }

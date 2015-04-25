@@ -49,11 +49,24 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("") { SessionStorage storage ->
-        render storage.value.toString()
+//        render storage.value.toString()
+        storage.get("value",String).then({ Optional<String> display ->
+          if(display.isPresent()){
+            display.ifPresent({String show ->
+              render show
+            })
+          } else {
+            render "Missing"
+          }
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+        storage.set("value",pathTokens.value).then({
+          storage.get("value",String).then({
+            render it
+          })
+        })
+
       }
     }
 
@@ -68,11 +81,19 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("") { SessionStorage storage ->
-        render storage.value ?: "null"
+        storage.get("value",String).then({
+         render it.orElse("null")
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value ?: "null"
+        storage.set("value",pathTokens.value).then({
+
+          storage.get("value",String).then({
+            render it.orElse("null")
+          })
+        })
+
+
       }
       get("invalidate") { Session session ->
         session.terminate()

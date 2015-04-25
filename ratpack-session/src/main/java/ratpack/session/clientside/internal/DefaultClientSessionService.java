@@ -83,6 +83,9 @@ public class DefaultClientSessionService implements SessionService {
 
       return payloadString + SESSION_SEPARATOR + digestString;
 
+    }catch(Exception e){
+      System.out.println(e);
+      return null;
     } finally {
       for (ByteBuf buffer : buffers) {
         if (buffer != null) {

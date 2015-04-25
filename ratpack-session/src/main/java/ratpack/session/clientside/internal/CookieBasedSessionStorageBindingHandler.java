@@ -16,19 +16,20 @@
 
 package ratpack.session.clientside.internal;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.internal.DefaultSessionStorage;
+import ratpack.stream.Streams;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -47,9 +48,9 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.getRequest().addLazy(SessionStorage.class, () -> {
       Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookie);
-      DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
+      DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap, context);
       ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
-      context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap)));
+      context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap, context)));
       return storage;
     });
 
@@ -58,16 +59,40 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       if (storageOptional.isPresent()) {
         SessionStorage storage = storageOptional.get();
         boolean hasChanged = !context.getRequest().get(InitialStorageContainer.class).isSameAsInitial(storage);
+        System.out.println(hasChanged);
         if (hasChanged) {
-          Set<Map.Entry<String, Object>> entries = storage.entrySet();
+          Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
 
-          if (entries.isEmpty()) {
-            invalidateSession(responseMetaData);
-          } else {
-            ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-            String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
-            responseMetaData.cookie(sessionName, cookieValue);
-          }
+          storage.getKeys().then((keys) -> {
+            context.stream(Streams.publish(keys))
+              .flatMap((key) -> storage.get(key, Object.class).map((value) -> {
+                if(value.isPresent()) {
+                  return new AbstractMap.SimpleImmutableEntry<String, Object>(key, value.get());
+                } else {
+                  return null;
+                }
+              }))
+              .toList().then((entryList) -> {
+              System.out.println("In toListThen " + entryList);
+              entries.addAll(entryList);
+
+              if (entries.isEmpty()) {
+                System.out.println("empty entries");
+                invalidateSession(responseMetaData);
+              } else {
+                try {
+                  System.out.println("has entries " + entries.size());
+                  ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+                  String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
+                  System.out.println(sessionName + " - " + cookieValue);
+                  responseMetaData.cookie(sessionName, cookieValue);
+                } catch (Exception ex) {
+                  System.out.println(ex);
+                  ex.printStackTrace();
+                }
+              }
+            });
+          });
         }
       }
     });
