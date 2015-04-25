@@ -185,7 +185,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
       }
       get("clear") { SessionStorage storage ->
         storage.clear()
-        response.status 200
+        render "ok"
       }
     }
 
