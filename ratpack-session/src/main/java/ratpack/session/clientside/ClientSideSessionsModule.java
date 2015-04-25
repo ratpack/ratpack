@@ -198,7 +198,11 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
 
     @Override
     public HandlerDecorator get() {
-      return HandlerDecorator.prepend(new CookieBasedSessionStorageBindingHandler(sessionService, config.getSessionName()));
+      return HandlerDecorator.prepend(new CookieBasedSessionStorageBindingHandler(sessionService,
+        config.getSessionName(),
+        config.getPath(),
+        config.getDomain(),
+        config.getMaxCookieSize()));
     }
   }
 

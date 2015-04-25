@@ -124,11 +124,6 @@ public class DefaultClientSessionService implements SessionService {
     return deserializeSession(sb.toString());
   }
 
-  @Override
-  public ConcurrentMap<String, Object> deserializeSession(Cookie cookie) {
-    return deserializeSession(cookie == null ? null : cookie.value());
-  }
-
   private ConcurrentMap<String, Object> deserializeSession(String cookieValue) {
     ConcurrentMap<String, Object> sessionStorage = new ConcurrentHashMap<>();
 

@@ -28,8 +28,4 @@ public class InitialStorageContainer {
   public boolean isSameAsInitial(SessionStorage storage) {
     return this.storage.equals(storage);
   }
-
-  public int size() {
-    return this.storage.size();
-  }
 }

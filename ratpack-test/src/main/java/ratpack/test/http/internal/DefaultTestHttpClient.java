@@ -210,22 +210,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
 
-        // filter cookies only for the given path and its subpaths or that are assigned to root path
-        List<Cookie> requestCookies = Lists.newLinkedList();
-        if (path == null || "".equals(path) || "/".equals(path)) {
-          List<Cookie> list = cookies.get("/");
-          if (list != null) {
-            requestCookies.addAll(list);
-          }
-        } else {
-          cookies.forEach((key, list) -> {
-            if ("/".equals(key)) {
-              requestCookies.addAll(list);
-            } else if (path.startsWith(key)) {
-              requestCookies.addAll(list);
-            }
-          });
-        }
+        List<Cookie> requestCookies = getCookies(path);
 
         String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.encode(requestCookies);
 
@@ -243,7 +228,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || "".equals(decodedCookie.value())) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext(); ) {
+            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }
@@ -288,9 +273,19 @@ public class DefaultTestHttpClient implements TestHttpClient {
     if (cookies == null) {
       return clonedList;
     }
-    List<Cookie> pathCookies = path == null ? cookies.get("/") : cookies.get(path);
-    if (pathCookies != null) {
-      clonedList.addAll(pathCookies);
+    if (path == null || "".equals(path) || "/".equals(path)) {
+      List<Cookie> list = cookies.get("/");
+      if (list != null) {
+        clonedList.addAll(list);
+      }
+    } else {
+      cookies.forEach((key, list) -> {
+        if ("/".equals(key)) {
+          clonedList.addAll(list);
+        } else if (path.startsWith(key)) {
+          clonedList.addAll(list);
+        }
+      });
     }
     return clonedList;
   }

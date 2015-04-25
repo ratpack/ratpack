@@ -17,8 +17,6 @@
 package ratpack.session.clientside
 
 import io.netty.handler.codec.http.Cookie
-import ratpack.registry.Registries
-import ratpack.registry.Registry
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -149,7 +147,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService.class)
+        clientSessionService = registry.get(SessionService)
       }
       get("foo/:value") { SessionStorage sessionStorage ->
         sessionStorage.foo = pathTokens.value
@@ -193,7 +191,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService.class)
+        clientSessionService = registry.get(SessionService)
       }
       get("s/:attr/:value") { SessionStorage sessionStorage ->
         String attr = pathTokens.attr

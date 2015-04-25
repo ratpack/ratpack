@@ -16,13 +16,11 @@
 
 package ratpack.session.clientside.internal;
 
-import com.google.common.collect.Iterables;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
-import ratpack.session.clientside.ClientSideSessionsModule;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.internal.DefaultSessionStorage;
@@ -36,12 +34,17 @@ import java.util.concurrent.ConcurrentMap;
 public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   private final SessionService sessionService;
-
   private final String sessionName;
+  private final String path;
+  private final String domain;
+  private final int maxCookieSize;
 
-  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName) {
+  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, String path, String domain, int maxCookieSize) {
     this.sessionService = sessionService;
     this.sessionName = sessionName;
+    this.path = path;
+    this.domain = domain;
+    this.maxCookieSize = maxCookieSize;
   }
 
   public void handle(final Context context) {
@@ -63,17 +66,16 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
           int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
           Set<Map.Entry<String, Object>> entries = storage.entrySet();
           int currentSessionCookieCount = 0;
-          ClientSideSessionsModule.Config config = context.get(ClientSideSessionsModule.Config.COOKIE_SESSION_CONFIG_TYPE_TOKEN);
           if (!entries.isEmpty()) {
             ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-            String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, config.getMaxCookieSize());
+            String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
             for (int i = 0; i < cookieValuePartitions.length; i++) {
-              sessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], config.getPath(), config.getDomain());
+              sessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
             }
             currentSessionCookieCount = cookieValuePartitions.length;
           }
           for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
-            invalidateSessionCookie(responseMetaData, sessionName + "_" + i, config.getPath(), config.getDomain());
+            invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
           }
         }
       }
