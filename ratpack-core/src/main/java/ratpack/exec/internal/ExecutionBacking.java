@@ -31,10 +31,7 @@ import ratpack.func.BiAction;
 import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -54,7 +51,7 @@ public class ExecutionBacking {
   Queue<Deque<Block>> stream = new ConcurrentLinkedQueue<>();
 
   private final EventLoop eventLoop;
-  private final List<AutoCloseable> closeables = Lists.newLinkedList();
+  private final List<AutoCloseable> closeables = Lists.newArrayList();
   private final BiAction<? super Execution, ? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
@@ -80,14 +77,15 @@ public class ExecutionBacking {
     this.registryInterceptors = ImmutableList.copyOf(execution.getAll(ExecInterceptor.class));
     this.globalInterceptors = globalInterceptors;
 
-    Deque<Block> event = Lists.newLinkedList();
+    Deque<Block> event = new ArrayDeque<>();
     //noinspection RedundantCast
     event.add((UserCode) () -> action.execute(execution));
     stream.add(event);
 
-    Deque<Block> doneEvent = Lists.newLinkedList();
+    Deque<Block> doneEvent = new ArrayDeque<>(1);
     doneEvent.add(() -> done = true);
     stream.add(doneEvent);
+
     drain();
   }
 
@@ -146,7 +144,7 @@ public class ExecutionBacking {
     }
 
     private void streamEvent(Block s) {
-      Deque<Block> event = Lists.newLinkedList();
+      Deque<Block> event = new ArrayDeque<>();
       event.add(s);
       stream.add(event);
       drain();
@@ -157,7 +155,7 @@ public class ExecutionBacking {
     stream.element().add(() -> {
       Queue<Deque<Block>> parent = stream;
       stream = new ConcurrentLinkedDeque<>();
-      stream.add(Lists.newLinkedList());
+      stream.add(new ArrayDeque<>());
       StreamHandle handle = new StreamHandle(parent, stream);
       consumer.accept(handle);
     });
