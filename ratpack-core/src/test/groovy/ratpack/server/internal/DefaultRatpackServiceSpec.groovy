@@ -25,7 +25,7 @@ import ratpack.test.ApplicationUnderTest
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-class NettyRatpackServiceSpec extends Specification {
+class DefaultRatpackServiceSpec extends Specification {
 
   @Rule
   TemporaryFolder temporaryFolder

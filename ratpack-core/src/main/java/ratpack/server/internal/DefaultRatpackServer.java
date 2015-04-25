@@ -62,7 +62,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static ratpack.util.Exceptions.uncheck;
 
-public class NettyRatpackServer implements RatpackServer {
+public class DefaultRatpackServer implements RatpackServer {
 
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
@@ -86,7 +86,7 @@ public class NettyRatpackServer implements RatpackServer {
   protected SSLEngine sslEngine;
   private final ServerCapturer.Overrides overrides;
 
-  public NettyRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
+  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
     this.definitionFactory = definitionFactory;
     this.overrides = ServerCapturer.capture(this);
   }
