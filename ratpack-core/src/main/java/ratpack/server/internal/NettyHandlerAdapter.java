@@ -144,7 +144,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         String message = description.toString();
         LOGGER.warn(message);
 
-        responseTransmitter.transmit();
         response.status(500);
 
         if (development) {
