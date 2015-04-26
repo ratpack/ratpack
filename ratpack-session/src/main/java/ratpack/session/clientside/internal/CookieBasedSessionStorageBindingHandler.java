@@ -16,22 +16,17 @@
 
 package ratpack.session.clientside.internal;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
-import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
 import ratpack.session.clientside.SessionService;
-import ratpack.session.store.SessionStorage;
 import ratpack.session.store.internal.ChangeTrackingSessionStorage;
-import ratpack.session.store.internal.DefaultSessionStorage;
 import ratpack.stream.Streams;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class CookieBasedSessionStorageBindingHandler implements Handler {
@@ -49,10 +44,6 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
       Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookie);
-//      ChangeTrackingSessionStorage storage =
-      //ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
-      //TODO just store the map somewhere to compare
-      //context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap, context)));
       return new ChangeTrackingSessionStorage(sessionMap, context);
     });
 
@@ -60,42 +51,31 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       Optional<ChangeTrackingSessionStorage> storageOptional = context.getRequest().maybeGet(ChangeTrackingSessionStorage.class);
       if (storageOptional.isPresent()) {
         ChangeTrackingSessionStorage storage = storageOptional.get();
-        boolean hasChanged = storage.hasChanged();
-        System.out.println(hasChanged);
-        if (hasChanged) {
+        if (storage.hasChanged()) {
           Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
 
           storage.getKeys().then((keys) -> {
             context.stream(Streams.publish(keys))
               .flatMap((key) -> storage.get(key, Object.class).map((value) -> {
-                if(value.isPresent()) {
+                if (value.isPresent()) {
                   return new AbstractMap.SimpleImmutableEntry<String, Object>(key, value.get());
                 } else {
                   return null;
                 }
               }))
               .toList().then((entryList) -> {
-              System.out.println("In toListThen " + entryList);
-              for(Map.Entry<String, Object> entry : entryList){
-                if(entry!=null){
+              for (Map.Entry<String, Object> entry : entryList) {
+                if (entry != null) {
                   entries.add(entry);
                 }
               }
 
               if (entries.isEmpty()) {
-                System.out.println("empty entries");
                 invalidateSession(responseMetaData);
               } else {
-                try {
-                  System.out.println("has entries " + entries.size());
-                  ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-                  String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
-                  System.out.println(sessionName + " - " + cookieValue);
-                  responseMetaData.cookie(sessionName, cookieValue);
-                } catch (Exception ex) {
-                  System.out.println(ex);
-                  ex.printStackTrace();
-                }
+                ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+                String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
+                responseMetaData.cookie(sessionName, cookieValue);
               }
             });
           });

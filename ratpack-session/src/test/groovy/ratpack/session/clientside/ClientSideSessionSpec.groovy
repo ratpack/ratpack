@@ -37,7 +37,6 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   }
 
   private String getSessionCookie() {
-    System.out.println( cookies)
     cookies.find { it.name() == "ratpack_session" }?.value()
   }
 
@@ -76,7 +75,6 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   def "can store session vars"() {
     given:
-    System.out.println("can store")
     handlers {
       get("") { SessionStorage storage ->
         storage.get("value", String).then({
@@ -138,6 +136,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     '&=:' | ':=&'
 
   }
+
 
   def "client should set-cookie only when session values have changed"() {
     given:
@@ -204,27 +203,35 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
       }
       get("set/:value") { SessionStorage storage ->
         storage.set("value", pathTokens.value).then({
-
           storage.get("value", String).then({
             render it.orElse("null")
           })
         })
       }
       get("clear") { SessionStorage storage ->
-        storage.clear().then({})
-        response.status 200
+        storage.clear().then({
+          render "OK"
+        })
       }
     }
 
-    expect:
+    when:
     get("set/foo")
+
+    then:
     decodedPairs.value == "foo"
 
+    when:
     get("clear")
+
+    then:
     setCookie.startsWith("ratpack_session=; Max-Age=0; Expires=")
     !sessionCookie
 
+    when:
     get("")
+
+    then:
     !setCookie
     !sessionCookie
   }

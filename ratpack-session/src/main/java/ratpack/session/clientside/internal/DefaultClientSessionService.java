@@ -55,7 +55,6 @@ public class DefaultClientSessionService implements SessionService {
   public String serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries) {
     ByteBuf[] buffers = new ByteBuf[3 * entries.size() + entries.size() - 1];
     try {
-
       int i = 0;
 
       for (Map.Entry<String, Object> entry : entries) {
@@ -83,9 +82,6 @@ public class DefaultClientSessionService implements SessionService {
 
       return payloadString + SESSION_SEPARATOR + digestString;
 
-    }catch(Exception e){
-      System.out.println(e);
-      return null;
     } finally {
       for (ByteBuf buffer : buffers) {
         if (buffer != null) {
