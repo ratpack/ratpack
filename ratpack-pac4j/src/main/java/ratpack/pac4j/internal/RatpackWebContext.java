@@ -22,6 +22,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
+import ratpack.exec.ExecResult;
+import ratpack.exec.Execution;
+import ratpack.exec.Result;
+import ratpack.exec.internal.DefaultResult;
 import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.HttpMethod;
@@ -33,9 +37,11 @@ import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Adapts a {@link ratpack.handling.Context} object to be usable as a {@link org.pac4j.core.context.WebContext}.
@@ -82,15 +88,44 @@ public class RatpackWebContext implements WebContext {
   @Override
   public void setSessionAttribute(String name, Object value) {
     if (value == null) {
-      getSessionStorage().remove(name);
+      getSessionStorage().remove(name).then((numberRemoved) -> {
+        //TODO Log
+      });
     } else {
-      getSessionStorage().put(name, value);
+      getSessionStorage().set(name, value).then((success) -> {
+        //TODO Log
+      });
     }
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return getSessionStorage().get(name);
+    //FIXME This needs to actually work, I'm in an unmanaged thread.
+    List<Object> result = new ArrayList<>(1);
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+
+    SessionStorage sessionStorage =getSessionStorage();
+
+    context.getController().getControl().exec().start((execution -> {
+      sessionStorage.get(name, Object.class).then((obj) -> {
+        if (obj.isPresent()) {
+          result.add(obj.get());
+        }
+        countDownLatch.countDown();
+      });
+    }));
+
+    try {
+      countDownLatch.await();
+    } catch (InterruptedException ex) {
+      //todo log
+    }
+
+    if (result.size() > 0) {
+      return result.get(0);
+    } else {
+      return null;
+    }
   }
 
   @Override

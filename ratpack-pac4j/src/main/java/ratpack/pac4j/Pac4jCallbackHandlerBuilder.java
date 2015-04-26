@@ -22,6 +22,7 @@ import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
@@ -78,13 +79,17 @@ public class Pac4jCallbackHandlerBuilder {
     Request request = context.getRequest();
     SessionStorage sessionStorage = request.get(SessionStorage.class);
     if (profile != null) {
-      sessionStorage.put(USER_PROFILE, profile);
+      sessionStorage.set(USER_PROFILE, profile).then((success) -> {
+        //TODO Log?
+      });
     }
-    String originalUri = (String) sessionStorage.remove(SAVED_URI);
-    if (originalUri == null) {
-      originalUri = DEFAULT_REDIRECT_URI;
-    }
-    context.redirect(originalUri);
+    sessionStorage.get(SAVED_URI, String.class).then((originalUri) -> {
+        sessionStorage.remove(SAVED_URI).then((numberRemoved) -> {
+          context.redirect(originalUri.orElse(DEFAULT_REDIRECT_URI));
+        });
+      }
+    );
+
   };
 
   @SuppressWarnings("unused")

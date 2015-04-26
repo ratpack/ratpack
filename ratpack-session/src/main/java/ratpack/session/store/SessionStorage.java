@@ -16,13 +16,9 @@
 
 package ratpack.session.store;
 
-import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
-
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * A marker concurrent map sub interface, to make retrieving the session storage from the service easier.
