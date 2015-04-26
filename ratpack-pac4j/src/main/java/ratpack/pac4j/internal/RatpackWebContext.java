@@ -23,10 +23,6 @@ import com.google.common.collect.Sets;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
 import ratpack.exec.ExecControl;
-import ratpack.exec.ExecResult;
-import ratpack.exec.Execution;
-import ratpack.exec.Result;
-import ratpack.exec.internal.DefaultResult;
 import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.HttpMethod;
@@ -105,21 +101,18 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public Object getSessionAttribute(String name) {
-    //FIXME This needs to actually work, I'm in an unmanaged thread.
     List<Object> result = new ArrayList<>(1);
     CountDownLatch countDownLatch = new CountDownLatch(1);
-
     SessionStorage sessionStorage = getSessionStorage();
 
-
-    ExecControl.execControl().exec().start((execution -> {
+    ExecControl.execControl().exec().start((execution) -> {
       sessionStorage.get(name, Object.class).then((obj) -> {
         if (obj.isPresent()) {
           result.add(obj.get());
         }
         countDownLatch.countDown();
       });
-    }));
+    });
 
     try {
       countDownLatch.await();

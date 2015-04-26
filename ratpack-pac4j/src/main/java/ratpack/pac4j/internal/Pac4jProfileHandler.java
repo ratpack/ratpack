@@ -33,12 +33,12 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 public class Pac4jProfileHandler implements Handler {
   @Override
   public void handle(final Context context) throws Exception {
-    getUserProfile(context).then((userProfile -> {
+    getUserProfile(context).then((userProfile) -> {
       if (userProfile.isPresent()) {
         registerUserProfile(context, userProfile.get());
       }
       context.next();
-    }));
+    });
   }
 
   protected void registerUserProfile(final Context context, UserProfile userProfile) {
