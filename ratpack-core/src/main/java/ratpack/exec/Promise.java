@@ -99,21 +99,17 @@ public interface Promise<T> {
    * @return A promise for the successful result
    */
   default Promise<T> onError(Action<? super Throwable> errorHandler) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void error(Throwable throwable) {
-            try {
-              errorHandler.execute(throwable);
-            } catch (Throwable e) {
-              e.addSuppressed(throwable);
-              down.error(e);
-              return;
-            }
-            down.complete();
+    return transform(up -> down ->
+        up.connect(down.onError(throwable -> {
+          try {
+            errorHandler.execute(throwable);
+          } catch (Throwable e) {
+            e.addSuppressed(throwable);
+            down.error(e);
+            return;
           }
-        }
-      )
+          down.complete();
+        }))
     );
   }
 
@@ -212,19 +208,15 @@ public interface Promise<T> {
    * @return a promise
    */
   default Promise<T> mapError(Function<? super Throwable, ? extends T> transformer) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void error(Throwable throwable) {
-            try {
-              down.success(transformer.apply(throwable));
-            } catch (Throwable t) {
-              t.addSuppressed(throwable);
-              down.error(t);
-            }
+    return transform(up -> down ->
+        up.connect(down.onError(throwable -> {
+          try {
+            down.success(transformer.apply(throwable));
+          } catch (Throwable t) {
+            t.addSuppressed(throwable);
+            down.error(t);
           }
-        }
-      )
+        }))
     );
   }
 
@@ -408,18 +400,14 @@ public interface Promise<T> {
    * @return a promise for the transformed value
    */
   default <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {
-    return transform(up -> down -> up.connect(
-        new Downstream.Decorator<T, O>(down) {
-          @Override
-          public void success(T value) {
-            try {
-              transformer.apply(value).result(down::accept);
-            } catch (Throwable e) {
-              error(e);
-            }
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(value -> {
+          try {
+            transformer.apply(value).onError(down::error).then(down::success);
+          } catch (Throwable e) {
+            down.error(e);
           }
-        }
-      )
+        }))
     );
   }
 
@@ -498,31 +486,27 @@ public interface Promise<T> {
    * @return a routed promise
    */
   default Promise<T> route(Predicate<? super T> predicate, Action<? super T> action) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void success(T value) {
-            boolean apply;
-            try {
-              apply = predicate.apply(value);
-            } catch (Throwable e) {
-              error(e);
-              return;
-            }
-
-            if (apply) {
-              try {
-                action.execute(value);
-                complete();
-              } catch (Throwable e) {
-                error(e);
-              }
-            } else {
-              down.success(value);
-            }
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(value -> {
+          boolean apply;
+          try {
+            apply = predicate.apply(value);
+          } catch (Throwable e) {
+            down.error(e);
+            return;
           }
-        }
-      )
+
+          if (apply) {
+            try {
+              action.execute(value);
+              down.complete();
+            } catch (Throwable e) {
+              down.error(e);
+            }
+          } else {
+            down.success(value);
+          }
+        }))
     );
   }
 
@@ -695,33 +679,17 @@ public interface Promise<T> {
    * @return effectively, {@code this} promise
    */
   default Promise<T> wiretap(Action<? super Result<T>> listener) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void success(T value) {
-            try {
-              listener.execute(Result.success(value));
-            } catch (Throwable t) {
-              error(t);
-              return;
-            }
-
-            down.success(value);
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(value -> {
+          try {
+            listener.execute(Result.success(value));
+          } catch (Throwable t) {
+            down.error(t);
+            return;
           }
 
-          @Override
-          public void error(Throwable throwable) {
-            try {
-              listener.execute(Result.<T>failure(throwable));
-            } catch (Throwable t) {
-              t.addSuppressed(throwable);
-              down.error(t);
-              return;
-            }
-
-            down.error(throwable);
-          }
-        })
+          down.success(value);
+        }))
     );
   }
 
