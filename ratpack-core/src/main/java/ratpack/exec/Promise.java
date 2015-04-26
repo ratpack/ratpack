@@ -53,7 +53,7 @@ public interface Promise<T> {
   /**
    * Apply a custom transform to this promise.
    * <p>
-   * This method is the basis for the standard operations of this interface, such as {@link #map}.
+   * This method is the basis for the standard operations of this interface, such as {@link #map(Function)}.
    * The following is a non generic implementation of a map that converts the value to upper case.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -116,7 +116,7 @@ public interface Promise<T> {
   /**
    * Consume the promised value as a {@link Result}.
    * <p>
-   * This method is an alternative to {@link #then} and {@link #onError}.
+   * This method is an alternative to {@link #then(Action)} and {@link #onError(Action)}.
    *
    * @param resultHandler the consumer of the result
    */
