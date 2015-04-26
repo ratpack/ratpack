@@ -107,10 +107,10 @@ public interface Promise<T> {
               errorHandler.execute(throwable);
             } catch (Throwable e) {
               e.addSuppressed(throwable);
-              super.error(e);
+              down.error(e);
               return;
             }
-            super.complete();
+            down.complete();
           }
         }
       )
@@ -217,10 +217,10 @@ public interface Promise<T> {
           @Override
           public void error(Throwable throwable) {
             try {
-              delegate.success(transformer.apply(throwable));
+              down.success(transformer.apply(throwable));
             } catch (Throwable t) {
               t.addSuppressed(throwable);
-              delegate.error(t);
+              down.error(t);
             }
           }
         }
@@ -413,7 +413,7 @@ public interface Promise<T> {
           @Override
           public void success(T value) {
             try {
-              transformer.apply(value).result(delegate::accept);
+              transformer.apply(value).result(down::accept);
             } catch (Throwable e) {
               error(e);
             }
@@ -518,7 +518,7 @@ public interface Promise<T> {
                 error(e);
               }
             } else {
-              delegate.success(value);
+              down.success(value);
             }
           }
         }
@@ -706,7 +706,7 @@ public interface Promise<T> {
               return;
             }
 
-            super.success(value);
+            down.success(value);
           }
 
           @Override
@@ -715,11 +715,11 @@ public interface Promise<T> {
               listener.execute(Result.<T>failure(throwable));
             } catch (Throwable t) {
               t.addSuppressed(throwable);
-              super.error(t);
+              down.error(t);
               return;
             }
 
-            super.error(throwable);
+            down.error(throwable);
           }
         })
     );
