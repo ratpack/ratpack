@@ -258,9 +258,11 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
       }
       get("setsmall") { SessionStorage sessionStorage ->
         sessionStorage.put("foo", "val1")
+        render sessionStorage.get("foo")
       }
       get("clear") { SessionStorage sessionStorage ->
         sessionStorage.remove("foo")
+        render ""
       }
     }
 

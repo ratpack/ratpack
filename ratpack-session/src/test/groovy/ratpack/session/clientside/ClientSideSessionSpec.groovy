@@ -385,7 +385,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     }
 
     expect:
-    get()
+    get("")
     response.body.text == "null"
     !sessionCookie
     !setCookie
