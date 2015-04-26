@@ -467,6 +467,8 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     public static class WebSocket {
       private Duration reporterInterval = DEFAULT_INTERVAL;
+      private String includeFilter;
+      private String excludeFilter;
 
       /**
        * The interval between metrics reports.
@@ -484,6 +486,40 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
        */
       public WebSocket reporterInterval(Duration reporterInterval) {
         this.reporterInterval = reporterInterval;
+        return this;
+      }
+
+      /**
+       * The include metric filter expression of the reporter.
+       * @return
+       */
+      public String getIncludeFilter() {
+        return includeFilter;
+      }
+
+      /**
+       * Set the include metric filter of the reporter.
+       * @param includeFilter the regular expression to match on.
+       */
+      public WebSocket includeFilter(String includeFilter) {
+        this.includeFilter = includeFilter;
+        return this;
+      }
+
+      /**
+       * The exclude metric filter expression of the reporter.
+       * @return
+       */
+      public String getExcludeFilter() {
+        return excludeFilter;
+      }
+
+      /**
+       * Set the exclude metric filter expression of the reporter.
+       * @param excludeFilter the regular expression to match on.
+       */
+      public WebSocket excludeFilter(String excludeFilter) {
+        this.excludeFilter = excludeFilter;
         return this;
       }
     }
@@ -602,7 +638,6 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     bind(CsvReporter.class).toProvider(CsvReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
-    bind(MetricRegistryJsonMapper.class).in(SINGLETON);
 
     bind(Startup.class);
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(HandlerDecoratorProvider.class);

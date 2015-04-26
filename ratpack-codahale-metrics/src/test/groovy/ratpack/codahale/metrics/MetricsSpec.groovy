@@ -345,7 +345,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can use metrics endpoint"() {
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)) } }
+      add new CodaHaleMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)).excludeFilter("2xx-responses") } }
     }
     handlers { MetricRegistry metrics ->
 
@@ -374,7 +374,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
+    with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
       timers.size() == 2
       timers[0].name == "admin.metrics-report.get-requests"
       timers[0].count == 0
@@ -402,7 +402,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     2.times { getText() }
 
     then:
-    new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
+    with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
       timers.size() == 2
       timers[0].name == "admin.metrics-report.get-requests"
       timers[0].count == 0

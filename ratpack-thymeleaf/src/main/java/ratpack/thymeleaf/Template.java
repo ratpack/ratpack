@@ -18,6 +18,8 @@ package ratpack.thymeleaf;
 
 import com.google.common.collect.ImmutableMap;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.fragment.IFragmentSpec;
+import org.thymeleaf.fragment.WholeFragmentSpec;
 
 import java.util.Collections;
 import java.util.Map;
@@ -28,6 +30,7 @@ public class Template {
   private final String name;
   private final Context model;
   private final String contentType;
+  private final IFragmentSpec fragmentSpec;
 
   public String getName() {
     return name;
@@ -41,36 +44,62 @@ public class Template {
     return contentType;
   }
 
-  private Template(String name, Context model, String contentType) {
+  public IFragmentSpec getFragmentSpec() {
+    return fragmentSpec;
+  }
+
+  private Template(String name, Context model, String contentType, IFragmentSpec fragmentSpec) {
     this.name = name;
     this.model = model;
     this.contentType = contentType;
+    this.fragmentSpec = fragmentSpec;
   }
 
   public static Template thymeleafTemplate(String name) {
     return thymeleafTemplate(Collections.emptyMap(), name);
   }
 
-  public static Template thymeleafTemplate(String name, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
-    return thymeleafTemplate(name, null, modelBuilder);
+  public static Template thymeleafTemplate(String name, IFragmentSpec fragmentSpec) {
+    return thymeleafTemplate(Collections.emptyMap(), name, fragmentSpec);
   }
 
   public static Template thymeleafTemplate(Map<String, ?> model, String name) {
-    return thymeleafTemplate(model, name, null);
+    return thymeleafTemplate(model, name, (String) null);
+  }
+
+  public static Template thymeleafTemplate(Map<String, ?> model, String name, IFragmentSpec fragmentSpec) {
+    return thymeleafTemplate(model, name, null, fragmentSpec);
+  }
+
+  public static Template thymeleafTemplate(String name, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    return thymeleafTemplate(name, modelBuilder, WholeFragmentSpec.INSTANCE);
+  }
+
+  public static Template thymeleafTemplate(String name, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder, IFragmentSpec fragmentSpec) {
+    return thymeleafTemplate(name, null, modelBuilder, fragmentSpec);
   }
 
   public static Template thymeleafTemplate(String name, String contentType, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    return thymeleafTemplate(name, contentType, modelBuilder, WholeFragmentSpec.INSTANCE);
+  }
+
+  public static Template thymeleafTemplate(String name, String contentType, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder, IFragmentSpec fragmentSpec) {
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
     modelBuilder.accept(builder);
-    return thymeleafTemplate(builder.build(), name, contentType);
+    return thymeleafTemplate(builder.build(), name, contentType, fragmentSpec);
   }
 
   public static Template thymeleafTemplate(Map<String, ?> model, String name, String contentType) {
+    return thymeleafTemplate(model, name, contentType, WholeFragmentSpec.INSTANCE);
+  }
+
+
+  public static Template thymeleafTemplate(Map<String, ?> model, String name, String contentType, IFragmentSpec fragmentSpec) {
     Context context = new Context();
     if (model != null) {
       context.setVariables(model);
     }
 
-    return new Template(name, context, contentType);
+    return new Template(name, context, contentType, fragmentSpec);
   }
 }

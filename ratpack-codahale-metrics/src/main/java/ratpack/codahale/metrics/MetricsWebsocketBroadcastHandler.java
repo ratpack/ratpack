@@ -16,12 +16,14 @@
 
 package ratpack.codahale.metrics;
 
+import com.codahale.metrics.MetricFilter;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.codahale.metrics.internal.MetricRegistryJsonMapper;
 import ratpack.codahale.metrics.internal.MetricsBroadcaster;
+import ratpack.codahale.metrics.internal.RegexMetricFilter;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-import static ratpack.stream.Streams.map;
 import static ratpack.websocket.WebSockets.websocketByteBufBroadcast;
 
 /**
@@ -41,14 +43,18 @@ public class MetricsWebsocketBroadcastHandler implements Handler {
   @Override
   public void handle(final Context context) throws Exception {
     final MetricsBroadcaster broadcaster = context.get(MetricsBroadcaster.class);
-    final MetricRegistryJsonMapper mapper = context.get(MetricRegistryJsonMapper.class);
+    final ByteBufAllocator byteBufAllocator = context.get(ByteBufAllocator.class);
+    final CodaHaleMetricsModule.Config config = context.get(CodaHaleMetricsModule.Config.class);
+
+    MetricFilter filter = MetricFilter.ALL;
+    if (config.getWebSocket().isPresent()) {
+      filter = new RegexMetricFilter(config.getWebSocket().get().getIncludeFilter(), config.getWebSocket().get().getExcludeFilter());
+    }
 
     websocketByteBufBroadcast(
       context,
-      map(broadcaster, mapper)
+      broadcaster.map(new MetricRegistryJsonMapper(byteBufAllocator, filter))
     );
   }
 
-
 }
-
