@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
+import ratpack.exec.ExecControl;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Execution;
 import ratpack.exec.Result;
@@ -88,12 +89,16 @@ public class RatpackWebContext implements WebContext {
   @Override
   public void setSessionAttribute(String name, Object value) {
     if (value == null) {
-      getSessionStorage().remove(name).then((numberRemoved) -> {
-        //TODO Log
+      ExecControl.execControl().exec().start((execution) -> {
+        getSessionStorage().remove(name).then((numberRemoved) -> {
+          //TODO Log
+        });
       });
     } else {
-      getSessionStorage().set(name, value).then((success) -> {
-        //TODO Log
+      ExecControl.execControl().exec().start((execution) -> {
+        getSessionStorage().set(name, value).then((success) -> {
+          //TODO Log
+        });
       });
     }
   }
@@ -104,9 +109,10 @@ public class RatpackWebContext implements WebContext {
     List<Object> result = new ArrayList<>(1);
     CountDownLatch countDownLatch = new CountDownLatch(1);
 
-    SessionStorage sessionStorage =getSessionStorage();
+    SessionStorage sessionStorage = getSessionStorage();
 
-    context.getController().getControl().exec().start((execution -> {
+
+    ExecControl.execControl().exec().start((execution -> {
       sessionStorage.get(name, Object.class).then((obj) -> {
         if (obj.isPresent()) {
           result.add(obj.get());
