@@ -218,6 +218,8 @@ public interface ExecControl {
    * }
    * }</pre>
    *
+   * @param factory the promise factory
+   * @param <T> the type of promised value
    * @return the promise returned by the factory, or a promise for the exception it threw
    */
   default <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
