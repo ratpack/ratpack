@@ -26,6 +26,7 @@ import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.store.SessionStorage;
+import ratpack.session.store.internal.ChangeTrackingSessionStorage;
 import ratpack.session.store.internal.DefaultSessionStorage;
 import ratpack.stream.Streams;
 
@@ -45,20 +46,21 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    context.getRequest().addLazy(SessionStorage.class, () -> {
+    context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
       Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookie);
-      DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap, context);
-      ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
-      context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap, context)));
-      return storage;
+//      ChangeTrackingSessionStorage storage =
+      //ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
+      //TODO just store the map somewhere to compare
+      //context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap, context)));
+      return new ChangeTrackingSessionStorage(sessionMap, context);
     });
 
     context.getResponse().beforeSend(responseMetaData -> {
-      Optional<SessionStorage> storageOptional = context.getRequest().maybeGet(SessionStorage.class);
+      Optional<ChangeTrackingSessionStorage> storageOptional = context.getRequest().maybeGet(ChangeTrackingSessionStorage.class);
       if (storageOptional.isPresent()) {
-        SessionStorage storage = storageOptional.get();
-        boolean hasChanged = !context.getRequest().get(InitialStorageContainer.class).isSameAsInitial(storage);
+        ChangeTrackingSessionStorage storage = storageOptional.get();
+        boolean hasChanged = storage.hasChanged();
         System.out.println(hasChanged);
         if (hasChanged) {
           Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
@@ -74,7 +76,11 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
               }))
               .toList().then((entryList) -> {
               System.out.println("In toListThen " + entryList);
-              entries.addAll(entryList);
+              for(Map.Entry<String, Object> entry : entryList){
+                if(entry!=null){
+                  entries.add(entry);
+                }
+              }
 
               if (entries.isEmpty()) {
                 System.out.println("empty entries");

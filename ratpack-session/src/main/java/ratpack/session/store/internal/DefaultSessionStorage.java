@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultSessionStorage implements SessionStorage {
@@ -96,4 +97,5 @@ public class DefaultSessionStorage implements SessionStorage {
   public int hashCode() {
     return store.hashCode();
   }
+
 }
