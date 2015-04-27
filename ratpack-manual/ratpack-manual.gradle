@@ -250,21 +250,31 @@ compass {
   environment = 'production'
 }
 
-combineJs {
-	source = [
-		"${projectDir}/src/assets/js/googleAnalytics.js",
-		"${projectDir}/src/assets/js/modernizr.js",
-		"${projectDir}/src/assets/js/prism.js",
-		"${projectDir}/src/assets/js/jquery.js",
-		"${projectDir}/src/assets/js/anchorHighlight.js",
-		"${projectDir}/src/assets/js/toggleImports.js"
-	]
-	dest = file("${buildDir}/assets/js/all.js")
+task jsDev(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+  source = [
+    "${projectDir}/src/assets/js/anchorHighlight.js",
+    "${projectDir}/src/assets/js/toggleImports.js"
+  ]
+  dest = file("${buildDir}/assets/js/all-dev.js")
 }
 
 minifyJs {
-	source = combineJs
-	dest = file("${buildDir}/assets/js/all.min.js")
+  source = jsDev
+  dest = file("${buildDir}/assets/js/all-dev.min.js")
+  closure {
+    warningLevel = "QUIET"
+  }
+}
+
+task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) {
+  source = [
+    "${projectDir}/src/assets/js/googleAnalytics.js",
+    "${projectDir}/src/assets/js/modernizr.js",
+    "${projectDir}/src/assets/js/prism.js",
+    "${projectDir}/src/assets/js/jquery.js",
+    "${buildDir}/assets/js/all-dev.min.js"
+  ]
+  dest = file("${buildDir}/assets/js/all.min.js")
 }
 
 task stylizeManual(type: Sync) {
@@ -278,7 +288,7 @@ task stylizeManual(type: Sync) {
     exclude 'gems/'
     exclude 'specifications/'
   }
-  from minifyJs
+  from jsAll
 }
 
 file("src/assets").eachDir { File dir ->
