@@ -154,7 +154,7 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
               );
               return result;
             } catch (Exception e) {
-              return Result.<T>failure(e);
+              return Result.<T>error(e);
             }
           }
         }, execController.getBlockingExecutor()
