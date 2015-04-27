@@ -22,13 +22,10 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
 import ratpack.session.clientside.SessionService;
-import ratpack.session.store.SessionStorage;
-import ratpack.session.store.internal.DefaultSessionStorage;
+import ratpack.session.store.internal.ChangeTrackingSessionStorage;
+import ratpack.stream.Streams;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 public class CookieBasedSessionStorageBindingHandler implements Handler {
@@ -48,35 +45,50 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    context.getRequest().addLazy(SessionStorage.class, () -> {
+    context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
       Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
-      DefaultSessionStorage storage = new DefaultSessionStorage(sessionMap);
-      ConcurrentMap<String, Object> initialSessionMap = new ConcurrentHashMap<>(sessionMap);
-      context.getRequest().add(InitialStorageContainer.class, new InitialStorageContainer(new DefaultSessionStorage(initialSessionMap)));
-      return storage;
+      return new ChangeTrackingSessionStorage(sessionMap, context);
     });
 
     context.getResponse().beforeSend(responseMetaData -> {
-      Optional<SessionStorage> storageOptional = context.getRequest().maybeGet(SessionStorage.class);
+      Optional<ChangeTrackingSessionStorage> storageOptional = context.getRequest().maybeGet(ChangeTrackingSessionStorage.class);
       if (storageOptional.isPresent()) {
-        SessionStorage storage = storageOptional.get();
-        boolean hasChanged = !context.getRequest().get(InitialStorageContainer.class).isSameAsInitial(storage);
-        if (hasChanged) {
-          int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
-          Set<Map.Entry<String, Object>> entries = storage.entrySet();
-          int currentSessionCookieCount = 0;
-          if (!entries.isEmpty()) {
-            ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-            String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
-            for (int i = 0; i < cookieValuePartitions.length; i++) {
-              sessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
-            }
-            currentSessionCookieCount = cookieValuePartitions.length;
-          }
-          for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
-            invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
-          }
+        ChangeTrackingSessionStorage storage = storageOptional.get();
+        if (storage.hasChanged()) {
+          Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
+
+          storage.getKeys().then((keys) -> {
+            context.stream(Streams.publish(keys))
+              .flatMap((key) -> storage.get(key, Object.class).map((value) -> {
+                if (value.isPresent()) {
+                  return new AbstractMap.SimpleImmutableEntry<String, Object>(key, value.get());
+                } else {
+                  return null;
+                }
+              }))
+              .toList().then((entryList) -> {
+              for (Map.Entry<String, Object> entry : entryList) {
+                if (entry != null) {
+                  entries.add(entry);
+                }
+              }
+              int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
+              int currentSessionCookieCount = 0;
+
+              if (!entries.isEmpty()) {
+                ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+                String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
+                for (int i = 0; i < cookieValuePartitions.length; i++) {
+                  sessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                }
+                currentSessionCookieCount = cookieValuePartitions.length;
+              }
+              for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
+                invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
+              }
+            });
+          });
         }
       }
     });

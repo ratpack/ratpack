@@ -71,7 +71,7 @@ public class CachingUpstream<T> implements Upstream<T> {
       upstream.connect(new Downstream<T>() {
         @Override
         public void error(Throwable throwable) {
-          result.set(new ResultBackedExecResult<>(Result.<T>failure(throwable), Execution.execution()));
+          result.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.execution()));
           doDrainInNewSegment();
           downstream.error(throwable);
         }

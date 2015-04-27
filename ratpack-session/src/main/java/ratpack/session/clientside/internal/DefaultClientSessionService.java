@@ -72,7 +72,6 @@ public class DefaultClientSessionService implements SessionService {
   public String serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries) {
     ByteBuf[] buffers = new ByteBuf[3 * entries.size() + entries.size() - 1];
     try {
-
       int i = 0;
 
       for (Map.Entry<String, Object> entry : entries) {

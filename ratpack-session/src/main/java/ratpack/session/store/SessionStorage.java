@@ -16,7 +16,9 @@
 
 package ratpack.session.store;
 
-import java.util.concurrent.ConcurrentMap;
+import ratpack.exec.Promise;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * A marker concurrent map sub interface, to make retrieving the session storage from the service easier.
@@ -24,5 +26,15 @@ import java.util.concurrent.ConcurrentMap;
  * The session storage is not available for dependency injection via Guice.
  * It must be retrieved via service lookup.
  */
-public interface SessionStorage extends ConcurrentMap<String, Object> {
+public interface SessionStorage  {
+
+  <T> Promise<Optional<T>> get(String key, Class<T> type);
+
+  Promise<Boolean> set(String key, Object value);
+
+  Promise<Set<String>> getKeys();
+
+  Promise<Integer> remove(String key);
+
+  Promise<Integer> clear();
 }

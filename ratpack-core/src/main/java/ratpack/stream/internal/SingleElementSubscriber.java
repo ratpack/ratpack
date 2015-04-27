@@ -54,7 +54,7 @@ public class SingleElementSubscriber<T> implements Subscriber<T> {
       first = o;
     } else {
       subscription.cancel();
-      fire(Result.<T>failure(new IllegalStateException("Cannot convert stream of more than 1 item to a Promise")));
+      fire(Result.<T>error(new IllegalStateException("Cannot convert stream of more than 1 item to a Promise")));
     }
   }
 
@@ -66,7 +66,7 @@ public class SingleElementSubscriber<T> implements Subscriber<T> {
 
   @Override
   public void onError(Throwable t) {
-    fire(Result.<T>failure(t));
+    fire(Result.<T>error(t));
   }
 
   @Override

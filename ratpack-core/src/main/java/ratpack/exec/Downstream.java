@@ -155,7 +155,7 @@ public interface Downstream<T> {
   default void accept(ExecResult<? extends T> result) {
     if (result.isComplete()) {
       complete();
-    } else if (result.isFailure()) {
+    } else if (result.isError()) {
       error(result.getThrowable());
     } else {
       success(result.getValue());
@@ -168,7 +168,7 @@ public interface Downstream<T> {
    * @param result the result to signal
    */
   default void accept(Result<? extends T> result) {
-    if (result.isFailure()) {
+    if (result.isError()) {
       error(result.getThrowable());
     } else {
       success(result.getValue());

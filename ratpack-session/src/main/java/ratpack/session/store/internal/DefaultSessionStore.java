@@ -19,6 +19,7 @@ package ratpack.session.store.internal;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import ratpack.exec.ExecControl;
 import ratpack.session.SessionListener;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.SessionStore;
@@ -50,7 +51,7 @@ public class DefaultSessionStore implements SessionStore, SessionListener {
 
   public SessionStorage get(String sessionId) {
     try {
-      return storage.get(sessionId, () -> new DefaultSessionStorage(new ConcurrentHashMap<>()));
+      return storage.get(sessionId, () -> new DefaultSessionStorage(new ConcurrentHashMap<>(), ExecControl.current()));
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }

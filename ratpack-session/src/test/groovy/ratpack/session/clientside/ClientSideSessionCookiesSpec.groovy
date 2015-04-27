@@ -61,17 +61,26 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get("foo") { SessionStorage sessionStorage ->
-        render sessionStorage.value?.toString()
+        sessionStorage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("bar") { SessionStorage sessionStorage ->
-        render sessionStorage.value?.toString()
+        sessionStorage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("") { SessionStorage sessionStorage ->
-        render sessionStorage.value?.toString()
+        sessionStorage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("val/:value") { SessionStorage sessionStorage ->
-        sessionStorage.value = pathTokens.value
-        render sessionStorage.value.toString()
+        sessionStorage.set("value", pathTokens.value).then({
+          sessionStorage.get("value", String).then({
+            render it.orElse("null")
+          })
+        })
       }
     }
 
@@ -110,14 +119,21 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     handlers {
       get("/foo/:value") { SessionStorage sessionStorage ->
         if (pathTokens.value == "check") {
-          render sessionStorage.value?.toString()
+          sessionStorage.get("value", String).then({
+            render it.orElse("null")
+          })
         } else {
-          sessionStorage.value = pathTokens.value
-          render sessionStorage.value.toString()
+          sessionStorage.set("value", pathTokens.value).then({
+            sessionStorage.get("value", String).then({
+              render it.orElse("null")
+            })
+          })
         }
       }
       get("/bar") { SessionStorage sessionStorage ->
-        render sessionStorage.value?.toString()
+        sessionStorage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
     }
 
@@ -126,7 +142,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     get("/bar")
 
     then:
-    response.body.text == ""
+    response.body.text == "null"
 
     when:
     get("/foo/check")
@@ -150,12 +166,16 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         clientSessionService = registry.get(SessionService)
       }
       get("foo/:value") { SessionStorage sessionStorage ->
-        sessionStorage.foo = pathTokens.value
-        render sessionStorage.foo?.toString()
+        sessionStorage.set("foo", pathTokens.value).then({
+          sessionStorage.get("foo", String).then({
+            render it.orElse("null")
+          })
+        })
       }
       get("clear") { SessionStorage sessionStorage ->
-        sessionStorage.remove("foo")
-        render sessionStorage.foo?.toString()
+        sessionStorage.remove("foo").then({
+          render "null"
+        })
       }
     }
 
@@ -197,20 +217,26 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String attr = pathTokens.attr
         String value = pathTokens.value
         if (attr && value) {
-          sessionStorage.put(attr, value)
+          sessionStorage.set(attr, value).then({
+            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+          })
         } else {
           clientError(404)
         }
-        render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
       }
       get("clear/:attr") { SessionStorage sessionStorage ->
         String attr = pathTokens.attr
         if (attr) {
-          sessionStorage.remove(attr)
+          sessionStorage.remove(attr).then({
+            sessionStorage.get(attr, String).onError({th ->
+              render "null"
+            }).then({
+              render it.orElse("null")
+            })
+          })
         } else {
           clientError(404)
         }
-        render sessionStorage[attr]?.toString()
       }
     }
 
@@ -253,16 +279,23 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         for (int i = 0; i < 1024; i++) {
           value += "ab"
         }
-        sessionStorage.put("foo", value)
-        render value
+        sessionStorage.set("foo", value).then({
+          sessionStorage.get("foo", String).then({
+            render it.orElse("null")
+          })
+        })
       }
       get("setsmall") { SessionStorage sessionStorage ->
-        sessionStorage.put("foo", "val1")
-        render sessionStorage.get("foo")
+        sessionStorage.set("foo", "val1").then({
+          sessionStorage.get("foo", String).then({
+            render it.orElse("null")
+          })
+        })
       }
       get("clear") { SessionStorage sessionStorage ->
-        sessionStorage.remove("foo")
-        render ""
+        sessionStorage.remove("foo").then({
+          render ""
+        })
       }
     }
 
