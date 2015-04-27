@@ -17,17 +17,11 @@
 package ratpack.session.store.internal;
 
 import ratpack.exec.ExecControl;
-import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
-import ratpack.exec.Result;
 import ratpack.session.store.SessionStorage;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultSessionStorage implements SessionStorage {
