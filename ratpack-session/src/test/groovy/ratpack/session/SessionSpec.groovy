@@ -63,7 +63,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
       get("set/:value") { SessionStorage storage ->
         storage.set("value",pathTokens.value).then({
           storage.get("value",String).then({
-            render it
+            render it.orElse("")
           })
         })
 
