@@ -53,7 +53,7 @@ public class CompleteExecResult<T> implements ExecResult<T> {
   }
 
   @Override
-  public boolean isFailure() {
+  public boolean isError() {
     return false;
   }
 

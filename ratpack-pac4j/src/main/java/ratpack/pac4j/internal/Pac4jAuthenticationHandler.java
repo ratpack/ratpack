@@ -47,22 +47,27 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
 
   @Override
   public void handle(final Context context) throws Exception {
-    UserProfile userProfile = getUserProfile(context);
-    if (authorizer.isAuthenticationRequired(context) && userProfile == null) {
-      initiateAuthentication(context);
-    } else {
-      if (userProfile != null) {
-        registerUserProfile(context, userProfile);
-        authorizer.handleAuthorization(context, userProfile);
+    getUserProfile(context).then((userProfile) -> {
+      if (authorizer.isAuthenticationRequired(context) && !userProfile.isPresent()) {
+        initiateAuthentication(context);
       } else {
-        context.next();
+        if (userProfile.isPresent()) {
+          UserProfile user = userProfile.get();
+          registerUserProfile(context, user);
+          authorizer.handleAuthorization(context, user);
+        } else {
+          context.next();
+        }
       }
-    }
+    });
+
   }
 
   private void initiateAuthentication(final Context context) {
     final Request request = context.getRequest();
-    request.get(SessionStorage.class).put(SAVED_URI, request.getUri());
+    request.get(SessionStorage.class).set(SAVED_URI, request.getUri()).then((success)->{
+      //TODO Log
+    });
     final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(() -> {

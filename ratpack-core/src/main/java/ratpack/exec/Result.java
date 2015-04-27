@@ -20,7 +20,7 @@ import ratpack.exec.internal.DefaultResult;
 import ratpack.util.Exceptions;
 
 /**
- * The result of an asynchronous operation, which may be a failure.
+ * The result of an asynchronous operation, which may be an error.
  *
  * @param <T> The type of the successful result object
  */
@@ -38,20 +38,20 @@ public interface Result<T> {
   }
 
   /**
-   * Creates a new failure result.
+   * Creates a new error result.
    *
-   * @param failure the failure
+   * @param error the error
    * @param <T> the type of the result
-   * @return the failure result
+   * @return the error result
    */
-  static <T> Result<T> failure(Throwable failure) {
-    return new DefaultResult<>(failure);
+  static <T> Result<T> error(Throwable error) {
+    return new DefaultResult<>(error);
   }
 
   /**
-   * The failure exception.
+   * The error exception.
    *
-   * @return The failure exception, or null if the result was not failure.
+   * @return The error exception, or null if the result was not an error.
    */
   Throwable getThrowable();
 
@@ -70,20 +70,20 @@ public interface Result<T> {
   boolean isSuccess();
 
   /**
-   * True if this was a failure result.
+   * True if this was an error result.
    *
-   * @return whether the result is failure.
+   * @return whether the result is an error.
    */
-  boolean isFailure();
+  boolean isError();
 
   /**
-   * Returns the value if this is a success result, or throws the exception if it's a failure.
+   * Returns the value if this is a success result, or throws the exception if it's an error.
    *
    * @return the value (if this is a success result)
-   * @throws Exception the failure (if this is a failure result)
+   * @throws Exception the error (if this is an error result)
    */
   default T getValueOrThrow() throws Exception {
-    if (isFailure()) {
+    if (isError()) {
       throw Exceptions.toException(getThrowable());
     } else {
       return getValue();

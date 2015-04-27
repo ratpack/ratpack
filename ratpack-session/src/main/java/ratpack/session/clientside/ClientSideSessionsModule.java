@@ -39,18 +39,18 @@ import javax.inject.Singleton;
  * </ul>
  * <h3>Getting the session storage</h3>
  *
- * <pre class="tested">
+ * <pre class="tested java">{@code
  * import ratpack.handling.*;
  * import ratpack.session.store.SessionStorage;
  *
  * class MyHandler implements Handler {
  *   void handle(Context ctx) {
- *     SessionStorage session = ctx.getRequest().get(SessionStorage.class);
- *     String value = session.get("value");
- *     ctx.render(value);
+ *     SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
+ *     sessionStorage.get("value", String.class).then( (value) -> { render(value.orElse("not set"));});
+ *
  *   }
  * }
- * </pre>
+ * }</pre>
  * <h3>Configuration</h3>
  * <p>
  * This module also provides a programmatic configurable object that helps customize various elements.
@@ -103,13 +103,15 @@ import javax.inject.Singleton;
  *       .handlers(chain -> chain
  *         .get(ctx -> {
  *           SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
- *           ctx.render(sessionStorage.getOrDefault("value", "not set"));
+ *           sessionStorage.get("value",String.class).then( value -> { ctx.render(value.orElse("not set"));});
  *         })
  *         .get("set/:value", ctx -> {
  *           SessionStorage sessionStorage = ctx.getRequest().get(SessionStorage.class);
  *           String value = ctx.getPathTokens().get("value");
- *           sessionStorage.put("value", value);
- *           ctx.render(value);
+ *           sessionStorage.set("value", value).then( success->{
+ *            ctx.render(value);
+ *           });
+ *
  *         })
  *       )
  *     ).test(client -> {
