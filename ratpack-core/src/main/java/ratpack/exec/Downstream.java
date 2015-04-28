@@ -26,7 +26,7 @@ import ratpack.func.Block;
  * Once connected, an upstream will invoke only one of either the {@link #success}, {@link #error} or {@link #complete} methods exactly once.
  *
  * @see Promise#transform(ratpack.func.Function)
- * @param <T>
+ * @param <T> the type of value emitted downstream
  */
 public interface Downstream<T> {
 

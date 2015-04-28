@@ -18,6 +18,7 @@ package ratpack.util.internal;
 
 import com.google.common.collect.*;
 import ratpack.util.MultiValueMap;
+import ratpack.util.Types;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,23 +29,23 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
 
   @SuppressWarnings("unchecked")
   public static <K, V> MultiValueMap<K, V> empty() {
-    return (MultiValueMap<K, V>) EMPTY;
+    return Types.cast(EMPTY);
   }
 
-  private final Map<? extends K, ? extends List<? extends V>> delegate;
+  private final Map<K, List<V>> delegate;
 
-  public ImmutableDelegatingMultiValueMap(Map<? extends K, ? extends List<? extends V>> map) {
+  public ImmutableDelegatingMultiValueMap(Map<K, List<V>> map) {
     this.delegate = map;
   }
 
   @SuppressWarnings("unchecked")
   public List<V> getAll(K key) {
-    return (List<V>) delegate.get(key);
+    return delegate.get(key);
   }
 
   @SuppressWarnings("unchecked")
   public Map<K, List<V>> getAll() {
-    return (Map<K, List<V>>) delegate;
+    return delegate;
   }
 
   public int size() {
@@ -102,7 +103,7 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
 
   @SuppressWarnings({"unchecked", "NullableProblems"})
   public Set<K> keySet() {
-    return (Set<K>) delegate.keySet();
+    return delegate.keySet();
   }
 
   @SuppressWarnings("NullableProblems")

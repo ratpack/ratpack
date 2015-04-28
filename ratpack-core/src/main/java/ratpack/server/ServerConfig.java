@@ -46,19 +46,19 @@ public interface ServerConfig extends ConfigData {
   /**
    * The default port for Ratpack applications, {@value}.
    */
-  public static final int DEFAULT_PORT = 5050;
+  int DEFAULT_PORT = 5050;
 
   /**
    * The default max content length.
    */
-  public int DEFAULT_MAX_CONTENT_LENGTH = 1048576;
+  int DEFAULT_MAX_CONTENT_LENGTH = 1048576;
 
   /**
    * The default number of threads an application should use.
    *
    * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
    */
-  public int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+  int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
    * Creates a builder configured to use no base dir, development mode and an ephemeral port.
@@ -72,6 +72,7 @@ public interface ServerConfig extends ConfigData {
   /**
    * Creates a builder configured to use the given base dir, development mode and an ephemeral port.
    *
+   * @param baseDir the server base dir
    * @return a server config builder
    */
   static Builder embedded(Path baseDir) {
@@ -141,7 +142,7 @@ public interface ServerConfig extends ConfigData {
    *
    * @return The port that the application should listen to requests on.
    */
-  public int getPort();
+  int getPort();
 
   /**
    * The address of the interface that the application should bind to.
@@ -151,7 +152,7 @@ public interface ServerConfig extends ConfigData {
    * @return The address of the interface that the application should bind to.
    */
   @Nullable
-  public InetAddress getAddress();
+  InetAddress getAddress();
 
   /**
    * Whether or not the server is in "development" mode.
@@ -162,7 +163,7 @@ public interface ServerConfig extends ConfigData {
    *
    * @return {@code true} if the server is in "development" mode
    */
-  public boolean isDevelopment();
+  boolean isDevelopment();
 
   /**
    * The number of threads for handling application requests.
@@ -174,14 +175,14 @@ public interface ServerConfig extends ConfigData {
    *
    * @return the number of threads for handling application requests.
    */
-  public int getThreads();
+  int getThreads();
 
   /**
    * The public address of the site used for redirects.
    *
    * @return The url of the public address
    */
-  public URI getPublicAddress();
+  URI getPublicAddress();
 
   /**
    * The SSL context to use if the application will serve content over HTTPS.
@@ -189,21 +190,21 @@ public interface ServerConfig extends ConfigData {
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
   @Nullable
-  public SSLContext getSSLContext();
+  SSLContext getSSLContext();
 
   /**
    * The max content length to use for the HttpObjectAggregator.
    *
    * @return The max content length as an int.
    */
-  public int getMaxContentLength();
+  int getMaxContentLength();
 
   /**
    * Whether or not the base dir of the application has been set.
    *
    * @return whether or not the base dir of the application has been set.
    */
-  public boolean isHasBaseDir();
+  boolean isHasBaseDir();
 
   /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
@@ -211,7 +212,7 @@ public interface ServerConfig extends ConfigData {
    * @return The base dir of the application.
    * @throws NoBaseDirException if this launch config has no base dir set.
    */
-  public FileSystemBinding getBaseDir() throws NoBaseDirException;
+  FileSystemBinding getBaseDir() throws NoBaseDirException;
 
   interface Builder extends ConfigDataSpec {
 

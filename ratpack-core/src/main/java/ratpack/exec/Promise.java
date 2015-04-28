@@ -24,6 +24,7 @@ import ratpack.func.Function;
 import ratpack.func.Predicate;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 import static ratpack.exec.ExecControl.execControl;
 import static ratpack.func.Action.ignoreArg;
@@ -31,16 +32,26 @@ import static ratpack.func.Action.ignoreArg;
 /**
  * A promise for a single value.
  * <p>
- * A promise is a representation of a value, which may not be available yet.
- * This allows asynchronous data processing flows
- * Operations (such as {@link #map(Function)}, {@link #flatMap(Function)}, {@link #cache()} etc.) allow specifying how the value should be processed.
- *
- * <h3>Testing</h3>
+ * A promise is a representation of a value which will become available later.
+ * Methods such as {@link #map(Function)}, {@link #flatMap(Function)}, {@link #cache()} etc.) allow a pipeline of “operations” to be specified,
+ * that the value will travel through as it becomes available.
+ * Such operations are implemented via the {@link #transform(Function)} method.
+ * Each operation returns a new promise object, not the original promise object.
  * <p>
- * To test code that uses promises, see the {@code ratpack.test.exec.ExecHarness} class.
+ * To create a promise, use the {@link ExecControl#promise(Action)} method (or one of the variants such as {@link ExecControl#blocking(Callable)}.
+ * To test code that uses promises, use the {@link ratpack.test.exec.ExecHarness}.
+ * <p>
+ * The promise is not “activated” until the {@link #then(Action)} method is called.
+ * This method terminates the pipeline, and receives the final value.
+ * <p>
+ * Promise objects are multi use.
+ * Every promise pipeline has a value producing function at its start.
+ * Activating a promise (i.e. calling {@link #then(Action)}) invokes the function.
+ * The {@link #cache()} operation can be used to change this behaviour.
  *
  * @param <T> the type of promised value
  */
+@SuppressWarnings("JavadocReference")
 public interface Promise<T> {
 
   /**
@@ -53,7 +64,7 @@ public interface Promise<T> {
   /**
    * Apply a custom transform to this promise.
    * <p>
-   * This method is the basis for the standard operations of this interface, such as {@link #map}.
+   * This method is the basis for the standard operations of this interface, such as {@link #map(Function)}.
    * The following is a non generic implementation of a map that converts the value to upper case.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -116,7 +127,7 @@ public interface Promise<T> {
   /**
    * Consume the promised value as a {@link Result}.
    * <p>
-   * This method is an alternative to {@link #then} and {@link #onError}.
+   * This method is an alternative to {@link #then(Action)} and {@link #onError(Action)}.
    *
    * @param resultHandler the consumer of the result
    */
