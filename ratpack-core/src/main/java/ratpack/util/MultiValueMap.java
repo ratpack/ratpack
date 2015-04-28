@@ -46,7 +46,7 @@ public interface MultiValueMap<K, V> extends Map<K, V> {
    * @param key The key to return all values of
    * @return all of the values for the given key, or an empty list if there are no values for the key.
    */
-  public List<V> getAll(K key);
+  List<V> getAll(K key);
 
   /**
    * Returns a new view of the map where each map value is a list of all the values for the given key (i.e. a traditional multi map).
@@ -55,7 +55,7 @@ public interface MultiValueMap<K, V> extends Map<K, V> {
 
    * @return A new view of the map where each map value is a list of all the values for the given key
    */
-  public Map<K, List<V>> getAll();
+  Map<K, List<V>> getAll();
 
   /**
    * Get the first value for the key, or {@code null} if there are no values for the key.
@@ -64,7 +64,7 @@ public interface MultiValueMap<K, V> extends Map<K, V> {
    * @return The first value for the given key, or {@code null} if there are no values for the given key
    */
   @Nullable
-  public V get(Object key);
+  V get(Object key);
 
   /**
    * Throws {@link UnsupportedOperationException}.
