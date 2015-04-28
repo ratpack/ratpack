@@ -20,7 +20,11 @@ import io.netty.handler.codec.http.Cookie
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.util.stream.Collectors
+
 class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
+  private static final String LAST_ACCESS_TIME_TOKEN = "\$LAT\$"
+
   private String[] getSessionCookies(String path) {
     List<Cookie> pathCookies = getCookies(path)
     if (pathCookies == null) {
@@ -32,20 +36,37 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   private def getSessionAttrs(SessionService sessionService, String path) {
     List<Cookie> cookies = getCookies(path)
     def attrs = [:]
-    cookies
+    cookies = cookies
       .stream()
       .filter{ c ->
         c.name().startsWith("ratpack_session") == true
       }
-      .map { c ->
-        def m = sessionService.deserializeSession(c)
-        if (m) {
-          attrs.putAll(m)
-        }
-        return c
+      .collect(Collectors.toList())
+    if (cookies) {
+      def m = sessionService.deserializeSession((Cookie[])cookies.toArray())
+      if (m) {
+        attrs.putAll(m)
       }
-      .collect()
+    }
+    attrs.remove(LAST_ACCESS_TIME_TOKEN)
+
     return attrs
+  }
+
+  private long getSessionLastAccessTime(SessionService sessionService, String path) {
+    List<Cookie> cookies = getCookies(path)
+    cookies = cookies
+      .stream()
+      .filter { c -> c.name().startsWith("ratpack_session") == true }
+      .collect()
+    String time = "-1"
+    if (cookies) {
+      def m = sessionService.deserializeSession((Cookie[])cookies.toArray())
+      if (m) {
+        time = (String)m.getOrDefault(LAST_ACCESS_TIME_TOKEN, "-1")
+      }
+    }
+    return Long.valueOf(time)
   }
 
   def "cookies assigned to path are send for this path only"() {
@@ -327,5 +348,160 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
     then:
     getCookies("/").size() == 0
+  }
+
+  def "session last access time is defined"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+        }
+      }
+    }
+
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService)
+      }
+      get("s/:attr/:value") { SessionStorage sessionStorage ->
+        String attr = pathTokens.attr
+        String value = pathTokens.value
+        if (attr && value) {
+          sessionStorage.set(attr, value).then({
+            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+          })
+        } else {
+          clientError(404)
+        }
+      }
+    }
+
+    when:
+    get("s/foo/bar")
+    long lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
+
+    then:
+    lastAccessTime > 0
+  }
+
+  def "timed out session returns changed attribute"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+          maxInactivityInterval = 1 // 1 second
+        }
+      }
+    }
+
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService)
+      }
+      get("wait") { SessionStorage sessionStorage ->
+        Thread.sleep(1100)
+        render "null"
+      }
+      get("") { SessionStorage sessionStorage ->
+        sessionStorage.get("foo", String).then {
+          sessionStorage.set("foo", it.orElse("buzz")).then {
+            render it?.toString()
+          }
+        }
+      }
+      get("s/:attr/:value") { SessionStorage sessionStorage ->
+        String attr = pathTokens.attr
+        String value = pathTokens.value
+        if (attr && value) {
+          sessionStorage.set(attr, value).then({
+            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+          })
+        } else {
+          clientError(404)
+        }
+      }
+    }
+
+    when:
+    println "SET"
+    get("s/foo/bar")
+    def attrs = getSessionAttrs(clientSessionService, "/")
+    long lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
+
+    then:
+    attrs["foo"] == "bar"
+    lastAccessTime > 0
+
+    when:
+    println "WAIT"
+    get("wait")
+    println "GET"
+    get("")
+    attrs = getSessionAttrs(clientSessionService, "/")
+    lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
+
+    then:
+    attrs["foo"] == "buzz"
+    lastAccessTime > -1
+  }
+
+  def "timed out session does not return expired attributes"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+          maxInactivityInterval = 1 // 1 second
+        }
+      }
+    }
+
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService)
+      }
+      get("wait") { SessionStorage sessionStorage ->
+        Thread.sleep(1100)
+        render "null"
+      }
+      get("") { SessionStorage sessionStorage ->
+        render "null"
+      }
+      get("s/:attr/:value") { SessionStorage sessionStorage ->
+        String attr = pathTokens.attr
+        String value = pathTokens.value
+        if (attr && value) {
+          sessionStorage.set(attr, value).then({
+            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+          })
+        } else {
+          clientError(404)
+        }
+      }
+    }
+
+    when:
+    println "SET"
+    get("s/foo/bar")
+    def attrs = getSessionAttrs(clientSessionService, "/")
+    long lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
+
+    then:
+    attrs["foo"] == "bar"
+    lastAccessTime > 0
+
+    when:
+    println "WAIT"
+    get("wait")
+    println "GET"
+    get("")
+    attrs = getSessionAttrs(clientSessionService, "/")
+    lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
+
+    then:
+    attrs["foo"] == null
+    lastAccessTime == -1
   }
 }

@@ -204,7 +204,8 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
         config.getSessionName(),
         config.getPath(),
         config.getDomain(),
-        config.getMaxCookieSize()));
+        config.getMaxCookieSize(),
+        config.getMaxInactivityInterval()));
     }
   }
 
@@ -221,7 +222,8 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
     private String path = "/";
     private String domain;
-    private Integer maxCookieSize = 2048;
+    private int maxCookieSize = 2048;
+    private long maxInactivityInterval = 120;
     private SessionService sessionService;
 
     public String getSessionName() {
@@ -318,7 +320,7 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
      * Default value of maximum cookie size is set to {@code 2048}.
      * @return the maximum size of the cookie session.
      */
-    public Integer getMaxCookieSize() {
+    public int getMaxCookieSize() {
       return maxCookieSize;
     }
 
@@ -335,6 +337,27 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
       } else {
         this.maxCookieSize = maxCookieSize;
       }
+    }
+
+    /**
+     * Maximum inactivity time (in seconds) after which session will be invalidated.
+     * <p>
+     * If it is {@code -1} inactivity is unlimited. the {@code 0} value means that session is always invalid.
+     * If time between last access and current time is less than or equal to max inactive time, session will become valid.
+     *
+     * @return the maximum session inactivity time
+     */
+    public long getMaxInactivityInterval() {
+      return maxInactivityInterval;
+    }
+
+    /**
+     * Set maximum inactivity time (in seconds) of the cookie session.
+     *
+     * @param maxInactivityInterval a maximum inactivity time of the cookie session
+     */
+    public void setMaxInactivityInterval(long maxInactivityInterval) {
+      this.maxInactivityInterval = maxInactivityInterval;
     }
 
     public SessionService getSessionService() {

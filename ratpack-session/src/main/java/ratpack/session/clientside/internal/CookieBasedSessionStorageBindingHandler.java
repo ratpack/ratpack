@@ -35,20 +35,43 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   private final String path;
   private final String domain;
   private final int maxCookieSize;
+  private final long maxInactivityInterval;
+  private static final String LAST_ACCESS_TIME_TOKEN = "$LAT$";
 
-  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, String path, String domain, int maxCookieSize) {
+  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, String path, String domain, int maxCookieSize, long maxInactivityInterval) {
     this.sessionService = sessionService;
     this.sessionName = sessionName;
     this.path = path;
     this.domain = domain;
     this.maxCookieSize = maxCookieSize;
+    this.maxInactivityInterval = maxInactivityInterval;
   }
 
   public void handle(final Context context) {
     context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
       Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
-      return new ChangeTrackingSessionStorage(sessionMap, context);
+      ChangeTrackingSessionStorage changeTrackingSessionStorage = null;
+      if (maxInactivityInterval > -1) {
+        long lastAccessTime = Long.valueOf((String) sessionMap.getOrDefault(LAST_ACCESS_TIME_TOKEN, "-1"));
+        long currentTime = System.currentTimeMillis();
+        long maxInactivityIntervalMillis = maxInactivityInterval * 1000;
+        if (lastAccessTime == -1 || (currentTime - lastAccessTime) > maxInactivityIntervalMillis) {
+          sessionMap.remove(LAST_ACCESS_TIME_TOKEN);
+          // init tracking session with invalidated attributes and then clear them to force storage.hasChanged() return true.
+          // Then session cookies will automatically be invalidated.
+          changeTrackingSessionStorage = new ChangeTrackingSessionStorage(sessionMap, context);
+          sessionMap.clear();
+        }
+      }
+      if (sessionMap.size() > 0) {
+        sessionMap.remove(LAST_ACCESS_TIME_TOKEN);
+      }
+      if (changeTrackingSessionStorage != null) {
+        return changeTrackingSessionStorage;
+      } else {
+        return new ChangeTrackingSessionStorage(sessionMap, context);
+      }
     });
 
     context.getResponse().beforeSend(responseMetaData -> {
@@ -77,6 +100,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
               int currentSessionCookieCount = 0;
 
               if (!entries.isEmpty()) {
+                entries.add(new AbstractMap.SimpleImmutableEntry<String, Object>(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis())));
                 ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
                 String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
                 for (int i = 0; i < cookieValuePartitions.length; i++) {
