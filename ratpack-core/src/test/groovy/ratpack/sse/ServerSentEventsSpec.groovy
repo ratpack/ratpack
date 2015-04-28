@@ -16,6 +16,8 @@
 
 package ratpack.sse
 
+import io.netty.util.concurrent.Future
+import io.netty.util.concurrent.GenericFutureListener
 import ratpack.http.client.HttpClientSpec
 import ratpack.stream.TransformablePublisher
 
@@ -93,6 +95,57 @@ id: 3
     is.close()
 
     // when the connection is closed cancel should be called
+    cancelLatch.await()
+  }
+
+  def "can cancel a stream after netty channel is closed"() {
+    def sentLatch = new CountDownLatch(1)
+    def clientClosedLatch = new CountDownLatch(1)
+    def channelClosedLatch = new CountDownLatch(1)
+    def cancelLatch = new CountDownLatch(1)
+
+    given:
+    handlers {
+      handler {
+        context.directChannelAccess.channel.closeFuture().addListener(new GenericFutureListener<Future<? super Void>>() {
+          @Override
+          void operationComplete(Future<? super Void> future) throws Exception {
+            channelClosedLatch.countDown()
+          }
+        })
+
+        def stream = publish(1..1000).wiretap {
+          if (it.data) {
+            sentLatch.countDown()
+
+            // the client disconnecting doesn't close the netty channel for some reason, forcibly close it
+            clientClosedLatch.await()
+            context.directChannelAccess.channel.close()
+
+            // wait for the channel to close before letting the element through to the subscriber
+            channelClosedLatch.await()
+          } else if (it.cancel) {
+            cancelLatch.countDown()
+          }
+        }
+
+        render serverSentEvents(stream) {
+          it.id({ it.toString() }).event("add").data({ "Event ${it}".toString() })
+        }
+      }
+    }
+
+    expect:
+    URLConnection conn = getAddress().toURL().openConnection()
+    conn.connect()
+    InputStream is = conn.inputStream
+
+    // wait for at least one event to be sent to the subscriber
+    sentLatch.await()
+    is.close()
+    clientClosedLatch.countDown()
+
+    // when the channel is closed, cancel should be called
     cancelLatch.await()
   }
 
