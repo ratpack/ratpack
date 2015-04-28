@@ -32,7 +32,6 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   private def getSessionAttrs(SessionService sessionService, String path) {
     List<Cookie> cookies = getCookies(path)
     def attrs = [:]
-    println "COOKIES: " + cookies
     cookies
       .stream()
       .filter{ c ->

@@ -80,7 +80,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
                 ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
                 String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
                 for (int i = 0; i < cookieValuePartitions.length; i++) {
-                  sessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                  addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
                 }
                 currentSessionCookieCount = cookieValuePartitions.length;
               }
@@ -107,7 +107,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       .toArray(Cookie[]::new);
   }
 
-  private Cookie invalidateSessionCookie(ResponseMetaData responseMetaData, String cookieName, String path, String domain) {
+  private void invalidateSessionCookie(ResponseMetaData responseMetaData, String cookieName, String path, String domain) {
     Cookie sessionCookie = responseMetaData.expireCookie(cookieName);
     if (path != null) {
       sessionCookie.setPath(path);
@@ -115,10 +115,9 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     if (domain != null) {
       sessionCookie.setDomain(domain);
     }
-    return sessionCookie;
   }
 
-  private Cookie sessionCookie(ResponseMetaData responseMetaData, String name, String value, String path, String domain) {
+  private void addSessionCookie(ResponseMetaData responseMetaData, String name, String value, String path, String domain) {
     Cookie sessionCookie = responseMetaData.cookie(name, value);
     if (path != null) {
       sessionCookie.setPath(path);
@@ -126,6 +125,5 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     if (domain != null) {
       sessionCookie.setDomain(domain);
     }
-    return sessionCookie;
   }
 }
