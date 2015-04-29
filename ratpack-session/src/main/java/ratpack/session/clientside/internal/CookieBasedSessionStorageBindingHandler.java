@@ -16,7 +16,6 @@
 
 package ratpack.session.clientside.internal;
 
-import com.google.common.collect.Iterables;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.handling.Context;
@@ -32,19 +31,47 @@ import java.util.concurrent.ConcurrentMap;
 public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   private final SessionService sessionService;
-
   private final String sessionName;
+  private final String path;
+  private final String domain;
+  private final int maxCookieSize;
+  private final long maxInactivityInterval;
+  private static final String LAST_ACCESS_TIME_TOKEN = "$LAT$";
 
-  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName) {
+  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, String path, String domain, int maxCookieSize, long maxInactivityInterval) {
     this.sessionService = sessionService;
     this.sessionName = sessionName;
+    this.path = path;
+    this.domain = domain;
+    this.maxCookieSize = maxCookieSize;
+    this.maxInactivityInterval = maxInactivityInterval;
   }
 
   public void handle(final Context context) {
     context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
-      Cookie sessionCookie = Iterables.find(context.getRequest().getCookies(), c -> sessionName.equals(c.name()), null);
-      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookie);
-      return new ChangeTrackingSessionStorage(sessionMap, context);
+      Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
+      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
+      ChangeTrackingSessionStorage changeTrackingSessionStorage = null;
+      if (maxInactivityInterval > -1) {
+        long lastAccessTime = Long.valueOf((String) sessionMap.getOrDefault(LAST_ACCESS_TIME_TOKEN, "-1"));
+        long currentTime = System.currentTimeMillis();
+        long maxInactivityIntervalMillis = maxInactivityInterval * 1000;
+        if (lastAccessTime == -1 || (currentTime - lastAccessTime) > maxInactivityIntervalMillis) {
+          sessionMap.remove(LAST_ACCESS_TIME_TOKEN);
+          // init tracking session with invalidated attributes and then clear them to force storage.hasChanged() return true.
+          // Then session cookies will automatically be invalidated.
+          changeTrackingSessionStorage = new ChangeTrackingSessionStorage(sessionMap, context);
+          sessionMap.clear();
+        }
+      }
+      if (sessionMap.size() > 0) {
+        sessionMap.remove(LAST_ACCESS_TIME_TOKEN);
+      }
+      if (changeTrackingSessionStorage != null) {
+        return changeTrackingSessionStorage;
+      } else {
+        return new ChangeTrackingSessionStorage(sessionMap, context);
+      }
     });
 
     context.getResponse().beforeSend(responseMetaData -> {
@@ -69,13 +96,20 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
                   entries.add(entry);
                 }
               }
+              int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
+              int currentSessionCookieCount = 0;
 
-              if (entries.isEmpty()) {
-                invalidateSession(responseMetaData);
-              } else {
+              if (!entries.isEmpty()) {
+                entries.add(new AbstractMap.SimpleImmutableEntry<String, Object>(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis())));
                 ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-                String cookieValue = sessionService.serializeSession(bufferAllocator, entries);
-                responseMetaData.cookie(sessionName, cookieValue);
+                String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
+                for (int i = 0; i < cookieValuePartitions.length; i++) {
+                  addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                }
+                currentSessionCookieCount = cookieValuePartitions.length;
+              }
+              for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
+                invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
               }
             });
           });
@@ -86,8 +120,34 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.next();
   }
 
-  private void invalidateSession(ResponseMetaData responseMetaData) {
-    responseMetaData.expireCookie(sessionName);
+  private Cookie[] findSessionCookies(Set<Cookie> cookies) {
+    if (cookies == null) {
+      return new Cookie[0];
+    }
+    return cookies
+      .stream()
+      .filter(c -> c.name().startsWith(sessionName))
+      .sorted((c1, c2) -> c1.name().compareTo(c2.name()))
+      .toArray(Cookie[]::new);
   }
 
+  private void invalidateSessionCookie(ResponseMetaData responseMetaData, String cookieName, String path, String domain) {
+    Cookie sessionCookie = responseMetaData.expireCookie(cookieName);
+    if (path != null) {
+      sessionCookie.setPath(path);
+    }
+    if (domain != null) {
+      sessionCookie.setDomain(domain);
+    }
+  }
+
+  private void addSessionCookie(ResponseMetaData responseMetaData, String name, String value, String path, String domain) {
+    Cookie sessionCookie = responseMetaData.cookie(name, value);
+    if (path != null) {
+      sessionCookie.setPath(path);
+    }
+    if (domain != null) {
+      sessionCookie.setDomain(domain);
+    }
+  }
 }

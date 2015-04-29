@@ -17,8 +17,7 @@
 package ratpack.test.http.internal;
 
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.*;
 import ratpack.func.Action;
@@ -33,9 +32,7 @@ import ratpack.test.internal.BlockingHttpClient;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -44,7 +41,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private final ApplicationUnderTest applicationUnderTest;
   private final BlockingHttpClient client = new BlockingHttpClient();
   private final Action<? super RequestSpec> defaultRequestConfig;
-  private final List<Cookie> cookies = Lists.newLinkedList();
+  private final Map<String, List<Cookie>> cookies = Maps.newLinkedHashMap();
 
   private Action<? super RequestSpec> request = Action.noop();
   private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
@@ -213,7 +210,9 @@ public class DefaultTestHttpClient implements TestHttpClient {
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
 
-        String encodedCookie = cookies.isEmpty() ? "" : ClientCookieEncoder.encode(cookies);
+        List<Cookie> requestCookies = getCookies(path);
+
+        String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.encode(requestCookies);
 
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
@@ -224,13 +223,31 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
     List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
     for (String cookieHeader : cookieHeaders) {
-      Set<Cookie> decodedCookies = ServerCookieDecoder.decode(cookieHeader);
-      for (Cookie decodedCookie : decodedCookies) {
-        if (cookies.contains(decodedCookie)) {
-          cookies.remove(decodedCookie);
-        }
-        if (!decodedCookie.isDiscard()) {
-          cookies.add(decodedCookie);
+      Cookie decodedCookie = ClientCookieDecoder.decode(cookieHeader);
+      if (decodedCookie != null) {
+        if (decodedCookie.value() == null || "".equals(decodedCookie.value())) {
+          // clear cookie with the given name, skip the other parameters (path, domain) in compare to
+          cookies.forEach((key, list) -> {
+            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
+              if (iter.next().name().equals(decodedCookie.name())) {
+                iter.remove();
+              }
+            }
+          });
+        } else {
+          String cookiePath = decodedCookie.path();
+          cookiePath = (cookiePath != null && !("".equals(cookiePath))) ? cookiePath : "/";
+          List<Cookie> pathCookies = cookies.get(cookiePath);
+          if (pathCookies == null) {
+            pathCookies = Lists.newLinkedList();
+            cookies.put(cookiePath, pathCookies);
+          }
+          if (pathCookies.contains(decodedCookie)) {
+            pathCookies.remove(decodedCookie);
+          }
+          if (!decodedCookie.isDiscard()) {
+            pathCookies.add(decodedCookie);
+          }
         }
       }
     }
@@ -251,10 +268,24 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
   }
 
-  public List<Cookie> getCookies() {
-    List<Cookie> clonedList = new ArrayList<>();
-    if (cookies != null) {
-      cookies.stream().forEach(c -> clonedList.add(new DefaultCookie(c.name(), c.value())));
+  public List<Cookie> getCookies(String path) {
+    List<Cookie> clonedList = Lists.newLinkedList();
+    if (cookies == null) {
+      return clonedList;
+    }
+    if (path == null || "".equals(path) || "/".equals(path)) {
+      List<Cookie> list = cookies.get("/");
+      if (list != null) {
+        clonedList.addAll(list);
+      }
+    } else {
+      cookies.forEach((key, list) -> {
+        if ("/".equals(key)) {
+          clonedList.addAll(list);
+        } else if (path.startsWith(key)) {
+          clonedList.addAll(list);
+        }
+      });
     }
     return clonedList;
   }

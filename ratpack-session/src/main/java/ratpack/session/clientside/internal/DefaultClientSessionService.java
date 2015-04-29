@@ -52,6 +52,23 @@ public class DefaultClientSessionService implements SessionService {
   }
 
   @Override
+  public String[] serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries, int maxCookieSize) {
+    String serializedSession = serializeSession(bufferAllocator, entries);
+    int sessionSize = serializedSession.length();
+    if (sessionSize <= maxCookieSize) {
+      return new String[] {serializedSession};
+    }
+    int numOfPartitions = (int) Math.ceil((double)sessionSize / maxCookieSize);
+    String[] partitions = new String[numOfPartitions];
+    for (int i = 0; i < numOfPartitions; i++) {
+      int from = i * maxCookieSize;
+      int to = Math.min(from + maxCookieSize, sessionSize - 1);
+      partitions[i] = serializedSession.substring(from, to);
+    }
+    return partitions;
+  }
+
+  @Override
   public String serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries) {
     ByteBuf[] buffers = new ByteBuf[3 * entries.size() + entries.size() - 1];
     try {
@@ -97,10 +114,19 @@ public class DefaultClientSessionService implements SessionService {
   }
 
   @Override
-  public ConcurrentMap<String, Object> deserializeSession(Cookie cookie) {
+  public ConcurrentMap<String, Object> deserializeSession(Cookie[] sessionCookies) {
+    // assume table is sorted
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < sessionCookies.length; i++) {
+      sb.append(sessionCookies[i].value());
+    }
+    return deserializeSession(sb.toString());
+  }
+
+  private ConcurrentMap<String, Object> deserializeSession(String cookieValue) {
     ConcurrentMap<String, Object> sessionStorage = new ConcurrentHashMap<>();
 
-    String encodedPairs = cookie == null ? null : cookie.value();
+    String encodedPairs = cookieValue;
     if (encodedPairs != null) {
       String[] parts = encodedPairs.split(SESSION_SEPARATOR);
       if (parts.length == 2) {

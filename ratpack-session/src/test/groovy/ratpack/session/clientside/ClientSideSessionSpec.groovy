@@ -37,7 +37,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   }
 
   private String getSessionCookie() {
-    cookies.find { it.name() == "ratpack_session" }?.value()
+    getCookies("/").find { it.name().startsWith("ratpack_session") }?.value()
   }
 
   private String getSessionPayload() {
@@ -168,7 +168,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     getText("set/foo")
     response.body.text == "foo"
-    setCookie.startsWith("ratpack_session=")
+    setCookie.startsWith("ratpack_session")
     decodedPairs.value == "foo"
 
     getText("")
@@ -183,7 +183,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     getText("set/bar")
     response.body.text == "bar"
-    setCookie.startsWith("ratpack_session=")
+    setCookie.startsWith("ratpack_session")
     decodedPairs.value == "bar"
 
     getText("set/bar")
@@ -225,7 +225,9 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     get("clear")
 
     then:
-    setCookie.startsWith("ratpack_session=; Max-Age=0; Expires=")
+    setCookie.startsWith("ratpack_session")
+    setCookie.contains("Max-Age=0;")
+    setCookie.contains("Expires=")
     !sessionCookie
 
     when:
@@ -439,7 +441,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     }
 
     expect:
-    get()
+    get("")
     response.body.text == "null"
     !sessionCookie
     !setCookie
