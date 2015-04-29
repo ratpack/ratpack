@@ -230,6 +230,19 @@ public interface ExecControl {
     }
   }
 
+  default void nest(Block nested, Block then) {
+    nest(nested, then, Action.noop());
+  }
+
+  default void nest(Block nested, Block then, Action<? super Throwable> onError) {
+    this.<Void>promise(f -> {
+      nested.execute();
+      f.success(null);
+    })
+      .onError(onError)
+      .then(v -> then.execute());
+  }
+
   /**
    * Creates a new execution starter that can be used to initiate a new execution.
    *
