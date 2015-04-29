@@ -425,7 +425,6 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    println "SET"
     get("s/foo/bar")
     def attrs = getSessionAttrs(clientSessionService, "/")
     long lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
@@ -435,9 +434,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     lastAccessTime > 0
 
     when:
-    println "WAIT"
     get("wait")
-    println "GET"
     get("")
     attrs = getSessionAttrs(clientSessionService, "/")
     lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
