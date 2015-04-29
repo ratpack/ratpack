@@ -16,7 +16,9 @@
 
 package ratpack.hystrix;
 
+import com.netflix.hystrix.HystrixThreadPoolMetrics;
 import org.reactivestreams.Publisher;
+import ratpack.func.Predicate;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.hystrix.internal.*;
@@ -58,11 +60,17 @@ public class HystrixMetricsEventStreamHandler implements Handler {
 
     Publisher<String> metricsStream = merge(
       fanOut(commandMetricsBroadcasterbroadcaster).map(commandMetricsMapper),
-      fanOut(threadPoolMetricsBroadcaster).map(threadPoolMetricsMapper),
+      fanOut(threadPoolMetricsBroadcaster)
+        .filter(hasExecutedCommandsOnThread())
+        .map(threadPoolMetricsMapper),
       fanOut(collapserMetricsBroadcaster).map(collapserMetricsMapper)
     );
 
     context.render(serverSentEvents(metricsStream, spec -> spec.data(spec.getItem())));
+  }
+
+  private Predicate<HystrixThreadPoolMetrics> hasExecutedCommandsOnThread() {
+    return hystrixThreadPoolMetrics -> hystrixThreadPoolMetrics.getCurrentCompletedTaskCount().intValue() > 0;
   }
 
 }
