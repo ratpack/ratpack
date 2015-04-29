@@ -31,6 +31,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import java.time.Duration;
 
 /**
  * An extension module that provides a cookie based store for sessions.
@@ -223,7 +224,7 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     private String path = "/";
     private String domain;
     private int maxCookieSize = 2048;
-    private long maxInactivityInterval = 120;
+    private Duration maxInactivityInterval = Duration.ofSeconds(120);
     private SessionService sessionService;
 
     public String getSessionName() {
@@ -340,14 +341,14 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     }
 
     /**
-     * Maximum inactivity time (in seconds) after which session will be invalidated.
+     * Maximum inactivity time (in units defined by {@link java.util.concurrent.TimeUnit}) after which session will be invalidated.
      * <p>
      * If it is {@code -1} inactivity is unlimited. the {@code 0} value means that session is always invalid.
      * If time between last access and current time is less than or equal to max inactive time, session will become valid.
      *
      * @return the maximum session inactivity time
      */
-    public long getMaxInactivityInterval() {
+    public Duration getMaxInactivityInterval() {
       return maxInactivityInterval;
     }
 
@@ -356,7 +357,7 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
      *
      * @param maxInactivityInterval a maximum inactivity time of the cookie session
      */
-    public void setMaxInactivityInterval(long maxInactivityInterval) {
+    public void setMaxInactivityInterval(Duration maxInactivityInterval) {
       this.maxInactivityInterval = maxInactivityInterval;
     }
 

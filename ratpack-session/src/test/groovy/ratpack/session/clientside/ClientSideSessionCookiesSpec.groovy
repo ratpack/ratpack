@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.Cookie
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.time.Duration
 import java.util.stream.Collectors
 
 class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
@@ -390,7 +391,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
       add ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
-          maxInactivityInterval = 1 // 1 second
+          maxInactivityInterval = Duration.ofSeconds(1)
         }
       }
     }
@@ -449,7 +450,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
       add ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
-          maxInactivityInterval = 1 // 1 second
+          maxInactivityInterval = Duration.ofSeconds(1)
         }
       }
     }
