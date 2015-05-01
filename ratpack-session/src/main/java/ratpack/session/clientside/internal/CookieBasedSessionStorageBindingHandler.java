@@ -25,6 +25,7 @@ import ratpack.session.clientside.SessionService;
 import ratpack.session.store.internal.ChangeTrackingSessionStorage;
 import ratpack.stream.Streams;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
@@ -35,10 +36,10 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   private final String path;
   private final String domain;
   private final int maxCookieSize;
-  private final long maxInactivityInterval;
+  private final Duration maxInactivityInterval;
   private static final String LAST_ACCESS_TIME_TOKEN = "$LAT$";
 
-  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, String path, String domain, int maxCookieSize, long maxInactivityInterval) {
+  public CookieBasedSessionStorageBindingHandler(SessionService sessionService, String sessionName, String path, String domain, int maxCookieSize, Duration maxInactivityInterval) {
     this.sessionService = sessionService;
     this.sessionName = sessionName;
     this.path = path;
@@ -52,10 +53,10 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
       ChangeTrackingSessionStorage changeTrackingSessionStorage = null;
-      if (maxInactivityInterval > -1) {
+      if (!maxInactivityInterval.isNegative()) {
         long lastAccessTime = Long.valueOf((String) sessionMap.getOrDefault(LAST_ACCESS_TIME_TOKEN, "-1"));
         long currentTime = System.currentTimeMillis();
-        long maxInactivityIntervalMillis = maxInactivityInterval * 1000;
+        long maxInactivityIntervalMillis = maxInactivityInterval.toMillis();
         if (lastAccessTime == -1 || (currentTime - lastAccessTime) > maxInactivityIntervalMillis) {
           sessionMap.remove(LAST_ACCESS_TIME_TOKEN);
           // init tracking session with invalidated attributes and then clear them to force storage.hasChanged() return true.
