@@ -63,11 +63,6 @@ public class JustInTimeExecControl implements ExecControl {
   }
 
   @Override
-  public <T> T block(Upstream<T> upstream) throws Exception {
-    return getDelegate().block(upstream);
-  }
-
-  @Override
   public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
     return getDelegate().stream(publisher);
   }

@@ -288,14 +288,6 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * {@inheritDoc}
    */
   @Override
-  default <T> T block(Upstream<T> upstream) throws Exception {
-    return getControl().block(upstream);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   default <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return getControl().promise(action);
   }

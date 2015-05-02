@@ -184,11 +184,6 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> T block(Upstream<T> upstream) throws Exception {
-    return requestConstants.applicationConstants.execControl.block(upstream);
-  }
-
-  @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return requestConstants.applicationConstants.execControl.promise(action);
   }

@@ -230,8 +230,6 @@ public interface ExecControl {
     }
   }
 
-  <T> T block(Upstream<T> upstream) throws Exception;
-
   default void nest(Block nested, Block then) {
     nest(nested, then, Action.noop());
   }

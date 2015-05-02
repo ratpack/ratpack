@@ -23,8 +23,8 @@ import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.Function;
 import ratpack.func.Block;
+import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyByContentSpec;
 import ratpack.groovy.handling.GroovyByMethodSpec;
 import ratpack.groovy.handling.GroovyContext;
@@ -193,11 +193,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <T> Promise<T> blocking(Callable<T> blockingOperation) {
     return delegate.blocking(blockingOperation);
-  }
-
-  @Override
-  public <T> T block(Upstream<T> upstream) throws Exception {
-    return delegate.block(upstream);
   }
 
   @Override

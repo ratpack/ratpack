@@ -143,42 +143,6 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
   }
 
   @Override
-  public <T> T block(Upstream<T> upstream) throws Exception {
-    ExecutionBacking backing = ExecutionBacking.require();
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Result<T>> result = new AtomicReference<>();
-    backing.streamSubscribe(handle ->
-        upstream.connect(
-          new Downstream<T>() {
-            @Override
-            public void success(T value) {
-              unlatch(Result.success(value));
-            }
-
-            @Override
-            public void error(Throwable throwable) {
-              unlatch(Result.error(throwable));
-            }
-
-            @Override
-            public void complete() {
-              unlatch(Result.success(null));
-            }
-
-            private void unlatch(Result<T> success) {
-              result.set(success);
-              latch.countDown();
-              handle.complete();
-            }
-          }
-        )
-    );
-    backing.eventLoopDrain();
-    latch.await();
-    return result.get().getValueOrThrow();
-  }
-
-  @Override
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     return directPromise(downstream -> {
       ExecutionBacking backing = ExecutionBacking.require();
