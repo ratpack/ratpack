@@ -20,16 +20,32 @@ import ratpack.exec.ExecController;
 
 import java.util.Optional;
 
-public class ExecControllerThreadBinding {
+public class ThreadBinding {
 
-  private static final ThreadLocal<ExecController> THREAD_BINDING = new ThreadLocal<>();
+  private final boolean compute;
+  private final ExecController execController;
 
-  static void set(ExecController execController) {
-    THREAD_BINDING.set(execController);
+  public ThreadBinding(boolean compute, ExecController execController) {
+    this.compute = compute;
+    this.execController = execController;
   }
 
-  public static Optional<ExecController> get() {
-    return Optional.ofNullable(THREAD_BINDING.get());
+  private static final ThreadLocal<ThreadBinding> STORAGE = new ThreadLocal<>();
+
+  static void bind(boolean compute, ExecController execController) {
+    STORAGE.set(new ThreadBinding(compute, execController));
+  }
+
+  public static Optional<ThreadBinding> get() {
+    return Optional.ofNullable(STORAGE.get());
+  }
+
+  public boolean isCompute() {
+    return compute;
+  }
+
+  public ExecController getExecController() {
+    return execController;
   }
 
 }

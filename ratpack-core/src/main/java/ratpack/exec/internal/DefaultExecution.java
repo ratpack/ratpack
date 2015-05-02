@@ -108,6 +108,11 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   }
 
   @Override
+  public <T> T block(Upstream<T> upstream) throws Exception {
+    return getControl().block(upstream);
+  }
+
+  @Override
   public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     getControl().addInterceptor(execInterceptor, continuation);
   }

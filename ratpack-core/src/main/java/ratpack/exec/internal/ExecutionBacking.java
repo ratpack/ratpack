@@ -29,15 +29,13 @@ import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Consumer;
 
 public class ExecutionBacking {
 
   final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
-  private final static ThreadLocal<ExecutionBacking> THREAD_BINDING = new ThreadLocal<>();
+  public final static ThreadLocal<ExecutionBacking> THREAD_BINDING = new ThreadLocal<>();
 
   private final ImmutableList<? extends ExecInterceptor> globalInterceptors;
   private final ImmutableList<? extends ExecInterceptor> registryInterceptors;
@@ -140,6 +138,10 @@ public class ExecutionBacking {
       });
     }
 
+    public void complete() {
+      streamEvent(() -> ExecutionBacking.this.stream = this.parent);
+    }
+
     private void streamEvent(Block s) {
       Deque<Block> event = new ArrayDeque<>();
       event.add(s);
@@ -148,20 +150,28 @@ public class ExecutionBacking {
     }
   }
 
-  public void streamSubscribe(Consumer<? super StreamHandle> consumer) {
+  public void streamSubscribe(Action<? super StreamHandle> consumer) {
     if (done) {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
 
+    if (stream.isEmpty()) {
+      stream.add(new ArrayDeque<>());
+    }
+
     stream.element().add(() -> {
       Queue<Deque<Block>> parent = stream;
-      stream = new ConcurrentLinkedDeque<>();
+      stream = new ConcurrentLinkedQueue<>();
       stream.add(new ArrayDeque<>());
       StreamHandle handle = new StreamHandle(parent, stream);
-      consumer.accept(handle);
+      consumer.execute(handle);
     });
 
     drain();
+  }
+
+  public void eventLoopDrain() {
+    eventLoop.execute(this::drain);
   }
 
   private void drain() {
@@ -202,7 +212,7 @@ public class ExecutionBacking {
         } else {
           if (segment instanceof UserCode) {
             try {
-              intercept(ExecInterceptor.ExecType.COMPUTE, getAllInterceptors().iterator(), segment);
+              intercept(ExecInterceptor.ExecType.COMPUTE, segment);
             } catch (final Throwable e) {
               Deque<Block> event = stream.element();
               event.clear();
@@ -229,6 +239,11 @@ public class ExecutionBacking {
     } finally {
       THREAD_BINDING.remove();
     }
+  }
+
+  private void intercept(ExecInterceptor.ExecType execType, Block segment) throws Exception {
+    Iterator<? extends ExecInterceptor> iterator = getAllInterceptors().iterator();
+    intercept(execType, iterator, segment);
   }
 
   public Iterable<? extends ExecInterceptor> getAllInterceptors() {

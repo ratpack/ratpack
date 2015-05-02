@@ -103,6 +103,8 @@ public interface Promise<T> {
    */
   <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer);
 
+  T await() throws Exception;
+
   /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.
    *

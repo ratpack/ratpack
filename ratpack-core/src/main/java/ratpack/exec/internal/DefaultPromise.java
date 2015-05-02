@@ -16,10 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Downstream;
-import ratpack.exec.ExecutionException;
-import ratpack.exec.Promise;
-import ratpack.exec.Upstream;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.util.Exceptions;
@@ -76,6 +73,11 @@ public class DefaultPromise<T> implements Promise<T> {
     } catch (Exception e) {
       throw Exceptions.uncheck(e);
     }
+  }
+
+  @Override
+  public T await() throws Exception {
+    return ExecControl.current().block(upstream);
   }
 
 }

@@ -37,7 +37,7 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
-  public <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, final Function<ExecControl, Promise<T>> func) throws Exception {
+  public <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, final Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     final AtomicReference<ExecResult<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 

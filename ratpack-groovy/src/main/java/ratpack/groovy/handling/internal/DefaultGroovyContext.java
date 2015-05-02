@@ -196,6 +196,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public <T> T block(Upstream<T> upstream) throws Exception {
+    return delegate.block(upstream);
+  }
+
+  @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return delegate.promise(action);
   }

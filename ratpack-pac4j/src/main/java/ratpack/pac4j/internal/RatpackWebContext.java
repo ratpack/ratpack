@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
-import ratpack.exec.ExecControl;
 import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.HttpMethod;
@@ -34,11 +33,9 @@ import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Adapts a {@link ratpack.handling.Context} object to be usable as a {@link org.pac4j.core.context.WebContext}.
@@ -84,47 +81,13 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public void setSessionAttribute(String name, Object value) {
-    if (value == null) {
-      ExecControl.execControl().exec().start((execution) -> {
-        getSessionStorage().remove(name).then((numberRemoved) -> {
-          //TODO Log
-        });
-      });
-    } else {
-      ExecControl.execControl().exec().start((execution) -> {
-        getSessionStorage().set(name, value).then((success) -> {
-          //TODO Log
-        });
-      });
-    }
+    Exceptions.uncheck((value == null ? getSessionStorage().remove(name) : getSessionStorage().set(name, value))::await);
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    List<Object> result = new ArrayList<>(1);
-    CountDownLatch countDownLatch = new CountDownLatch(1);
     SessionStorage sessionStorage = getSessionStorage();
-
-    ExecControl.execControl().exec().start((execution) -> {
-      sessionStorage.get(name, Object.class).then((obj) -> {
-        if (obj.isPresent()) {
-          result.add(obj.get());
-        }
-        countDownLatch.countDown();
-      });
-    });
-
-    try {
-      countDownLatch.await();
-    } catch (InterruptedException ex) {
-      //todo log
-    }
-
-    if (result.size() > 0) {
-      return result.get(0);
-    } else {
-      return null;
-    }
+    return Exceptions.uncheck(() -> sessionStorage.get(name, Object.class).await()).orElse(null);
   }
 
   @Override

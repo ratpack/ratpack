@@ -123,7 +123,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @return the result of the execution
    * @throws Exception any thrown by the function
    */
-  default <T> ExecResult<T> yield(Function<ExecControl, Promise<T>> func) throws Exception {
+  default <T> ExecResult<T> yield(Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     return yield(Action.noop(), func);
   }
 
@@ -139,7 +139,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @return the result of the execution
    * @throws Exception any thrown by the function
    */
-  <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, Function<ExecControl, Promise<T>> func) throws Exception;
+  <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, Function<? super Execution, ? extends Promise<T>> func) throws Exception;
 
   /**
    * Creates an exec harness, {@link #yield(Function) executes} the given function with it before closing it, then returning execution result.
@@ -149,7 +149,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @return the result of the execution
    * @throws Exception any thrown by the function, or the promise failure exception
    */
-  static <T> ExecResult<T> yieldSingle(Function<ExecControl, Promise<T>> func) throws Exception {
+  static <T> ExecResult<T> yieldSingle(Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     try (ExecHarness harness = harness()) {
       return harness.yield(func);
     }
@@ -164,7 +164,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @return the result of the execution
    * @throws Exception any thrown by the function, or the promise failure exception
    */
-  static <T> ExecResult<T> yieldSingle(Action<? super RegistrySpec> registry, Function<ExecControl, Promise<T>> func) throws Exception {
+  static <T> ExecResult<T> yieldSingle(Action<? super RegistrySpec> registry, Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     try (ExecHarness harness = harness()) {
       return harness.yield(registry, func);
     }
@@ -282,6 +282,14 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
   @Override
   default <T> Promise<T> blocking(Callable<T> blockingOperation) {
     return getControl().blocking(blockingOperation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <T> T block(Upstream<T> upstream) throws Exception {
+    return getControl().block(upstream);
   }
 
   /**
