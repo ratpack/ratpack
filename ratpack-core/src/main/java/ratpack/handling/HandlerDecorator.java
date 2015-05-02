@@ -126,7 +126,7 @@ import ratpack.registry.Registry;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b -> b
- *         .add(MaintenanceWindowModule.class)
+ *         .module(MaintenanceWindowModule.class)
  *       ))
  *       .handler(r ->
  *         ctx -> ctx.render("ok!")

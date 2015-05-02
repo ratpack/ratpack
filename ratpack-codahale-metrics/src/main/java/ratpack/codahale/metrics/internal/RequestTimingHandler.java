@@ -54,7 +54,7 @@ import java.util.Map;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.requestMetricGroups(['book':'.*book.*']) }
+ *     module new CodaHaleMetricsModule(), { it.requestMetricGroups(['book':'.*book.*']) }
  *   }
  * }
  * </pre>

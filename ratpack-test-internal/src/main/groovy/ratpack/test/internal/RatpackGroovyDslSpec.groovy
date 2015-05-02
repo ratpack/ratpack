@@ -45,7 +45,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
 
         def bindingsAction = { s ->
           s.with(_bindings)
-          modules.each { s.add(it) }
+          modules.each { s.module(it) }
         }
 
         it.registry(parentInjector ? Guice.registry(parentInjector, bindingsAction) : Guice.registry(bindingsAction))

@@ -35,7 +35,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -60,7 +60,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
+      module ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
     }
     handlers {
       get {
@@ -79,7 +79,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
+      module new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
     }
     handlers {
       get {
@@ -103,7 +103,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix)
+      module new ThymeleafModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -123,7 +123,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     dir('thymeleaf')
 
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -145,7 +145,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -164,7 +164,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -182,7 +182,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -201,7 +201,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -225,7 +225,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       handler {
@@ -248,7 +248,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     StandardCacheManager cacheManager = null
 
     bindings {
-      add new ThymeleafModule(templatesCacheSize: templatesCacheSize)
+      module new ThymeleafModule(templatesCacheSize: templatesCacheSize)
     }
 
     handlers {
@@ -289,8 +289,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
-      add new HelloDialectModule()
+      module new ThymeleafModule()
+      module new HelloDialectModule()
     }
     handlers {
       handler {
@@ -312,7 +312,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
 
     handlers {

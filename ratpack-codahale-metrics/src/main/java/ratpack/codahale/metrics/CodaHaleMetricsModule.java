@@ -56,7 +56,7 @@ import static ratpack.util.Exceptions.uncheck;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.jmx() }
+ *     module new CodaHaleMetricsModule(), { it.jmx() }
  *   }
  * }
  * </pre>
@@ -70,7 +70,7 @@ import static ratpack.util.Exceptions.uncheck;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.jmx().console() }
+ *     module new CodaHaleMetricsModule(), { it.jmx().console() }
  *   }
  * }
  * </pre>
@@ -94,7 +94,7 @@ import static ratpack.util.Exceptions.uncheck;
  *       .sysProps()
  *       .build()
  *
- *     addConfig(new CodaHaleMetricsModule(), configData.get("/metrics", CodaHaleMetricsModule.Config))
+ *     moduleConfig(new CodaHaleMetricsModule(), configData.get("/metrics", CodaHaleMetricsModule.Config))
  *   }
  * }
  * </pre>
@@ -119,7 +119,7 @@ import static ratpack.util.Exceptions.uncheck;
  *
  * ratpack {
  *   bindings {
- *     add new CodaHaleMetricsModule(), { it.jmx() }
+ *     module new CodaHaleMetricsModule(), { it.jmx() }
  *   }
  *
  *   handlers { MetricRegistry metricRegistry -&gt;

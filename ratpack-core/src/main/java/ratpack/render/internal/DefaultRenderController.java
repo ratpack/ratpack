@@ -16,6 +16,7 @@
 
 package ratpack.render.internal;
 
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
 import ratpack.handling.Context;
@@ -45,7 +46,7 @@ public class DefaultRenderController implements RenderController {
   private <T> void doRender(T toRender, Context context) throws Exception {
     Class<T> type = Types.cast(toRender.getClass());
 
-    Iterator<? extends RenderableDecorator<?>> decorators = context.getAll(RENDERABLE_DECORATOR_TYPE).iterator();
+    Iterator<? extends RenderableDecorator<?>> decorators = Iterables.filter(context.getAll(RENDERABLE_DECORATOR_TYPE), d -> d.getType().isAssignableFrom(type)).iterator();
     if (decorators.hasNext()) {
       Promise<T> promise = context.promiseOf(toRender);
       while (decorators.hasNext()) {

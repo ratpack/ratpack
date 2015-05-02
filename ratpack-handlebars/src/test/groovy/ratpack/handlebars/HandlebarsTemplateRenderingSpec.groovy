@@ -33,7 +33,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(), { if(configPath) { it.templatesPath(configPath) } }
+      module new HandlebarsModule(), { if(configPath) { it.templatesPath(configPath) } }
       if (templatesPath) {
         bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesPath(templatesPath))
       }
@@ -61,7 +61,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(), { if (configSuffix != null) { it.templatesSuffix(configSuffix) } }
+      module new HandlebarsModule(), { if (configSuffix != null) { it.templatesSuffix(configSuffix) } }
       if (templatesSuffix != null) {
         bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesSuffix(templatesSuffix))
       }
@@ -86,7 +86,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     dir('handlebars')
 
     bindings {
-      add new HandlebarsModule()
+      module new HandlebarsModule()
     }
     handlers {
       get {
@@ -107,7 +107,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule()
+      module new HandlebarsModule()
       bind TestHelper
     }
     handlers {
@@ -128,7 +128,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule()
+      module new HandlebarsModule()
     }
     handlers {
       handler {
@@ -149,7 +149,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(), { it.reloadable(true) }
+      module new HandlebarsModule(), { it.reloadable(true) }
     }
     handlers {
       get {
@@ -174,7 +174,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(), { it.reloadable(false) }
+      module new HandlebarsModule(), { it.reloadable(false) }
     }
     handlers {
       get {
@@ -200,7 +200,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new HandlebarsModule(), { it.reloadable(false).cacheSize(20) }
+      module new HandlebarsModule(), { it.reloadable(false).cacheSize(20) }
     }
     handlers {
       get('foo') {

@@ -28,7 +28,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "yield 'a '; yield value; yield ' b '; 3.times {  yield ' a ' }"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -46,7 +46,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "div { p(value) }"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -64,7 +64,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "div(value)"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -82,7 +82,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "div(value)"
     bindings {
-      add(MarkupTemplateModule) { it.autoEscape = false }
+      module(MarkupTemplateModule) { it.autoEscape = false }
     }
 
     when:
@@ -100,7 +100,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "div()"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -118,7 +118,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "div()"
     bindings {
-      add(MarkupTemplateModule) { it.expandEmptyElements = true }
+      module(MarkupTemplateModule) { it.expandEmptyElements = true }
     }
     when:
     handlers {
@@ -136,7 +136,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     file "templates/foo.gtpl", "div { include template:'bar.gtpl' }"
     file "templates/bar.gtpl", "p(value)"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -155,7 +155,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     file "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
     file "templates/inner.gtpl", 'yield "inner: $value"'
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -175,7 +175,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     file "templates/middle.gtpl", 'include template:"head.gtpl"; yield "-middle-"; include template:"footer.gtpl"'
     file "templates/footer.gtpl", "yield 'footer'"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -193,7 +193,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     file "templates/inner.gtpl", 'yield "inner: $value, "; layout "innerInner.gtpl", value: 1; yield ", "; layout "innerInner.gtpl", value: 2; yield ", "; layout "innerInner.gtpl", value: 1'
     file "templates/innerInner.gtpl", 'yield "innerInner: $value"'
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -214,7 +214,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     file "templates/inner.gtpl", 'yield "inner: $a$b, "; layout (*:model, a: "A", "innerInner.gtpl")'
     file "templates/innerInner.gtpl", 'yield "innerInner: $a$b"'
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -238,7 +238,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
         pageBody: contents { include template: "body.gtpl" }
     '''
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -257,7 +257,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     serverConfig { development(true) }
     file "templates/t.gtpl", "yield 1"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -281,7 +281,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     serverConfig { development(false) }
     file "templates/t.gtpl", "yield 1"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
@@ -308,12 +308,12 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/t.gtpl", "yield 1"
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
 
     when:
     bindings {
-      add(MarkupTemplateModule) { it.cacheTemplates = false }
+      module(MarkupTemplateModule) { it.cacheTemplates = false }
     }
     handlers {
       get { render groovyMarkupTemplate("t.gtpl") }
@@ -333,7 +333,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
   def "content type by template extension"() {
     when:
     bindings {
-      add(MarkupTemplateModule)
+      module(MarkupTemplateModule)
     }
     file "templates/t.gtpl", "1"
     file "templates/t.xml", "1"

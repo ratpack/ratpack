@@ -116,7 +116,7 @@ import static ratpack.util.Exceptions.uncheck;
  *
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b.add(ServiceModule.class)))
+ *       .registry(Guice.registry(b -> b.module(ServiceModule.class)))
  *       .handlers(chain -> {
  *         // The registry in a Guice backed chain can be used to retrieve objects that were bound,
  *         // or to create objects that are bound “just-in-time”.
@@ -230,7 +230,7 @@ public abstract class Guice {
     List<Module> modules = Lists.newLinkedList();
 
     BindingsSpec bindings = new DefaultBindingsSpec(baseRegistry.get(ServerConfig.class), binderActions, modules);
-    bindings.add(new RatpackBaseRegistryModule(baseRegistry));
+    bindings.module(new RatpackBaseRegistryModule(baseRegistry));
 
     try {
       bindingsAction.execute(bindings);

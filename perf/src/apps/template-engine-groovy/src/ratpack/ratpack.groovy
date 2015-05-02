@@ -21,10 +21,10 @@ ratpack {
     <% if (patch >= 14) { %>
       bindInstance ResponseTimer.decorator()
     <% } %>
-    add TextTemplateModule, { it.staticallyCompile = true }
+    module TextTemplateModule, { it.staticallyCompile = true }
     add HandlebarsModule
     add ThymeleafModule
-    add MarkupTemplateModule
+    module MarkupTemplateModule
   }
 
   handlers {

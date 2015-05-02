@@ -47,7 +47,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can register metrics module"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule(), { }
+      module new CodaHaleMetricsModule(), { }
     }
     handlers { MetricRegistry metrics ->
       handler {
@@ -69,7 +69,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     and:
     bindings {
-      add new CodaHaleMetricsModule(), { it
+      module new CodaHaleMetricsModule(), { it
         .jmx()
         .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
         .console { it.reporterInterval(Duration.ofSeconds(1)) }
@@ -105,7 +105,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
     }
 
     handlers { MetricRegistry metrics ->
@@ -169,7 +169,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
       bind AnnotatedMetricService
     }
 
@@ -216,7 +216,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
       bind AnnotatedMetricService
     }
 
@@ -260,7 +260,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
       bind AnnotatedMetricService
     }
 
@@ -286,7 +286,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.jmx() }
+      module new CodaHaleMetricsModule(), { it.jmx() }
     }
 
     handlers { MetricRegistry metrics ->
@@ -322,7 +322,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.jvmMetrics(true) }
+      module new CodaHaleMetricsModule(), { it.jvmMetrics(true) }
     }
 
     handlers { MetricRegistry metrics ->
@@ -345,7 +345,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can use metrics endpoint"() {
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)).excludeFilter("2xx-responses") } }
+      module new CodaHaleMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)).excludeFilter("2xx-responses") } }
     }
     handlers { MetricRegistry metrics ->
 
@@ -440,7 +440,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
     }
 
     handlers {MetricRegistry metrics ->
@@ -474,7 +474,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     and:
     bindings {
-      add new CodaHaleMetricsModule(), {
+      module new CodaHaleMetricsModule(), {
         it.console { it.reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*") }
         it.jmx { it.includeFilter(".*ar.*") }
         it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
@@ -512,7 +512,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {
+      module new CodaHaleMetricsModule(), {
         it.requestMetricGroups(["bar":"bar/.*", "foo":"foo/.*", "f":"f.*"])
       }
     }
@@ -542,7 +542,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
     }
 
     handlers { MetricRegistry metrics ->

@@ -53,7 +53,7 @@ import com.github.jknack.handlebars.Helper;
  *     );
  *     EmbeddedApp.of(baseDir, s -> s
  *       .registry(Guice.registry(b -> b
- *         .add(new HandlebarsModule())
+ *         .module(new HandlebarsModule())
  *         .bind(HelloHelper.class)
  *       ))
  *       .handlers(chain -> chain
@@ -67,5 +67,5 @@ import com.github.jknack.handlebars.Helper;
  * }</pre>
  */
 public interface NamedHelper<T> extends Helper<T> {
-  public String getName();
+  String getName();
 }

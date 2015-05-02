@@ -294,7 +294,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   def aut(Closure sessionModuleConfig) {
     GroovyEmbeddedApp.build {
       bindings {
-        add ClientSideSessionsModule, {
+        module ClientSideSessionsModule, {
           it.with sessionModuleConfig
         }
       }
@@ -363,7 +363,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     modules.clear()
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.secretKey = "a" * 16
       }
     }
@@ -404,7 +404,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     modules.clear()
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           int length = 16
           switch (algorithm) {

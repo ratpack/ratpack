@@ -68,7 +68,7 @@ import java.util.Set;
  *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
  *     );
  *     EmbeddedApp.of(baseDir, s -> s
- *       .registry(Guice.registry(b -> b.add(new ThymeleafModule())))
+ *       .registry(Guice.registry(b -> b.module(ThymeleafModule.class)))
  *       .handlers(chain -> chain
  *         .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
  *       )
