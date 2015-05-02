@@ -18,7 +18,6 @@ package ratpack.manual.snippets.fixture
 
 import ratpack.func.Block
 import ratpack.groovy.Groovy
-import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.internal.capture.RatpackDslBacking
 import ratpack.groovy.internal.capture.RatpackDslClosures
@@ -34,7 +33,7 @@ class GroovyScriptRatpackDslFixture extends GroovyScriptFixture {
     RatpackServer.start {
       it.serverConfig(ServerConfig.embedded())
       it.registry(Guice.registry {
-        ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(it), closures.bindings)
+        ClosureUtil.configureDelegateFirst(it, closures.bindings)
       })
       it.handlers(Groovy.chain(closures.handlers))
     }

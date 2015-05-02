@@ -19,10 +19,9 @@ package ratpack.test.internal
 import com.google.inject.Injector
 import com.google.inject.Module
 import ratpack.groovy.Groovy
-import ratpack.groovy.guice.GroovyBindingsSpec
-import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.ClosureUtil
+import ratpack.guice.BindingsSpec
 import ratpack.guice.Guice
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
@@ -45,7 +44,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
         it.serverConfig(serverConfigBuilder())
 
         def bindingsAction = { s ->
-          new DefaultGroovyBindingsSpec(s).with(_bindings)
+          s.with(_bindings)
           modules.each { s.add(it) }
         }
 
@@ -66,7 +65,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     _handlers = configurer
   }
 
-  void bindings(@DelegatesTo(value = GroovyBindingsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void bindings(@DelegatesTo(value = BindingsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     _bindings = configurer
   }
 
