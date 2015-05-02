@@ -43,6 +43,17 @@ class PromiseAwaitSpec extends Specification {
     r.valueOrThrow == 2
   }
 
+  def "can await non async promise"() {
+    when:
+    def r = execHarness.yield {
+      it.blocking {
+        execHarness.promiseOf(2).await()
+      }
+    }
+
+    then:
+    r.valueOrThrow == 2
+  }
 
   def "can await failed promise"() {
     when:
@@ -55,6 +66,22 @@ class PromiseAwaitSpec extends Specification {
     then:
     r instanceof RuntimeException
     r.message == "!"
+  }
+
+  def "can nest awaits"() {
+    when:
+    def r = execHarness.yield { e ->
+      execHarness.blocking {
+        execHarness.blocking {
+          async(Result.success(2)).map { it * 2 }.await()
+        }.map {
+          it * 2
+        }.await()
+      }
+    }.valueOrThrow
+
+    then:
+    r == 8
   }
 
 }
