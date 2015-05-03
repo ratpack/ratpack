@@ -36,7 +36,7 @@ When you've got the release announcement set, copy it to the description of the 
         1. Click “Close repository when done”
         1. Click “Sync”
 1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.
-1. Publish to Gradle Plugin Portal: `./gradlew :ratpack-gradle:publishPlugins -i` - See below for credential requirements.
+1. Publish to Gradle Plugin Portal: `./gradlew publishPlugins -i` - See below for credential requirements.
 <p>If you run this task more than once you may need to delete the published templates in Bintray first. 
 
 ## Post
@@ -72,4 +72,5 @@ When you've got the release announcement set, copy it to the description of the 
 1. Gradle Plugin Portal config
     1. Create a Gradle Plugin Portal account at [https://login.gradle.org/user/register](https://login.gradle.org/user/register).
     1. Email infrastructure+support@gradleware.com and ask to be allowed to publish artifacts for `io.ratpack.ratpack-java` and `io.ratpack.ratpack-groovy`, provide proof of team membership.
-    1. From the Plugin Portal user page, e.g. `https://plugins.gradle.org/u/$username`, copy the `gradle.publish.key` and `gradle.publish.secret` to `~/.gradle/gradle.properties` file  
+    1. From the Plugin Portal user page, e.g. `https://plugins.gradle.org/u/$username`, generate API key by click the `Generate Publishing Key` button. 
+    1. Copy the generated `gradle.publish.key` and `gradle.publish.secret` to `~/.gradle/gradle.properties`.
