@@ -17,6 +17,8 @@
 package ratpack.exec.internal;
 
 import ratpack.exec.ExecController;
+import ratpack.exec.ExecutionException;
+import ratpack.exec.UnmanagedThreadException;
 
 import java.util.Optional;
 
@@ -46,6 +48,22 @@ public class ThreadBinding {
 
   public ExecController getExecController() {
     return execController;
+  }
+
+  public static void requireComputeThread(String message) {
+    if (!get().orElseThrow(UnmanagedThreadException::new).isCompute()) {
+      throw new ExecutionException(toMessage(message));
+    }
+  }
+
+  public static void requireBlockingThread(String message) {
+    if (get().orElseThrow(UnmanagedThreadException::new).isCompute()) {
+      throw new ExecutionException(toMessage(message));
+    }
+  }
+
+  private static String toMessage(String message) {
+    return message + " - current thread name = '" + Thread.currentThread().getName() + "'.";
   }
 
 }

@@ -166,7 +166,9 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
               }
             }, execController.getBlockingExecutor()
           ).thenAcceptAsync(v ->
-              streamHandle.complete(() -> downstream.accept(v)),
+              streamHandle.complete(() ->
+                downstream.accept(v)
+              ),
             backing.getEventLoop()
           )
       );
@@ -234,7 +236,7 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
         if (!fulfilled.compareAndSet(false, true)) {
           LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
         } else {
-          downstream.error(throwable);
+          streamHandle.complete(() -> downstream.error(throwable));
         }
       }
     });

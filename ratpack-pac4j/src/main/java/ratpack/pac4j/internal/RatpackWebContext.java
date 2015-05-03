@@ -81,13 +81,13 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public void setSessionAttribute(String name, Object value) {
-    Exceptions.uncheck((value == null ? getSessionStorage().remove(name) : getSessionStorage().set(name, value))::await);
+    Exceptions.uncheck((value == null ? getSessionStorage().remove(name) : getSessionStorage().set(name, value))::block);
   }
 
   @Override
   public Object getSessionAttribute(String name) {
     SessionStorage sessionStorage = getSessionStorage();
-    return Exceptions.uncheck(() -> sessionStorage.get(name, Object.class).await()).orElse(null);
+    return Exceptions.uncheck(() -> sessionStorage.get(name, Object.class).block()).orElse(null);
   }
 
   @Override

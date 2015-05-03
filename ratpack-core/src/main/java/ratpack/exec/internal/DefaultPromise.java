@@ -35,6 +35,7 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public void then(final Action<? super T> then) {
+    ThreadBinding.requireComputeThread("Promise.then() can only be called on a compute thread (use Promise.block() to use a promise on a blocking thread)");
     try {
       upstream.connect(new Downstream<T>() {
         @Override
@@ -79,10 +80,11 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
-  public T await() throws Exception {
+  public T block() throws Exception {
+    ThreadBinding.requireBlockingThread("Promise.block() can only be used while blocking (i.e. use Promise.blocking() first)");
     ExecutionBacking backing = ExecutionBacking.require();
     CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Result<T>> result = new AtomicReference<>();
+    AtomicReference<Result<T>> resultReference = new AtomicReference<>();
     backing.streamSubscribe(handle ->
         upstream.connect(
           new Downstream<T>() {
@@ -101,17 +103,17 @@ public class DefaultPromise<T> implements Promise<T> {
               unlatch(Result.success(null));
             }
 
-            private void unlatch(Result<T> success) {
-              result.set(success);
-              latch.countDown();
+            private void unlatch(Result<T> result) {
+              resultReference.set(result);
               handle.complete();
+              latch.countDown();
             }
           }
         )
     );
     backing.eventLoopDrain();
     latch.await();
-    return result.get().getValueOrThrow();
+    return resultReference.get().getValueOrThrow();
   }
 
 }
