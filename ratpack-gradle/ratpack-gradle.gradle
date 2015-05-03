@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
+  }
+}
+
 description = "Build time Ratpack support with the Gradle build tool - http://gradle.org"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
@@ -38,5 +49,29 @@ test {
       return
     }
     mustRunAfter tasks.withType(VerificationTask)
+  }
+}
+
+apply plugin: "com.gradle.plugin-publish"
+
+pluginBundle {
+  website = 'http://www.ratpack.io/'
+  vcsUrl = 'https://github.com/ratpack/ratpack'
+  tags = ['application', 'web', 'http', 'ratpack']
+
+  plugins {
+    ratpackJavaPlugin {
+      id = 'io.ratpack.ratpack-java'
+      displayName = 'Ratpack Java Gradle Plugin'
+      description = 'This plugin provides build time integration for Java based Ratpack applications.'
+      tags = ['java', 'application', 'web', 'http', 'ratpack']
+    }
+
+    ratpackGroovyPlugin {
+      id = 'io.ratpack.ratpack-groovy'
+      displayName = 'Ratpack Groovy Gradle Plugin'
+      description = 'This plugin provides build time integration for Groovy based Ratpack applications.'
+      tags = ['groovy', 'application', 'web', 'http', 'ratpack']
+    }
   }
 }

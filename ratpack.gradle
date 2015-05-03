@@ -71,55 +71,6 @@ task bintrayPublish << {
   logger.info("Received response: ${curl.text}")
 }
 
-task gradlePluginPortalPublish << {
-
-  def packages = ['ratpack-java', 'ratpack-groovy']
-
-  packages.each { bintrayPackage ->
-    def bintraySubject = 'ratpack'
-    def bintrayRepo = 'gradle-plugins-meta'
-
-    def version = project.version
-    def parts = "$bintraySubject/$bintrayRepo/$bintrayPackage"
-    def baseUrl = 'https://api.bintray.com'
-
-    def createUrl = "$baseUrl/packages/$parts/versions"
-    logger.info("Creating new version")
-    exec {
-      executable = 'curl'
-      args = ['-H', '"Content-Type: application/json"', '-X', 'POST', '-d', /{\"name\":\"$version\"}/,
-              '-u', /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, createUrl]
-    }
-
-    def attributeUrl = "$baseUrl/packages/$parts/versions/$version/attributes"
-    logger.info("Creating attributes")
-    exec {
-      executable = 'curl'
-      args = ['-H', '"Content-Type: application/json"', '-X', 'POST', '-d', /[{\"name\":\"gradle-plugin\",\"values\":[\"io.ratpack.$bintrayPackage:io.ratpack:ratpack-gradle\"]}]/,
-              '-u', /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, attributeUrl]
-    }
-
-    def f = File.createTempFile("$bintrayPackage-$version", ".txt")
-    f.write('This is a placeholder file.')
-    f.deleteOnExit()
-
-    def uploadUrl = "$baseUrl/content/$parts/$version/${bintrayPackage}-${version}.txt"
-    logger.info("Uploading file")
-    exec {
-      executable = 'curl'
-      args = ['-T', f.absolutePath, '-u', /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, uploadUrl]
-    }
-
-    def publishUrl = "$baseUrl/content/$parts/$version/publish"
-    logger.info("Publishing")
-    exec {
-      executable = 'curl'
-      args = ['-X', 'POST', '-u', /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, publishUrl]
-    }
-  }
-
-}
-
 allprojects {
   group = "io.ratpack"
   version = "0.9.17-SNAPSHOT"
