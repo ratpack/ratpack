@@ -212,10 +212,6 @@ public interface BindingsSpec extends RegistrySpec {
     return bindInstance(TypeLiteral.get(publicType), instance);
   }
 
-  default <T> BindingsSpec multiBindInstance(Class<T> publicType, T instance) {
-    return bindInstance(TypeLiteral.get(publicType), instance);
-  }
-
   /**
    * Add a binding for the given object to its concrete type.
    *
@@ -228,11 +224,15 @@ public interface BindingsSpec extends RegistrySpec {
     return binder(binder -> binder.bind(type).toInstance(instance));
   }
 
-  default <T> BindingsSpec multiBindInstance(T instance) {
+  default <T> BindingsSpec multiBindInstance(Class<T> publicType, T instance) {
     return uncheck(() -> {
-      Class<T> aClass = Types.cast(instance.getClass());
-      return multiBinder(aClass, b -> b.addBinding().toInstance(instance));
+      return multiBinder(publicType, b -> b.addBinding().toInstance(instance));
     });
+  }
+
+  default <T> BindingsSpec multiBindInstance(T instance) {
+    Class<T> type = Types.cast(instance.getClass());
+    return multiBindInstance(type, instance);
   }
 
   /**
