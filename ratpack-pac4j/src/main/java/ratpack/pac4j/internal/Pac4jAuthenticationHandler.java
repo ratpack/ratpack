@@ -25,7 +25,7 @@ import ratpack.http.Request;
 import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
-import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
+import static org.pac4j.core.context.Pac4jConstants.REQUESTED_URL;
 
 /**
  * Filters requests to apply authentication and authorization as required.
@@ -65,7 +65,7 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
 
   private void initiateAuthentication(final Context context) {
     final Request request = context.getRequest();
-    request.get(SessionStorage.class).set(SAVED_URI, request.getUri()).then((success)->{
+    request.get(SessionStorage.class).set(REQUESTED_URL, request.getUri()).then((success)->{
       //TODO Log
     });
     final Clients clients = request.get(Clients.class);
