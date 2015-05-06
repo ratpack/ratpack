@@ -24,7 +24,7 @@ import ratpack.session.store.SessionStorage;
 
 import java.util.Optional;
 
-import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
+import static org.pac4j.core.context.Pac4jConstants.USER_PROFILE;
 
 /**
  * Retrieve the current pac4j user profile stored in session
@@ -47,7 +47,7 @@ public class Pac4jProfileHandler implements Handler {
 
   protected void removeUserProfile(final Context context) {
     final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
-    sessionStorage.remove(SessionConstants.USER_PROFILE).then((numberRemoved) -> {
+    sessionStorage.remove(USER_PROFILE).then((numberRemoved) -> {
       //TODO Log
     });
   }

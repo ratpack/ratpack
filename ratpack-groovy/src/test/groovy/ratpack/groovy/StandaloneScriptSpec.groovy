@@ -16,8 +16,8 @@
 
 package ratpack.groovy
 
-import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
+import ratpack.guice.BindingsSpec
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
@@ -83,7 +83,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     script """
       ratpack {
         bindings {
-          assert delegate instanceof $GroovyBindingsSpec.name
+          assert delegate instanceof $BindingsSpec.name
         }
         handlers {
           assert delegate instanceof $GroovyChain.name

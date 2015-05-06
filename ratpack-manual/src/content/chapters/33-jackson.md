@@ -44,7 +44,7 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+      .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain ->
         chain.get(ctx -> ctx.render(json(new Person("John"))))
       )
@@ -95,7 +95,7 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+      .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asNode", ctx -> {
           JsonNode node = ctx.parse(jsonNode());
@@ -159,7 +159,7 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+      .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asPerson", ctx -> {
           Person person = ctx.parse(Person.class);
@@ -219,7 +219,7 @@ public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
       .registry(Guice.registry(b -> b
-        .add(JacksonModule.class, c -> c 
+        .module(JacksonModule.class, c -> c 
           .modules(new Jdk8Module()) // register the Jackson module
           .prettyPrint(false)
         )

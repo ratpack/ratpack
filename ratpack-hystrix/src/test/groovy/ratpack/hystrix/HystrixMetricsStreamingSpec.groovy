@@ -53,7 +53,7 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
     def threadpoolMetricsReceived = 0
     def eventCount = 2
     bindings {
-      add new HystrixModule().sse()
+      module new HystrixModule().sse()
     }
     handlers {
       handler("run-command") {

@@ -56,8 +56,12 @@ public interface Promise<T> {
 
   /**
    * Specifies what should be done with the promised object when it becomes available.
+   * <p>
+   * <b>Important:</b> this method can only be used from a Ratpack managed compute thread.
+   * If it is called on a non Ratpack managed compute thread it will immediately throw an {@link ExecutionException}.
    *
    * @param then the receiver of the promised value
+   * @throws ExecutionException if not called on a Ratpack managed compute thread
    */
   void then(Action<? super T> then);
 
@@ -102,6 +106,99 @@ public interface Promise<T> {
    * @return a new promise
    */
   <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer);
+
+  /**
+   * Blocks execution waiting for this promise to complete and returns the promised value.
+   * <p>
+   * This method allows the use of asynchronous API, by synchronous API.
+   * This may occur when integrating with other libraries that are not asynchronous.
+   * The following example simulates using a library that takes a callback that is expected to produce a value synchronously,
+   * but where the production of the value is actually asynchronous.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.func.Factory;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static <T> T produceSync(Factory<? extends T> factory) throws Exception {
+   *     return factory.create();
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(e ->
+   *       e.blocking(() ->
+   *         produceSync(() ->
+   *           e.promiseOf("foo").block() // block and wait for the promised value
+   *         )
+   *       )
+   *     );
+   *
+   *     assertEquals("foo", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * <p>
+   * <b>Important:</b> this method can only be used inside a {@link ExecControl#blocking(Callable)} or {@link #blockingMap(Function)} function.
+   * That is, it can only be used from a Ratpack managed blocking thread.
+   * If it is called on a non Ratpack managed blocking thread it will immediately throw an {@link ExecutionException}.
+   * <p>
+   * When this method is called, the promise will be subscribed to on a compute thread while the blocking thread waits.
+   * When the promised value has been produced, and the compute thread segment has completed, the value will be returned
+   * allowing execution to continue on the blocking thread.
+   * The following example visualises this flow by capturing the sequence of events via an {@link ExecInterceptor}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.ExecInterceptor;
+   *
+   * import java.util.List;
+   * import java.util.ArrayList;
+   * import java.util.Arrays;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> events = new ArrayList<>();
+   *
+   *     ExecHarness.yieldSingle(
+   *       r -> r.add(ExecInterceptor.class, (execution, execType, continuation) -> {
+   *         events.add(execType + "-start");
+   *         try {
+   *           continuation.execute();
+   *         } finally {
+   *           events.add(execType + "-stop");
+   *         }
+   *       }),
+   *       e -> e.blocking(() -> e.promiseOf("foo").block())
+   *     );
+   *
+   *     List<String> actualEvents = Arrays.asList(
+   *       "COMPUTE-start",
+   *       "COMPUTE-stop",
+   *         "BLOCKING-start",
+   *           "COMPUTE-start",
+   *           "COMPUTE-stop",
+   *         "BLOCKING-stop",
+   *       "COMPUTE-start",
+   *       "COMPUTE-stop"
+   *     );
+   *
+   *     assertEquals(actualEvents, events);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @return the promised value
+   * @throws ExecutionException if not called on a Ratpack managed blocking thread
+   * @throws Exception any thrown while producing the value
+   */
+  T block() throws Exception;
 
   /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.

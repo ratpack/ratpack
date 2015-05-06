@@ -86,7 +86,7 @@ import java.util.function.Consumer;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b ->
- *         b.add(JacksonModule.class, c -> c
+ *         b.module(JacksonModule.class, c -> c
  *           .modules(new Jdk8Module()) // register the Jackson module
  *           .prettyPrint(false)
  *         )

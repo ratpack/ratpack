@@ -32,7 +32,7 @@ import java.lang.reflect.Constructor;
  * Provides a standard approach for modules that require some parametrization / configuration.
  * <p>
  * A configurable module provides a single, mutable, “config object” (type parameter {@code C}).
- * The {@link ratpack.guice.BindingsSpec#add(Class, Action)} method can be used to add the module and configure it at the same time.
+ * The {@link ratpack.guice.BindingsSpec#module(Class, Action)} method can be used to add the module and configure it at the same time.
  * It is conventional, but not required, for the config type to be a nested static class named {@code Config} of the module class.
  * <pre class="java">{@code
  * import com.google.inject.Provides;
@@ -63,7 +63,7 @@ import java.lang.reflect.Constructor;
  *
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b.add(StringModule.class, c -> c.value("foo"))))
+ *       .registry(Guice.registry(b -> b.module(StringModule.class, c -> c.value("foo"))))
  *       .handlers(chain -> chain.get(ctx -> ctx.render(ctx.get(String.class))))
  *     ).test(httpClient -> {
  *       assertEquals("foo", httpClient.getText());
@@ -104,7 +104,7 @@ import java.lang.reflect.Constructor;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b -> b
- *         .add(StringModule.class)
+ *         .module(StringModule.class)
  *         .bindInstance(new StringModule.Config().value("bar"))
  *       ))
  *       .handlers(chain -> chain
@@ -127,7 +127,7 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
   /**
    * Registers the configuration action.
    * <p>
-   * This method is called by {@link ratpack.guice.BindingsSpec#add(Class, Action)}.
+   * This method is called by {@link ratpack.guice.BindingsSpec#module(Class, Action)}.
    *
    * @param configurer the configuration action.
    */

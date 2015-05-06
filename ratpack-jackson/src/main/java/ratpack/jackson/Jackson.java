@@ -73,7 +73,7 @@ import java.io.OutputStream;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b ->
- *           b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *           b.module(JacksonModule.class, c -> c.prettyPrint(false))
  *       ))
  *       .handlers(chain ->
  *         chain.get(ctx -> ctx.render(json(new Person("John"))))
@@ -124,7 +124,7 @@ import java.io.OutputStream;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b ->
- *         b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         b.module(JacksonModule.class, c -> c.prettyPrint(false))
  *       ))
  *       .handlers(chain -> chain
  *         .get("stream", ctx -> {
@@ -189,7 +189,7 @@ import java.io.OutputStream;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b ->
- *         b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         b.module(JacksonModule.class, c -> c.prettyPrint(false))
  *       ))
  *       .handlers(chain -> chain
  *         .post("asNode", ctx -> {
@@ -255,7 +255,7 @@ import java.io.OutputStream;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b ->
- *         b.add(JacksonModule.class, c -> c.prettyPrint(false))
+ *         b.module(JacksonModule.class, c -> c.prettyPrint(false))
  *       ))
  *       .handlers(chain -> chain
  *         .post("asPerson", ctx -> {
@@ -446,7 +446,7 @@ public abstract class Jackson {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
-   *       .registry(Guice.registry(b -> b.add(JacksonModule.class)))
+   *       .registry(Guice.registry(b -> b.module(JacksonModule.class)))
    *       .handlers(chain ->
    *         chain.get(ctx -> {
    *           Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
@@ -552,7 +552,7 @@ public abstract class Jackson {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
-   *       .registry(Guice.registry(b -> b.add(JacksonModule.class, c -> c.prettyPrint(false))))
+   *       .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
    *       .handlers(chain -> chain
    *         .get(ctx -> ctx
    *           .blocking(() -> singletonMap("foo", "bar"))

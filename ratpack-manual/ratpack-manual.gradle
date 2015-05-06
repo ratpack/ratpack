@@ -39,7 +39,7 @@ dependencies {
   compass commonDependencies.compass
 
   testCompile apiModules
-  testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
+  testCompile("org.pac4j:pac4j-oauth:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"

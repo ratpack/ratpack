@@ -127,7 +127,9 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
         if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
           Exceptions.uncheck(() -> new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete));
         } else {
-          eventLoop.submit(() -> new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete));
+          eventLoop.submit(() ->
+              new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete)
+          );
         }
       }
     };
@@ -142,23 +144,34 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     return directPromise(downstream -> {
       ExecutionBacking backing = ExecutionBacking.require();
-      backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(
-        new Supplier<Result<T>>() {
-          Result<T> result;
+      backing.streamSubscribe(streamHandle ->
+          CompletableFuture.supplyAsync(
+            new Supplier<Result<T>>() {
+              Result<T> result;
 
-          @Override
-          public Result<T> get() {
-            try {
-              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getAllInterceptors().iterator(), () ->
-                  result = Result.success(blockingOperation.call())
-              );
-              return result;
-            } catch (Exception e) {
-              return Result.<T>error(e);
-            }
-          }
-        }, execController.getBlockingExecutor()
-      ).thenAcceptAsync(v -> streamHandle.complete(() -> downstream.accept(v)), backing.getEventLoop()));
+              @Override
+              public Result<T> get() {
+                try {
+                  ExecutionBacking.THREAD_BINDING.set(backing);
+                  backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getAllInterceptors().iterator(), () -> {
+                    T value = blockingOperation.call();
+                    result = Result.success(value);
+                  });
+                  return result;
+                } catch (Exception e) {
+                  return Result.<T>error(e);
+                } finally {
+                  ExecutionBacking.THREAD_BINDING.remove();
+                }
+              }
+            }, execController.getBlockingExecutor()
+          ).thenAcceptAsync(v ->
+              streamHandle.complete(() ->
+                downstream.accept(v)
+              ),
+            backing.getEventLoop()
+          )
+      );
     });
   }
 
@@ -223,7 +236,7 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
         if (!fulfilled.compareAndSet(false, true)) {
           LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
         } else {
-          downstream.error(throwable);
+          streamHandle.complete(() -> downstream.error(throwable));
         }
       }
     });

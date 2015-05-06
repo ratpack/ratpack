@@ -75,7 +75,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   def "cookies assigned to path are send for this path only"() {
     given:
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           path = "/bar"
         }
@@ -133,7 +133,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   def "cookie is send in request for the given path only"() {
     given:
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           path = "/foo"
         }
@@ -177,7 +177,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   def "removed session attribute is no longer accessible"() {
     given:
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
         }
@@ -225,7 +225,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "removed session attribute does not clear the other attributes"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
         }
@@ -289,7 +289,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "large session partitioned into session cookies"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
         }
@@ -355,7 +355,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "session last access time is defined"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
         }
@@ -390,7 +390,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "timed out session returns changed attribute"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
           maxInactivityInterval = Duration.ofSeconds(1)
@@ -449,7 +449,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "timed out session does not return expired attributes"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
           maxInactivityInterval = Duration.ofSeconds(1)

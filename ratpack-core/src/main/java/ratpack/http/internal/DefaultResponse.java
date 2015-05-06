@@ -325,10 +325,10 @@ public class DefaultResponse implements Response {
 
   private void finalizeResponse(Iterator<Action<? super ResponseMetaData>> finalizers, Runnable then) {
     if (finalizers.hasNext()) {
-      ExecControl.current().<Void>promise(f -> {
-        finalizers.next().execute(this);
-        f.success(null);
-      }).then(v -> finalizeResponse(finalizers, then));
+      ExecControl.current().nest(
+        () -> finalizers.next().execute(this),
+        () -> finalizeResponse(finalizers, then)
+      );
     } else {
       then.run();
     }

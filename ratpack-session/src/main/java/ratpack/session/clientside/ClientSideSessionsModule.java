@@ -134,7 +134,7 @@ import java.time.Duration;
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b ->
- *         b.add(ClientSideSessionsModule.class, config -> {
+ *         b.module(ClientSideSessionsModule.class, config -> {
  *           config.setSessionName("session-name");
  *           config.setSecretToken("your token for signing");
  *           // config.setSecretKey("key for cipher");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j.internal;
+package ratpack.exec
 
-/**
- * Constants for session variables used by the pac4j integration.
- */
-public final class SessionConstants {
-  public static final String USER_PROFILE = "ratpack.pac4j-user-profile";
-  public static final String SAVED_URI = "ratpack.pac4j-saved-uri";
+import ratpack.test.exec.ExecHarness
+import spock.lang.Specification
+
+class PromiseSpec extends Specification {
+
+  def exec = ExecHarness.harness()
+
+  def "cannot subscribe to promise when blocking"() {
+    when:
+    exec.yield {
+      exec.blocking {
+        exec.promiseOf(1).then { it }
+      }
+    }.valueOrThrow
+
+    then:
+    def e = thrown ExecutionException
+    e.message.startsWith("Promise.then() can only be called on a compute thread")
+  }
 }

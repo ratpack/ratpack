@@ -25,8 +25,8 @@ class H2ModuleSpec extends RatpackGroovyDslSpec {
   def "can use db"() {
     when:
     bindings {
-      add H2Module
-      add SqlModule
+      module H2Module
+      module SqlModule
     }
 
     handlers { Sql sql ->

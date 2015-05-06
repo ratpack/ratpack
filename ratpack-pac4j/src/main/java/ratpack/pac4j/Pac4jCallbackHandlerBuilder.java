@@ -32,8 +32,8 @@ import ratpack.util.Types;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
-import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
+import static org.pac4j.core.context.Pac4jConstants.REQUESTED_URL;
+import static org.pac4j.core.context.Pac4jConstants.USER_PROFILE;
 
 public class Pac4jCallbackHandlerBuilder {
 
@@ -82,8 +82,8 @@ public class Pac4jCallbackHandlerBuilder {
         //TODO Log?
       });
     }
-    sessionStorage.get(SAVED_URI, String.class).then((originalUri) -> {
-        sessionStorage.remove(SAVED_URI).then((numberRemoved) -> {
+    sessionStorage.get(REQUESTED_URL, String.class).then((originalUri) -> {
+        sessionStorage.remove(REQUESTED_URL).then((numberRemoved) -> {
           context.redirect(originalUri.orElse(DEFAULT_REDIRECT_URI));
         });
       }

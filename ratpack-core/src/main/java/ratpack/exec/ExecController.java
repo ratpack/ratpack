@@ -17,7 +17,7 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoopGroup;
-import ratpack.exec.internal.ExecControllerThreadBinding;
+import ratpack.exec.internal.ThreadBinding;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +38,7 @@ public interface ExecController extends AutoCloseable {
    * @return the execution controller for the current thread
    */
   static Optional<ExecController> current() {
-    return ExecControllerThreadBinding.get();
+    return ThreadBinding.get().map(ThreadBinding::getExecController);
   }
 
   /**

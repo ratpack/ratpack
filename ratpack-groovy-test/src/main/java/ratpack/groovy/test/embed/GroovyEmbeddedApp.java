@@ -21,8 +21,6 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.groovy.Groovy;
-import ratpack.groovy.guice.GroovyBindingsSpec;
-import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.guice.BindingsSpec;
@@ -83,7 +81,7 @@ import static ratpack.util.Exceptions.uncheck;
  */
 public interface GroovyEmbeddedApp extends EmbeddedApp {
 
-  public interface Spec {
+  interface Spec {
 
     /**
      * Specifies the handlers of the application.
@@ -109,7 +107,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
      * @param closure The definition of the application handlers
      * @return {@code this}
      */
-    Spec bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+    Spec bindings(@DelegatesTo(value = BindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
     /**
      * Modifies the server config of the application.
@@ -137,9 +135,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     }
   }
 
-  public static EmbeddedApp build(@DelegatesTo(value = Spec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-
-
+  static EmbeddedApp build(@DelegatesTo(value = Spec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
@@ -156,7 +152,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         configureDelegateFirst(serverConfigBuilder.port(0), spec.serverConfig);
 
-        final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
+        final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(bindingsSpec, spec.bindings);
 
         try {
           return RatpackServer.of(serverSpec -> serverSpec
@@ -171,7 +167,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     };
   }
 
-  static class SpecWrapper {
+  class SpecWrapper {
     private Closure<?> handlers = ClosureUtil.noop();
     private Closure<?> bindings = ClosureUtil.noop();
     private Closure<?> serverConfig = ClosureUtil.noop();
