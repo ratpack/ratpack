@@ -17,8 +17,10 @@
 package ratpack.session.clientside
 
 import io.netty.handler.codec.http.Cookie
+import ratpack.session.clientside.serializer.JavaValueSerializer
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.IgnoreRest
 
 import java.time.Duration
 import java.util.stream.Collectors
@@ -481,7 +483,6 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    println "SET"
     get("s/foo/bar")
     def attrs = getSessionAttrs(clientSessionService, "/")
     long lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
@@ -491,9 +492,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     lastAccessTime > 0
 
     when:
-    println "WAIT"
     get("wait")
-    println "GET"
     get("")
     attrs = getSessionAttrs(clientSessionService, "/")
     lastAccessTime = getSessionLastAccessTime(clientSessionService, "/")
@@ -501,5 +500,107 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     then:
     attrs["foo"] == null
     lastAccessTime == -1
+  }
+
+  def "serialization of Integer returns Integer"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+          valueSerializer = new JavaValueSerializer()
+        }
+      }
+    }
+
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService)
+      }
+      get("") { SessionStorage sessionStorage ->
+        render "null"
+      }
+      get("s/:attr") { SessionStorage sessionStorage ->
+        String attr = pathTokens.attr
+        if (attr) {
+          sessionStorage.set(attr, Integer.valueOf(10)).then({
+            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+          })
+        } else {
+          clientError(404)
+        }
+      }
+    }
+
+    when:
+    get("s/foo")
+    def attrs = getSessionAttrs(clientSessionService, "/")
+
+    then:
+    attrs["foo"] instanceof Integer
+    attrs["foo"] == 10
+  }
+
+  @IgnoreRest
+  def "serialization of custom class returns its instance"() {
+    bindings {
+      add ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+          valueSerializer = new JavaValueSerializer()
+        }
+      }
+    }
+
+    def clientSessionService = null
+    handlers {
+      if (!clientSessionService) {
+        clientSessionService = registry.get(SessionService)
+      }
+      get("") { SessionStorage sessionStorage ->
+        render "null"
+      }
+      get("s/foo") { SessionStorage sessionStorage ->
+        SerializableTypes.TypeA t = new SerializableTypes.TypeA()
+        t.valueInt = Integer.valueOf(10)
+        t.valueDouble = Double.valueOf(10.123)
+        sessionStorage.set("foo", t).then({
+          render "ATTR: foo"
+        })
+      }
+      get("s/bar") { SessionStorage sessionStorage ->
+        SerializableTypes.TypeA ta = new SerializableTypes.TypeA()
+        ta.valueInt = Integer.valueOf(20)
+        ta.valueDouble = Double.valueOf(20.123)
+        SerializableTypes.TypeB tb = new SerializableTypes.TypeB()
+        tb.valueStr = "BAR"
+        tb.typeA = ta
+        sessionStorage.set("bar", tb).then({
+          render "ATTR: bar"
+        })
+      }
+    }
+
+    when:
+    get("s/foo")
+    get("s/bar")
+    def attrs = getSessionAttrs(clientSessionService, "/")
+
+    then:
+    attrs["foo"] instanceof SerializableTypes.TypeA
+    with(attrs["foo"]) {
+      valueInt instanceof Integer
+      valueDouble instanceof Double
+
+      valueInt == Integer.valueOf(10)
+      valueDouble == Double.valueOf(10.123)
+    }
+    attrs["bar"] instanceof SerializableTypes.TypeB
+    with(attrs["bar"]) {
+      valueStr == "BAR"
+      typeA instanceof SerializableTypes.TypeA
+      typeA.valueInt == 20
+      typeA.valueDouble == 20.123
+    }
   }
 }

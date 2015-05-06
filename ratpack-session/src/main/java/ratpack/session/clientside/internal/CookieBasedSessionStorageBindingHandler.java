@@ -50,7 +50,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   public void handle(final Context context) {
     context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
-      Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
+      Cookie[] sessionCookies = getSessionCookies(context.getRequest().getCookies());
       ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
       ChangeTrackingSessionStorage changeTrackingSessionStorage = null;
       if (!maxInactivityInterval.isNegative()) {
@@ -80,8 +80,6 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       if (storageOptional.isPresent()) {
         ChangeTrackingSessionStorage storage = storageOptional.get();
         if (storage.hasChanged()) {
-          Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
-
           storage.getKeys().then((keys) -> {
             context.stream(Streams.publish(keys))
               .flatMap((key) -> storage.get(key, Object.class).map((value) -> {
@@ -92,26 +90,27 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
                 }
               }))
               .toList().then((entryList) -> {
-              for (Map.Entry<String, Object> entry : entryList) {
-                if (entry != null) {
-                  entries.add(entry);
+                Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
+                for (Map.Entry<String, Object> entry : entryList) {
+                  if (entry != null) {
+                    entries.add(entry);
+                  }
                 }
-              }
-              int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
-              int currentSessionCookieCount = 0;
+                int initialSessionCookieCount = getSessionCookies(context.getRequest().getCookies()).length;
+                int currentSessionCookieCount = 0;
 
-              if (!entries.isEmpty()) {
-                entries.add(new AbstractMap.SimpleImmutableEntry<String, Object>(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis())));
-                ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-                String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
-                for (int i = 0; i < cookieValuePartitions.length; i++) {
-                  addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                if (!entries.isEmpty()) {
+                  entries.add(new AbstractMap.SimpleImmutableEntry<String, Object>(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis())));
+                  ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+                  String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
+                  for (int i = 0; i < cookieValuePartitions.length; i++) {
+                    addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                  }
+                  currentSessionCookieCount = cookieValuePartitions.length;
                 }
-                currentSessionCookieCount = cookieValuePartitions.length;
-              }
-              for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
-                invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
-              }
+                for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
+                  invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
+                }
             });
           });
         }
@@ -121,7 +120,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.next();
   }
 
-  private Cookie[] findSessionCookies(Set<Cookie> cookies) {
+  private Cookie[] getSessionCookies(Set<Cookie> cookies) {
     if (cookies == null) {
       return new Cookie[0];
     }

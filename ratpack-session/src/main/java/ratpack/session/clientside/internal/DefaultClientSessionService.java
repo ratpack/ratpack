@@ -25,6 +25,7 @@ import io.netty.util.CharsetUtil;
 import ratpack.session.clientside.Crypto;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.clientside.Signer;
+import ratpack.session.clientside.ValueSerializer;
 import ratpack.util.Exceptions;
 
 import java.nio.CharBuffer;
@@ -45,10 +46,12 @@ public class DefaultClientSessionService implements SessionService {
 
   private final Signer signer;
   private final Crypto crypto;
+  private final ValueSerializer valueSerializer;
 
-  public DefaultClientSessionService(Signer signer, Crypto crypto) {
+  public DefaultClientSessionService(Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
     this.signer = signer;
     this.crypto = crypto;
+    this.valueSerializer = valueSerializer;
   }
 
   @Override
@@ -77,7 +80,7 @@ public class DefaultClientSessionService implements SessionService {
       for (Map.Entry<String, Object> entry : entries) {
         buffers[i++] = encode(bufferAllocator, entry.getKey());
         buffers[i++] = EQUALS;
-        buffers[i++] = encode(bufferAllocator, entry.getValue().toString());
+        buffers[i++] = valueSerializer.serialize(bufferAllocator, entry.getValue());
 
         if (i < buffers.length) {
           buffers[i++] = AMPERSAND;
@@ -99,6 +102,8 @@ public class DefaultClientSessionService implements SessionService {
 
       return payloadString + SESSION_SEPARATOR + digestString;
 
+    } catch (Exception e) {
+      throw Exceptions.uncheck(e);
     } finally {
       for (ByteBuf buffer : buffers) {
         if (buffer != null) {
@@ -125,7 +130,6 @@ public class DefaultClientSessionService implements SessionService {
 
   private ConcurrentMap<String, Object> deserializeSession(String cookieValue) {
     ConcurrentMap<String, Object> sessionStorage = new ConcurrentHashMap<>();
-
     String encodedPairs = cookieValue;
     if (encodedPairs != null) {
       String[] parts = encodedPairs.split(SESSION_SEPARATOR);
@@ -148,8 +152,7 @@ public class DefaultClientSessionService implements SessionService {
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payload, CharsetUtil.UTF_8, false);
             Map<String, List<String>> decoded = queryStringDecoder.parameters();
             for (Map.Entry<String, List<String>> entry : decoded.entrySet()) {
-              String value = entry.getValue().isEmpty() ? null : entry.getValue().get(0);
-              sessionStorage.put(entry.getKey(), value);
+              sessionStorage.put(entry.getKey(), valueSerializer.deserialize(entry.getValue().get(0)));
             }
           }
         } catch (Exception e) {
