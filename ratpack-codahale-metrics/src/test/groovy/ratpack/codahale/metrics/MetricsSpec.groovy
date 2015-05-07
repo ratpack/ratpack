@@ -376,26 +376,26 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
       timers.size() == 2
-      timers[0].name == "admin.metrics-report.get-requests"
-      timers[0].count == 0
-      timers[1].name == "root.get-requests"
-      timers[1].count == 2
+      timers.containsKey("admin.metrics-report.get-requests")
+      timers["admin.metrics-report.get-requests"].count == 0
+      timers.containsKey("root.get-requests")
+      timers["root.get-requests"].count == 2
 
       gauges.size() == 1
-      gauges[0].name == "fooGauge"
-      gauges[0].value == 2
+      gauges.containsKey("fooGauge")
+      gauges["fooGauge"].value == 2
 
       meters.size() == 1
-      meters[0].name == "fooMeter"
-      meters[0].count == 2
+      meters.containsKey("fooMeter")
+      meters["fooMeter"].count == 2
 
       counters.size() == 1
-      counters[0].name == "fooCounter"
-      counters[0].count == 2
+      counters.containsKey("fooCounter")
+      counters["fooCounter"].count == 2
 
       histograms.size() == 1
-      histograms[0].name == "fooHistogram"
-      histograms[0].count == 2
+      histograms.containsKey("fooHistogram")
+      histograms["fooHistogram"].count == 2
     }
 
     when:
@@ -404,26 +404,26 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
       timers.size() == 2
-      timers[0].name == "admin.metrics-report.get-requests"
-      timers[0].count == 0
-      timers[1].name == "root.get-requests"
-      timers[1].count == 4
+      timers.containsKey("admin.metrics-report.get-requests")
+      timers["admin.metrics-report.get-requests"].count == 0
+      timers.containsKey("root.get-requests")
+      timers["root.get-requests"].count == 4
 
       gauges.size() == 1
-      gauges[0].name == "fooGauge"
-      gauges[0].value == 2
+      gauges.containsKey("fooGauge")
+      gauges["fooGauge"].value == 2
 
       meters.size() == 1
-      meters[0].name == "fooMeter"
-      meters[0].count == 4
+      meters.containsKey("fooMeter")
+      meters["fooMeter"].count == 4
 
       counters.size() == 1
-      counters[0].name == "fooCounter"
-      counters[0].count == 4
+      counters.containsKey("fooCounter")
+      counters["fooCounter"].count == 4
 
       histograms.size() == 1
-      histograms[0].name == "fooHistogram"
-      histograms[0].count == 4
+      histograms.containsKey("fooHistogram")
+      histograms["fooHistogram"].count == 4
     }
 
     cleanup:
