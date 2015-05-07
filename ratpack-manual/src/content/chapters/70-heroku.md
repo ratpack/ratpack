@@ -18,9 +18,6 @@ The rest of this chapter outlines the requirements and necessary configuration f
 Ratpack applications can be built by any build system, but the Ratpack team recommends [Gradle](http://gradle.org).
 Heroku has native support for Gradle via the [Gradle buildpack](https://devcenter.heroku.com/articles/buildpacks), which works well with the Ratpack Gradle plugins.
 
-All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
-If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
-
 ### Building
 
 The Gradle buildpack will invoke `./gradlew stage`.
@@ -96,6 +93,23 @@ web: env "FOO_BAR_OPTS=-Dapp.dbPassword=$SECRET_DB_PASSWORD" build/install/«pro
 ```
 
 Now it is easy to see which properties and environment variables are set in the source tree, but sensitive values are only visible via the Heroku management tools.
+
+### Creating the gradle wrapper
+All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
+If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
+
+```language-bash
+gradle wrapper
+```
+
+### Verifing before deployment to Heroku
+
+You can validate that your application runs properly by starting it with [Foreman](https://github.com/ddollar/foreman).
+
+```language-bash
+foreman start
+```
+
 
 ## Other build tools and binary deployments
 
