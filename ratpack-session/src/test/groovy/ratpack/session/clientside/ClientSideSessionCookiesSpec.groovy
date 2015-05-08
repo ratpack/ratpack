@@ -20,7 +20,6 @@ import io.netty.handler.codec.http.Cookie
 import ratpack.session.clientside.serializer.JavaValueSerializer
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.IgnoreRest
 
 import java.time.Duration
 import java.util.stream.Collectors
@@ -504,7 +503,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
 
   def "serialization of Integer returns Integer"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
           valueSerializer = new JavaValueSerializer()
@@ -541,10 +540,9 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     attrs["foo"] == 10
   }
 
-  @IgnoreRest
   def "serialization of custom class returns its instance"() {
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
           valueSerializer = new JavaValueSerializer()
