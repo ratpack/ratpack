@@ -34,7 +34,6 @@ public class DefaultSessionStorage implements SessionStorage {
     this.execControl = execControl;
   }
 
-
   @Override
   public <T> Promise<Optional<T>> get(String key, Class<T> type) {
     return execControl.blocking(() -> {

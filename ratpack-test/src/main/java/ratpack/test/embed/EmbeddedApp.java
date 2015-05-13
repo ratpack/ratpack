@@ -99,6 +99,17 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @param definition a function to create the server to embed
    * @return a newly created embedded application
    */
+  static EmbeddedApp fromServer(ServerConfig.Builder serverConfig, Action<? super RatpackServerSpec> definition) {
+    return fromServer(serverConfig.build(), definition);
+  }
+
+  /**
+   * Creates an embedded application using the given server config, and server creating function.
+   *
+   * @param serverConfig the server configuration
+   * @param definition a function to create the server to embed
+   * @return a newly created embedded application
+   */
   static EmbeddedApp fromServer(ServerConfig serverConfig, Action<? super RatpackServerSpec> definition) {
     return fromServer(uncheck(() -> RatpackServer.of(b -> definition.execute(b.serverConfig(serverConfig)))));
   }

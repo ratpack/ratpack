@@ -62,7 +62,7 @@ class GuiceLifecycleEventSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == ['foo', 'bar'].toString()
+    text == ['bar', 'foo'].toString()
   }
 
 }

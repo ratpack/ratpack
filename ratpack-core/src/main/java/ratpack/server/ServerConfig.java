@@ -89,7 +89,9 @@ public interface ServerConfig extends ConfigData {
   }
 
   /**
-   * Creates a builder by finding a properties file with the default name ({@value ServerConfig.Builder#DEFAULT_BASE_DIR_MARKER_FILE_PATH}).
+   * Creates a server config builder with the {@link ServerConfig#getBaseDir() base dir} as the “directory” on the classpath that contains a file called {@code .ratpack}.
+   * <p>
+   * Calling this method is equivalent to calling {@link #findBaseDir(String) findBaseDir(".ratpack")}.
    *
    * @return a server config builder
    * @see #findBaseDir(String)
@@ -99,16 +101,16 @@ public interface ServerConfig extends ConfigData {
   }
 
   /**
-   * Creates a builder based on a properties file with the given path either on the classpath or relative to the working directory.
+   * Creates a server config builder with the {@link ServerConfig#getBaseDir() base dir} as the “directory” on the classpath that contains the marker file at the given path.
    * <p>
-   * The file is first searched for relative to the JVM's working directory, and then as a classpath resource via the context class loader.
+   * The classpath search is performed using {@link ClassLoader#getResource(String)} using the current thread's {@link Thread#getContextClassLoader() context class loader}.
    * <p>
-   * If found, the file will be loaded as a properties file, where entries effectively map to methods of this builder.
-   * The parent directory of the file will be used as the {@link ServerConfig#getBaseDir()}.
+   * If the resource is not found, an {@link IllegalStateException} will be thrown.
    * <p>
-   * It is typical for the properties file to be empty, and just be used to find the base dir.
+   * If the resource is found, the enclosing directory of the resource will be converted to a {@link Path} and set as the base dir.
+   * This allows a directory within side a JAR (that is on the classpath) to be used as the base dir potentially.
    *
-   * @param markerFilePath the relative path to the properties file
+   * @param markerFilePath the path to the marker file on the classpath
    * @return a server config builder
    */
   static Builder findBaseDir(String markerFilePath) {

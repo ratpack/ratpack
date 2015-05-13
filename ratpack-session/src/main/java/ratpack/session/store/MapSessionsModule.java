@@ -16,15 +16,16 @@
 
 package ratpack.session.store;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
+import com.google.inject.Inject;
 import com.google.inject.multibindings.Multibinder;
+import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
+import ratpack.server.ServerConfig;
 import ratpack.session.Session;
 import ratpack.session.SessionManager;
 import ratpack.session.store.internal.DefaultSessionStore;
 
-import javax.inject.Singleton;
+import javax.inject.Provider;
 
 /**
  * An extension module that provides an in memory map store for sessions, {@link SessionStore}.
@@ -49,10 +50,33 @@ import javax.inject.Singleton;
  * }
  * </pre>
  */
-public class MapSessionsModule extends AbstractModule {
+public class MapSessionsModule extends ConfigurableModule<MapSessionsModule.Config> {
 
   private final int maxEntries;
   private final int idleTimeoutMinutes;
+
+  public static class Config {
+    private final int maxEntries;
+    private final int idleTimeoutMinutes;
+
+    public Config(int maxEntries, int idleTimeoutMinutes) {
+      this.maxEntries = maxEntries;
+      this.idleTimeoutMinutes = idleTimeoutMinutes;
+    }
+
+    public int getMaxEntries() {
+      return maxEntries;
+    }
+
+    public int getIdleTimeoutMinutes() {
+      return idleTimeoutMinutes;
+    }
+  }
+
+  @Override
+  protected Config createConfig(ServerConfig serverConfig) {
+    return new Config(maxEntries, idleTimeoutMinutes);
+  }
 
   /**
    * Creates a new module with the given configuration for session storage.
@@ -78,15 +102,26 @@ public class MapSessionsModule extends AbstractModule {
         ctx.next();
       }
     ));
+
+    bind(SessionStore.class).toProvider(SessionStoreProvider.class).asEagerSingleton();
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  @Provides
-  @Singleton
-  SessionStore provideMapSessionStore(SessionManager sessionManager) {
-    DefaultSessionStore defaultMapSessionStore = new DefaultSessionStore(maxEntries, idleTimeoutMinutes);
-    sessionManager.addSessionListener(defaultMapSessionStore);
-    return defaultMapSessionStore;
+  static class SessionStoreProvider implements Provider<SessionStore> {
+    private final SessionManager sessionManager;
+    private final Config config;
+
+    @Inject
+    public SessionStoreProvider(SessionManager sessionManager, Config config) {
+      this.sessionManager = sessionManager;
+      this.config = config;
+    }
+
+    @Override
+    public SessionStore get() {
+      DefaultSessionStore defaultMapSessionStore = new DefaultSessionStore(config.maxEntries, config.idleTimeoutMinutes);
+      sessionManager.addSessionListener(defaultMapSessionStore);
+      return defaultMapSessionStore;
+    }
   }
 
 }

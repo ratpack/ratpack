@@ -230,6 +230,18 @@ public interface BindingsSpec extends RegistrySpec {
     });
   }
 
+  default <T> BindingsSpec multiBindInstance(TypeLiteral<T> publicType, T instance) {
+    return uncheck(() -> {
+      return multiBinder(publicType, b -> b.addBinding().toInstance(instance));
+    });
+  }
+
+  default <T> BindingsSpec multiBindInstance(TypeToken<T> publicType, T instance) {
+    return uncheck(() -> {
+      return multiBinder(publicType, b -> b.addBinding().toInstance(instance));
+    });
+  }
+
   default <T> BindingsSpec multiBindInstance(T instance) {
     Class<T> type = Types.cast(instance.getClass());
     return multiBindInstance(type, instance);
@@ -293,13 +305,13 @@ public interface BindingsSpec extends RegistrySpec {
 
   @Override
   default <O> RegistrySpec add(TypeToken<? super O> type, O object) {
-    return bindInstance(type, object);
+    return multiBindInstance(type, object);
   }
 
   @SuppressWarnings({"Anonymous2MethodRef", "Convert2Lambda"})
   @Override
   default <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
-    return provider(type, new Provider<O>() {
+    return multiBindProvider(type, new Provider<O>() {
       @Override
       public O get() {
         return supplier.get();

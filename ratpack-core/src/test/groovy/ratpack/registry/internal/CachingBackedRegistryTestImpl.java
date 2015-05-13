@@ -16,14 +16,13 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Pair;
 import ratpack.registry.RegistryBacking;
+import ratpack.util.Types;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,28 +31,20 @@ import java.util.List;
  * Subclass of CachingSupplierRegistry for testing CachingSupplierRegistry
  */
 public class CachingBackedRegistryTestImpl extends CachingBackedRegistry {
-  final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries;
+
+  private final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries;
 
   public CachingBackedRegistryTestImpl() {
-    this(new LinkedList<Pair<TypeToken<?>, ? extends Supplier<?>>>());
+    this(new LinkedList<>());
   }
 
   public CachingBackedRegistryTestImpl(final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries) {
     super(new RegistryBacking() {
       @Override
       public <T> Iterable<Supplier<? extends T>> provide(final TypeToken<T> typeToken) {
-        return FluentIterable.from(supplierEntries).filter(new Predicate<Pair<TypeToken<?>, ? extends Supplier<?>>>() {
-          @Override
-          public boolean apply(Pair<TypeToken<?>, ? extends Supplier<?>> entry) {
-            return typeToken.isAssignableFrom(entry.getLeft());
-          }
-        }).transform(new Function<Pair<TypeToken<?>, ? extends Supplier<?>>, Supplier<? extends T>>() {
-          @Override
-          @SuppressWarnings("unchecked")
-          public Supplier<? extends T> apply(Pair<TypeToken<?>, ? extends Supplier<?>> input) {
-            return (Supplier<? extends T>) input.getRight();
-          }
-        });
+        return FluentIterable.from(supplierEntries)
+          .filter(entry -> typeToken.isAssignableFrom(entry.getLeft()))
+          .transform(input -> Types.cast(input.getRight()));
       }
     });
     this.supplierEntries = supplierEntries;

@@ -16,17 +16,19 @@
 
 package ratpack.guice
 
-import com.google.common.reflect.TypeToken
 import com.google.inject.Binder
 import com.google.inject.Injector
 import com.google.inject.Module
 import com.google.inject.Provider
-import ratpack.func.Function
+import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
+import ratpack.registry.Registries
 import ratpack.registry.Registry
-import spock.lang.Specification
+import ratpack.registry.RegistrySpec
+import ratpack.server.ServerConfig
+import ratpack.test.internal.registry.RegistryContractSpec
 
-class GuiceRegistrySpec extends Specification {
+class GuiceRegistrySpec extends RegistryContractSpec {
 
   Injector injector = Mock(Injector)
   @Delegate
@@ -42,6 +44,15 @@ class GuiceRegistrySpec extends Specification {
         ClosureUtil.configureDelegateFirst(binder, closure)
       }
     })
+  }
+
+  @Override
+  Registry build(Action<? super RegistrySpec> spec) {
+    Guice.registry(
+      Guice.buildInjector(Registries.just(ServerConfig.embedded().build()), spec) { Module it ->
+        com.google.inject.Guice.createInjector(it)
+      }
+    )
   }
 
   def "lookups are cached"() {
@@ -78,48 +89,9 @@ class GuiceRegistrySpec extends Specification {
     1 * injector.getAllBindings() >> realInjector.getAllBindings()
   }
 
-  def "get all returns all that are assignment compatible"() {
-    given:
-    realInjector {
-      bind(String).toInstance("string")
-      bind(GString).toInstance("${'gstring'}")
-      bind(CharSequence).toInstance("charsequence")
-    }
-
-    when:
-    registry.getAll(CharSequence) == ["string", "gstring", "charsequence"]
-    registry.getAll(CharSequence) == ["string", "gstring", "charsequence"]
-
-    then:
-    1 * injector.getAllBindings() >> realInjector.getAllBindings()
-  }
-
-  def "search with multiple items"() {
-    given:
-    TypeToken charseq = TypeToken.of(CharSequence)
-    TypeToken number = TypeToken.of(Number)
-    def a = "A"
-    def b = "B"
-    def c = 42
-    def d = 16
-    realInjector {
-      bind(String).toInstance(a)
-      bind(CharSequence).toInstance(b)
-      bind(Number).toInstance(c)
-      bind(Integer).toInstance(d)
-    }
-    injector.getAllBindings() >> realInjector.getAllBindings()
-
-    expect:
-    registry.first(charseq, Function.identity()).get() == a
-    registry.first(charseq, { CharSequence s -> s.startsWith('B') ? s : null }).get() == b
-    registry.first(number, Function.identity()).get() == c
-    registry.first(number, { Number n -> n < 20 ? n : null }).get() == d
-  }
-
   def "equals and hashCode should be implemented"() {
     given:
-    def otherRegistry = ratpack.guice.Guice.registry(injector)
+    def otherRegistry = Guice.registry(injector)
     expect:
     otherRegistry.equals(registry)
     registry.equals(otherRegistry)
