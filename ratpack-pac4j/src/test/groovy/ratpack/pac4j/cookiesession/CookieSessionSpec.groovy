@@ -43,6 +43,10 @@ class CookieSessionSpec extends RatpackGroovyDslSpec {
   def "successful authorization"() {
     given:
     bindings {
+      module new Pac4jModule<>(
+        new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()),
+        new PathAuthorizer()
+      )
       module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
@@ -52,10 +56,7 @@ class CookieSessionSpec extends RatpackGroovyDslSpec {
           valueSerializer = new JavaValueSerializer()
         }
       }
-      module new Pac4jModule<>(
-        new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()),
-        new PathAuthorizer()
-      )
+
     }
 
     handlers {
