@@ -16,27 +16,17 @@
 
 package ratpack.registry.internal
 
-import com.google.common.reflect.TypeToken
-import ratpack.func.Function
-import spock.lang.Specification
+import ratpack.func.Action
+import ratpack.registry.Registries
+import ratpack.registry.Registry
+import ratpack.registry.RegistrySpec
+import ratpack.test.internal.registry.RegistryContractSpec
 
-class SingleEntryRegistrySpec extends Specification {
+class BuiltRegistrySpec extends RegistryContractSpec {
 
-  def r
-  def sameType = TypeToken.of(String)
-  def differentType = TypeToken.of(Number)
-  def value = "Something"
-
-  def setup() {
-    r = new SingleEntryRegistry(new DefaultRegistryEntry(sameType, value))
-  }
-
-  def "find first"() {
-    expect:
-    r.first(sameType, Function.identity()).get() == value
-    !r.first(sameType, Function.constant(null)).present
-    !r.first(differentType, Function.identity()).present
-    !r.first(differentType, Function.constant(null)).present
+  @Override
+  Registry build(Action<? super RegistrySpec> spec) {
+    Registries.registry(spec)
   }
 
 }

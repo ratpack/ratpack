@@ -65,9 +65,9 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *
  *   public static class ServiceModule extends AbstractModule {
  *     protected void configure() {
- *       install(new Pac4jModule<>(new GitHubClient("key", "secret"), new MyAuthorizer()));
- *       install(new MapSessionsModule(10, 5));
  *       install(new SessionModule());
+ *       install(new MapSessionsModule(10, 5));
+ *       install(new Pac4jModule<>(new GitHubClient("key", "secret"), new MyAuthorizer()));
  *     }
  *   }
  *

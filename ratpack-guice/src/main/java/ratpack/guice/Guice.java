@@ -24,7 +24,6 @@ import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.func.Pair;
 import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
@@ -212,8 +211,8 @@ public abstract class Guice {
   }
 
   private static Registry registry(Action<? super BindingsSpec> bindings, Registry baseRegistry, Function<Module, Injector> injectorFactory) throws Exception {
-    Pair<List<Module>, Injector> pair = buildInjector(baseRegistry, bindings, injectorFactory);
-    return registry(pair.right);
+    Injector injector = buildInjector(baseRegistry, bindings, injectorFactory);
+    return registry(injector);
   }
 
   public static Function<Module, Injector> newInjectorFactory(final ServerConfig serverConfig) {
@@ -225,7 +224,7 @@ public abstract class Guice {
     return from -> from == null ? parent.createChildInjector() : parent.createChildInjector(from);
   }
 
-  private static Pair<List<Module>, Injector> buildInjector(Registry baseRegistry, Action<? super BindingsSpec> bindingsAction, Function<? super Module, ? extends Injector> injectorFactory) throws Exception {
+  static Injector buildInjector(Registry baseRegistry, Action<? super BindingsSpec> bindingsAction, Function<? super Module, ? extends Injector> injectorFactory) throws Exception {
     List<Action<? super Binder>> binderActions = Lists.newLinkedList();
     List<Module> modules = Lists.newLinkedList();
 
@@ -244,7 +243,7 @@ public abstract class Guice {
     Injector injector = injectorFactory.apply(masterModule);
 
     Collections.reverse(modules);
-    return Pair.of(modules, injector);
+    return injector;
   }
 
 

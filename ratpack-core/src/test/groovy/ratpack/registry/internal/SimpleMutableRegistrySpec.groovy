@@ -16,12 +16,22 @@
 
 package ratpack.registry.internal
 
+import ratpack.func.Action
 import ratpack.registry.NotInRegistryException
-import spock.lang.Specification
+import ratpack.registry.Registry
+import ratpack.registry.RegistrySpec
+import ratpack.test.internal.registry.RegistryContractSpec
 
-class SimpleMutableRegistrySpec extends Specification {
+class SimpleMutableRegistrySpec extends RegistryContractSpec {
 
   def r = new SimpleMutableRegistry()
+
+  @Override
+  Registry build(Action<? super RegistrySpec> spec) {
+    def r = new SimpleMutableRegistry()
+    spec.execute(r)
+    r
+  }
 
   def "empty mutable registry"() {
     expect:

@@ -20,7 +20,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class HandlerDecorationSpec extends RatpackGroovyDslSpec {
 
-  def "decorators are applied LIFO"() {
+  def "decorators are applied FIFO"() {
     given:
     def events = []
 
@@ -35,6 +35,6 @@ class HandlerDecorationSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "ok"
-    events == ["2", "1"]
+    events == ["1", "2"]
   }
 }

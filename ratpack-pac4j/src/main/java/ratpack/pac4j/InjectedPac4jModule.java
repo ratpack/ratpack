@@ -75,9 +75,9 @@ import java.lang.reflect.Type;
  *     protected void configure() {
  *       bind(new TypeLiteral<Client<OAuthCredentials, GitHubProfile>>() {}).toInstance(new GitHubClient("key", "secret"));
  *       bind(Authorizer.class).to(MyAuthorizer.class);
- *       install(new InjectedPac4jModule<>(OAuthCredentials.class, GitHubProfile.class));
- *       install(new MapSessionsModule(10, 5));
  *       install(new SessionModule());
+ *       install(new MapSessionsModule(10, 5));
+ *       install(new InjectedPac4jModule<>(OAuthCredentials.class, GitHubProfile.class));
  *     }
  *   }
  *

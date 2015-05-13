@@ -64,7 +64,7 @@ class GenericTypeLookupSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "a:b"
+    text == "b:a"
   }
 
   def "can retrieve all via supertype type tokens"() {
@@ -86,6 +86,6 @@ class GenericTypeLookupSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "a:b"
+    text == "b:a"
   }
 }

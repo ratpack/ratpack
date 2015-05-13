@@ -18,12 +18,12 @@ package ratpack.spring.internal;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import ratpack.registry.RegistryBacking;
-
-import java.util.Arrays;
+import ratpack.util.Types;
 
 public class SpringRegistryBacking implements RegistryBacking {
   private final ListableBeanFactory beanFactory;
@@ -35,11 +35,12 @@ public class SpringRegistryBacking implements RegistryBacking {
   @Override
   public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
     return FluentIterable.from(
-      Arrays.asList(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, type.getRawType()))
-    ).transform(beanName -> () -> {
-      @SuppressWarnings("unchecked") T bean = (T) beanFactory.getBean(beanName);
-      return bean;
-    });
+      ImmutableList.copyOf(
+        BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, type.getRawType())
+      ).reverse()
+    ).transform(beanName ->
+      () -> Types.cast(beanFactory.getBean(beanName))
+    );
   }
 
   @Override
