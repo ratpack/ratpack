@@ -2,6 +2,43 @@
 
 This chapter provides instructions on how to get a Ratpack application up and running to play with.
 
+## Using a Groovy script
+
+A Ratpack application can be implemented as a single Groovy script.
+This is a useful way to experiment with Ratpack and Groovy.
+
+First, [install Groovy](http://groovy-lang.org/install.html).
+
+Create the file `ratpack.groovy` with the following content:
+ 
+```language-groovy hello-world-grab
+@Grab('io.ratpack:ratpack-groovy:@ratpack-version@')
+import static ratpack.groovy.Groovy.ratpack
+
+ratpack {
+    handlers {
+        get {
+            render "Hello World!"
+        }
+        get(":name") {
+            render "Hello $pathTokens.name!"
+        }
+    }
+}
+``` 
+
+You can now start the app by running the following on the command line:
+
+```language-bash
+groovy ratpack.groovy
+```
+
+The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
+The “Groovy Handler Chain DSL” is used to build the response handling strategy.
+
+Changes to the file are live during development.
+You can edit the file, and the changes will take effect on the next request.
+
 ## Using the Gradle plugin(s)
 
 We recommend the use of the [Gradle build system](http:///www.gradle.org) to build Ratpack applications.
@@ -123,43 +160,6 @@ Changes to the `ratpack.groovy` file are live during development.
 You can edit the file, and the changes will take effect on the next request.
 
 For further information on using Ratpack with Groovy, please the [Groovy](groovy.html) chapter.
-
-## Using a Groovy script
-
-A Ratpack application can be implemented as a single Groovy script.
-This is a useful way to experiment with Ratpack and Groovy.
-
-First, [install Groovy](http://groovy-lang.org/install.html).
-
-Create the file `ratpack.groovy` with the following content:
- 
-```language-groovy hello-world-grab
-@Grab('io.ratpack:ratpack-groovy:@ratpack-version@')
-import static ratpack.groovy.Groovy.ratpack
-
-ratpack {
-    handlers {
-        get {
-            render "Hello World!"
-        }
-        get(":name") {
-            render "Hello $pathTokens.name!"
-        }
-    }
-}
-``` 
-
-You can now start the app by running the following on the command line:
-
-```language-bash
-groovy ratpack.groovy
-```
-
-The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
-The “Groovy Handler Chain DSL” is used to build the response handling strategy.
-
-Changes to the file are live during development.
-You can edit the file, and the changes will take effect on the next request.
 
 ## Using Lazybones project templates
 
