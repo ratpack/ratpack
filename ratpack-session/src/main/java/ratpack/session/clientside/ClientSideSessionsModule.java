@@ -26,7 +26,7 @@ import ratpack.session.clientside.internal.CookieBasedSessionStorageBindingHandl
 import ratpack.session.clientside.internal.DefaultClientSessionService;
 import ratpack.session.clientside.internal.DefaultCrypto;
 import ratpack.session.clientside.internal.DefaultSigner;
-import ratpack.session.clientside.serializer.StringValueSerializer;
+import ratpack.session.clientside.serializer.JavaValueSerializer;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Inject;
@@ -115,6 +115,7 @@ import java.time.Duration;
  *     <th>valueSerializer</th>
  *     <td>The {@link ratpack.session.clientside.ValueSerializer} used to serialize/deserialize particular session entry value.
  *          Defaults to {@link ratpack.session.clientside.serializer.JavaValueSerializer}.
+ *          Available is {@link ratpack.session.clientside.serializer.StringValueSerializer} too.
  *     </td>
  *   </tr>
  * </table>
@@ -240,7 +241,7 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
   ValueSerializer provideValueSerializer(Config config) {
     ValueSerializer valueSerializer = config.getValueSerializer();
     if (valueSerializer == null) {
-      valueSerializer = new StringValueSerializer();
+      valueSerializer = new JavaValueSerializer();
     }
     return valueSerializer;
   }
@@ -279,7 +280,7 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
     private String path = "/";
     private String domain;
-    private int maxCookieSize = 2048;
+    private int maxCookieSize = 1932;
     private Duration maxInactivityInterval = Duration.ofSeconds(120);
     private SessionService sessionService;
     private ValueSerializer valueSerializer;

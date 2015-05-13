@@ -22,6 +22,7 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
+import ratpack.session.clientside.serializer.StringValueSerializer
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -29,7 +30,11 @@ import spock.lang.Unroll
 class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    modules << new ClientSideSessionsModule()
+    def m = new ClientSideSessionsModule()
+    def c = new ClientSideSessionsModule.Config()
+    c.valueSerializer = new StringValueSerializer()
+    m.setConfig(c)
+    modules << m
   }
 
   private String getSetCookie() {
@@ -349,11 +354,13 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
                               secretToken = "secret"
                               sessionName = "_sess"
                               macAlgorithm = "HmacMD5"
+                              valueSerializer = new StringValueSerializer()
                             }, {
                               secretToken = "secret"
                               secretKey = "a" * 16
                               sessionName = "_sess"
                               macAlgorithm = "HmacMD5"
+                              valueSerializer = new StringValueSerializer()
                             }]
 
   }
@@ -365,6 +372,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     bindings {
       module ClientSideSessionsModule, {
         it.secretKey = "a" * 16
+        it.valueSerializer = new StringValueSerializer()
       }
     }
 
@@ -420,6 +428,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
           }
           secretKey = "a" * length
           cipherAlgorithm = algorithm
+          valueSerializer = new StringValueSerializer()
         }
       }
     }

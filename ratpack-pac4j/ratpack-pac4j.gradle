@@ -38,6 +38,12 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
   }
+
+  testCompile("org.pac4j:pac4j-http:${commonVersions.pac4j}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.google.inject", module: "guice"
+  }
+
   testCompile project(":ratpack-groovy-test")
   testCompile commonDependencies.spock
   testCompile 'org.eclipse.jetty.aggregate:jetty-all:9.2.10.v20150310'

@@ -18,6 +18,7 @@ package ratpack.session.clientside
 
 import io.netty.handler.codec.http.Cookie
 import ratpack.session.clientside.serializer.JavaValueSerializer
+import ratpack.session.clientside.serializer.StringValueSerializer
 import ratpack.session.store.SessionStorage
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -240,7 +241,9 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String value = pathTokens.value
         if (attr && value) {
           sessionStorage.set(attr, value).then({
-            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+            sessionStorage.get(attr, String).then({
+              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
+            })
           })
         } else {
           clientError(404)
@@ -286,11 +289,12 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     attrs["baz"] == "quux"
   }
 
-  def "large session partitioned into session cookies"() {
+  def "large session partitioned into many session cookies - values serialized as string"() {
     bindings {
       module ClientSideSessionsModule, {
         it.with {
           secretKey = "aaaaaaaaaaaaaaaa"
+          valueSerializer = new StringValueSerializer()
         }
       }
     }
@@ -298,12 +302,79 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     handlers {
       get("set") { SessionStorage sessionStorage ->
         String value = ""
-        for (int i = 0; i < 1024; i++) {
+        for (int i = 0; i < 800/*1024*/; i++) {
           value += "ab"
         }
         sessionStorage.set("foo", value).then({
           sessionStorage.get("foo", String).then({
+            render "SET"
+          })
+        })
+      }
+      get("setsmall") { SessionStorage sessionStorage ->
+        sessionStorage.set("foo", "val1").then({
+          sessionStorage.get("foo", String).then({
             render it.orElse("null")
+          })
+        })
+      }
+      get("clear") { SessionStorage sessionStorage ->
+        sessionStorage.remove("foo").then({
+          render ""
+        })
+      }
+    }
+
+    when:
+    get("set")
+
+    then:
+    getCookies("/").size() == 2
+
+    when:
+    get("setsmall")
+
+    then:
+    getCookies("/").size() == 1
+
+    when:
+    get("clear")
+
+    then:
+    getCookies("/").size == 0
+
+    when:
+    get("set")
+
+    then:
+    getCookies("/").size() == 2
+
+    when:
+    get("clear")
+
+    then:
+    getCookies("/").size() == 0
+  }
+
+  def "large session partitioned into many session cookies - values serialized as java objects"() {
+    bindings {
+      module ClientSideSessionsModule, {
+        it.with {
+          secretKey = "aaaaaaaaaaaaaaaa"
+          valueSerializer = new JavaValueSerializer()
+        }
+      }
+    }
+
+    handlers {
+      get("set") { SessionStorage sessionStorage ->
+        String value = ""
+        for (int i = 0; i < 800/*1024*/; i++) {
+          value += "ab"
+        }
+        sessionStorage.set("foo", value).then({
+          sessionStorage.get("foo", String).then({
+            render "SET"
           })
         })
       }
@@ -371,7 +442,9 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String value = pathTokens.value
         if (attr && value) {
           sessionStorage.set(attr, value).then({
-            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+            sessionStorage.get(attr, String).then({
+              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
+            })
           })
         } else {
           clientError(404)
@@ -418,7 +491,9 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String value = pathTokens.value
         if (attr && value) {
           sessionStorage.set(attr, value).then({
-            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+            sessionStorage.get(attr, String).then({
+              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
+            })
           })
         } else {
           clientError(404)
@@ -473,7 +548,9 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String value = pathTokens.value
         if (attr && value) {
           sessionStorage.set(attr, value).then({
-            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+            sessionStorage.get(attr, String).then({
+              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
+            })
           })
         } else {
           clientError(404)
@@ -523,7 +600,9 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String attr = pathTokens.attr
         if (attr) {
           sessionStorage.set(attr, Integer.valueOf(10)).then({
-            render "ATTR: ${attr} VALUE: ${sessionStorage[attr]?.toString()}"
+            sessionStorage.get(attr, Integer).then({
+              render "ATTR: ${attr} VALUE: ${it.orElse(null)}"
+            })
           })
         } else {
           clientError(404)
