@@ -28,19 +28,19 @@ import java.util.function.Consumer;
 
 public interface BaseDirBuilder extends Closeable {
 
-  public static BaseDirBuilder tmpDir() {
+  static BaseDirBuilder tmpDir() {
     return dir(Files.createTempDir());
   }
 
-  public static BaseDirBuilder dir(File dir) {
+  static BaseDirBuilder dir(File dir) {
     return new PathBaseDirBuilder(dir);
   }
 
-  public static BaseDirBuilder tmpJar() {
+  static BaseDirBuilder tmpJar() {
     return jar(Exceptions.uncheck(() -> File.createTempFile("ratpack", ".jar")));
   }
 
-  public static BaseDirBuilder jar(File jarFile) {
+  static BaseDirBuilder jar(File jarFile) {
     return new JarFileBaseDirBuilder(jarFile);
   }
 
