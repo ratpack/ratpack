@@ -61,8 +61,8 @@ class ServiceSpec extends RatpackGroovyDslSpec {
   def "services are executed in order returned by the registry"() {
     when:
     bindings {
-      multiBindInstance new RecordingService(prefix: "1 ")
       multiBindInstance new RecordingService(prefix: "2 ")
+      multiBindInstance new RecordingService(prefix: "1 ")
     }
     handlers {
       get {
@@ -84,13 +84,13 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     when:
     serverConfig { development(false) }
     bindings {
+      multiBindInstance new RecordingService(prefix: "2 ")
       bindInstance(new Service() {
         @Override
         void onStart(StartEvent event) throws Exception {
           throw new Exception("!")
         }
       })
-      multiBindInstance new RecordingService(prefix: "2 ")
     }
     handlers {
       get {
@@ -111,6 +111,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     when:
     serverConfig { development(false) }
     bindings {
+      multiBindInstance new RecordingService(prefix: "2 ")
       bindInstance(new Service() {
         @Override
         void onStart(StartEvent event) throws Exception {
@@ -122,7 +123,6 @@ class ServiceSpec extends RatpackGroovyDslSpec {
           events << "error-stop"
         }
       })
-      multiBindInstance new RecordingService(prefix: "2 ")
     }
     handlers {
       get {

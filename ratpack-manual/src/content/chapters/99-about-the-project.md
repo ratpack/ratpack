@@ -56,6 +56,14 @@ The following people have provided significant contributions.
 * [Glenn Saqui](https://github.com/gsaqui)
 * [Jeff Blaisdell](https://github.com/jeff-blaisdell)
 * [Kyle Boon](https://github.com/kyleboon)
+* [Joe Kutner](https://github.com/jkutner)
+* [David Estes](https://github.com/davydotcom)
+* [Glen Schrader](https://github.com/gschrader)
+* [Jason Winnebeck](https://github.com/gillius)
+* [Victor Vu](https://github.com/vqvu)
+* [Danny Kirchmeier](https://github.com/danthegoodman)
+* [Tom Akehurst](https://github.com/tomakehurst)
+* [Steve Anderson](https://github.com/saanvik)
 
 ### Past project members
 

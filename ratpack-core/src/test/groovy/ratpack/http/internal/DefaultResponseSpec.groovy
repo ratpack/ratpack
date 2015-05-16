@@ -265,5 +265,30 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   }
 
+  def "can finalize response before sending with async actions"() {
+    given:
+    handlers {
+      get {
+        response.beforeSend {
+          blocking { 1 }.then { response.headers.set("foo", 1) }
+        }
+        response.beforeSend {
+          blocking { 2 }.then { response.headers.set("foo", response.headers.get("foo") + ":" + it) }
+        }
+        response.beforeSend {
+          response.headers.set("foo", response.headers.get("foo") + ":3")
+        }
+        response.send()
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    with(response) {
+      headers.get("foo") == "1:2:3"
+    }
+  }
 }
 

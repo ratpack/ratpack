@@ -21,11 +21,11 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.embed.EmbeddedApp
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-class NettyRatpackServiceSpec extends Specification {
+class DefaultRatpackServiceSpec extends Specification {
 
   @Rule
   TemporaryFolder temporaryFolder
@@ -56,20 +56,13 @@ class NettyRatpackServiceSpec extends Specification {
 
   def "responds to Expect: 100-continue header"() {
     given:
-    def config = ServerConfig.embedded().port(0)
-    def client = ApplicationUnderTest.of(
-      RatpackServer.of {
-        it.serverConfig(config).handlers {
-          it.post { it.render("Hello") }
-        }
-      }
-    ).getHttpClient()
-    .requestSpec{
-      it.headers.add("Expect", "100-continue")
+    def app = EmbeddedApp.fromHandler {
+      it.post { it.render("Hello") }
     }
+    def client = app.httpClient
 
     when:
-    client.post()
+    client.requestSpec { it.headers.add("Expect", "100-continue") }.post()
 
     then:
     client.response.statusCode == 100

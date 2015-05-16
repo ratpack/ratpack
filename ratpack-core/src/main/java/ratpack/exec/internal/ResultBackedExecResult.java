@@ -18,13 +18,21 @@ package ratpack.exec.internal;
 
 import ratpack.exec.Result;
 import ratpack.exec.ExecResult;
+import ratpack.registry.Registry;
 
 public class ResultBackedExecResult<T> implements ExecResult<T> {
 
   private final Result<T> result;
+  private final Registry registry;
 
-  public ResultBackedExecResult(Result<T> result) {
+  public ResultBackedExecResult(Result<T> result, Registry registry) {
     this.result = result;
+    this.registry = registry;
+  }
+
+  @Override
+  public Registry getRegistry() {
+    return registry;
   }
 
   @Override
@@ -48,8 +56,8 @@ public class ResultBackedExecResult<T> implements ExecResult<T> {
   }
 
   @Override
-  public boolean isFailure() {
-    return result.isFailure();
+  public boolean isError() {
+    return result.isError();
   }
 
   @Override
@@ -59,6 +67,6 @@ public class ResultBackedExecResult<T> implements ExecResult<T> {
 
   @Override
   public String toString() {
-    return "ExecResult{complete=false, failure=" + getThrowable() + ", value=" + getValue() + '}';
+    return "ExecResult{complete=false, error=" + getThrowable() + ", value=" + getValue() + '}';
   }
 }

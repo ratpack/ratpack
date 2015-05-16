@@ -18,6 +18,7 @@ package ratpack.render;
 
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.registry.RegistrySpec;
@@ -93,12 +94,15 @@ public interface RenderableDecorator<T> {
    *
    * @param context the request context
    * @param object the object-to-render
-   * @return the decorated object
+   * @return a promise for the decorated object
    */
-  T decorate(Context context, T object);
+  Promise<T> decorate(Context context, T object);
 
   /**
-   * Creates a renderable decorator implementation from the given arguments.
+   * Creates a renderable decorator implementation for the given type that uses the function as decorator.
+   * <p>
+   * The function must return the renderable, not a promise.
+   * If the decoration needs to perform async ops, use {@link #ofAsync(Class, BiFunction)}.
    *
    * @param type the type of object-to-render to decorate
    * @param impl the implementation of the {@link #decorate(Context, Object)} method
@@ -113,7 +117,32 @@ public interface RenderableDecorator<T> {
       }
 
       @Override
-      public T decorate(Context context, T object) {
+      public Promise<T> decorate(Context context, T object) {
+        return context.promise(f -> f.success(impl.apply(context, object)));
+      }
+    };
+  }
+
+  /**
+   * Creates a renderable decorator implementation for the given type that uses the function as decorator.
+   * <p>
+   * The function must return a promise for the renderable.
+   * If the decoration does not need to perform async ops, use {@link #of(Class, BiFunction)}.
+   *
+   * @param type the type of object-to-render to decorate
+   * @param impl the implementation of the {@link #decorate(Context, Object)} method
+   * @param <T> the type of object-to-render to decorate
+   * @return a renderable decorator implementation
+   */
+  static <T> RenderableDecorator<T> ofAsync(Class<T> type, BiFunction<? super Context, ? super T, ? extends Promise<T>> impl) {
+    return new RenderableDecorator<T>() {
+      @Override
+      public Class<T> getType() {
+        return type;
+      }
+
+      @Override
+      public Promise<T> decorate(Context context, T object) {
         return impl.apply(context, object);
       }
     };

@@ -45,7 +45,7 @@ public interface Response extends ResponseMetaData {
    * Sends the response back to the client, with no body.
    */
   @NonBlocking
-  public void send();
+  void send();
 
   Response contentTypeIfNotSet(Supplier<CharSequence> contentType);
 

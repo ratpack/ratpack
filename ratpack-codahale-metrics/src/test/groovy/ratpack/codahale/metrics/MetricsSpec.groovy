@@ -47,7 +47,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can register metrics module"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule(), { }
+      module new CodaHaleMetricsModule(), { }
     }
     handlers { MetricRegistry metrics ->
       handler {
@@ -69,7 +69,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     and:
     bindings {
-      add new CodaHaleMetricsModule(), { it
+      module new CodaHaleMetricsModule(), { it
         .jmx()
         .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
         .console { it.reporterInterval(Duration.ofSeconds(1)) }
@@ -105,7 +105,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
     }
 
     handlers { MetricRegistry metrics ->
@@ -169,7 +169,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
       bind AnnotatedMetricService
     }
 
@@ -216,7 +216,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
       bind AnnotatedMetricService
     }
 
@@ -260,7 +260,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
       bind AnnotatedMetricService
     }
 
@@ -286,7 +286,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.jmx() }
+      module new CodaHaleMetricsModule(), { it.jmx() }
     }
 
     handlers { MetricRegistry metrics ->
@@ -322,7 +322,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.jvmMetrics(true) }
+      module new CodaHaleMetricsModule(), { it.jvmMetrics(true) }
     }
 
     handlers { MetricRegistry metrics ->
@@ -345,7 +345,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can use metrics endpoint"() {
     given:
     bindings {
-      add new CodaHaleMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)) } }
+      module new CodaHaleMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)).excludeFilter("2xx-responses") } }
     }
     handlers { MetricRegistry metrics ->
 
@@ -374,56 +374,56 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
+    with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
       timers.size() == 2
-      timers[0].name == "admin.metrics-report.get-requests"
-      timers[0].count == 0
-      timers[1].name == "root.get-requests"
-      timers[1].count == 2
+      timers.containsKey("admin.metrics-report.get-requests")
+      timers["admin.metrics-report.get-requests"].count == 0
+      timers.containsKey("root.get-requests")
+      timers["root.get-requests"].count == 2
 
       gauges.size() == 1
-      gauges[0].name == "fooGauge"
-      gauges[0].value == 2
+      gauges.containsKey("fooGauge")
+      gauges["fooGauge"].value == 2
 
       meters.size() == 1
-      meters[0].name == "fooMeter"
-      meters[0].count == 2
+      meters.containsKey("fooMeter")
+      meters["fooMeter"].count == 2
 
       counters.size() == 1
-      counters[0].name == "fooCounter"
-      counters[0].count == 2
+      counters.containsKey("fooCounter")
+      counters["fooCounter"].count == 2
 
       histograms.size() == 1
-      histograms[0].name == "fooHistogram"
-      histograms[0].count == 2
+      histograms.containsKey("fooHistogram")
+      histograms["fooHistogram"].count == 2
     }
 
     when:
     2.times { getText() }
 
     then:
-    new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
+    with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
       timers.size() == 2
-      timers[0].name == "admin.metrics-report.get-requests"
-      timers[0].count == 0
-      timers[1].name == "root.get-requests"
-      timers[1].count == 4
+      timers.containsKey("admin.metrics-report.get-requests")
+      timers["admin.metrics-report.get-requests"].count == 0
+      timers.containsKey("root.get-requests")
+      timers["root.get-requests"].count == 4
 
       gauges.size() == 1
-      gauges[0].name == "fooGauge"
-      gauges[0].value == 2
+      gauges.containsKey("fooGauge")
+      gauges["fooGauge"].value == 2
 
       meters.size() == 1
-      meters[0].name == "fooMeter"
-      meters[0].count == 4
+      meters.containsKey("fooMeter")
+      meters["fooMeter"].count == 4
 
       counters.size() == 1
-      counters[0].name == "fooCounter"
-      counters[0].count == 4
+      counters.containsKey("fooCounter")
+      counters["fooCounter"].count == 4
 
       histograms.size() == 1
-      histograms[0].name == "fooHistogram"
-      histograms[0].count == 4
+      histograms.containsKey("fooHistogram")
+      histograms["fooHistogram"].count == 4
     }
 
     cleanup:
@@ -440,7 +440,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
     }
 
     handlers {MetricRegistry metrics ->
@@ -474,7 +474,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     and:
     bindings {
-      add new CodaHaleMetricsModule(), {
+      module new CodaHaleMetricsModule(), {
         it.console { it.reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*") }
         it.jmx { it.includeFilter(".*ar.*") }
         it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
@@ -512,7 +512,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {
+      module new CodaHaleMetricsModule(), {
         it.requestMetricGroups(["bar":"bar/.*", "foo":"foo/.*", "f":"f.*"])
       }
     }
@@ -542,7 +542,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      add new CodaHaleMetricsModule(), {}
+      module new CodaHaleMetricsModule(), {}
     }
 
     handlers { MetricRegistry metrics ->

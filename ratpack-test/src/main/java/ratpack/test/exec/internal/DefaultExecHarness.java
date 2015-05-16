@@ -21,8 +21,8 @@ import ratpack.exec.internal.CompleteExecResult;
 import ratpack.exec.internal.ResultBackedExecResult;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.registry.RegistrySpec;
 import ratpack.test.exec.ExecHarness;
-import ratpack.exec.ExecResult;
 import ratpack.util.Exceptions;
 
 import java.util.concurrent.CountDownLatch;
@@ -37,35 +37,32 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
-  public <T> ExecResult<T> yield(final Function<ExecControl, Promise<T>> func) throws Exception {
+  public <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, final Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     final AtomicReference<ExecResult<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
     controller.getControl().exec()
-      .onError(throwable -> {
-        reference.set(new ResultBackedExecResult<>(Result.<T>failure(throwable)));
+      .register(registry)
+      .onError((exec, throwable) -> {
+        reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), exec));
         latch.countDown();
       })
-      .start(new Action<Execution>() {
-        @Override
-        public void execute(Execution execution) throws Exception {
-          execution.onCleanup(() -> {
-            if (latch.getCount() > 0) {
-              reference.set(CompleteExecResult.instance());
-              latch.countDown();
-            }
-          });
-          Promise<T> promise = func.apply(execution.getControl());
-
-          if (promise == null) {
-            reference.set(null);
+      .onComplete(exec -> {
+        if (latch.getCount() > 0) {
+          reference.set(new CompleteExecResult<>(exec));
+          latch.countDown();
+        }
+      })
+      .start(execution -> {
+        Promise<T> promise = func.apply(execution);
+        if (promise == null) {
+          reference.set(null);
+          latch.countDown();
+        } else {
+          promise.then(t -> {
+            reference.set(new ResultBackedExecResult<>(Result.success(t), execution));
             latch.countDown();
-          } else {
-            promise.then(t -> {
-              reference.set(new ResultBackedExecResult<>(Result.success(t)));
-              latch.countDown();
-            });
-          }
+          });
         }
       });
     latch.await();
@@ -73,12 +70,13 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
-  public void run(Action<? super ExecControl> action) throws Exception {
+  public void run(Action<? super RegistrySpec> registry, Action<? super ExecControl> action) throws Exception {
     final AtomicReference<Throwable> thrown = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
     controller.getControl().exec()
       .onError(thrown::set)
+      .register(registry)
       .onComplete(e ->
           latch.countDown()
       )

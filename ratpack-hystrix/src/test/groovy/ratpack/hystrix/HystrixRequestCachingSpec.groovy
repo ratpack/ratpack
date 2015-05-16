@@ -40,7 +40,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
   def "can handle error from hystrix command"() {
     when:
     bindings {
-      add new HystrixModule()
+      module new HystrixModule()
       bindInstance ServerErrorHandler, new ServerErrorHandler() {
         @Override
         void error(Context context, Throwable throwable) throws Exception {
@@ -76,7 +76,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
 
     and:
     bindings {
-      add new HystrixModule()
+      module new HystrixModule()
       bind(CommandFactory)
     }
 

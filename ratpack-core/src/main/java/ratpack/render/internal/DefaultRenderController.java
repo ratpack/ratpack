@@ -16,13 +16,17 @@
 
 package ratpack.render.internal;
 
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.RenderableDecorator;
 import ratpack.render.Renderer;
 import ratpack.render.RendererException;
 import ratpack.util.Types;
+
+import java.util.Iterator;
 
 public class DefaultRenderController implements RenderController {
 
@@ -42,14 +46,20 @@ public class DefaultRenderController implements RenderController {
   private <T> void doRender(T toRender, Context context) throws Exception {
     Class<T> type = Types.cast(toRender.getClass());
 
-    T decorated = toRender;
-    for (RenderableDecorator<?> decorator : context.getAll(RENDERABLE_DECORATOR_TYPE)) {
-      if (decorator.getType().isAssignableFrom(type)) {
-        RenderableDecorator<T> cast = Types.cast(decorator);
-        decorated = cast.decorate(context, decorated);
+    Iterator<? extends RenderableDecorator<?>> decorators = Iterables.filter(context.getAll(RENDERABLE_DECORATOR_TYPE), d -> d.getType().isAssignableFrom(type)).iterator();
+    if (decorators.hasNext()) {
+      Promise<T> promise = context.promiseOf(toRender);
+      while (decorators.hasNext()) {
+        RenderableDecorator<T> cast = Types.cast(decorators.next());
+        promise = promise.flatMap(r -> cast.decorate(context, r));
       }
+      promise.then(r -> doRender(context, type, r));
+    } else {
+      doRender(context, type, toRender);
     }
+  }
 
+  private <T> void doRender(Context context, Class<T> type, T decorated) {
     Iterable<? extends Renderer<?>> renderers = context.getAll(RENDERER_TYPE);
     for (Renderer<?> renderer : renderers) {
       if (renderer.getType().isAssignableFrom(type)) {
@@ -65,5 +75,4 @@ public class DefaultRenderController implements RenderController {
 
     throw new NoSuchRendererException(decorated);
   }
-
 }

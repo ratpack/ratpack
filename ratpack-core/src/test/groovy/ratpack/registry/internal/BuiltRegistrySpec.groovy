@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.logging;
+package ratpack.registry.internal
 
-import ratpack.handling.RequestOutcome;
+import ratpack.func.Action
+import ratpack.registry.Registries
+import ratpack.registry.Registry
+import ratpack.registry.RegistrySpec
+import ratpack.test.internal.registry.RegistryContractSpec
 
-public interface RequestLogFormatter {
+class BuiltRegistrySpec extends RegistryContractSpec {
 
-  String format(RequestOutcome outcome);
+  @Override
+  Registry build(Action<? super RegistrySpec> spec) {
+    Registries.registry(spec)
+  }
+
 }

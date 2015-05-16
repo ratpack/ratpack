@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.exec.internal;
+package ratpack.exec
 
-import ratpack.exec.ExecController;
+import ratpack.test.exec.ExecHarness
+import spock.lang.Specification
 
-import java.util.Optional;
+class PromiseSpec extends Specification {
 
-public class ExecControllerThreadBinding {
+  def exec = ExecHarness.harness()
 
-  private static final ThreadLocal<ExecController> THREAD_BINDING = new ThreadLocal<>();
+  def "cannot subscribe to promise when blocking"() {
+    when:
+    exec.yield {
+      exec.blocking {
+        exec.promiseOf(1).then { it }
+      }
+    }.valueOrThrow
 
-  static void set(ExecController execController) {
-    THREAD_BINDING.set(execController);
+    then:
+    def e = thrown ExecutionException
+    e.message.startsWith("Promise.then() can only be called on a compute thread")
   }
-
-  public static Optional<ExecController> get() {
-    return Optional.ofNullable(THREAD_BINDING.get());
-  }
-
 }

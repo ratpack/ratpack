@@ -52,7 +52,7 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
   }
 
   private void schedulePoll(ExecControl execControl) {
-    if (stopped) {
+    if (shouldStop(execControl)) {
       return;
     }
 
@@ -60,7 +60,7 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
 
     Runnable poll = () ->
       execControl.exec().start(e -> {
-          if (stopped) {
+          if (shouldStop(e)) {
             return;
           }
           e.blocking(loader::load)
@@ -81,6 +81,10 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
       );
 
     scheduledExecutorService.schedule(poll, INTERVAL.getSeconds(), TimeUnit.SECONDS);
+  }
+
+  private boolean shouldStop(ExecControl execControl) {
+    return stopped || execControl.getController().getEventLoopGroup().isShuttingDown();
   }
 
   @Override

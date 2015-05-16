@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
+import ratpack.exec.Throttle;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
@@ -58,12 +59,10 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static ratpack.util.Exceptions.uncheck;
 
-public class NettyRatpackServer implements RatpackServer {
+public class DefaultRatpackServer implements RatpackServer {
 
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
@@ -78,7 +77,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   protected InetSocketAddress boundAddress;
   protected Channel channel;
-  protected ExecController execController;
+  protected DefaultExecController execController;
   protected Registry serverRegistry = Registries.empty();
 
   protected boolean reloading;
@@ -87,7 +86,7 @@ public class NettyRatpackServer implements RatpackServer {
   protected SSLEngine sslEngine;
   private final ServerCapturer.Overrides overrides;
 
-  public NettyRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
+  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
     this.definitionFactory = definitionFactory;
     this.overrides = ServerCapturer.capture(this);
   }
@@ -383,7 +382,7 @@ public class NettyRatpackServer implements RatpackServer {
   private class ReloadHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
-    private final Lock reloadLock = new ReentrantLock();
+    private final Throttle reloadThrottle = Throttle.ofSize(1);
 
     private ChannelHandler inner;
 
@@ -401,38 +400,47 @@ public class NettyRatpackServer implements RatpackServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-      reloadLock.lock();
-      try {
-        boolean rebuild = false;
+      execController.getControl().exec().start(e ->
+          e.<ChannelHandler>promise(f -> {
+            boolean rebuild = false;
 
-        if (inner == null || definitionBuild.error != null) {
-          rebuild = true;
-        } else {
-          Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry) ? r : null);
-          if (reloadInformant.isPresent()) {
-            LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
-            rebuild = true;
-          }
-        }
+            if (inner == null || definitionBuild.error != null) {
+              rebuild = true;
+            } else {
+              Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry) ? r : null);
+              if (reloadInformant.isPresent()) {
+                LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
+                rebuild = true;
+              }
+            }
 
-        if (rebuild) {
-          try {
-            definitionBuild = buildUserDefinition();
-            lastServerConfig = definitionBuild.getServerConfig();
-            inner = buildAdapter(definitionBuild);
-            delegate(ctx, inner, msg);
-          } catch (Exception e) {
-            delegate(ctx, buildErrorRenderingAdapter(e), msg);
-          }
-        } else {
-          delegate(ctx, inner, msg);
-        }
-      } finally {
-        reloadLock.unlock();
-      }
+            if (rebuild) {
+              e.blocking(() -> {
+                definitionBuild = buildUserDefinition();
+                lastServerConfig = definitionBuild.getServerConfig();
+                return buildAdapter(definitionBuild);
+              })
+                .wiretap(r -> {
+                  if (r.isSuccess()) {
+                    inner = r.getValue();
+                  }
+                })
+                .mapError(this::buildErrorRenderingAdapter)
+                .result(f::accept);
+            } else {
+              f.success(inner);
+            }
+          })
+            .throttled(reloadThrottle)
+            .blockingMap(adapter -> {
+              delegate(ctx, adapter, msg);
+              return true;
+            })
+            .then(Action.noop())
+      );
     }
 
-    private NettyHandlerAdapter buildErrorRenderingAdapter(Exception e) {
+    private NettyHandlerAdapter buildErrorRenderingAdapter(Throwable e) {
       try {
         return new NettyHandlerAdapter(serverRegistry, context -> context.error(e));
       } catch (Exception e1) {

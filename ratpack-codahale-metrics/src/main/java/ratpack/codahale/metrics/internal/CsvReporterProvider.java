@@ -19,11 +19,9 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
-import ratpack.server.ServerConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.io.File;
 
 /**
  * A Provider implementation that sets up a {@link CsvReporter} for a {@link MetricRegistry}.
@@ -31,27 +29,25 @@ import java.io.File;
 public class CsvReporterProvider implements Provider<CsvReporter> {
   private final MetricRegistry metricRegistry;
   private final CodaHaleMetricsModule.Config config;
-  private final File defaultReportDirectory;
 
   @Inject
-  public CsvReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config, ServerConfig serverConfig) {
+  public CsvReporterProvider(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
-    this.defaultReportDirectory = serverConfig.getBaseDir().getFile().toFile();
   }
 
   @Override
   public CsvReporter get() {
-    CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
-    config.getCsv().ifPresent(csv -> {
+    if (config.getCsv().isPresent()) {
+      CodaHaleMetricsModule.Config.Csv csv = config.getCsv().get();
+      CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
       if (csv.getIncludeFilter() != null || csv.getExcludeFilter() != null) {
         builder.filter(new RegexMetricFilter(csv.getIncludeFilter(), csv.getExcludeFilter()));
       }
-    });
-
-    return builder.build(
-      config.getCsv().isPresent() ? config.getCsv().get().getReportDirectory() : defaultReportDirectory
-    );
+      return builder.build(csv.getReportDirectory());
+    } else {
+      return null;
+    }
   }
 }
 

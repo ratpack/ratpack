@@ -32,8 +32,8 @@ import ratpack.util.Types;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
-import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
+import static org.pac4j.core.context.Pac4jConstants.REQUESTED_URL;
+import static org.pac4j.core.context.Pac4jConstants.USER_PROFILE;
 
 public class Pac4jCallbackHandlerBuilder {
 
@@ -78,13 +78,17 @@ public class Pac4jCallbackHandlerBuilder {
     Request request = context.getRequest();
     SessionStorage sessionStorage = request.get(SessionStorage.class);
     if (profile != null) {
-      sessionStorage.put(USER_PROFILE, profile);
+      sessionStorage.set(USER_PROFILE, profile).then((success) -> {
+        //TODO Log?
+      });
     }
-    String originalUri = (String) sessionStorage.remove(SAVED_URI);
-    if (originalUri == null) {
-      originalUri = DEFAULT_REDIRECT_URI;
-    }
-    context.redirect(originalUri);
+    sessionStorage.get(REQUESTED_URL, String.class).then((originalUri) -> {
+        sessionStorage.remove(REQUESTED_URL).then((numberRemoved) -> {
+          context.redirect(originalUri.orElse(DEFAULT_REDIRECT_URI));
+        });
+      }
+    );
+
   };
 
   @SuppressWarnings("unused")

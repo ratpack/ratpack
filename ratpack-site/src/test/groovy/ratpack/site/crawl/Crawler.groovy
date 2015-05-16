@@ -75,12 +75,14 @@ abstract class Crawler {
 
   void addPageErrors(Link link, Response response) {
     if (response.statusCode == 404) {
+      println "404: $link.uri"
       link.errors << new StatusCodeError(response.statusCode)
     }
 
     def fragment = link.uri.fragment
     if (response.document && fragment) {
       if (!response.document.select("a").any { Element it -> it.attr("name") == fragment } && response.document.getElementById(fragment) == null) {
+        println "bad fragment: $link.uri"
         link.errors << new BadFragmentError(link.uri.fragment)
       }
     }
@@ -164,11 +166,13 @@ abstract class Crawler {
 
       addPageErrors(link, new Response(link.uri, connection))
     } catch (IOException e) {
+      println "error: $link.uri - $e"
       link.errors << new ExceptionError(e)
     }
   }
 
   protected HttpURLConnection openUrlConnection(URI uri) {
+    println "request: $uri"
     HttpURLConnection connection = uri.toURL().openConnection() as HttpURLConnection
     connection.instanceFollowRedirects = false
 

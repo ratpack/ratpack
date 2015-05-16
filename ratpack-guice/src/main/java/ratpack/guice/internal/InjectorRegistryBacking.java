@@ -31,7 +31,8 @@ public class InjectorRegistryBacking implements RegistryBacking {
 
   @Override
   public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
-    return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type)).transform(provider -> provider::get);
+    return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type).reverse())
+      .transform(provider -> provider::get);
   }
 
   @Override

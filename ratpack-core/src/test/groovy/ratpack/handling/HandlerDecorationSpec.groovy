@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j.internal;
+package ratpack.handling
 
-/**
- * Constants for session variables used by the pac4j integration.
- */
-public final class SessionConstants {
-  public static final String USER_PROFILE = "ratpack.pac4j-user-profile";
-  public static final String SAVED_URI = "ratpack.pac4j-saved-uri";
+import ratpack.test.internal.RatpackGroovyDslSpec
+
+class HandlerDecorationSpec extends RatpackGroovyDslSpec {
+
+  def "decorators are applied FIFO"() {
+    given:
+    def events = []
+
+    when:
+    bindings {
+      multiBindInstance HandlerDecorator.prepend { events << "1"; it.next() }
+      multiBindInstance HandlerDecorator.prepend { events << "2"; it.next() }
+    }
+    handlers {
+      get { render "ok" }
+    }
+
+    then:
+    text == "ok"
+    events == ["1", "2"]
+  }
 }

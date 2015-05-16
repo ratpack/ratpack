@@ -26,15 +26,16 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
+import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.http.*;
-import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -267,16 +268,18 @@ public class DefaultResponse implements Response {
   }
 
   public void sendFile(Path file) {
-    finalizeResponse();
-    setCookieHeader();
-    responseTransmitter.transmit(status, file);
+    finalizeResponse(responseFinalizers.iterator(), () -> {
+      setCookieHeader();
+      responseTransmitter.transmit(status, file);
+    });
   }
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
-    finalizeResponse();
-    setCookieHeader();
-    stream.subscribe(responseTransmitter.transmitter(status));
+    finalizeResponse(responseFinalizers.iterator(), () -> {
+      setCookieHeader();
+      stream.subscribe(responseTransmitter.transmitter(status));
+    });
   }
 
   @Override
@@ -314,18 +317,21 @@ public class DefaultResponse implements Response {
 
   private void commit(ByteBuf buffer) {
     headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
-    finalizeResponse();
-    setCookieHeader();
-    responseTransmitter.transmit(status, buffer);
+    finalizeResponse(responseFinalizers.iterator(), () -> {
+      setCookieHeader();
+      responseTransmitter.transmit(status, buffer);
+    });
   }
 
-  private void finalizeResponse() {
-    for (Action<? super ResponseMetaData> responseFinalizer : responseFinalizers) {
-      try {
-        responseFinalizer.execute(this);
-      } catch (Exception e) {
-        throw Exceptions.uncheck(e);
-      }
+  private void finalizeResponse(Iterator<Action<? super ResponseMetaData>> finalizers, Runnable then) {
+    if (finalizers.hasNext()) {
+      ExecControl.current().nest(
+        () -> finalizers.next().execute(this),
+        () -> finalizeResponse(finalizers, then)
+      );
+    } else {
+      then.run();
     }
   }
+
 }

@@ -32,6 +32,11 @@ tasks.withType(AbstractCompile) {
   options.compilerArgs << "-Xlint:-classfile" // Needed due to https://issues.jboss.org/browse/JASSIST-245
 }
 
+javadoc {
+  options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
+  options.addStringOption('Xdoclint:none', '-quiet')
+}
+
 task sourceJar(type: Jar) {
   description "An archive of the source code for Maven Central"
   classifier "sources"

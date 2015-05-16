@@ -20,8 +20,9 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
-import ratpack.func.Function;
 import ratpack.func.Block;
+import ratpack.func.Function;
+import ratpack.registry.RegistrySpec;
 import ratpack.stream.TransformablePublisher;
 import ratpack.test.exec.internal.DefaultExecHarness;
 
@@ -103,11 +104,11 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    *
    * @return a new execution harness
    */
-  public static ExecHarness harness() {
+  static ExecHarness harness() {
     return new DefaultExecHarness(new DefaultExecController());
   }
 
-  public static ExecHarness harness(int numThreads) {
+  static ExecHarness harness(int numThreads) {
     return new DefaultExecHarness(new DefaultExecController(numThreads));
   }
 
@@ -120,9 +121,25 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @param func a function that exercises some code that returns a promise
    * @param <T> the type of promised value
    * @return the result of the execution
-   * @throws Exception any thrown by the function, or the promise failure exception
+   * @throws Exception any thrown by the function
    */
-  public <T> ExecResult<T> yield(Function<ExecControl, Promise<T>> func) throws Exception;
+  default <T> ExecResult<T> yield(Function<? super Execution, ? extends Promise<T>> func) throws Exception {
+    return yield(Action.noop(), func);
+  }
+
+  /**
+   * Synchronously returns a promised value.
+   * <p>
+   * The given function will execute in a separate thread.
+   * The calling thread will block, waiting for the promised value to be provided.
+   *
+   * @param registry the intial contents of the execution registry
+   * @param func a function that exercises some code that returns a promise
+   * @param <T> the type of promised value
+   * @return the result of the execution
+   * @throws Exception any thrown by the function
+   */
+  <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, Function<? super Execution, ? extends Promise<T>> func) throws Exception;
 
   /**
    * Creates an exec harness, {@link #yield(Function) executes} the given function with it before closing it, then returning execution result.
@@ -132,9 +149,24 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @return the result of the execution
    * @throws Exception any thrown by the function, or the promise failure exception
    */
-  static public <T> ExecResult<T> yieldSingle(Function<ExecControl, Promise<T>> func) throws Exception {
+  static <T> ExecResult<T> yieldSingle(Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     try (ExecHarness harness = harness()) {
       return harness.yield(func);
+    }
+  }
+
+  /**
+   * Creates an exec harness, {@link #yield(Action, Function) executes} the given function with it before closing it, then returning execution result.
+   *
+   * @param registry the intial contents of the execution registry
+   * @param func a function that exercises some code that returns a promise
+   * @param <T> the type of promised value
+   * @return the result of the execution
+   * @throws Exception any thrown by the function, or the promise failure exception
+   */
+  static <T> ExecResult<T> yieldSingle(Action<? super RegistrySpec> registry, Function<? super Execution, ? extends Promise<T>> func) throws Exception {
+    try (ExecHarness harness = harness()) {
+      return harness.yield(registry, func);
     }
   }
 
@@ -150,7 +182,24 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @see #runSingle(Action)
    * @see #yield(Function)
    */
-  public void run(Action<? super ExecControl> action) throws Exception;
+  default void run(Action<? super ExecControl> action) throws Exception {
+    run(Action.noop(), action);
+  }
+
+  /**
+   * Initiates an execution and blocks until it completes.
+   *
+   * If an uncaught exception is thrown during the execution, it will be thrown by this method.
+   * <p>
+   * This method is useful for testing an execution that has some detectable side effect, as this method does not return the “result” of the execution.
+   *
+   * @param registry the intial contents of the execution registry
+   * @param action the start of the execution
+   * @throws Exception any thrown during the execution that is not explicitly caught
+   * @see #runSingle(Action)
+   * @see #yield(Function)
+   */
+  void run(Action<? super RegistrySpec> registry, Action<? super ExecControl> action) throws Exception;
 
   /**
    * Convenient form of {@link #run(Action)} that creates and closes a harness for the run.
@@ -160,9 +209,24 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @see #run(Action)
    * @see #yield(Function)
    */
-  static public void runSingle(Action<? super ExecControl> action) throws Exception {
+  static void runSingle(Action<? super ExecControl> action) throws Exception {
     try (ExecHarness harness = harness()) {
       harness.run(action);
+    }
+  }
+
+  /**
+   * Convenient form of {@link #run(Action, Action)} that creates and closes a harness for the run.
+   *
+   * @param registry the intial contents of the execution registry
+   * @param action the start of the execution
+   * @throws Exception any thrown during the execution that is not explicitly caught
+   * @see #run(Action)
+   * @see #yield(Function)
+   */
+  static void runSingle(Action<? super RegistrySpec> registry, Action<? super ExecControl> action) throws Exception {
+    try (ExecHarness harness = harness()) {
+      harness.run(registry, action);
     }
   }
 
@@ -173,7 +237,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    *
    * @return an execution control
    */
-  public ExecControl getControl();
+  ExecControl getControl();
 
   /**
    * Shuts down the thread pool backing this harness.

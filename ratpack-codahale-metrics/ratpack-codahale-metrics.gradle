@@ -23,6 +23,7 @@ dependencies {
   compile project(":ratpack-guice")
 
   compile "io.dropwizard.metrics:metrics-core:${commonVersions.codahaleMetrics}"
+  compile "io.dropwizard.metrics:metrics-json:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-healthchecks:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.codahaleMetrics}"

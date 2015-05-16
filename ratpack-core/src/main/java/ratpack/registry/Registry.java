@@ -169,6 +169,10 @@ public interface Registry {
     return Optional.empty();
   }
 
+  default <T, O> Optional<O> first(Class<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return first(TypeToken.of(type), function);
+  }
+
   /**
    * Creates a new registry by joining {@code this} registry with the given registry
    * <p>

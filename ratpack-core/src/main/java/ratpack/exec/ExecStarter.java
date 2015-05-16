@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import io.netty.channel.EventLoop;
 import ratpack.func.Action;
+import ratpack.func.BiAction;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -28,6 +29,8 @@ import ratpack.registry.RegistrySpec;
 public interface ExecStarter {
 
   ExecStarter onError(Action<? super Throwable> onError);
+
+  ExecStarter onError(BiAction<? super Execution, ? super Throwable> onError);
 
   ExecStarter onComplete(Action<? super Execution> onComplete);
 

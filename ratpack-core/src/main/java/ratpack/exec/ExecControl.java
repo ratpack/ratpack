@@ -75,7 +75,7 @@ public interface ExecControl {
    *
    * @return the execution control bound to the current thread
    */
-  public static ExecControl current() throws UnmanagedThreadException {
+  static ExecControl current() throws UnmanagedThreadException {
     return ExecController.require().getControl();
   }
 
@@ -218,6 +218,8 @@ public interface ExecControl {
    * }
    * }</pre>
    *
+   * @param factory the promise factory
+   * @param <T> the type of promised value
    * @return the promise returned by the factory, or a promise for the exception it threw
    */
   default <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
@@ -226,6 +228,19 @@ public interface ExecControl {
     } catch (Exception e) {
       return failedPromise(e);
     }
+  }
+
+  default void nest(Block nested, Block then) {
+    nest(nested, then, Action.noop());
+  }
+
+  default void nest(Block nested, Block then, Action<? super Throwable> onError) {
+    this.<Void>promise(f -> {
+      nested.execute();
+      f.success(null);
+    })
+      .onError(onError)
+      .then(v -> then.execute());
   }
 
   /**

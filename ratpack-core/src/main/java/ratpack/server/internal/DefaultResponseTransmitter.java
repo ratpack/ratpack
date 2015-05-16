@@ -194,6 +194,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           if (channel.isWritable()) {
             subscription.request(1);
           }
+        } else {
+          cancel();
         }
       }
 

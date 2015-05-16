@@ -17,100 +17,53 @@
 package ratpack.spring
 
 import com.google.common.reflect.TypeToken
+import org.springframework.beans.factory.FactoryBean
+import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.context.support.StaticApplicationContext
-import ratpack.func.Function
-import ratpack.registry.NotInRegistryException
-import spock.lang.Specification
+import ratpack.func.Action
+import ratpack.registry.Registry
+import ratpack.registry.RegistrySpec
+import ratpack.test.internal.registry.RegistryContractSpec
 
-class SpringRegistrySpec extends Specification {
-  def appContext = new StaticApplicationContext()
-  def r = Spring.spring(appContext)
-  def beanFactory = appContext.getBeanFactory()
+import java.util.function.Supplier
 
-  def "empty registry"() {
-    expect:
-    !r.maybeGet(String).present
+class SpringRegistrySpec extends RegistryContractSpec {
 
-    when:
-    r.get(String)
+  @Override
+  Registry build(Action<? super RegistrySpec> action) {
+    def appContext = new StaticApplicationContext()
+    def beanFactory = appContext.getBeanFactory()
+    def nameCounter = 0
 
-    then:
-    thrown NotInRegistryException
+    def spec = new RegistrySpec() {
+      @Override
+      def <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+        def factoryName = "bean-factory-$nameCounter"
+        beanFactory.registerSingleton(factoryName, new FactoryBean() {
+          @Override
+          Object getObject() throws Exception {
+            return supplier.get()
+          }
+
+          @Override
+          Class<?> getObjectType() {
+            return type.getRawType()
+          }
+
+          @Override
+          boolean isSingleton() {
+            return true
+          }
+        })
+        def builder = BeanDefinitionBuilder.genericBeanDefinition()
+        builder.getRawBeanDefinition().setFactoryBeanName(factoryName)
+        appContext.registerBeanDefinition("bean-${nameCounter++}", builder.getBeanDefinition())
+        this
+      }
+    }
+
+    action.execute(spec)
+    Spring.spring(appContext)
   }
 
-  def "get and getAll should support implemented interfaces besides actual class"() {
-    when:
-    beanFactory.registerSingleton("foo", "foo")
-
-    then:
-    r.get(String) == "foo"
-    r.get(CharSequence) == "foo"
-    r.getAll(String).toList() == ["foo"]
-    r.getAll(CharSequence).toList() == ["foo"]
-  }
-
-  def "search empty registry with always false predicate"() {
-    expect:
-    !r.first(TypeToken.of(Object), Function.constant(null)).isPresent()
-  }
-
-  def "search with one item"() {
-    given:
-    TypeToken type = TypeToken.of(String)
-    TypeToken other = TypeToken.of(Number)
-    def value = "Something"
-
-    beanFactory.registerSingleton("value", value)
-
-    expect:
-    r.first(type, Function.identity()).get() == value
-    !r.first(type, Function.constant(null)).present
-    !r.first(other, Function.identity()).present
-    !r.first(other, Function.constant(null)).present
-  }
-
-  def "search with multiple items"() {
-    given:
-    TypeToken string = TypeToken.of(String)
-    TypeToken number = TypeToken.of(Number)
-    def a = "A"
-    def b = "B"
-    def c = 42
-    def d = 16
-    beanFactory.registerSingleton("a", a)
-    beanFactory.registerSingleton("b", b)
-    beanFactory.registerSingleton("c", c)
-    beanFactory.registerSingleton("d", d)
-
-    expect:
-    r.first(string, Function.identity()).get() == a
-    r.first(string, { s -> s.startsWith('B') ? s : null }).get() == b
-    r.first(number, Function.identity()).get() == c
-    r.first(number, { n -> n < 20 ? n : null }).get() == d
-  }
-
-  def "find first"() {
-    given:
-    def sameType = TypeToken.of(String)
-    def differentType = TypeToken.of(Number)
-    def value = "Something"
-    beanFactory.registerSingleton("value", value)
-    expect:
-    r.first(sameType, Function.identity()).get() == value
-    !r.first(sameType, Function.constant(null)).present
-    !r.first(differentType, Function.identity()).present
-    !r.first(differentType, Function.constant(null)).present
-  }
-
-  def "equals and hashCode should be implemented"() {
-    given:
-    def otherRegistry = Spring.spring(appContext)
-    expect:
-    otherRegistry.equals(r)
-    r.equals(otherRegistry)
-    r.equals(null) == false
-    r.equals(new Object()) == false
-    r.equals(r)
-    otherRegistry.hashCode() == r.hashCode()
-  }
 }

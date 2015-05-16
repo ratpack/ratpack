@@ -66,7 +66,7 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
   @Override
   public void onError(Throwable t) {
     error = t;
-    consumer.accept(Result.<List<T>>failure(t));
+    consumer.accept(Result.<List<T>>error(t));
   }
 
   @Override

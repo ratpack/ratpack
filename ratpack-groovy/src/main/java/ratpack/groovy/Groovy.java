@@ -27,8 +27,6 @@ import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.groovy.guice.GroovyBindingsSpec;
-import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
@@ -44,6 +42,7 @@ import ratpack.groovy.script.ScriptNotFoundException;
 import ratpack.groovy.template.Markup;
 import ratpack.groovy.template.MarkupTemplate;
 import ratpack.groovy.template.TextTemplate;
+import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
@@ -123,14 +122,14 @@ public abstract class Groovy {
    *
    * @see ratpack.groovy.Groovy#ratpack(groovy.lang.Closure)
    */
-  public static interface Ratpack {
+  public interface Ratpack {
 
     /**
-     * Registers the closure used to configure the {@link ratpack.groovy.guice.GroovyBindingsSpec} that will back the application.
+     * Registers the closure used to configure the {@link ratpack.guice.BindingsSpec} that will back the application.
      *
-     * @param configurer The configuration closure, delegating to {@link ratpack.groovy.guice.GroovyBindingsSpec}
+     * @param configurer The configuration closure, delegating to {@link ratpack.guice.BindingsSpec}
      */
-    void bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void bindings(@DelegatesTo(value = BindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
     /**
      * Registers the closure used to build the handler chain of the application.
@@ -203,7 +202,7 @@ public abstract class Groovy {
       definition.registry(r -> {
         return Guice.registry(bindingsSpec -> {
           bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
-          ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), closures.getBindings());
+          ClosureUtil.configureDelegateFirst(bindingsSpec, closures.getBindings());
         }).apply(r);
       });
 
@@ -257,7 +256,7 @@ public abstract class Groovy {
         Closure<?> bindingsClosure = new RatpackDslScriptCapture(staticCompile, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
         return Guice.registry(bindingsSpec -> {
           bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
-          ClosureUtil.configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure);
+          ClosureUtil.configureDelegateFirst(bindingsSpec, bindingsClosure);
         }).apply(r);
       };
     }

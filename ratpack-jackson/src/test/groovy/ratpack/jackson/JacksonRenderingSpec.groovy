@@ -35,7 +35,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   def "can render custom objects as json"() {
     when:
     bindings {
-      add JacksonModule, { it.prettyPrint(false) }
+      module JacksonModule, { it.prettyPrint(false) }
     }
     handlers {
       get {
@@ -50,7 +50,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   def "can render standard objects as json"() {
     when:
     bindings {
-      add JacksonModule, { it.prettyPrint(false) }
+      module JacksonModule, { it.prettyPrint(false) }
     }
     handlers {
       get {
@@ -72,7 +72,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add JacksonModule
+      module JacksonModule
     }
     handlers {
       get {
@@ -87,7 +87,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   def "can stream list"() {
     when:
     bindings {
-      add JacksonModule
+      module JacksonModule
     }
     handlers {
       get {
@@ -102,7 +102,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   def "can periodically stream list"() {
     when:
     bindings {
-      add JacksonModule
+      module JacksonModule
     }
     handlers {
       get { ctx ->
@@ -122,7 +122,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add JacksonModule
+      module JacksonModule
     }
     handlers {
       get {

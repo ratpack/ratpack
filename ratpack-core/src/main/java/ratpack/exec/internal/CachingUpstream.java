@@ -16,10 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Downstream;
-import ratpack.exec.ExecResult;
-import ratpack.exec.Result;
-import ratpack.exec.Upstream;
+import ratpack.exec.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -56,9 +53,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         Job job = waiting.poll();
         while (job != null) {
           Job finalJob = job;
-          job.streamHandle.getEventLoop().submit(() ->
-              finalJob.streamHandle.complete(() -> finalJob.downstream.accept(result))
-          );
+          job.streamHandle.complete(() -> finalJob.downstream.accept(result));
           job = waiting.poll();
         }
       } finally {
@@ -76,21 +71,21 @@ public class CachingUpstream<T> implements Upstream<T> {
       upstream.connect(new Downstream<T>() {
         @Override
         public void error(Throwable throwable) {
-          result.set(Result.<T>failure(throwable).toExecResult());
+          result.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.execution()));
           doDrainInNewSegment();
           downstream.error(throwable);
         }
 
         @Override
         public void success(T value) {
-          result.set(Result.success(value).toExecResult());
+          result.set(new ResultBackedExecResult<>(Result.success(value), Execution.execution()));
           doDrainInNewSegment();
           downstream.success(value);
         }
 
         @Override
         public void complete() {
-          result.set(CompleteExecResult.instance());
+          result.set(new CompleteExecResult<>(Execution.execution()));
           doDrainInNewSegment();
           downstream.complete();
         }

@@ -18,7 +18,6 @@ package ratpack.exec.internal;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.util.internal.ChannelImplDetector;
 
@@ -40,8 +39,8 @@ public class DefaultExecController implements ExecController {
 
   public DefaultExecController(int numThreads) {
     this.numThreads = numThreads;
-    this.eventLoopGroup = ChannelImplDetector.eventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
-    this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY));
+    this.eventLoopGroup = ChannelImplDetector.eventLoopGroup(numThreads, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
+    this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY));
     this.control = new DefaultExecControl(this);
   }
 
@@ -66,19 +65,22 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public ExecControl getControl() {
+  public ExecControlInternal getControl() {
     return control;
   }
 
   private class ExecControllerBindingThreadFactory extends DefaultThreadFactory {
-    public ExecControllerBindingThreadFactory(String name, int priority) {
+    private final boolean compute;
+
+    public ExecControllerBindingThreadFactory(boolean compute, String name, int priority) {
       super(name, priority);
+      this.compute = compute;
     }
 
     @Override
     public Thread newThread(final Runnable r) {
       return super.newThread(() -> {
-        ExecControllerThreadBinding.set(DefaultExecController.this);
+        ThreadBinding.bind(compute, DefaultExecController.this);
         r.run();
       });
     }
@@ -86,7 +88,7 @@ public class DefaultExecController implements ExecController {
 
   @Override
   public boolean isManagedThread() {
-    return ExecControllerThreadBinding.get().map(c -> c == this).orElse(false);
+    return ThreadBinding.get().map(c -> c.getExecController() == this).orElse(false);
   }
 
   @Override

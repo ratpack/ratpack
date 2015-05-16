@@ -18,6 +18,7 @@ package ratpack.thymeleaf
 
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.cache.StandardCacheManager
+import org.thymeleaf.fragment.DOMSelectorFragmentSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -34,7 +35,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -59,7 +60,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
+      module ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
     }
     handlers {
       get {
@@ -78,7 +79,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
+      module new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
     }
     handlers {
       get {
@@ -102,7 +103,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix)
+      module new ThymeleafModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -122,7 +123,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     dir('thymeleaf')
 
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -144,7 +145,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -163,7 +164,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -181,7 +182,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -200,7 +201,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -224,7 +225,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       handler {
@@ -247,7 +248,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     StandardCacheManager cacheManager = null
 
     bindings {
-      add new ThymeleafModule(templatesCacheSize: templatesCacheSize)
+      module new ThymeleafModule(templatesCacheSize: templatesCacheSize)
     }
 
     handlers {
@@ -288,8 +289,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      add new ThymeleafModule()
-      add new HelloDialectModule()
+      module new ThymeleafModule()
+      module new HelloDialectModule()
     }
     handlers {
       handler {
@@ -299,5 +300,29 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
     then:
     text == '<p>Hello, World!</p>'
+  }
+
+  void 'can select a template fragment'() {
+    given:
+    file 'thymeleaf/with-fragment.html', '''
+      <html>
+        <head><title>Whatever</title></head>
+        <body>Just show me this bit</body>
+      </html>'''
+
+    when:
+    bindings {
+      module new ThymeleafModule()
+    }
+
+    handlers {
+      handler {
+        render thymeleafTemplate('with-fragment', new DOMSelectorFragmentSpec('body'))
+      }
+    }
+
+    then:
+    text == '<body>Just show me this bit</body>'
+
   }
 }

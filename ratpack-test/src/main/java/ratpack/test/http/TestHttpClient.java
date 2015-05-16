@@ -276,5 +276,10 @@ public interface TestHttpClient {
    */
   String deleteText(String path);
 
-  List<Cookie> getCookies();
+  /**
+   * Get cookies with {@code Path=} attribute equal to {@code path} and all its subpaths.
+   * @param path a URI path attached to cookies
+   * @return the list of cookies attached to the given {@code path}
+   */
+  List<Cookie> getCookies(String path);
 }

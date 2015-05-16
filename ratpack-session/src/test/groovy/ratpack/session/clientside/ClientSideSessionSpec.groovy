@@ -37,7 +37,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   }
 
   private String getSessionCookie() {
-    cookies.find { it.name() == "ratpack_session" }?.value()
+    getCookies("/").find { it.name().startsWith("ratpack_session") }?.value()
   }
 
   private String getSessionPayload() {
@@ -62,7 +62,6 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { SessionStorage storage ->
-        assert storage.size() == 0
         response.send "ok"
       }
     }
@@ -78,20 +77,29 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get("") { SessionStorage storage ->
-        render storage.value.toString()
+        storage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+        storage.set("value", pathTokens.value).then({
+
+          storage.get("value", String).then({
+            render it.orElse("null")
+          })
+        })
       }
     }
 
-    expect:
+    when:
     get()
+
+    then:
     response.body.text == "null"
     !sessionCookie
     !setCookie
 
+    and:
     getText("set/foo") == "foo"
     decodedPairs.value == "foo"
 
@@ -102,8 +110,14 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { SessionStorage storage ->
-        storage[key] = value
-        response.send storage[key].toString()
+        storage.set(key, value).then({
+
+          storage.get(key, String).then({
+            response.send it.orElse("null")
+          })
+
+        })
+
       }
     }
 
@@ -123,21 +137,27 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
   }
 
+
   def "client should set-cookie only when session values have changed"() {
     given:
     handlers {
 
       handler { SessionStorage storage ->
-        storage.size()
         next()
       }
 
       get("") { SessionStorage storage ->
-        render storage.value.toString()
+        storage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+        storage.set("value", pathTokens.value).then({
+
+          storage.get("value", String).then({
+            render it.orElse("null")
+          })
+        })
       }
     }
 
@@ -148,7 +168,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     getText("set/foo")
     response.body.text == "foo"
-    setCookie.startsWith("ratpack_session=")
+    setCookie.startsWith("ratpack_session")
     decodedPairs.value == "foo"
 
     getText("")
@@ -163,7 +183,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     getText("set/bar")
     response.body.text == "bar"
-    setCookie.startsWith("ratpack_session=")
+    setCookie.startsWith("ratpack_session")
     decodedPairs.value == "bar"
 
     getText("set/bar")
@@ -177,27 +197,43 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get("") { SessionStorage storage ->
-        render storage.value.toString()
+        storage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+        storage.set("value", pathTokens.value).then({
+          storage.get("value", String).then({
+            render it.orElse("null")
+          })
+        })
       }
       get("clear") { SessionStorage storage ->
-        storage.clear()
-        response.status 200
+        storage.clear().then({
+          render "OK"
+        })
       }
     }
 
-    expect:
+    when:
     get("set/foo")
+
+    then:
     decodedPairs.value == "foo"
 
+    when:
     get("clear")
-    setCookie.startsWith("ratpack_session=; Max-Age=0; Expires=")
+
+    then:
+    setCookie.startsWith("ratpack_session")
+    setCookie.contains("Max-Age=0;")
+    setCookie.contains("Expires=")
     !sessionCookie
 
+    when:
     get("")
+
+    then:
     !setCookie
     !sessionCookie
   }
@@ -207,7 +243,10 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { SessionStorage storage ->
-        response.send storage.isEmpty().toString()
+        storage.getKeys().then({ keys ->
+          response.send(keys.isEmpty().toString())
+        })
+
       }
     }
 
@@ -232,7 +271,9 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { SessionStorage storage ->
-        response.send storage.isEmpty().toString()
+        storage.getKeys().then({ keys ->
+          response.send(keys.isEmpty().toString())
+        })
       }
     }
 
@@ -253,17 +294,23 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
   def aut(Closure sessionModuleConfig) {
     GroovyEmbeddedApp.build {
       bindings {
-        add ClientSideSessionsModule, {
+        module ClientSideSessionsModule, {
           it.with sessionModuleConfig
         }
       }
       handlers {
         get { SessionStorage storage ->
-          response.send storage.value.toString()
+          storage.get("value", String).then({
+            render it.orElse("null")
+          })
         }
         get("set/:value") { SessionStorage storage ->
-          storage.value = pathTokens.get("value")
-          response.send storage.value.toString()
+          storage.set("value", pathTokens.value).then({
+
+            storage.get("value", String).then({
+              render it.orElse("null")
+            })
+          })
         }
       }
     }
@@ -316,18 +363,23 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     modules.clear()
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.secretKey = "a" * 16
       }
     }
 
     handlers {
       get("") { SessionStorage storage ->
-        render storage.value.toString()
+        storage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+        storage.set("value", pathTokens.value).then({
+          storage.get("value", String).then({
+            render it.orElse("null")
+          })
+        })
       }
     }
 
@@ -344,7 +396,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     getText() == value
 
     where:
-    length << (1..256)
+    length << [1, 3, 129, 255, 256]
   }
 
   @Unroll
@@ -352,7 +404,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     given:
     modules.clear()
     bindings {
-      add ClientSideSessionsModule, {
+      module ClientSideSessionsModule, {
         it.with {
           int length = 16
           switch (algorithm) {
@@ -374,16 +426,22 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get("") { SessionStorage storage ->
-        render storage.value.toString()
+        storage.get("value", String).then({
+          render it.orElse("null")
+        })
       }
       get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+        storage.set("value", pathTokens.value).then({
+
+          storage.get("value", String).then({
+            render it.orElse("null")
+          })
+        })
       }
     }
 
     expect:
-    get()
+    get("")
     response.body.text == "null"
     !sessionCookie
     !setCookie
@@ -397,7 +455,8 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
       queryStringDecoder.parameters().every { key, value ->
         key != "value" && value != "foo"
       }
-    } catch (Exception e) { }
+    } catch (Exception e) {
+    }
 
     getText() == "foo"
 
@@ -416,7 +475,7 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
       "DESede/CBC/PKCS5Padding",
       "DESede/ECB/NoPadding",
       "DESede/ECB/PKCS5Padding"
-      ]
+    ]
 
   }
 

@@ -5,7 +5,7 @@ import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   bindings {
-    add MarkupTemplateModule
+    module MarkupTemplateModule
   }
 
   handlers {

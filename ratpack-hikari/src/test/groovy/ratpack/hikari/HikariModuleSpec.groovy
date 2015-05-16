@@ -27,8 +27,8 @@ public class HikariModuleSpec extends RatpackGroovyDslSpec {
   def "can use db"() {
     when:
     bindings {
-      add SqlModule
-      add HikariModule, {
+      module SqlModule
+      module HikariModule, {
         it.addDataSourceProperty("URL", "jdbc:h2:mem:dev;INIT=CREATE SCHEMA IF NOT EXISTS DEV")
         it.dataSourceClassName = "org.h2.jdbcx.JdbcDataSource"
       }

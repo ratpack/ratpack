@@ -24,6 +24,7 @@ import ratpack.func.Function;
 import ratpack.func.Predicate;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 import static ratpack.exec.ExecControl.execControl;
 import static ratpack.func.Action.ignoreArg;
@@ -31,29 +32,43 @@ import static ratpack.func.Action.ignoreArg;
 /**
  * A promise for a single value.
  * <p>
- * A promise is a representation of a value, which may not be available yet.
- * This allows asynchronous data processing flows
- * Operations (such as {@link #map(Function)}, {@link #flatMap(Function)}, {@link #cache()} etc.) allow specifying how the value should be processed.
- *
- * <h3>Testing</h3>
+ * A promise is a representation of a value which will become available later.
+ * Methods such as {@link #map(Function)}, {@link #flatMap(Function)}, {@link #cache()} etc.) allow a pipeline of “operations” to be specified,
+ * that the value will travel through as it becomes available.
+ * Such operations are implemented via the {@link #transform(Function)} method.
+ * Each operation returns a new promise object, not the original promise object.
  * <p>
- * To test code that uses promises, see the {@code ratpack.test.exec.ExecHarness} class.
+ * To create a promise, use the {@link ExecControl#promise(Action)} method (or one of the variants such as {@link ExecControl#blocking(Callable)}.
+ * To test code that uses promises, use the {@link ratpack.test.exec.ExecHarness}.
+ * <p>
+ * The promise is not “activated” until the {@link #then(Action)} method is called.
+ * This method terminates the pipeline, and receives the final value.
+ * <p>
+ * Promise objects are multi use.
+ * Every promise pipeline has a value producing function at its start.
+ * Activating a promise (i.e. calling {@link #then(Action)}) invokes the function.
+ * The {@link #cache()} operation can be used to change this behaviour.
  *
  * @param <T> the type of promised value
  */
+@SuppressWarnings("JavadocReference")
 public interface Promise<T> {
 
   /**
    * Specifies what should be done with the promised object when it becomes available.
+   * <p>
+   * <b>Important:</b> this method can only be used from a Ratpack managed compute thread.
+   * If it is called on a non Ratpack managed compute thread it will immediately throw an {@link ExecutionException}.
    *
    * @param then the receiver of the promised value
+   * @throws ExecutionException if not called on a Ratpack managed compute thread
    */
   void then(Action<? super T> then);
 
   /**
    * Apply a custom transform to this promise.
    * <p>
-   * This method is the basis for the standard operations of this interface, such as {@link #map}.
+   * This method is the basis for the standard operations of this interface, such as {@link #map(Function)}.
    * The following is a non generic implementation of a map that converts the value to upper case.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -93,39 +108,128 @@ public interface Promise<T> {
   <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer);
 
   /**
+   * Blocks execution waiting for this promise to complete and returns the promised value.
+   * <p>
+   * This method allows the use of asynchronous API, by synchronous API.
+   * This may occur when integrating with other libraries that are not asynchronous.
+   * The following example simulates using a library that takes a callback that is expected to produce a value synchronously,
+   * but where the production of the value is actually asynchronous.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.func.Factory;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static <T> T produceSync(Factory<? extends T> factory) throws Exception {
+   *     return factory.create();
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(e ->
+   *       e.blocking(() ->
+   *         produceSync(() ->
+   *           e.promiseOf("foo").block() // block and wait for the promised value
+   *         )
+   *       )
+   *     );
+   *
+   *     assertEquals("foo", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * <p>
+   * <b>Important:</b> this method can only be used inside a {@link ExecControl#blocking(Callable)} or {@link #blockingMap(Function)} function.
+   * That is, it can only be used from a Ratpack managed blocking thread.
+   * If it is called on a non Ratpack managed blocking thread it will immediately throw an {@link ExecutionException}.
+   * <p>
+   * When this method is called, the promise will be subscribed to on a compute thread while the blocking thread waits.
+   * When the promised value has been produced, and the compute thread segment has completed, the value will be returned
+   * allowing execution to continue on the blocking thread.
+   * The following example visualises this flow by capturing the sequence of events via an {@link ExecInterceptor}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.ExecInterceptor;
+   *
+   * import java.util.List;
+   * import java.util.ArrayList;
+   * import java.util.Arrays;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> events = new ArrayList<>();
+   *
+   *     ExecHarness.yieldSingle(
+   *       r -> r.add(ExecInterceptor.class, (execution, execType, continuation) -> {
+   *         events.add(execType + "-start");
+   *         try {
+   *           continuation.execute();
+   *         } finally {
+   *           events.add(execType + "-stop");
+   *         }
+   *       }),
+   *       e -> e.blocking(() -> e.promiseOf("foo").block())
+   *     );
+   *
+   *     List<String> actualEvents = Arrays.asList(
+   *       "COMPUTE-start",
+   *       "COMPUTE-stop",
+   *         "BLOCKING-start",
+   *           "COMPUTE-start",
+   *           "COMPUTE-stop",
+   *         "BLOCKING-stop",
+   *       "COMPUTE-start",
+   *       "COMPUTE-stop"
+   *     );
+   *
+   *     assertEquals(actualEvents, events);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @return the promised value
+   * @throws ExecutionException if not called on a Ratpack managed blocking thread
+   * @throws Exception any thrown while producing the value
+   */
+  T block() throws Exception;
+
+  /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.
    *
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
    */
   default Promise<T> onError(Action<? super Throwable> errorHandler) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void error(Throwable throwable) {
-            try {
-              errorHandler.execute(throwable);
-            } catch (Throwable e) {
-              e.addSuppressed(throwable);
-              super.error(e);
-              return;
-            }
-            super.complete();
+    return transform(up -> down ->
+        up.connect(down.onError(throwable -> {
+          try {
+            errorHandler.execute(throwable);
+          } catch (Throwable e) {
+            e.addSuppressed(throwable);
+            down.error(e);
+            return;
           }
-        }
-      )
+          down.complete();
+        }))
     );
   }
 
   /**
    * Consume the promised value as a {@link Result}.
    * <p>
-   * This method is an alternative to {@link #then} and {@link #onError}.
+   * This method is an alternative to {@link #then(Action)} and {@link #onError(Action)}.
    *
    * @param resultHandler the consumer of the result
    */
   default void result(Action<? super Result<T>> resultHandler) {
-    onError(t -> resultHandler.execute(Result.<T>failure(t))).then(v -> resultHandler.execute(Result.success(v)));
+    onError(t -> resultHandler.execute(Result.<T>error(t))).then(v -> resultHandler.execute(Result.success(v)));
   }
 
   /**
@@ -212,19 +316,15 @@ public interface Promise<T> {
    * @return a promise
    */
   default Promise<T> mapError(Function<? super Throwable, ? extends T> transformer) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void error(Throwable throwable) {
-            try {
-              delegate.success(transformer.apply(throwable));
-            } catch (Throwable t) {
-              t.addSuppressed(throwable);
-              delegate.error(t);
-            }
+    return transform(up -> down ->
+        up.connect(down.onError(throwable -> {
+          try {
+            down.success(transformer.apply(throwable));
+          } catch (Throwable t) {
+            t.addSuppressed(throwable);
+            down.error(t);
           }
-        }
-      )
+        }))
     );
   }
 
@@ -408,18 +508,14 @@ public interface Promise<T> {
    * @return a promise for the transformed value
    */
   default <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {
-    return transform(up -> down -> up.connect(
-        new Downstream.Decorator<T, O>(down) {
-          @Override
-          public void success(T value) {
-            try {
-              transformer.apply(value).result(delegate::accept);
-            } catch (Throwable e) {
-              error(e);
-            }
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(value -> {
+          try {
+            transformer.apply(value).onError(down::error).then(down::success);
+          } catch (Throwable e) {
+            down.error(e);
           }
-        }
-      )
+        }))
     );
   }
 
@@ -498,31 +594,27 @@ public interface Promise<T> {
    * @return a routed promise
    */
   default Promise<T> route(Predicate<? super T> predicate, Action<? super T> action) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void success(T value) {
-            boolean apply;
-            try {
-              apply = predicate.apply(value);
-            } catch (Throwable e) {
-              error(e);
-              return;
-            }
-
-            if (apply) {
-              try {
-                action.execute(value);
-                complete();
-              } catch (Throwable e) {
-                error(e);
-              }
-            } else {
-              delegate.success(value);
-            }
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(value -> {
+          boolean apply;
+          try {
+            apply = predicate.apply(value);
+          } catch (Throwable e) {
+            down.error(e);
+            return;
           }
-        }
-      )
+
+          if (apply) {
+            try {
+              action.execute(value);
+              down.complete();
+            } catch (Throwable e) {
+              down.error(e);
+            }
+          } else {
+            down.success(value);
+          }
+        }))
     );
   }
 
@@ -695,33 +787,17 @@ public interface Promise<T> {
    * @return effectively, {@code this} promise
    */
   default Promise<T> wiretap(Action<? super Result<T>> listener) {
-    return transform(up -> down -> up.connect(
-        new Downstream.SameTypeDecorator<T>(down) {
-          @Override
-          public void success(T value) {
-            try {
-              listener.execute(Result.success(value));
-            } catch (Throwable t) {
-              error(t);
-              return;
-            }
-
-            super.success(value);
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(value -> {
+          try {
+            listener.execute(Result.success(value));
+          } catch (Throwable t) {
+            down.error(t);
+            return;
           }
 
-          @Override
-          public void error(Throwable throwable) {
-            try {
-              listener.execute(Result.<T>failure(throwable));
-            } catch (Throwable t) {
-              t.addSuppressed(throwable);
-              super.error(t);
-              return;
-            }
-
-            super.error(throwable);
-          }
-        })
+          down.success(value);
+        }))
     );
   }
 

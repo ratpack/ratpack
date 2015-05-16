@@ -46,17 +46,18 @@ public class SiteMain {
           .serverConfig(serverConfig)
           .registry(
             Guice.registry(s -> s
-                .add(JacksonModule.class)
-                .add(NewRelicModule.class)
-                .add(new CodaHaleMetricsModule(), c -> {
-                })
-                .addConfig(SiteModule.class, serverConfig.get("/github", SiteModule.GitHubConfig.class))
-                .add(MarkupTemplateModule.class, conf -> {
+                .module(JacksonModule.class)
+                .module(NewRelicModule.class)
+                .module(new CodaHaleMetricsModule(), c ->
+                    c.csv(csv -> csv.enable(false))
+                )
+                .moduleConfig(SiteModule.class, serverConfig.get("/github", SiteModule.GitHubConfig.class))
+                .module(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
                   conf.setUseDoubleQuotes(true);
                   conf.setAutoIndent(true);
                 })
-                .add(TextTemplateModule.class, conf ->
+                .module(TextTemplateModule.class, conf ->
                     conf.setStaticallyCompile(true)
                 )
             )

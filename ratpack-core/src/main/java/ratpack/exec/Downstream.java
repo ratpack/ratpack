@@ -17,6 +17,7 @@
 package ratpack.exec;
 
 import ratpack.func.Action;
+import ratpack.func.Block;
 
 /**
  * A consumer of a single asynchronous value.
@@ -25,9 +26,7 @@ import ratpack.func.Action;
  * Once connected, an upstream will invoke only one of either the {@link #success}, {@link #error} or {@link #complete} methods exactly once.
  *
  * @see Promise#transform(ratpack.func.Function)
- * @see ratpack.exec.Downstream.Decorator
- * @see ratpack.exec.Downstream.SameTypeDecorator
- * @param <T>
+ * @param <T> the type of value emitted downstream
  */
 public interface Downstream<T> {
 
@@ -61,12 +60,87 @@ public interface Downstream<T> {
    * @return a downstream
    */
   default <O> Downstream<O> onSuccess(Action<? super O> action) {
-    return new Decorator<O, T>(Downstream.this) {
+    return new Downstream<O>() {
       @Override
       public void success(O value) {
         try {
           action.execute(value);
         } catch (Throwable e) {
+          Downstream.this.error(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        Downstream.this.error(throwable);
+      }
+
+      @Override
+      public void complete() {
+        Downstream.this.complete();
+      }
+    };
+  }
+
+  /**
+   * Wrap this downstream, using the given action as the implementation of the {@link #error(Throwable)} method.
+   * <p>
+   * All {@link #success} and {@link #complete} signals will be forwarded to {@code this} downstream,
+   * and the given action called with the value if {@link #success} is signalled.
+   *
+   * @param action the implementation of the error signal receiver for the returned downstream
+   * @return a downstream
+   */
+  default Downstream<T> onError(Action<? super Throwable> action) {
+    return new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        Downstream.this.success(value);
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        try {
+          action.execute(throwable);
+        } catch (Exception e) {
+          e.addSuppressed(throwable);
+          Downstream.this.error(e);
+        }
+      }
+
+      @Override
+      public void complete() {
+        Downstream.this.complete();
+      }
+    };
+  }
+
+  /**
+   * Wrap this downstream, using the given action as the implementation of the {@link #complete()} method.
+   * <p>
+   * All {@link #success} and {@link #error} signals will be forwarded to {@code this} downstream,
+   * and the given action called with the value if {@link #complete} is signalled.
+   *
+   * @param block the implementation of the complete signal receiver for the returned downstream
+   * @return a downstream
+   */
+  default Downstream<T> onComplete(Block block) {
+    return new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        Downstream.this.success(value);
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        Downstream.this.error(throwable);
+      }
+
+      @Override
+      public void complete() {
+        try {
+          block.execute();
+        } catch (Exception e) {
           Downstream.this.error(e);
         }
       }
@@ -81,7 +155,7 @@ public interface Downstream<T> {
   default void accept(ExecResult<? extends T> result) {
     if (result.isComplete()) {
       complete();
-    } else if (result.isFailure()) {
+    } else if (result.isError()) {
       error(result.getThrowable());
     } else {
       success(result.getValue());
@@ -94,78 +168,11 @@ public interface Downstream<T> {
    * @param result the result to signal
    */
   default void accept(Result<? extends T> result) {
-    if (result.isFailure()) {
+    if (result.isError()) {
       error(result.getThrowable());
     } else {
       success(result.getValue());
     }
   }
 
-  /**
-   * A base class for wrapping downstreams that delegates signals.
-   *
-   * @param <T> the type of object accepted by the decorated downstream
-   * @param <O> the type of object accepted by {@code this} downstream
-   */
-  abstract class Decorator<T, O> implements Downstream<T> {
-
-    /**
-     * The decorated downstream.
-     */
-    protected final Downstream<? super O> delegate;
-
-    /**
-     * Constructor.
-     *
-     * @param delegate the decorated downstream.
-     */
-    public Decorator(Downstream<? super O> delegate) {
-      this.delegate = delegate;
-    }
-
-    /**
-     * Forwards the error to the decorated downstream.
-     *
-     * @param throwable what went wrong
-     */
-    @Override
-    public void error(Throwable throwable) {
-      delegate.error(throwable);
-    }
-
-    /**
-     * Forwards the signal to the decorated downstream.
-     */
-    @Override
-    public void complete() {
-      delegate.complete();
-    }
-  }
-
-  /**
-   * A decorator base class that forwards the success signal.
-   *
-   * @param <T> the type of item accepted
-   */
-  class SameTypeDecorator<T> extends Decorator<T, T> {
-
-    /**
-     * Constructor.
-     *
-     * @param delegate the decorated downstream
-     */
-    public SameTypeDecorator(Downstream<? super T> delegate) {
-      super(delegate);
-    }
-
-    /**
-     * Forwards the value to the decorated downstream.
-     *
-     * @param value the upstream value
-     */
-    @Override
-    public void success(T value) {
-      delegate.success(value);
-    }
-  }
 }

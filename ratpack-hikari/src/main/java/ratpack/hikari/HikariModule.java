@@ -57,7 +57,7 @@ import javax.sql.DataSource;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registry(Guice.registry(b -> b
- *         .add(HikariModule.class, hikariConfig -> {
+ *         .module(HikariModule.class, hikariConfig -> {
  *           hikariConfig.setDataSourceClassName("org.h2.jdbcx.JdbcDataSource");
  *           hikariConfig.addDataSourceProperty("URL", "jdbc:h2:mem:dev"); // Use H2 in memory database
  *         })

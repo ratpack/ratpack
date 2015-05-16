@@ -20,22 +20,22 @@ import ratpack.exec.Result;
 
 public class DefaultResult<T> implements Result<T> {
 
-  private final Throwable failure;
+  private final Throwable error;
   private final T value;
 
-  public DefaultResult(Throwable failure) {
-    this.failure = failure;
+  public DefaultResult(Throwable error) {
+    this.error = error;
     this.value = null;
   }
 
   public DefaultResult(T value) {
     this.value = value;
-    this.failure = null;
+    this.error = null;
   }
 
   @Override
   public Throwable getThrowable() {
-    return failure;
+    return error;
   }
 
   @Override
@@ -45,16 +45,16 @@ public class DefaultResult<T> implements Result<T> {
 
   @Override
   public boolean isSuccess() {
-    return failure == null;
+    return error == null;
   }
 
   @Override
-  public boolean isFailure() {
-    return failure != null;
+  public boolean isError() {
+    return error != null;
   }
 
   @Override
   public String toString() {
-    return "Result{failure=" + failure + ", value=" + value + '}';
+    return "Result{error=" + error + ", value=" + value + '}';
   }
 }

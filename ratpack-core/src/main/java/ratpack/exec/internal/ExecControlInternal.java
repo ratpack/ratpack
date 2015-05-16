@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside.internal;
+package ratpack.exec.internal;
 
-import ratpack.session.store.SessionStorage;
+import com.google.common.collect.ImmutableList;
+import ratpack.exec.ExecControl;
+import ratpack.exec.ExecInterceptor;
 
-public class InitialStorageContainer {
-  final private SessionStorage storage;
+public interface ExecControlInternal extends ExecControl {
 
-  public InitialStorageContainer(SessionStorage storage) {
-    this.storage = storage;
-  }
-
-  public boolean isSameAsInitial(SessionStorage storage) {
-    return this.storage.equals(storage);
-  }
+  void setDefaultInterceptors(ImmutableList<? extends ExecInterceptor> interceptors);
 
 }

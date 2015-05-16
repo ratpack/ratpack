@@ -37,4 +37,18 @@ class RenderableDecorationSpec extends RatpackGroovyDslSpec {
     then:
     text == "a4321"
   }
+
+  def "decorator can be async"() {
+    when:
+    handlers {
+      register {
+        with(RenderableDecorator.ofAsync(String) { c, i -> c.blocking { i + "1" } }.register())
+        with(RenderableDecorator.ofAsync(String) { c, i -> c.blocking { i + "2" } }.register())
+      }
+      get { render("a") }
+    }
+
+    then:
+    text == "a21"
+  }
 }

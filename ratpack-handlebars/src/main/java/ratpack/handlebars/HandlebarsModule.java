@@ -70,7 +70,7 @@ import ratpack.server.ServerConfig;
  *         builder.file("handlebars/myTemplate.html.hbs", "Hello {{name}}!")
  *     );
  *     EmbeddedApp.of(baseDir, s -> s
- *       .registry(Guice.registry(b -> b.add(HandlebarsModule.class)))
+ *       .registry(Guice.registry(b -> b.module(HandlebarsModule.class)))
  *       .handlers(chain -> chain
  *         .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
  *       )
