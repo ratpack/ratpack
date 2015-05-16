@@ -39,6 +39,7 @@ class RequestSpecBacking {
   private final URI uri;
   private final ByteBufAllocator byteBufAllocator;
   private final RequestParams requestParams;
+  private boolean decompressResponse;
 
   private ByteBuf bodyByteBuf;
 
@@ -51,6 +52,7 @@ class RequestSpecBacking {
     this.byteBufAllocator = byteBufAllocator;
     this.requestParams = requestParams;
     this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
+    this.decompressResponse = false;
   }
 
   public String getMethod() {
@@ -59,6 +61,10 @@ class RequestSpecBacking {
 
   public int getMaxRedirects() {
     return maxRedirects;
+  }
+
+  public boolean isDecompressResponse() {
+    return decompressResponse;
   }
 
   @Nullable
@@ -95,6 +101,12 @@ class RequestSpecBacking {
     @Override
     public RequestSpec method(String method) {
       RequestSpecBacking.this.method = method.toUpperCase();
+      return this;
+    }
+
+    @Override
+    public RequestSpec decompressResponse(boolean shouldDecompress) {
+      RequestSpecBacking.this.decompressResponse = shouldDecompress;
       return this;
     }
 

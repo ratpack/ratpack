@@ -46,7 +46,9 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Fulfiller<? super ReceivedResponse> fulfiller) {
-    p.addLast(new HttpContentDecompressor());
+    if (requestSpecBacking.isDecompressResponse()) {
+      p.addLast(new HttpContentDecompressor());
+    }
     p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
     p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
       @Override

@@ -17,11 +17,11 @@
 package ratpack.http.client
 
 import ratpack.http.MutableHeaders
-import ratpack.http.internal.HttpHeaderConstants
 
 import java.util.zip.GZIPOutputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
+import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
 
 class HttpProxySpec extends HttpClientSpec {
@@ -196,7 +196,7 @@ transfer-encoding: chunked
     }
   }
 
-  def "can handle compressed responses"() {
+  def "can proxy compressed responses"() {
     given:
     def stringBuf = new ByteArrayOutputStream()
     def writer = new OutputStreamWriter(new GZIPOutputStream(stringBuf))
@@ -205,23 +205,32 @@ transfer-encoding: chunked
 
     otherApp {
       get("foo") {
-        response.headers.add(HttpHeaderConstants.CONTENT_ENCODING, "gzip")
+        response.headers.add(CONTENT_ENCODING, "gzip")
         response.send(stringBuf.toByteArray())
+        response.status(200)
+        response.contentType("text/plain")
       }
     }
 
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.request(otherAppUrl("foo")) {
+        httpClient.request(otherAppUrl("foo")) { rs ->
+          rs.headers.add("Accept-Encoding", "compress, gzip")
         } then { ReceivedResponse receivedResponse ->
-          render receivedResponse.body.text
+          receivedResponse.send(response)
         }
       }
     }
 
-    expect:
-    text == "bar"
-  }
+    when:
+    def response = requestSpec { RequestSpec rs ->
+      rs.headers { MutableHeaders h ->
+        h.add("Accept-Encoding", "compress, gzip")
+      }
+    }.get()
 
+    then:
+    response.headers.get(CONTENT_ENCODING) == "gzip"
+  }
 }

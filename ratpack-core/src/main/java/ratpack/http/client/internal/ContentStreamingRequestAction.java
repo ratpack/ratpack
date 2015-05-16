@@ -22,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.reactivestreams.Publisher;
@@ -61,6 +62,9 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Fulfiller<? super StreamedResponse> fulfiller) {
+    if (requestSpecBacking.isDecompressResponse()) {
+      p.addLast(new HttpContentDecompressor());
+    }
     p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
       @Override
       public void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
@@ -132,6 +136,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
         throw uncheck(e);
       }
       response.getHeaders().set(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
+
       response.status(this.status);
       response.sendStream(getBody());
     }

@@ -54,7 +54,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
   private final String host;
   private final int port;
   private final MutableHeaders headers;
-  private final RequestSpecBacking requestSpecBacking;
+  final RequestSpecBacking requestSpecBacking;
   private final URI uri;
   private final RequestParams requestParams;
   private final AtomicBoolean fired = new AtomicBoolean();
