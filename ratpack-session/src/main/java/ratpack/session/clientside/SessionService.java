@@ -18,13 +18,14 @@ package ratpack.session.clientside;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
+import ratpack.registry.Registry;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 public interface SessionService {
-  public String serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries);
-  public String[] serializeSession(ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries, int maxCookieSize);
-  public ConcurrentMap<String, Object> deserializeSession(Cookie[] sessionCookies);
+  public String serializeSession(Registry registry, ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries);
+  public String[] serializeSession(Registry registry, ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries, int maxCookieSize);
+  public ConcurrentMap<String, Object> deserializeSession(Registry registry, Cookie[] sessionCookies);
 }

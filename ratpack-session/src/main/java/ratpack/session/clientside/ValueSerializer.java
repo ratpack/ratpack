@@ -18,6 +18,7 @@ package ratpack.session.clientside;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.registry.Registry;
 
 /**
  * Serializes values of cookie session entries.
@@ -32,23 +33,25 @@ public interface ValueSerializer {
    *
    * @see ratpack.session.clientside.SessionService
    *
+   * @param registry the server registry
    * @param bufAllocator byte buffer allocator
    * @param value a value of cookie attribute to serialize
    *
    * @return the byte array of serialized value of session entry
    * @throws Exception the exception
    */
-  ByteBuf serialize(ByteBufAllocator bufAllocator, Object value) throws Exception;
+  ByteBuf serialize(Registry registry, ByteBufAllocator bufAllocator, Object value) throws Exception;
 
   /**
    * Deserializes cookie entry {@code value} from string to typed object.
    * <p>
    * All cookie values are put into the cookie as encoded
    *
+   * @param registry the server registry
    * @param value a value to deserialize fo target {@code V} type
    *
    * @return the deserialized value
    * @throws Exception the exception
    */
-  Object deserialize(String value) throws Exception;
+  Object deserialize(Registry registry, String value) throws Exception;
 }

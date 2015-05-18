@@ -17,6 +17,7 @@
 package ratpack.session.clientside
 
 import io.netty.handler.codec.http.Cookie
+import ratpack.registry.Registry
 import ratpack.session.clientside.serializer.JavaValueSerializer
 import ratpack.session.clientside.serializer.StringValueSerializer
 import ratpack.session.store.SessionStorage
@@ -28,6 +29,20 @@ import java.util.stream.Collectors
 class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
   private static final String LAST_ACCESS_TIME_TOKEN = "\$LAT\$"
 
+  private static class SessionServiceWrapper {
+    private final Registry registry
+    private final SessionService sessionService
+
+    SessionServiceWrapper(final Registry registry) {
+      this.registry = registry
+      this.sessionService = registry.get(SessionService)
+    }
+
+    def deserializeSession(Cookie[] cookies) {
+      return sessionService.deserializeSession(registry, cookies)
+    }
+  }
+
   private String[] getSessionCookies(String path) {
     List<Cookie> pathCookies = getCookies(path)
     if (pathCookies == null) {
@@ -36,7 +51,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     pathCookies.stream().findAll { it.name.startsWith("ratpack_session")?.value }.toArray()
   }
 
-  private def getSessionAttrs(SessionService sessionService, String path) {
+  private def getSessionAttrs(SessionServiceWrapper sessionService, String path) {
     List<Cookie> cookies = getCookies(path)
     def attrs = [:]
     cookies = cookies
@@ -56,7 +71,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     return attrs
   }
 
-  private long getSessionLastAccessTime(SessionService sessionService, String path) {
+  private long getSessionLastAccessTime(SessionServiceWrapper sessionService, String path) {
     List<Cookie> cookies = getCookies(path)
     cookies = cookies
       .stream()
@@ -186,7 +201,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("foo/:value") { SessionStorage sessionStorage ->
         sessionStorage.set("foo", pathTokens.value).then({
@@ -234,7 +249,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("s/:attr/:value") { SessionStorage sessionStorage ->
         String attr = pathTokens.attr
@@ -435,7 +450,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("s/:attr/:value") { SessionStorage sessionStorage ->
         String attr = pathTokens.attr
@@ -473,7 +488,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("wait") { SessionStorage sessionStorage ->
         Thread.sleep(1100)
@@ -534,7 +549,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("wait") { SessionStorage sessionStorage ->
         Thread.sleep(1100)
@@ -591,7 +606,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("") { SessionStorage sessionStorage ->
         render "null"
@@ -632,7 +647,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     def clientSessionService = null
     handlers {
       if (!clientSessionService) {
-        clientSessionService = registry.get(SessionService)
+        clientSessionService = new SessionServiceWrapper(registry)
       }
       get("") { SessionStorage sessionStorage ->
         render "null"

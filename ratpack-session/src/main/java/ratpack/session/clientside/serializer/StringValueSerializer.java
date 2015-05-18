@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.util.CharsetUtil;
+import ratpack.registry.Registry;
 import ratpack.session.clientside.ValueSerializer;
 
 import java.nio.CharBuffer;
@@ -35,13 +36,13 @@ public class StringValueSerializer implements ValueSerializer {
   private static final Escaper ESCAPER = UrlEscapers.urlFormParameterEscaper();
 
   @Override
-  public ByteBuf serialize(ByteBufAllocator bufAllocator, Object value) throws Exception {
+  public ByteBuf serialize(Registry registry, ByteBufAllocator bufAllocator, Object value) throws Exception {
     Objects.requireNonNull(value);
     return encode(bufAllocator, value.toString());
   }
 
   @Override
-  public Object deserialize(String value) throws Exception {
+  public Object deserialize(Registry registry, String value) throws Exception {
     return value == null || value.isEmpty() ? null : value;
   }
 

@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.util.CharsetUtil;
+import ratpack.registry.Registry;
 import ratpack.session.clientside.ValueSerializer;
 
 import java.io.*;
@@ -35,7 +36,7 @@ public class JavaValueSerializer implements ValueSerializer {
   private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
 
   @Override
-  public ByteBuf serialize(ByteBufAllocator bufferAllocator, Object value) throws Exception {
+  public ByteBuf serialize(Registry registry, ByteBufAllocator bufferAllocator, Object value) throws Exception {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     ObjectOutputStream outputStream = new ObjectOutputStream(stream);
     outputStream.writeObject(value);
@@ -46,7 +47,7 @@ public class JavaValueSerializer implements ValueSerializer {
   }
 
   @Override
-  public Object deserialize(String value) throws Exception {
+  public Object deserialize(Registry registry, String value) throws Exception {
     byte[] bytes = DECODER.decode(value);
     ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
     ObjectInputStream inputStream = new ObjectInputStream(stream);

@@ -51,7 +51,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
   public void handle(final Context context) {
     context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
       Cookie[] sessionCookies = getSessionCookies(context.getRequest().getCookies());
-      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
+      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(context, sessionCookies);
       ChangeTrackingSessionStorage changeTrackingSessionStorage = null;
       if (!maxInactivityInterval.isNegative()) {
         long lastAccessTime = Long.valueOf((String) sessionMap.getOrDefault(LAST_ACCESS_TIME_TOKEN, "-1"));
@@ -102,7 +102,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
                 if (!entries.isEmpty()) {
                   entries.add(new AbstractMap.SimpleImmutableEntry<String, Object>(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis())));
                   ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-                  String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
+                  String[] cookieValuePartitions = sessionService.serializeSession(context, bufferAllocator, entries, maxCookieSize);
                   for (int i = 0; i < cookieValuePartitions.length; i++) {
                     addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
                   }
