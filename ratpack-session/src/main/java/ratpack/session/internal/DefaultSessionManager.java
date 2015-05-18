@@ -16,6 +16,7 @@
 
 package ratpack.session.internal;
 
+import com.google.inject.Singleton;
 import ratpack.session.SessionCookieConfig;
 import ratpack.session.SessionIdGenerator;
 import ratpack.session.SessionListener;
@@ -25,6 +26,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class DefaultSessionManager implements SessionManager {
 
   private final SessionIdGenerator idGenerator;
