@@ -2,16 +2,15 @@
 
 Most applications need some level of configuration.
 This can be used to specify the correct external resources to use (databases, other services, etc.), tune performance, or otherwise adjust to the requirements of a given environment.
-`ratpack-config` provides an easy, flexible mechanism to access configuration information in your Ratpack application.
+Ratpack provides an easy, flexible mechanism to access configuration information in your Ratpack application.
 
 Configuration data is accessed via object binding using Jackson.
 Configuration objects provided by Ratpack are intended to be usable out of the box.
 Configuration data can be loaded from multiple sources, such as YAML files, JSON files, properties files, environment variables and system properties.
 
 ## Quick-Start
-To get started using `ratpack-config`:
+To get started:
 
-1. Add a `compile` dependency on the module to your build file
 1. Within your `RatpackServer` definition function, build a [`ConfigData`](api/ratpack/config/ConfigData.html) instance (see class documentation for an example)
 1. Retrieve bound configuration objects from the config data
 
@@ -25,7 +24,7 @@ Additionally, you can load data from non-file sources such as `Map`s/`Properties
 If additional flexibility is needed, you can provide your own [`ConfigSource`](api/ratpack/config/ConfigSource.html) implementation.
 
 ### Flat Config Sources
-Environment variables, `Properties`, and `Map`s are flat data structures, whereas the binding model used by `ratpack-config` is hierarchical.
+Environment variables, `Properties`, and `Map`s are flat data structures, whereas the binding model used by Ratpack is hierarchical.
 To bridge this gap, these config source implementations apply conventions to allow for the flat key-value pairs to be transformed into useful data.
 
 #### Environment Variables
@@ -63,7 +62,7 @@ If any changes are detected, it triggers a server reload.
 For this to work properly, all construction of the `ConfigData` object should take place within the [RatpackServer](api/ratpack/server/RatpackServer.html) `of`/`start` block.
 
 ### Object Mapper
-`ratpack-config` uses Jackson for object binding.
+Ratpack uses Jackson for config object binding.
 The default `ObjectMapper` used is configured with commonly used Jackson modules pre-loaded, and set to allow unquoted field names, allow single quotes, and ignore unknown field names.
 This is intended to make it easy to use, out-of-the-box.
 However, there will sometimes be cases where you may want to change a Jackson configuration setting or add additional Jackson modules.
