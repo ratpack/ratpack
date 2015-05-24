@@ -28,10 +28,10 @@ configurations {
 
 dependencies {
   compile project(":ratpack-core")
-  compile 'com.google.inject:guice:4.0-beta5', {
+  compile "com.google.inject:guice:$commonVersions.guice", {
     exclude group: "com.google.guava", module: "guava"
   }
-  compile 'com.google.inject.extensions:guice-multibindings:4.0-beta5', {
+  compile "com.google.inject.extensions:guice-multibindings:$commonVersions.guice", {
     exclude group: "com.google.guava", module: "guava"
   }
 }
