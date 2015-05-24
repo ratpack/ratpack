@@ -17,12 +17,14 @@
 package ratpack.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataSpec;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
+import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -39,7 +41,15 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Server configuration holder
+ * The configuration of the server.
+ * <p>
+ * This object represents the basic information needed to bootstrap the server (e.g. {@link #getPort()}),
+ * but also provides access to any externalised config objects to be used by the application via {@link #get(String, Class)}
+ * (see also: {@link #getRequiredConfig()}).
+ * A server config object is-a {@link ConfigData} object.
+ * <p>
+ * Server config objects are programmatically built via a {@link ratpack.server.ServerConfig.Builder}, which can be obtained via
+ * static methods of this type such as {@link #findBaseDir()}, {@link #noBaseDir()}, {@link #embedded()} etc.
  */
 public interface ServerConfig extends ConfigData {
 
@@ -155,6 +165,19 @@ public interface ServerConfig extends ConfigData {
    */
   @Nullable
   InetAddress getAddress();
+
+  /**
+   * The config objects that were declared as required when this server config was built.
+   * <p>
+   * Required config is declared via the {@link ServerConfig.Builder#require(String, Class)} when building.
+   * All required config is made part of the base registry (which the server registry joins with),
+   * which automatically makes the config objects available to the server registry.
+   *
+   *
+   * @return the declared required config
+   * @see ServerConfig.Builder#require(String, Class)
+   */
+  ImmutableSet<ConfigObject<?>> getRequiredConfig();
 
   /**
    * Whether or not the server is in "development" mode.
@@ -307,133 +330,184 @@ public interface ServerConfig extends ConfigData {
     Builder ssl(SSLContext sslContext);
 
     /**
-     * Adds a configuration source for environment variables starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_ENV_PREFIX}.
-     *
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder env();
 
     /**
-     * Adds a configuration source for environment variables starting with the specified prefix.
-     *
-     * @param prefix the prefix which should be used to identify relevant environment variables;
-     * the prefix will be removed before loading the data
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder env(String prefix);
 
     /**
-     * Adds a configuration source for a properties file.
-     *
-     * @param byteSource the source of the properties data
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder props(ByteSource byteSource);
 
     /**
-     * Adds a configuration source for a properties file.
-     *
-     * @param path the source of the properties data
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder props(String path);
 
     /**
-     * Adds a configuration source for a properties file.
-     *
-     * @param path the source of the properties data
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder props(Path path);
 
     /**
-     * Adds a configuration source for a properties object.
-     *
-     * @param properties the properties object
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder props(Properties properties);
 
     /**
-     * Adds a configuration source for a Map (flat key-value pairs).
-     *
-     * @param map the map
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder props(Map<String, String> map);
 
     /**
-     * Adds a configuration source for a properties file.
-     *
-     * @param url the source of the properties data
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder props(URL url);
 
     /**
-     * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.internal.DefaultServerConfigBuilder#DEFAULT_PROP_PREFIX}
-     *
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder sysProps();
 
     /**
-     * Adds a configuration source for system properties starting with the specified prefix.
-     *
-     * @param prefix the prefix which should be used to identify relevant system properties;
-     * the prefix will be removed before loading the data
-     * @return {@code this}
+     * {@inheritDoc}
      */
     @Override
     Builder sysProps(String prefix);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder onError(Action<? super Throwable> errorHandler);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder configureObjectMapper(Action<ObjectMapper> action);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder add(ConfigSource configSource);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder env(String prefix, Function<String, String> mapFunc);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder env(EnvironmentParser environmentParser);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder json(ByteSource byteSource);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder json(Path path);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder json(String path);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder json(URL url);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder yaml(ByteSource byteSource);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder yaml(Path path);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder yaml(String path);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Builder yaml(URL url);
+
+    /**
+     * Declares that it is required that the server config provide an object of the given type at the given path.
+     * <p>
+     * The {@link #build()} method will fail if the config is not able to provide the requested object.
+     * <p>
+     * All objects declared using this method will also automatically be implicitly added to the base registry.
+     * <p>
+     * The {@code pointer} argument is of the same format given to the {@link ConfigData#get(String, Class)} method.
+     * <pre class="java">
+     * import junit.framework.Assert;
+     * import ratpack.server.ServerConfig;
+     * import ratpack.test.embed.EmbeddedApp;
+     *
+     * import java.util.Collections;
+     *
+     * public class Example {
+     *   static class MyConfig {
+     *     public String value;
+     *   }
+     *
+     *   public static void main(String... args) throws Exception {
+     *     EmbeddedApp.of(a -> a
+     *         .serverConfig(ServerConfig.embedded()
+     *             .props(Collections.singletonMap("config.value", "foo"))
+     *             .require("/config", MyConfig.class)
+     *         )
+     *         .handlers(c -> c
+     *             .get(ctx -> ctx.render(ctx.get(MyConfig.class).value))
+     *         )
+     *     ).test(httpClient ->
+     *       Assert.assertEquals("foo", httpClient.getText())
+     *     );
+     *   }
+     * }
+     * </pre>
+     *
+     * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+     * @param type the class of the type to bind to
+     * @return {@code this}
+     */
+    Builder require(String pointer, Class<?> type);
 
     /**
      * Builds the server config.

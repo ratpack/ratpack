@@ -40,7 +40,10 @@ public class SiteMain {
   public static void main(String... args) throws Exception {
     RatpackServer.start(b -> {
         RxRatpack.initialize();
-        ServerConfig serverConfig = ServerConfig.findBaseDir().env().sysProps().build();
+        ServerConfig serverConfig = ServerConfig.findBaseDir()
+          .env()
+          .require("/github", SiteModule.GitHubConfig.class)
+          .build();
 
         b
           .serverConfig(serverConfig)
@@ -51,7 +54,7 @@ public class SiteMain {
                 .module(new CodaHaleMetricsModule(), c ->
                     c.csv(csv -> csv.enable(false))
                 )
-                .moduleConfig(SiteModule.class, serverConfig.get("/github", SiteModule.GitHubConfig.class))
+                .module(SiteModule.class)
                 .module(MarkupTemplateModule.class, conf -> {
                   conf.setAutoNewLine(true);
                   conf.setUseDoubleQuotes(true);

@@ -20,6 +20,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.config.ConfigObject;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultDevelopmentErrorHandler;
@@ -109,6 +110,8 @@ public abstract class ServerRegistry {
         .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT))
         .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer());
+
+      addConfigObjects(serverConfig, baseRegistryBuilder);
     } catch (Exception e) {
       // Uncheck because it really shouldn't happen
       throw uncheck(e);
@@ -119,5 +122,15 @@ public abstract class ServerRegistry {
     }
 
     return baseRegistryBuilder.build();
+  }
+
+  private static void addConfigObjects(ServerConfig serverConfig, RegistryBuilder baseRegistryBuilder) {
+    for (ConfigObject<?> configObject : serverConfig.getRequiredConfig()) {
+      addConfigObject(baseRegistryBuilder, configObject);
+    }
+  }
+
+  private static <T> void addConfigObject(RegistryBuilder baseRegistryBuilder, ConfigObject<T> configObject) {
+    baseRegistryBuilder.add(configObject.getType(), configObject.getObject());
   }
 }

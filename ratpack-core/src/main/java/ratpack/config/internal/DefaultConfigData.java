@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataSpec;
+import ratpack.config.ConfigObject;
 import ratpack.registry.Registry;
 import ratpack.server.StartEvent;
 import ratpack.server.StopEvent;
@@ -45,13 +46,14 @@ public class DefaultConfigData implements ConfigData {
   }
 
   @Override
-  public <O> O get(String pointer, Class<O> type) {
+  public <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type) {
     JsonNode node = pointer != null ? rootNode.at(pointer) : rootNode;
     if (node.isMissingNode()) {
       node = emptyNode;
     }
     try {
-      return objectMapper.readValue(new TreeTraversingParser(node, objectMapper), type);
+      O value = objectMapper.readValue(new TreeTraversingParser(node, objectMapper), type);
+      return new DefaultConfigObject<>(pointer, type, value);
     } catch (IOException ex) {
       throw Exceptions.uncheck(ex);
     }

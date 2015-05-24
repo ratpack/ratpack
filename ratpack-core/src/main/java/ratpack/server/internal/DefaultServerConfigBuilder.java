@@ -19,7 +19,11 @@ package ratpack.server.internal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
+import ratpack.config.ConfigData;
+import ratpack.config.ConfigObject;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.DefaultConfigDataSpec;
@@ -32,12 +36,14 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
 public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements ServerConfig.Builder {
 
   private final ObjectNode serverConfigData;
+  private final Map<String, Class<?>> required = Maps.newHashMap();
 
   public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Optional<Path> baseDir, Optional<ObjectMapper> objectMapper) {
     super(serverEnvironment, objectMapper);
@@ -118,8 +124,8 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
 
   @Override
   public ServerConfig.Builder env() {
-      super.env();
-      return this;
+    super.env();
+    return this;
   }
 
   @Override
@@ -207,6 +213,18 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
+  public ServerConfig.Builder require(String pointer, Class<?> type) {
+    Class<?> previous = required.put(
+      Objects.requireNonNull(pointer, "pointer cannot be null"),
+      Objects.requireNonNull(type, "type cannot be null")
+    );
+    if (previous != null) {
+      throw new IllegalArgumentException("Cannot require config of type '" + type + "' at '" + pointer + "' as '" + previous + " has already been registered for this path");
+    }
+    return this;
+  }
+
+  @Override
   public ServerConfig.Builder onError(Action<? super Throwable> errorHandler) {
     super.onError(errorHandler);
     return this;
@@ -242,7 +260,29 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
 
   @Override
   public ServerConfig build() {
-    return new DefaultServerConfig(super.build());
+    ConfigData configData = super.build();
+    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
+    return new DefaultServerConfig(configData, requiredConfig);
+  }
+
+  private static ImmutableSet<ConfigObject<?>> extractRequiredConfig(ConfigData configData, Map<String, Class<?>> required) {
+    RuntimeException badConfig = new IllegalStateException("Failed to build required config items");
+    ImmutableSet.Builder<ConfigObject<?>> config = ImmutableSet.builder();
+    for (Map.Entry<String, Class<?>> requiredConfig : required.entrySet()) {
+      String path = requiredConfig.getKey();
+      Class<?> type = requiredConfig.getValue();
+      try {
+        config.add(configData.getAsConfigObject(path, type));
+      } catch (Exception e) {
+        badConfig.addSuppressed(new IllegalStateException("Could not bind config at '" + path + "' to '" + type + "'", e));
+      }
+    }
+
+    if (badConfig.getSuppressed().length > 0) {
+      throw badConfig;
+    } else {
+      return config.build();
+    }
   }
 
   public static ServerConfig.Builder noBaseDir(ServerEnvironment serverEnvironment) {
