@@ -22,7 +22,6 @@ import ratpack.session.store.MapSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.session.store.SessionStore
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
