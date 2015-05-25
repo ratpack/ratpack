@@ -475,7 +475,7 @@ public interface ServerConfig extends ConfigData {
      * All objects declared using this method will also automatically be implicitly added to the base registry.
      * <p>
      * The {@code pointer} argument is of the same format given to the {@link ConfigData#get(String, Class)} method.
-     * <pre class="java">
+     * <pre class="java">{@code
      * import junit.framework.Assert;
      * import ratpack.server.ServerConfig;
      * import ratpack.test.embed.EmbeddedApp;
@@ -501,7 +501,7 @@ public interface ServerConfig extends ConfigData {
      *     );
      *   }
      * }
-     * </pre>
+     * }</pre>
      *
      * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
      * @param type the class of the type to bind to
