@@ -17,6 +17,7 @@
 package ratpack.session.clientside.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Crypto;
 import ratpack.util.Exceptions;
@@ -40,7 +41,7 @@ public class DefaultCrypto implements Crypto {
   }
 
   @Override
-  public byte[] encrypt(ByteBuf message) {
+  public ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator) {
     return Exceptions.uncheck(() -> {
       Cipher cipher = Cipher.getInstance(algorithm);
       cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
@@ -52,43 +53,35 @@ public class DefaultCrypto implements Crypto {
       ByteBuf paddedMessage = null;
       if (messageLength == encMessageLength && (encMessageLength % blockSize) != 0) {
         int paddedMessageSize = messageLength + blockSize - (messageLength % blockSize);
-        paddedMessage = Unpooled.wrappedBuffer(new byte[paddedMessageSize]);
+        paddedMessage = allocator.buffer(paddedMessageSize);
         paddedMessage.setZero(0, paddedMessageSize);
         paddedMessage.setBytes(0, message, messageLength);
+        paddedMessage.writerIndex(paddedMessageSize);
         encMessageLength = cipher.getOutputSize(paddedMessageSize);
       }
 
-      ByteBuf encMessage = Unpooled.wrappedBuffer(new byte[encMessageLength]);
-
-      cipher.doFinal(paddedMessage != null ? paddedMessage.nioBuffer() : message.nioBuffer(), encMessage.nioBuffer());
-      byte[] payload = encMessage.array();
+      ByteBuf encMessage = allocator.buffer(encMessageLength);
+      ByteBuffer nioBuffer = encMessage.internalNioBuffer(0, encMessageLength);
+      cipher.doFinal(paddedMessage == null ? message.nioBuffer() : paddedMessage.nioBuffer(), nioBuffer);
+      encMessage.writerIndex(encMessageLength);
 
       if (paddedMessage != null) {
         paddedMessage.release();
       }
-      encMessage.release();
 
       if (isInitializationVectorRequired) {
         byte[] ivBytes = cipher.getIV();
-
-        int outputLength = 1 + ivBytes.length + payload.length;
-        ByteBuf output = Unpooled.wrappedBuffer(new byte[outputLength])
-          .resetWriterIndex()
-          .writeByte(ivBytes.length)
-          .writeBytes(ivBytes)
-          .writeBytes(payload);
-
-        payload = output.array();
-
-        output.release();
+        ByteBuf iv = allocator.buffer(1 + ivBytes.length);
+        iv.writeByte(ivBytes.length).writeBytes(ivBytes);
+        return Unpooled.wrappedBuffer(2, iv, encMessage);
+      } else {
+        return encMessage;
       }
-
-      return payload;
     });
   }
 
   @Override
-  public byte[] decrypt(ByteBuf message) {
+  public ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator) {
     return Exceptions.uncheck(() -> {
       Cipher cipher = Cipher.getInstance(algorithm);
 
@@ -104,25 +97,17 @@ public class DefaultCrypto implements Crypto {
       }
 
       int messageLength = message.readableBytes();
-      ByteBuf decMessage = Unpooled.wrappedBuffer(new byte[cipher.getOutputSize(messageLength)]);
-
-      ByteBuffer nioDecMessageBuf = decMessage.nioBuffer();
-
-      int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), nioDecMessageBuf);
+      ByteBuf decMessage = allocator.buffer(cipher.getOutputSize(messageLength));
+      int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), decMessage.internalNioBuffer(0, messageLength));
       for (int i = count - 1; i >= 0; i--) {
-        if (nioDecMessageBuf.get(i) == 0x00) {
+        if (decMessage.getByte(i) == 0x00) {
           count--;
         } else {
           break;
         }
       }
-      byte[] decrypted = new byte[count];
-      nioDecMessageBuf.position(0);
-      nioDecMessageBuf.get(decrypted, 0, count);
-
-      decMessage.release();
-
-      return decrypted;
+      decMessage.writerIndex(count);
+      return decMessage;
     });
   }
 }

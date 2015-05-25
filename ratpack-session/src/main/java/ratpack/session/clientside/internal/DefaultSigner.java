@@ -17,6 +17,8 @@
 package ratpack.session.clientside.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Signer;
 import ratpack.util.Exceptions;
 
@@ -32,12 +34,12 @@ public class DefaultSigner implements Signer {
   }
 
   @Override
-  public byte[] sign(ByteBuf message) {
+  public ByteBuf sign(ByteBuf message, ByteBufAllocator byteBufAllocator) {
     return Exceptions.uncheck(() -> {
       Mac mac = Mac.getInstance(secretKeySpec.getAlgorithm());
       mac.init(secretKeySpec);
       mac.update(message.nioBuffer());
-      return mac.doFinal();
+      return Unpooled.wrappedBuffer(mac.doFinal());
     });
   }
 

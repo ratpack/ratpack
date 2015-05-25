@@ -16,8 +16,9 @@
 
 package ratpack.session.clientside.internal;
 
-import io.netty.buffer.ByteBufAllocator;
+import com.google.common.collect.Maps;
 import io.netty.handler.codec.http.Cookie;
+import ratpack.func.Pair;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.ResponseMetaData;
@@ -26,7 +27,9 @@ import ratpack.session.store.internal.ChangeTrackingSessionStorage;
 import ratpack.stream.Streams;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 public class CookieBasedSessionStorageBindingHandler implements Handler {
@@ -80,40 +83,33 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
       if (storageOptional.isPresent()) {
         ChangeTrackingSessionStorage storage = storageOptional.get();
         if (storage.hasChanged()) {
-          Set<Map.Entry<String, Object>> entries = new HashSet<Map.Entry<String, Object>>();
-
-          storage.getKeys().then((keys) -> {
+          storage.getKeys().then(keys ->
             context.stream(Streams.publish(keys))
-              .flatMap((key) -> storage.get(key, Object.class).map((value) -> {
-                if (value.isPresent()) {
-                  return new AbstractMap.SimpleImmutableEntry<String, Object>(key, value.get());
-                } else {
-                  return null;
-                }
-              }))
-              .toList().then((entryList) -> {
-              for (Map.Entry<String, Object> entry : entryList) {
-                if (entry != null) {
-                  entries.add(entry);
-                }
-              }
-              int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
-              int currentSessionCookieCount = 0;
+              .flatMap(key ->
+                  storage.get(key, Object.class).map(value -> Pair.of(key, value.orElse(null)))
+              )
+              .toList()
+              .then(entries -> {
+                int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
+                int currentSessionCookieCount = 0;
 
-              if (!entries.isEmpty()) {
-                entries.add(new AbstractMap.SimpleImmutableEntry<String, Object>(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis())));
-                ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
-                String[] cookieValuePartitions = sessionService.serializeSession(bufferAllocator, entries, maxCookieSize);
-                for (int i = 0; i < cookieValuePartitions.length; i++) {
-                  addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                if (!entries.isEmpty()) {
+                  Map<String, Object> data = Maps.newHashMap();
+                  data.put(LAST_ACCESS_TIME_TOKEN, Long.toString(System.currentTimeMillis()));
+                  for (Pair<String, Object> entry : entries) {
+                    data.put(entry.left, entry.right);
+                  }
+                  String[] cookieValuePartitions = sessionService.serializeSession(data.entrySet(), maxCookieSize);
+                  for (int i = 0; i < cookieValuePartitions.length; i++) {
+                    addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
+                  }
+                  currentSessionCookieCount = cookieValuePartitions.length;
                 }
-                currentSessionCookieCount = cookieValuePartitions.length;
-              }
-              for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
-                invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
-              }
-            });
-          });
+                for (int i = currentSessionCookieCount; i < initialSessionCookieCount; i++) {
+                  invalidateSessionCookie(responseMetaData, sessionName + "_" + i, path, domain);
+                }
+              })
+          );
         }
       }
     });
