@@ -16,8 +16,10 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
+import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
@@ -33,9 +35,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
 
   private final ServerConfigData serverConfigData;
   private final Optional<FileSystemBinding> baseDir;
+  private final ImmutableSet<ConfigObject<?>> requiredConfig;
 
-  public DefaultServerConfig(ConfigData configData) {
+  public DefaultServerConfig(ConfigData configData, ImmutableSet<ConfigObject<?>> requiredConfig) {
     super(configData);
+    this.requiredConfig = requiredConfig;
     this.serverConfigData = get("/server", ServerConfigData.class);
     baseDir = Optional.ofNullable(serverConfigData.getBaseDir()).map(DefaultFileSystemBinding::new);
   }
@@ -49,6 +53,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public InetAddress getAddress() {
     return serverConfigData.getAddress();
+  }
+
+  @Override
+  public ImmutableSet<ConfigObject<?>> getRequiredConfig() {
+    return requiredConfig;
   }
 
   @Override

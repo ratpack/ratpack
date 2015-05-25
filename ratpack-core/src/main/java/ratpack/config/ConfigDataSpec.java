@@ -86,7 +86,7 @@ public interface ConfigDataSpec {
    * Configures the object mapper used for binding configuration data to arbitrary objects.
    *
    * @param action an action to perform upon the object mapper
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec configureObjectMapper(Action<ObjectMapper> action);
 
@@ -94,7 +94,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source.
    *
    * @param configSource the configuration source to add
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec add(ConfigSource configSource);
 
@@ -143,7 +143,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for environment variables using custom parsing logic.
    *
    * @param environmentParser the parser to use to interpret environment variables
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec env(EnvironmentParser environmentParser);
 
@@ -151,7 +151,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a JSON file.
    *
    * @param byteSource the source of the JSON data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec json(ByteSource byteSource);
 
@@ -159,7 +159,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a JSON file.
    *
    * @param path the source of the JSON data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec json(Path path);
 
@@ -167,7 +167,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a JSON file.
    *
    * @param path the path to the source of the JSON data
-   * @return this
+   * @return {@code this}
    */
   default ConfigDataSpec json(String path) {
     return json(Paths.get(path));
@@ -177,7 +177,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a JSON file.
    *
    * @param url the source of the JSON data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec json(URL url);
 
@@ -185,7 +185,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a properties file.
    *
    * @param byteSource the source of the properties data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec props(ByteSource byteSource);
 
@@ -193,7 +193,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a properties file.
    *
    * @param path the source of the properties data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec props(Path path);
 
@@ -201,7 +201,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a properties object.
    *
    * @param properties the properties object
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec props(Properties properties);
 
@@ -229,7 +229,7 @@ public interface ConfigDataSpec {
    * }</pre>
    *
    * @param map the map
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec props(Map<String, String> map);
 
@@ -237,7 +237,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a properties file.
    *
    * @param path the path to the source of the properties data
-   * @return this
+   * @return {@code this}
    */
   default ConfigDataSpec props(String path) {
     return props(Paths.get(path));
@@ -247,14 +247,14 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a properties file.
    *
    * @param url the source of the properties data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec props(URL url);
 
   /**
    * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.ServerConfig.Builder#DEFAULT_PROP_PREFIX}.
    *
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec sysProps();
 
@@ -263,7 +263,7 @@ public interface ConfigDataSpec {
    *
    * @param prefix the prefix which should be used to identify relevant system properties;
    * the prefix will be removed before loading the data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec sysProps(String prefix);
 
@@ -271,7 +271,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a YAML file.
    *
    * @param byteSource the source of the YAML data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec yaml(ByteSource byteSource);
 
@@ -279,7 +279,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a YAML file.
    *
    * @param path the source of the YAML data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec yaml(Path path);
 
@@ -287,7 +287,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a YAML file.
    *
    * @param path the path to the source of the YAML data
-   * @return this
+   * @return {@code this}
    */
   default ConfigDataSpec yaml(String path) {
     return yaml(Paths.get(path));
@@ -297,7 +297,7 @@ public interface ConfigDataSpec {
    * Adds a configuration source for a YAML file.
    *
    * @param url the source of the YAML data
-   * @return this
+   * @return {@code this}
    */
   ConfigDataSpec yaml(URL url);
 
@@ -306,12 +306,11 @@ public interface ConfigDataSpec {
    * The error handler only applies to configuration sources added after this method is called; it is not applied retroactively.
    *
    * @param errorHandler the error handler
-   * @return this
+   * @return {@code this}
    * @see ratpack.func.Action#noop()
    * @see ratpack.func.Action#throwException()
    */
   ConfigDataSpec onError(Action<? super Throwable> errorHandler);
-
 
   /**
    * Returns the object mapper used for configuration binding.
@@ -326,4 +325,5 @@ public interface ConfigDataSpec {
    * @return the config sources
    */
   ImmutableList<ConfigSource> getConfigSources();
+
 }

@@ -19,6 +19,8 @@ package ratpack.session.clientside.internal;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import io.netty.buffer.*;
+import io.netty.handler.codec.base64.Base64;
+import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
@@ -30,14 +32,14 @@ import ratpack.session.clientside.ValueSerializer;
 import ratpack.util.Exceptions;
 
 import java.nio.CharBuffer;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultClientSessionService implements SessionService {
 
-  private static final Base64.Encoder ENCODER = Base64.getUrlEncoder();
-  private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
   private static final Escaper ESCAPER = UrlEscapers.urlFormParameterEscaper();
 
   private static final ByteBuf EQUALS = Unpooled.unreleasableBuffer(ByteBufUtil.encodeString(UnpooledByteBufAllocator.DEFAULT, CharBuffer.wrap("="), CharsetUtil.UTF_8));
@@ -45,41 +47,43 @@ public class DefaultClientSessionService implements SessionService {
 
   private static final String SESSION_SEPARATOR = ":";
 
+  private final ByteBufAllocator bufferAllocator;
   private final Signer signer;
   private final Crypto crypto;
   private final ValueSerializer valueSerializer;
 
-  public DefaultClientSessionService(Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
+  public DefaultClientSessionService(ByteBufAllocator bufferAllocator, Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
+    this.bufferAllocator = bufferAllocator;
     this.signer = signer;
     this.crypto = crypto;
     this.valueSerializer = valueSerializer;
   }
 
   @Override
-  public String[] serializeSession(Registry registry, ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries, int maxCookieSize) {
-    String serializedSession = serializeSession(registry, bufferAllocator, entries);
+  public String[] serializeSession(Registry registry, Set<Map.Entry<String, Object>> entries, int maxCookieSize) {
+    String serializedSession = serializeSession(registry, entries);
     int sessionSize = serializedSession.length();
     if (sessionSize <= maxCookieSize) {
-      return new String[] {serializedSession};
+      return new String[]{serializedSession};
     }
-    int numOfPartitions = (int) Math.ceil((double)sessionSize / maxCookieSize);
+    int numOfPartitions = (int) Math.ceil((double) sessionSize / maxCookieSize);
     String[] partitions = new String[numOfPartitions];
     for (int i = 0; i < numOfPartitions; i++) {
       int from = i * maxCookieSize;
-      int to = Math.min(from + maxCookieSize, sessionSize - 1);
+      int to = Math.min(from + maxCookieSize, sessionSize);
       partitions[i] = serializedSession.substring(from, to);
     }
     return partitions;
   }
 
   @Override
-  public String serializeSession(Registry registry, ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries) {
+  public String serializeSession(Registry registry, Set<Map.Entry<String, Object>> entries) {
     ByteBuf[] buffers = new ByteBuf[3 * entries.size() + entries.size() - 1];
     try {
       int i = 0;
 
       for (Map.Entry<String, Object> entry : entries) {
-        buffers[i++] = encode(bufferAllocator, entry.getKey());
+        buffers[i++] = encode(entry.getKey());
         buffers[i++] = EQUALS;
         buffers[i++] = valueSerializer.serialize(registry, bufferAllocator, entry.getValue());
 
@@ -89,20 +93,16 @@ public class DefaultClientSessionService implements SessionService {
       }
 
       ByteBuf payloadBuffer = Unpooled.wrappedBuffer(buffers.length, buffers);
-      byte[] payloadBytes = new byte[payloadBuffer.readableBytes()];
-      payloadBuffer.getBytes(0, payloadBytes);
-      if (crypto != null) {
-        payloadBytes = crypto.encrypt(payloadBuffer);
-        payloadBuffer = Unpooled.wrappedBuffer(payloadBytes);
-      }
 
-      String payloadString = ENCODER.encodeToString(payloadBytes);
+      ByteBuf encrypted = crypto.encrypt(payloadBuffer, bufferAllocator);
+      String encryptedBase64 = toBase64(encrypted);
+      ByteBuf digest = signer.sign(encrypted.resetReaderIndex(), bufferAllocator);
+      String digestBase64 = toBase64(digest);
 
-      byte[] digest = signer.sign(payloadBuffer);
-      String digestString = ENCODER.encodeToString(digest);
+      digest.release();
+      encrypted.release();
 
-      return payloadString + SESSION_SEPARATOR + digestString;
-
+      return encryptedBase64 + SESSION_SEPARATOR + digestBase64;
     } catch (Exception e) {
       throw Exceptions.uncheck(e);
     } finally {
@@ -114,7 +114,25 @@ public class DefaultClientSessionService implements SessionService {
     }
   }
 
-  private ByteBuf encode(ByteBufAllocator bufferAllocator, String value) {
+  private String toBase64(ByteBuf byteBuf) {
+    ByteBuf encoded = Base64.encode(byteBuf, false, Base64Dialect.STANDARD);
+    try {
+      return encoded.toString(CharsetUtil.ISO_8859_1);
+    } finally {
+      encoded.release();
+    }
+  }
+
+  private ByteBuf fromBase64(String string) {
+    ByteBuf byteBuf = ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(string), CharsetUtil.ISO_8859_1);
+    try {
+      return Base64.decode(byteBuf, Base64Dialect.STANDARD);
+    } finally {
+      byteBuf.release();
+    }
+  }
+
+  private ByteBuf encode(String value) {
     String escaped = ESCAPER.escape(value);
     return ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(escaped), CharsetUtil.UTF_8);
   }
@@ -131,26 +149,20 @@ public class DefaultClientSessionService implements SessionService {
 
   private ConcurrentMap<String, Object> deserializeSession(Registry registry, String cookieValue) {
     ConcurrentMap<String, Object> sessionStorage = new ConcurrentHashMap<>();
-    String encodedPairs = cookieValue;
-    if (encodedPairs != null) {
-      String[] parts = encodedPairs.split(SESSION_SEPARATOR);
+    if (cookieValue != null) {
+      String[] parts = cookieValue.split(SESSION_SEPARATOR);
       if (parts.length == 2) {
-        byte[] urlEncoded = DECODER.decode(parts[0]);
-        byte[] digest = DECODER.decode(parts[1]);
+        ByteBuf payload = fromBase64(parts[0]);
+        ByteBuf digest = fromBase64(parts[1]);
 
         try {
-          byte[] expectedDigest = signer.sign(Unpooled.wrappedBuffer(urlEncoded));
+          ByteBuf expectedDigest = signer.sign(payload, bufferAllocator);
+          if (ByteBufUtil.equals(digest, expectedDigest)) {
+            ByteBuf decryptedPayload = crypto.decrypt(payload.resetReaderIndex(), bufferAllocator);
+            String payloadString = decryptedPayload.toString(CharsetUtil.UTF_8);
+            decryptedPayload.release();
 
-          if (Arrays.equals(digest, expectedDigest)) {
-            byte[] message;
-            if (crypto == null) {
-              message = urlEncoded;
-            } else {
-              message = crypto.decrypt(Unpooled.wrappedBuffer(urlEncoded));
-            }
-
-            String payload = new String(message, CharsetUtil.UTF_8);
-            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payload, CharsetUtil.UTF_8, false);
+            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payloadString, CharsetUtil.UTF_8, false);
             Map<String, List<String>> decoded = queryStringDecoder.parameters();
             for (Map.Entry<String, List<String>> entry : decoded.entrySet()) {
               sessionStorage.put(entry.getKey(), valueSerializer.deserialize(registry, entry.getValue().get(0)));
@@ -158,6 +170,9 @@ public class DefaultClientSessionService implements SessionService {
           }
         } catch (Exception e) {
           throw Exceptions.uncheck(e);
+        } finally {
+          payload.release();
+          digest.release();
         }
       }
     }

@@ -19,13 +19,11 @@ package ratpack.session.clientside;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
-import ratpack.session.clientside.internal.CookieBasedSessionStorageBindingHandler;
-import ratpack.session.clientside.internal.DefaultClientSessionService;
-import ratpack.session.clientside.internal.DefaultCrypto;
-import ratpack.session.clientside.internal.DefaultSigner;
+import ratpack.session.clientside.internal.*;
 import ratpack.session.clientside.serializer.JavaValueSerializer;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -216,21 +214,20 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
   @Provides
   @Singleton
   Crypto provideCrypto(Config config) {
-    DefaultCrypto crypto = null;
-    if (config.getSecretKey() != null && config.getCipherAlgorithm() != null) {
-      byte[] key = config.getSecretKey().getBytes(CharsetUtil.UTF_8);
-      crypto = new DefaultCrypto(key, config.getCipherAlgorithm());
+    if (config.getSecretKey() == null || config.getCipherAlgorithm() == null) {
+      return NoCrypto.INSTANCE;
+    } else {
+      return new DefaultCrypto(config.getSecretKey().getBytes(CharsetUtil.UTF_8), config.getCipherAlgorithm());
     }
-    return crypto;
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  SessionService provideSessionService(Config config, Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
+  SessionService provideSessionService(ByteBufAllocator byteBufAllocator, Config config, Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
     SessionService sessionService = config.getSessionService();
     if (sessionService == null) {
-      sessionService = new DefaultClientSessionService(signer, crypto, valueSerializer);
+      sessionService = new DefaultClientSessionService(byteBufAllocator, signer, crypto, valueSerializer);
     }
     return sessionService;
   }

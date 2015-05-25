@@ -255,11 +255,11 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String attr = pathTokens.attr
         String value = pathTokens.value
         if (attr && value) {
-          sessionStorage.set(attr, value).then({
-            sessionStorage.get(attr, String).then({
-              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
-            })
-          })
+          sessionStorage.set(attr, value).then {
+            sessionStorage.get(attr, Object).then {
+              render "ATTR: ${attr} VALUE: ${it.get()}"
+            }
+          }
         } else {
           clientError(404)
         }
@@ -320,23 +320,23 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         for (int i = 0; i < 800/*1024*/; i++) {
           value += "ab"
         }
-        sessionStorage.set("foo", value).then({
-          sessionStorage.get("foo", String).then({
+        sessionStorage.set("foo", value).then {
+          sessionStorage.get("foo", String).then {
             render "SET"
-          })
-        })
+          }
+        }
       }
       get("setsmall") { SessionStorage sessionStorage ->
-        sessionStorage.set("foo", "val1").then({
-          sessionStorage.get("foo", String).then({
+        sessionStorage.set("foo", "val1").then {
+          sessionStorage.get("foo", String).then {
             render it.orElse("null")
-          })
-        })
+          }
+        }
       }
       get("clear") { SessionStorage sessionStorage ->
-        sessionStorage.remove("foo").then({
+        sessionStorage.remove("foo").then {
           render ""
-        })
+        }
       }
     }
 
@@ -356,7 +356,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     get("clear")
 
     then:
-    getCookies("/").size == 0
+    getCookies("/").size() == 0
 
     when:
     get("set")
@@ -394,16 +394,16 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         })
       }
       get("setsmall") { SessionStorage sessionStorage ->
-        sessionStorage.set("foo", "val1").then({
-          sessionStorage.get("foo", String).then({
+        sessionStorage.set("foo", "val1").then {
+          sessionStorage.get("foo", String).then {
             render it.orElse("null")
-          })
-        })
+          }
+        }
       }
       get("clear") { SessionStorage sessionStorage ->
-        sessionStorage.remove("foo").then({
+        sessionStorage.remove("foo").then {
           render ""
-        })
+        }
       }
     }
 
@@ -423,7 +423,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     get("clear")
 
     then:
-    getCookies("/").size == 0
+    getCookies("/").size() == 0
 
     when:
     get("set")
@@ -456,11 +456,11 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String attr = pathTokens.attr
         String value = pathTokens.value
         if (attr && value) {
-          sessionStorage.set(attr, value).then({
-            sessionStorage.get(attr, String).then({
-              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
-            })
-          })
+          sessionStorage.set(attr, value).then {
+            sessionStorage.get(attr, Object).then {
+              render "ATTR: ${attr} VALUE: ${it.get()}"
+            }
+          }
         } else {
           clientError(404)
         }
@@ -505,11 +505,11 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String attr = pathTokens.attr
         String value = pathTokens.value
         if (attr && value) {
-          sessionStorage.set(attr, value).then({
-            sessionStorage.get(attr, String).then({
-              render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
-            })
-          })
+          sessionStorage.set(attr, value).then {
+            sessionStorage.get(attr, Object).then {
+              render "ATTR: ${attr} VALUE: ${it.get()}"
+            }
+          }
         } else {
           clientError(404)
         }
@@ -562,11 +562,11 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
         String attr = pathTokens.attr
         String value = pathTokens.value
         if (attr && value) {
-          sessionStorage.set(attr, value).then({
-            sessionStorage.get(attr, String).then({
+          sessionStorage.set(attr, value).then {
+            sessionStorage.get(attr, String).then {
               render "ATTR: ${attr} VALUE: ${it.orElse('null')}"
-            })
-          })
+            }
+          }
         } else {
           clientError(404)
         }

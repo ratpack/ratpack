@@ -16,7 +16,6 @@
 
 package ratpack.session.clientside;
 
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.registry.Registry;
 
@@ -25,7 +24,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 public interface SessionService {
-  public String serializeSession(Registry registry, ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries);
-  public String[] serializeSession(Registry registry, ByteBufAllocator bufferAllocator, Set<Map.Entry<String, Object>> entries, int maxCookieSize);
-  public ConcurrentMap<String, Object> deserializeSession(Registry registry, Cookie[] sessionCookies);
+  String serializeSession(Registry registry, Set<Map.Entry<String, Object>> entries);
+
+  String[] serializeSession(Registry registry, Set<Map.Entry<String, Object>> entries, int maxCookieSize);
+
+  ConcurrentMap<String, Object> deserializeSession(Registry registry, Cookie[] sessionCookies);
 }

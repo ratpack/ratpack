@@ -59,7 +59,7 @@ public class SessionModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);
-    bind(SessionManager.class).to(DefaultSessionManager.class).in(Singleton.class);
+    bind(SessionManager.class).to(DefaultSessionManager.class);
     bind(SessionCookieConfig.class).toInstance(new DefaultSessionCookieConfig(cookieExpiresMins, cookieDomain, cookiePath));
 
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toInstance(HandlerDecorator.prepend(ctx -> {

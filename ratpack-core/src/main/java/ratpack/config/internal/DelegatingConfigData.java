@@ -17,6 +17,7 @@
 package ratpack.config.internal;
 
 import ratpack.config.ConfigData;
+import ratpack.config.ConfigObject;
 import ratpack.registry.Registry;
 import ratpack.server.StartEvent;
 import ratpack.server.StopEvent;
@@ -31,6 +32,11 @@ public class DelegatingConfigData implements ConfigData {
   @Override
   public <O> O get(String pointer, Class<O> type) {
     return delegate.get(pointer, type);
+  }
+
+  @Override
+  public <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type) {
+    return delegate.getAsConfigObject(pointer, type);
   }
 
   @Override

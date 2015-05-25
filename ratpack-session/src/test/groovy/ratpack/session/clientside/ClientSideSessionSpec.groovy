@@ -339,9 +339,9 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     client1.response.headers.get("Set-Cookie").startsWith("_sess")
 
     when:
-    client2.requestSpec { RequestSpec spec ->
-      spec.headers { MutableHeaders headers ->
-        headers.set(HttpHeaderConstants.COOKIE, client1.response.headers.get("Set-Cookie"))
+    client2.requestSpec {
+      it.headers {
+        it.set(HttpHeaderConstants.COOKIE, client1.response.headers.get("Set-Cookie"))
       }
     }
 
@@ -350,19 +350,19 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
     !client2.response.headers.get("Set-Cookie")
 
     where:
-    sessionModuleConfig << [{
-                              secretToken = "secret"
-                              sessionName = "_sess"
-                              macAlgorithm = "HmacMD5"
-                              valueSerializer = new StringValueSerializer()
-                            }, {
-                              secretToken = "secret"
-                              secretKey = "a" * 16
-                              sessionName = "_sess"
-                              macAlgorithm = "HmacMD5"
-                              valueSerializer = new StringValueSerializer()
-                            }]
-
+    sessionModuleConfig << [
+      {
+        secretToken = "secret"
+        sessionName = "_sess"
+        macAlgorithm = "HmacMD5"
+      },
+      {
+        secretToken = "secret"
+        secretKey = "a" * 16
+        sessionName = "_sess"
+        macAlgorithm = "HmacMD5"
+      }
+    ]
   }
 
   @Unroll

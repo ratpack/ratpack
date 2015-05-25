@@ -207,7 +207,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
           development true
         }
         bindings {
-          bind RequestCounter
+          bindInstance new RequestCounter()
         }
         handlers {
           get {
@@ -240,7 +240,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
           development true
         }
         bindings {
-          bind RequestCounter
+          bindInstance new RequestCounter()
         }
         handlers {
           get {
@@ -264,7 +264,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       }
       ratpack {
         bindings {
-          bind RequestCounter
+          bindInstance new RequestCounter()
         }
         serverConfig {
           development true
