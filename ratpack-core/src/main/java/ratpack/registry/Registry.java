@@ -17,9 +17,11 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.func.Function;
 import ratpack.registry.internal.EmptyRegistry;
 import ratpack.registry.internal.HierarchicalRegistry;
+import ratpack.util.Types;
 
 import java.util.Optional;
 
@@ -91,6 +93,14 @@ public interface Registry {
     return get(TypeToken.of(type));
   }
 
+  default <O> Promise<O> getAsync(Class<O> type) throws NotInRegistryException {
+    return getAsync(TypeToken.of(type));
+  }
+
+  default <O> Promise<O> getAsync(TypeToken<O> type) throws NotInRegistryException {
+    return get(Types.promiseOf(type));
+  }
+
   /**
    * Provides an object of the specified type, or throws an exception if no object of that type is available.
    *
@@ -122,6 +132,14 @@ public interface Registry {
    * @return An optional of an object of the specified type
    */
   <O> Optional<O> maybeGet(TypeToken<O> type);
+
+  default <O> Optional<Promise<O>> maybeGetAsync(Class<O> type) throws NotInRegistryException {
+    return maybeGetAsync(TypeToken.of(type));
+  }
+
+  default <O> Optional<Promise<O>> maybeGetAsync(TypeToken<O> type) throws NotInRegistryException {
+    return maybeGet(Types.promiseOf(type));
+  }
 
   /**
    * Returns all of the objects whose declared type is assignment compatible with the given type.

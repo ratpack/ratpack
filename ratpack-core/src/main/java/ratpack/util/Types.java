@@ -19,6 +19,7 @@ package ratpack.util;
 
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 
 import java.util.List;
 
@@ -67,6 +68,61 @@ public abstract class Types {
    */
   public static <T> TypeToken<List<T>> listOf(Class<T> type) {
     return new TypeToken<List<T>>() {}.where(new TypeParameter<T>() {}, TypeToken.of(type));
+  }
+
+  /**
+   * Creates a type token for a promise of of the given type.
+   * <pre class="java">{@code
+   * import ratpack.util.Types;
+   * import ratpack.exec.Promise;
+   * import com.google.common.reflect.TypeToken;
+   *
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) {
+   *     assertEquals(Types.promiseOf(String.class), new TypeToken<Promise<String>>() {});
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param type the promise element type
+   * @param <T> the promise element type
+   * @return a type token for a promise of of the given type.
+   */
+  public static <T> TypeToken<Promise<T>> promiseOf(Class<T> type) {
+    return promiseOf(TypeToken.of(type));
+  }
+
+  /**
+   * Creates a type token for a promise of of the given type.
+   * <pre class="java">{@code
+   * import ratpack.util.Types;
+   * import ratpack.exec.Promise;
+   * import com.google.common.reflect.TypeToken;
+   *
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) {
+   *     assertEquals(
+   *       Types.promiseOf(new TypeToken<List<String>>() {}),
+   *       new TypeToken<Promise<List<String>>>() {}
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param type the promise element type
+   * @param <T> the promise element type
+   * @return a type token for a promise of of the given type.
+   */
+  public static <T> TypeToken<Promise<T>> promiseOf(TypeToken<T> type) {
+    return new TypeToken<Promise<T>>() {}.where(new TypeParameter<T>() {}, type);
   }
 
 }

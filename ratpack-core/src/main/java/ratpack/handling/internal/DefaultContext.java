@@ -146,6 +146,7 @@ public class DefaultContext implements Context {
       .register(s -> s
           .add(Context.class, context)
           .add(Request.class, requestConstants.request)
+          .add(Response.class, requestConstants.response)
       )
       .eventLoop(eventLoop)
       .start(e -> context.next());

@@ -137,7 +137,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     get("foo").headers.get("Set-Cookie") == null
     get("bar").headers.get("Set-Cookie").contains('JSESSIONID')
 
-    // null because the session id is already set
+    // null because the session cookieSessionId is already set
     !get("bar").headers.get("Set-Cookie")?.contains('JSESSIONID')
   }
 }

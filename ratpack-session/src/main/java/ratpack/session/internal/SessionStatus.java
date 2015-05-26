@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 
 package ratpack.session.internal;
 
-import ratpack.session.SessionIdGenerator;
+public class SessionStatus {
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
+  private boolean dirty;
 
-public class DefaultSessionIdGenerator implements SessionIdGenerator {
+  public boolean isDirty() {
+    return dirty;
+  }
 
-  private SecureRandom random = new SecureRandom();
-
-  public String generateSessionId() {
-    return new BigInteger(130, random).toString(32);
+  public void setDirty(boolean dirty) {
+    this.dirty = dirty;
   }
 
 }

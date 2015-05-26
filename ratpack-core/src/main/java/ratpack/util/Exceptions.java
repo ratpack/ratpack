@@ -19,8 +19,11 @@ package ratpack.util;
 import ratpack.api.UncheckedException;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
-import ratpack.func.Factory;
 import ratpack.func.Block;
+import ratpack.func.Factory;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * Utility methods for dealing with exceptions.
@@ -45,6 +48,8 @@ public abstract class Exceptions {
     }
     if (throwable instanceof RuntimeException) {
       return (RuntimeException) throwable;
+    } else if (throwable instanceof IOException) {
+      throw new UncheckedIOException((IOException) throwable);
     } else {
       return new UncheckedException(throwable);
     }

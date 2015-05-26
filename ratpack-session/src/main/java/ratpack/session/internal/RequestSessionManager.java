@@ -104,7 +104,7 @@ public class RequestSessionManager {
   }
 
   private String assignId() {
-    String id = sessionManager.getIdGenerator().generateSessionId(context.getRequest());
+    String id = sessionManager.getIdGenerator().generateSessionId();
     setCookie(id, sessionManager.getCookieExpiryMins());
 
 

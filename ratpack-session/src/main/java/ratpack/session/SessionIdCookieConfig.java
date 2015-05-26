@@ -14,32 +14,26 @@
  * limitations under the License.
  */
 
-package ratpack.session.internal;
+package ratpack.session;
 
-import ratpack.session.SessionCookieConfig;
+public interface SessionIdCookieConfig {
 
-public class DefaultSessionCookieConfig implements SessionCookieConfig {
+  int getExpiresMins();
 
-  private final int expiresMins;
-  private final String domain;
-  private final String path;
+  String getDomain();
 
-  public DefaultSessionCookieConfig(int expiresMins, String domain, String path) {
-    this.expiresMins = expiresMins;
-    this.domain = domain;
-    this.path = path;
-  }
+  String getPath();
 
-  public int getExpiresMins() {
-    return expiresMins;
-  }
+  void setExpiresMins(int expiresMins);
 
-  public String getDomain() {
-    return domain;
-  }
+  void setDomain(String domain);
 
-  public String getPath() {
-    return path;
-  }
+  void setPath(String path);
+
+  SessionIdCookieConfig expiresMins(int expiresMins);
+
+  SessionIdCookieConfig domain(String domain);
+
+  SessionIdCookieConfig path(String path);
 
 }
