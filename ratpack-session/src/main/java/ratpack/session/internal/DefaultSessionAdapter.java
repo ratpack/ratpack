@@ -22,6 +22,7 @@ import io.netty.buffer.*;
 import ratpack.exec.Promise;
 import ratpack.session.SessionAdapter;
 import ratpack.session.SessionValueSerializer;
+import ratpack.session.SyncSession;
 import ratpack.session.store.SessionStoreAdapter;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
@@ -32,15 +33,21 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static ratpack.exec.ExecControl.execControl;
+
 public class DefaultSessionAdapter implements SessionAdapter {
 
   private final Map<String, String> strings = Maps.newHashMap();
   private final Map<Class<?>, byte[]> objects = Maps.newHashMap();
+
   private final SessionId sessionId;
   private final ByteBufAllocator bufferAllocator;
   private final SessionStoreAdapter storeAdapter;
   private final SessionStatus sessionStatus;
   private final SessionValueSerializer defaultSerializer;
+
+  boolean needsLoad = true;
+  private final SyncSession sync = new Sync();
 
   private static class Data implements Serializable {
     Map<String, String> strings;
@@ -52,23 +59,32 @@ public class DefaultSessionAdapter implements SessionAdapter {
     }
   }
 
-  public DefaultSessionAdapter(
-    SessionId sessionId,
-    ByteBufAllocator bufferAllocator,
-    SessionStoreAdapter storeAdapter,
-    SessionStatus sessionStatus,
-    SessionValueSerializer defaultSerializer,
-    ByteBuf data
-  ) {
+  public DefaultSessionAdapter(SessionId sessionId, ByteBufAllocator bufferAllocator, SessionStoreAdapter storeAdapter, SessionStatus sessionStatus, SessionValueSerializer defaultSerializer) {
     this.sessionId = sessionId;
     this.bufferAllocator = bufferAllocator;
     this.storeAdapter = storeAdapter;
     this.sessionStatus = sessionStatus;
     this.defaultSerializer = defaultSerializer;
-    load(data);
   }
 
-  private void load(ByteBuf data) {
+  @Override
+  public Promise<SyncSession> getSync() {
+    if (needsLoad) {
+      return storeAdapter.load(sessionId, bufferAllocator).map(data -> {
+        needsLoad = false;
+        try {
+          hydrate(data);
+        } finally {
+          data.release();
+        }
+        return sync;
+      });
+    } else {
+      return execControl().promiseOf(sync);
+    }
+  }
+
+  private void hydrate(ByteBuf data) {
     if (data.readableBytes() > 0) {
       try {
         Data deserializedData = defaultSerializer.deserialize(Data.class, new ByteBufInputStream(data));
@@ -83,97 +99,6 @@ public class DefaultSessionAdapter implements SessionAdapter {
     }
   }
 
-  @Override
-  public Optional<String> get(String key) {
-    return Optional.ofNullable(strings.get(key));
-  }
-
-  @Override
-  public <T> Optional<? extends T> get(Class<T> key) {
-    return get(key, defaultSerializer);
-  }
-
-  @Override
-  public <T> Optional<? extends T> get(Class<T> key, SessionValueSerializer serializer) {
-    byte[] bytes = objects.get(key);
-    if (bytes == null) {
-      return Optional.empty();
-    } else {
-      try {
-        return Optional.of(serializer.deserialize(key, new ByteArrayInputStream(bytes)));
-      } catch (IOException e) {
-        throw Exceptions.uncheck(e);
-      }
-    }
-  }
-
-  @Override
-  public void set(String key, String value) {
-    strings.put(key, value);
-    markDirty();
-  }
-
-  @Override
-  public <T> void set(Class<T> key, T value) {
-    set(key, value, defaultSerializer);
-  }
-
-  @Override
-  public <T> void set(Class<T> key, T value, SessionValueSerializer serializer) {
-    Objects.requireNonNull(value, "session value for key " + key.getName() + " cannot be null");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    try {
-      serializer.serialize(key, value, out);
-    } catch (IOException e) {
-      throw Exceptions.uncheck(e);
-    }
-    objects.put(key, out.toByteArray());
-    markDirty();
-  }
-
-  @Override
-  public <T> void set(T value) {
-    set(value, defaultSerializer);
-  }
-
-  @Override
-  public <T> void set(T value, SessionValueSerializer serializer) {
-    Class<T> type = Types.cast(value.getClass());
-    set(type, value, serializer);
-  }
-
-  @Override
-  public Set<String> getStringKeys() {
-    return strings.keySet();
-  }
-
-  @Override
-  public Set<Class<?>> getTypeKeys() {
-    return objects.keySet();
-  }
-
-  @Override
-  public void remove(String key) {
-    strings.remove(key);
-    markDirty();
-  }
-
-  @Override
-  public <T> void remove(Class<T> key) {
-    objects.remove(key);
-    markDirty();
-  }
-
-  @Override
-  public void clear() {
-    strings.clear();
-    objects.clear();
-    markDirty();
-  }
-
-  private void markDirty() {
-    sessionStatus.setDirty(true);
-  }
 
   @Override
   public boolean isDirty() {
@@ -206,8 +131,123 @@ public class DefaultSessionAdapter implements SessionAdapter {
   public Promise<Boolean> terminate() {
     return storeAdapter.remove(sessionId).map(result -> {
       sessionId.terminate();
-      load(Unpooled.buffer(0, 0));
+      hydrate(Unpooled.buffer(0, 0));
       return result;
     });
+  }
+
+  private void markDirty() {
+    sessionStatus.setDirty(true);
+  }
+
+  private class Sync implements SyncSession {
+
+    @Override
+    public Optional<String> get(String key) {
+      return Optional.ofNullable(strings.get(key));
+    }
+
+    @Override
+    public <T> Optional<? extends T> get(Class<T> key) {
+      return get(key, defaultSerializer);
+    }
+
+    @Override
+    public <T> Optional<? extends T> get(Class<T> key, SessionValueSerializer serializer) {
+      byte[] bytes = objects.get(key);
+      if (bytes == null) {
+        return Optional.empty();
+      } else {
+        try {
+          return Optional.of(serializer.deserialize(key, new ByteArrayInputStream(bytes)));
+        } catch (IOException e) {
+          throw Exceptions.uncheck(e);
+        }
+      }
+    }
+
+    @Override
+    public boolean set(String key, String value) {
+      markDirty();
+      return strings.put(key, value) != null;
+    }
+
+    @Override
+    public <T> boolean set(Class<T> key, T value) {
+      return set(key, value, defaultSerializer);
+    }
+
+    @Override
+    public <T> boolean set(Class<T> key, T value, SessionValueSerializer serializer) {
+      Objects.requireNonNull(key, "session key cannot be null");
+      Objects.requireNonNull(value, "session value for key " + key.getName() + " cannot be null");
+
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      try {
+        serializer.serialize(key, value, out);
+      } catch (IOException e) {
+        throw Exceptions.uncheck(e);
+      }
+
+      markDirty();
+      return objects.put(key, out.toByteArray()) != null;
+    }
+
+    @Override
+    public <T> boolean set(T value) {
+      return set(value, defaultSerializer);
+    }
+
+    @Override
+    public <T> boolean set(T value, SessionValueSerializer serializer) {
+      Class<T> type = Types.cast(value.getClass());
+      return set(type, value, serializer);
+    }
+
+    @Override
+    public Set<String> getStringKeys() {
+      return strings.keySet();
+    }
+
+    @Override
+    public Set<Class<?>> getTypeKeys() {
+      return objects.keySet();
+    }
+
+    @Override
+    public boolean remove(String key) {
+      markDirty();
+      return strings.remove(key) != null;
+    }
+
+    @Override
+    public <T> boolean remove(Class<T> key) {
+      markDirty();
+      return objects.remove(key) != null;
+    }
+
+    @Override
+    public boolean clear() {
+      boolean change = !strings.isEmpty() || !objects.isEmpty();
+      strings.clear();
+      objects.clear();
+      markDirty();
+      return change;
+    }
+
+    @Override
+    public boolean isDirty() {
+      return DefaultSessionAdapter.this.isDirty();
+    }
+
+    @Override
+    public Promise<Boolean> save() {
+      return DefaultSessionAdapter.this.save();
+    }
+
+    @Override
+    public Promise<Boolean> terminate() {
+      return DefaultSessionAdapter.this.terminate();
+    }
   }
 }

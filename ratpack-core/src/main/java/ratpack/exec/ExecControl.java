@@ -179,6 +179,10 @@ public interface ExecControl {
     return promise(f -> f.success(item));
   }
 
+  default <T> Promise<T> promiseFrom(Factory<? extends T> factory) {
+    return promise(f -> f.success(factory.create()));
+  }
+
   /**
    * Creates a failed promise with the given error.
    * <p>

@@ -23,7 +23,6 @@ import com.google.inject.Singleton;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecControl;
-import ratpack.exec.Promise;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.ExecutionScoped;
 import ratpack.http.Request;
@@ -80,10 +79,8 @@ public class NewSessionModule extends ConfigurableModule<SessionIdCookieConfig> 
 
   @Provides
   @ExecutionScoped
-  Promise<SessionAdapter> sessionAdapter(SessionId sessionId, SessionStoreAdapter sessionStoreAdapter, SessionStatus sessionStatus, SessionValueSerializer sessionValueSerializer, ByteBufAllocator bufferAllocator) {
-    return sessionStoreAdapter.load(sessionId, bufferAllocator)
-      .<SessionAdapter>map(data -> new DefaultSessionAdapter(sessionId, bufferAllocator, sessionStoreAdapter, sessionStatus, sessionValueSerializer, data))
-      .cache();
+  SessionAdapter sessionAdapter(SessionId sessionId, SessionStoreAdapter sessionStoreAdapter, SessionStatus sessionStatus, SessionValueSerializer sessionValueSerializer, ByteBufAllocator bufferAllocator) {
+    return new DefaultSessionAdapter(sessionId, bufferAllocator, sessionStoreAdapter, sessionStatus, sessionValueSerializer);
   }
 
 }

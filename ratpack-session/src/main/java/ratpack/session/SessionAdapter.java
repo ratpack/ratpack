@@ -23,43 +23,72 @@ import java.util.Set;
 
 // Will eventually replace Session
 public interface SessionAdapter {
-  Optional<String> get(String key);
 
-  default String require(String key) {
-    return get(key).orElseThrow(() -> new IllegalArgumentException("No value for string key " + key + " in session"));
+  Promise<SyncSession> getSync();
+
+  default Promise<Optional<String>> get(String key) {
+    return getSync().map(s -> s.get(key));
   }
 
-  <T> Optional<? extends T> get(Class<T> key);
-
-  default <T> T require(Class<T> key) {
-    return get(key).orElseThrow(() -> new IllegalArgumentException("No object of type " + key.getName() + " in session"));
+  default Promise<String> require(String key) {
+    return getSync().map(s -> s.require(key));
   }
 
-  <T> Optional<? extends T> get(Class<T> key, SessionValueSerializer serializer);
-
-  default <T> T require(Class<T> key, SessionValueSerializer serializer) {
-    return get(key, serializer).orElseThrow(() -> new IllegalArgumentException("No object of type " + key.getName() + " in session"));
+  default <T> Promise<Optional<? extends T>> get(Class<T> key) {
+    return getSync().map(s -> s.get(key));
   }
 
-  void set(String key, String value);
+  default <T> Promise<T> require(Class<T> key) {
+    return getSync().map(s -> s.require(key));
+  }
 
-  <T> void set(Class<T> key, T value);
+  default <T> Promise<Optional<? extends T>> get(Class<T> key, SessionValueSerializer serializer) {
+    return getSync().map(s -> s.get(key, serializer));
+  }
 
-  <T> void set(Class<T> key, T value, SessionValueSerializer serializer);
+  default <T> Promise<T> require(Class<T> key, SessionValueSerializer serializer) {
+    return getSync().map(s -> s.require(key, serializer));
+  }
 
-  <T> void set(T value);
+  default Promise<Boolean> set(String key, String value) {
+    return getSync().map(s -> s.set(key, value));
+  }
 
-  <T> void set(T value, SessionValueSerializer serializer);
+  default <T> Promise<Boolean> set(Class<T> key, T value) {
+    return getSync().map(s -> s.set(key, value));
+  }
 
-  Set<String> getStringKeys();
+  default <T> Promise<Boolean> set(Class<T> key, T value, SessionValueSerializer serializer) {
+    return getSync().map(s -> s.set(key, value, serializer));
+  }
 
-  Set<Class<?>> getTypeKeys();
+  default <T> Promise<Boolean> set(T value) {
+    return getSync().map(s -> s.set(value));
+  }
 
-  void remove(String key);
+  default <T> Promise<Boolean> set(T value, SessionValueSerializer serializer) {
+    return getSync().map(s -> s.set(value, serializer));
+  }
 
-  <T> void remove(Class<T> key);
+  default Promise<Set<String>> getStringKeys() {
+    return getSync().map(SyncSession::getStringKeys);
+  }
 
-  void clear();
+  default Promise<Set<Class<?>>> getTypeKeys() {
+    return getSync().map(SyncSession::getTypeKeys);
+  }
+
+  default Promise<Boolean> remove(String key) {
+    return getSync().map(s -> s.remove(key));
+  }
+
+  default <T> Promise<Boolean> remove(Class<T> key) {
+    return getSync().map(s -> s.remove(key));
+  }
+
+  default Promise<Boolean> clear() {
+    return getSync().map(SyncSession::clear);
+  }
 
   // Has the session been changed (i.e. set/remove/clear called) since read?
   boolean isDirty();

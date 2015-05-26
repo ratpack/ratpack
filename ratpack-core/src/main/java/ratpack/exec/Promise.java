@@ -18,10 +18,7 @@ package ratpack.exec;
 
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.ExecutionBacking;
-import ratpack.func.Action;
-import ratpack.func.Block;
-import ratpack.func.Function;
-import ratpack.func.Predicate;
+import ratpack.func.*;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -269,6 +266,18 @@ public interface Promise<T> {
         })
       )
     );
+  }
+
+  default <O> Promise<O> next(Promise<O> next) {
+    return flatMap(in -> next);
+  }
+
+  default <O> Promise<Pair<O, T>> left(Promise<O> left) {
+    return flatMap(right -> left.map(value -> Pair.of(value, right)));
+  }
+
+  default <O> Promise<Pair<T, O>> right(Promise<O> right) {
+    return flatMap(left -> right.map(value -> Pair.of(left, value)));
   }
 
   /**

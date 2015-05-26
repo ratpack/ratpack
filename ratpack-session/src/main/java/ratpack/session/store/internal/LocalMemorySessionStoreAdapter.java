@@ -37,23 +37,27 @@ public class LocalMemorySessionStoreAdapter implements SessionStoreAdapter {
 
   @Override
   public Promise<Boolean> store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData) {
-    ByteBuf oldValue = cache.asMap().put(sessionId.getValue(), Unpooled.unmodifiableBuffer(sessionData.copy()));
-    if (oldValue != null) {
-      oldValue.release();
-      return execControl.promiseOf(true);
-    } else {
-      return execControl.promiseOf(false);
-    }
+    return execControl.promiseFrom(() -> {
+      ByteBuf oldValue = cache.asMap().put(sessionId.getValue(), Unpooled.unmodifiableBuffer(sessionData.copy()));
+      if (oldValue != null) {
+        oldValue.release();
+        return true;
+      } else {
+        return false;
+      }
+    });
   }
 
   @Override
   public Promise<ByteBuf> load(SessionId sessionId, ByteBufAllocator bufferAllocator) {
-    ByteBuf value = cache.getIfPresent(sessionId.getValue());
-    if (value != null) {
-      return execControl.promiseOf(Unpooled.unreleasableBuffer(value));
-    } else {
-      return execControl.promiseOf(Unpooled.buffer(0, 0));
-    }
+    return execControl.promiseFrom(() -> {
+      ByteBuf value = cache.getIfPresent(sessionId.getValue());
+      if (value != null) {
+        return Unpooled.unreleasableBuffer(value);
+      } else {
+        return Unpooled.buffer(0, 0);
+      }
+    });
   }
 
   @Override

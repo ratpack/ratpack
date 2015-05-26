@@ -31,7 +31,7 @@ public class StoreSessionIfDirtyHandlerDecorator implements HandlerDecorator {
         ctx.getResponse().beforeSend(responseMetaData -> {
           SessionStatus sessionStatus = ctx.get(SessionStatus.class);
           if (sessionStatus.isDirty()) {
-            ctx.getAsync(SessionAdapter.class).flatMap(SessionAdapter::save).then(Action.noop());
+            ctx.get(SessionAdapter.class).save().then(Action.noop());
           }
         });
         ctx.next();
