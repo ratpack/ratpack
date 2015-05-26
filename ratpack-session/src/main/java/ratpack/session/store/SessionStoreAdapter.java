@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.session.internal;
+package ratpack.session.store;
 
-import ratpack.session.SessionIdGenerator;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.Promise;
+import ratpack.session.internal.SessionId;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
+public interface SessionStoreAdapter {
+  Promise<Boolean> store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData);
 
-public class DefaultSessionIdGenerator implements SessionIdGenerator {
+  Promise<ByteBuf> load(SessionId sessionId, ByteBufAllocator bufferAllocator);
 
-  private SecureRandom random = new SecureRandom();
+  Promise<Boolean> remove(SessionId sessionId);
 
-  public String generateSessionId() {
-    return new BigInteger(130, random).toString(32);
-  }
-
+  // -1 if can't be determined
+  long size();
 }

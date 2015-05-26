@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.session;
+package ratpack.guice;
 
-public interface SessionCookieConfig {
+import com.google.inject.ScopeAnnotation;
 
-  int getExpiresMins();
-  String getDomain();
-  String getPath();
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+@Target({TYPE, METHOD})
+@Retention(RUNTIME)
+@ScopeAnnotation
+public @interface ExecutionScoped {
 }
+

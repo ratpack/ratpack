@@ -28,11 +28,15 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.form.internal.FormParser;
+import ratpack.guice.ExecutionScoped;
 import ratpack.handling.Redirector;
+import ratpack.http.Request;
+import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.registry.Registry;
 import ratpack.render.Renderable;
@@ -61,6 +65,8 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   @SuppressWarnings({"Convert2MethodRef", "rawtypes"})
   @Override
   protected void configure() {
+    bindScope(ExecutionScoped.class, new ExecutionScope());
+
     List<Class<?>> simpleTypes = ImmutableList.of(
       ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
       Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class
@@ -114,4 +120,27 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   ServerSentEventStreamClient sseClient(ExecController execController, ByteBufAllocator byteBufAllocator) {
     return ServerSentEventStreamClient.sseStreamClient(execController, byteBufAllocator);
   }
+
+  @Provides
+  @ExecutionScoped
+  Execution execution() {
+    return Execution.execution();
+  }
+
+  @Provides
+  @ExecutionScoped
+  Request request(Execution execution) throws Throwable {
+    return execution.maybeGet(Request.class).orElseThrow(() -> {
+      throw new RuntimeException("Cannot inject Request in execution scope as execution has no request object - this execution is not processing a request");
+    });
+  }
+
+  @Provides
+  @ExecutionScoped
+  Response response(Execution execution) throws Throwable {
+    return execution.maybeGet(Response.class).orElseThrow(() -> {
+      throw new RuntimeException("Cannot inject Response in execution scope as execution has no response object - this execution is not processing a request");
+    });
+  }
+
 }

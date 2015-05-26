@@ -19,7 +19,6 @@ package ratpack.codahale.metrics
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.api.UncheckedException
 import ratpack.config.ConfigData
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -124,7 +123,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     config.get("/metrics", CodaHaleMetricsModule.Config)
 
     then:
-    thrown UncheckedException
+    thrown UncheckedIOException
   }
 
 }
