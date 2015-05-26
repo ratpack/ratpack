@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import ratpack.handling.HandlerDecorator;
-import ratpack.session.internal.DefaultSessionCookieConfig;
+import ratpack.session.internal.DefaultSessionIdCookieConfig;
 import ratpack.session.internal.DefaultSessionIdGenerator;
 import ratpack.session.internal.DefaultSessionManager;
 import ratpack.session.internal.RequestSessionManager;
@@ -59,8 +59,8 @@ public class SessionModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);
-    bind(SessionManager.class).to(DefaultSessionManager.class).in(Singleton.class);
-    bind(SessionCookieConfig.class).toInstance(new DefaultSessionCookieConfig(cookieExpiresMins, cookieDomain, cookiePath));
+    bind(SessionManager.class).to(DefaultSessionManager.class);
+    bind(SessionIdCookieConfig.class).toInstance(new DefaultSessionIdCookieConfig().expiresMins(cookieExpiresMins).domain(cookieDomain).path(cookiePath));
 
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toInstance(HandlerDecorator.prepend(ctx -> {
       ctx.getRequest().addLazy(Session.class, () -> {

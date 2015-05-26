@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside;
+package ratpack.session.store;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.Promise;
+import ratpack.session.internal.SessionId;
 
-public interface Signer {
+public interface SessionStoreAdapter {
+  Promise<Boolean> store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData);
 
-  ByteBuf sign(ByteBuf message, ByteBufAllocator byteBufAllocator);
+  Promise<ByteBuf> load(SessionId sessionId, ByteBufAllocator bufferAllocator);
 
+  Promise<Boolean> remove(SessionId sessionId);
+
+  // -1 if can't be determined
+  long size();
 }

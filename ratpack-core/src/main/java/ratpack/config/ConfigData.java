@@ -20,7 +20,8 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.config.internal.DefaultConfigDataSpec;
 import ratpack.func.Action;
-import ratpack.server.*;
+import ratpack.server.ReloadInformant;
+import ratpack.server.Service;
 import ratpack.server.internal.ServerEnvironment;
 
 import java.util.List;
@@ -50,8 +51,8 @@ import java.util.List;
  *   public static void main(String[] args) throws Exception {
  *     RatpackServer server = RatpackServer.of(spec -> {
  *       ServerConfig serverConfig = ServerConfig.embedded()
-  *        .props(ImmutableMap.of("server.publicAddress", "http://app.example.com", "app.name", "Ratpack"))
-  *        .sysProps()
+ *        .props(ImmutableMap.of("server.publicAddress", "http://app.example.com", "app.name", "Ratpack"))
+ *        .sysProps()
  *         .build();
  *       spec
  *         .serverConfig(serverConfig)
@@ -154,13 +155,24 @@ public interface ConfigData extends ReloadInformant, Service {
   /**
    * Binds a segment of the configuration data to the specified type.
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying
-   * the point in the configuration data to bind from
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the class of the type to bind to
    * @param <O> the type to bind to
    * @return an instance of the specified type with bound configuration data
    */
-  <O> O get(String pointer, Class<O> type);
+  default <O> O get(String pointer, Class<O> type) {
+    return getAsConfigObject(pointer, type).getObject();
+  }
+
+  /**
+   * Binds a segment of the configuration data to the specified type.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the class of the type to bind to
+   * @param <O> the type to bind to
+   * @return a config object of the specified type with bound configuration data
+   */
+  <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type);
 
   /**
    * Binds the root of the configuration data to the specified type.

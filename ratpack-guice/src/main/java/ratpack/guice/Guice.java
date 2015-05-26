@@ -22,6 +22,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
 import com.google.inject.util.Modules;
+import ratpack.config.ConfigObject;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
@@ -228,7 +229,8 @@ public abstract class Guice {
     List<Action<? super Binder>> binderActions = Lists.newLinkedList();
     List<Module> modules = Lists.newLinkedList();
 
-    BindingsSpec bindings = new DefaultBindingsSpec(baseRegistry.get(ServerConfig.class), binderActions, modules);
+    ServerConfig serverConfig = baseRegistry.get(ServerConfig.class);
+    BindingsSpec bindings = new DefaultBindingsSpec(serverConfig, binderActions, modules);
     bindings.module(new RatpackBaseRegistryModule(baseRegistry));
 
     try {
@@ -238,6 +240,7 @@ public abstract class Guice {
     }
 
     modules.add(new AdHocModule(binderActions));
+    modules.add(new ConfigModule(serverConfig.getRequiredConfig()));
 
     Module masterModule = modules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
     Injector injector = injectorFactory.apply(masterModule);
@@ -245,7 +248,6 @@ public abstract class Guice {
     Collections.reverse(modules);
     return injector;
   }
-
 
   private static class AdHocModule implements Module {
 
@@ -260,6 +262,25 @@ public abstract class Guice {
       for (Action<? super Binder> binderAction : binderActions) {
         binderAction.toConsumer().accept(binder);
       }
+    }
+  }
+
+  private static class ConfigModule implements Module {
+    private final Iterable<ConfigObject<?>> config;
+
+    public ConfigModule(Iterable<ConfigObject<?>> config) {
+      this.config = config;
+    }
+
+    @Override
+    public void configure(Binder binder) {
+      for (ConfigObject<?> configObject : config) {
+        bind(binder, configObject);
+      }
+    }
+
+    private static <T> void bind(Binder binder, ConfigObject<T> configObject) {
+      binder.bind(configObject.getType()).toInstance(configObject.getObject());
     }
   }
 }

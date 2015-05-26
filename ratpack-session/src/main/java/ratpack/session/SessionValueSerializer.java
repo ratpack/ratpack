@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside;
+package ratpack.session;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public interface Signer {
+public interface SessionValueSerializer {
+  <T> void serialize(Class<T> type, T value, OutputStream out) throws IOException;
 
-  ByteBuf sign(ByteBuf message, ByteBufAllocator byteBufAllocator);
-
+  <T> T deserialize(Class<T> type, InputStream inputStream) throws IOException;
 }

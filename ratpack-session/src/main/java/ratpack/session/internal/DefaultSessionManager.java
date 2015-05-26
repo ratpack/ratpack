@@ -16,7 +16,8 @@
 
 package ratpack.session.internal;
 
-import ratpack.session.SessionCookieConfig;
+import com.google.inject.Singleton;
+import ratpack.session.SessionIdCookieConfig;
 import ratpack.session.SessionIdGenerator;
 import ratpack.session.SessionListener;
 import ratpack.session.SessionManager;
@@ -25,28 +26,29 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class DefaultSessionManager implements SessionManager {
 
   private final SessionIdGenerator idGenerator;
   private final List<SessionListener> sessionListeners = new ArrayList<SessionListener>(1);
-  private final SessionCookieConfig sessionCookieConfig;
+  private final SessionIdCookieConfig sessionIdCookieConfig;
 
   @Inject
-  public DefaultSessionManager(SessionIdGenerator idGenerator, SessionCookieConfig sessionCookieConfig) {
+  public DefaultSessionManager(SessionIdGenerator idGenerator, SessionIdCookieConfig sessionIdCookieConfig) {
     this.idGenerator = idGenerator;
-    this.sessionCookieConfig = sessionCookieConfig;
+    this.sessionIdCookieConfig = sessionIdCookieConfig;
   }
 
   public String getCookieDomain() {
-    return sessionCookieConfig.getDomain();
+    return sessionIdCookieConfig.getDomain();
   }
 
   public String getCookiePath() {
-    return sessionCookieConfig.getPath();
+    return sessionIdCookieConfig.getPath();
   }
 
   public int getCookieExpiryMins() {
-    return sessionCookieConfig.getExpiresMins();
+    return sessionIdCookieConfig.getExpiresMins();
   }
 
   public SessionIdGenerator getIdGenerator() {

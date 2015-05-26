@@ -22,7 +22,6 @@ import ratpack.session.store.MapSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.session.store.SessionStore
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
@@ -51,23 +50,16 @@ class SessionSpec extends RatpackGroovyDslSpec {
     handlers {
       get("") { SessionStorage storage ->
 //        render storage.value.toString()
-        storage.get("value",String).then({ Optional<String> display ->
-          if(display.isPresent()){
-            display.ifPresent({String show ->
-              render show
-            })
-          } else {
-            render "Missing"
-          }
-        })
+        storage.get("value", String).then {
+          render it.orElse("Missing")
+        }
       }
       get("set/:value") { SessionStorage storage ->
-        storage.set("value",pathTokens.value).then({
-          storage.get("value",String).then({
+        storage.set("value", pathTokens.value).then {
+          storage.get("value", String).then {
             render it.orElse("")
-          })
-        })
-
+          }
+        }
       }
     }
 
@@ -78,21 +70,20 @@ class SessionSpec extends RatpackGroovyDslSpec {
     getText() == "foo"
   }
 
-  @Ignore
   def "can invalidate session vars"() {
     when:
     handlers {
       get("") { SessionStorage storage ->
-        storage.get("value",String).then({
-         render it.orElse("null")
-        })
+        storage.get("value", String).then {
+          render it.orElse("null")
+        }
       }
       get("set/:value") { SessionStorage storage ->
-        storage.set("value",pathTokens.value).then({
-          storage.get("value",String).then({
+        storage.set("value", pathTokens.value).then {
+          storage.get("value", String).then {
             render it.orElse("null")
-          })
-        })
+          }
+        }
       }
       get("invalidate") { Session session ->
         session.terminate()
@@ -146,7 +137,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     get("foo").headers.get("Set-Cookie") == null
     get("bar").headers.get("Set-Cookie").contains('JSESSIONID')
 
-    // null because the session id is already set
+    // null because the session cookieSessionId is already set
     !get("bar").headers.get("Set-Cookie")?.contains('JSESSIONID')
   }
 }

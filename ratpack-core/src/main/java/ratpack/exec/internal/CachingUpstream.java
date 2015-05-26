@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CachingUpstream<T> implements Upstream<T> {
 
-  private final Upstream<? extends T> upstream;
+  private Upstream<? extends T> upstream;
   private final AtomicBoolean fired = new AtomicBoolean();
   private final Queue<Job> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
@@ -101,6 +101,7 @@ public class CachingUpstream<T> implements Upstream<T> {
   }
 
   private void doDrainInNewSegment() {
+    this.upstream = null; // release
     ExecutionBacking.require().getEventLoop().execute(this::tryDrain);
   }
 

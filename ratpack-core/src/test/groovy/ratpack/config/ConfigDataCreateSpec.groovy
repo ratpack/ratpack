@@ -20,7 +20,6 @@ import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.api.UncheckedException
 import ratpack.func.Action
 import ratpack.server.Service
 import ratpack.server.StartEvent
@@ -165,7 +164,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     ConfigData.of().yaml(yamlFile).props([port: "8080"]) build()
 
     then:
-    def ex = thrown(UncheckedException)
+    def ex = thrown(UncheckedIOException)
     ex.cause instanceof NoSuchFileException
   }
 
@@ -192,7 +191,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
 
     then:
-    def ex = thrown(UncheckedException)
+    def ex = thrown(UncheckedIOException)
     ex.cause instanceof NoSuchFileException
 
     when:
@@ -221,7 +220,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
 
     then:
-    ex = thrown(UncheckedException)
+    ex = thrown(UncheckedIOException)
     ex.cause instanceof NoSuchFileException
   }
 

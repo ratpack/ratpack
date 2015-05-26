@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside;
+package ratpack.session.internal;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+public class SessionStatus {
 
-public interface Signer {
+  private boolean dirty;
 
-  ByteBuf sign(ByteBuf message, ByteBufAllocator byteBufAllocator);
+  public boolean isDirty() {
+    return dirty;
+  }
+
+  public void setDirty(boolean dirty) {
+    this.dirty = dirty;
+  }
 
 }

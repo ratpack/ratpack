@@ -16,7 +16,6 @@
 
 package ratpack.session.internal;
 
-import ratpack.http.Request;
 import ratpack.session.SessionIdGenerator;
 
 import java.math.BigInteger;
@@ -26,7 +25,7 @@ public class DefaultSessionIdGenerator implements SessionIdGenerator {
 
   private SecureRandom random = new SecureRandom();
 
-  public String generateSessionId(Request request) {
+  public String generateSessionId() {
     return new BigInteger(130, random).toString(32);
   }
 

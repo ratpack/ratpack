@@ -226,7 +226,7 @@ public class DefaultRatpackServer implements RatpackServer {
     Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    ExecControl execControl = serverRegistry.get(ExecControl.class);
+    ExecControl execControl = execController.getControl();
     Iterator<? extends Service> services = serverRegistry.getAll(Service.class).iterator();
     try {
       executeEvents(services, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStart, (service, error) -> {
@@ -286,7 +286,7 @@ public class DefaultRatpackServer implements RatpackServer {
     if (serverRegistry != null) {
       Iterable<? extends Service> services = serverRegistry.getAll(Service.class);
       Iterator<Service> reverseServices = ImmutableList.copyOf(services).reverse().iterator();
-      ExecControl execControl = serverRegistry.get(ExecControl.class);
+      ExecControl execControl = execController.getControl();
       executeEvents(reverseServices, new DefaultEvent(serverRegistry, execControl, reloading), execControl, Service::onStop, (service, error) ->
           LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
       );

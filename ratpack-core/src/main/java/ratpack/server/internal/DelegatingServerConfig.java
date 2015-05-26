@@ -16,7 +16,9 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableSet;
 import ratpack.api.Nullable;
+import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.NoBaseDirException;
@@ -33,6 +35,11 @@ public class DelegatingServerConfig extends DelegatingConfigData implements Serv
   public DelegatingServerConfig(ServerConfig delegate) {
     super(delegate);
     this.delegate = delegate;
+  }
+
+  @Override
+  public ImmutableSet<ConfigObject<?>> getRequiredConfig() {
+    return delegate.getRequiredConfig();
   }
 
   @Override

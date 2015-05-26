@@ -16,10 +16,8 @@
 
 package ratpack.session;
 
-import ratpack.http.Request;
-
 public interface SessionIdGenerator {
 
-  String generateSessionId(Request request);
+  String generateSessionId();
 
 }

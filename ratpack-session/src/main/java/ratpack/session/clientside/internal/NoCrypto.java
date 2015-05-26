@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside;
+package ratpack.session.clientside.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import ratpack.session.clientside.Crypto;
 
-public interface Signer {
+public class NoCrypto implements Crypto {
 
-  ByteBuf sign(ByteBuf message, ByteBufAllocator byteBufAllocator);
+  public static final Crypto INSTANCE = new NoCrypto();
 
+  private NoCrypto() {
+  }
+
+  @Override
+  public ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator) {
+    return Unpooled.unreleasableBuffer(message);
+  }
+
+  @Override
+  public ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator) {
+    return Unpooled.unreleasableBuffer(message);
+  }
 }
