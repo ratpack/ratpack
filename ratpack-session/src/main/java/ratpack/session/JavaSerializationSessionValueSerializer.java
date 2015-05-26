@@ -22,11 +22,6 @@ import java.io.*;
 
 public class JavaSerializationSessionValueSerializer implements SessionValueSerializer {
 
-  public static final SessionValueSerializer INSTANCE = new JavaSerializationSessionValueSerializer();
-
-  private JavaSerializationSessionValueSerializer() {
-  }
-
   @Override
   public <T> void serialize(Class<T> type, T value, OutputStream outputStream) throws IOException {
     ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);

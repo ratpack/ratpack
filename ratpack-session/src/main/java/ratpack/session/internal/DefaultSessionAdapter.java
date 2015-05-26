@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.netty.buffer.*;
 import ratpack.exec.Promise;
-import ratpack.session.JavaSerializationSessionValueSerializer;
 import ratpack.session.SessionAdapter;
 import ratpack.session.SessionValueSerializer;
 import ratpack.session.store.SessionStoreAdapter;
@@ -35,13 +34,13 @@ import java.util.Set;
 
 public class DefaultSessionAdapter implements SessionAdapter {
 
-  public static final SessionValueSerializer DEFAULT_SERIALIZER = JavaSerializationSessionValueSerializer.INSTANCE;
   private final Map<String, String> strings = Maps.newHashMap();
   private final Map<Class<?>, byte[]> objects = Maps.newHashMap();
   private final SessionId sessionId;
   private final ByteBufAllocator bufferAllocator;
   private final SessionStoreAdapter storeAdapter;
   private final SessionStatus sessionStatus;
+  private final SessionValueSerializer defaultSerializer;
 
   private static class Data implements Serializable {
     Map<String, String> strings;
@@ -53,18 +52,26 @@ public class DefaultSessionAdapter implements SessionAdapter {
     }
   }
 
-  public DefaultSessionAdapter(SessionId sessionId, ByteBufAllocator bufferAllocator, SessionStoreAdapter storeAdapter, SessionStatus sessionStatus, ByteBuf data) {
+  public DefaultSessionAdapter(
+    SessionId sessionId,
+    ByteBufAllocator bufferAllocator,
+    SessionStoreAdapter storeAdapter,
+    SessionStatus sessionStatus,
+    SessionValueSerializer defaultSerializer,
+    ByteBuf data
+  ) {
     this.sessionId = sessionId;
     this.bufferAllocator = bufferAllocator;
     this.storeAdapter = storeAdapter;
     this.sessionStatus = sessionStatus;
+    this.defaultSerializer = defaultSerializer;
     load(data);
   }
 
   private void load(ByteBuf data) {
     if (data.readableBytes() > 0) {
       try {
-        Data deserializedData = DEFAULT_SERIALIZER.deserialize(Data.class, new ByteBufInputStream(data));
+        Data deserializedData = defaultSerializer.deserialize(Data.class, new ByteBufInputStream(data));
         this.strings.clear();
         this.strings.putAll(deserializedData.strings);
         this.objects.clear();
@@ -83,7 +90,7 @@ public class DefaultSessionAdapter implements SessionAdapter {
 
   @Override
   public <T> Optional<? extends T> get(Class<T> key) {
-    return get(key, DEFAULT_SERIALIZER);
+    return get(key, defaultSerializer);
   }
 
   @Override
@@ -108,7 +115,7 @@ public class DefaultSessionAdapter implements SessionAdapter {
 
   @Override
   public <T> void set(Class<T> key, T value) {
-    set(key, value, DEFAULT_SERIALIZER);
+    set(key, value, defaultSerializer);
   }
 
   @Override
@@ -126,7 +133,7 @@ public class DefaultSessionAdapter implements SessionAdapter {
 
   @Override
   public <T> void set(T value) {
-    set(value, DEFAULT_SERIALIZER);
+    set(value, defaultSerializer);
   }
 
   @Override
@@ -178,7 +185,7 @@ public class DefaultSessionAdapter implements SessionAdapter {
     ByteBuf buffer = bufferAllocator.buffer();
     OutputStream outputStream = new ByteBufOutputStream(buffer);
     try {
-      DEFAULT_SERIALIZER.serialize(Data.class, data, outputStream);
+      defaultSerializer.serialize(Data.class, data, outputStream);
       outputStream.close();
       return buffer;
     } catch (Throwable e) {

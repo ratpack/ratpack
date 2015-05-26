@@ -63,7 +63,6 @@ public class NewSessionModule extends ConfigurableModule<SessionIdCookieConfig> 
   }
 
   @Provides
-  @Singleton
   SessionIdGenerator sessionIdGenerator() {
     return new DefaultSessionIdGenerator();
   }
@@ -75,10 +74,15 @@ public class NewSessionModule extends ConfigurableModule<SessionIdCookieConfig> 
   }
 
   @Provides
+  SessionValueSerializer sessionValueSerializer() {
+    return new JavaSerializationSessionValueSerializer();
+  }
+
+  @Provides
   @ExecutionScoped
-  Promise<SessionAdapter> sessionAdapter(SessionId sessionId, SessionStoreAdapter sessionStoreAdapter, SessionStatus sessionStatus, ByteBufAllocator bufferAllocator) {
+  Promise<SessionAdapter> sessionAdapter(SessionId sessionId, SessionStoreAdapter sessionStoreAdapter, SessionStatus sessionStatus, SessionValueSerializer sessionValueSerializer, ByteBufAllocator bufferAllocator) {
     return sessionStoreAdapter.load(sessionId, bufferAllocator)
-      .<SessionAdapter>map(data -> new DefaultSessionAdapter(sessionId, bufferAllocator, sessionStoreAdapter, sessionStatus, data))
+      .<SessionAdapter>map(data -> new DefaultSessionAdapter(sessionId, bufferAllocator, sessionStoreAdapter, sessionStatus, sessionValueSerializer, data))
       .cache();
   }
 
