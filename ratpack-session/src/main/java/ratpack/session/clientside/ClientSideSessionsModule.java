@@ -24,6 +24,7 @@ import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.session.clientside.internal.*;
+import ratpack.session.clientside.serializer.JavaValueSerializer;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Inject;
@@ -62,7 +63,10 @@ import java.time.Duration;
  *   </tr>
  *   <tr>
  *     <th>secretToken</th>
- *     <td>The token used to sign the serialized session to prevent tampering. If not set, this is set to a time based value</td>
+ *     <td>The token used to sign the serialized session to prevent tampering. If not set, this is set to a time based value.
+ *          If working with clustered sessions, not being tied to any ratpack app instance,
+ *          {@code secretToken} has to be the same in every ratpack instance configuration.
+ *     </td>
  *   </tr>
  *   <tr>
  *     <th>macAlgorithm</th>
@@ -76,6 +80,42 @@ import java.time.Duration;
  *     <th>cipherAlgorithm</th>
  *     <td>The {@link javax.crypto.Cipher} algorithm used to encrypt/decrypt the serialized session, e.g. <strong>AES/CBC/PKCS5Padding</strong> which is also the default value.</td>
  *   </tr>
+ *   <tr>
+ *     <th>path</th>
+ *     <td>Define the scope of the cookie. It tells the browser to use the cookie onl when requesting endpoints contained (prefixed)
+ *          by the {@code path}. If {@code path == '/'} the session cookies will be send for every endpoint.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <th>domain</th>
+ *     <td>Define the scope of the cookie. It tells the browser what domain the cookie belongs to.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <th>maxCookieSize</th>
+ *     <td>Define the maximum size of the cookie session partial.
+ *          If serialized and encoded session is longer than {@code maxCookieSize} the session will be partitioned.
+ *          Every partition will be separate cookie prefixed with {@code sessionName} plus index value.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <th>maxInactivityInterval</th>
+ *     <td>Define the maximum session inactivity interval. When timed out, all entries from the session will be gone.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <th>sessionService</th>
+ *     <td>The {@link ratpack.session.clientside.SessionService} service used to serialize/deserialize the session entries.
+ *          Defaults to {@link ratpack.session.clientside.internal.DefaultClientSessionService}.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <th>valueSerializer</th>
+ *     <td>The {@link ratpack.session.clientside.ValueSerializer} used to serialize/deserialize particular session entry value.
+ *          Defaults to {@link ratpack.session.clientside.serializer.JavaValueSerializer}.
+ *          Available is {@link ratpack.session.clientside.serializer.StringValueSerializer} too.
+ *     </td>
+ *   </tr>
  * </table>
  *
  * <h3>Configuration Example</h3>
@@ -85,6 +125,7 @@ import java.time.Duration;
  * import ratpack.session.clientside.ClientSideSessionsModule;
  * import ratpack.session.store.SessionStorage;
  * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.session.clientside.serializer.StringValueSerializer;
  *
  * import static org.junit.Assert.*;
  *
@@ -98,6 +139,11 @@ import java.time.Duration;
  *           // config.setSecretKey("key for cipher");
  *           // config.setMacAlgorithm("MAC algorithm for signing");
  *           // config.setCipherAlgorithm("Cipher Algorithm");
+ *           // config.setPath("/");
+ *           // config.setDomain("www.example.com");
+ *           // config.setMaxCookieSize(1024);
+ *           // config.setMaxInactivityInterval(Duration.ofSeconds(60));
+ *           config.setValueSerializer(new StringValueSerializer());
  *         })
  *       ))
  *       .handlers(chain -> chain
@@ -178,12 +224,23 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  SessionService provideSessionService(ByteBufAllocator byteBufAllocator, Config config, Signer signer, Crypto crypto) {
+  SessionService provideSessionService(ByteBufAllocator byteBufAllocator, Config config, Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
     SessionService sessionService = config.getSessionService();
     if (sessionService == null) {
-      sessionService = new DefaultClientSessionService(byteBufAllocator, signer, crypto);
+      sessionService = new DefaultClientSessionService(byteBufAllocator, signer, crypto, valueSerializer);
     }
     return sessionService;
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  @Provides
+  @Singleton
+  ValueSerializer provideValueSerializer(Config config) {
+    ValueSerializer valueSerializer = config.getValueSerializer();
+    if (valueSerializer == null) {
+      valueSerializer = new JavaValueSerializer();
+    }
+    return valueSerializer;
   }
 
   private static class CookieBasedSessionStorageHandlerDecorator implements Provider<HandlerDecorator> {
@@ -220,9 +277,10 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
     private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
     private String path = "/";
     private String domain;
-    private int maxCookieSize = 2048;
+    private int maxCookieSize = 1932;
     private Duration maxInactivityInterval = Duration.ofSeconds(120);
     private SessionService sessionService;
+    private ValueSerializer valueSerializer;
 
     public String getSessionName() {
       return sessionName;
@@ -358,12 +416,43 @@ public class ClientSideSessionsModule extends ConfigurableModule<ClientSideSessi
       this.maxInactivityInterval = maxInactivityInterval;
     }
 
+    /**
+     * The service used to serialize/deserialize the cookie session entries.
+     * Defaults to {@link ratpack.session.clientside.internal.DefaultClientSessionService}
+     *
+     * @return the service used to serialize/deserialize the cookie session entries.
+     */
     public SessionService getSessionService() {
       return sessionService;
     }
 
+    /**
+     * Set the service used to serialize/deserialize the cookie session entries.
+     *
+     * @param sessionService a service used to serialize/deserialize the cookie session entries.
+     */
     public void setSessionService(SessionService sessionService) {
       this.sessionService = sessionService;
+    }
+
+    /**
+     * The serializer of values of cookie session entries.
+     * <p>
+     * If not defined <b>default</b> {@link ratpack.session.clientside.serializer.StringValueSerializer} is used.
+     *
+     * @return the serializer of values of cookie session entries.
+     */
+    public ValueSerializer getValueSerializer() {
+      return valueSerializer;
+    }
+
+    /**
+     * Set a serializer of values of cookie session entries
+     *
+     * @param valueSerializer a serializer of values of cookie session entries
+     */
+    public void setValueSerializer(ValueSerializer valueSerializer) {
+      this.valueSerializer = valueSerializer;
     }
   }
 }

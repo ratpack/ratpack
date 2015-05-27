@@ -24,9 +24,11 @@ import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
+import ratpack.registry.Registry;
 import ratpack.session.clientside.Crypto;
 import ratpack.session.clientside.SessionService;
 import ratpack.session.clientside.Signer;
+import ratpack.session.clientside.ValueSerializer;
 import ratpack.util.Exceptions;
 
 import java.nio.CharBuffer;
@@ -48,16 +50,18 @@ public class DefaultClientSessionService implements SessionService {
   private final ByteBufAllocator bufferAllocator;
   private final Signer signer;
   private final Crypto crypto;
+  private final ValueSerializer valueSerializer;
 
-  public DefaultClientSessionService(ByteBufAllocator bufferAllocator, Signer signer, Crypto crypto) {
+  public DefaultClientSessionService(ByteBufAllocator bufferAllocator, Signer signer, Crypto crypto, ValueSerializer valueSerializer) {
     this.bufferAllocator = bufferAllocator;
     this.signer = signer;
     this.crypto = crypto;
+    this.valueSerializer = valueSerializer;
   }
 
   @Override
-  public String[] serializeSession(Set<Map.Entry<String, Object>> entries, int maxCookieSize) {
-    String serializedSession = serializeSession(entries);
+  public String[] serializeSession(Registry registry, Set<Map.Entry<String, Object>> entries, int maxCookieSize) {
+    String serializedSession = serializeSession(registry, entries);
     int sessionSize = serializedSession.length();
     if (sessionSize <= maxCookieSize) {
       return new String[]{serializedSession};
@@ -73,7 +77,7 @@ public class DefaultClientSessionService implements SessionService {
   }
 
   @Override
-  public String serializeSession(Set<Map.Entry<String, Object>> entries) {
+  public String serializeSession(Registry registry, Set<Map.Entry<String, Object>> entries) {
     ByteBuf[] buffers = new ByteBuf[3 * entries.size() + entries.size() - 1];
     try {
       int i = 0;
@@ -81,7 +85,7 @@ public class DefaultClientSessionService implements SessionService {
       for (Map.Entry<String, Object> entry : entries) {
         buffers[i++] = encode(entry.getKey());
         buffers[i++] = EQUALS;
-        buffers[i++] = encode(entry.getValue().toString());
+        buffers[i++] = valueSerializer.serialize(registry, bufferAllocator, entry.getValue());
 
         if (i < buffers.length) {
           buffers[i++] = AMPERSAND;
@@ -99,6 +103,8 @@ public class DefaultClientSessionService implements SessionService {
       encrypted.release();
 
       return encryptedBase64 + SESSION_SEPARATOR + digestBase64;
+    } catch (Exception e) {
+      throw Exceptions.uncheck(e);
     } finally {
       for (ByteBuf buffer : buffers) {
         if (buffer != null) {
@@ -132,16 +138,16 @@ public class DefaultClientSessionService implements SessionService {
   }
 
   @Override
-  public ConcurrentMap<String, Object> deserializeSession(Cookie[] sessionCookies) {
+  public ConcurrentMap<String, Object> deserializeSession(Registry registry, Cookie[] sessionCookies) {
     // assume table is sorted
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < sessionCookies.length; i++) {
       sb.append(sessionCookies[i].value());
     }
-    return deserializeSession(sb.toString());
+    return deserializeSession(registry, sb.toString());
   }
 
-  private ConcurrentMap<String, Object> deserializeSession(String cookieValue) {
+  private ConcurrentMap<String, Object> deserializeSession(Registry registry, String cookieValue) {
     ConcurrentMap<String, Object> sessionStorage = new ConcurrentHashMap<>();
     if (cookieValue != null) {
       String[] parts = cookieValue.split(SESSION_SEPARATOR);
@@ -159,8 +165,7 @@ public class DefaultClientSessionService implements SessionService {
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payloadString, CharsetUtil.UTF_8, false);
             Map<String, List<String>> decoded = queryStringDecoder.parameters();
             for (Map.Entry<String, List<String>> entry : decoded.entrySet()) {
-              String value = entry.getValue().isEmpty() ? null : entry.getValue().get(0);
-              sessionStorage.put(entry.getKey(), value);
+              sessionStorage.put(entry.getKey(), valueSerializer.deserialize(registry, entry.getValue().get(0)));
             }
           }
         } catch (Exception e) {

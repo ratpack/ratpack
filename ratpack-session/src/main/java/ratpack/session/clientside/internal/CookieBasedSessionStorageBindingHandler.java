@@ -53,8 +53,8 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
 
   public void handle(final Context context) {
     context.getRequest().addLazy(ChangeTrackingSessionStorage.class, () -> {
-      Cookie[] sessionCookies = findSessionCookies(context.getRequest().getCookies());
-      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(sessionCookies);
+      Cookie[] sessionCookies = getSessionCookies(context.getRequest().getCookies());
+      ConcurrentMap<String, Object> sessionMap = sessionService.deserializeSession(context, sessionCookies);
       ChangeTrackingSessionStorage changeTrackingSessionStorage = null;
       if (!maxInactivityInterval.isNegative()) {
         long lastAccessTime = Long.valueOf((String) sessionMap.getOrDefault(LAST_ACCESS_TIME_TOKEN, "-1"));
@@ -90,7 +90,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
               )
               .toList()
               .then(entries -> {
-                int initialSessionCookieCount = findSessionCookies(context.getRequest().getCookies()).length;
+                int initialSessionCookieCount = getSessionCookies(context.getRequest().getCookies()).length;
                 int currentSessionCookieCount = 0;
 
                 if (!entries.isEmpty()) {
@@ -99,7 +99,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
                   for (Pair<String, Object> entry : entries) {
                     data.put(entry.left, entry.right);
                   }
-                  String[] cookieValuePartitions = sessionService.serializeSession(data.entrySet(), maxCookieSize);
+                  String[] cookieValuePartitions = sessionService.serializeSession(context, data.entrySet(), maxCookieSize);
                   for (int i = 0; i < cookieValuePartitions.length; i++) {
                     addSessionCookie(responseMetaData, sessionName + "_" + i, cookieValuePartitions[i], path, domain);
                   }
@@ -117,7 +117,7 @@ public class CookieBasedSessionStorageBindingHandler implements Handler {
     context.next();
   }
 
-  private Cookie[] findSessionCookies(Set<Cookie> cookies) {
+  private Cookie[] getSessionCookies(Set<Cookie> cookies) {
     if (cookies == null) {
       return new Cookie[0];
     }
