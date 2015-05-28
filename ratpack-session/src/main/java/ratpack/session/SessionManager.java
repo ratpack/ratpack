@@ -16,13 +16,15 @@
 
 package ratpack.session;
 
+import java.time.Duration;
+
 public interface SessionManager {
 
   String getCookieDomain();
 
   String getCookiePath();
 
-  int getCookieExpiryMins();
+  Duration getCookieExpiry();
 
   SessionIdGenerator getIdGenerator();
 

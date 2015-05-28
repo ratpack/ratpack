@@ -22,6 +22,8 @@ import ratpack.handling.Context;
 import ratpack.session.Session;
 import ratpack.session.SessionManager;
 
+import java.time.Duration;
+
 public class RequestSessionManager {
 
   private static final String COOKIE_NAME = "JSESSIONID";
@@ -84,7 +86,7 @@ public class RequestSessionManager {
           throw new IllegalStateException("Cannot terminate inactive session");
         }
         sessionManager.notifySessionTerminated(existingId);
-        setCookie("", 0);
+        setCookie("", Duration.ZERO);
       }
     };
   }
@@ -105,14 +107,13 @@ public class RequestSessionManager {
 
   private String assignId() {
     String id = sessionManager.getIdGenerator().generateSessionId();
-    setCookie(id, sessionManager.getCookieExpiryMins());
-
+    setCookie(id, sessionManager.getCookieExpiry());
 
     sessionManager.notifySessionInitiated(id);
     return id;
   }
 
-  private void setCookie(String value, int expiryMins) {
+  private void setCookie(String value, Duration expiration) {
     DefaultCookie cookie = new DefaultCookie(COOKIE_NAME, value);
 
     String cookieDomain = sessionManager.getCookieDomain();
@@ -125,8 +126,9 @@ public class RequestSessionManager {
       cookie.setPath(cookiePath);
     }
 
-    if (expiryMins > 0) {
-      cookie.setMaxAge(expiryMins * 60);
+    long seconds = expiration == null ? 0 : expiration.getSeconds();
+    if (seconds > 0) {
+      cookie.setMaxAge(seconds);
     }
 
     context.getResponse().getCookies().add(cookie);

@@ -25,19 +25,23 @@ import ratpack.session.internal.DefaultSessionIdGenerator;
 import ratpack.session.internal.DefaultSessionManager;
 import ratpack.session.internal.RequestSessionManager;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
 @SuppressWarnings("UnusedDeclaration")
 public class SessionModule extends AbstractModule {
 
-  private int cookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
+  private Duration cookieExpiration = ChronoUnit.YEARS.getDuration();
+
   private String cookieDomain;
   private String cookiePath = "/";
 
-  public int getCookieExpiresMins() {
-    return cookieExpiresMins;
+  public Duration getCookieExpiration() {
+    return cookieExpiration;
   }
 
-  public void setCookieExpiresMins(int cookieExpiresMins) {
-    this.cookieExpiresMins = cookieExpiresMins;
+  public void setCookieExpiration(Duration cookieExpiration) {
+    this.cookieExpiration = cookieExpiration;
   }
 
   public String getCookieDomain() {
@@ -60,7 +64,7 @@ public class SessionModule extends AbstractModule {
   protected void configure() {
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);
     bind(SessionManager.class).to(DefaultSessionManager.class);
-    bind(SessionIdCookieConfig.class).toInstance(new DefaultSessionIdCookieConfig().expiresMins(cookieExpiresMins).domain(cookieDomain).path(cookiePath));
+    bind(SessionIdCookieConfig.class).toInstance(new DefaultSessionIdCookieConfig().expiresDuration(cookieExpiration).domain(cookieDomain).path(cookiePath));
 
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toInstance(HandlerDecorator.prepend(ctx -> {
       ctx.getRequest().addLazy(Session.class, () -> {

@@ -18,15 +18,17 @@ package ratpack.session.internal;
 
 import ratpack.session.SessionIdCookieConfig;
 
+import java.time.Duration;
+
 public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
 
-  private int expiresMins;
+  private Duration expiresDuration;
   private String domain;
   private String path;
 
   @Override
-  public int getExpiresMins() {
-    return expiresMins;
+  public Duration getExpiresDuration() {
+    return expiresDuration;
   }
 
   @Override
@@ -40,8 +42,8 @@ public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
   }
 
   @Override
-  public void setExpiresMins(int expiresMins) {
-    this.expiresMins = expiresMins;
+  public void setExpiresDuration(Duration expiresDuration) {
+    this.expiresDuration = expiresDuration;
   }
 
   @Override
@@ -55,8 +57,8 @@ public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
   }
 
   @Override
-  public SessionIdCookieConfig expiresMins(int expiresMins) {
-    this.expiresMins = expiresMins;
+  public SessionIdCookieConfig expiresDuration(Duration expiresDuration) {
+    this.expiresDuration = expiresDuration;
     return this;
   }
 

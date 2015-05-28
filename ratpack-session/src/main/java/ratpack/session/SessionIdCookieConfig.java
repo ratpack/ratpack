@@ -16,21 +16,23 @@
 
 package ratpack.session;
 
+import java.time.Duration;
+
 public interface SessionIdCookieConfig {
 
-  int getExpiresMins();
+  Duration getExpiresDuration();
 
   String getDomain();
 
   String getPath();
 
-  void setExpiresMins(int expiresMins);
+  void setExpiresDuration(Duration expiresDuration);
 
   void setDomain(String domain);
 
   void setPath(String path);
 
-  SessionIdCookieConfig expiresMins(int expiresMins);
+  SessionIdCookieConfig expiresDuration(Duration expiresDuration);
 
   SessionIdCookieConfig domain(String domain);
 

@@ -23,6 +23,7 @@ import ratpack.http.Response;
 import ratpack.session.SessionIdCookieConfig;
 import ratpack.session.SessionIdGenerator;
 
+import java.time.Duration;
 import java.util.Optional;
 
 public class CookieBasedSessionId implements SessionId {
@@ -75,11 +76,11 @@ public class CookieBasedSessionId implements SessionId {
 
   private String assignId() {
     String id = sessionIdGenerator.generateSessionId();
-    setCookie(id, cookieConfig.getExpiresMins());
+    setCookie(id, cookieConfig.getExpiresDuration());
     return id;
   }
 
-  private void setCookie(String value, int expiryMins) {
+  private void setCookie(String value, Duration expiration) {
     DefaultCookie cookie = new DefaultCookie(COOKIE_NAME, value);
 
     String cookieDomain = cookieConfig.getDomain();
@@ -92,8 +93,9 @@ public class CookieBasedSessionId implements SessionId {
       cookie.setPath(cookiePath);
     }
 
-    if (expiryMins > 0) {
-      cookie.setMaxAge(expiryMins * 60);
+    long expirySeconds = expiration == null ? 0 : expiration.getSeconds();
+    if (expirySeconds > 0) {
+      cookie.setMaxAge(expirySeconds);
     }
 
     response.getCookies().add(cookie);
@@ -101,7 +103,7 @@ public class CookieBasedSessionId implements SessionId {
 
   @Override
   public void terminate() {
-    setCookie("", 0);
+    setCookie("", Duration.ZERO);
     cookieSessionId = null;
     assignedCookieId = null;
   }

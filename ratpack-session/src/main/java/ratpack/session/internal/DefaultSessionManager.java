@@ -23,6 +23,7 @@ import ratpack.session.SessionListener;
 import ratpack.session.SessionManager;
 
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,8 +48,8 @@ public class DefaultSessionManager implements SessionManager {
     return sessionIdCookieConfig.getPath();
   }
 
-  public int getCookieExpiryMins() {
-    return sessionIdCookieConfig.getExpiresMins();
+  public Duration getCookieExpiry() {
+    return sessionIdCookieConfig.getExpiresDuration();
   }
 
   public SessionIdGenerator getIdGenerator() {
