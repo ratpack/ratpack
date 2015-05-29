@@ -17,27 +17,93 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoop;
+import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.registry.RegistrySpec;
 
 /**
- * Effectively a builder for a new {@link Execution}.
+ * Builds, and initiates, a new {@link Execution execution}.
  *
+ * @see Execution
  * @see ExecControl#fork()
  */
 public interface ExecBuilder {
 
+  /**
+   * Specify the top level error handler for the execution.
+   *
+   * @see #onError(BiAction)
+   * @param onError the top level error handler for the execution
+   * @return {@code this}
+   */
   ExecBuilder onError(Action<? super Throwable> onError);
 
+  /**
+   * Specify the top level error handler for the execution.
+   * <p>
+   * The given action will be called if an exception is raised during execution that is not caught.
+   * <p>
+   * This method is not additive.
+   * That is, any subsequent calls replace the previous value.
+   *
+   * @see #onError(BiAction)
+   * @param onError the top level error handler for the execution
+   * @return {@code this}
+   */
   ExecBuilder onError(BiAction<? super Execution, ? super Throwable> onError);
 
+  /**
+   * Specifies the completion callback for the execution.
+   * <p>
+   * The given action will effectively execute <b>outside</b> of the execution.
+   * The action is expected to be synchronous and cannot perform async operations.
+   * During its execution, there will be no thread bound execution or execution control.
+   * Any exceptions raised will be logged.
+   * <p>
+   * This method should be used as a last resort.
+   * <p>
+   * The action will be invoked regardless of whether the execution completed with an error or not.
+   * If the execution did complete with an error, the given action will be invoked <b>after</b> the error handler.
+   * <p>
+   * This method is not additive.
+   * That is, any subsequent calls replace the previous value.
+
+   * @param onComplete the action to invoke when the execution completes.
+   * @return {@code this}
+   */
   ExecBuilder onComplete(Action<? super Execution> onComplete);
 
-  ExecBuilder register(Action<? super RegistrySpec> registry);
+  /**
+   * Populates the execution's registry.
+   * <p>
+   * This method is not additive.
+   * That is, any subsequent calls replace the previous value.
+   *
+   * @param action the initial contents of the execution's registry.
+   * @return {@code this}
+   */
+  ExecBuilder register(Action<? super RegistrySpec> action);
 
+  /**
+   * Specifies that the execution must run on the given event loop.
+   * <p>
+   * If this method is not called, an event loop will be automatically assigned from the {@link ExecController#getEventLoopGroup() exec controller's event loop group}.
+   * It is generally not required, or desirable, to call this method.
+   *
+   * @param eventLoop the event loop to use for the execution
+   * @return {@code this}
+   */
   ExecBuilder eventLoop(EventLoop eventLoop);
 
+  /**
+   * Initiate the new execution.
+   * <p>
+   * This method effectively returns immediately, with the forked execution occurring on a separate thread.
+   *
+   * @param action the initial execution segment of the execution
+   */
+  @NonBlocking
   void start(Action<? super Execution> action);
 
 }

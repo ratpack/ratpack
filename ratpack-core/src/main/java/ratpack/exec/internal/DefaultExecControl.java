@@ -117,8 +117,8 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
       }
 
       @Override
-      public ExecBuilder register(Action<? super RegistrySpec> registry) {
-        this.registry = registry;
+      public ExecBuilder register(Action<? super RegistrySpec> action) {
+        this.registry = action;
         return this;
       }
 
