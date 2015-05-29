@@ -251,9 +251,11 @@ public interface ExecControl {
   }
 
   /**
-   * Creates a new execution starter that can be used to initiate a new execution.
+   * Initiates a new {@link Execution execution}.
+   * <p>
    *
-   * @return an execution starter that can be used to configure and start a new execution.
+   *
+   * @return a new execution builder
    */
   ExecBuilder fork();
 

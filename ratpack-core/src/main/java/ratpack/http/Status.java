@@ -16,10 +16,36 @@
 
 package ratpack.http;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
+import ratpack.http.internal.DefaultStatus;
+
 /**
  * A status line of a HTTP response.
  */
 public interface Status {
+
+  Status OK = Status.of(200);
+
+  /**
+   * Creates a new status object.
+   *
+   * @param code the status code
+   * @param message the status message
+   * @return a new status object
+   */
+  static Status of(int code, String message) {
+    return new DefaultStatus(new HttpResponseStatus(code, message));
+  }
+
+  /**
+   * Creates a new status object.
+   *
+   * @param code the status code
+   * @return a new status object
+   */
+  static Status of(int code) {
+    return new DefaultStatus(HttpResponseStatus.valueOf(code));
+  }
 
   /**
    * The status code.
@@ -35,4 +61,12 @@ public interface Status {
    */
   String getMessage();
 
+  /**
+   * The status as Netty's type.
+   * <p>
+   * Used internally.
+   *
+   * @return the status as Netty's type
+   */
+  HttpResponseStatus getNettyStatus();
 }

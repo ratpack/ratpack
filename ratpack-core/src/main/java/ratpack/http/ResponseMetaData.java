@@ -17,7 +17,6 @@
 package ratpack.http;
 
 import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.util.Set;
 
@@ -48,8 +47,6 @@ public interface ResponseMetaData {
    * @return This
    */
   ResponseMetaData status(int code);
-
-  ResponseMetaData status(HttpResponseStatus responseStatus);
 
   /**
    * Sets the status line of the response.

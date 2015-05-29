@@ -247,7 +247,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get {
-        response.beforeSend { it.status(ACCEPTED) }
+        response.beforeSend { it.status(202) }
         response.send()
       }
     }

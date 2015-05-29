@@ -27,8 +27,6 @@ import ratpack.manual.snippets.fixture.*
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
-  static delegate = new GroovyRatpackDslNoRunFixture()
-
   public static final LinkedHashMap<String, SnippetExecuter> FIXTURES = [
     "language-groovy groovy-chain-dsl": new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
     "language-groovy groovy-ratpack"  : new GroovySnippetExecuter(true, new GroovyRatpackDslNoRunFixture()),

@@ -37,4 +37,8 @@ public class DefaultStatus implements Status {
     return status.reasonPhrase();
   }
 
+  @Override
+  public HttpResponseStatus getNettyStatus() {
+    return status;
+  }
 }

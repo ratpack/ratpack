@@ -71,10 +71,8 @@ The methods exposed to manipulating the response can be found in the [`Response`
 Setting the status of a response is as easy as calling [`Response#status(int)`](api/ratpack/http/Response.html#status-int-) or [`Response#status(ratpack.http.Status)`](api/ratpack/http/Response.html#status-ratpack.http.Status-).
 
 ```language-java
-import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.http.Response;
 import ratpack.http.Status;
-import ratpack.http.internal.DefaultStatus;
 import ratpack.test.embed.EmbeddedApp;
 
 import static org.junit.Assert.assertEquals;
@@ -83,28 +81,12 @@ import static org.junit.Assert.assertNotNull;
 public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp
-      .fromHandlers(chain ->
-          chain
-            .handler("status-object", ctx -> {
-              Status status = new DefaultStatus(HttpResponseStatus.FOUND);
-              Response response = ctx.getResponse();
-              response.status(status).send("foo");
-            })
-            .handler(":status", ctx -> {
-              Response response = ctx.getResponse();
-              String status = ctx.getPathTokens().get("status");
-              response.status(Integer.parseInt(status));
-              response.send("foo");
-            })
+      .fromHandlers(chain -> chain
+        .handler(ctx -> ctx.getResponse().status(202).send("foo"))
       )
-      .test(httpClient -> {
-        assertEquals(200, httpClient.get("200").getStatusCode());
-        assertEquals(301, httpClient.get("301").getStatusCode());
-        assertEquals(404, httpClient.get("404").getStatusCode());
-        assertEquals(503, httpClient.get("503").getStatusCode());
-
-        assertEquals(302, httpClient.get("status-object").getStatusCode());
-      });
+      .test(httpClient ->
+        assertEquals(202, httpClient.get().getStatusCode())
+      );
   }
 }
 ```

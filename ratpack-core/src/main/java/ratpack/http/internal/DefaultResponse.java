@@ -44,7 +44,7 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
 
 public class DefaultResponse implements Response {
 
-  private HttpResponseStatus status = HttpResponseStatus.OK;
+  private Status status = Status.OK;
   private final MutableHeaders headers;
   private final ByteBufAllocator byteBufAllocator;
   private final ResponseTransmitter responseTransmitter;
@@ -191,22 +191,13 @@ public class DefaultResponse implements Response {
   }
 
   public Status getStatus() {
-    return new DefaultStatus(status);
-  }
-
-  public Response status(int code) {
-    return status(HttpResponseStatus.valueOf(code));
-  }
-
-  @Override
-  public Response status(HttpResponseStatus status) {
-    this.status = status;
-    return this;
+    return status;
   }
 
   @Override
   public Response status(Status status) {
-    return status(status.getCode());
+    this.status = status;
+    return this;
   }
 
   @Override
@@ -270,7 +261,7 @@ public class DefaultResponse implements Response {
   public void sendFile(Path file) {
     finalizeResponse(responseFinalizers.iterator(), () -> {
       setCookieHeader();
-      responseTransmitter.transmit(status, file);
+      responseTransmitter.transmit(status.getNettyStatus(), file);
     });
   }
 
@@ -278,7 +269,7 @@ public class DefaultResponse implements Response {
   public void sendStream(Publisher<? extends ByteBuf> stream) {
     finalizeResponse(responseFinalizers.iterator(), () -> {
       setCookieHeader();
-      stream.subscribe(responseTransmitter.transmitter(status));
+      stream.subscribe(responseTransmitter.transmitter(status.getNettyStatus()));
     });
   }
 
@@ -319,7 +310,7 @@ public class DefaultResponse implements Response {
     headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
     finalizeResponse(responseFinalizers.iterator(), () -> {
       setCookieHeader();
-      responseTransmitter.transmit(status, buffer);
+      responseTransmitter.transmit(status.getNettyStatus(), buffer);
     });
   }
 
