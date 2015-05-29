@@ -16,7 +16,7 @@
 
 package ratpack.session;
 
-import ratpack.exec.Promise;
+import ratpack.exec.Operation;
 
 import java.util.Optional;
 import java.util.Set;
@@ -45,33 +45,33 @@ public interface SyncSession {
     return get(key, serializer).orElseThrow(() -> new IllegalArgumentException("No object of type " + key.getName() + " in session"));
   }
 
-  boolean set(String key, String value);
+  void set(String key, String value);
 
-  <T> boolean set(Class<T> key, T value);
+  <T> void set(Class<T> key, T value);
 
-  <T> boolean set(Class<T> key, T value, SessionValueSerializer serializer);
+  <T> void set(Class<T> key, T value, SessionValueSerializer serializer);
 
-  <T> boolean set(T value);
+  <T> void set(T value);
 
-  <T> boolean set(T value, SessionValueSerializer serializer);
+  <T> void set(T value, SessionValueSerializer serializer);
 
   Set<String> getStringKeys();
 
   Set<Class<?>> getTypeKeys();
 
-  boolean remove(String key);
+  void remove(String key);
 
-  <T> boolean remove(Class<T> key);
+  <T> void remove(Class<T> key);
 
-  boolean clear();
+  void clear();
 
   // Has the session been changed (i.e. set/remove/clear called) since read?
   boolean isDirty();
 
   // Store the session data right now - doesn't have to be called - we'll call automatically at end of request if dirty
-  Promise<Boolean> save();
+  Operation save();
 
-  Promise<Boolean> terminate();
+  Operation terminate();
 
 
 }

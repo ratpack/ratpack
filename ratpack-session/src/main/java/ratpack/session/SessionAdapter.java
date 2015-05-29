@@ -16,6 +16,7 @@
 
 package ratpack.session;
 
+import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 
 import java.util.Optional;
@@ -50,24 +51,24 @@ public interface SessionAdapter {
     return getSync().map(s -> s.require(key, serializer));
   }
 
-  default Promise<Boolean> set(String key, String value) {
-    return getSync().map(s -> s.set(key, value));
+  default Operation set(String key, String value) {
+    return getSync().operation(s -> s.set(key, value));
   }
 
-  default <T> Promise<Boolean> set(Class<T> key, T value) {
-    return getSync().map(s -> s.set(key, value));
+  default <T> Operation set(Class<T> key, T value) {
+    return getSync().operation(s -> s.set(key, value));
   }
 
-  default <T> Promise<Boolean> set(Class<T> key, T value, SessionValueSerializer serializer) {
-    return getSync().map(s -> s.set(key, value, serializer));
+  default <T> Operation set(Class<T> key, T value, SessionValueSerializer serializer) {
+    return getSync().operation(s -> s.set(key, value, serializer));
   }
 
-  default <T> Promise<Boolean> set(T value) {
-    return getSync().map(s -> s.set(value));
+  default <T> Operation set(T value) {
+    return getSync().operation(s -> s.set(value));
   }
 
-  default <T> Promise<Boolean> set(T value, SessionValueSerializer serializer) {
-    return getSync().map(s -> s.set(value, serializer));
+  default <T> Operation set(T value, SessionValueSerializer serializer) {
+    return getSync().operation(s -> s.set(value, serializer));
   }
 
   default Promise<Set<String>> getStringKeys() {
@@ -78,23 +79,23 @@ public interface SessionAdapter {
     return getSync().map(SyncSession::getTypeKeys);
   }
 
-  default Promise<Boolean> remove(String key) {
-    return getSync().map(s -> s.remove(key));
+  default Operation remove(String key) {
+    return getSync().operation(s -> s.remove(key));
   }
 
-  default <T> Promise<Boolean> remove(Class<T> key) {
-    return getSync().map(s -> s.remove(key));
+  default <T> Operation remove(Class<T> key) {
+    return getSync().operation(s -> s.remove(key));
   }
 
-  default Promise<Boolean> clear() {
-    return getSync().map(SyncSession::clear);
+  default Operation clear() {
+    return getSync().operation(SyncSession::clear);
   }
 
   // Has the session been changed (i.e. set/remove/clear called) since read?
   boolean isDirty();
 
   // Store the session data right now - doesn't have to be called - we'll call automatically at end of request if dirty
-  Promise<Boolean> save();
+  Operation save();
 
-  Promise<Boolean> terminate();
+  Operation terminate();
 }

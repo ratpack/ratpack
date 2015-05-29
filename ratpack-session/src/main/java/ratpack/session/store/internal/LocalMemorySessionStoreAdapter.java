@@ -21,6 +21,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.exec.ExecControl;
+import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.session.internal.SessionId;
 import ratpack.session.store.SessionStoreAdapter;
@@ -36,14 +37,11 @@ public class LocalMemorySessionStoreAdapter implements SessionStoreAdapter {
   }
 
   @Override
-  public Promise<Boolean> store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData) {
-    return execControl.promiseFrom(() -> {
+  public Operation store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData) {
+    return execControl.operation(() -> {
       ByteBuf oldValue = cache.asMap().put(sessionId.getValue(), Unpooled.unmodifiableBuffer(sessionData.copy()));
       if (oldValue != null) {
         oldValue.release();
-        return true;
-      } else {
-        return false;
       }
     });
   }
@@ -61,18 +59,18 @@ public class LocalMemorySessionStoreAdapter implements SessionStoreAdapter {
   }
 
   @Override
-  public long size() {
-    return cache.size();
+  public Promise<Long> size() {
+    return execControl.promiseFrom(cache::size);
   }
 
   @Override
-  public Promise<Boolean> remove(SessionId sessionId) {
-    ByteBuf oldValue = cache.asMap().remove(sessionId.getValue());
-    if (oldValue != null) {
-      oldValue.release();
-      return execControl.promiseOf(true);
-    } else {
-      return execControl.promiseOf(false);
-    }
+  public Operation remove(SessionId sessionId) {
+    return execControl.operation(() -> {
+      ByteBuf oldValue = cache.asMap().remove(sessionId.getValue());
+      if (oldValue != null) {
+        oldValue.release();
+      }
+    });
+
   }
 }

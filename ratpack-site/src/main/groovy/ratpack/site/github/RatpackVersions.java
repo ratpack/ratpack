@@ -47,12 +47,12 @@ public class RatpackVersions {
         }
       };
 
-      execControl.exec()
+      execControl.fork()
         .onError(onError)
         .onComplete(onComplete)
         .start(e -> gitHubData.getReleasedVersions().then(l -> versions[0] = l));
 
-      execControl.exec()
+      execControl.fork()
         .onError(onError)
         .onComplete(onComplete)
         .start(e -> gitHubData.getUnreleasedVersions().then(l -> versions[1] = l));

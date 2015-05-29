@@ -236,7 +236,7 @@ public class HealthCheckHandler implements Handler {
       while (iterator.hasNext()) {
         counter.incrementAndGet();
         HealthCheck healthCheck = iterator.next();
-        execControl.exec().start(e ->
+        execControl.fork().start(e ->
             execute(e, registry, healthCheck)
               .throttled(throttle)
               .then(r -> {

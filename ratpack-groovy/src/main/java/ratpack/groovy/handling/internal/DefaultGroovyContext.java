@@ -201,8 +201,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public ExecStarter exec() {
-    return delegate.exec();
+  public ExecBuilder fork() {
+    return delegate.fork();
   }
 
   @Override

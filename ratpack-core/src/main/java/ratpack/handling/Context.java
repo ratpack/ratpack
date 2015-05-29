@@ -397,7 +397,7 @@ public interface Context extends ExecControl, Registry {
    *           for (int i = 0; i < numJobs; ++i) {
    *             final int iteration = i;
    *
-   *             context.exec()
+   *             context.fork()
    *               .onError(throwable -> {
    *                 error.compareAndSet(null, throwable); // just take the first error
    *                 completeJob(fulfiller);
@@ -434,7 +434,7 @@ public interface Context extends ExecControl, Registry {
    * @return an execution starter
    */
   @Override
-  ExecStarter exec();
+  ExecBuilder fork();
 
   @Override
   ExecController getController();

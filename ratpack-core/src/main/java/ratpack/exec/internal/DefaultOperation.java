@@ -14,22 +14,34 @@
  * limitations under the License.
  */
 
-package ratpack.session.store;
+package ratpack.exec.internal;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.session.internal.SessionId;
+import ratpack.func.Action;
+import ratpack.func.Block;
 
-public interface SessionStoreAdapter {
+public class DefaultOperation implements Operation {
 
-  Operation store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData);
+  private final Promise<Void> promise;
 
-  Promise<ByteBuf> load(SessionId sessionId, ByteBufAllocator bufferAllocator);
+  public DefaultOperation(Promise<Void> promise) {
+    this.promise = promise;
+  }
 
-  Operation remove(SessionId sessionId);
+  @Override
+  public Promise<Void> promise() {
+    return promise;
+  }
 
-  // -1 if can't be determined
-  Promise<Long> size();
+  @Override
+  public Operation onError(Action<? super Throwable> onError) {
+    return new DefaultOperation(promise.onError(onError));
+  }
+
+  @Override
+  public void then(Block block) {
+    promise.then(v -> block.execute());
+  }
+
 }

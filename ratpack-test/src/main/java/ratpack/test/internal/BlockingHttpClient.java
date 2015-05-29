@@ -44,7 +44,7 @@ public class BlockingHttpClient {
     try (ExecController execController = new DefaultExecController(2)) {
       final RequestAction requestAction = new RequestAction(uri, execController, action);
 
-      execController.getControl().exec()
+      execController.getControl().fork()
         .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>error(throwable)))
         .start(requestAction::execute);
 

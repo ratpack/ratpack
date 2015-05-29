@@ -42,7 +42,7 @@ class ExecutionSpec extends Specification {
   }
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError) {
-    harness.exec().onError(onError).onComplete {
+    harness.fork().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
     } start {
@@ -56,7 +56,7 @@ class ExecutionSpec extends Specification {
     exec({ e ->
       e.promise { f ->
         events << "action"
-        e.exec().start {
+        e.fork().start {
           f.success(1)
         }
       } then {
@@ -158,13 +158,13 @@ class ExecutionSpec extends Specification {
 
     exec { control ->
       def p = control.promise { f ->
-        control.exec().start {
+        control.fork().start {
           f.success(2)
         }
       }
 
       control.execution.onCleanup {
-        control.exec().start { e2 ->
+        control.fork().start { e2 ->
           p.then {
             assert control.execution == e2
             events << "then"

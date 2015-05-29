@@ -36,7 +36,7 @@ class PromiseOperationsSpec extends Specification {
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness
-      .exec()
+      .fork()
       .onError(onError)
       .onComplete {
       events << "complete"
@@ -240,7 +240,7 @@ class PromiseOperationsSpec extends Specification {
   def "can defer promise"() {
     when:
     def runner = new BlockingVariable<Runnable>()
-    execHarness.exec().onComplete { latch.countDown() }.start {
+    execHarness.fork().onComplete { latch.countDown() }.start {
       it.control.promise { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
         events << it
       }

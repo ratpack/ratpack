@@ -436,7 +436,7 @@ public abstract class RxRatpack {
         }
 
         wip.incrementAndGet();
-        current.exec()
+        current.fork()
           .onComplete(e -> this.maybeDone())
           .onError(this::onError)
           .start(e -> {
@@ -449,7 +449,7 @@ public abstract class RxRatpack {
   }
 
   /**
-   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#exec()}).
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#fork()}).
    *
    * @param execController the execution controller to back the scheduler
    * @return a scheduler

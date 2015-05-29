@@ -24,19 +24,19 @@ import ratpack.registry.RegistrySpec;
 /**
  * Effectively a builder for a new {@link Execution}.
  *
- * @see ExecControl#exec()
+ * @see ExecControl#fork()
  */
-public interface ExecStarter {
+public interface ExecBuilder {
 
-  ExecStarter onError(Action<? super Throwable> onError);
+  ExecBuilder onError(Action<? super Throwable> onError);
 
-  ExecStarter onError(BiAction<? super Execution, ? super Throwable> onError);
+  ExecBuilder onError(BiAction<? super Execution, ? super Throwable> onError);
 
-  ExecStarter onComplete(Action<? super Execution> onComplete);
+  ExecBuilder onComplete(Action<? super Execution> onComplete);
 
-  ExecStarter register(Action<? super RegistrySpec> registry);
+  ExecBuilder register(Action<? super RegistrySpec> registry);
 
-  ExecStarter eventLoop(EventLoop eventLoop);
+  ExecBuilder eventLoop(EventLoop eventLoop);
 
   void start(Action<? super Execution> action);
 

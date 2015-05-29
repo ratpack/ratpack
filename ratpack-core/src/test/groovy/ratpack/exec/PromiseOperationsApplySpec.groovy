@@ -33,7 +33,7 @@ class PromiseOperationsApplySpec extends Specification {
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness
-      .exec()
+      .fork()
       .onError(onError)
       .onComplete {
       events << "complete"

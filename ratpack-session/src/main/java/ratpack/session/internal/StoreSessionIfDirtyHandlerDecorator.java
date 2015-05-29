@@ -16,7 +16,6 @@
 
 package ratpack.session.internal;
 
-import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.handling.Handlers;
@@ -31,7 +30,7 @@ public class StoreSessionIfDirtyHandlerDecorator implements HandlerDecorator {
         ctx.getResponse().beforeSend(responseMetaData -> {
           SessionStatus sessionStatus = ctx.get(SessionStatus.class);
           if (sessionStatus.isDirty()) {
-            ctx.get(SessionAdapter.class).save().then(Action.noop());
+            ctx.get(SessionAdapter.class).save().then();
           }
         });
         ctx.next();

@@ -140,7 +140,7 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    execControl.exec()
+    execControl.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s
@@ -190,8 +190,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public ExecStarter exec() {
-    return requestConstants.applicationConstants.execControl.exec();
+  public ExecBuilder fork() {
+    return requestConstants.applicationConstants.execControl.fork();
   }
 
   @Override

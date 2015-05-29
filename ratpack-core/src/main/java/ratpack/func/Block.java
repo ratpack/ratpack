@@ -26,12 +26,17 @@ import ratpack.util.Exceptions;
 @FunctionalInterface
 public interface Block {
 
+  static Block noop() {
+    return () -> {
+    };
+  }
+
   /**
    * Execute the action.
    *
    * @throws Exception any
    */
-  public void execute() throws Exception;
+  void execute() throws Exception;
 
   /**
    * Returns an action that immediately throws the given exception.

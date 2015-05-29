@@ -29,8 +29,7 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { SessionAdapter session ->
-        render session.set("foo", "bar")
-          .next(session.require("foo"))
+        render session.set("foo", "bar").flatMap(session.require("foo"))
       }
     }
 
@@ -89,10 +88,10 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { SessionAdapter session ->
-          session
-            .set(new Holder1(value: "1"))
-            .next(session.set(new Holder2(value: "2")))
-            .then { render "ok" }
+        session
+          .set(new Holder1(value: "1"))
+          .next(session.set(new Holder2(value: "2")))
+          .then { render "ok" }
       }
       get("get") { SessionAdapter session ->
         session.sync.then {
@@ -124,12 +123,11 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
       }
       get("invalidate") { SessionAdapter session ->
         session.sync.then {
-          it.terminate()
-          render "ok"
+          it.terminate().then { render "ok" }
         }
       }
       get("size") { SessionStoreAdapter storeAdapter ->
-        render storeAdapter.size().toString()
+        render storeAdapter.size().map { it.toString() }
       }
     }
 
@@ -148,7 +146,7 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { SessionStoreAdapter store ->
-        render store.size().toString()
+        render store.size().map { it.toString() }
       }
       get("readOnly") { SessionAdapter session ->
         session.sync.then { render "ok" }

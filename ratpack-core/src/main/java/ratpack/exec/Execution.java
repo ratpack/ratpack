@@ -50,7 +50,7 @@ import java.util.function.Supplier;
  * <h3>Executions and request handling</h3>
  * <p>
  * The execution object actually underpins the {@link ratpack.handling.Context} objects that are used when handling requests.
- * It is rarely used directly when request handling, except when concurrency or parallelism is required to process data via the {@link ratpack.handling.Context#exec()} method.
+ * It is rarely used directly when request handling, except when concurrency or parallelism is required to process data via the {@link ratpack.handling.Context#fork()} method.
  * Moreover, it provides its own error handling and completion mechanisms.
  * </p>
  */

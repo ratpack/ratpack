@@ -230,6 +230,26 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
     }
   }
 
+  default void execute(Function<? super ExecControl, ? extends Operation> function) throws Exception {
+    yield(e -> function.apply(e).promise()).getValueOrThrow();
+  }
+
+  default void execute(Operation operation) throws Exception {
+    execute(e -> operation);
+  }
+
+  static void executeSingle(Function<? super ExecControl, ? extends Operation> function) throws Exception {
+    try (ExecHarness harness = harness()) {
+      harness.execute(function);
+    }
+  }
+
+  static void executeSingle(Operation operation) throws Exception {
+    try (ExecHarness harness = harness()) {
+      harness.execute(operation);
+    }
+  }
+
   /**
    * The execution control for the harness.
    * <p>
@@ -248,8 +268,8 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
   /**
    * {@inheritDoc}
    */
-  default ExecStarter exec() {
-    return getControl().exec();
+  default ExecBuilder fork() {
+    return getControl().fork();
   }
 
   /**

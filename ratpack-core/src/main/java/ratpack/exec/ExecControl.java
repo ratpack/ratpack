@@ -17,6 +17,7 @@
 package ratpack.exec;
 
 import org.reactivestreams.Publisher;
+import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.JustInTimeExecControl;
 import ratpack.func.Action;
 import ratpack.func.Block;
@@ -234,17 +235,19 @@ public interface ExecControl {
     }
   }
 
+  default Operation operation(Block operation) {
+    return new DefaultOperation(this.<Void>promise(f -> {
+      operation.execute();
+      f.success(null);
+    }));
+  }
+
   default void nest(Block nested, Block then) {
-    nest(nested, then, Action.noop());
+    operation(nested).then(then);
   }
 
   default void nest(Block nested, Block then, Action<? super Throwable> onError) {
-    this.<Void>promise(f -> {
-      nested.execute();
-      f.success(null);
-    })
-      .onError(onError)
-      .then(v -> then.execute());
+    operation(nested).onError(onError).then(then);
   }
 
   /**
@@ -252,7 +255,7 @@ public interface ExecControl {
    *
    * @return an execution starter that can be used to configure and start a new execution.
    */
-  ExecStarter exec();
+  ExecBuilder fork();
 
   /**
    * Process streams of data asynchronously with non-blocking back pressure.

@@ -64,7 +64,7 @@ class ThrottleSpec extends Specification {
 
     when:
     jobs.times {
-      execHarness.exec().onComplete { latch.countDown() }.start {
+      execHarness.fork().onComplete { latch.countDown() }.start {
         def exec = it
         it.control.promise { q << it }.throttled(t).result {
           assert execHarness.control.execution.is(exec)
@@ -80,7 +80,7 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size
     }
 
-    execHarness.exec().start { it.control.blocking { q.take().success(1) } then {} }
+    execHarness.fork().start { it.control.blocking { q.take().success(1) } then {} }
 
     polling.eventually {
       q.size() == t.size
@@ -88,7 +88,7 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size - 1
     }
 
-    execHarness.exec().start { e2 ->
+    execHarness.fork().start { e2 ->
       def n = jobs - 2 - throttleSize
       n.times {
         e2.control.blocking { q.take() } then {

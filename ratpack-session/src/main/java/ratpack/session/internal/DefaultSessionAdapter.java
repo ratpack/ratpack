@@ -19,6 +19,7 @@ package ratpack.session.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.netty.buffer.*;
+import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.session.SessionAdapter;
 import ratpack.session.SessionValueSerializer;
@@ -120,20 +121,20 @@ public class DefaultSessionAdapter implements SessionAdapter {
   }
 
   @Override
-  public Promise<Boolean> save() {
-    return storeAdapter.store(sessionId, bufferAllocator, serialize()).map(value -> {
-      sessionStatus.setDirty(false);
-      return value;
-    });
+  public Operation save() {
+    return storeAdapter.store(sessionId, bufferAllocator, serialize())
+      .next(() -> {
+        sessionStatus.setDirty(false);
+      });
   }
 
   @Override
-  public Promise<Boolean> terminate() {
-    return storeAdapter.remove(sessionId).map(result -> {
-      sessionId.terminate();
-      hydrate(Unpooled.buffer(0, 0));
-      return result;
-    });
+  public Operation terminate() {
+    return storeAdapter.remove(sessionId)
+      .next(() -> {
+        sessionId.terminate();
+        hydrate(Unpooled.buffer(0, 0));
+      });
   }
 
   private void markDirty() {
@@ -167,18 +168,18 @@ public class DefaultSessionAdapter implements SessionAdapter {
     }
 
     @Override
-    public boolean set(String key, String value) {
+    public void set(String key, String value) {
       markDirty();
-      return strings.put(key, value) != null;
+      strings.put(key, value);
     }
 
     @Override
-    public <T> boolean set(Class<T> key, T value) {
-      return set(key, value, defaultSerializer);
+    public <T> void set(Class<T> key, T value) {
+      set(key, value, defaultSerializer);
     }
 
     @Override
-    public <T> boolean set(Class<T> key, T value, SessionValueSerializer serializer) {
+    public <T> void set(Class<T> key, T value, SessionValueSerializer serializer) {
       Objects.requireNonNull(key, "session key cannot be null");
       Objects.requireNonNull(value, "session value for key " + key.getName() + " cannot be null");
 
@@ -189,19 +190,19 @@ public class DefaultSessionAdapter implements SessionAdapter {
         throw Exceptions.uncheck(e);
       }
 
+      objects.put(key, out.toByteArray());
       markDirty();
-      return objects.put(key, out.toByteArray()) != null;
     }
 
     @Override
-    public <T> boolean set(T value) {
-      return set(value, defaultSerializer);
+    public <T> void set(T value) {
+      set(value, defaultSerializer);
     }
 
     @Override
-    public <T> boolean set(T value, SessionValueSerializer serializer) {
+    public <T> void set(T value, SessionValueSerializer serializer) {
       Class<T> type = Types.cast(value.getClass());
-      return set(type, value, serializer);
+      set(type, value, serializer);
     }
 
     @Override
@@ -215,24 +216,22 @@ public class DefaultSessionAdapter implements SessionAdapter {
     }
 
     @Override
-    public boolean remove(String key) {
+    public void remove(String key) {
+      strings.remove(key);
       markDirty();
-      return strings.remove(key) != null;
     }
 
     @Override
-    public <T> boolean remove(Class<T> key) {
+    public <T> void remove(Class<T> key) {
+      objects.remove(key);
       markDirty();
-      return objects.remove(key) != null;
     }
 
     @Override
-    public boolean clear() {
-      boolean change = !strings.isEmpty() || !objects.isEmpty();
+    public void clear() {
       strings.clear();
       objects.clear();
       markDirty();
-      return change;
     }
 
     @Override
@@ -241,12 +240,12 @@ public class DefaultSessionAdapter implements SessionAdapter {
     }
 
     @Override
-    public Promise<Boolean> save() {
+    public Operation save() {
       return DefaultSessionAdapter.this.save();
     }
 
     @Override
-    public Promise<Boolean> terminate() {
+    public Operation terminate() {
       return DefaultSessionAdapter.this.terminate();
     }
   }
