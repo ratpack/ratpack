@@ -31,17 +31,14 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *
  * Example usage:
  * <pre class="java">{@code
- * import com.google.inject.AbstractModule;
  * import org.pac4j.oauth.client.GitHubClient;
  * import org.pac4j.oauth.profile.github.GitHubProfile;
  * import ratpack.guice.Guice;
  * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
  * import ratpack.http.client.ReceivedResponse;
  * import ratpack.pac4j.AbstractAuthorizer;
  * import ratpack.pac4j.Pac4jModule;
  * import ratpack.session.SessionModule;
- * import ratpack.session.store.MapSessionsModule;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import static org.junit.Assert.assertEquals;
@@ -51,30 +48,29 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *
  *   public static class MyAuthorizer extends AbstractAuthorizer {
  *     {@literal @}Override
- *     public boolean isAuthenticationRequired(Context context) {
- *       return !context.getRequest().getPath().startsWith("public/");
- *     }
- *   }
- *
- *   public static class MyHandler implements Handler {
- *     {@literal @}Override
- *     public void handle(Context ctx) throws Exception {
- *       ctx.render("Authenticated as " + ctx.getRequest().maybeGet(GitHubProfile.class).map(GitHubProfile::getDisplayName).orElse("noone"));
- *     }
- *   }
- *
- *   public static class ServiceModule extends AbstractModule {
- *     protected void configure() {
- *       install(new SessionModule());
- *       install(new MapSessionsModule(10, 5));
- *       install(new Pac4jModule<>(new GitHubClient("key", "secret"), new MyAuthorizer()));
+ *     public boolean isAuthenticationRequired(Context ctx) {
+ *       return !ctx.getRequest().getPath().startsWith("public/");
  *     }
  *   }
  *
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
- *         .registry(Guice.registry(b -> b.module(ServiceModule.class)))
- *         .handler(r -> new MyHandler())
+ *       .registry(
+ *         Guice.registry(b -> b
+ *           .module(SessionModule.class)
+ *           .module(new Pac4jModule<>(new GitHubClient("key", "secret"), new MyAuthorizer()))
+ *         )
+ *       )
+ *       .handlers(c -> c
+ *         .handler(ctx -> {
+ *           String displayName = ctx.getRequest()
+ *             .maybeGet(GitHubProfile.class)
+ *             .map(GitHubProfile::getDisplayName)
+ *             .orElse("noone");
+ *
+ *           ctx.render("Authenticated as " + displayName);
+ *         })
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("Authenticated as noone", httpClient.getText("public/test"));
  *       ReceivedResponse response = httpClient.get("private/test");

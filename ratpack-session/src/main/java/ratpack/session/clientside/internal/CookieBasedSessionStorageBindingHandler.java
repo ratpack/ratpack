@@ -17,7 +17,7 @@
 package ratpack.session.clientside.internal;
 
 import com.google.common.collect.Maps;
-import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.func.Pair;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;

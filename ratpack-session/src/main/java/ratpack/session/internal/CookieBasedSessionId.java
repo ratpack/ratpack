@@ -16,10 +16,12 @@
 
 package ratpack.session.internal;
 
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.util.AsciiString;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.session.SessionId;
 import ratpack.session.SessionIdCookieConfig;
 import ratpack.session.SessionIdGenerator;
 
@@ -28,15 +30,13 @@ import java.util.Optional;
 
 public class CookieBasedSessionId implements SessionId {
 
-  private static final String COOKIE_NAME = "JSESSIONID";
-
   private final Request request;
   private final Response response;
   private final SessionIdGenerator sessionIdGenerator;
   private final SessionIdCookieConfig cookieConfig;
 
-  private String assignedCookieId;
-  private Optional<String> cookieSessionId;
+  private AsciiString assignedCookieId;
+  private Optional<AsciiString> cookieSessionId;
 
   public CookieBasedSessionId(Request request, Response response, SessionIdGenerator sessionIdGenerator, SessionIdCookieConfig cookieConfig) {
     this.request = request;
@@ -46,7 +46,7 @@ public class CookieBasedSessionId implements SessionId {
   }
 
   @Override
-  public String getValue() {
+  public AsciiString getValue() {
     if (assignedCookieId != null) {
       return assignedCookieId;
     }
@@ -57,31 +57,31 @@ public class CookieBasedSessionId implements SessionId {
     });
   }
 
-  private Optional<String> getCookieSessionId() {
+  private Optional<AsciiString> getCookieSessionId() {
     if (cookieSessionId == null) {
       Cookie match = null;
 
       for (Cookie cookie : request.getCookies()) {
-        if (cookie.name().equals(COOKIE_NAME)) {
+        if (cookie.name().equals(cookieConfig.getName())) {
           match = cookie;
           break;
         }
       }
 
-      cookieSessionId = match == null ? Optional.empty() : Optional.of(match.value());
+      cookieSessionId = match == null ? Optional.empty() : Optional.of(AsciiString.of(match.value()));
     }
 
     return cookieSessionId;
   }
 
-  private String assignId() {
-    String id = sessionIdGenerator.generateSessionId();
-    setCookie(id, cookieConfig.getExpiresDuration());
+  private AsciiString assignId() {
+    AsciiString id = sessionIdGenerator.generateSessionId();
+    setCookie(id.toString(), cookieConfig.getExpires());
     return id;
   }
 
   private void setCookie(String value, Duration expiration) {
-    DefaultCookie cookie = new DefaultCookie(COOKIE_NAME, value);
+    DefaultCookie cookie = new DefaultCookie(cookieConfig.getName(), value);
 
     String cookieDomain = cookieConfig.getDomain();
     if (cookieDomain != null) {

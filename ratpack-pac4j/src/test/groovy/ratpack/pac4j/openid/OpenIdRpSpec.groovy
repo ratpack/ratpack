@@ -28,7 +28,6 @@ import ratpack.http.internal.HttpHeaderConstants
 import ratpack.pac4j.InjectedPac4jModule
 import ratpack.pac4j.Pac4jModule
 import ratpack.session.SessionModule
-import ratpack.session.store.MapSessionsModule
 import ratpack.test.embed.BaseDirBuilder
 import ratpack.test.embed.EmbeddedApp
 import spock.lang.AutoCleanup
@@ -79,7 +78,6 @@ class OpenIdRpSpec extends Specification {
       bindings {
         additionalModules.each { module(it) }
         module SessionModule
-        module new MapSessionsModule(10, 5)
       }
 
       handlers {

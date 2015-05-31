@@ -23,6 +23,7 @@ import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.session.Session;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -44,19 +45,22 @@ public class Pac4jCallbackHandler implements Handler {
   }
 
   @Override
-  public void handle(Context context) {
-    RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(() -> {
-      Client<Credentials, UserProfile> client = lookupClient.apply(context, webContext);
-      Credentials credentials = client.getCredentials(webContext);
-      return client.getUserProfile(credentials, webContext);
-    }).onError(e -> {
-      if (e instanceof RequiresHttpAction) {
-        webContext.sendResponse((RequiresHttpAction) e);
-      } else {
-        onError.accept(context, e);
+  public void handle(Context ctx) {
+    ctx.get(Session.class).getData().then(sessionData -> {
+      RatpackWebContext webContext = new RatpackWebContext(ctx, sessionData);
+      try {
+        Client<Credentials, UserProfile> client = lookupClient.apply(ctx, webContext);
+        Credentials credentials = client.getCredentials(webContext);
+        UserProfile userProfile = client.getUserProfile(credentials, webContext);
+        onSuccess.accept(ctx, userProfile);
+      } catch (Exception e) {
+        if (e instanceof RequiresHttpAction) {
+          webContext.sendResponse((RequiresHttpAction) e);
+        } else {
+          onError.accept(ctx, e);
+        }
       }
-    }).then(profile -> onSuccess.accept(context, profile));
+    });
   }
 
 }

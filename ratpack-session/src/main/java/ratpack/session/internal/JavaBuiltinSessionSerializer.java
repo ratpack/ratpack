@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.session;
+package ratpack.session.internal;
 
+import ratpack.session.JavaSessionSerializer;
 import ratpack.util.Exceptions;
 
 import java.io.*;
 
-public class JavaSerializationSessionValueSerializer implements SessionValueSerializer {
+public class JavaBuiltinSessionSerializer implements JavaSessionSerializer {
 
   @Override
   public <T> void serialize(Class<T> type, T value, OutputStream outputStream) throws IOException {
@@ -30,9 +31,9 @@ public class JavaSerializationSessionValueSerializer implements SessionValueSeri
   }
 
   @Override
-  public <T> T deserialize(Class<T> type, InputStream inputStream) throws IOException {
+  public <T> T deserialize(Class<T> type, InputStream in) throws IOException {
     try {
-      ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+      ObjectInputStream objectInputStream = new ObjectInputStream(in);
       Object value = objectInputStream.readObject();
       if (type.isInstance(value)) {
         return type.cast(value);

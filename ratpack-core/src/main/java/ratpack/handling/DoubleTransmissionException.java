@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.session;
+package ratpack.handling;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public class DoubleTransmissionException extends RuntimeException {
 
-public interface SessionValueSerializer {
-  <T> void serialize(Class<T> type, T value, OutputStream out) throws IOException;
-
-  <T> T deserialize(Class<T> type, InputStream inputStream) throws IOException;
+  public DoubleTransmissionException(String message) {
+    super(message);
+  }
 }

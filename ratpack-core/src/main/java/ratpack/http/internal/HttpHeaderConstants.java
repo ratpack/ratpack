@@ -16,9 +16,9 @@
 
 package ratpack.http.internal;
 
-import io.netty.handler.codec.AsciiString;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.util.AsciiString;
 
 public abstract class HttpHeaderConstants {
 

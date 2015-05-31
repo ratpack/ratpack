@@ -18,7 +18,7 @@ package ratpack.http;
 
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
-import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;

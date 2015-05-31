@@ -23,15 +23,14 @@ import org.pac4j.http.profile.UsernameProfileCreator
 import ratpack.handling.Context
 import ratpack.pac4j.AbstractAuthorizer
 import ratpack.pac4j.Pac4jModule
-import ratpack.session.clientside.ClientSideSessionsModule
-import ratpack.session.clientside.serializer.JavaValueSerializer
+import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 
-class CookieSessionSpec extends RatpackGroovyDslSpec {
+class Pac4jSessionSpec extends RatpackGroovyDslSpec {
 
   private static class PathAuthorizer extends AbstractAuthorizer {
     @Override
@@ -47,16 +46,7 @@ class CookieSessionSpec extends RatpackGroovyDslSpec {
         new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()),
         new PathAuthorizer()
       )
-      module ClientSideSessionsModule, {
-        it.with {
-          secretKey = "aaaaaaaaaaaaaaaa"
-          // required to share the same session between app instances (in cluster)
-          secretToken = "bbbbbb"
-          // required for Pac4J UserProfile serialization
-          valueSerializer = new JavaValueSerializer()
-        }
-      }
-
+      module SessionModule
     }
 
     handlers {

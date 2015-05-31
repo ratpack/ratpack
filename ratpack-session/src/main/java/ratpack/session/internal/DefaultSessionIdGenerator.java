@@ -16,17 +16,18 @@
 
 package ratpack.session.internal;
 
+import io.netty.util.AsciiString;
 import ratpack.session.SessionIdGenerator;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class DefaultSessionIdGenerator implements SessionIdGenerator {
 
-  private SecureRandom random = new SecureRandom();
-
-  public String generateSessionId() {
-    return new BigInteger(130, random).toString(32);
+  public AsciiString generateSessionId() {
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    UUID uuid = new UUID(random.nextLong(), random.nextLong());
+    return AsciiString.of(uuid.toString());
   }
 
 }

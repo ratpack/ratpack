@@ -18,28 +18,29 @@ package ratpack.session.store.internal;
 
 import com.google.common.cache.Cache;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
+import io.netty.util.AsciiString;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.session.internal.SessionId;
-import ratpack.session.store.SessionStoreAdapter;
+import ratpack.server.StopEvent;
+import ratpack.session.SessionStore;
 
-public class LocalMemorySessionStoreAdapter implements SessionStoreAdapter {
+public class LocalMemorySessionStore implements SessionStore {
 
   private final ExecControl execControl;
-  private final Cache<String, ByteBuf> cache;
+  private final Cache<AsciiString, ByteBuf> cache;
 
-  public LocalMemorySessionStoreAdapter(Cache<String, ByteBuf> cache, ExecControl execControl) {
+  public LocalMemorySessionStore(Cache<AsciiString, ByteBuf> cache, ExecControl execControl) {
     this.cache = cache;
     this.execControl = execControl;
   }
 
   @Override
-  public Operation store(SessionId sessionId, ByteBufAllocator bufferAllocator, ByteBuf sessionData) {
+  public Operation store(AsciiString sessionId, ByteBuf sessionData) {
     return execControl.operation(() -> {
-      ByteBuf oldValue = cache.asMap().put(sessionId.getValue(), Unpooled.unmodifiableBuffer(sessionData.copy()));
+      ByteBuf retained = Unpooled.unmodifiableBuffer(sessionData);
+      ByteBuf oldValue = cache.asMap().put(sessionId, retained);
       if (oldValue != null) {
         oldValue.release();
       }
@@ -47,11 +48,11 @@ public class LocalMemorySessionStoreAdapter implements SessionStoreAdapter {
   }
 
   @Override
-  public Promise<ByteBuf> load(SessionId sessionId, ByteBufAllocator bufferAllocator) {
+  public Promise<ByteBuf> load(AsciiString sessionId) {
     return execControl.promiseFrom(() -> {
-      ByteBuf value = cache.getIfPresent(sessionId.getValue());
+      ByteBuf value = cache.getIfPresent(sessionId);
       if (value != null) {
-        return Unpooled.unreleasableBuffer(value);
+        return Unpooled.unreleasableBuffer(value.slice());
       } else {
         return Unpooled.buffer(0, 0);
       }
@@ -64,13 +65,19 @@ public class LocalMemorySessionStoreAdapter implements SessionStoreAdapter {
   }
 
   @Override
-  public Operation remove(SessionId sessionId) {
+  public Operation remove(AsciiString sessionId) {
     return execControl.operation(() -> {
-      ByteBuf oldValue = cache.asMap().remove(sessionId.getValue());
+      ByteBuf oldValue = cache.asMap().remove(sessionId);
       if (oldValue != null) {
         oldValue.release();
       }
     });
 
+  }
+
+  @Override
+  public void onStop(StopEvent event) throws Exception {
+    cache.asMap().values().forEach(ByteBuf::release);
+    cache.invalidateAll();
   }
 }

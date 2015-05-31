@@ -60,4 +60,7 @@ public interface Operation {
     return next(ExecControl.execControl().operation(operation));
   }
 
+  static Operation noop() {
+    return of(Block.noop());
+  }
 }

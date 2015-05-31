@@ -35,21 +35,18 @@ import java.lang.reflect.Type;
  *
  * Example usage:
  * <pre class="java">{@code
- * import com.google.inject.AbstractModule;
  * import com.google.inject.TypeLiteral;
  * import org.pac4j.core.client.Client;
  * import org.pac4j.oauth.client.GitHubClient;
  * import org.pac4j.oauth.credentials.OAuthCredentials;
  * import org.pac4j.oauth.profile.github.GitHubProfile;
- * import ratpack.guice.Guice;
  * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
+ * import ratpack.guice.Guice;
  * import ratpack.http.client.ReceivedResponse;
  * import ratpack.pac4j.AbstractAuthorizer;
  * import ratpack.pac4j.Authorizer;
  * import ratpack.pac4j.InjectedPac4jModule;
  * import ratpack.session.SessionModule;
- * import ratpack.session.store.MapSessionsModule;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import static org.junit.Assert.assertEquals;
@@ -59,32 +56,32 @@ import java.lang.reflect.Type;
  *
  *   public static class MyAuthorizer extends AbstractAuthorizer {
  *     {@literal @}Override
- *     public boolean isAuthenticationRequired(Context context) {
- *       return !context.getRequest().getPath().startsWith("public/");
- *     }
- *   }
- *
- *   public static class MyHandler implements Handler {
- *     {@literal @}Override
- *     public void handle(Context ctx) throws Exception {
- *       ctx.render("Authenticated as " + ctx.getRequest().maybeGet(GitHubProfile.class).map(GitHubProfile::getDisplayName).orElse("noone"));
- *     }
- *   }
- *
- *   public static class ServiceModule extends AbstractModule {
- *     protected void configure() {
- *       bind(new TypeLiteral<Client<OAuthCredentials, GitHubProfile>>() {}).toInstance(new GitHubClient("key", "secret"));
- *       bind(Authorizer.class).to(MyAuthorizer.class);
- *       install(new SessionModule());
- *       install(new MapSessionsModule(10, 5));
- *       install(new InjectedPac4jModule<>(OAuthCredentials.class, GitHubProfile.class));
+ *     public boolean isAuthenticationRequired(Context ctx) {
+ *       return !ctx.getRequest().getPath().startsWith("public/");
  *     }
  *   }
  *
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
- *         .registry(Guice.registry(b -> b.module(ServiceModule.class)))
- *         .handler(r -> new MyHandler())
+ *       .registry(
+ *         Guice.registry(b -> b
+ *           .module(SessionModule.class)
+ *           .bind(Authorizer.class, MyAuthorizer.class)
+ *           .bind(Authorizer.class, MyAuthorizer.class)
+ *           .bindInstance(new TypeLiteral<Client<OAuthCredentials, GitHubProfile>>() {}, new GitHubClient("key", "secret"))
+ *           .module(new InjectedPac4jModule<>(OAuthCredentials.class, GitHubProfile.class))
+ *         )
+ *       )
+ *       .handlers(c -> c
+ *         .handler(ctx -> {
+ *           String displayName = ctx.getRequest()
+ *             .maybeGet(GitHubProfile.class)
+ *             .map(GitHubProfile::getDisplayName)
+ *             .orElse("noone");
+ *
+ *           ctx.render("Authenticated as " + displayName);
+ *         })
+ *       )
  *     ).test(httpClient -> {
  *       assertEquals("Authenticated as noone", httpClient.getText("public/test"));
  *       ReceivedResponse response = httpClient.get("private/test");

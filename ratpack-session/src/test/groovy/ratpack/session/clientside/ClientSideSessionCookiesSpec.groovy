@@ -16,7 +16,7 @@
 
 package ratpack.session.clientside
 
-import io.netty.handler.codec.http.Cookie
+import io.netty.handler.codec.http.cookie.Cookie
 import ratpack.registry.Registry
 import ratpack.session.clientside.serializer.JavaValueSerializer
 import ratpack.session.clientside.serializer.StringValueSerializer

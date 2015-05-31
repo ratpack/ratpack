@@ -20,39 +20,32 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.session.store.SessionStorage;
+import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
+import ratpack.session.Session;
 
 import java.util.Optional;
-
-import static org.pac4j.core.context.Pac4jConstants.USER_PROFILE;
 
 /**
  * Retrieve the current pac4j user profile stored in session
  * and push it into the request.
  */
 public class Pac4jProfileHandler implements Handler {
+
   @Override
-  public void handle(final Context context) throws Exception {
-    getUserProfile(context).then((userProfile) -> {
-      if (userProfile.isPresent()) {
-        registerUserProfile(context, userProfile.get());
-      }
-      context.next();
+  public void handle(Context ctx) throws Exception {
+    getUserProfile(ctx).then(userProfile -> {
+      userProfile.ifPresent(uP -> registerUserProfile(ctx, uP));
+      ctx.next();
     });
   }
 
-  protected void registerUserProfile(final Context context, UserProfile userProfile) {
-    context.getRequest().add(userProfile).add(UserProfile.class, userProfile);
+  protected void registerUserProfile(Context ctx, UserProfile userProfile) {
+    ctx.getRequest().add(userProfile).add(UserProfile.class, userProfile);
   }
 
-  protected void removeUserProfile(final Context context) {
-    final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
-    sessionStorage.remove(USER_PROFILE).then((numberRemoved) -> {
-      //TODO Log
-    });
-  }
-
-  protected Promise<Optional<UserProfile>> getUserProfile(final Context context) {
-    return context.getRequest().get(SessionStorage.class).get(USER_PROFILE, UserProfile.class);
+  protected Promise<Optional<UserProfile>> getUserProfile(Context context) {
+    return context.get(Session.class)
+      .getData()
+      .map(d -> d.get(Pac4jCallbackHandlerBuilder.USER_PROFILE_SESSION_KEY));
   }
 }

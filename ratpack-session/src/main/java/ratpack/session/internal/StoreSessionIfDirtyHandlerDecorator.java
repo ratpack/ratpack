@@ -18,25 +18,22 @@ package ratpack.session.internal;
 
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
-import ratpack.handling.Handlers;
 import ratpack.registry.Registry;
-import ratpack.session.SessionAdapter;
+import ratpack.session.Session;
 
 public class StoreSessionIfDirtyHandlerDecorator implements HandlerDecorator {
 
   @Override
   public Handler decorate(Registry serverRegistry, Handler rest) throws Exception {
-    return Handlers.chain(ctx -> {
-        ctx.getResponse().beforeSend(responseMetaData -> {
-          SessionStatus sessionStatus = ctx.get(SessionStatus.class);
-          if (sessionStatus.isDirty()) {
-            ctx.get(SessionAdapter.class).save().then();
-          }
-        });
-        ctx.next();
-      },
-      rest
-    );
+    return ctx -> {
+      ctx.getResponse().beforeSend(responseMetaData -> {
+        SessionStatus sessionStatus = ctx.get(SessionStatus.class);
+        if (sessionStatus.isDirty()) {
+          ctx.get(Session.class).save().then();
+        }
+      });
+      ctx.insert(rest);
+    };
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package ratpack.session;
 
-public interface SessionListener {
-
-  void sessionInitiated(String id);
-
-  void sessionTerminated(String id);
-
+/**
+ * Marker interface for serializers that can serialize anything that is {@link java.io.Serializable}.
+ *
+ * @see SessionModule
+ * @see SessionSerializer
+ */
+public interface JavaSessionSerializer extends SessionSerializer {
 }

@@ -22,13 +22,14 @@ import java.time.Duration;
 
 public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
 
-  private Duration expiresDuration;
+  private Duration expires;
   private String domain;
   private String path;
+  private String name = "JSESSIONID";
 
   @Override
-  public Duration getExpiresDuration() {
-    return expiresDuration;
+  public Duration getExpires() {
+    return expires;
   }
 
   @Override
@@ -42,8 +43,13 @@ public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
   }
 
   @Override
-  public void setExpiresDuration(Duration expiresDuration) {
-    this.expiresDuration = expiresDuration;
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public void setExpires(Duration expires) {
+    this.expires = expires;
   }
 
   @Override
@@ -57,8 +63,13 @@ public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
   }
 
   @Override
-  public SessionIdCookieConfig expiresDuration(Duration expiresDuration) {
-    this.expiresDuration = expiresDuration;
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public SessionIdCookieConfig expires(Duration expiresDuration) {
+    this.expires = expiresDuration;
     return this;
   }
 
@@ -71,6 +82,12 @@ public class DefaultSessionIdCookieConfig implements SessionIdCookieConfig {
   @Override
   public SessionIdCookieConfig path(String path) {
     this.path = path;
+    return this;
+  }
+
+  @Override
+  public SessionIdCookieConfig name(String name) {
+    this.name = name;
     return this;
   }
 

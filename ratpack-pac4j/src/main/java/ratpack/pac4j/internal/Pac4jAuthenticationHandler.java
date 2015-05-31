@@ -16,6 +16,7 @@
 
 package ratpack.pac4j.internal;
 
+import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
@@ -23,9 +24,8 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
 import ratpack.http.Request;
 import ratpack.pac4j.Authorizer;
-import ratpack.session.store.SessionStorage;
-
-import static org.pac4j.core.context.Pac4jConstants.REQUESTED_URL;
+import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
+import ratpack.session.Session;
 
 /**
  * Filters requests to apply authentication and authorization as required.
@@ -46,40 +46,44 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
   }
 
   @Override
-  public void handle(final Context context) throws Exception {
-    getUserProfile(context).then((userProfile) -> {
-      if (authorizer.isAuthenticationRequired(context) && !userProfile.isPresent()) {
-        initiateAuthentication(context);
+  public void handle(Context ctx) throws Exception {
+    getUserProfile(ctx).then(userProfile -> {
+      if (authorizer.isAuthenticationRequired(ctx) && !userProfile.isPresent()) {
+        initiateAuthentication(ctx);
       } else {
         if (userProfile.isPresent()) {
           UserProfile user = userProfile.get();
-          registerUserProfile(context, user);
-          authorizer.handleAuthorization(context, user);
+          registerUserProfile(ctx, user);
+          authorizer.handleAuthorization(ctx, user);
         } else {
-          context.next();
+          ctx.next();
         }
       }
     });
-
   }
 
-  private void initiateAuthentication(final Context context) {
-    final Request request = context.getRequest();
-    request.get(SessionStorage.class).set(REQUESTED_URL, request.getUri()).then((success)->{
-      //TODO Log
-    });
-    final Clients clients = request.get(Clients.class);
-    final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(() -> {
-      clients.findClient(name).redirect(webContext, true, request.isAjaxRequest());
-      return null;
-    }).onError(ex -> {
-      if (ex instanceof RequiresHttpAction) {
-        webContext.sendResponse((RequiresHttpAction) ex);
-      } else {
-        throw new TechnicalException("Failed to redirect", ex);
+  private void initiateAuthentication(Context ctx) {
+    Request request = ctx.getRequest();
+    Clients clients = request.get(Clients.class);
+    Client<?, ?> client = clients.findClient(name);
+
+    ctx.get(Session.class).getData().then(session -> {
+      RatpackWebContext webContext = new RatpackWebContext(ctx, session);
+      session.set(Pac4jCallbackHandlerBuilder.REQUESTED_URL_SESSION_KEY, request.getUri());
+
+      try {
+        client.redirect(webContext, true, request.isAjaxRequest());
+      } catch (Exception e) {
+        if (e instanceof RequiresHttpAction) {
+          webContext.sendResponse((RequiresHttpAction) e);
+          return;
+        } else {
+          throw new TechnicalException("Failed to redirect", e);
+        }
       }
-    }).then(ignored -> webContext.sendResponse());
+
+      webContext.sendResponse();
+    });
   }
 
 }

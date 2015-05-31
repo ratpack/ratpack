@@ -20,7 +20,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
 
 ext.apiLinks = [
-    "http://netty.io/4.0/api/",
+    "http://netty.io/4.1/api/",
     "http://www.slf4j.org/apidocs/",
     "http://docs.oracle.com/javase/8/docs/api/",
     "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc/",

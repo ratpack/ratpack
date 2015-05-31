@@ -20,22 +20,28 @@ import java.time.Duration;
 
 public interface SessionIdCookieConfig {
 
-  Duration getExpiresDuration();
+  Duration getExpires();
 
   String getDomain();
 
   String getPath();
 
-  void setExpiresDuration(Duration expiresDuration);
+  String getName();
+
+  void setExpires(Duration expires);
 
   void setDomain(String domain);
 
   void setPath(String path);
 
-  SessionIdCookieConfig expiresDuration(Duration expiresDuration);
+  void setName(String name);
+
+  SessionIdCookieConfig expires(Duration expiresDuration);
 
   SessionIdCookieConfig domain(String domain);
 
   SessionIdCookieConfig path(String path);
+
+  SessionIdCookieConfig name(String path);
 
 }

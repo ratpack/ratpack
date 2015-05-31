@@ -22,7 +22,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
@@ -301,7 +306,7 @@ public class DefaultResponse implements Response {
   private void setCookieHeader() {
     if (cookies != null && !cookies.isEmpty()) {
       for (Cookie cookie : cookies) {
-        headers.add(HttpHeaderConstants.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+        headers.add(HttpHeaderConstants.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
       }
     }
   }

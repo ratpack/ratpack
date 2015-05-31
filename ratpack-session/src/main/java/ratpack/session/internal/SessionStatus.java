@@ -24,8 +24,12 @@ public class SessionStatus {
     return dirty;
   }
 
-  public void setDirty(boolean dirty) {
-    this.dirty = dirty;
+  public void dirty() {
+    this.dirty = true;
+  }
+
+  public void clean() {
+    this.dirty = false;
   }
 
 }

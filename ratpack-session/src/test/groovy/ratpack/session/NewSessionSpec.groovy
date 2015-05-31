@@ -16,20 +16,22 @@
 
 package ratpack.session
 
-import ratpack.session.store.SessionStoreAdapter
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class NewSessionSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    modules << new NewSessionModule()
+    modules << new SessionModule()
   }
 
   def "can use session"() {
     when:
     handlers {
-      get { SessionAdapter session ->
-        render session.set("foo", "bar").flatMap(session.require("foo"))
+      get { Session session ->
+        session.data.then {
+          it.set("foo", "bar")
+          render it.require("foo")
+        }
       }
     }
 
@@ -40,11 +42,14 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   def "can store strings"() {
     when:
     handlers {
-      get { SessionAdapter session ->
-        render session.require("value")
+      get { Session session ->
+        render session.data.map { it.require("value") }
       }
-      get("set/:value") { SessionAdapter session ->
-        render session.set("value", pathTokens.value).map { it.toString() }
+      get("set/:value") { Session session ->
+        session.data.then {
+          it.set("value", pathTokens.value)
+          render pathTokens.value
+        }
       }
     }
 
@@ -66,12 +71,13 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   def "can store objects"() {
     when:
     handlers {
-      get { SessionAdapter session ->
-        render session.require(Holder1).map { it.value }
+      get { Session session ->
+        render session.data.map { it.require(Holder1).value }
       }
-      get("set/:value") { SessionAdapter session ->
+      get("set/:value") { Session session ->
         def value = pathTokens.value
-        session.set(new Holder1(value: value)).then {
+        session.data.then {
+          it.set(new Holder1(value: value))
           render value
         }
       }
@@ -87,14 +93,15 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   def "objects are differentiated"() {
     when:
     handlers {
-      get { SessionAdapter session ->
-        session
-          .set(new Holder1(value: "1"))
-          .next(session.set(new Holder2(value: "2")))
-          .then { render "ok" }
+      get { Session session ->
+        session.data.then {
+          it.set(new Holder1(value: "1"))
+          it.set(new Holder2(value: "2"))
+          render "ok"
+        }
       }
-      get("get") { SessionAdapter session ->
-        session.sync.then {
+      get("get") { Session session ->
+        session.data.then {
           render it.require(Holder1).value + it.require(Holder2).value
         }
       }
@@ -110,23 +117,23 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   def "can invalidate session vars"() {
     when:
     handlers {
-      get { SessionAdapter session ->
-        session.sync.then {
+      get { Session session ->
+        session.data.then {
           render it.get("value").orElse("null")
         }
       }
-      get("set/:value") { SessionAdapter session ->
-        session.sync.then {
+      get("set/:value") { Session session ->
+        session.data.then {
           it.set("value", pathTokens.value)
           render pathTokens.value
         }
       }
-      get("invalidate") { SessionAdapter session ->
-        session.sync.then {
+      get("invalidate") { Session session ->
+        session.data.then {
           it.terminate().then { render "ok" }
         }
       }
-      get("size") { SessionStoreAdapter storeAdapter ->
+      get("size") { SessionStore storeAdapter ->
         render storeAdapter.size().map { it.toString() }
       }
     }
@@ -145,14 +152,14 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   def "sessions are created on demand"() {
     when:
     handlers {
-      get { SessionStoreAdapter store ->
+      get { SessionStore store ->
         render store.size().map { it.toString() }
       }
-      get("readOnly") { SessionAdapter session ->
-        session.sync.then { render "ok" }
+      get("readOnly") { Session session ->
+        session.data.then { render "ok" }
       }
-      get("write") { SessionAdapter session ->
-        session.sync.then { it.set("foo", "bar"); render "ok" }
+      get("write") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 
@@ -171,8 +178,8 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
       get("nowrite") {
         response.send("foo")
       }
-      get("write") { SessionAdapter session ->
-        session.sync.then { it.set("foo", "bar"); render "ok" }
+      get("write") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 

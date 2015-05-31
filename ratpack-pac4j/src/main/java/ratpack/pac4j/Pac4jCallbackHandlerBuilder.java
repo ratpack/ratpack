@@ -26,9 +26,11 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 import ratpack.pac4j.internal.Pac4jCallbackHandler;
-import ratpack.session.store.SessionStorage;
+import ratpack.session.Session;
+import ratpack.session.SessionKey;
 import ratpack.util.Types;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -38,19 +40,22 @@ import static org.pac4j.core.context.Pac4jConstants.USER_PROFILE;
 public class Pac4jCallbackHandlerBuilder {
 
   /*
-    TODO
+      TODO
 
-    1. Class level javadoc showing why you might use this and how you would insert the generated handler into the app
-    2. Method level javadoc for each of the methods explaining what the extension point allows, and what the default behaviour is
-    3. Class level javadoc explaining the high level flow of the handler, pointing at the methods that allow those to be overridden
+      1. Class level javadoc showing why you might use this and how you would insert the generated handler into the app
+      2. Method level javadoc for each of the methods explaining what the extension point allows, and what the default behaviour is
+      3. Class level javadoc explaining the high level flow of the handler, pointing at the methods that allow those to be overridden
 
-    MAYBE
+      MAYBE
 
-    1. Reconsider the name
-    2. Should this be parameterised for the Credentials and UserProfile types?
+      1. Reconsider the name
+      2. Should this be parameterised for the Credentials and UserProfile types?
 
-   */
+     */
   private static final String DEFAULT_REDIRECT_URI = "/";
+
+  public static final SessionKey<String> REQUESTED_URL_SESSION_KEY = SessionKey.of(REQUESTED_URL, String.class);
+  public static final SessionKey<UserProfile> USER_PROFILE_SESSION_KEY = SessionKey.of(USER_PROFILE, UserProfile.class);
 
   public Handler build() {
     return new Pac4jCallbackHandler(lookupClient, onSuccess, onError);
@@ -75,20 +80,14 @@ public class Pac4jCallbackHandlerBuilder {
   }
 
   private BiConsumer<? super Context, ? super UserProfile> onSuccess = (context, profile) -> {
-    Request request = context.getRequest();
-    SessionStorage sessionStorage = request.get(SessionStorage.class);
-    if (profile != null) {
-      sessionStorage.set(USER_PROFILE, profile).then((success) -> {
-        //TODO Log?
-      });
-    }
-    sessionStorage.get(REQUESTED_URL, String.class).then((originalUri) -> {
-        sessionStorage.remove(REQUESTED_URL).then((numberRemoved) -> {
-          context.redirect(originalUri.orElse(DEFAULT_REDIRECT_URI));
-        });
+    context.get(Session.class).getData().then(sessionData -> {
+      if (profile != null) {
+        sessionData.set(USER_PROFILE_SESSION_KEY, profile);
       }
-    );
-
+      Optional<String> originalUrl = sessionData.get(REQUESTED_URL_SESSION_KEY);
+      sessionData.remove(REQUESTED_URL_SESSION_KEY);
+      context.redirect(originalUrl.orElse(DEFAULT_REDIRECT_URI));
+    });
   };
 
   @SuppressWarnings("unused")

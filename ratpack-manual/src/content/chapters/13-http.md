@@ -361,7 +361,7 @@ public class Example {
 You can also retrieve a set of cookies via [`Request#getCookies()`](api/ratpack/http/Request.html#getCookies--).
 
 ```language-java
-import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 

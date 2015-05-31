@@ -16,8 +16,10 @@
 
 package ratpack.pac4j.internal;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
@@ -68,7 +70,9 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
   }
 
   @Override
-  protected void configure() { }
+  protected void configure() {
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().to(Pac4JHandlerDecorator.class);
+  }
 
   /**
    * Returns the client to use for authentication.
@@ -87,8 +91,13 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
   protected abstract Authorizer getAuthorizer(Injector injector);
 
   @Provides
-  protected Pac4JHandlerDecorator pac4JHandlerDecorator(Config config, Injector injector) {
-    return new Pac4JHandlerDecorator(config, getClient(injector), getAuthorizer(injector));
+  Client<?, ?> client(Injector injector) {
+    return getClient(injector);
+  }
+
+  @Provides
+  Authorizer authorizer(Injector injector) {
+    return getAuthorizer(injector);
   }
 
   private static class Pac4JHandlerDecorator implements HandlerDecorator {
@@ -97,7 +106,8 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
     private final Client<?, ?> client;
     private final Authorizer authorizer;
 
-    public Pac4JHandlerDecorator(Config config,   Client<?, ?> client, Authorizer authorizer) {
+    @Inject
+    public Pac4JHandlerDecorator(Config config, Client<?, ?> client, Authorizer authorizer) {
       this.config = config;
       this.client = client;
       this.authorizer = authorizer;
@@ -105,11 +115,11 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
 
     @Override
     public Handler decorate(Registry serverRegistry, Handler rest) {
-      final String callbackPath = config.getCallbackPath();
-      final Authorizer authorizer = this.authorizer;
-      final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
-      final Handler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
-      final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
+      String callbackPath = config.getCallbackPath();
+      Authorizer authorizer = this.authorizer;
+      Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
+      Handler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
+      Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
       return Handlers.chain(clientsHandler, Handlers.path(callbackPath, callbackHandler), authenticationHandler, rest);
     }
   }
