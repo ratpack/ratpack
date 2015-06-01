@@ -20,6 +20,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.PrematureChannelClosureException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -111,9 +112,20 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
           p.addLast("readTimeout", new ReadTimeoutHandler(requestParams.readTimeoutNanos, TimeUnit.NANOSECONDS));
 
           p.addLast("redirectHandler", new SimpleChannelInboundHandler<HttpObject>(false) {
+            boolean readComplete;
+
+            @Override
+            public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+              if (!readComplete) {
+                fulfiller.error(new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
+              }
+              super.channelReadComplete(ctx);
+            }
+
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
               if (msg instanceof HttpResponse) {
+                readComplete = true;
                 final HttpResponse response = (HttpResponse) msg;
                 final Headers headers = new NettyHeadersBackedHeaders(response.headers());
                 final Status status = new DefaultStatus(response.status());
