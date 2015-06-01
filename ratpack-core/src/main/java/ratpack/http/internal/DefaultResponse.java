@@ -19,7 +19,6 @@ package ratpack.http.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
@@ -41,10 +40,7 @@ import ratpack.util.MultiValueMap;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
@@ -315,7 +311,7 @@ public class DefaultResponse implements Response {
 
   private void commit(ByteBuf buffer) {
     headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
-    finalizeResponse(Iterators.empty(), () -> {
+    finalizeResponse(Collections.emptyIterator(), () -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), buffer);
     });

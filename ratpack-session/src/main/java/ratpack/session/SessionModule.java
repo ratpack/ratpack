@@ -163,13 +163,12 @@ public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
    * import ratpack.session.SessionModule;
    *
    * public class CustomSessionModule extends AbstractModule {
-   *   @Override
    *   protected void configure() {
    *     SessionModule.memoryStore(binder(), c -> c.maximumSize(100));
    *   }
    * }
    * }</pre>
-   * <p>
+   * }<p>
    * This method binds the built cache with the {@link #LOCAL_MEMORY_SESSION_CACHE_BINDING_KEY} key.
    * It also implicitly registers a {@link RemovalListener}, that releases the byte buffers as they are discarded.
    *
