@@ -115,11 +115,16 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
             boolean readComplete;
 
             @Override
-            public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
               if (!readComplete) {
-                fulfiller.error(new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
+                error(fulfiller, new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
               }
               super.channelReadComplete(ctx);
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+              super.exceptionCaught(ctx, cause);
             }
 
             @Override
