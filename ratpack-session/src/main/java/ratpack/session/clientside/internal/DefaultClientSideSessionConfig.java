@@ -21,6 +21,8 @@ import ratpack.session.clientside.ClientSideSessionConfig;
 import java.time.Duration;
 
 public class DefaultClientSideSessionConfig implements ClientSideSessionConfig {
+  private static final String LAST_ACCESS_TIME_COOKIE = "ratpack_lat";
+
   private String sessionCookieName = "ratpack_session";
   private String secretToken = Long.toString(System.currentTimeMillis() / 10000);
   private String macAlgorithm = "HmacSHA1";
@@ -40,6 +42,11 @@ public class DefaultClientSideSessionConfig implements ClientSideSessionConfig {
   @Override
   public void setSessionCookieName(String sessionCookieName) {
     this.sessionCookieName = sessionCookieName;
+  }
+
+  @Override
+  public String getLastAccessTimeCookieName() {
+    return LAST_ACCESS_TIME_COOKIE;
   }
 
   @Override

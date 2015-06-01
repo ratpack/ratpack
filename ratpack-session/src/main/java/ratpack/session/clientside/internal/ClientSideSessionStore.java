@@ -66,28 +66,28 @@ public class ClientSideSessionStore implements SessionStore {
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
     return execControl.operation(() -> {
-      int oldSessionCookiesCount = getSessionCookies().length;
+      int oldSessionCookiesCount = getCookies(config.getSessionCookieName()).length;
       String[] sessionCookiePartitions = serialize(sessionData);
       for (int i = 0; i < sessionCookiePartitions.length; i++) {
-        addSessionCookie(config.getSessionCookieName() + "_" + i, sessionCookiePartitions[i]);
+        addCookie(config.getSessionCookieName() + "_" + i, sessionCookiePartitions[i]);
       }
       for (int i = sessionCookiePartitions.length; i < oldSessionCookiesCount; i++) {
-        invalidateSessionCookie(config.getSessionCookieName() + "_" + i);
+        invalidateCookie(config.getSessionCookieName() + "_" + i);
       }
     });
   }
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return execControl.promiseFrom(() -> deserialize(getSessionCookies()));
+    return execControl.promiseFrom(() -> deserialize(getCookies(config.getSessionCookieName())));
   }
 
   @Override
   public Operation remove(AsciiString sessionId) {
     return execControl.operation(() -> {
-      int oldSessionCookiesCount = getSessionCookies().length;
+      int oldSessionCookiesCount = getCookies(config.getSessionCookieName()).length;
       for (int i = 0; i < oldSessionCookiesCount; i++) {
-        invalidateSessionCookie(config.getSessionCookieName() + "_" + i);
+        invalidateCookie(config.getSessionCookieName() + "_" + i);
       }
     });
   }
@@ -95,6 +95,34 @@ public class ClientSideSessionStore implements SessionStore {
   @Override
   public Promise<Long> size() {
     return execControl.promiseOf(-1l);
+  }
+
+  private boolean isValid() {
+    Cookie[] cookies = getCookies(config.getLastAccessTimeCookieName());
+    if (cookies.length == 0) {
+      return false;
+    }
+    ByteBuf payload = null;
+
+    try {
+      payload = deserialize(cookies);
+      if (payload.readableBytes() == 0) {
+        invalidateCookies(cookies);
+        return false;
+      }
+      long lastAccessTime = payload.readLong();
+      long currentTime = System.currentTimeMillis();
+      long maxInactivityIntervalMillis = config.getMaxInactivityInterval().toMillis();
+      if (currentTime - lastAccessTime > maxInactivityIntervalMillis) {
+        invalidateCookies(cookies);
+        return false;
+      }
+    } finally {
+      if (payload != null) {
+        payload.release();
+      }
+    }
+    return true;
   }
 
   private String[] serialize(ByteBuf sessionData) {
@@ -189,19 +217,25 @@ public class ClientSideSessionStore implements SessionStore {
     }
   }
 
-  private Cookie[] getSessionCookies() {
+  private Cookie[] getCookies(String startsWith) {
     Set<Cookie> cookies = request.get().getCookies();
     if (cookies == null || cookies.size() == 0) {
       return new Cookie[0];
     }
     return cookies
       .stream()
-      .filter(c -> c.name().startsWith(config.getSessionCookieName()))
+      .filter(c -> c.name().startsWith(startsWith))
       .sorted((c1, c2) -> c1.name().compareTo(c2.name()))
       .toArray(Cookie[]::new);
   }
 
-  private void invalidateSessionCookie(String cookieName) {
+  private void invalidateCookies(Cookie[] cookies) {
+    for (int i = 0; i < cookies.length; i++) {
+      invalidateCookie(cookies[i].name());
+    }
+  }
+
+  private void invalidateCookie(String cookieName) {
     Cookie cookie = response.get().expireCookie(cookieName);
     if (config.getPath() != null) {
       cookie.setPath(config.getPath());
@@ -211,7 +245,7 @@ public class ClientSideSessionStore implements SessionStore {
     }
   }
 
-  private void addSessionCookie(String name, String value) {
+  private void addCookie(String name, String value) {
     Cookie sessionCookie = response.get().cookie(name, value);
     if (config.getPath() != null) {
       sessionCookie.setPath(config.getPath());
@@ -220,5 +254,4 @@ public class ClientSideSessionStore implements SessionStore {
       sessionCookie.setDomain(config.getDomain());
     }
   }
-
 }

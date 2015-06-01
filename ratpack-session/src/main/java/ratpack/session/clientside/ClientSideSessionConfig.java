@@ -41,6 +41,14 @@ public interface ClientSideSessionConfig {
   void setSessionCookieName(String sessionCookieName);
 
   /**
+   * The name of the {@code cookie} used to store session's last access time.
+   * <p>
+   * Last access time is updated on every session load or store
+   * @return the name of the {@code cookie} with session's last access time
+   */
+  String getLastAccessTimeCookieName();
+
+  /**
    * The token used to sign the serialized session to prevent tampering.
    * <p>
    * If not set, this is set to a time based value.
@@ -162,7 +170,7 @@ public interface ClientSideSessionConfig {
   /**
    * Maximum inactivity time (in units defined by {@link java.util.concurrent.TimeUnit}) after which session will be invalidated.
    * <p>
-   * If it is {@code -1} inactivity is unlimited. the {@code 0} value means that session is always invalid.
+   * Defaults to: 120s.
    * If time between last access and current time is less than or equal to max inactive time, session will become valid.
    *
    * @return the maximum session inactivity time
