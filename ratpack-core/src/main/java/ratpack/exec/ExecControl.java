@@ -152,6 +152,13 @@ public interface ExecControl {
    */
   <T> Promise<T> blocking(Callable<T> blockingOperation);
 
+  default Operation blockingOperation(Block block) {
+    return blocking(() -> {
+      block.execute();
+      return null;
+    }).operation();
+  }
+
   /**
    * Creates a promise for an asynchronously created value.
    * <p>
