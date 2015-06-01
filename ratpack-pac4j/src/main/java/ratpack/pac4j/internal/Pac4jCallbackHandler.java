@@ -16,51 +16,77 @@
 
 package ratpack.pac4j.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.pac4j.core.client.Client;
+import org.pac4j.core.client.Clients;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
+import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.path.PathBinding;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
+import ratpack.server.PublicAddress;
 import ratpack.session.Session;
+import ratpack.util.Types;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.List;
+import java.util.Optional;
 
 public class Pac4jCallbackHandler implements Handler {
 
-  private final BiFunction<? super Context, ? super WebContext, ? extends Client<Credentials, UserProfile>> lookupClient;
-  private final BiConsumer<? super Context, ? super UserProfile> onSuccess;
-  private final BiConsumer<? super Context, ? super Throwable> onError;
+  private final String path;
+  private final ImmutableList<Client<?, ?>> clients;
 
-  public Pac4jCallbackHandler(
-    BiFunction<? super Context, ? super WebContext, ? extends Client<Credentials, UserProfile>> lookupClient,
-    BiConsumer<? super Context, ? super UserProfile> onSuccess,
-    BiConsumer<? super Context, ? super Throwable> onError
-  ) {
-    this.lookupClient = lookupClient;
-    this.onSuccess = onSuccess;
-    this.onError = onError;
+  public Pac4jCallbackHandler(String path, List<Client<?, ?>> clients) {
+    this.path = path;
+    this.clients = ImmutableList.copyOf(clients);
   }
 
   @Override
-  public void handle(Context ctx) {
-    ctx.get(Session.class).getData().then(sessionData -> {
-      RatpackWebContext webContext = new RatpackWebContext(ctx, sessionData);
-      try {
-        Client<Credentials, UserProfile> client = lookupClient.apply(ctx, webContext);
-        Credentials credentials = client.getCredentials(webContext);
-        UserProfile userProfile = client.getUserProfile(credentials, webContext);
-        onSuccess.accept(ctx, userProfile);
-      } catch (Exception e) {
-        if (e instanceof RequiresHttpAction) {
-          webContext.sendResponse((RequiresHttpAction) e);
-        } else {
-          onError.accept(ctx, e);
+  public void handle(Context ctx) throws Exception {
+    PathBinding pathBinding = ctx.get(PathBinding.class);
+    String boundTo = pathBinding.getBoundTo();
+    String pastBinding = pathBinding.getPastBinding();
+    PublicAddress publicAddress = ctx.get(PublicAddress.class);
+    String absoluteCallbackUrl = publicAddress.getAddress(ctx) + boundTo + "/" + path;
+
+    @SuppressWarnings("rawtypes")
+    List<Client> cast = Types.cast(this.clients);
+    Clients clients = new Clients(absoluteCallbackUrl, cast);
+
+    if (pastBinding.equals(path)) {
+      ctx.get(Session.class).getData().then(sessionData -> {
+        RatpackWebContext webContext = new RatpackWebContext(ctx, sessionData);
+        try {
+          Client<?, ?> client = clients.findClient(webContext);
+          UserProfile profile = getProfile(webContext, client);
+          if (profile != null) {
+            sessionData.set(Pac4jSessionKeys.USER_PROFILE_SESSION_KEY, profile);
+          }
+          Optional<String> originalUrl = sessionData.get(Pac4jSessionKeys.REQUESTED_URL_SESSION_KEY);
+          sessionData.remove(Pac4jSessionKeys.REQUESTED_URL_SESSION_KEY);
+          ctx.redirect(originalUrl.orElse("/"));
+        } catch (Exception e) {
+          if (e instanceof RequiresHttpAction) {
+            webContext.sendResponse((RequiresHttpAction) e);
+          } else {
+            ctx.error(new TechnicalException("Failed to get user profile", e));
+          }
         }
-      }
-    });
+      });
+    } else {
+      Registry registry = Registries.just(Clients.class, clients);
+      ctx.next(registry);
+    }
+  }
+
+  private <C extends Credentials, U extends UserProfile> UserProfile getProfile(WebContext webContext, Client<C, U> client) throws RequiresHttpAction {
+    C credentials = client.getCredentials(webContext);
+    return client.getUserProfile(credentials, webContext);
   }
 
 }

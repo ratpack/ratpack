@@ -76,6 +76,7 @@ public class DefaultRequestFixture implements RequestFixture {
   private RegistryBuilder registryBuilder = Registries.registry();
 
   private ServerConfig.Builder serverConfigBuilder = ServerConfig.noBaseDir();
+  private DefaultPathBinding pathBinding;
 
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
@@ -115,6 +116,13 @@ public class DefaultRequestFixture implements RequestFixture {
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       requestBody);
+
+    if (pathBinding != null) {
+      handler = Handlers.chain(
+        Handlers.register(Registries.just(PathBinding.class, pathBinding)),
+        handler
+      );
+    }
 
     try {
       ServerConfig serverConfig = registry.get(ServerConfig.class);
@@ -169,7 +177,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
-    registryBuilder.add(PathBinding.class, new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), Optional.empty()));
+    pathBinding = new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), Optional.empty());
     return this;
   }
 

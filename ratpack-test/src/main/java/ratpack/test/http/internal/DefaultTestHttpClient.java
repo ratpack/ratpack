@@ -265,6 +265,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
       if (basePath.isAbsolute()) {
         return HttpUrlBuilder.base(basePath);
       } else {
+        path = path.startsWith("/") ? path.substring(1) : path;
         return HttpUrlBuilder.base(new URI(applicationUnderTest.getAddress().toString() + path));
       }
     } catch (URISyntaxException e) {

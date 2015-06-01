@@ -150,12 +150,12 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     bindings {
       module ClientSideSessionsModule, {
         it.with {
-          path = "/foo"
+          path = "foo"
         }
       }
     }
     handlers {
-      get("/foo/:value") { SessionStorage sessionStorage ->
+      get("foo/:value") { SessionStorage sessionStorage ->
         if (pathTokens.value == "check") {
           sessionStorage.get("value", String).then({
             render it.orElse("null")
@@ -168,7 +168,7 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
           })
         }
       }
-      get("/bar") { SessionStorage sessionStorage ->
+      get("bar") { SessionStorage sessionStorage ->
         sessionStorage.get("value", String).then({
           render it.orElse("null")
         })
@@ -176,14 +176,14 @@ class ClientSideSessionCookiesSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    get("/foo/val1")
-    get("/bar")
+    get("foo/val1")
+    get("bar")
 
     then:
     response.body.text == "null"
 
     when:
-    get("/foo/check")
+    get("foo/check")
 
     then:
     response.body.text == "val1"

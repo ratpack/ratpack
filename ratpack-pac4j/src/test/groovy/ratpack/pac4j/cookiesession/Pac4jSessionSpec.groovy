@@ -20,9 +20,7 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.FormClient
 import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.http.profile.UsernameProfileCreator
-import ratpack.handling.Context
-import ratpack.pac4j.AbstractAuthorizer
-import ratpack.pac4j.Pac4jModule
+import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -32,34 +30,27 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
 class Pac4jSessionSpec extends RatpackGroovyDslSpec {
 
-  private static class PathAuthorizer extends AbstractAuthorizer {
-    @Override
-    boolean isAuthenticationRequired(Context context) {
-      return context.getRequest().getPath().startsWith("/auth")
-    }
-  }
-
   def "successful authorization"() {
     given:
     bindings {
-      module new Pac4jModule<>(
-        new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()),
-        new PathAuthorizer()
-      )
       module SessionModule
     }
 
     handlers {
-      get("/noauth") {
-        def userProfile = request.maybeGet(UserProfile).orElse(null)
+      handler(RatpackPac4j.callback(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+      get("noauth") {
+        def userProfile = maybeGet(UserProfile).orElse(null)
         response.send "noauth:" + userProfile?.attributes?.username
       }
-      get("/auth") {
-        def userProfile = request.maybeGet(UserProfile).orElse(null)
-        response.send "auth:" + userProfile?.attributes?.username
+      prefix("auth") {
+        handler(RatpackPac4j.auth(FormClient))
+        get {
+          def userProfile = maybeGet(UserProfile).orElse(null)
+          response.send "auth:" + userProfile?.attributes?.username
+        }
       }
-      get("/login") {
-        def userProfile = request.maybeGet(UserProfile).orElse(null)
+      get("login") {
+        def userProfile = maybeGet(UserProfile).orElse(null)
         response.send "login:" + userProfile?.attributes?.username
       }
     }
@@ -68,7 +59,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     requestSpec {
       it.redirects(0)
     }
-    def resp1 = get("/auth")
+    def resp1 = get("auth")
 
     then: "the request is redirected to login page"
     resp1.statusCode == FOUND.code()
@@ -82,7 +73,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     resp2.body.text == "login:null"
 
     when: "send authorization request"
-    def resp3 = get("pac4j-callback?username=foo&password=foo&client_name=FormClient")
+    def resp3 = get("$RatpackPac4j.DEFAULT_CALLBACK_PATH?username=foo&password=foo&client_name=FormClient")
 
     then: "the response is redirected to auth page"
     resp3.statusCode == FOUND.code()
@@ -96,7 +87,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     resp4.body.text == "auth:foo"
 
     when: "request the auth page again"
-    def resp5 = get("/auth")
+    def resp5 = get("auth")
 
     then: "the requested page is returned"
     resp5.statusCode == OK.code()
@@ -107,21 +98,21 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     requestSpec {
       it.redirects(0)
     }
-    def resp6 = get("/auth")
+    def resp6 = get("auth")
 
     then: "authorization is required"
     resp6.statusCode == FOUND.code()
-    resp6.headers.get(LOCATION).contains("/login")
+    resp6.headers.get(LOCATION).contains("login")
 
     when: "follow the redirect"
     def resp7 = get(resp6.headers.get(LOCATION))
     resp7.statusCode == OK.code()
     resp7.body.text == "login:null"
-    def resp8 = get("pac4j-callback?username=bar&password=bar&client_name=FormClient")
+    def resp8 = get("$RatpackPac4j.DEFAULT_CALLBACK_PATH?username=bar&password=bar&client_name=FormClient")
 
     then: "the requested page is returned with new login"
     resp8.statusCode == FOUND.code()
-    resp8.headers.get(LOCATION).contains("/auth")
+    resp8.headers.get(LOCATION).contains("auth")
 
     when: "following the redirect"
     def resp9 = get(resp8.headers.get(LOCATION))

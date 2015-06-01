@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
@@ -43,8 +44,10 @@ import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
+import ratpack.path.internal.DefaultPathBinding;
 import ratpack.path.internal.DefaultPathTokens;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
@@ -134,7 +137,9 @@ public class DefaultContext implements Context {
   private final RequestConstants requestConstants;
 
   public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
-    ChainIndex index = new ChainIndex(handlers, registry, true);
+    PathBinding initialPathBinding = new DefaultPathBinding("/".concat(requestConstants.request.getPath()), "", ImmutableMap.of(), Optional.empty());
+    Registry pathBindingRegistry = Registries.just(PathBinding.class, initialPathBinding);
+    ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
     requestConstants.indexes.push(index);
 
     DefaultContext context = new DefaultContext(requestConstants);
