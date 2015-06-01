@@ -30,11 +30,15 @@ public class NoCrypto implements Crypto {
 
   @Override
   public ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator) {
-    return Unpooled.unreleasableBuffer(message);
+    return passthrough(message);
+  }
+
+  private ByteBuf passthrough(ByteBuf message) {
+    return Unpooled.unmodifiableBuffer(message.retain().slice());
   }
 
   @Override
   public ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator) {
-    return Unpooled.unreleasableBuffer(message);
+    return passthrough(message);
   }
 }

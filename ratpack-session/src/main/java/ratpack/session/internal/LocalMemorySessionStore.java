@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.session.store.internal;
+package ratpack.session.internal;
 
 import com.google.common.cache.Cache;
 import io.netty.buffer.ByteBuf;

@@ -32,7 +32,7 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.server.ServerConfig;
 import ratpack.session.internal.*;
-import ratpack.session.store.internal.LocalMemorySessionStore;
+import ratpack.session.internal.LocalMemorySessionStore;
 import ratpack.util.Types;
 
 import javax.inject.Named;

@@ -18,7 +18,9 @@ package ratpack.session
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class NewSessionSpec extends RatpackGroovyDslSpec {
+class SessionSpec extends RatpackGroovyDslSpec {
+
+  boolean supportsSize = true
 
   def setup() {
     modules << new SessionModule()
@@ -115,6 +117,10 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   }
 
   def "can invalidate session vars"() {
+    if (!supportsSize) {
+      return
+    }
+
     when:
     handlers {
       get { Session session ->
@@ -150,6 +156,10 @@ class NewSessionSpec extends RatpackGroovyDslSpec {
   }
 
   def "sessions are created on demand"() {
+    if (!supportsSize) {
+      return
+    }
+
     when:
     handlers {
       get { SessionStore store ->
