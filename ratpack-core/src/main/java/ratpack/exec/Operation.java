@@ -22,6 +22,45 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Factory;
 
+/**
+ * A logical operation.
+ * <p>
+ * An operation encapsulates a logical piece of work, which will complete some time in the future.
+ * It is similar to a {@link Promise} except that it does not produce a value.
+ * It merely succeeds, or throws an exception.
+ * <p>
+ * The {@link #then(Block)} method allows specifying what should happen after the operation completes.
+ * The {@link #onError(Action)} method allows specifying what should happen if the operation fails.
+ * Like {@link Promise}, the operation will not start until it is subscribed to, via {@link #then(Block)} or {@link #then()}.
+ * <p>
+ * It is common for methods that would naturally return {@code void} to return an {@link Operation} instead,
+ * to allow the method implementation to be effectively asynchronous.
+ * The caller of the method is then expected to use the {@link #then(Block)} method to specify what should happen after the operation
+ * that the method represents finishes.
+ * <pre class="java">{@code
+ * import com.google.common.collect.Lists;
+ * import ratpack.test.exec.ExecHarness;
+ *
+ * import java.util.Arrays;
+ * import java.util.List;
+ *
+ * import static org.junit.Assert.assertEquals;
+ *
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     List<String> events = Lists.newArrayList();
+ *     ExecHarness.runSingle(e ->
+ *       e.operation(() ->
+ *         e.blocking(() -> events.add("1"))
+ *           .then(b -> events.add("2"))
+ *       )
+ *       .then(() -> events.add("3"))
+ *     );
+ *     assertEquals(Arrays.asList("1", "2", "3"), events);
+ *   }
+ * }
+ * }</pre>
+ */
 public interface Operation {
 
   static Operation of(Block block) {
