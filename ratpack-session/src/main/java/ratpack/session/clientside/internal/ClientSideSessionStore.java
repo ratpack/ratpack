@@ -74,12 +74,20 @@ public class ClientSideSessionStore implements SessionStore {
       for (int i = sessionCookiePartitions.length; i < oldSessionCookiesCount; i++) {
         invalidateCookie(config.getSessionCookieName() + "_" + i);
       }
+      setLastAccessTime();
     });
   }
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return execControl.promiseFrom(() -> deserialize(getCookies(config.getSessionCookieName())));
+    return execControl.promiseFrom(() -> {
+      if (!isValid()) {
+        invalidateCookies(getCookies(config.getSessionCookieName()));
+        return Unpooled.buffer(0, 0);
+      }
+      setLastAccessTime();
+      return deserialize(getCookies(config.getSessionCookieName()));
+    });
   }
 
   @Override
@@ -123,6 +131,26 @@ public class ClientSideSessionStore implements SessionStore {
       }
     }
     return true;
+  }
+
+  private void setLastAccessTime() {
+    ByteBuf data = null;
+    try {
+      data = Unpooled.buffer();
+      data.writeLong(System.currentTimeMillis());
+      int oldCookiesCount = getCookies(config.getLastAccessTimeCookieName()).length;
+      String[] partitions = serialize(data);
+      for (int i = 0; i < partitions.length; i++) {
+        addCookie(config.getLastAccessTimeCookieName() + "_" + i, partitions[i]);
+      }
+      for (int i = partitions.length; i < oldCookiesCount; i++) {
+        invalidateCookie(config.getLastAccessTimeCookieName() + "_" + i);
+      }
+    } finally {
+      if (data != null) {
+        data.release();
+      }
+    }
   }
 
   private String[] serialize(ByteBuf sessionData) {
