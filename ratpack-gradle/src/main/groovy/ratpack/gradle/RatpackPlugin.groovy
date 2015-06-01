@@ -61,6 +61,7 @@ class RatpackPlugin implements Plugin<Project> {
         classpath ratpackApp.springloadedClasspath
         jvmArgs ratpackApp.springloadedJvmArgs
         systemProperty "ratpack.development", true
+        systemProperty "ratpack.baseDir.override", project.file("src/ratpack").absolutePath
       }
     }
 

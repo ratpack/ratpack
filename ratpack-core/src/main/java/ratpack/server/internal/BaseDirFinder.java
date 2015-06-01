@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.sun.nio.zipfs.ZipFileSystemProvider;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -29,6 +30,8 @@ import java.util.Optional;
 import static ratpack.util.Exceptions.uncheck;
 
 public abstract class BaseDirFinder {
+
+  private static final String BASE_DIR_OVERRIDE = "ratpack.baseDir.override";
 
   public static class Result {
     private final Path baseDir;
@@ -75,6 +78,17 @@ public abstract class BaseDirFinder {
   }
 
   public static Optional<Result> find(ClassLoader classLoader, String resourcePathString) {
+    String override = System.getProperties().getProperty(BASE_DIR_OVERRIDE);
+    if (override != null) {
+      File overrideDir = new File(override);
+      if (overrideDir.isDirectory()) {
+        File overrideMarkerFile = new File(overrideDir, resourcePathString);
+        if (overrideMarkerFile.isFile()) {
+          Path resourcePath = overrideMarkerFile.toPath();
+          return Optional.of(new Result(determineBaseDir(resourcePath), resourcePath));
+        }
+      }
+    }
     Path resourcePath;
     URL resourceUrl = classLoader.getResource(resourcePathString);
     if (resourceUrl == null) {
