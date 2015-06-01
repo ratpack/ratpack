@@ -20,9 +20,13 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import io.netty.buffer.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
+import ratpack.http.Response;
 import ratpack.session.*;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
@@ -39,11 +43,17 @@ public class DefaultSession implements Session {
   private final SessionId sessionId;
   private final ByteBufAllocator bufferAllocator;
   private final SessionStore storeAdapter;
-  private final SessionStatus status;
+  private final Response response;
   private final SessionSerializer defaultSerializer;
   private final JavaSessionSerializer javaSerializer;
 
-  boolean needsLoad = true;
+  private enum State {
+    NOT_LOADED, CLEAN, DIRTY
+  }
+
+  private State state = State.NOT_LOADED;
+  private boolean callbackAdded;
+
   private final SessionData data = new Data();
 
   private static class SerializedForm implements Serializable {
@@ -55,11 +65,11 @@ public class DefaultSession implements Session {
     }
   }
 
-  public DefaultSession(SessionId sessionId, ByteBufAllocator bufferAllocator, SessionStore storeAdapter, SessionStatus status, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer) {
+  public DefaultSession(SessionId sessionId, ByteBufAllocator bufferAllocator, SessionStore storeAdapter, Response response, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer) {
     this.sessionId = sessionId;
     this.bufferAllocator = bufferAllocator;
     this.storeAdapter = storeAdapter;
-    this.status = status;
+    this.response = response;
     this.defaultSerializer = defaultSerializer;
     this.javaSerializer = javaSerializer;
   }
@@ -71,9 +81,9 @@ public class DefaultSession implements Session {
 
   @Override
   public Promise<SessionData> getData() {
-    if (needsLoad) {
+    if (state == State.NOT_LOADED) {
       return storeAdapter.load(sessionId.getValue()).map(bytes -> {
-        needsLoad = false;
+        state = State.CLEAN;
         try {
           hydrate(bytes);
         } finally {
@@ -92,7 +102,6 @@ public class DefaultSession implements Session {
         SerializedForm deserialized = defaultSerializer.deserialize(SerializedForm.class, new ByteBufInputStream(bytes));
         entries.clear();
         entries.putAll(deserialized.entries);
-        status.clean();
       } catch (Exception e) {
         throw Exceptions.uncheck(e);
       }
@@ -111,7 +120,7 @@ public class DefaultSession implements Session {
 
   @Override
   public boolean isDirty() {
-    return status.isDirty();
+    return state == State.DIRTY;
   }
 
   private ByteBuf serialize() {
@@ -130,11 +139,11 @@ public class DefaultSession implements Session {
 
   @Override
   public Operation save() {
-    if (needsLoad) {
+    if (state == State.NOT_LOADED) {
       return Operation.noop();
     } else {
       return storeAdapter.store(sessionId.getValue(), serialize())
-        .next(status::dirty);
+        .next(() -> state = State.CLEAN);
     }
   }
 
@@ -143,12 +152,22 @@ public class DefaultSession implements Session {
     return storeAdapter.remove(sessionId.getValue())
       .next(() -> {
         sessionId.terminate();
-        hydrate(Unpooled.buffer(0, 0));
+        entries.clear();
+        state = State.NOT_LOADED;
       });
   }
 
   private void markDirty() {
-    status.dirty();
+    state = State.DIRTY;
+    if (!callbackAdded) {
+      callbackAdded = true;
+      response.beforeSend(responseMetaData -> {
+        callbackAdded = false; // another before send may try and use the session
+        if (state == State.DIRTY) {
+          save().then();
+        }
+      });
+    }
   }
 
   private class Data implements SessionData {

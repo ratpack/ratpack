@@ -18,21 +18,21 @@ package ratpack.session;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
 import com.google.inject.*;
-import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.AsciiString;
 import ratpack.exec.ExecControl;
+import ratpack.func.Action;
+import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.ExecutionScoped;
-import ratpack.handling.HandlerDecorator;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.server.ServerConfig;
 import ratpack.session.internal.*;
-import ratpack.session.internal.LocalMemorySessionStore;
 import ratpack.util.Types;
 
 import javax.inject.Named;
@@ -50,10 +50,8 @@ import java.util.function.Consumer;
  * This allows arbitrary stores to be used to persist session data.
  * <p>
  * The default, in memory, implementation stores the data in a {@link Cache}{@code <}{@link AsciiString}, {@link ByteBuf}{@code >}.
- * This cache instance is provided by this module and is a simple cache with no maximum size.
- * As {@link Cache} is a general type, this binding is {@link Named} with {@link #LOCAL_MEMORY_SESSION_CACHE_BINDING_NAME}.
- * Override this binding
- *
+ * This cache instance is provided by this module and defaults to storing a maximum of 1000 entries, discarding least recently used.
+ * The {@link #memoryStore} methods are provided to conveniently construct alternative cache configurations, if necessary.
  * <h3>Serialization</h3>
  * <p>
  * Objects must be serialized to be stored in the session.
@@ -68,7 +66,7 @@ import java.util.function.Consumer;
  * Users of this module may also choose to override this binding with another implementation (e.g. one based on <a href="https://github.com/EsotericSoftware/kryo">Kryo</a>),
  * but this implementation must be able to serialize any object implementing {@link Serializable}.
  *
- * It is also likely that alternative bindings will be provided for {@link SessionSerializer} and {@link JavaSessionSerializer} to provide different serialization strategies.
+ * It is also often desirable to provide alternative implementations for {@link SessionSerializer} and {@link JavaSessionSerializer}.
  * The default binding for both types is an implementation that uses out-of-the-box Java serialization (which is neither fast nor efficient).
  *
  * <h3>Example usage</h3>
@@ -114,16 +112,74 @@ import java.util.function.Consumer;
  */
 public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
 
+  /**
+   * The name of the binding for the {@link Cache} implementation that backs the in memory session store.
+   *
+   * @see #memoryStore(Consumer)
+   */
   public static final String LOCAL_MEMORY_SESSION_CACHE_BINDING_NAME = "localMemorySessionCache";
 
+  /**
+   * The key of the binding for the {@link Cache} implementation that backs the in memory session store.
+   *
+   * @see #memoryStore(Consumer)
+   */
   public static final Key<Cache<AsciiString, ByteBuf>> LOCAL_MEMORY_SESSION_CACHE_BINDING_KEY = Key.get(
     new TypeLiteral<Cache<AsciiString, ByteBuf>>() {},
     Names.named(LOCAL_MEMORY_SESSION_CACHE_BINDING_NAME)
   );
 
+  /**
+   * A builder for an alternative cache for the default in memory store.
+   * <p>
+   * This method is intended to be used with the {@link BindingsSpec#binder(Action)} method.
+   * <pre class="java">{@code
+   * import ratpack.guice.Guice;
+   * import ratpack.session.SessionModule;
+   *
+   * public class Example {
+   *   public static void main(String... args) {
+   *     Guice.registry(b -> b
+   *         .binder(SessionModule.memoryStore(c -> c.maximumSize(100)))
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param config the cache configuration
+   * @return an action that binds the cache
+   * @see #memoryStore(Binder, Consumer)
+   */
+  public static Action<Binder> memoryStore(Consumer<? super CacheBuilder<AsciiString, ByteBuf>> config) {
+    return b -> memoryStore(b, config);
+  }
+
+  /**
+   * A builder for an alternative cache for the default in memory store.
+   * <p>
+   * This method can be used from within a custom {@link Module}.
+   * <pre class="java">{@code
+   * import com.google.inject.AbstractModule;
+   * import ratpack.session.SessionModule;
+   *
+   * public class CustomSessionModule extends AbstractModule {
+   *   @Override
+   *   protected void configure() {
+   *     SessionModule.memoryStore(binder(), c -> c.maximumSize(100));
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * This method binds the built cache with the {@link #LOCAL_MEMORY_SESSION_CACHE_BINDING_KEY} key.
+   * It also implicitly registers a {@link RemovalListener}, that releases the byte buffers as they are discarded.
+   *
+   * @param binder the guice binder
+   * @param config the cache configuration
+   */
   public static void memoryStore(Binder binder, Consumer<? super CacheBuilder<AsciiString, ByteBuf>> config) {
     binder.bind(LOCAL_MEMORY_SESSION_CACHE_BINDING_KEY).toProvider(() -> {
       CacheBuilder<AsciiString, ByteBuf> cacheBuilder = Types.cast(CacheBuilder.newBuilder());
+      cacheBuilder.removalListener(n -> n.getValue().release());
       config.accept(cacheBuilder);
       return cacheBuilder.build();
     }).in(Scopes.SINGLETON);
@@ -136,10 +192,7 @@ public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().to(StoreSessionIfDirtyHandlerDecorator.class);
-    bind(SessionStatus.class).in(ExecutionScoped.class);
-    memoryStore(binder(), s -> {
-    });
+    memoryStore(binder(), s -> s.maximumSize(1000));
   }
 
   @Provides
@@ -171,8 +224,8 @@ public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
 
   @Provides
   @ExecutionScoped
-  Session sessionAdapter(SessionId sessionId, SessionStore store, SessionStatus sessionStatus, ByteBufAllocator bufferAllocator, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer) {
-    return new DefaultSession(sessionId, bufferAllocator, store, sessionStatus, defaultSerializer, javaSerializer);
+  Session sessionAdapter(SessionId sessionId, SessionStore store, Response response, ByteBufAllocator bufferAllocator, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer) {
+    return new DefaultSession(sessionId, bufferAllocator, store, response, defaultSerializer, javaSerializer);
   }
 
 }

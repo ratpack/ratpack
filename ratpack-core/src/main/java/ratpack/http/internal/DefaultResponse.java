@@ -16,8 +16,10 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
@@ -313,7 +315,7 @@ public class DefaultResponse implements Response {
 
   private void commit(ByteBuf buffer) {
     headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
-    finalizeResponse(responseFinalizers.iterator(), () -> {
+    finalizeResponse(Iterators.empty(), () -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), buffer);
     });
@@ -326,7 +328,13 @@ public class DefaultResponse implements Response {
         () -> finalizeResponse(finalizers, then)
       );
     } else {
-      then.run();
+      List<Action<? super ResponseMetaData>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
+      responseFinalizers.clear();
+      if (finalizersCopy.isEmpty()) {
+        then.run();
+      } else {
+        finalizeResponse(finalizersCopy.iterator(), then);
+      }
     }
   }
 

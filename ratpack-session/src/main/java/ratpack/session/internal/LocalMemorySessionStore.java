@@ -26,10 +26,13 @@ import ratpack.exec.Promise;
 import ratpack.server.StopEvent;
 import ratpack.session.SessionStore;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class LocalMemorySessionStore implements SessionStore {
 
   private final ExecControl execControl;
   private final Cache<AsciiString, ByteBuf> cache;
+  private final AtomicLong lastCleanup = new AtomicLong(System.currentTimeMillis());
 
   public LocalMemorySessionStore(Cache<AsciiString, ByteBuf> cache, ExecControl execControl) {
     this.cache = cache;
@@ -39,17 +42,16 @@ public class LocalMemorySessionStore implements SessionStore {
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
     return execControl.operation(() -> {
+      maybeCleanup();
       ByteBuf retained = Unpooled.unmodifiableBuffer(sessionData);
-      ByteBuf oldValue = cache.asMap().put(sessionId, retained);
-      if (oldValue != null) {
-        oldValue.release();
-      }
+      cache.put(sessionId, retained);
     });
   }
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
     return execControl.promiseFrom(() -> {
+      maybeCleanup();
       ByteBuf value = cache.getIfPresent(sessionId);
       if (value != null) {
         return Unpooled.unreleasableBuffer(value.slice());
@@ -67,17 +69,23 @@ public class LocalMemorySessionStore implements SessionStore {
   @Override
   public Operation remove(AsciiString sessionId) {
     return execControl.operation(() -> {
-      ByteBuf oldValue = cache.asMap().remove(sessionId);
-      if (oldValue != null) {
-        oldValue.release();
-      }
+      maybeCleanup();
+      cache.invalidate(sessionId);
     });
-
   }
 
   @Override
   public void onStop(StopEvent event) throws Exception {
-    cache.asMap().values().forEach(ByteBuf::release);
     cache.invalidateAll();
+  }
+
+  private void maybeCleanup() {
+    long now = System.currentTimeMillis();
+    long last = lastCleanup.get();
+    if (now - last > 1000 * 10) {
+      if (lastCleanup.compareAndSet(last, now)) {
+        cache.cleanUp();
+      }
+    }
   }
 }
