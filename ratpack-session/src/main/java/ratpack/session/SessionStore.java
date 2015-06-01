@@ -32,6 +32,146 @@ import ratpack.server.Service;
  * The store methods return {@link Promise} and {@link Operation} in order to support non blocking IO.
  * <p>
  * The store should not make any attempt to interpret the bytes that it is storing/loading.
+ *
+ * <h3>Example implementation</h3>
+ * <p>
+ * Here is an example implementation that uses files on the filesystem to store session data.
+ * <pre class="java">{@code
+ * import com.google.common.io.Files;
+ * import com.google.inject.Singleton;
+ * import io.netty.buffer.ByteBuf;
+ * import io.netty.buffer.ByteBufAllocator;
+ * import io.netty.buffer.ByteBufInputStream;
+ * import io.netty.buffer.ByteBufOutputStream;
+ * import io.netty.util.AsciiString;
+ * import ratpack.exec.ExecControl;
+ * import ratpack.exec.Operation;
+ * import ratpack.exec.Promise;
+ * import ratpack.guice.ConfigurableModule;
+ * import ratpack.guice.Guice;
+ * import ratpack.server.StartEvent;
+ * import ratpack.server.StopEvent;
+ * import ratpack.session.Session;
+ * import ratpack.session.SessionModule;
+ * import ratpack.session.SessionStore;
+ * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import javax.inject.Inject;
+ * import java.io.File;
+ * import java.io.IOException;
+ * import java.util.Arrays;
+ *
+ * import static org.junit.Assert.assertEquals;
+ *
+ * public class Example {
+ *
+ *   static class FileSessionStore implements SessionStore {
+ *     private final ByteBufAllocator bufferAllocator;
+ *     private final File dir;
+ *     private final ExecControl execControl;
+ *
+ *     {@literal @}Inject
+ *     public FileSessionStore(ByteBufAllocator bufferAllocator, FileSessionModule.Config config, ExecControl execControl) {
+ *       this.bufferAllocator = bufferAllocator;
+ *       this.dir = config.dir;
+ *       this.execControl = execControl;
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void onStart(StartEvent event) throws Exception {
+ *       execControl.blocking(dir::mkdirs).then(created -> {
+ *         assert created || dir.exists();
+ *       });
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void onStop(StopEvent event) throws Exception {
+ *       execControl.blocking(() -> {
+ *         Arrays.asList(dir.listFiles()).forEach(File::delete);
+ *         return dir.delete();
+ *       }).operation().then();
+ *     }
+ *
+ *     {@literal @}Override
+ *     public Operation store(AsciiString sessionId, ByteBuf sessionData) {
+ *       return execControl.blockingOperation(() ->
+ *           Files.asByteSink(file(sessionId)).writeFrom(new ByteBufInputStream(sessionData))
+ *       );
+ *     }
+ *
+ *     {@literal @}Override
+ *     public Promise<ByteBuf> load(AsciiString sessionId) {
+ *       File sessionFile = file(sessionId);
+ *       return execControl.blocking(() -> {
+ *         if (sessionFile.exists()) {
+ *           ByteBuf buffer = bufferAllocator.buffer((int) sessionFile.length());
+ *           try {
+ *             Files.asByteSource(sessionFile).copyTo(new ByteBufOutputStream(buffer));
+ *             return buffer;
+ *           } catch (IOException e) {
+ *             buffer.release();
+ *             throw e;
+ *           }
+ *         } else {
+ *           return bufferAllocator.buffer(0, 0);
+ *         }
+ *       });
+ *     }
+ *
+ *     private File file(AsciiString sessionId) {
+ *       return new File(dir, sessionId.toString());
+ *     }
+ *
+ *     {@literal @}Override
+ *     public Operation remove(AsciiString sessionId) {
+ *       return execControl.blockingOperation(() -> file(sessionId).delete());
+ *     }
+ *
+ *     {@literal @}Override
+ *     public Promise<Long> size() {
+ *       return execControl.blocking(() -> (long) dir.listFiles(File::isFile).length);
+ *     }
+ *   }
+ *
+ *   public static class FileSessionModule extends ConfigurableModule<FileSessionModule.Config> {
+ *     public static class Config {
+ *       File dir;
+ *     }
+ *
+ *     {@literal @}Override
+ *     protected void configure() {
+ *       bind(SessionStore.class).to(FileSessionStore.class).in(Singleton.class);
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     File sessionsDir = BaseDirBuilder.tmpDir().build().toFile();
+ *     EmbeddedApp.of(s -> s
+ *         .registry(Guice.registry(b -> b
+ *             .module(SessionModule.class)
+ *             .module(FileSessionModule.class, c -> c.dir = sessionsDir)
+ *         ))
+ *         .handlers(c -> c
+ *             .get("set/:name/:value", ctx ->
+ *                 ctx.get(Session.class).getData().then(sessionData -> {
+ *                   sessionData.set(ctx.getPathTokens().get("name"), ctx.getPathTokens().get("value"));
+ *                   ctx.render("ok");
+ *                 })
+ *             )
+ *             .get("get/:name", ctx ->
+ *                 ctx.render(ctx.get(Session.class).getData().map(sessionData -> sessionData.require(ctx.getPathTokens().get("name"))))
+ *             )
+ *         )
+ *     ).test(httpClient -> {
+ *       assertEquals("ok", httpClient.getText("set/foo/bar"));
+ *       assertEquals("bar", httpClient.getText("get/foo"));
+ *     });
+ *   }
+ * }
+ * }</pre>
+ *
+ * @see SessionModule
  */
 public interface SessionStore extends Service {
 
