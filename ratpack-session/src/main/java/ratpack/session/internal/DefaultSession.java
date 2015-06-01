@@ -65,6 +65,11 @@ public class DefaultSession implements Session {
   }
 
   @Override
+  public String getId() {
+    return sessionId.getValue().toString();
+  }
+
+  @Override
   public Promise<SessionData> getData() {
     if (needsLoad) {
       return storeAdapter.load(sessionId.getValue()).map(bytes -> {

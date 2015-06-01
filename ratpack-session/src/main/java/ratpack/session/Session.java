@@ -37,6 +37,16 @@ import java.io.Serializable;
 public interface Session {
 
   /**
+   * The unique ID for this session.
+   * <p>
+   * Call this method will provision a new ID if necessary.
+   * Provisioning and tracking of the ID is provided by the bound {@link SessionId} implementation.
+   *
+   * @return the ID for this session
+   */
+  String getId();
+
+  /**
    * The session data.
    * <p>
    * The data is available via a promise to support backing {@link SessionStore} implementations that load the data asynchronously.
