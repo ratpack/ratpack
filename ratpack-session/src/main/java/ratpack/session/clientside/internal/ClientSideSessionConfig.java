@@ -33,7 +33,7 @@ public class ClientSideSessionConfig {
   private String path = "/";
   private String domain;
   private int maxSessionCookieSize = 1932;
-  private Duration maxInactivityInterval = Duration.ofSeconds(120);
+  private Duration maxInactivityInterval = Duration.ofHours(24);
 
   /**
    * The name of the {@code cookie} used to store serialized and encrypted session data.
@@ -221,7 +221,7 @@ public class ClientSideSessionConfig {
   /**
    * Maximum inactivity time (in units defined by {@link java.util.concurrent.TimeUnit}) after which session will be invalidated.
    * <p>
-   * Defaults to: 120s.
+   * Defaults to: 24 hours.
    * If time between last access and current time is less than or equal to max inactive time, session will become valid.
    *
    * @return the maximum session inactivity time
