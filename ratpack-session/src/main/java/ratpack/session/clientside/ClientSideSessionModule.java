@@ -20,7 +20,6 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
-import ratpack.server.ServerConfig;
 import ratpack.session.SessionStore;
 import ratpack.session.clientside.internal.*;
 
@@ -32,10 +31,6 @@ import javax.crypto.spec.SecretKeySpec;
  * This module depends on {@link ratpack.session.SessionModule} and <b>MUST</b> be added to the module list <b>AFTER</b> {@link ratpack.session.SessionModule}.
  */
 public class ClientSideSessionModule extends ConfigurableModule<ClientSideSessionConfig> {
-  @Override
-  protected ClientSideSessionConfig createConfig(ServerConfig serverConfig) {
-    return new DefaultClientSideSessionConfig();
-  }
 
   @Override
   protected void configure() {

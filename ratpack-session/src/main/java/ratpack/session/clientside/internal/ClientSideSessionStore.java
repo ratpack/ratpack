@@ -32,7 +32,6 @@ import ratpack.exec.Promise;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.session.SessionStore;
-import ratpack.session.clientside.ClientSideSessionConfig;
 import ratpack.session.clientside.Crypto;
 import ratpack.session.clientside.Signer;
 

@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside;
+package ratpack.session.clientside.internal;
 
 import java.time.Duration;
 
 /**
  * Client side session configuration.
  */
-public interface ClientSideSessionConfig {
+public class ClientSideSessionConfig {
+
+  private static final String LAST_ACCESS_TIME_TOKEN = "ratpack_lat";
+
+  private String sessionCookieName = "ratpack_session";
+  private String secretToken = Long.toString(System.currentTimeMillis() / 10000);
+  private String macAlgorithm = "HmacSHA1";
+  private String secretKey;
+  private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
+  private String path = "/";
+  private String domain;
+  private int maxSessionCookieSize = 1932;
+  private Duration maxInactivityInterval = Duration.ofSeconds(120);
+
   /**
    * The name of the {@code cookie} used to store serialized and encrypted session data.
    * <p>
@@ -31,14 +44,18 @@ public interface ClientSideSessionConfig {
    * <b>Defaults to: </b> {@code ratpack_session}
    * @return the name of the {@code cookie} used to store session data.
    */
-  String getSessionCookieName();
+  public String getSessionCookieName() {
+    return sessionCookieName;
+  }
 
   /**
    * Set the {@code cookie} name used to store session data.
    *
    * @param sessionCookieName a {@code cookie} name used to store session data
    */
-  void setSessionCookieName(String sessionCookieName);
+  public void setSessionCookieName(String sessionCookieName) {
+    this.sessionCookieName = sessionCookieName;
+  }
 
   /**
    * The name of the {@code cookie} used to store session's last access time.
@@ -46,7 +63,9 @@ public interface ClientSideSessionConfig {
    * Last access time is updated on every session load or store
    * @return the name of the {@code cookie} with session's last access time
    */
-  String getLastAccessTimeCookieName();
+  public String getLastAccessTimeCookieName() {
+    return LAST_ACCESS_TIME_TOKEN;
+  }
 
   /**
    * The token used to sign the serialized session to prevent tampering.
@@ -58,41 +77,53 @@ public interface ClientSideSessionConfig {
    *
    * @return the token used to sign the serialized and encrypted session.
    */
-  String getSecretToken();
+  public String getSecretToken() {
+    return secretToken;
+  }
 
   /**
    * Set the {code secretToken} used to sign the serialized and encrypted session data.
    *
    * @param secretToken a token used to sign the serialized and encrypted session data.
    */
-  void setSecretToken(String secretToken);
+  public void setSecretToken(String secretToken) {
+    this.secretToken = secretToken;
+  }
 
   /**
    * The {@link javax.crypto.Mac} algorithm used to sign the serialized session with the <strong>secretToken</strong>.
    *
    * @return the mac algorithm used to sign serialized and encrypted session data.
    */
-  String getMacAlgorithm();
+  public String getMacAlgorithm() {
+    return macAlgorithm;
+  }
 
   /**
    * Set mac algorithm used to sign the serialized and encrypted session data.
    *
    * @param macAlgorithm the name of mac algorithm
    */
-  void setMacAlgorithm(String macAlgorithm);
+  public void setMacAlgorithm(String macAlgorithm) {
+    this.macAlgorithm = macAlgorithm;
+  }
 
   /**
    * The secret key used in the symmetric-key encyrption/decryption of the serialized session.
    *
    * @return the secret key used in encryption/decryption of the serialized session data.
    */
-  String getSecretKey();
+  public String getSecretKey() {
+    return secretKey;
+  }
 
   /**
    * Set the secret key used in the symmetric-key encryption/decryption of the serialized session data.
    * @param secretKey a secret key
    */
-  void setSecretKey(String secretKey);
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
+  }
 
   /**
    * The {@link javax.crypto.Cipher} algorithm used to encrypt/decrypt the serialized session
@@ -101,14 +132,18 @@ public interface ClientSideSessionConfig {
    *
    * @return the algorithm used to encrypt/decrypt the serialized session.
    */
-  String getCipherAlgorithm();
+  public String getCipherAlgorithm() {
+    return cipherAlgorithm;
+  }
 
   /**
    * Set the cipher algorithm used to encrypt/decrypt the serialized session data.
    *
    * @param cipherAlgorithm a cipher algorithm
    */
-  void setCipherAlgorithm(String cipherAlgorithm);
+  public void setCipherAlgorithm(String cipherAlgorithm) {
+    this.cipherAlgorithm = cipherAlgorithm;
+  }
 
   /**
    * Use the session cookie only when requesting from the {@code path}.
@@ -118,7 +153,9 @@ public interface ClientSideSessionConfig {
    * Session should be send for every request. The {@code path} of value {@code "/"} does this.
    * @return the URI path to which session cookie will be attached to.
    */
-  String getPath();
+  public String getPath() {
+    return path;
+  }
 
   /**
    * Set the {@code path} for session cookie.
@@ -127,7 +164,9 @@ public interface ClientSideSessionConfig {
    *
    * @param path a path to which session cookie will be attached to
    */
-  void setPath(String path);
+  public void setPath(String path) {
+    this.path = path;
+  }
 
   /**
    * Use the session cookie only when requesting from the {@code domain}.
@@ -136,7 +175,9 @@ public interface ClientSideSessionConfig {
    *
    * @return the URI domain to which session cookie will be attached to.
    */
-  String getDomain();
+  public String getDomain() {
+    return this.domain;
+  }
 
   /**
    * Set the {@code domain} for session cookie.
@@ -145,7 +186,9 @@ public interface ClientSideSessionConfig {
    *
    * @param domain a domain to which session cokkie will be attached to
    */
-  void setDomain(String domain);
+  public void setDomain(String domain) {
+    this.domain = domain;
+  }
 
   /**
    * Maximum size of the session cookie. If encrypted cookie exceeds it, it will be partitioned.
@@ -156,7 +199,9 @@ public interface ClientSideSessionConfig {
    * <b>Defaults to: </b> {@code 1932}.
    * @return the maximum size of the cookie session.
    */
-  int getMaxSessionCookieSize();
+  public int getMaxSessionCookieSize() {
+    return maxSessionCookieSize;
+  }
 
   /**
    * Set maximum size of the session cookie. If encrypted cookie session exceeds it, it wil be partitioned.
@@ -165,7 +210,13 @@ public interface ClientSideSessionConfig {
    *
    * @param maxSessionCookieSize a maximum size of one session cookie.
    */
-  void setMaxSessionCookieSize(int maxSessionCookieSize);
+  public void setMaxSessionCookieSize(int maxSessionCookieSize) {
+    if (maxSessionCookieSize < 1024 || maxSessionCookieSize > 4096) {
+      this.maxSessionCookieSize = 2048;
+    } else {
+      this.maxSessionCookieSize = maxSessionCookieSize;
+    }
+  }
 
   /**
    * Maximum inactivity time (in units defined by {@link java.util.concurrent.TimeUnit}) after which session will be invalidated.
@@ -175,12 +226,16 @@ public interface ClientSideSessionConfig {
    *
    * @return the maximum session inactivity time
    */
-  Duration getMaxInactivityInterval();
+  public Duration getMaxInactivityInterval() {
+    return maxInactivityInterval;
+  }
 
   /**
    * Set maximum inactivity time (in seconds) of the cookie session.
    *
    * @param maxInactivityInterval a maximum inactivity time of the cookie session
    */
-  void setMaxInactivityInterval(Duration maxInactivityInterval);
+  public void setMaxInactivityInterval(Duration maxInactivityInterval) {
+    this.maxInactivityInterval = maxInactivityInterval;
+  }
 }

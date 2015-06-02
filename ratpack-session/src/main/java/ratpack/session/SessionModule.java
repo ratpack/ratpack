@@ -31,7 +31,6 @@ import ratpack.guice.ConfigurableModule;
 import ratpack.guice.ExecutionScoped;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.server.ServerConfig;
 import ratpack.session.internal.*;
 import ratpack.util.Types;
 
@@ -182,11 +181,6 @@ public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
       config.accept(cacheBuilder);
       return cacheBuilder.build();
     }).in(Scopes.SINGLETON);
-  }
-
-  @Override
-  protected SessionIdCookieConfig createConfig(ServerConfig serverConfig) {
-    return new DefaultSessionIdCookieConfig();
   }
 
   @Override

@@ -22,7 +22,6 @@ import io.netty.util.AsciiString;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.session.SessionId;
-import ratpack.session.SessionIdCookieConfig;
 import ratpack.session.SessionIdGenerator;
 
 import java.time.Duration;
