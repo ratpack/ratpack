@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.session.clientside.internal;
+package ratpack.session.clientside;
 
 import java.time.Duration;
 
