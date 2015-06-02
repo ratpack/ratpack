@@ -32,6 +32,8 @@ public class ClientSideSessionConfig {
   private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
   private String path = "/";
   private String domain;
+  private boolean httpOnly = true;
+  private boolean secure;
   private int maxSessionCookieSize = 1932;
   private Duration maxInactivityInterval = Duration.ofHours(24);
 
@@ -188,6 +190,44 @@ public class ClientSideSessionConfig {
    */
   public void setDomain(String domain) {
     this.domain = domain;
+  }
+
+  /**
+   * {@code HttpOnly} cookies can only be used when transmitted via {@code HTTP/HTTPS}. They are not accessible for {@code JavaScript}.
+   * <p>
+   * Http only cookies have to be supported by the browser.
+   *
+   * @return true if client side session cookies are {@code HttpOnly}
+   */
+  public boolean isHttpOnly() {
+    return httpOnly;
+  }
+
+  /**
+   * Set session cookies attribute {@code HttpOnly}.
+   *
+   * @param httpOnly if true client side session cookies are {@code HttpOnly}
+   */
+  public void setHttpOnly(boolean httpOnly) {
+    this.httpOnly = httpOnly;
+  }
+
+  /**
+   * {@code Secure} cookies can only be transmitted over encrypted connection like {@code HTTPS}
+   *
+   * @return true if session cookies are {@code Secure}
+   */
+  public boolean isSecure() {
+    return secure;
+  }
+
+  /**
+   * Set session cookies attribute {@code Secure}.
+   *
+   * @param secure if true client side session cookies can be transmitted only over encrypted connection
+   */
+  public void setSecure(boolean secure) {
+    this.secure = secure;
   }
 
   /**

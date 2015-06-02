@@ -271,15 +271,19 @@ public class ClientSideSessionStore implements SessionStore {
     if (config.getDomain() != null) {
       cookie.setDomain(config.getDomain());
     }
+    cookie.setHttpOnly(config.isHttpOnly());
+    cookie.setSecure(config.isSecure());
   }
 
   private void addCookie(String name, String value) {
-    Cookie sessionCookie = response.get().cookie(name, value);
+    Cookie cookie = response.get().cookie(name, value);
     if (config.getPath() != null) {
-      sessionCookie.setPath(config.getPath());
+      cookie.setPath(config.getPath());
     }
     if (config.getDomain() != null) {
-      sessionCookie.setDomain(config.getDomain());
+      cookie.setDomain(config.getDomain());
     }
+    cookie.setHttpOnly(config.isHttpOnly());
+    cookie.setSecure(config.isSecure());
   }
 }

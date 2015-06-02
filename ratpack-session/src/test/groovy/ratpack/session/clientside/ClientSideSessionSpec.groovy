@@ -37,30 +37,6 @@ class ClientSideSessionSpec extends SessionSpec {
     supportsSize = false
   }
 
-  def "last access time is set and changed on load or on store"() {
-    when:
-    handlers {
-      get("nosessionaccess") {
-        response.send("foo")
-      }
-      get("store") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
-      }
-      get("load") { Session session ->
-        session.data.then { render it.get("foo").orElse("null")}
-      }
-    }
-
-    then:
-    !get("nosessionaccess").headers.getAll("Set-Cookie").contains("ratpack_lat")
-    def values = get("store").headers.getAll("Set-Cookie")
-    def value = values.find { it.contains("ratpack_lat") }
-    value
-    def values2 = get("load").headers.getAll("Set-Cookie")
-    def value2 = values2.find { it.contains("ratpack_lat") }
-    value2 != value
-  }
-
   def "session cookies are bounded to path"() {
     given:
     modules.clear()
@@ -83,6 +59,30 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies("ratpack_session", "/").length == 0
     getCookies("ratpack_session", "/bar").length == 1
     getCookies("ratpack_session", "/foo").length == 0
+  }
+
+  def "last access time is set and changed on load or on store"() {
+    when:
+    handlers {
+      get("nosessionaccess") {
+        response.send("foo")
+      }
+      get("store") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+      get("load") { Session session ->
+        session.data.then { render it.get("foo").orElse("null")}
+      }
+    }
+
+    then:
+    !get("nosessionaccess").headers.getAll("Set-Cookie").contains("ratpack_lat")
+    def values = get("store").headers.getAll("Set-Cookie")
+    def value = values.find { it.contains("ratpack_lat") }
+    value
+    def values2 = get("load").headers.getAll("Set-Cookie")
+    def value2 = values2.find { it.contains("ratpack_lat") }
+    value2 != value
   }
 
   def "invalidated session clears session cookies"() {
@@ -212,5 +212,72 @@ class ClientSideSessionSpec extends SessionSpec {
 
     then:
     response.body.text == "true"
+  }
+
+  def "session cookies are all HTTPOnly"() {
+    when:
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    then:
+    def values = get("foo").headers.getAll("Set-Cookie")
+    values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are not HTTPOnly, when config.isHttpOnly() is false"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.httpOnly = false
+      }
+      module ClientSideSessionModule, {
+        it.httpOnly = false
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && !it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are secure, when config.isSecure() is true"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.secure = true
+      }
+      module ClientSideSessionModule, {
+        it.secure = true
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
   }
 }

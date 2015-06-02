@@ -98,6 +98,10 @@ public class CookieBasedSessionId implements SessionId {
       cookie.setMaxAge(expirySeconds);
     }
 
+    cookie.setHttpOnly(cookieConfig.isHttpOnly());
+
+    cookie.setSecure(cookieConfig.isSecure());
+
     response.getCookies().add(cookie);
   }
 

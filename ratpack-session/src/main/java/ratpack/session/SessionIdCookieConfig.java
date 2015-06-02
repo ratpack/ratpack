@@ -24,6 +24,8 @@ public class SessionIdCookieConfig {
   private String domain;
   private String path;
   private String name = "JSESSIONID";
+  private boolean httpOnly = true;
+  private boolean secure;
 
   public Duration getExpires() {
     return expires;
@@ -41,6 +43,14 @@ public class SessionIdCookieConfig {
     return name;
   }
 
+  public boolean isHttpOnly() {
+    return httpOnly;
+  }
+
+  public boolean isSecure() {
+    return secure;
+  }
+
   public void setExpires(Duration expires) {
     this.expires = expires;
   }
@@ -55,6 +65,14 @@ public class SessionIdCookieConfig {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public void setHttpOnly(boolean httpOnly) {
+    this.httpOnly = httpOnly;
+  }
+
+  public void setSecure(boolean secure) {
+    this.secure = secure;
   }
 
   public SessionIdCookieConfig expires(Duration expiresDuration) {
@@ -77,4 +95,13 @@ public class SessionIdCookieConfig {
     return this;
   }
 
+  public SessionIdCookieConfig httpOnly(boolean httpOnly) {
+    this.httpOnly = httpOnly;
+    return this;
+  }
+
+  public SessionIdCookieConfig secure(boolean secure) {
+    this.secure = secure;
+    return this;
+  }
 }
