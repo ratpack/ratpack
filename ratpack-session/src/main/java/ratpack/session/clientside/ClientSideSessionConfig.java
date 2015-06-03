@@ -30,10 +30,6 @@ public class ClientSideSessionConfig {
   private String macAlgorithm = "HmacSHA1";
   private String secretKey;
   private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
-  private String path = "/";
-  private String domain;
-  private boolean httpOnly = true;
-  private boolean secure;
   private int maxSessionCookieSize = 1932;
   private Duration maxInactivityInterval = Duration.ofHours(24);
 
@@ -147,90 +143,7 @@ public class ClientSideSessionConfig {
     this.cipherAlgorithm = cipherAlgorithm;
   }
 
-  /**
-   * Use the session cookie only when requesting from the {@code path}.
-   * <p>
-   * Define the scope of the cookie.
-   * <p>
-   * Session should be send for every request. The {@code path} of value {@code "/"} does this.
-   * @return the URI path to which session cookie will be attached to.
-   */
-  public String getPath() {
-    return path;
-  }
-
-  /**
-   * Set the {@code path} for session cookie.
-   * <p>
-   * Define the scope of the cookie.
-   *
-   * @param path a path to which session cookie will be attached to
-   */
-  public void setPath(String path) {
-    this.path = path;
-  }
-
-  /**
-   * Use the session cookie only when requesting from the {@code domain}.
-   * <p>
-   * Define the scope for the cookie.
-   *
-   * @return the URI domain to which session cookie will be attached to.
-   */
-  public String getDomain() {
-    return this.domain;
-  }
-
-  /**
-   * Set the {@code domain} for session cookie.
-   * <p>
-   * Define the scope of the cookie
-   *
-   * @param domain a domain to which session cokkie will be attached to
-   */
-  public void setDomain(String domain) {
-    this.domain = domain;
-  }
-
-  /**
-   * {@code HttpOnly} cookies can only be used when transmitted via {@code HTTP/HTTPS}. They are not accessible for {@code JavaScript}.
-   * <p>
-   * Http only cookies have to be supported by the browser.
-   *
-   * @return true if client side session cookies are {@code HttpOnly}
-   */
-  public boolean isHttpOnly() {
-    return httpOnly;
-  }
-
-  /**
-   * Set session cookies attribute {@code HttpOnly}.
-   *
-   * @param httpOnly if true client side session cookies are {@code HttpOnly}
-   */
-  public void setHttpOnly(boolean httpOnly) {
-    this.httpOnly = httpOnly;
-  }
-
-  /**
-   * {@code Secure} cookies can only be transmitted over encrypted connection like {@code HTTPS}
-   *
-   * @return true if session cookies are {@code Secure}
-   */
-  public boolean isSecure() {
-    return secure;
-  }
-
-  /**
-   * Set session cookies attribute {@code Secure}.
-   *
-   * @param secure if true client side session cookies can be transmitted only over encrypted connection
-   */
-  public void setSecure(boolean secure) {
-    this.secure = secure;
-  }
-
-  /**
+    /**
    * Maximum size of the session cookie. If encrypted cookie exceeds it, it will be partitioned.
    * <p>
    * According to the <a href="http://www.ietf.org/rfc/rfc2109.txt">RFC 2109</a> web cookies should be at least

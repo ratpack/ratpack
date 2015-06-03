@@ -31,6 +31,7 @@ import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.session.SessionCookieConfig;
 import ratpack.session.SessionStore;
 import ratpack.session.clientside.ClientSideSessionConfig;
 import ratpack.session.clientside.Crypto;
@@ -50,16 +51,18 @@ public class ClientSideSessionStore implements SessionStore {
   private final Signer signer;
   private final Crypto crypto;
   private final ByteBufAllocator bufferAllocator;
+  private final SessionCookieConfig cookieConfig;
   private final ClientSideSessionConfig config;
 
   @Inject
-  public ClientSideSessionStore(ExecControl execControl, Provider<Request> request, Provider<Response> response, Signer signer, Crypto crypto, ByteBufAllocator bufferAllocator, ClientSideSessionConfig config) {
+  public ClientSideSessionStore(ExecControl execControl, Provider<Request> request, Provider<Response> response, Signer signer, Crypto crypto, ByteBufAllocator bufferAllocator, SessionCookieConfig cookieConfig, ClientSideSessionConfig config) {
     this.execControl = execControl;
     this.request = request;
     this.response = response;
     this.signer = signer;
     this.crypto = crypto;
     this.bufferAllocator = bufferAllocator;
+    this.cookieConfig = cookieConfig;
     this.config = config;
   }
 
@@ -265,25 +268,25 @@ public class ClientSideSessionStore implements SessionStore {
 
   private void invalidateCookie(String cookieName) {
     Cookie cookie = response.get().expireCookie(cookieName);
-    if (config.getPath() != null) {
-      cookie.setPath(config.getPath());
+    if (cookieConfig.getPath() != null) {
+      cookie.setPath(cookieConfig.getPath());
     }
-    if (config.getDomain() != null) {
-      cookie.setDomain(config.getDomain());
+    if (cookieConfig.getDomain() != null) {
+      cookie.setDomain(cookieConfig.getDomain());
     }
-    cookie.setHttpOnly(config.isHttpOnly());
-    cookie.setSecure(config.isSecure());
+    cookie.setHttpOnly(cookieConfig.isHttpOnly());
+    cookie.setSecure(cookieConfig.isSecure());
   }
 
   private void addCookie(String name, String value) {
     Cookie cookie = response.get().cookie(name, value);
-    if (config.getPath() != null) {
-      cookie.setPath(config.getPath());
+    if (cookieConfig.getPath() != null) {
+      cookie.setPath(cookieConfig.getPath());
     }
-    if (config.getDomain() != null) {
-      cookie.setDomain(config.getDomain());
+    if (cookieConfig.getDomain() != null) {
+      cookie.setDomain(cookieConfig.getDomain());
     }
-    cookie.setHttpOnly(config.isHttpOnly());
-    cookie.setSecure(config.isSecure());
+    cookie.setHttpOnly(cookieConfig.isHttpOnly());
+    cookie.setSecure(cookieConfig.isSecure());
   }
 }

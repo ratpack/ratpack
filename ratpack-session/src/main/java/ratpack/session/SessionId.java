@@ -25,7 +25,7 @@ import io.netty.util.AsciiString;
  * It is used by the provided impl of {@link Session} to discover (and generate) the session ID.
  * <p>
  * The {@link SessionModule} provides a default implementation of this type that uses {@link SessionIdGenerator},
- * and a cookie, based on {@link SessionIdCookieConfig} to store the session id.
+ * and a cookie, based on {@link SessionCookieConfig} to store the session id.
  */
 public interface SessionId {
 

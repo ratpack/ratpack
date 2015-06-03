@@ -41,10 +41,10 @@ class ClientSideSessionSpec extends SessionSpec {
     given:
     modules.clear()
     bindings {
-      module SessionModule
-      module ClientSideSessionModule, {
+      module SessionModule, {
         it.path = "/bar"
       }
+      module ClientSideSessionModule
     }
     handlers {
       get("foo") { Session session ->
@@ -236,9 +236,7 @@ class ClientSideSessionSpec extends SessionSpec {
       module SessionModule, {
         it.httpOnly = false
       }
-      module ClientSideSessionModule, {
-        it.httpOnly = false
-      }
+      module ClientSideSessionModule
     }
     handlers {
       get("foo") { Session session ->
@@ -262,9 +260,7 @@ class ClientSideSessionSpec extends SessionSpec {
       module SessionModule, {
         it.secure = true
       }
-      module ClientSideSessionModule, {
-        it.secure = true
-      }
+      module ClientSideSessionModule
     }
     handlers {
       get("foo") { Session session ->

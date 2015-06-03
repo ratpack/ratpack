@@ -22,7 +22,7 @@ import io.netty.util.AsciiString;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.session.SessionId;
-import ratpack.session.SessionIdCookieConfig;
+import ratpack.session.SessionCookieConfig;
 import ratpack.session.SessionIdGenerator;
 
 import java.time.Duration;
@@ -33,12 +33,12 @@ public class CookieBasedSessionId implements SessionId {
   private final Request request;
   private final Response response;
   private final SessionIdGenerator sessionIdGenerator;
-  private final SessionIdCookieConfig cookieConfig;
+  private final SessionCookieConfig cookieConfig;
 
   private AsciiString assignedCookieId;
   private Optional<AsciiString> cookieSessionId;
 
-  public CookieBasedSessionId(Request request, Response response, SessionIdGenerator sessionIdGenerator, SessionIdCookieConfig cookieConfig) {
+  public CookieBasedSessionId(Request request, Response response, SessionIdGenerator sessionIdGenerator, SessionCookieConfig cookieConfig) {
     this.request = request;
     this.response = response;
     this.sessionIdGenerator = sessionIdGenerator;
