@@ -286,6 +286,11 @@ public class ClientSideSessionStore implements SessionStore {
     if (cookieConfig.getDomain() != null) {
       cookie.setDomain(cookieConfig.getDomain());
     }
+
+    long expirySeconds = cookieConfig.getExpires() == null ? 0 : cookieConfig.getExpires().getSeconds();
+    if (expirySeconds > 0) {
+      cookie.setMaxAge(expirySeconds);
+    }
     cookie.setHttpOnly(cookieConfig.isHttpOnly());
     cookie.setSecure(cookieConfig.isSecure());
   }
