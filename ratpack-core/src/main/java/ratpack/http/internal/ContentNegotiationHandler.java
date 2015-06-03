@@ -17,9 +17,9 @@
 package ratpack.http.internal;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -29,22 +29,22 @@ import java.util.Map;
 
 public class ContentNegotiationHandler implements Handler {
 
-  private final ImmutableMap<String, Handler> handlers;
+  private final Map<String, Block> blocks;
   private final Handler noMatchHandler;
 
-  public ContentNegotiationHandler(Map<String, Handler> handlers, Handler noMatchHandler) {
-    this.handlers = ImmutableMap.copyOf(handlers);
+  public ContentNegotiationHandler(Map<String, Block> blocks, Handler noMatchHandler) {
+    this.blocks = blocks;
     this.noMatchHandler = noMatchHandler;
   }
 
   @Override
   public void handle(Context context) throws Exception {
-    if (handlers.isEmpty()) {
+    if (blocks.isEmpty()) {
       noMatchHandler.handle(context);
       return;
     }
 
-    List<String> types = Lists.newArrayList(handlers.keySet());
+    List<String> types = Lists.newArrayList(blocks.keySet());
     String winner = types.get(0);
     Collections.reverse(types);
 
@@ -57,7 +57,7 @@ public class ContentNegotiationHandler implements Handler {
       noMatchHandler.handle(context);
     } else {
       context.getResponse().contentType(winner);
-      handlers.get(winner).handle(context);
+      blocks.get(winner).execute();
     }
   }
 }

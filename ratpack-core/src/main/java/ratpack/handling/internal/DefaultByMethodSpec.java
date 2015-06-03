@@ -18,7 +18,6 @@ package ratpack.handling.internal;
 
 import ratpack.func.Block;
 import ratpack.handling.ByMethodSpec;
-import ratpack.handling.Handler;
 
 import java.util.Map;
 
@@ -30,58 +29,40 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   public static final String METHOD_PATCH = "PATCH";
   public static final String METHOD_DELETE = "DELETE";
 
-  private final Map<String, Handler> handlers;
+  private final Map<String, Block> blocks;
 
-  public DefaultByMethodSpec(Map<String, Handler> handlers) {
-    this.handlers = handlers;
+  public DefaultByMethodSpec(Map<String, Block> blocks) {
+    this.blocks = blocks;
   }
 
-  public ByMethodSpec get(Block handler) {
-    return named(METHOD_GET, handler);
+  @Override
+  public ByMethodSpec get(Block block) {
+    return named(METHOD_GET, block);
   }
 
-  public ByMethodSpec get(Handler handler) {
-    return named(METHOD_GET, handler);
+  @Override
+  public ByMethodSpec post(Block block) {
+    return named(METHOD_POST, block);
   }
 
-  public ByMethodSpec post(Block handler) {
-    return named(METHOD_POST, handler);
+  @Override
+  public ByMethodSpec put(Block block) {
+    return named(METHOD_PUT, block);
   }
 
-  public ByMethodSpec post(Handler handler) {
-    return named(METHOD_POST, handler);
+  @Override
+  public ByMethodSpec patch(Block block) {
+    return named(METHOD_PATCH, block);
   }
 
-  public ByMethodSpec put(Block handler) {
-    return named(METHOD_PUT, handler);
+  @Override
+  public ByMethodSpec delete(Block block) {
+    return named(METHOD_DELETE, block);
   }
 
-  public ByMethodSpec put(Handler handler) {
-    return named(METHOD_PUT, handler);
-  }
-
-  public ByMethodSpec patch(Block handler) {
-    return named(METHOD_PATCH, handler);
-  }
-
-  public ByMethodSpec patch(Handler handler) {
-    return named(METHOD_PATCH, handler);
-  }
-
-  public ByMethodSpec delete(Block handler) {
-    return named(METHOD_DELETE, handler);
-  }
-
-  public ByMethodSpec delete(Handler handler) {
-    return named(METHOD_DELETE, handler);
-  }
-
-  public ByMethodSpec named(String methodName, Block handler) {
-    return named(methodName, ctx -> handler.execute());
-  }
-
-  public ByMethodSpec named(String methodName, Handler handler) {
-    handlers.put(methodName.toUpperCase(), handler);
+  @Override
+  public ByMethodSpec named(String methodName, Block block) {
+    blocks.put(methodName, block);
     return this;
   }
 
