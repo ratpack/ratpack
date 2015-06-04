@@ -19,7 +19,7 @@ public class Example implements Handler {
 }
 ```
 
-As we saw in the [previous chapter](launching.html), one of the mandatory launch config properties is the [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation
+As we saw in the [previous chapter](launching.html), one of the mandatory launch config properties is the HandlerFactory implementation
 that provides the primary handler.
 The handler that this factory creates is effectively the application.
 
