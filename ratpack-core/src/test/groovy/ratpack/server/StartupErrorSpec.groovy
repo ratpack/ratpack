@@ -67,7 +67,7 @@ class StartupErrorSpec extends Specification {
       it.serverConfig(ServerConfig.embedded().development(true))
         .registry { throw ex }
         .handlers {
-        it.handler { it.render "ok" }
+        it.all { it.render "ok" }
       }
     }
 
@@ -94,7 +94,7 @@ class StartupErrorSpec extends Specification {
           Registries.empty()
         }
       }
-      it.handlers { it.handler { it.render "ok" } }
+      it.handlers { it.all { it.render "ok" } }
     }
 
     then:

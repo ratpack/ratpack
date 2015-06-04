@@ -63,7 +63,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
   def "message contains custom class name"() {
     when:
     handlers {
-      handler new MyHandler()
+      all new MyHandler()
     }
 
     then:
@@ -74,7 +74,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
   def "message contains custom inner class name"() {
     when:
     handlers {
-      handler new Handler() {
+      all new Handler() {
         @Override
         void handle(Context context) throws Exception {
           def foo = "bar" // need some code to get line number
@@ -90,7 +90,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
   def "message contains custom inner class name when class is empty"() {
     when:
     handlers {
-      handler new Handler() {
+      all new Handler() {
         @Override
         void handle(Context context) throws Exception {
           // can't detect line number when there is no code

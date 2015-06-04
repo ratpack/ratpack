@@ -15,20 +15,20 @@ ratpack {
     <% } %>
   }
   handlers {
-    handler("stop", new StopHandler())
+    path("stop", new StopHandler())
 
-    handler("render") {
+    path("render") {
       render "ok"
     }
 
-    handler("direct")  {
+    path("direct")  {
       response.send("ok")
     }
 
     for (int i = 0; i < 100; ++ i) {
-      handler("handler\$i") { throw new RuntimeException("unexpected") }
+      path("all\$i") { throw new RuntimeException("unexpected") }
     }
 
-    handler("manyHandlers") { response.send() }
+    path("manyHandlers") { response.send() }
   }
 }

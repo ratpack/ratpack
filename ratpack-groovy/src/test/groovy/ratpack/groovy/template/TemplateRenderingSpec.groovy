@@ -293,7 +293,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/dir/t", "1"
 
     handlers {
-      handler {
+      all {
         render groovyTemplate(request.path, request.queryParams.type)
       }
     }

@@ -68,7 +68,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
   def "get bytes on get request"() {
     when:
     handlers {
-      handler {
+      all {
         response.send request.body.bytes.length.toString()
       }
     }

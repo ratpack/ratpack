@@ -118,24 +118,24 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain handler(Handler handler) {
-    delegate.handler(handler);
+  public GroovyChain all(Handler handler) {
+    delegate.all(handler);
     return this;
   }
 
   @Override
-  public GroovyChain handler(Closure<?> handler) {
-    return handler(groovyHandler(handler));
+  public GroovyChain all(Closure<?> handler) {
+    return all(groovyHandler(handler));
   }
 
   @Override
-  public GroovyChain handler(String path, Closure<?> handler) {
-    return handler(path, groovyHandler(handler));
+  public GroovyChain path(String path, Closure<?> handler) {
+    return path(path, groovyHandler(handler));
   }
 
   @Override
-  public GroovyChain handler(String path, Handler handler) {
-    delegate.handler(path, handler);
+  public GroovyChain path(String path, Handler handler) {
+    delegate.path(path, handler);
     return this;
   }
 

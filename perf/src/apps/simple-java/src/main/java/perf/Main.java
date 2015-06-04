@@ -15,17 +15,17 @@ public class Main {
       <% } %>
       .handlers(chain -> {
         chain
-          .handler("stop", new StopHandler())
-          .handler("render", ctx -> ctx.render("ok"))
-          .handler("direct", ctx -> ctx.getResponse().send("ok"));
+          .path("stop", new StopHandler())
+          .path("render", ctx -> ctx.render("ok"))
+          .path("direct", ctx -> ctx.getResponse().send("ok"));
 
         for (int i = 0; i < 100; ++i) {
-          chain.handler("handler" + i, ctx -> {
+          chain.path("handler" + i, ctx -> {
             throw new RuntimeException("unexpected");
           });
         }
 
-        chain.handler("manyHandlers", ctx -> ctx.getResponse().send());
+        chain.path("manyHandlers", ctx -> ctx.getResponse().send());
       })
     );
   }

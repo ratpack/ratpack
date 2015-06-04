@@ -131,7 +131,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
       module new HandlebarsModule()
     }
     handlers {
-      handler {
+      all {
         render handlebarsTemplate(request.path, 'content types', (String) request.queryParams.type)
       }
     }

@@ -33,7 +33,7 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
 
-      handler {
+      all {
         onClose {
           status = response.status
           latch.countDown()
@@ -42,7 +42,7 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
         next()
       }
 
-      handler("foo") {
+      path("foo") {
         latch.countDown()
         render ""
       }
@@ -64,7 +64,7 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
 
-      handler {
+      all {
         onClose {
           status = response.status
           latch.countDown()
@@ -72,7 +72,7 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
         next()
       }
 
-      handler("foo") {
+      path("foo") {
         render ""
       }
     }
@@ -92,7 +92,7 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
 
     given:
     handlers {
-      handler {
+      all {
         onClose {
           events << "event1"
           latch.countDown()
@@ -106,7 +106,7 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
         next()
       }
 
-      handler("foo") {
+      path("foo") {
         latch.countDown()
         render ""
       }

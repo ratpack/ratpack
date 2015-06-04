@@ -56,7 +56,7 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
       module new HystrixModule().sse()
     }
     handlers {
-      handler("run-command") {
+      path("run-command") {
         HystrixCommand<String> fooCommand = new FooCommand()
         render fooCommand.execute()
       }

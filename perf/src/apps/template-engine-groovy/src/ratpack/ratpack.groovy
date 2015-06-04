@@ -33,25 +33,25 @@ ratpack {
     def endpoint = System.getProperty("endpoint")
 
     if (endpoint == "groovy-template") {
-      handler("groovy-template") {
+      path("groovy-template") {
         render groovyTemplate("index.html", message: "Hello World!")
       }
     }
 
     if (endpoint == "handlebars") {
-      handler("handlebars") {
+      path("handlebars") {
         render handlebarsTemplate('index.html', message: "Hello World!")
       }
     }
 
     if (endpoint == "thymeleaf") {
-      handler("thymeleaf") {
+      path("thymeleaf") {
         render thymeleafTemplate('index', message: "Hello World!")
       }
     }
 
     if (endpoint == "groovy-markup") {
-      handler("groovy-markup") {
+      path("groovy-markup") {
         render groovyMarkupTemplate('index.gtpl', message: "Hello World!")
       }
     }

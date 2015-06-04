@@ -31,7 +31,7 @@ class ChunkedResponseSpec extends RatpackGroovyDslSpec {
   def "can send chunked strings"() {
     given:
     handlers {
-      handler {
+      all {
         render stringChunks(
           publish(["abcü"] * 3)
         )
@@ -57,7 +57,7 @@ abcü
   def "can send chunked bytes"() {
     given:
     handlers {
-      handler {
+      all {
         render bufferChunks(
           "text/plain;charset=UTF-8",
           publish((1..3).collect { Unpooled.copiedBuffer("abcü", CharsetUtil.UTF_8) })

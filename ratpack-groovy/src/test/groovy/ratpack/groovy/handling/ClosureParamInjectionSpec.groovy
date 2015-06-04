@@ -43,7 +43,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
   def "can inject request scoped objects"() {
     when:
     handlers {
-      handler {
+      all {
         request.add(new Thing())
         next()
       }
@@ -64,7 +64,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      handler {
+      all {
         request.add("foo")
         next()
       }

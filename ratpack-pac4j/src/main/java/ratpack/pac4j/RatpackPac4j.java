@@ -49,10 +49,10 @@ import ratpack.path.PathBinding;
  *         )
  *       )
  *       .handlers(c -> c
- *         .handler(RatpackPac4j.callback(new GitHubClient("key", "secret"))) // callback handler must be upstream from auth handlers
+ *         .all(RatpackPac4j.callback(new GitHubClient("key", "secret"))) // callback handler must be upstream from auth handlers
  *         .prefix("private", p -> p
- *           .handler(RatpackPac4j.auth(GitHubClient.class)) // authenticate all requests flowing through here
- *           .handler(ctx -> {
+ *           .all(RatpackPac4j.auth(GitHubClient.class)) // authenticate all requests flowing through here
+ *           .all(ctx -> {
  *             String displayName = ctx.maybeGet(GitHubProfile.class) // auth handler puts profile in context registry
  *               .map(GitHubProfile::getDisplayName)
  *               .orElse("noone");
@@ -85,7 +85,7 @@ public class RatpackPac4j {
    * Returns the callback handler, which handles authentication requests.
    * <p>
    * This handler <b>MUST</b> be placed <b>BEFORE</b> the {@link #auth auth handler} in the handler pipeline.
-   * It should be added to the handler chain via the {@link Chain#handler(Handler)} method or similar.
+   * It should be added to the handler chain via the {@link Chain#all(Handler)}.
    * That is, it should not be added with {@link Chain#get(Handler)} or any method that filters based on request method.
    * It is common for this handler to be one of the first handlers in the pipeline.
    * <p>

@@ -64,7 +64,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       assets("public")
-      handler {
+      all {
         render "after"
       }
     }
@@ -136,7 +136,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler { Stopper stopper ->
+      all { Stopper stopper ->
         onClose { stopper.stop() }
         next()
       }
@@ -394,7 +394,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       assets "public"
-      handler { render "after" }
+      all { render "after" }
     }
 
     then:

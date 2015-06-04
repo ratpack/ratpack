@@ -43,7 +43,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain assets(String path, String... indexFiles) {
-    return handler(Handlers.assets(getServerConfig(), path, copyOf(indexFiles)));
+    return all(Handlers.assets(getServerConfig(), path, copyOf(indexFiles)));
   }
 
   @Override
@@ -52,7 +52,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain delete(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.delete(), handler)));
+    return all(Handlers.path(path, Handlers.chain(Handlers.delete(), handler)));
   }
 
   public Chain delete(Handler handler) {
@@ -60,11 +60,11 @@ public class DefaultChain implements Chain {
   }
 
   public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.fileSystem(getServerConfig(), path, chain(action)));
+    return all(Handlers.fileSystem(getServerConfig(), path, chain(action)));
   }
 
   public Chain get(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.get(), handler)));
+    return all(Handlers.path(path, Handlers.chain(Handlers.get(), handler)));
   }
 
   public Chain get(Handler handler) {
@@ -79,25 +79,25 @@ public class DefaultChain implements Chain {
     return registry;
   }
 
-  public Chain handler(Handler handler) {
+  public Chain all(Handler handler) {
     handlers.add(handler);
     return this;
   }
 
-  public Chain handler(String path, Handler handler) {
-    return handler(Handlers.path(path, handler));
+  public Chain path(String path, Handler handler) {
+    return all(Handlers.path(path, handler));
   }
 
   public Chain header(String headerName, String headerValue, Handler handler) {
-    return handler(Handlers.header(headerName, headerValue, handler));
+    return all(Handlers.header(headerName, headerValue, handler));
   }
 
   public Chain host(String hostName, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.host(hostName, chain(action)));
+    return all(Handlers.host(hostName, chain(action)));
   }
 
   public Chain patch(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.patch(), handler)));
+    return all(Handlers.path(path, Handlers.chain(Handlers.patch(), handler)));
   }
 
   public Chain patch(Handler handler) {
@@ -105,7 +105,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain post(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.post(), handler)));
+    return all(Handlers.path(path, Handlers.chain(Handlers.post(), handler)));
   }
 
   public Chain post(Handler handler) {
@@ -113,11 +113,11 @@ public class DefaultChain implements Chain {
   }
 
   public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.prefix(prefix, chain(action)));
+    return all(Handlers.prefix(prefix, chain(action)));
   }
 
   public Chain put(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.put(), handler)));
+    return all(Handlers.path(path, Handlers.chain(Handlers.put(), handler)));
   }
 
   public Chain put(Handler handler) {
@@ -126,12 +126,12 @@ public class DefaultChain implements Chain {
 
   @Override
   public Chain register(Registry registry) {
-    return handler(Handlers.register(registry));
+    return all(Handlers.register(registry));
   }
 
   @Override
   public Chain register(Action<? super RegistrySpec> action) throws Exception {
-    return handler(Handlers.register(Registries.registry(action)));
+    return all(Handlers.register(Registries.registry(action)));
   }
 
   public Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception {
@@ -140,17 +140,17 @@ public class DefaultChain implements Chain {
 
   @Override
   public Chain register(Registry registry, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.register(registry, chain(action)));
+    return all(Handlers.register(registry, chain(action)));
   }
 
   @Override
   public Chain insert(Action<? super Chain> action) throws Exception {
-    return handler(chain(action));
+    return all(chain(action));
   }
 
   @Override
   public Chain redirect(int code, String location) {
-    return handler(Handlers.redirect(code, location));
+    return all(Handlers.redirect(code, location));
   }
 
 }

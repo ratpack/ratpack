@@ -341,7 +341,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     file "templates/dir/t.xml", "1"
 
     handlers {
-      handler {
+      all {
         render groovyMarkupTemplate(request.path, request.queryParams.type)
       }
     }

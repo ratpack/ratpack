@@ -25,7 +25,7 @@ class GroovyEmbeddedAppSpec extends Specification {
     expect:
     GroovyEmbeddedApp.build {
       handlers {
-        handler {
+        all {
           render "foo"
         }
       }

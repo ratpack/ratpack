@@ -28,7 +28,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
         response.send request.query
       }
       prefix(":a/:b") {
-        handler(":c/:d") {
+        path(":c/:d") {
           byMethod {
             post {
               response.send new LinkedHashMap(allPathTokens).toString()
@@ -56,7 +56,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
   def "can use method chain"() {
     when:
     handlers {
-      handler("foo") {
+      path("foo") {
         def prefix = "common"
         byMethod {
           get {
@@ -98,7 +98,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
   def "options requests are handled for multi method handlers"() {
     when:
     handlers {
-      handler {
+      all {
         byMethod {
           get {
             render "foo"

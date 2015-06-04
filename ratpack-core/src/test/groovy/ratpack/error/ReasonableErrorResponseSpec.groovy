@@ -100,7 +100,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
 
-      handler {
+      all {
         context.addInterceptor(exceptionThrowingInterceptor, { Context context ->
           context.next()
         } as Block)
@@ -124,7 +124,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
 
-      handler {
+      all {
         context.addInterceptor(exceptionThrowingInterceptor, { Context context ->
           context.next()
         } as Block)

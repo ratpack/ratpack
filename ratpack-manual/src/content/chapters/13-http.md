@@ -80,13 +80,12 @@ import static org.junit.Assert.assertNotNull;
 
 public class Example {
   public static void main(String... args) throws Exception {
-    EmbeddedApp
-      .fromHandlers(chain -> chain
-        .handler(ctx -> ctx.getResponse().status(202).send("foo"))
-      )
-      .test(httpClient ->
-        assertEquals(202, httpClient.get().getStatusCode())
-      );
+    EmbeddedApp.fromHandlers(chain -> chain
+      .all(ctx -> ctx.getResponse().status(202).send("foo"))
+    )
+    .test(httpClient ->
+      assertEquals(202, httpClient.get().getStatusCode())
+    );
   }
 }
 ```
@@ -230,7 +229,7 @@ public class Example {
     EmbeddedApp
       .fromHandlers(chain -> chain
         .register(new FooRenderer().register())
-        .handler(ctx -> {
+        .all(ctx -> {
           Foo foo = new Foo();
           foo.value = "bar";
           ctx.render(foo);

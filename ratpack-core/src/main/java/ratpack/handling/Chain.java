@@ -19,21 +19,38 @@ package ratpack.handling;
 import ratpack.func.Action;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
- * A handler chain can be constructed using the {@link Handlers#chain(ServerConfig, ratpack.func.Action)} like methods.
+ * A {@code Chain} object is effectively a <i>builder</i> for declaring how handlers link together.
+ * A chain object can't actually be used to handle requests.
+ * It can be thought of as a Domain Specific Language (DSL), or API, for constructing a {@code List<Handler>}.
+ * <p>
+ * To understand the concept of a all chain, it is important to understand that a {@link Handler} can do one of three things:
+ * <ol>
+ * <li>Respond to the request (terminating processing);</li>
+ * <li>{@link Context#insert(Handler...) Insert handlers} and delegate processing;</li>
+ * <li>Delegate to the {@link Context#next() next all}.</li>
+ * </ol>
+ * <p>
+ * Methods like {@link Handlers#chain(ServerConfig, ratpack.func.Action)} take a function that acts on a {@code Chain}, and return a {@link Handler}.
+ * This all effectively just performs an insert of the handlers declared using the “Chain API”.
+ * <p>
+ * It is very common to use this API to declare the handlers for an application as part of startup via the {@link RatpackServerSpec#handlers(Action)} method.
+ *
+ * <h3>Registry</h3>
  * <p>
  * Chains <i>may</i> be backed by a {@link Registry registry}, depending on how the chain was constructed.
- * For example, the Ratpack Guice module makes it possible to create a Guice backed registry that can be used to
- * construct dependency injected handlers. See the {@code ratpack-guice} library for details.
- * </p>
+ * The {@link RatpackServerSpec#handlers(Action)} method backs the chain instance with the server registry.
+ * The backing registry can be obtained via {@link #getRegistry()} on the chain instance.
  * <p>
- * A Groovy specific subclass of this interface is provided by the Groovy module that overloads methods here with {@code Closure} based variants.
- * See the {@code ratpack-groovy} library for details.
- * </p>
+ * This mechanism allows access to “supporting objects” while building the chain.
+ * Methods such as {@link #all(Class)} also allow obtaining all implementations from the registry to use.
+ * This can be useful when using the Guice integration (or similar) to allow all instance to be dependency injected through Guice.
+ *
  * <h3>Path Binding</h3>
  * <p>
  * Methods such as {@link #get(String, Handler)}, {@link #prefix(String, Action)}, accept a string argument as a request path binding specification.
@@ -130,6 +147,97 @@ import ratpack.server.ServerConfig;
  *   }
  * }
  * }</pre>
+ *
+ * <h3>HTTP Method binding</h3>
+ * <p>
+ * Methods such as {@link #get(Handler)}, {@link #post(Handler)} etc. bind based on the HTTP method of the request.
+ * They are effectively a combination of the use of {@link #path(String, Handler)} and the {@link Context#byMethod(Action)} construct
+ * to declare that the given path <b>ONLY</b> responds to the specified method.
+ * <p>
+ * The following two code snippets are identical:
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(c -> c
+ *       .path("foo", ctx ->
+ *         ctx.byMethod(m -> m
+ *           .get(() -> ctx.render("ok"))
+ *         )
+ *       )
+ *     ).test(httpClient -> {
+ *       assertEquals("foo", httpClient.getText("foo"));
+ *       assertEquals(405, httpClient.post("foo").getStatusCode());
+ *     });
+ *   }
+ * }
+ * }</pre>
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(c -> c
+ *       .get("foo", ctx -> ctx.render("ok"))
+ *     ).test(httpClient -> {
+ *       assertEquals("foo", httpClient.getText("foo"));
+ *       assertEquals(405, httpClient.post("foo").getStatusCode());
+ *     });
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * That is, methods such as {@link #get(String, Handler)}, {@link #get(Handler)} etc. <b>terminate</b> processing with a
+ * {@code 405} (method not supported) client error if the request path matches but the HTTP method does not.
+ * They <b>should not be used</b> for URLs that respond differently depending on the method.
+ * The correct way to do this is to use {@link #path(String, Handler)} and {@link Context#byMethod(Action)}.
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(c -> c
+ *       .path("foo", ctx ->
+ *         ctx.byMethod(m -> m
+ *           .get(() -> ctx.render("GET"))
+ *           .post(() -> ctx.render("POST"))
+ *         )
+ *       )
+ *     ).test(httpClient -> {
+ *       assertEquals("GET", httpClient.getText("foo"));
+ *       assertEquals("POST", httpClient.postText("foo"));
+ *       assertEquals(405, httpClient.delete("foo").getStatusCode());
+ *     });
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * Given the following, a POST to /foo will yield a 405 response.
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import static org.junit.Assert.assertEquals;
+ *
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(c -> c
+ *       .get("foo", ctx -> ctx.render("GET"))
+ *       .post("foo", ctx -> ctx.render("POST"))
+ *     ).test(httpClient -> {
+ *       assertEquals("GET", httpClient.getText("foo"));
+ *
+ *       // NOTE: returns 405, not 200 and "POST"
+ *       assertEquals(405, httpClient.post("foo").getStatusCode());
+ *     });
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * All methods that match HTTP methods, are synonyms for {@link #path(String, Class)} in terms of path binding.
+ * That is, {@link #get(Handler)} behaves the same way with regard to path binding as {@link #path(Handler)}, and not {@link #all(Handler)}.
  */
 public interface Chain {
 
@@ -157,8 +265,8 @@ public interface Chain {
   /**
    * Constructs a handler using the given action to define a chain.
    *
-   * @param action The action that defines the handler chain
-   * @return A handler representing the chain
+   * @param action The action that defines the all chain
+   * @return A all representing the chain
    * @throws Exception any thrown by {@code action}
    */
   Handler chain(Action<? super Chain> action) throws Exception;
@@ -179,7 +287,7 @@ public interface Chain {
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
    * @see Chain#patch(String, Handler)
-   * @see Chain#handler(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain delete(String path, Handler handler);
 
@@ -208,7 +316,7 @@ public interface Chain {
    * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler chain.
    *
    * @param path the relative path to the new file system binding point
-   * @param action the definition of the handler chain
+   * @param action the definition of the all chain
    * @return this
    * @throws Exception any thrown by {@code action}
    */
@@ -231,7 +339,7 @@ public interface Chain {
    * @see Chain#put(String, Handler)
    * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain get(String path, Handler handler);
 
@@ -283,10 +391,10 @@ public interface Chain {
    * @param handler the handler to add
    * @return this
    */
-  Chain handler(Handler handler);
+  Chain all(Handler handler);
 
-  default Chain handler(Class<? extends Handler> handler) {
-    return handler(getRegistry().get(handler));
+  default Chain all(Class<? extends Handler> handler) {
+    return all(getRegistry().get(handler));
   }
 
   /**
@@ -299,7 +407,7 @@ public interface Chain {
    *   // this will not work
    *   path("person/:id") {
    *     path("child/:childId") {
-   *       // a request of /person/2/child/1 will not get passed the first handler as it will try
+   *       // a request of /person/2/child/1 will not get passed the first all as it will try
    *       // to match "person/2/child/1" with "person/2" which does not match
    *     }
    *
@@ -322,10 +430,18 @@ public interface Chain {
    * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
    */
-  Chain handler(String path, Handler handler);
+  Chain path(String path, Handler handler);
 
-  default Chain handler(String path, Class<? extends Handler> handler) {
-    return handler(path, getRegistry().get(handler));
+  default Chain path(Handler handler) {
+    return path("", handler);
+  }
+
+  default Chain path(String path, Class<? extends Handler> handler) {
+    return path(path, getRegistry().get(handler));
+  }
+
+  default Chain path(Class<? extends Handler> handler) {
+    return path("", handler);
   }
 
   /**
@@ -358,7 +474,7 @@ public interface Chain {
    *  chain.
    *    host("foo.com", new Action&lt;Chain&gt;() {
    *      public void execute(Chain hostChain) {
-   *        hostChain.handler(new Handler() {
+   *        hostChain.all(new Handler() {
    *          public void handle(Context context) {
    *            context.getResponse().send("Host Handler");
    *          }
@@ -381,7 +497,7 @@ public interface Chain {
   /**
    * Inserts the given nested handler chain.
    * <p>
-   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(ratpack.func.Action) chain}({@code action}).
+   * Shorter form of {@link #all(Handler)} handler}({@link #chain(ratpack.func.Action) chain}({@code action}).
    *
    * @param action the handler chain to insert
    * @return this
@@ -405,7 +521,7 @@ public interface Chain {
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
    * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain patch(String path, Handler handler);
 
@@ -443,7 +559,7 @@ public interface Chain {
    * @see Chain#put(String, Handler)
    * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain post(String path, Handler handler);
 
@@ -529,7 +645,7 @@ public interface Chain {
    * @see Chain#post(String, Handler)
    * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain put(String path, Handler handler);
 

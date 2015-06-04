@@ -73,7 +73,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    * @throws Exception any thrown by {@code closure}
    */
   @SuppressWarnings("overloads")
-  public static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
+  static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
     return RequestFixture.handle(handler, builder -> {
       GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
       ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
@@ -89,12 +89,12 @@ public interface GroovyRequestFixture extends RequestFixture {
    * import ratpack.groovy.Groovy
    *
    * def handlers = Groovy.chain {
-   *   handler {
+   *   all {
    *     def outputHeaderValue = request.headers.get("input-value") + ":bar"
    *     response.headers.set("output-value", outputHeaderValue)
    *     next()
    *   }
-   *   handler {
+   *   all {
    *     render "received: " + request.path
    *   }
    * }
@@ -115,7 +115,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    * @throws Exception any thrown by {@code closure}
    */
   @SuppressWarnings("overloads")
-  public static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
+  static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
     return RequestFixture.handle(handlers, builder -> {
       GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
       ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
@@ -127,7 +127,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    *
    * @return a Groovy request fixture
    */
-  public static GroovyRequestFixture requestFixture() {
+  static GroovyRequestFixture requestFixture() {
     return requestFixture(RequestFixture.requestFixture());
   }
 
@@ -137,7 +137,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    * @param requestFixture The request fixture to wrap
    * @return a Groovy request fixture
    */
-  public static GroovyRequestFixture requestFixture(RequestFixture requestFixture) {
+  static GroovyRequestFixture requestFixture(RequestFixture requestFixture) {
     return new DefaultGroovyRequestFixture(requestFixture);
   }
 

@@ -21,8 +21,8 @@ ratpack {
   }
 
   handlers {
-    handler("stop", new StopHandler())
-    handler("render") {
+    path("stop", new StopHandler())
+    path("render") {
       render "ok"
     }
   }

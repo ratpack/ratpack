@@ -61,7 +61,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "can inject"() {
     when:
     handlers {
-      handler new InjectedHandler()
+      all new InjectedHandler()
     }
 
     then:
@@ -103,7 +103,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "can inject more than one"() {
     when:
     handlers {
-      handler new Injected2Handler()
+      all new Injected2Handler()
     }
 
     then:
@@ -113,7 +113,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "can inject optional"() {
     when:
     handlers {
-      handler new InjectedOptionalHandler1()
+      all new InjectedOptionalHandler1()
     }
 
     then:
@@ -123,7 +123,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "can inject missing"() {
     when:
     handlers {
-      handler new InjectedOptionalHandler2()
+      all new InjectedOptionalHandler2()
     }
 
     then:
@@ -141,7 +141,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
       register {
         add ServerErrorHandler, new DefaultDevelopmentErrorHandler()
       }
-      handler new InjectedBadHandler()
+      all new InjectedBadHandler()
     }
 
     then:
@@ -154,11 +154,11 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
       bindInstance 10
     }
     handlers {
-      handler {
+      all {
         request.add("foo")
         next()
       }
-      handler new InjectedPrimitivesHandler()
+      all new InjectedPrimitivesHandler()
     }
 
     then:
@@ -172,11 +172,11 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
       bindInstance "bar"
     }
     handlers {
-      handler {
+      all {
         request.add("foo")
         next()
       }
-      handler new InjectedPrimitivesHandler()
+      all new InjectedPrimitivesHandler()
     }
 
     then:
@@ -187,7 +187,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "injection handler accessibility #injectionHandler.class"() {
     when:
     handlers {
-      handler injectionHandler
+      all injectionHandler
     }
 
     then:
@@ -219,7 +219,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      handler new GenericInjectionHandler()
+      all new GenericInjectionHandler()
     }
 
     then:

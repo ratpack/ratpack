@@ -81,7 +81,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     }
 
     handlers { CommandFactory factory ->
-      handler("blocking") {
+      path("blocking") {
         def firstCall = factory.hystrixCommand("1").queue()
         blocking {
           firstCall.get()
@@ -95,7 +95,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         }
       }
 
-      handler("observable") {
+      path("observable") {
         factory.hystrixObservableCommand("1").flatMap {
           factory.hystrixObservableCommand("2")
         } subscribe {
@@ -103,7 +103,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         }
       }
 
-      handler("blocking-observable") {
+      path("blocking-observable") {
         factory.hystrixBlockingObservableCommand("1").flatMap {
           factory.hystrixBlockingObservableCommand("2")
         } subscribe {
@@ -111,7 +111,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         }
       }
 
-      handler("http-observable") {
+      path("http-observable") {
         factory.hystrixObservableHttpCommand(otherAppUrl("foo/1")).flatMap {
           factory.hystrixObservableHttpCommand(otherAppUrl("foo/2")).map { ReceivedResponse resp ->
             return resp.body.text

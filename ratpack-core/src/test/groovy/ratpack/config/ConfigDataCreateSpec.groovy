@@ -55,7 +55,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
       bindInstance(MyAppConfig, serverConfig.get("/app", MyAppConfig))
     }
     handlers {
-      handler {
+      all {
         render("Hi, my name is ${get(MyAppConfig).name}")
       }
     }
@@ -96,7 +96,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
       bindInstance(configData)
     }
     handlers {
-      handler {
+      all {
         render("Hi, my name is ${get(MyAppConfig).name}")
       }
     }

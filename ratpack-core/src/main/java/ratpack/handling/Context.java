@@ -128,8 +128,8 @@ public interface Context extends ExecControl, Registry {
    *
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *         .handler(ctx -> ctx.next(Registries.just("foo")))
-   *         .handler(ctx -> ctx.render(ctx.get(String.class)))
+   *         .all(ctx -> ctx.next(Registries.just("foo")))
+   *         .all(ctx -> ctx.render(ctx.get(String.class)))
    *     ).test(httpClient -> {
    *       assertEquals("foo", httpClient.getText());
    *     });
@@ -176,14 +176,14 @@ public interface Context extends ExecControl, Registry {
    * public class Example {
    *   public static void main(String[] args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *       .handler("a", ctx -> {
+   *       .path("a", ctx -> {
    *         String val = "a";
    *         ctx.byMethod(m -> m
    *           .get(() -> ctx.render(val + " - " + "GET"))
    *           .post(() -> ctx.render(val + " - " + "POST"))
    *         );
    *       })
-   *       .handler("b", ctx -> {
+   *       .path("b", ctx -> {
    *         String val = "b";
    *         ctx.byMethod(m -> m
    *           .get(() -> ctx.render(val + " - " + "GET"))
