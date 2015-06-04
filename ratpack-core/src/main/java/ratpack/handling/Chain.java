@@ -168,7 +168,7 @@ import ratpack.server.ServerConfig;
  *         )
  *       )
  *     ).test(httpClient -> {
- *       assertEquals("foo", httpClient.getText("foo"));
+ *       assertEquals("ok", httpClient.getText("foo"));
  *       assertEquals(405, httpClient.post("foo").getStatusCode());
  *     });
  *   }
@@ -183,7 +183,7 @@ import ratpack.server.ServerConfig;
  *     EmbeddedApp.fromHandlers(c -> c
  *       .get("foo", ctx -> ctx.render("ok"))
  *     ).test(httpClient -> {
- *       assertEquals("foo", httpClient.getText("foo"));
+ *       assertEquals("ok", httpClient.getText("foo"));
  *       assertEquals(405, httpClient.post("foo").getStatusCode());
  *     });
  *   }
