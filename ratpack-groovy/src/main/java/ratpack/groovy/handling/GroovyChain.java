@@ -202,17 +202,25 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
+  default GroovyChain path(Handler handler) {
+    return path("", handler);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   default GroovyChain path(String path, Class<? extends Handler> handler) {
     return path(path, getRegistry().get(handler));
   }
 
   /**
-   * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
-   *
-   * @param handler the {@code Closure} to add
-   * @return this {@code GroovyChain}
+   * {@inheritDoc}
    */
-  GroovyChain all(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  @Override
+  default GroovyChain path(Class<? extends Handler> handler) {
+    return path("", handler);
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -225,6 +233,18 @@ public interface GroovyChain extends Chain {
    * @return this {@code GroovyChain}
    */
   GroovyChain path(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  default GroovyChain path(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return path("", handler);
+  }
+
+  /**
+   * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
+   *
+   * @param handler the {@code Closure} to add
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain all(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
