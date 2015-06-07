@@ -80,7 +80,6 @@ import javax.crypto.spec.SecretKeySpec;
  *
  *       response = client.get("set/foo");
  *       assertEquals("foo", response.getBody().getText());
- *       System.out.println("Set-Cookie " + response.getHeaders().getAll("Set-Cookie"));
  *       assertTrue("We set a value and our session name", response.getHeaders().getAll("Set-Cookie")
  *          .stream()
  *          .anyMatch(c -> c.startsWith("session_name")));
