@@ -71,7 +71,7 @@ public class SiteMain {
             int shortCache = 60 * 10; // ten mins
 
             c
-              .handler(ctx -> {
+              .all(ctx -> {
                 //noinspection ConstantConditions
                 String host = ctx.getRequest().getHeaders().get("host");
                 if (host != null && (host.endsWith("ratpack-framework.org") || host.equals("www.ratpack.io"))) {
@@ -87,7 +87,7 @@ public class SiteMain {
               })
 
               .prefix("assets", assets -> assets
-                  .handler(ctx -> {
+                  .all(ctx -> {
                     int cacheFor = ctx.getRequest().getQuery().isEmpty() ? shortCache : longCache;
                     ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
                     ctx.next();
@@ -101,7 +101,7 @@ public class SiteMain {
 
               .get(ctx -> ctx.render(groovyMarkupTemplate("index.gtpl")))
 
-              .handler("reset", ctx -> {
+              .path("reset", ctx -> {
                 GitHubApi gitHubApi = ctx.get(GitHubApi.class);
                 ctx.byMethod(methods -> {
                   Block impl = () -> {
@@ -137,7 +137,7 @@ public class SiteMain {
                   .fileSystem("manual", c2 -> c2
                       .get(ctx -> ctx.redirect(301, "manual/current"))
                       .prefix(":label", c3 -> c3
-                          .handler(ctx -> {
+                          .all(ctx -> {
                             String label = ctx.getPathTokens().get("label");
 
                             ctx.get(RatpackVersions.class).getAll().then(all -> {

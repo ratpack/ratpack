@@ -23,11 +23,11 @@ class RequestRegistrySpec extends RatpackGroovyDslSpec {
   def "can insert into request registry"() {
     when:
     handlers {
-      handler {
+      all {
         request.add("foo")
         next()
       }
-      handler {
+      all {
         render request.get(String)
       }
     }

@@ -182,7 +182,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "delegate in closure actions is no the arg"() {
     when:
     handlers {
-      handler {
+      all {
         blocking {
           [foo: "bar"]
         } then {
@@ -198,7 +198,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "can read request body in blocking operation"() {
     when:
     handlers {
-      handler {
+      all {
         blocking {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
           request.body.text
@@ -223,11 +223,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler {
+      all {
         next()
         events << "compute"
       }
-      handler {
+      all {
         blocking {
           events << "blocking"
         } then {

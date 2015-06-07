@@ -27,8 +27,8 @@ class ContentTypeHandlerSpec extends RatpackGroovyDslSpec {
   def "ok for valid"() {
     when:
     handlers {
-      handler(Handlers.contentTypes(APPLICATION_JSON, APPLICATION_FORM))
-      handler {
+      all(Handlers.contentTypes(APPLICATION_JSON, APPLICATION_FORM))
+      all {
         render "ok"
       }
     }

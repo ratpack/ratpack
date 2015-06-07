@@ -118,7 +118,7 @@ public abstract class Handlers {
    */
   public static Handler chain(List<? extends Handler> handlers) {
     if (handlers.size() == 0) {
-      return ctx -> ctx.next();
+      return Context::next;
     } else if (handlers.size() == 1) {
       return handlers.get(0);
     } else {

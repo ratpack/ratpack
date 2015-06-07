@@ -26,8 +26,8 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   def "add request uuids"() {
     given: 'a ratpack app with the logging request handlers added'
     handlers {
-      handler RequestId.bind()
-      handler {
+      all RequestId.bind()
+      all {
         render request.get(RequestId).id
       }
     }
@@ -44,13 +44,13 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     def logger = LoggerFactory.getLogger(RequestId)
     logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput)
 
-    given: 'a ratpack app with the logging request handler added'
+    given:
     handlers {
-      handler RequestId.bindAndLog()
-      handler("foo") {
+      all RequestId.bindAndLog()
+      path("foo") {
         render request.get(RequestId).id
       }
-      handler("bar") {
+      path("bar") {
         render request.get(RequestId).id
       }
     }

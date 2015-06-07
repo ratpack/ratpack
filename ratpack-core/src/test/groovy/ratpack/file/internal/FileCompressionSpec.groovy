@@ -43,7 +43,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
     given:
     requestCompression(true)
     handlers {
-      handler { it.response.noCompress(); it.next() }
+      all { it.response.noCompress(); it.next() }
       assets "public"
     }
 

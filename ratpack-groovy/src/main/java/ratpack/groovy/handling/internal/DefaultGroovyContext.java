@@ -25,18 +25,12 @@ import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Function;
-import ratpack.groovy.handling.GroovyByContentSpec;
-import ratpack.groovy.handling.GroovyByMethodSpec;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.handling.internal.DefaultByContentSpec;
-import ratpack.handling.internal.DefaultByMethodSpec;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.internal.ContentNegotiationHandler;
-import ratpack.http.internal.MultiMethodHandler;
 import ratpack.parse.Parse;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
@@ -46,8 +40,6 @@ import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -92,20 +84,12 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   public void byMethod(Closure<?> closure) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    ByMethodSpec delegate = new DefaultByMethodSpec(handlers);
-    GroovyByMethodSpec spec = new DefaultGroovyByMethodSpec(delegate);
-    ClosureUtil.configureDelegateFirst(spec, closure);
-    new MultiMethodHandler(handlers).handle(this);
+    delegate.byMethod(ClosureUtil.delegatingAction(ByMethodSpec.class, closure));
   }
 
   @Override
   public void byContent(Closure<?> closure) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    DefaultByContentSpec delegate = new DefaultByContentSpec(handlers);
-    GroovyByContentSpec spec = new DefaultGroovyByContentSpec(delegate);
-    ClosureUtil.configureDelegateFirst(spec, closure);
-    new ContentNegotiationHandler(handlers, delegate.getNoMatchHandler()).handle(this);
+    delegate.byContent(ClosureUtil.delegatingAction(ByContentSpec.class, closure));
   }
 
   @Override

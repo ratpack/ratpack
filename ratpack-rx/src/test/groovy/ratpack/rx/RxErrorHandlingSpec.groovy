@@ -246,7 +246,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
           next()
         }
       }
-      handler {
+      all {
         throw e
       }
     }

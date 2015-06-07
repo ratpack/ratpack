@@ -79,7 +79,7 @@ public interface RequestFixture {
    * @see #handle(Action, Action)
    */
   @SuppressWarnings("overloads")
-  public static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws Exception {
+  static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws Exception {
     RequestFixture requestFixture = requestFixture();
     action.execute(requestFixture);
     return requestFixture.handle(handler);
@@ -100,12 +100,12 @@ public interface RequestFixture {
    *
    *   public static class MyHandlers implements Action<Chain> {
    *     public void execute(Chain chain) throws Exception {
-   *       chain.handler(ctx -> {
+   *       chain.all(ctx -> {
    *         String outputHeaderValue = ctx.getRequest().getHeaders().get("input-value") + ":bar";
    *         ctx.getResponse().getHeaders().set("output-value", outputHeaderValue);
    *         ctx.next();
    *       });
-   *       chain.handler(ctx -> ctx.render("received: " + ctx.getRequest().getPath()) );
+   *       chain.all(ctx -> ctx.render("received: " + ctx.getRequest().getPath()) );
    *     }
    *   }
    *
@@ -128,7 +128,7 @@ public interface RequestFixture {
    * @see #handle(Handler, Action)
    */
   @SuppressWarnings("overloads")
-  public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws Exception {
+  static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws Exception {
     RequestFixture requestFixture = requestFixture();
     requestFixtureAction.execute(requestFixture);
     return requestFixture.handleChain(chainAction);
@@ -141,7 +141,7 @@ public interface RequestFixture {
    * @see #handle(ratpack.func.Action, ratpack.func.Action)
    * @return a request fixture
    */
-  public static RequestFixture requestFixture() {
+  static RequestFixture requestFixture() {
     return new DefaultRequestFixture();
   }
 

@@ -27,7 +27,7 @@ class GroovySpec extends RatpackGroovyDslSpec {
   def "can use chain method to wrap chain"() {
     when:
     handlers {
-      handler chain(new Action<Chain>() {
+      all chain(new Action<Chain>() {
         @Override
         void execute(Chain thing) throws Exception {
           Groovy.chain(thing) {
@@ -44,7 +44,7 @@ class GroovySpec extends RatpackGroovyDslSpec {
   def "can use chain method to create action"() {
     when:
     handlers {
-      handler chain(Groovy.chain {
+      all chain(Groovy.chain {
         get("foo") { render "bar" }
       })
     }
@@ -76,7 +76,7 @@ class GroovySpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler chain(new MyHandlers())
+      all chain(new MyHandlers())
     }
 
     then:

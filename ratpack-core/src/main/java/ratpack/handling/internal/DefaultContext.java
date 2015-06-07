@@ -18,6 +18,7 @@ package ratpack.handling.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -427,17 +428,17 @@ public class DefaultContext implements Context {
   }
 
   public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    DefaultByMethodSpec spec = new DefaultByMethodSpec(handlers);
+    Map<String, Block> blocks = Maps.newLinkedHashMap();
+    DefaultByMethodSpec spec = new DefaultByMethodSpec(blocks);
     action.execute(spec);
-    new MultiMethodHandler(handlers).handle(this);
+    new MultiMethodHandler(blocks).handle(this);
   }
 
   public void byContent(Action<? super ByContentSpec> action) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    DefaultByContentSpec spec = new DefaultByContentSpec(handlers);
+    Map<String, Block> blocks = Maps.newLinkedHashMap();
+    DefaultByContentSpec spec = new DefaultByContentSpec(blocks);
     action.execute(spec);
-    new ContentNegotiationHandler(handlers, spec.getNoMatchHandler()).handle(this);
+    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler()).handle(this);
   }
 
   @Override

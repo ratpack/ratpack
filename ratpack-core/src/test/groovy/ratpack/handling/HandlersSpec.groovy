@@ -42,7 +42,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
   def "default services available"() {
     when:
     handlers {
-      handler {
+      all {
         get(ServerErrorHandler)
         get(ClientErrorHandler)
         get(MimeTypes)

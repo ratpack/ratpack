@@ -26,7 +26,7 @@ class RequestInExecutionRegistrySpec extends RatpackGroovyDslSpec {
   def "request is available in execution registry"() {
     when:
     handlers {
-      handler {
+      all {
         render execution().get(Request).getPath()
       }
     }

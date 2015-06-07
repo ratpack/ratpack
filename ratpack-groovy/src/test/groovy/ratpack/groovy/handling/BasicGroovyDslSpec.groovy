@@ -46,7 +46,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
         get(":second") {
           response.send new LinkedHashMap<>(allPathTokens).toString()
         }
-        handler("c/:second") {
+        path("c/:second") {
           response.send new LinkedHashMap<>(allPathTokens).toString()
         }
       }
@@ -91,7 +91,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
   def "can use method chain"() {
     when:
     handlers {
-      handler("foo") {
+      path("foo") {
         def prefix = "common"
         byMethod {
           get {

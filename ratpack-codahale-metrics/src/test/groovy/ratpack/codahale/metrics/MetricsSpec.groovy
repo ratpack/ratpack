@@ -50,7 +50,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       module new CodaHaleMetricsModule(), { }
     }
     handlers { MetricRegistry metrics ->
-      handler {
+      all {
         render metrics.getClass().name
       }
     }
@@ -76,7 +76,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       }
     }
     handlers { MetricRegistry metrics ->
-      handler {
+      all {
         //noinspection GroovyAccessibility
         listeners = metrics.listeners
         render "ok"
@@ -113,7 +113,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       // Also need to consider a more general post startup hook
       metrics.addListener(reporter)
 
-      handler {
+      all {
         metrics.meter("requests").mark()
         render ""
       }
@@ -176,7 +176,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
 
-      handler("meter") { AnnotatedMetricService service ->
+      path("meter") { AnnotatedMetricService service ->
         service
           .triggerMeter1()
           .triggerMeter2()
@@ -223,7 +223,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
 
-      handler("timer") { AnnotatedMetricService service ->
+      path("timer") { AnnotatedMetricService service ->
         service
           .triggerTimer1()
           .triggerTimer2()
@@ -267,7 +267,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     handlers { MetricRegistry metrics ->
       registry = metrics
 
-      handler("gauge") { AnnotatedMetricService service ->
+      path("gauge") { AnnotatedMetricService service ->
         render ""
       }
     }
@@ -293,14 +293,14 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
       metrics.addListener(reporter)
 
-      handler {
+      all {
         render ""
       }
       prefix("foo") {
-        handler("bar") {
+        path("bar") {
           render ""
         }
-        handler {
+        all {
           render ""
         }
       }
@@ -328,7 +328,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
 
-      handler {
+      all {
         render ""
       }
     }
@@ -446,7 +446,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     handlers {MetricRegistry metrics ->
       metrics.addListener(reporter)
 
-      handler("foo") {
+      path("foo") {
         blocking {
           2
         } then {
@@ -482,7 +482,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     handlers { MetricRegistry metrics ->
-      handler { render "" }
+      all { render "" }
     }
 
     when:
@@ -519,7 +519,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
-      handler { render "" }
+      all { render "" }
     }
 
     when:
@@ -547,8 +547,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
-      handler("foo") { render "" }
-      handler("bar") {
+      path("foo") { render "" }
+      path("bar") {
         clientError(401)
       }
     }

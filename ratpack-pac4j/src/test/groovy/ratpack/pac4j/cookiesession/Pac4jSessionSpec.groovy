@@ -37,13 +37,13 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      handler(RatpackPac4j.callback(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+      all(RatpackPac4j.callback(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
       get("noauth") {
         def userProfile = maybeGet(UserProfile).orElse(null)
         response.send "noauth:" + userProfile?.attributes?.username
       }
       prefix("auth") {
-        handler(RatpackPac4j.auth(FormClient))
+        all(RatpackPac4j.auth(FormClient))
         get {
           def userProfile = maybeGet(UserProfile).orElse(null)
           response.send "auth:" + userProfile?.attributes?.username

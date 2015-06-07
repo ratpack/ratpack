@@ -39,7 +39,7 @@ import ratpack.spring.internal.SpringRegistryBacking;
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandlers(chain -> chain
  *       .register(spring(ExampleSpringBootApp.class))
- *       .handler(context -> {
+ *       .all(context -> {
  *         String helloBean = context.get(String.class);
  *         context.render(helloBean);
  *       })

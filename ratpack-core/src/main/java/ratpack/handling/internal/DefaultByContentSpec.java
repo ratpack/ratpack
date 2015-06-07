@@ -29,20 +29,15 @@ public class DefaultByContentSpec implements ByContentSpec {
   public static final String TYPE_JSON = "application/json";
   public static final String TYPE_XML = "application/xml";
 
-  private final Map<String, Handler> map;
+  private final Map<String, Block> blocks;
   private Handler noMatchHandler = ctx -> ctx.clientError(406);
 
-  public DefaultByContentSpec(Map<String, Handler> map) {
-    this.map = map;
+  public DefaultByContentSpec(Map<String, Block> blocks) {
+    this.blocks = blocks;
   }
 
   @Override
-  public ByContentSpec type(String mimeType, Block handler) {
-    return type(mimeType, ctx -> handler.execute());
-  }
-
-  @Override
-  public ByContentSpec type(String mimeType, Handler handler) {
+  public ByContentSpec type(String mimeType, Block block) {
     if (mimeType == null) {
       throw new IllegalArgumentException("mimeType cannot be null");
     }
@@ -56,7 +51,7 @@ public class DefaultByContentSpec implements ByContentSpec {
       throw new IllegalArgumentException("mimeType cannot include wildcards");
     }
 
-    map.put(trimmed, handler);
+    blocks.put(mimeType, block);
     return this;
   }
 
@@ -66,17 +61,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec plainText(Handler handler) {
-    return type(TYPE_PLAIN_TEXT, handler);
-  }
-
-  @Override
   public ByContentSpec html(Block handler) {
-    return type(TYPE_HTML, handler);
-  }
-
-  @Override
-  public ByContentSpec html(Handler handler) {
     return type(TYPE_HTML, handler);
   }
 
@@ -86,17 +71,7 @@ public class DefaultByContentSpec implements ByContentSpec {
   }
 
   @Override
-  public ByContentSpec json(Handler handler) {
-    return type(TYPE_JSON, handler);
-  }
-
-  @Override
   public ByContentSpec xml(Block handler) {
-    return type(TYPE_XML, handler);
-  }
-
-  @Override
-  public ByContentSpec xml(Handler handler) {
     return type(TYPE_XML, handler);
   }
 
@@ -108,15 +83,10 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   @Override
   public ByContentSpec noMatch(String mimeType) {
-    return noMatch(ctx -> {
+    noMatchHandler = ctx -> {
       ctx.getResponse().contentType(mimeType);
-      ctx.insert(map.get(mimeType));
-    });
-  }
-
-  @Override
-  public ByContentSpec noMatch(Handler handler) {
-    noMatchHandler = handler;
+      blocks.get(mimeType).execute();
+    };
     return this;
   }
 

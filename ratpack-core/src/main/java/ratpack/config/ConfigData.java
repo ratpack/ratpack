@@ -60,7 +60,7 @@ import java.util.List;
  *           .add(serverConfig.get("/app", MyAppConfig.class))
  *         )
  *         .handler(registry ->
- *           (ctx) -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName() + " at " + ctx.getServerConfig().getPublicAddress())
+ *           ctx -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName() + " at " + ctx.getServerConfig().getPublicAddress())
  *         );
  *     });
  *     server.start();

@@ -47,7 +47,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     def interceptor2 = new RecordingInterceptor("2")
 
     handlers {
-      handler {
+      all {
         addInterceptor(interceptor1) {
           addInterceptor(interceptor2) {
             next()
@@ -94,7 +94,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
       register {
         add(new SimpleErrorHandler())
       }
-      handler {
+      all {
         addInterceptor(interceptor1) {
           addInterceptor(interceptor2) {
             next()
@@ -124,7 +124,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler { throw new RuntimeException("!") }
+      all { throw new RuntimeException("!") }
     }
 
     then:

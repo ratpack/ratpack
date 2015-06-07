@@ -25,7 +25,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
   def "does not contain response time header by default"() {
     when:
     handlers {
-      handler { response.send() }
+      all { response.send() }
     }
 
     then:
@@ -42,7 +42,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler { response.send() }
+      all { response.send() }
     }
 
     then:
@@ -59,7 +59,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler {
+      all {
         blocking { sleep 100 } then { response.send() }
       }
     }

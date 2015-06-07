@@ -21,7 +21,7 @@ import ratpack.util.TypeCoercingMap;
 /**
  * A marker interface for the contextual object that represents the tokens extracted from the request path.
  *
- * @see ratpack.handling.Chain#handler(String, ratpack.handling.Handler)
+ * @see ratpack.handling.Chain#path(String, ratpack.handling.Handler)
  */
 public interface PathTokens extends TypeCoercingMap<String> {
 

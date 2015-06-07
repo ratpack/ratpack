@@ -27,11 +27,11 @@ class SpringBootAppGroovyDslIntegrationSpec extends RatpackGroovyDslSpec {
     handlers {
       register Spring.spring(SampleSpringBootApp)
 
-      handler("foo") { String msg ->
+      path("foo") { String msg ->
         render msg
       }
 
-      handler("bar") { CharSequence msg ->
+      path("bar") { CharSequence msg ->
         render msg
       }
     }

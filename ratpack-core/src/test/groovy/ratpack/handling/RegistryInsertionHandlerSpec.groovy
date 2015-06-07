@@ -74,7 +74,7 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       register just(Thing, new ThingImpl("foo"))
-      handler {
+      all {
         render get(Thing).value
       }
     }

@@ -30,7 +30,7 @@ import ratpack.registry.RegistrySpec;
  * The methods specific to this subclass create {@link ratpack.handling.Handler} instances from closures and
  * add them to the underlying chain.
  * <p>
- * These methods are generally shortcuts for {@link #handler(ratpack.handling.Handler)} on this underlying chain.
+ * These methods are generally shortcuts for {@link #all(ratpack.handling.Handler)} on this underlying chain.
  */
 public interface GroovyChain extends Chain {
 
@@ -182,28 +182,60 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain handler(Handler handler);
+  GroovyChain all(Handler handler);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default GroovyChain handler(Class<? extends Handler> handler) {
-    return handler(getRegistry().get(handler));
+  default GroovyChain all(Class<? extends Handler> handler) {
+    return all(getRegistry().get(handler));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain handler(String path, Handler handler);
+  GroovyChain path(String path, Handler handler);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default GroovyChain handler(String path, Class<? extends Handler> handler) {
-    return handler(path, getRegistry().get(handler));
+  default GroovyChain path(Handler handler) {
+    return path("", handler);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain path(String path, Class<? extends Handler> handler) {
+    return path(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain path(Class<? extends Handler> handler) {
+    return path("", handler);
+  }
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} exactly.
+   * <p>
+   * See {@link GroovyChain#path(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match exactly on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain path(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  default GroovyChain path(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return path("", handler);
   }
 
   /**
@@ -212,19 +244,7 @@ public interface GroovyChain extends Chain {
    * @param handler the {@code Closure} to add
    * @return this {@code GroovyChain}
    */
-  GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} exactly.
-   * <p>
-   * See {@link GroovyChain#handler(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match exactly on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  GroovyChain all(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -294,7 +314,7 @@ public interface GroovyChain extends Chain {
   /**
    * Inserts the given nested handler chain.
    * <p>
-   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(groovy.lang.Closure) chain}({@code closure}).
+   * Shorter form of {@link #all(Handler)} handler}({@link #chain(groovy.lang.Closure) chain}({@code closure}).
    *
    * @param closure the handler chain to insert
    * @return this

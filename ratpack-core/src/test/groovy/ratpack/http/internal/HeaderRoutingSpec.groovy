@@ -27,7 +27,7 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
         response.send("Header Handler")
       }
       prefix("abc") {
-        handler {
+        all {
           response.send("Prefix Handler")
         }
       }
