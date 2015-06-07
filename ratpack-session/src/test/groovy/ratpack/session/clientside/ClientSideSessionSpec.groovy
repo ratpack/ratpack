@@ -20,6 +20,7 @@ import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.Session
+import ratpack.session.SessionData
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Unroll
@@ -29,7 +30,7 @@ import java.time.Duration
 class ClientSideSessionSpec extends SessionSpec {
 
   private String[] getCookies(String startsWith, String path) {
-    getCookies(path).findAll { it.name.startsWith(startsWith)?.value } .toArray()
+    getCookies(path).findAll { it.name().startsWith(startsWith)?.value } .toArray()
   }
 
   def setup() {
@@ -275,5 +276,76 @@ class ClientSideSessionSpec extends SessionSpec {
     values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
     values.findAll { it.contains("ratpack_lat") && it.contains("Secure") }.size() == 1
     values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
+  }
+
+  private static class SessionContent {
+    SessionData data
+  }
+
+  @Unroll
+  def "secretKey with #algorithm renders session unreadable"() {
+    given:
+    SessionContent sessionContent = new SessionContent()
+    modules.clear()
+    bindings {
+      module SessionModule
+      module ClientSideSessionModule, {
+        it.with {
+          int length = 16
+          switch (algorithm) {
+            case ~/^AES.*/:
+              length = 16
+              break
+            case ~/^DESede.*/:
+              length = 24
+              break
+            case ~/^DES.*/:
+              length = 8
+              break
+          }
+          secretKey = "a" * length
+          cipherAlgorithm = algorithm
+        }
+      }
+      bindInstance(SessionContent, sessionContent)
+    }
+    handlers {
+      get("") { Session session ->
+        session.data.then { render it.get("value").orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session.data.then {
+          it.set("value", pathTokens.value); render "ok"
+        }
+      }
+      get("session") { Session session, SessionContent sc ->
+        session.data.then { sc.data = it; render "ok" }
+      }
+    }
+
+    expect:
+    get("")
+    response.body.text == "null"
+    getText("set/foo") == "ok"
+    get("session")
+    sessionContent.data.get("value").orElse("null") == "foo"
+    getText("") == "foo"
+
+    where:
+    algorithm << [
+      "Blowfish",
+      "AES/CBC/NoPadding",
+      "AES/CBC/PKCS5Padding",
+      "AES/ECB/NoPadding",
+      "AES/ECB/PKCS5Padding",
+      "DES/CBC/NoPadding",
+      "DES/CBC/PKCS5Padding",
+      "DES/ECB/NoPadding",
+      "DES/ECB/PKCS5Padding",
+      "DESede/CBC/NoPadding",
+      "DESede/CBC/PKCS5Padding",
+      "DESede/ECB/NoPadding",
+      "DESede/ECB/PKCS5Padding"
+    ]
   }
 }

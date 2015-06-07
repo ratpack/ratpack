@@ -30,7 +30,7 @@ public class SessionCookieConfig {
   private Duration expires;
   private String domain;
   private String path = "/";
-  private String name = "JSESSIONID";
+  private String idName = "JSESSIONID";
   private boolean httpOnly = true;
   private boolean secure;
 
@@ -73,8 +73,8 @@ public class SessionCookieConfig {
    *
    * @return the name of the cookie for session id
    */
-  public String getName() {
-    return name;
+  public String getIdName() {
+    return idName;
   }
 
   /**
@@ -131,10 +131,10 @@ public class SessionCookieConfig {
   /**
    * Set the name of the cookie for session id.
    *
-   * @param name the name of the cookie for session id
+   * @param idName the name of the cookie for session id
    */
-  public void setName(String name) {
-    this.name = name;
+  public void setIdName(String idName) {
+    this.idName = idName;
   }
 
   /**
@@ -195,11 +195,11 @@ public class SessionCookieConfig {
   /**
    * Set the name of the cookie for session id.
    *
-   * @param name the name of the cookie for session id
+   * @param idName the name of the cookie for session id
    * @return the config
    */
-  public SessionCookieConfig name(String name) {
-    this.name = name;
+  public SessionCookieConfig idName(String idName) {
+    this.idName = idName;
     return this;
   }
 

@@ -37,6 +37,7 @@ import javax.crypto.spec.SecretKeySpec;
  * import ratpack.session.Session;
  * import ratpack.session.SessionKey;
  * import ratpack.session.SessionModule;
+ * import ratpack.session.clientside.ClientSideSessionModule;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import static org.junit.Assert.*;
@@ -61,13 +62,13 @@ import javax.crypto.spec.SecretKeySpec;
  *       .handlers(chain -> chain
  *         .get(ctx -> {
  *           ctx.get(Session.class).getData()
- *             .map(d -> d.get(SessionKey.ofType("value", "value")).orElse("null"))
+ *             .map(d -> d.get(SessionKey.ofType("value", "value")).orElse("not set"))
  *             .then(ctx::render);
  *         })
  *         .get("set/:value", ctx -> {
  *           ctx.get(Session.class).getData().then(d -> {
  *             d.set("value", ctx.getPathTokens().get("value"));
- *             ctx.render("ok");
+ *             ctx.render(d.get(SessionKey.ofType("value", "value")).orElse("not set"));
  *           });
  *         })
  *       )
@@ -75,16 +76,20 @@ import javax.crypto.spec.SecretKeySpec;
  *     .test(client -> {
  *       ReceivedResponse response = client.get();
  *       assertEquals("not set", response.getBody().getText());
- *       assertFalse("No cookies should be set", response.getHeaders().contains("Set-Cookie"));
+ *       assertFalse("No cookies should be set", response.getHeaders().getAll("Set-Cookie").contains("session_name"));
  *
  *       response = client.get("set/foo");
  *       assertEquals("foo", response.getBody().getText());
- *       assertTrue("We set a value", response.getHeaders().contains("Set-Cookie"));
- *       assertTrue("Session uses our session name", response.getHeaders().get("Set-Cookie").contains("session-name"));
+ *       System.out.println("Set-Cookie " + response.getHeaders().getAll("Set-Cookie"));
+ *       assertTrue("We set a value and our session name", response.getHeaders().getAll("Set-Cookie")
+ *          .stream()
+ *          .anyMatch(c -> c.startsWith("session_name")));
  *
  *       response = client.get();
  *       assertEquals("foo", response.getBody().getText());
- *       assertFalse("We did not update session", response.getHeaders().contains("Set-Cookie"));
+ *       assertFalse("We did not update session", response.getHeaders().getAll("Set-Cookie")
+ *          .stream()
+ *          .anyMatch(c -> c.startsWith("session_name")));
  *     });
  *   }
  * }

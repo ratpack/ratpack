@@ -62,7 +62,7 @@ public class CookieBasedSessionId implements SessionId {
       Cookie match = null;
 
       for (Cookie cookie : request.getCookies()) {
-        if (cookie.name().equals(cookieConfig.getName())) {
+        if (cookie.name().equals(cookieConfig.getIdName())) {
           match = cookie;
           break;
         }
@@ -81,7 +81,7 @@ public class CookieBasedSessionId implements SessionId {
   }
 
   private void setCookie(String value, Duration expiration) {
-    DefaultCookie cookie = new DefaultCookie(cookieConfig.getName(), value);
+    DefaultCookie cookie = new DefaultCookie(cookieConfig.getIdName(), value);
 
     String cookieDomain = cookieConfig.getDomain();
     if (cookieDomain != null) {
