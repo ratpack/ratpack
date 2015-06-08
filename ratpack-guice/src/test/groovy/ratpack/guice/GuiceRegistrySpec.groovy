@@ -66,7 +66,7 @@ class GuiceRegistrySpec extends RegistryContractSpec {
     registry.get(String) == "foo"
 
     then:
-    1 * injector.getAllBindings() >> realInjector.getAllBindings()
+    1 * injector.getBindings() >> realInjector.getBindings()
   }
 
   def "cached providers can be dynamic"() {
@@ -86,7 +86,7 @@ class GuiceRegistrySpec extends RegistryContractSpec {
     registry.get(String) == "foo1"
 
     then:
-    1 * injector.getAllBindings() >> realInjector.getAllBindings()
+    1 * injector.getBindings() >> realInjector.getBindings()
   }
 
   def "equals and hashCode should be implemented"() {

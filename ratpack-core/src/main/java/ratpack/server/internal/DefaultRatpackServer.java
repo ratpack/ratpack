@@ -249,7 +249,8 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
-    for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
+    final Iterable<? extends HandlerDecorator> all = serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN);
+    for (HandlerDecorator handlerDecorator : all) {
       rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
     }
     return rootHandler;
