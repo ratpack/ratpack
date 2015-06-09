@@ -16,7 +16,6 @@
 
 package ratpack.groovy.render;
 
-import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
@@ -37,7 +36,7 @@ public abstract class GroovyRendererSupport<T> extends RendererSupport<T> {
    */
   @Override
   public final void render(Context context, T object) throws Exception {
-    render(Groovy.context(context), object);
+    render(GroovyContext.from(context), object);
   }
 
   /**

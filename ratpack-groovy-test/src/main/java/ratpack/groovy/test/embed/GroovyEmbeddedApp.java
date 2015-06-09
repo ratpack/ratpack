@@ -68,7 +68,7 @@ import static ratpack.util.Exceptions.uncheck;
  *     get {
  *       render "root"
  *     }
- *     files "public"
+ *     files { dir "public" }
  *   }
  * }.test {
  *   assert it.getText() == "root"

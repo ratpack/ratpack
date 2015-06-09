@@ -307,7 +307,8 @@ public class RatpackPac4j {
    * isn't already in the context registry.
    *
    * @param ctx the handling context
-   * @param type the handling context
+   * @param type the type of the user profile
+   * @param <T> the type of the user profile
    * @return a promise for the user profile
    * @see #userProfile(Context)
    */

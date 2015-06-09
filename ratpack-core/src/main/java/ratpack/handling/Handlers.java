@@ -21,6 +21,7 @@ import ratpack.file.FileHandlerSpec;
 import ratpack.file.internal.DefaultFileHandlerSpec;
 import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
+import ratpack.func.Predicate;
 import ratpack.handling.internal.*;
 import ratpack.http.internal.*;
 import ratpack.path.PathBinder;
@@ -185,31 +186,6 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHeader} with the
-   * given name and a it's value matches the given value exactly.
-   *
-   * @param headerName the name of the HTTP Header to match on
-   * @param headerValue the value of the HTTP Header to match on
-   * @param handler the handler to delegate to
-   * @return A handler
-   */
-  public static Handler header(String headerName, String headerValue, Handler handler) {
-    return new HeaderHandler(headerName, headerValue, handler);
-  }
-
-  /**
-   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHost} with the
-   * given name that matches the given value exactly.
-   *
-   * @param hostName the name of the HTTP Header to match on
-   * @param handler the handler to delegate to
-   * @return A handler
-   */
-  public static Handler host(String hostName, Handler handler) {
-    return new HeaderHandler("Host", hostName, handler);
-  }
-
-  /**
    * A handler that simply delegates to the next handler.
    * <p>
    * Effectively a noop.
@@ -335,4 +311,16 @@ public abstract class Handlers {
     return new RedirectionHandler(location, code);
   }
 
+  /**
+   * Creates a handler that inserts and delegates the given handler if the predicate applies to the context.
+   * <p>
+   * If the predicate does not apply, calls {@link Context#next()}.
+   *
+   * @param test the test whether to route to the given handler
+   * @param handler the handler to insert if the predicate applies
+   * @return a handler
+   */
+  public static Handler route(Predicate<? super Context> test, Handler handler) {
+    return new RouteHandler(test, handler);
+  }
 }

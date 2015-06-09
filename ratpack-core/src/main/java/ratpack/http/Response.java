@@ -118,7 +118,7 @@ public interface Response extends ResponseMetaData {
    * <p>
    * This method does not set the content length, content type or anything else.
    * It is generally preferable to use the {@link ratpack.handling.Context#render(Object)} method with a file/path object,
-   * or an {@link ratpack.handling.Chain#assets(String, String...)}.
+   * or an {@link ratpack.handling.Chain#files(Action)}.
    *
    * @param file the response body
    */

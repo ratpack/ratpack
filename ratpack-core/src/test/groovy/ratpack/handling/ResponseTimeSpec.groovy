@@ -76,7 +76,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets "files"
+      files { dir "files" }
     }
 
     then:
@@ -97,7 +97,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets "files"
+      files { dir "files" }
     }
 
     then:

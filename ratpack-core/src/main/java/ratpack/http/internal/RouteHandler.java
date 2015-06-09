@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,26 @@
 
 package ratpack.http.internal;
 
+import ratpack.func.Predicate;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-public class HeaderHandler implements Handler {
+public class RouteHandler implements Handler {
 
-  private final String headerName;
-  private final String headerValue;
+  private final Predicate<? super Context> test;
   private final Handler handler;
 
-  public HeaderHandler(String headerName, String headerValue, Handler handler) {
-    this.headerName = headerName;
-    this.headerValue = headerValue;
+  public RouteHandler(Predicate<? super Context> test, Handler handler) {
+    this.test = test;
     this.handler = handler;
   }
 
-  public void handle(Context context) throws Exception {
-    String value = context.getRequest().getHeaders().get(headerName);
-    if (value != null && value.equals(headerValue)) {
-      handler.handle(context);
+  @Override
+  public void handle(Context ctx) throws Exception {
+    if (test.apply(ctx)) {
+      ctx.insert(handler);
     } else {
-      context.next();
+      ctx.next();
     }
   }
 }
