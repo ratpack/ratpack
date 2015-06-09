@@ -65,10 +65,10 @@ public class Pac4jCallbackHandler implements Handler {
           Client<?, ?> client = clients.findClient(webContext);
           UserProfile profile = getProfile(webContext, client);
           if (profile != null) {
-            sessionData.set(Pac4jSessionKeys.USER_PROFILE_SESSION_KEY, profile);
+            sessionData.set(Pac4jSessionKeys.USER_PROFILE, profile);
           }
-          Optional<String> originalUrl = sessionData.get(Pac4jSessionKeys.REQUESTED_URL_SESSION_KEY);
-          sessionData.remove(Pac4jSessionKeys.REQUESTED_URL_SESSION_KEY);
+          Optional<String> originalUrl = sessionData.get(Pac4jSessionKeys.REQUESTED_URL);
+          sessionData.remove(Pac4jSessionKeys.REQUESTED_URL);
           ctx.redirect(originalUrl.orElse("/"));
         } catch (Exception e) {
           if (e instanceof RequiresHttpAction) {
