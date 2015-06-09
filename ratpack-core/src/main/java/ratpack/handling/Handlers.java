@@ -17,7 +17,8 @@
 package ratpack.handling;
 
 import ratpack.api.Nullable;
-import ratpack.file.internal.AssetHandler;
+import ratpack.file.FileHandlerSpec;
+import ratpack.file.internal.DefaultFileHandlerSpec;
 import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
 import ratpack.handling.internal.*;
@@ -29,8 +30,6 @@ import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.util.List;
-
-import static com.google.common.collect.ImmutableList.copyOf;
 
 /**
  * Factory methods for handler decorations.
@@ -51,26 +50,17 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * Creates a handler that serves files from the file system.
    * <p>
-   * The file to serve is calculated based on the contextual {@link ratpack.file.FileSystemBinding} and the
-   * contextual {@link ratpack.path.PathBinding}.
-   * The {@link ratpack.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
-   * relative to the contextual file system binding.
-   * <p>
-   * If the request matches a directory, an index file may be served.
-   * The {@code indexFiles} array specifies the names of files to look for in order to serve.
-   * <p>
-   * If no file can be found to serve, then control will be delegated to the next handler.
+   * This method is a standalone version of {@link Chain#files(Action)}.
    *
-   * @param serverConfig The application server config
-   * @param path The relative path to the location of the assets to serve
-   * @param indexFiles The index files to try if the request is for a directory
-   * @return A handler
+   * @param serverConfig the server config
+   * @param config the configuration of the file handler
+   * @return a file serving handler
+   * @throws Exception any thrown by {@code config}
    */
-  public static Handler assets(ServerConfig serverConfig, String path, List<String> indexFiles) {
-    Handler handler = new AssetHandler(copyOf(indexFiles));
-    return fileSystem(serverConfig, path, handler);
+  public static Handler files(ServerConfig serverConfig, Action<? super FileHandlerSpec> config) throws Exception {
+    return DefaultFileHandlerSpec.build(serverConfig, config);
   }
 
   /**

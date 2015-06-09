@@ -42,10 +42,6 @@ public class DefaultChain implements Chain {
     this.registry = registry;
   }
 
-  public Chain assets(String path, String... indexFiles) {
-    return all(Handlers.assets(getServerConfig(), path, copyOf(indexFiles)));
-  }
-
   @Override
   public Handler chain(Action<? super Chain> action) throws Exception {
     return Handlers.chain(getServerConfig(), getRegistry(), action);

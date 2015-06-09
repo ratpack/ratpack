@@ -50,7 +50,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
           response.send new LinkedHashMap<>(allPathTokens).toString()
         }
       }
-      assets("public")
+      files { dir "public" }
     }
 
     then:

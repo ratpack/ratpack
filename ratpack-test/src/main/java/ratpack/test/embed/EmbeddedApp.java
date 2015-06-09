@@ -176,6 +176,10 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
     return fromServer(ServerConfig.embedded().build(), b -> b.handler(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
   }
 
+  static EmbeddedApp fromHandlers(Path baseDir, Action<? super Chain> action) {
+    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.handler(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
+  }
+
   /**
    * The server for the application.
    * <p>

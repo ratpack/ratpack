@@ -16,11 +16,13 @@
 
 package ratpack.handling;
 
+import ratpack.file.FileHandlerSpec;
 import ratpack.func.Action;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
+import ratpack.util.Exceptions;
 
 /**
  * A chain can be used to build a linked series of handlers.
@@ -242,25 +244,57 @@ import ratpack.server.ServerConfig;
 public interface Chain {
 
   /**
-   * Adds a handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * Adds a handler that serves files from the file system.
    * <p>
-   * See {@link Handlers#assets(ServerConfig, String, java.util.List)} for more details on the handler created
-   * <pre>
-   *    prefix("foo") {
-   *      assets("d1", "index.html", "index.xhtml")
-   *    }
-   * </pre>
-   * In the above configuration a request like "/foo/app.js" will return the static file "app.js" that is
-   * located in the directory "d1".
-   * <p>
-   * If the request matches a directory e.g. "/foo", an index file may be served.  The {@code indexFiles}
-   * array specifies the names of files to look for in order to serve.
+   * The given action configures how and what files will be served.
+   * The handler binds to a {@link FileHandlerSpec#path(String) request path}
+   * and a {@link FileHandlerSpec#dir(String) directory} within the current filesystem binding.
+   * The portion of the request path <i>past</i> the path binding identifies the target file within the directory.
    *
-   * @param path the relative path to the location of the assets to serve
-   * @param indexFiles the index files to try if the request is for a directory
-   * @return this
+   * <pre class="java">{@code
+   * import ratpack.test.embed.BaseDirBuilder;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     BaseDirBuilder.tmpDir().build(
+   *       b -> {
+   *         b.file("public/some.text", "foo");
+   *         b.file("public/index.html", "bar");
+   *       },
+   *       baseDir ->
+   *         EmbeddedApp.fromHandlers(baseDir, c -> c
+   *             .files(f -> f.dir("public").indexFiles("index.html"))
+   *         ).test(httpClient -> {
+   *           assertEquals("foo", httpClient.getText("some.text"));
+   *           assertEquals("bar", httpClient.getText());
+   *           assertEquals(404, httpClient.get("no-file-here").getStatusCode());
+   *         })
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param config the file handler configuration
+   * @return {@code this}
+   * @throws Exception any thrown by {@code config}
+   * @see Handlers#files(ServerConfig, Action)
+   * @see FileHandlerSpec
    */
-  Chain assets(String path, String... indexFiles);
+  default Chain files(Action<? super FileHandlerSpec> config) throws Exception {
+    return all(Handlers.files(getServerConfig(), config));
+  }
+
+  /**
+   * {@link #files(Action)}, using the default config.
+   *
+   * @return {@code this}
+   */
+  default Chain files() {
+    return Exceptions.uncheck(() -> files(Action.noop()));
+  }
 
   /**
    * Constructs a handler using the given action to define a chain.

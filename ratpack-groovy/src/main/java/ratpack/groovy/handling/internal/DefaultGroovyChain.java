@@ -26,9 +26,9 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.ServerConfig;
 
 import static ratpack.groovy.Groovy.groovyHandler;
 
@@ -38,12 +38,6 @@ public class DefaultGroovyChain implements GroovyChain {
 
   public DefaultGroovyChain(Chain delegate) {
     this.delegate = delegate;
-  }
-
-  @Override
-  public GroovyChain assets(String path, String... indexFiles) {
-    delegate.assets(path, indexFiles);
-    return this;
   }
 
   @Override

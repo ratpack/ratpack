@@ -33,7 +33,7 @@ class ShadowJarSpec extends FunctionalSpec {
 
       ratpack {
         handlers {
-          assets "public"
+          files { dir "public" }
           get { Stopper stopper ->
             onClose { stopper.stop() }
             render "stopping"

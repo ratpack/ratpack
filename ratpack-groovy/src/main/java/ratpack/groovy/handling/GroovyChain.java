@@ -18,7 +18,10 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.file.FileHandlerSpec;
+import ratpack.file.internal.FileHandler;
 import ratpack.func.Action;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
@@ -38,7 +41,14 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain assets(String path, String... indexFiles);
+  default GroovyChain files(Action<? super FileHandlerSpec> config) throws Exception {
+    Chain.super.files(config);
+    return this;
+  }
+
+  default GroovyChain files(@DelegatesTo(value = FileHandlerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return files(ClosureUtil.delegatingAction(FileHandlerSpec.class, closure));
+  }
 
   /**
    * Creates a handler from the given closure.

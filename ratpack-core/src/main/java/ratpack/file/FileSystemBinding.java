@@ -17,6 +17,7 @@
 package ratpack.file;
 
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 
 import java.nio.file.Path;
 
@@ -27,7 +28,7 @@ import java.nio.file.Path;
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *
- * @see ratpack.handling.Chain#assets(String, String...)
+ * @see ratpack.handling.Chain#files(Action)
  */
 public interface FileSystemBinding {
 
