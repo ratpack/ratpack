@@ -83,7 +83,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
-  protected boolean ssl = false;
+  protected boolean useSsl;
   private final ServerCapturer.Overrides overrides;
 
   public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
@@ -189,7 +189,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
     SSLContext sslContext = serverConfig.getSSLContext();
-    this.ssl = sslContext != null ? true : false;
+    useSsl = sslContext != null;
 
     return new ServerBootstrap()
       .group(execController.getEventLoopGroup())
@@ -318,7 +318,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized String getScheme() {
-    return isRunning() ? !this.ssl ? "http" : "https" : null;
+    return isRunning() ? this.useSsl ? "https" : "http" : null;
   }
 
   public synchronized int getBindPort() {
