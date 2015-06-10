@@ -189,7 +189,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
     SSLContext sslContext = serverConfig.getSSLContext();
-    useSsl = sslContext != null;
+    this.useSsl = sslContext != null;
 
     return new ServerBootstrap()
       .group(execController.getEventLoopGroup())
