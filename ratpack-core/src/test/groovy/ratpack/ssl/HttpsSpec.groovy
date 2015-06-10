@@ -48,7 +48,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      assets("public")
+      files { dir "public" }
       get {
         response.send "trust no one"
       }

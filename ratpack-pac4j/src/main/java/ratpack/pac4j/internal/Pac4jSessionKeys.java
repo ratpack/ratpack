@@ -16,17 +16,23 @@
 
 package ratpack.pac4j.internal;
 
+import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.session.SessionKey;
 
-import static org.pac4j.core.context.Pac4jConstants.REQUESTED_URL;
-import static org.pac4j.core.context.Pac4jConstants.USER_PROFILE;
-
 public class Pac4jSessionKeys {
 
-  public static final SessionKey<String> REQUESTED_URL_SESSION_KEY = SessionKey.of(REQUESTED_URL, String.class);
-  public static final SessionKey<UserProfile> USER_PROFILE_SESSION_KEY = SessionKey.of(USER_PROFILE, UserProfile.class);
+  public static final SessionKey<String> REQUESTED_URL = SessionKey.of(
+    Pac4jConstants.REQUESTED_URL,
+    String.class
+  );
+
+  public static final SessionKey<UserProfile> USER_PROFILE = SessionKey.of(
+    Pac4jConstants.USER_PROFILE,
+    UserProfile.class
+  );
 
   private Pac4jSessionKeys() {
   }
+
 }

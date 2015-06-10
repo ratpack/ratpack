@@ -22,7 +22,6 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.ClassFile;
-import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
@@ -35,11 +34,11 @@ public class ClosureBackedHandler implements DescribingHandler {
   private final ClosureInvoker<?, GroovyContext> invoker;
 
   public ClosureBackedHandler(Closure<?> closure) {
-    this.invoker = new ClosureInvoker<Object, GroovyContext>(closure);
+    this.invoker = new ClosureInvoker<>(closure);
   }
 
   public void handle(Context context) {
-    invoker.invoke(new HierarchicalRegistry(context.getRequest(), context), Groovy.context(context), Closure.DELEGATE_FIRST);
+    invoker.invoke(new HierarchicalRegistry(context.getRequest(), context), GroovyContext.from(context), Closure.DELEGATE_FIRST);
   }
 
   @Override

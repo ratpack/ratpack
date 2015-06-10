@@ -63,7 +63,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public")
+      files { dir "public" }
       all {
         render "after"
       }
@@ -80,7 +80,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public")
+      files { dir 'public' }
     }
 
     then:
@@ -100,7 +100,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public", "index.html", "index.xhtml")
+      files { dir "public" indexFiles "index.html", "index.xhtml" }
     }
 
     then:
@@ -140,7 +140,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
         onClose { stopper.stop() }
         next()
       }
-      assets("public")
+      files { it.dir "public" }
       get {
         render file("public/index.html")
       }
@@ -164,7 +164,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public", "index.html")
+      files { dir "public" indexFiles "index.html" }
     }
 
     then:
@@ -197,7 +197,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public", "index.html")
+      files { dir "public" indexFiles "index.html" }
     }
 
     then:
@@ -213,10 +213,10 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       prefix("a") {
-        assets("d1")
+        files { dir "d1" }
       }
       prefix("b") {
-        assets("d2")
+        files { dir "d2" }
       }
     }
 
@@ -233,7 +233,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("d1")
+      files { dir "d1" }
     }
 
     then:
@@ -252,7 +252,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     handlers {
       fileSystem("d1") {
         fileSystem("d2") {
-          assets("d3", "index.html")
+          files { dir "d3" indexFiles "index.html" }
         }
       }
     }
@@ -268,7 +268,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       prefix("bar") {
-        assets("foo")
+        files {  dir "foo" }
       }
     }
 
@@ -283,7 +283,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      assets("public")
+      files { dir "public" }
     }
 
     expect:
@@ -299,7 +299,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public")
+      files { dir "public" }
     }
 
     then:
@@ -316,7 +316,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      assets("public")
+      files { dir "public" }
     }
 
     and:
@@ -347,7 +347,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      assets("public", "index.txt")
+      files { dir "public" indexFiles "index.txt" }
     }
 
     and:
@@ -369,7 +369,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets("public")
+      files { dir "public" }
     }
 
     then:
@@ -393,7 +393,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      assets "public"
+      files { dir "public" }
       all { render "after" }
     }
 
@@ -407,7 +407,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     setup:
     file("public/foo.txt", "bar")
     handlers {
-      assets "public"
+      files { dir "public" }
     }
 
     when:

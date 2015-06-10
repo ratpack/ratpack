@@ -20,6 +20,7 @@ import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.exec.*;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.handling.direct.DirectChannelAccess;
@@ -703,5 +704,9 @@ public interface Context extends ExecControl, Registry {
    * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
    */
   Path file(String path) throws NotInRegistryException;
+
+  default FileSystemBinding getFileSystemBinding() throws NotInRegistryException {
+    return get(FileSystemBinding.class);
+  }
 
 }

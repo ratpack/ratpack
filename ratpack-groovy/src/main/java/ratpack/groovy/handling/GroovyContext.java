@@ -18,6 +18,7 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.ByMethodSpec;
 import ratpack.handling.Context;
@@ -27,6 +28,20 @@ import ratpack.handling.RequestOutcome;
  * Subclass of {@link ratpack.handling.Context} that adds Groovy friendly variants of methods.
  */
 public interface GroovyContext extends Context {
+
+  /**
+   * Creates a Groovy context from a context.
+   *
+   * @param ctx the actual context
+   * @return a Groovy context
+   */
+  static GroovyContext from(Context ctx) {
+    if (ctx instanceof GroovyContext) {
+      return (GroovyContext) ctx;
+    } else {
+      return new DefaultGroovyContext(ctx);
+    }
+  }
 
   /**
    * {@inheritDoc}

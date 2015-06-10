@@ -27,7 +27,7 @@ import java.nio.file.Path;
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *
- * @see ratpack.handling.Chain#assets(String, String...)
+ * @see ratpack.handling.Chain#files(ratpack.func.Action)
  */
 public interface FileSystemBinding {
 

@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.collect.Lists;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
@@ -24,7 +25,6 @@ import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ChainBuilders {
@@ -42,7 +42,7 @@ public class ChainBuilders {
   }
 
   private static <T> Handler create(Function<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) throws Exception {
-    List<Handler> handlers = new LinkedList<>();
+    List<Handler> handlers = Lists.newLinkedList();
     T chainBuilder = toChainBuilder.apply(handlers);
     chainBuilderAction.execute(chainBuilder);
     return Handlers.chain(handlers.toArray(new Handler[handlers.size()]));

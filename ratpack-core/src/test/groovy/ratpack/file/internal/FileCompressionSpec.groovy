@@ -44,7 +44,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
     requestCompression(true)
     handlers {
       all { it.response.noCompress(); it.next() }
-      assets "public"
+      files { dir "public" }
     }
 
     when:
@@ -59,7 +59,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
     when:
     requestCompression(true)
     handlers {
-      assets "public"
+      files { dir "public" }
     }
 
     then:

@@ -13,6 +13,6 @@ ratpack {
       render groovyMarkupTemplate("index.gtpl", title: "My Ratpack App")
     }
 
-    assets "public"
+    files { dir "public" }
   }
 }

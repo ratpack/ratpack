@@ -46,14 +46,14 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      all(RatpackPac4j.callback(new OpenIdTestClient(provider.port)))
+      all(RatpackPac4j.authenticator(new OpenIdTestClient(provider.port)))
       get("noauth") {
         def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
         def genericUserProfile = maybeGet(UserProfile).orElse(null)
         response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
       }
       prefix("auth") {
-        all(RatpackPac4j.auth(OpenIdTestClient))
+        all(RatpackPac4j.requireAuth(OpenIdTestClient))
         get {
           def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
           def genericUserProfile = maybeGet(UserProfile).orElse(null)
@@ -89,7 +89,7 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
 
     then:
     response2.statusCode == FOUND.code()
-    response2.headers.get(LOCATION).contains(RatpackPac4j.DEFAULT_CALLBACK_PATH)
+    response2.headers.get(LOCATION).contains(RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH)
 
     when:
     client.resetRequest()

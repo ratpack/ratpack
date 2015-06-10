@@ -30,11 +30,11 @@ import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 import static ratpack.file.internal.DefaultFileRenderer.sendFile;
 import static ratpack.util.Exceptions.uncheck;
 
-public class AssetHandler implements Handler {
+public class FileHandler implements Handler {
 
   private final ImmutableList<String> indexFiles;
 
-  public AssetHandler(ImmutableList<String> indexFiles) {
+  public FileHandler(ImmutableList<String> indexFiles) {
     this.indexFiles = indexFiles;
   }
 

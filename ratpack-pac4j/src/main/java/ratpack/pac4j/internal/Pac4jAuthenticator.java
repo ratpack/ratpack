@@ -36,12 +36,12 @@ import ratpack.util.Types;
 import java.util.List;
 import java.util.Optional;
 
-public class Pac4jCallbackHandler implements Handler {
+public class Pac4jAuthenticator implements Handler {
 
   private final String path;
   private final ImmutableList<Client<?, ?>> clients;
 
-  public Pac4jCallbackHandler(String path, List<Client<?, ?>> clients) {
+  public Pac4jAuthenticator(String path, List<Client<?, ?>> clients) {
     this.path = path;
     this.clients = ImmutableList.copyOf(clients);
   }
@@ -65,10 +65,10 @@ public class Pac4jCallbackHandler implements Handler {
           Client<?, ?> client = clients.findClient(webContext);
           UserProfile profile = getProfile(webContext, client);
           if (profile != null) {
-            sessionData.set(Pac4jSessionKeys.USER_PROFILE_SESSION_KEY, profile);
+            sessionData.set(Pac4jSessionKeys.USER_PROFILE, profile);
           }
-          Optional<String> originalUrl = sessionData.get(Pac4jSessionKeys.REQUESTED_URL_SESSION_KEY);
-          sessionData.remove(Pac4jSessionKeys.REQUESTED_URL_SESSION_KEY);
+          Optional<String> originalUrl = sessionData.get(Pac4jSessionKeys.REQUESTED_URL);
+          sessionData.remove(Pac4jSessionKeys.REQUESTED_URL);
           ctx.redirect(originalUrl.orElse("/"));
         } catch (Exception e) {
           if (e instanceof RequiresHttpAction) {

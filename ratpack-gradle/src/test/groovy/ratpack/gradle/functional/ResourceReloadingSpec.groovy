@@ -42,7 +42,7 @@ class ResourceReloadingSpec extends FunctionalSpec {
              sleep 1000
              new File("port").text = server.bindPort
           }
-          assets "public"
+          files { dir "public" }
           get {
             onClose { server.stop() }
             render "stopping"

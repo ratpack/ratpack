@@ -17,7 +17,6 @@
 package ratpack.site;
 
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
-import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Block;
 import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
@@ -92,7 +91,7 @@ public class SiteMain {
                     ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
                     ctx.next();
                   })
-                  .assets("assets", "index.html")
+                  .files(f -> f.dir("assets").indexFiles("index.html"))
               )
 
               .get("index.html", ctx -> {
@@ -164,10 +163,10 @@ public class SiteMain {
                                   break;
                               }
 
-                              ctx.next(just(new DefaultFileSystemBinding(ctx.file(version.getVersion()))));
+                              ctx.next(just(ctx.getFileSystemBinding().binding(version.getVersion())));
                             });
                           })
-                          .assets("", "index.html")
+                          .files(f -> f.indexFiles("index.html"))
                       )
                   )
 
@@ -177,7 +176,7 @@ public class SiteMain {
                 ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
                 ctx.next();
               })
-              .assets("public", "index.html");
+              .files(f -> f.dir("public").indexFiles("index.html"));
           });
       }
     );

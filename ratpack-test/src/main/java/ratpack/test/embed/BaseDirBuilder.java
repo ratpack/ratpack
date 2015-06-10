@@ -17,6 +17,7 @@
 package ratpack.test.embed;
 
 import com.google.common.io.Files;
+import ratpack.func.Action;
 import ratpack.test.embed.internal.JarFileBaseDirBuilder;
 import ratpack.test.embed.internal.PathBaseDirBuilder;
 import ratpack.util.Exceptions;
@@ -24,7 +25,6 @@ import ratpack.util.Exceptions;
 import java.io.Closeable;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
 public interface BaseDirBuilder extends Closeable {
 
@@ -44,9 +44,17 @@ public interface BaseDirBuilder extends Closeable {
     return new JarFileBaseDirBuilder(jarFile);
   }
 
-  default Path build(Consumer<? super BaseDirBuilder> consumer) {
-    consumer.accept(this);
+  default Path build(Action<? super BaseDirBuilder> contents) throws Exception {
+    contents.execute(this);
     return build();
+  }
+
+  default void build(Action<? super BaseDirBuilder> contents, Action<? super Path> use) throws Exception {
+    try {
+      use.execute(build(contents));
+    } finally {
+      close();
+    }
   }
 
   /**

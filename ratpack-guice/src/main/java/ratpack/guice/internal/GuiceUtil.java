@@ -33,11 +33,13 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void search(Injector injector, TypeToken<T> type, Function<Provider<? extends T>, Boolean> transformer) {
-    Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
-    for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
-      TypeLiteral<?> bindingType = keyBindingEntry.getKey().getTypeLiteral();
+    Map<Key<?>, Binding<?>> bindings = injector.getBindings();
+    for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : bindings.entrySet()) {
+      final Key<?> key = keyBindingEntry.getKey();
+      final Binding<?> binding = keyBindingEntry.getValue();
+      TypeLiteral<?> bindingType = key.getTypeLiteral();
       if (type.isAssignableFrom(toTypeToken(bindingType))) {
-        @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) keyBindingEntry.getValue().getProvider();
+        @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) binding.getProvider();
         try {
           if (!transformer.apply(provider)) {
             return;
