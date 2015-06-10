@@ -30,7 +30,7 @@ import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
-import ratpack.pac4j.internal.Pac4jCallbackHandler;
+import ratpack.pac4j.internal.Pac4jAuthenticator;
 import ratpack.pac4j.internal.Pac4jSessionKeys;
 import ratpack.pac4j.internal.RatpackWebContext;
 import ratpack.path.PathBinding;
@@ -40,64 +40,43 @@ import ratpack.session.Session;
 import java.util.Optional;
 
 /**
- * <pre class="java">{@code
- * import org.pac4j.oauth.client.GitHubClient;
- * import org.pac4j.oauth.profile.github.GitHubProfile;
- * import ratpack.guice.Guice;
- * import ratpack.handling.Context;
- * import ratpack.http.client.ReceivedResponse;
- * import ratpack.pac4j.RatpackPac4j;
- * import ratpack.session.SessionModule;
- * import ratpack.test.embed.EmbeddedApp;
- *
- * import static org.junit.Assert.assertEquals;
- * import static org.junit.Assert.assertTrue;
- *
- * public class Example {
- *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .registry(
- *         Guice.registry(b -> b
- *           .module(SessionModule.class) // session support is required
- *         )
- *       )
- *       .handlers(c -> c
- *         .all(RatpackPac4j.callback(new GitHubClient("key", "secret"))) // callback handler must be upstream from auth handlers
- *         .prefix("private", p -> p
- *           .all(RatpackPac4j.auth(GitHubClient.class)) // authenticate all requests flowing through here
- *           .all(ctx -> {
- *             String displayName = ctx.maybeGet(GitHubProfile.class) // auth handler puts profile in context registry
- *               .map(GitHubProfile::getDisplayName)
- *               .orElse("noone");
- *
- *             ctx.render("Authenticated as " + displayName);
- *           })
- *         )
- *       )
- *     ).test(httpClient -> {
- *       ReceivedResponse response = httpClient.get("private/test");
- *       String location = response.getHeaders().get("Location");
- *       assertEquals(301, response.getStatusCode());
- *       assertTrue(location != null && location.startsWith("https://github.com/login/oauth"));
- *     });
- *   }
- * }
- * }</pre>
+ * Provides integration with the <a href="http://www.pac4j.org">Pac4j library</a> for authentication and authorization.
+ * <p>
+ * Pac4j support many different authentication providers, such as external sources like GitHub, Twitter, Facebook etc., as well
+ * as proprietary local authentication sources.
+ * <p>
+ * The {@link #authenticator(Client[])} method provides a handler that implements the authentication process,
+ * and is required in all apps wanting to use authentication.
+ * <p>
+ * The {@link #requireAuth(Class)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
+ * This can be used for requiring authentication for all requests starting with a particular request path for example.
+ * <p>
+ * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
  */
 public class RatpackPac4j {
 
   /**
-   * The default auth callback path, {@value}, used by {@link #callback(Client[])}.
+   * The default path to the authenticator, {@value}, used by {@link #authenticator(Client[])}.
    */
-  public static final String DEFAULT_CALLBACK_PATH = "authenticator";
+  public static final String DEFAULT_AUTHENTICATOR_PATH = "authenticator";
 
   private RatpackPac4j() {
   }
 
   /**
-   * Returns the callback handler, which handles authentication requests.
+   * Calls {@link #authenticator(String, Client[])} with {@link #DEFAULT_AUTHENTICATOR_PATH}.
+   *
+   * @param clients the supported auth clients
+   * @return a handler
+   */
+  public static Handler authenticator(Client<?, ?>... clients) {
+    return authenticator(DEFAULT_AUTHENTICATOR_PATH, clients);
+  }
+
+  /**
+   * The authenticator handler implements authentication.
    * <p>
-   * This handler <b>MUST</b> be placed <b>BEFORE</b> the {@link #auth auth handler} in the handler pipeline.
+   * This handler <b>MUST</b> be <b>BEFORE</b> any code in the handler pipeline that tries to identify the user, such as a {@link #requireAuth} handler in the pipeline.
    * It should be added to the handler chain via the {@link Chain#all(Handler)}.
    * That is, it should not be added with {@link Chain#get(Handler)} or any method that filters based on request method.
    * It is common for this handler to be one of the first handlers in the pipeline.
@@ -106,60 +85,78 @@ public class RatpackPac4j {
    * If the path matches, the handler will attempt authentication, which may involve redirecting to an external auth provider, which may then redirect back to this handler.
    * If authentication is successful, the {@link UserProfile} of the authenticated user will be placed into the session.
    * The user will then be redirected back to the URL that initiated the authentication.
-   *
+   * <p>
    * If the path does not match, the handler will push an instance of {@link Clients} into the context registry and pass control downstream.
-   * The {@link Clients} instance will be retrieved downstream by any {@link #auth(Class)} handlers and used to discover the callback URL for authentication.
+   * The {@link Clients} instance will be retrieved downstream by any {@link #requireAuth(Class)} handler (or use of {@link #login(Context, Class)}.
    *
-   * @param path the auth callback path (not typically seen by users)
+   * @param path the path to bind the authenticator to (relative to the current request path binding)
    * @param clients the supported authentication clients
    * @return a handler
    */
-  public static Handler callback(String path, Client<?, ?>... clients) {
-    return new Pac4jCallbackHandler(path, ImmutableList.copyOf(clients));
-  }
-
-  /**
-   * Calls {@link #callback(String, Client[])} with {@link #DEFAULT_CALLBACK_PATH}.
-   *
-   * @param clients the supported auth clients
-   * @return a handler
-   */
-  public static Handler callback(Client<?, ?>... clients) {
-    return callback(DEFAULT_CALLBACK_PATH, clients);
+  public static Handler authenticator(String path, Client<?, ?>... clients) {
+    return new Pac4jAuthenticator(path, ImmutableList.copyOf(clients));
   }
 
   /**
    * An authentication “filter”, that initiates authentication if necessary.
    * <p>
-   * This handler requires a {@link Clients} instance available in the context registry.
-   * This can be provided by the {@link #callback(Client[])} handler.
-   * As such, this handler should be downstream of the callback handler.
-   * <p>
+   * This handler can be used to ensure that a user profile is available for all downstream handlers.
+   * If there is no user profile present in the session (i.e. user not logged in), authentication will be initiated based on the given client type (i.e. redirect to the {@link #authenticator(Client[])} handler).
+   * If there is a {@link UserProfile} present in the session, this handler will push the user profile into the context registry before delegating downstream.
    * If there is a {@link UserProfile} present in the context registry, this handler will simply delegate downstream.
    * <p>
-   * If there is a {@link UserProfile} present in the session, this handler will push the user profile into the context registry
-   * before delegating downstream.
-   * <p>
-   * If there is no user profile present in the session, authentication will be initiated based on the given client type.
-   * This involves a redirect to the {@link #callback(Client[])} handler.
+   * This handler requires a {@link Clients} instance available in the context registry.
+   * As such, this handler should be downstream of the {@link #authenticator(Client[])} handler.
+   *
+   * <pre class="java">{@code
+   * import org.pac4j.core.profile.UserProfile;
+   * import org.pac4j.http.client.BasicAuthClient;
+   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
+   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import ratpack.guice.Guice;
+   * import ratpack.pac4j.RatpackPac4j;
+   * import ratpack.session.SessionModule;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static junit.framework.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(s -> s
+   *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
+   *         .handlers(c -> c
+   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .prefix("require-auth", a -> a
+   *                 .all(RatpackPac4j.requireAuth(BasicAuthClient.class))
+   *                 .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
+   *             )
+   *             .get(ctx -> ctx.render("no auth required"))
+   *         )
+   *     ).test(httpClient -> {
+   *       assertEquals("no auth required", httpClient.getText());
+   *       assertEquals(401, httpClient.get("require-auth").getStatusCode());
+   *       assertEquals("Hello user", httpClient.requestSpec(r -> r.basicAuth("user", "user")).getText("require-auth"));
+   *     });
+   *   }
+   * }
+   * }</pre>
    *
    * @param clientType the client type to use to authenticate with if required
    * @return a handler
    */
-  public static Handler auth(Class<? extends Client<?, ?>> clientType) {
+  public static Handler requireAuth(Class<? extends Client<?, ?>> clientType) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
         ctx.next(Registries.just(userProfile))
     );
   }
 
   /**
-   * Logs the user in by redirecting to the authentication callback, or fulfills the returned promise.
+   * Logs the user in by redirecting to the authenticator, or provides the user profile if already logged in.
    * <p>
    * This method can be used to programmatically initiate a log in, if required.
    * If the user is already logged in, the user profile will be provided via the returned promise.
-   * If the user is not already logged in, the promise will not be fulfilled and the user will be redirected
-   * to the authentication callback. As such, like {@link #auth(Class)}, this can only be used downstream of
-   * the {@link #callback(Client[])} handler.
+   * If the user is not already logged in, the promise will not be fulfilled and the user will be redirected to the authenticator.
+   * As such, like {@link #requireAuth(Class)}, this can only be used downstream of the {@link #authenticator(Client[])} handler.
    *
    * <pre class="java">{@code
    * import org.pac4j.http.client.BasicAuthClient;
@@ -180,7 +177,7 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.callback(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
    *             .get("auth", ctx -> RatpackPac4j.login(ctx, BasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
    *                 RatpackPac4j.userProfile(ctx)
@@ -218,7 +215,7 @@ public class RatpackPac4j {
    * The promised optional will be empty if the user is not authenticated.
    * <p>
    * This method should be used if the user <i>may</i> have been authenticated.
-   * That is, when the the need for the profile is not downstream of an {@link #auth(Class)} handler,
+   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class)} handler,
    * as the auth handler puts the profile into the context registry for easy retrieval.
    * <p>
    * This method returns a promise as it will attempt to load the profile from the session if it
@@ -246,9 +243,9 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.callback(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
    *             .prefix("auth", a -> a
-   *                 .all(RatpackPac4j.auth(BasicAuthClient.class))
+   *                 .all(RatpackPac4j.requireAuth(BasicAuthClient.class))
    *                 .get(ctx -> {
    *                   ctx.render("Hello " + ctx.get(UserProfile.class).getId());
    *                 })
@@ -300,7 +297,7 @@ public class RatpackPac4j {
    * the returned promise will be a failure with a {@link ClassCastException}.
    * <p>
    * This method should be used if the user <i>may</i> have been authenticated.
-   * That is, when the the need for the profile is not downstream of an {@link #auth(Class)} handler,
+   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class)} handler,
    * as the auth handler puts the profile into the context registry for easy retrieval.
    * <p>
    * This method returns a promise as it will attempt to load the profile from the session if it
@@ -346,7 +343,7 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.callback(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
    *             .get("auth", ctx -> RatpackPac4j.login(ctx, BasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
    *                 RatpackPac4j.userProfile(ctx)

@@ -36,12 +36,12 @@ import ratpack.util.Types;
 import java.util.List;
 import java.util.Optional;
 
-public class Pac4jCallbackHandler implements Handler {
+public class Pac4jAuthenticator implements Handler {
 
   private final String path;
   private final ImmutableList<Client<?, ?>> clients;
 
-  public Pac4jCallbackHandler(String path, List<Client<?, ?>> clients) {
+  public Pac4jAuthenticator(String path, List<Client<?, ?>> clients) {
     this.path = path;
     this.clients = ImmutableList.copyOf(clients);
   }

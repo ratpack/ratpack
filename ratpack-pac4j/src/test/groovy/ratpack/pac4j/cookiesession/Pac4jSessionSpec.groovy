@@ -37,13 +37,13 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      all(RatpackPac4j.callback(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+      all(RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
       get("noauth") {
         def userProfile = maybeGet(UserProfile).orElse(null)
         response.send "noauth:" + userProfile?.attributes?.username
       }
       prefix("auth") {
-        all(RatpackPac4j.auth(FormClient))
+        all(RatpackPac4j.requireAuth(FormClient))
         get {
           def userProfile = maybeGet(UserProfile).orElse(null)
           response.send "auth:" + userProfile?.attributes?.username
@@ -73,7 +73,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     resp2.body.text == "login:null"
 
     when: "send authorization request"
-    def resp3 = get("$RatpackPac4j.DEFAULT_CALLBACK_PATH?username=foo&password=foo&client_name=FormClient")
+    def resp3 = get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=foo&password=foo&client_name=FormClient")
 
     then: "the response is redirected to auth page"
     resp3.statusCode == FOUND.code()
@@ -108,7 +108,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     def resp7 = get(resp6.headers.get(LOCATION))
     resp7.statusCode == OK.code()
     resp7.body.text == "login:null"
-    def resp8 = get("$RatpackPac4j.DEFAULT_CALLBACK_PATH?username=bar&password=bar&client_name=FormClient")
+    def resp8 = get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=bar&password=bar&client_name=FormClient")
 
     then: "the requested page is returned with new login"
     resp8.statusCode == FOUND.code()
