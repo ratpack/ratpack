@@ -83,7 +83,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
-  protected SSLEngine sslEngine;
+  protected boolean ssl = false;
   private final ServerCapturer.Overrides overrides;
 
   public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
@@ -189,10 +189,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
     SSLContext sslContext = serverConfig.getSSLContext();
-    if (sslContext != null) {
-      this.sslEngine = sslContext.createSSLEngine();
-      sslEngine.setUseClientMode(false);
-    }
+    this.ssl = sslContext != null ? true : false;
 
     return new ServerBootstrap()
       .group(execController.getEventLoopGroup())
@@ -204,6 +201,8 @@ public class DefaultRatpackServer implements RatpackServer {
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
           if (sslContext != null) {
+            SSLEngine sslEngine = sslContext.createSSLEngine();
+            sslEngine.setUseClientMode(false);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
@@ -319,7 +318,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized String getScheme() {
-    return isRunning() ? sslEngine == null ? "http" : "https" : null;
+    return isRunning() ? !this.ssl ? "http" : "https" : null;
   }
 
   public synchronized int getBindPort() {
