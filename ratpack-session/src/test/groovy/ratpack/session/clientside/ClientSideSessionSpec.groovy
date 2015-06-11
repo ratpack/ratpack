@@ -20,7 +20,6 @@ import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.Session
-import ratpack.session.SessionData
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Unroll
@@ -279,7 +278,7 @@ class ClientSideSessionSpec extends SessionSpec {
   }
 
   private static class SessionContent {
-    SessionData data
+    Map<String, Optional> data
   }
 
   @Unroll
@@ -319,7 +318,13 @@ class ClientSideSessionSpec extends SessionSpec {
         }
       }
       get("session") { Session session, SessionContent sc ->
-        session.data.then { sc.data = it; render "ok" }
+        session.data.then {
+          sc.data = [:]
+          for (key in it.getKeys()) {
+            sc.data[key.name] = it.get(key)
+          }
+          render "ok"
+        }
       }
     }
 
@@ -328,7 +333,7 @@ class ClientSideSessionSpec extends SessionSpec {
     response.body.text == "null"
     getText("set/foo") == "ok"
     get("session")
-    sessionContent.data.get("value").orElse("null") == "foo"
+    sessionContent.data["value"].orElse("null") == "foo"
     getText("") == "foo"
 
     where:
