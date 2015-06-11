@@ -23,10 +23,6 @@ import ratpack.guice.BindingsSpec;
 import ratpack.handling.Chain;
 import ratpack.server.ServerConfig.Builder;
 
-/**
- * @author Dave Syer
- *
- */
 public interface RatpackServerCustomizer {
 
   List<Action<Chain>> getHandlers();

@@ -40,10 +40,6 @@ import ratpack.server.ServerConfig;
 import ratpack.spring.Spring;
 import ratpack.spring.config.internal.ChainConfigurers;
 
-/**
- * @author Dave Syer
- *
- */
 @Configuration
 @Import(ChainConfigurers.class)
 @EnableConfigurationProperties(RatpackProperties.class)

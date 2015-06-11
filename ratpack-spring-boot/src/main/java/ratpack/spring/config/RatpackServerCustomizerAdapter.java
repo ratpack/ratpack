@@ -24,10 +24,6 @@ import ratpack.guice.BindingsSpec;
 import ratpack.handling.Chain;
 import ratpack.server.ServerConfig.Builder;
 
-/**
- * @author Dave Syer
- *
- */
 public class RatpackServerCustomizerAdapter implements RatpackServerCustomizer {
 
   @Override
