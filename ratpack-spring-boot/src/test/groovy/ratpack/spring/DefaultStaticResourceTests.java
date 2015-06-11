@@ -46,11 +46,17 @@ public class DefaultStaticResourceTests {
 
   @Test
   public void contextLoads() {
-    ResponseEntity<String> result = restTemplate
+    ResponseEntity<String> mainCssResponse = restTemplate
       .getForEntity("http://localhost:" + server.getBindPort() + "/main.css",
         String.class);
-    assertEquals(HttpStatus.OK, result.getStatusCode());
-    assertTrue("Wrong body" + result.getBody(), result.getBody().contains("background: red;"));
+    assertEquals(HttpStatus.OK, mainCssResponse.getStatusCode());
+    assertTrue("Wrong body" + mainCssResponse.getBody(), mainCssResponse.getBody().contains("background: red;"));
+
+    ResponseEntity<String> publicCssResponse = restTemplate
+      .getForEntity("http://localhost:" + server.getBindPort() + "/public.css",
+        String.class);
+    assertEquals(HttpStatus.OK, publicCssResponse.getStatusCode());
+    assertTrue("Wrong body" + publicCssResponse.getBody(), publicCssResponse.getBody().contains("color: blue;"));
   }
 
   @Configuration
