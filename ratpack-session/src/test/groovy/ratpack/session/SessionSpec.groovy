@@ -200,4 +200,60 @@ class SessionSpec extends RatpackGroovyDslSpec {
     // null because the session cookieSessionId is already set
     !get("write").headers.get("Set-Cookie")?.contains('JSESSIONID')
   }
+
+  def "session cookies are all HTTPOnly"() {
+    when:
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    then:
+    def values = get("foo").headers.getAll("Set-Cookie")
+    values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are not HTTPOnly"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.httpOnly = false
+      }
+
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are all Secure, can be transmitted via secure protocol"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.secure = true
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
+  }
 }

@@ -20,6 +20,7 @@ import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.session.Session
+import ratpack.session.SessionData
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Unroll
@@ -29,12 +30,36 @@ import java.time.Duration
 class ClientSideSessionSpec extends SessionSpec {
 
   private String[] getCookies(String startsWith, String path) {
-    getCookies(path).findAll { it.name.startsWith(startsWith)?.value } .toArray()
+    getCookies(path).findAll { it.name().startsWith(startsWith)?.value } .toArray()
   }
 
   def setup() {
     modules << new ClientSideSessionModule()
     supportsSize = false
+  }
+
+  def "session cookies are bounded to path"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.path = "/bar"
+      }
+      module ClientSideSessionModule
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    get("foo")
+
+    then:
+    getCookies("ratpack_session", "/").length == 0
+    getCookies("ratpack_session", "/bar").length == 1
+    getCookies("ratpack_session", "/foo").length == 0
   }
 
   def "last access time is set and changed on load or on store"() {
@@ -59,30 +84,6 @@ class ClientSideSessionSpec extends SessionSpec {
     def values2 = get("load").headers.getAll("Set-Cookie")
     def value2 = values2.find { it.contains("ratpack_lat") }
     value2 != value
-  }
-
-  def "session cookies are bounded to path"() {
-    given:
-    modules.clear()
-    bindings {
-      module SessionModule
-      module ClientSideSessionModule, {
-        it.path = "/bar"
-      }
-    }
-    handlers {
-      get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
-      }
-    }
-
-    when:
-    get("foo")
-
-    then:
-    getCookies("ratpack_session", "/").length == 0
-    getCookies("ratpack_session", "/bar").length == 1
-    getCookies("ratpack_session", "/foo").length == 0
   }
 
   def "invalidated session clears session cookies"() {
@@ -212,5 +213,139 @@ class ClientSideSessionSpec extends SessionSpec {
 
     then:
     response.body.text == "true"
+  }
+
+  def "session cookies are all HTTPOnly"() {
+    when:
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    then:
+    def values = get("foo").headers.getAll("Set-Cookie")
+    values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are not HTTPOnly, when config.isHttpOnly() is false"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.httpOnly = false
+      }
+      module ClientSideSessionModule
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && !it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are secure, when config.isSecure() is true"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.secure = true
+      }
+      module ClientSideSessionModule
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
+  }
+
+  private static class SessionContent {
+    SessionData data
+  }
+
+  @Unroll
+  def "secretKey with #algorithm renders session unreadable"() {
+    given:
+    SessionContent sessionContent = new SessionContent()
+    modules.clear()
+    bindings {
+      module SessionModule
+      module ClientSideSessionModule, {
+        it.with {
+          int length = 16
+          switch (algorithm) {
+            case ~/^AES.*/:
+              length = 16
+              break
+            case ~/^DESede.*/:
+              length = 24
+              break
+            case ~/^DES.*/:
+              length = 8
+              break
+          }
+          secretKey = "a" * length
+          cipherAlgorithm = algorithm
+        }
+      }
+      bindInstance(SessionContent, sessionContent)
+    }
+    handlers {
+      get("") { Session session ->
+        session.data.then { render it.get("value").orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session.data.then {
+          it.set("value", pathTokens.value); render "ok"
+        }
+      }
+      get("session") { Session session, SessionContent sc ->
+        session.data.then { sc.data = it; render "ok" }
+      }
+    }
+
+    expect:
+    get("")
+    response.body.text == "null"
+    getText("set/foo") == "ok"
+    get("session")
+    sessionContent.data.get("value").orElse("null") == "foo"
+    getText("") == "foo"
+
+    where:
+    algorithm << [
+      "Blowfish",
+      "AES/CBC/NoPadding",
+      "AES/CBC/PKCS5Padding",
+      "AES/ECB/NoPadding",
+      "AES/ECB/PKCS5Padding",
+      "DES/CBC/NoPadding",
+      "DES/CBC/PKCS5Padding",
+      "DES/ECB/NoPadding",
+      "DES/ECB/PKCS5Padding",
+      "DESede/CBC/NoPadding",
+      "DESede/CBC/PKCS5Padding",
+      "DESede/ECB/NoPadding",
+      "DESede/ECB/PKCS5Padding"
+    ]
   }
 }

@@ -109,7 +109,7 @@ import java.util.function.Consumer;
  * }
  * }</pre>
  */
-public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
+public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
 
   /**
    * The name of the binding for the {@link Cache} implementation that backs the in memory session store.
@@ -201,7 +201,7 @@ public class SessionModule extends ConfigurableModule<SessionIdCookieConfig> {
 
   @Provides
   @ExecutionScoped
-  SessionId sessionId(Request request, Response response, SessionIdGenerator idGenerator, SessionIdCookieConfig cookieConfig) {
+  SessionId sessionId(Request request, Response response, SessionIdGenerator idGenerator, SessionCookieConfig cookieConfig) {
     return new CookieBasedSessionId(request, response, idGenerator, cookieConfig);
   }
 

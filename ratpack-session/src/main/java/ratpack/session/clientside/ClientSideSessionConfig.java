@@ -30,8 +30,6 @@ public class ClientSideSessionConfig {
   private String macAlgorithm = "HmacSHA1";
   private String secretKey;
   private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
-  private String path = "/";
-  private String domain;
   private int maxSessionCookieSize = 1932;
   private Duration maxInactivityInterval = Duration.ofHours(24);
 
@@ -145,52 +143,7 @@ public class ClientSideSessionConfig {
     this.cipherAlgorithm = cipherAlgorithm;
   }
 
-  /**
-   * Use the session cookie only when requesting from the {@code path}.
-   * <p>
-   * Define the scope of the cookie.
-   * <p>
-   * Session should be send for every request. The {@code path} of value {@code "/"} does this.
-   * @return the URI path to which session cookie will be attached to.
-   */
-  public String getPath() {
-    return path;
-  }
-
-  /**
-   * Set the {@code path} for session cookie.
-   * <p>
-   * Define the scope of the cookie.
-   *
-   * @param path a path to which session cookie will be attached to
-   */
-  public void setPath(String path) {
-    this.path = path;
-  }
-
-  /**
-   * Use the session cookie only when requesting from the {@code domain}.
-   * <p>
-   * Define the scope for the cookie.
-   *
-   * @return the URI domain to which session cookie will be attached to.
-   */
-  public String getDomain() {
-    return this.domain;
-  }
-
-  /**
-   * Set the {@code domain} for session cookie.
-   * <p>
-   * Define the scope of the cookie
-   *
-   * @param domain a domain to which session cokkie will be attached to
-   */
-  public void setDomain(String domain) {
-    this.domain = domain;
-  }
-
-  /**
+    /**
    * Maximum size of the session cookie. If encrypted cookie exceeds it, it will be partitioned.
    * <p>
    * According to the <a href="http://www.ietf.org/rfc/rfc2109.txt">RFC 2109</a> web cookies should be at least
