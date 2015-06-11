@@ -64,6 +64,7 @@ The following people have provided significant contributions.
 * [Danny Kirchmeier](https://github.com/danthegoodman)
 * [Tom Akehurst](https://github.com/tomakehurst)
 * [Steve Anderson](https://github.com/saanvik)
+* [Dave Syer](https://github.com/dsyer)
 
 ### Past project members
 
