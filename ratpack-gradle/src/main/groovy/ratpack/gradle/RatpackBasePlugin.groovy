@@ -24,6 +24,6 @@ class RatpackBasePlugin implements Plugin<Project> {
   @Override
   void apply(Project project) {
 
-      project.extensions.create("ratpack", RatpackDependencies, project.dependencies)
+      project.extensions.create("ratpack", RatpackExtension, project)
   }
 }

@@ -47,11 +47,11 @@ class RatpackPlugin implements Plugin<Project> {
 
     def ratpackApp = new SpringloadedUtil(project, project.configurations['springloaded'])
 
-    RatpackDependencies ratpackDependencies = project.extensions.findByType(RatpackDependencies)
+    RatpackExtension ratpackExtension = project.extensions.findByType(RatpackExtension)
 
     project.dependencies {
-      compile ratpackDependencies.core
-      testCompile ratpackDependencies.test
+      compile ratpackExtension.core
+      testCompile ratpackExtension.test
     }
 
     def configureRun = project.task("configureRun")
@@ -61,7 +61,7 @@ class RatpackPlugin implements Plugin<Project> {
         classpath ratpackApp.springloadedClasspath
         jvmArgs ratpackApp.springloadedJvmArgs
         systemProperty "ratpack.development", true
-        systemProperty "ratpack.baseDir.override", project.file("src/ratpack").absolutePath
+        systemProperty "ratpack.baseDir.override", ratpackExtension.baseDir.absolutePath
       }
     }
 
@@ -71,16 +71,18 @@ class RatpackPlugin implements Plugin<Project> {
 
     SourceSetContainer sourceSets = project.sourceSets
     def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-    mainSourceSet.resources.srcDir(project.file("src/ratpack"))
+    mainSourceSet.resources.srcDir {
+      ratpackExtension.baseDir
+    }
 
     def prepareBaseDirTask = project.tasks.create("prepareBaseDir")
     prepareBaseDirTask.with {
       group = "Ratpack"
-      description = "Lifecycle task for all tasks that contribute content to 'src/ratpack' (add dependencies to this task)"
+      description = "Lifecycle task for all tasks that contribute content to Ratpack base directory (default: 'src/ratpack') (add dependencies to this task)"
     }
 
     def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
-    appPluginConvention.applicationDistribution.from("src/ratpack") {
+    appPluginConvention.applicationDistribution.from({ratpackExtension.baseDir}) {
       into "app"
     }
 
