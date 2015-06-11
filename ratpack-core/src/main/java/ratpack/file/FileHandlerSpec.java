@@ -26,6 +26,10 @@ import ratpack.path.PathBinding;
  */
 public interface FileHandlerSpec {
 
+  default FileHandlerSpec files(String path) {
+    return path(path).dir(path);
+  }
+
   /**
    * Specifies the request path to bind to for serving files.
    * <p>

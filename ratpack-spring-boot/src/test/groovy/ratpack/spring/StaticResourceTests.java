@@ -15,8 +15,6 @@
  */
 package ratpack.spring;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +26,13 @@ import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.server.RatpackServer;
 import ratpack.spring.StaticResourceTests.Application;
 import ratpack.spring.config.EnableRatpack;
+
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
@@ -47,7 +46,8 @@ public class StaticResourceTests {
 
   @Test
   public void contextLoads() {
-    String body = restTemplate.getForObject("http://localhost:" + server.getBindPort() + "/root/main.css",
+    String body = restTemplate
+      .getForObject("http://localhost:" + server.getBindPort() + "/root/main.css",
         String.class);
     assertTrue("Wrong body" + body, body.contains("background"));
   }
@@ -59,17 +59,11 @@ public class StaticResourceTests {
 
     @Bean
     public Action<Chain> handlers() {
-      return new Action<Chain>() {
-        @Override
-        public void execute(Chain chain) throws Exception {
-          chain.prefix("root", new Action<Chain>() {
-            @Override
-            public void execute(Chain chain) throws Exception {
-              chain.assets("root", "index.html");
-            }
-          });
-        }
-      };
+      return chain -> chain
+          .files(f -> f
+            .path("root")
+            .dir("root")
+            .indexFiles("index.html"));
     }
 
     public static void main(String[] args) throws Exception {

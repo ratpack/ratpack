@@ -16,32 +16,20 @@
 
 package ratpack.spring.config.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableMap;
-
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.path.PathBinder;
-import ratpack.path.PathBinding;
-import ratpack.path.internal.DefaultPathBinding;
 import ratpack.server.ServerConfig;
 import ratpack.spring.config.RatpackServerCustomizer;
 
-/**
- * @author Dave Syer
- *
- */
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 @Component
 public class ChainConfigurers implements Action<Chain> {
 
@@ -56,7 +44,7 @@ public class ChainConfigurers implements Action<Chain> {
 
   @Override
   public void execute(Chain chain) throws Exception {
-    List<Action<Chain>> delegates = new ArrayList<Action<Chain>>(this.delegates);
+    List<Action<Chain>> delegates = new ArrayList<>(this.delegates);
     for (RatpackServerCustomizer customizer : customizers) {
       delegates.addAll(customizer.getHandlers());
     }
@@ -73,18 +61,9 @@ public class ChainConfigurers implements Action<Chain> {
   }
 
   private Action<Chain> staticResourcesAction(final ServerConfig config) {
-    return chain -> {
-      chain.all(Handlers.path(new RootBinder(), Handlers.assets(config, "static", Arrays.asList("index.html"))));
-      chain.all(Handlers.path(new RootBinder(), Handlers.assets(config, "public", Arrays.asList("index.html"))));
-    };
-  }
-
-  protected static class RootBinder implements PathBinder {
-
-    @Override
-    public Optional<PathBinding> bind(String path, Optional<PathBinding> parentBinding) {
-      return Optional.of(new DefaultPathBinding("/" + path, "", ImmutableMap.<String, String>of(), parentBinding));
-    }
+    return chain -> chain
+      .all(Handlers.files(config, f -> f.dir("static").indexFiles("index.html")))
+      .all(Handlers.files(config, f -> f.dir("public").indexFiles("index.html")));
   }
 
   private Action<Chain> singleHandlerAction() {
