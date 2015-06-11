@@ -26,10 +26,6 @@ import ratpack.path.PathBinding;
  */
 public interface FileHandlerSpec {
 
-  default FileHandlerSpec files(String path) {
-    return path(path).dir(path);
-  }
-
   /**
    * Specifies the request path to bind to for serving files.
    * <p>
@@ -108,6 +104,42 @@ public interface FileHandlerSpec {
    * @return {@code this}
    */
   FileHandlerSpec dir(String dir);
+
+  /**
+   * A convenience method that specifies both request path and file system path bindings for serving files.
+   * <p>
+   * The path specified is relative to the context's {@link PathBinding} and {@link FileSystemBinding} at request time.
+   * The default value is effectively {@code ""}, which means that existing path binding and file system binding is used.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.embed.BaseDirBuilder;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static junit.framework.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     BaseDirBuilder.tmpDir().build(
+   *       b -> b.file("dir/a.txt", "a"),
+   *       b ->
+   *         EmbeddedApp.fromHandlers(b, c -> c
+   *             .files(f ->
+   *                 f.files("dir") // same as f.path("dir").dir("dir")
+   *             )
+   *         ).test(httpClient ->
+   *           assertEquals("a", httpClient.getText("/dir/a.txt"))
+   *         )
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param path the request path and file system path to bind to
+   * @return {@code this}
+   */
+  default FileHandlerSpec files(String path) {
+    return path(path).dir(path);
+  }
 
   /**
    * The files that should be used when a request is made for a directory.
