@@ -16,6 +16,7 @@
 
 package ratpack.rx;
 
+import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
@@ -24,9 +25,7 @@ import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
 import ratpack.util.Exceptions;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscriber;
+import rx.*;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
@@ -305,6 +304,18 @@ public abstract class RxRatpack {
    */
   public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
     return ExecControl.current().promise(f -> observable.single().subscribe(f::success, f::error));
+  }
+
+  /**
+   * Converts an {@link Observable} into a {@link Publisher}, for all of the observable's items.
+   * <p>
+   * This method can be used to simply adapt an observable to a ReactiveStreams publisher.
+   * @param observable the observable
+   * @param <T> the type of the value observed
+   * @return a ReactiveStreams publisher containing each value of the observable
+   */
+  public static <T> Publisher<T> streamPublisher(Observable<T> observable) throws UnmanagedThreadException {
+    return RxReactiveStreams.toPublisher(observable);
   }
 
   /**
