@@ -60,7 +60,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
     requestSpec {
       it.decompressResponse(false)
       it.headers {
-        it.set(HttpHeaderNames.ACCEPT_ENCODING, flag ? "gzip" : HttpHeaderValues.IDENTITY)
+        it.set(HttpHeaderNames.ACCEPT_ENCODING, "gzip")
       }
     }
     handlers {
