@@ -50,7 +50,7 @@ class RxPublisherSpec extends Specification {
 
   def "convert RX Observable to ReactiveStreams Publisher"() {
     given:
-    Publisher<String> pub = service.observe("foo").streamPublisher()
+    Publisher<String> pub = service.observe("foo").publisher()
     def received = []
     Subscription subscription
     boolean complete = false

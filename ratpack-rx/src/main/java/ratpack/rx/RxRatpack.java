@@ -314,7 +314,7 @@ public abstract class RxRatpack {
    * @param <T> the type of the value observed
    * @return a ReactiveStreams publisher containing each value of the observable
    */
-  public static <T> Publisher<T> streamPublisher(Observable<T> observable) throws UnmanagedThreadException {
+  public static <T> Publisher<T> publisher(Observable<T> observable) throws UnmanagedThreadException {
     return RxReactiveStreams.toPublisher(observable);
   }
 
