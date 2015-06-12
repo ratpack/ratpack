@@ -24,6 +24,8 @@ import ratpack.exec.UnmanagedThreadException;
 import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
 import rx.*;
 import rx.exceptions.OnErrorNotImplementedException;
@@ -314,8 +316,8 @@ public abstract class RxRatpack {
    * @param <T> the type of the value observed
    * @return a ReactiveStreams publisher containing each value of the observable
    */
-  public static <T> Publisher<T> publisher(Observable<T> observable) throws UnmanagedThreadException {
-    return RxReactiveStreams.toPublisher(observable);
+  public static <T> TransformablePublisher<T> publisher(Observable<T> observable) {
+    return Streams.transformable(RxReactiveStreams.toPublisher(observable));
   }
 
   /**
