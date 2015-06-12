@@ -5,7 +5,7 @@ There are two main features in this library: one allows a Ratpack server registr
 
 ## The Spring convenience class
 
-In a vanilla Ratpack application you can create a registry easily using the [`Spring`](api/ratpack/spring/Spring) convenience class.
+In a vanilla Ratpack application you can create a registry easily using the [`Spring`](api/ratpack/spring/Spring.html) convenience class.
 This is an alternative or a complement to Guice dependency injection because it works more or less the same way and Ratpack allows registries to be chained together quite conveniently. 
 
 Here's an example of a main class that uses this API to configure the application.
@@ -57,7 +57,7 @@ There is a [feature request](https://jira.spring.io/browse/SPR-12147) to add the
 
 As an alternative to embedding Spring (as a `Registry`) in a Ratpack application, you can do the opposite: embed Ratpack as a server in Spring Boot, providing a nice
 alternative to the Servlet containers that Spring Boot supports. 
-The core of the feature set is an annotation [`@EnableRatpack`](api/ratpaci/spring/config/EnableRatpack) which you add to a Spring configuration class in order to start Ratpack. 
+The core of the feature set is an annotation [`@EnableRatpack`](api/ratpack/spring/config/EnableRatpack.html) which you add to a Spring configuration class in order to start Ratpack. 
 Then you can declare handlers as `@Beans` of type `Action<Chain>`, for example:
 
 ```java
