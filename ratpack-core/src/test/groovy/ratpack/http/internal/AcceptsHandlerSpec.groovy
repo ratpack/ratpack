@@ -26,8 +26,8 @@ class AcceptsHandlerSpec extends RatpackGroovyDslSpec {
   def "ok for valid"() {
     when:
     handlers {
-      handler(Handlers.accepts(APPLICATION_JSON, "application/xml"))
-      handler {
+      all(Handlers.accepts(APPLICATION_JSON, "application/xml"))
+      all {
         byContent {
           json {
             render "[]"

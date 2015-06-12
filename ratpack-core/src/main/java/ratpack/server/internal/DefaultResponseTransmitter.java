@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
+import ratpack.handling.DoubleTransmissionException;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
-import ratpack.util.internal.InternalRatpackError;
 
 import java.io.FileInputStream;
 import java.nio.file.FileSystems;
@@ -90,7 +90,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         return null;
       }
     } else {
-      LOGGER.warn("attempt at double transmission for: " + ratpackRequest.getRawUri(), new InternalRatpackError(""));
+      String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
+      LOGGER.warn(msg, new DoubleTransmissionException(msg));
       return null;
     }
   }

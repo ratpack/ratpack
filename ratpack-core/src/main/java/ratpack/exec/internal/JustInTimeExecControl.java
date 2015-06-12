@@ -58,8 +58,8 @@ public class JustInTimeExecControl implements ExecControl {
   }
 
   @Override
-  public ExecStarter exec() {
-    return getDelegate().exec();
+  public ExecBuilder fork() {
+    return getDelegate().fork();
   }
 
   @Override

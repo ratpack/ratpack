@@ -68,7 +68,10 @@ public class CachingBackedRegistry implements Registry {
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {
-    return Types.cast(compute(supplierCache, type, t -> registryBacking.provide(type)));
+    Iterable<? extends Supplier<?>> suppliers = compute(supplierCache, type, t ->
+        registryBacking.provide(type)
+    );
+    return Types.cast(suppliers);
   }
 
   @Override

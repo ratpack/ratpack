@@ -16,7 +16,9 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -43,8 +45,10 @@ import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
+import ratpack.path.internal.DefaultPathBinding;
 import ratpack.path.internal.DefaultPathTokens;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
@@ -134,13 +138,15 @@ public class DefaultContext implements Context {
   private final RequestConstants requestConstants;
 
   public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
-    ChainIndex index = new ChainIndex(handlers, registry, true);
+    PathBinding initialPathBinding = new DefaultPathBinding("/".concat(requestConstants.request.getPath()), "", ImmutableMap.of(), Optional.empty());
+    Registry pathBindingRegistry = Registries.just(PathBinding.class, initialPathBinding);
+    ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
     requestConstants.indexes.push(index);
 
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    execControl.exec()
+    execControl.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s
@@ -190,8 +196,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public ExecStarter exec() {
-    return requestConstants.applicationConstants.execControl.exec();
+  public ExecBuilder fork() {
+    return requestConstants.applicationConstants.execControl.fork();
   }
 
   @Override
@@ -422,17 +428,17 @@ public class DefaultContext implements Context {
   }
 
   public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    DefaultByMethodSpec spec = new DefaultByMethodSpec(handlers);
+    Map<String, Block> blocks = Maps.newLinkedHashMap();
+    DefaultByMethodSpec spec = new DefaultByMethodSpec(blocks);
     action.execute(spec);
-    new MultiMethodHandler(handlers).handle(this);
+    new MultiMethodHandler(blocks).handle(this);
   }
 
   public void byContent(Action<? super ByContentSpec> action) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    DefaultByContentSpec spec = new DefaultByContentSpec(handlers);
+    Map<String, Block> blocks = Maps.newLinkedHashMap();
+    DefaultByContentSpec spec = new DefaultByContentSpec(blocks);
     action.execute(spec);
-    new ContentNegotiationHandler(handlers, spec.getNoMatchHandler()).handle(this);
+    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler()).handle(this);
   }
 
   @Override

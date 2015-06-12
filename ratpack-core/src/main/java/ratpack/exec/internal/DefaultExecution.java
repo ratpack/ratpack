@@ -88,8 +88,8 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   }
 
   @Override
-  public ExecStarter exec() {
-    return getControl().exec();
+  public ExecBuilder fork() {
+    return getControl().fork();
   }
 
   @Override

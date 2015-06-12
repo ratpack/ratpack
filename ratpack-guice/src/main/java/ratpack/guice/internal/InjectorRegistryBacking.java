@@ -18,8 +18,10 @@ package ratpack.guice.internal;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import ratpack.registry.RegistryBacking;
 
 public class InjectorRegistryBacking implements RegistryBacking {
@@ -31,7 +33,9 @@ public class InjectorRegistryBacking implements RegistryBacking {
 
   @Override
   public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
-    return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type).reverse())
+    ImmutableList<Provider<? extends T>> providers = GuiceUtil.allProvidersOfType(injector, type);
+    return FluentIterable
+      .from(providers.reverse())
       .transform(provider -> provider::get);
   }
 

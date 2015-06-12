@@ -16,6 +16,7 @@
 
 package ratpack.handling
 
+import ratpack.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class HandlerDecorationSpec extends RatpackGroovyDslSpec {
@@ -36,5 +37,32 @@ class HandlerDecorationSpec extends RatpackGroovyDslSpec {
     then:
     text == "ok"
     events == ["1", "2"]
+  }
+
+  def "invoke decorator once"() {
+    when:
+    bindings {
+      multiBind InjectedDecoratorHandler
+    }
+    handlers {
+      get { render "ok" }
+    }
+
+    then:
+    text == "ok"
+  }
+
+  static class InjectedDecoratorHandler implements HandlerDecorator {
+    static int invocations = 0
+
+    @Override
+    Handler decorate(Registry serverRegistry, Handler rest) throws Exception {
+      invocations++
+
+      assert invocations == 1
+      return { ctx ->
+        ctx.insert(rest)
+      }
+    }
   }
 }

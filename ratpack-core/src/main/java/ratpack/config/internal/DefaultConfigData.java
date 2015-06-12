@@ -24,6 +24,7 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataSpec;
 import ratpack.config.ConfigObject;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 import ratpack.server.StartEvent;
 import ratpack.server.StopEvent;
 import ratpack.util.Exceptions;
@@ -66,11 +67,17 @@ public class DefaultConfigData implements ConfigData {
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    reloadInformant.onStart(event);
+    ServerConfig serverConfig = event.getRegistry().get(ServerConfig.class);
+    if (serverConfig.isDevelopment()) {
+      reloadInformant.onStart(event);
+    }
   }
 
   @Override
   public void onStop(StopEvent event) throws Exception {
-    reloadInformant.onStop(event);
+    ServerConfig serverConfig = event.getRegistry().get(ServerConfig.class);
+    if (serverConfig.isDevelopment()) {
+      reloadInformant.onStop(event);
+    }
   }
 }

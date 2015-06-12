@@ -35,31 +35,33 @@ import java.net.URI;
  *
  * <pre class="java">{@code
  *
+ * import ratpack.http.HttpUrlBuilder;
  * import ratpack.http.client.HttpClient;
  * import ratpack.server.PublicAddress;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.net.URI;
+ * import static org.junit.Assert.*;
  *
  * public class ExampleHttpClient {
  *
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandlers(chain -> {
  *         chain
- *           .get("/simpleGet", context -> {
+ *           .get("simpleGet", context -> {
  *             PublicAddress address = context.get(PublicAddress.class);         //find local ip address
  *             HttpClient httpClient = context.get(HttpClient.class);            //get httpClient
  *
- *             httpClient.get(new URI(address.getAddress(context).toString() + "/httpClientGet")).then(response -> {
+ *             httpClient.get(HttpUrlBuilder.base(address.getAddress(context)).segment("httpClientGet").build()).then(response -> {
  *                 context.render(response.getBody().getText());  //Render the response from the httpClient GET request
  *               }
  *             );
  *           })
- *           .get("/simplePost", context -> {
+ *           .get("simplePost", context -> {
  *             PublicAddress address = context.get(PublicAddress.class);  //find local ip address
  *             HttpClient httpClient = context.get(HttpClient.class);     //get httpClient
  *
- *             httpClient.post(new URI(address.getAddress(context).toString() + "/httpClientPost"), action ->
+ *             httpClient.post(HttpUrlBuilder.base(address.getAddress(context)).segment("httpClientPost").build(), action ->
  *               action.body(body ->
  *                 body.text("foo")   //Configure the POST body
  *               )
@@ -75,8 +77,8 @@ import java.net.URI;
  *           });
  *       }
  *     ).test(testHttpClient -> {
- *       assert testHttpClient.get("/simpleGet").getBody().getText().equals("httpClientGet");
- *       assert testHttpClient.get("/simplePost").getBody().getText().equals("FOO");
+ *       assertEquals("httpClientGet", testHttpClient.getText("/simpleGet"));
+ *       assertEquals("FOO", testHttpClient.getText("/simplePost"));
  *     });
  *   }
  * }
@@ -92,7 +94,7 @@ public interface HttpClient {
    * @param registry The {@link ratpack.registry.Registry} used to provide the {@link ratpack.exec.ExecController} and {@link io.netty.buffer.ByteBufAllocator} needed for DefaultHttpClient
    * @return An instance of a HttpClient
    */
-  public static HttpClient httpClient(ServerConfig serverConfig, Registry registry) {
+  static HttpClient httpClient(ServerConfig serverConfig, Registry registry) {
     return new DefaultHttpClient(registry.get(ExecController.class), registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength());
   }
 
@@ -104,7 +106,7 @@ public interface HttpClient {
    * @param maxContentLengthBytes The max content length of a response to support.
    * @return An instance of a HttpClient
    */
-  public static HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
+  static HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
     return new DefaultHttpClient(execController, byteBufAllocator, maxContentLengthBytes);
   }
 

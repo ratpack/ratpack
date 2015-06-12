@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,98 @@
 
 package ratpack.session;
 
-public interface Session  {
+import io.netty.util.AsciiString;
+import ratpack.exec.Operation;
+import ratpack.exec.Promise;
+import ratpack.func.Action;
+import ratpack.http.Response;
+
+import java.io.Serializable;
+
+/**
+ * A mechanism for associating semi persistent data with an individual user/client.
+ * <p>
+ * This object can be accessed via the context registry.
+ * Access to the actual session data is provided by {@link #getData()} method this object.
+ * <p>
+ * The persistence mechanism used is determined by the implementation of {@link SessionStore} available.
+ *
+ * @see SessionModule
+ */
+public interface Session {
 
   /**
-   * If there is an existing session, returns the ID in use.
+   * The unique ID for this session.
+   * <p>
+   * Call this method will provision a new ID if necessary.
+   * Provisioning and tracking of the ID is provided by the bound {@link SessionId} implementation.
    *
-   * This will not initiate a session if there is none.
-   *
-   * @return Any existing session id.
-   */
-  String getExistingId();
-
-  /**
-   * Returns the session ID, initiating a session if necessary.
-   *
-   * @return The session id.
+   * @return the ID for this session
    */
   String getId();
 
   /**
-   * Initiates a new session, terminating the existing session, if any.
+   * The session data.
+   * <p>
+   * The data is available via a promise to support backing {@link SessionStore} implementations that load the data asynchronously.
    *
-   * Can only be called once per request, and not if getId() has already initiated a new session.
-   *
-   * @return The session id.
+   * @return the session data
    */
-  String regen();
+  Promise<SessionData> getData();
 
   /**
-   * Terminates the session with the client.
+   * Whether or not any changes have been made to the session data since it was accessed.
    *
-   * Cannot be called during the same request that initiates a session.
+   * @return whether or not any changes have been made to the session data since it was accessed
    */
-  void terminate();
+  boolean isDirty();
 
+  /**
+   * Persists the session data.
+   * <p>
+   * It is generally not necessary to call this method explicitly.
+   * The {@link SessionModule} installs a {@link Response#beforeSend(Action) response finalizer} that will
+   * call this method if the session {@link #isDirty() is dirty}.
+   * <p>
+   * This method is effectively a noop if the session data has not yet been accessed.
+   * <p>
+   * If the session data has been accessed, calling this method will initiate a store of the data regardless of whether the data is dirty or not.
+   * <p>
+   * The {@link #isDirty()} will always return {@code true} after calling this method, until changes are made to the session data.
+   *
+   * @return the save operation
+   */
+  Operation save();
+
+  /**
+   * Terminates the session and session id.
+   * <p>
+   * Calling this method will immediately reset the state of the session data, and initiate a call to {@link SessionStore#remove(AsciiString)} on the underlying store.
+   * This effectively resets the state of this object.
+   * <p>
+   * This method also invokes the {@link SessionId#terminate()} method, which prevents the same ID from being used subsequently.
+   *
+   * @return the terminate operation
+   */
+  Operation terminate();
+
+  /**
+   * The value serializer that is guaranteed to be able to serialize/deserialize any Java object that implements {@link java.io.Serializable}.
+   * <p>
+   * Ratpack extensions, libraries etc. should explicitly use this serializer (e.g. with {@link SessionData#set(SessionKey, Object, SessionSerializer)}
+   * when reading and writing to the session as it is not guaranteed that the {@link #getDefaultSerializer() default serializer} relies on Java serialization.
+   *
+   * @return a serializer for {@link Serializable} objects
+   */
+  JavaSessionSerializer getJavaSerializer();
+
+  /**
+   * The serializer that is used when a serializer is not explicitly given.
+   * <p>
+   * The default configuration of {@link SessionModule} configures this serializer to be the same as the {@link #getJavaSerializer() Java serializer}.
+   * However, if you'd prefer to use a different serialization strategy by default in your application you can override this binding.
+   *
+   * @return the serializer to use by default
+   */
+  SessionSerializer getDefaultSerializer();
 }

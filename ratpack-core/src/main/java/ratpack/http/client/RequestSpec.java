@@ -17,13 +17,16 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
 import ratpack.http.MutableHeaders;
 
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -89,6 +92,22 @@ public interface RequestSpec {
    * @throws Exception any thrown by {@code action}
    */
   RequestSpec body(Action<? super Body> action) throws Exception;
+
+  /**
+   * Adds the appropriate header for HTTP Basic authentication with the given username and password.
+   * <p>
+   * This will replace any previous value set for the {@code "Authorization"} header.
+   *
+   * @param username the username
+   * @param password the password
+   * @return {@code this}
+   */
+  default RequestSpec basicAuth(String username, String password) {
+    byte[] bytes = (username + ":" + password).getBytes(StandardCharsets.ISO_8859_1);
+    byte[] encodedBytes = Base64.getEncoder().encode(bytes);
+    getHeaders().set(HttpHeaderNames.AUTHORIZATION, "Basic " + new String(encodedBytes, StandardCharsets.ISO_8859_1));
+    return this;
+  }
 
   /**
    * The request body.

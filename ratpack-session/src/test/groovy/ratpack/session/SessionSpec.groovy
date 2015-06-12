@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,49 +16,71 @@
 
 package ratpack.session
 
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
-import ratpack.session.store.MapSessionsModule
-import ratpack.session.store.SessionStorage
-import ratpack.session.store.SessionStore
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
+  boolean supportsSize = true
+
   def setup() {
-    modules << new MapSessionsModule(10, 5)
     modules << new SessionModule()
-    bindings {
-      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
-    }
   }
 
   def "can use session"() {
     when:
     handlers {
-      get(":v") { Session session ->
-        render session.id
+      get { Session session ->
+        session.data.then {
+          it.set("foo", "bar")
+          render it.require("foo")
+        }
       }
     }
 
     then:
-    getText("a") == getText("b")
+    text == "bar"
   }
 
-  def "can store session vars"() {
+  def "can store strings"() {
     when:
     handlers {
-      get("") { SessionStorage storage ->
-//        render storage.value.toString()
-        storage.get("value", String).then {
-          render it.orElse("Missing")
+      get { Session session ->
+        render session.data.map { it.require("value") }
+      }
+      get("set/:value") { Session session ->
+        session.data.then {
+          it.set("value", pathTokens.value)
+          render pathTokens.value
         }
       }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then {
-          storage.get("value", String).then {
-            render it.orElse("")
-          }
+    }
+
+    and:
+    getText("set/foo") == "false"
+
+    then:
+    getText() == "foo"
+  }
+
+  static class Holder1 implements Serializable {
+    String value
+  }
+
+  static class Holder2 implements Serializable {
+    String value
+  }
+
+  def "can store objects"() {
+    when:
+    handlers {
+      get { Session session ->
+        render session.data.map { it.require(Holder1).value }
+      }
+      get("set/:value") { Session session ->
+        def value = pathTokens.value
+        session.data.then {
+          it.set(new Holder1(value: value))
+          render value
         }
       }
     }
@@ -70,27 +92,55 @@ class SessionSpec extends RatpackGroovyDslSpec {
     getText() == "foo"
   }
 
-  def "can invalidate session vars"() {
+  def "objects are differentiated"() {
     when:
     handlers {
-      get("") { SessionStorage storage ->
-        storage.get("value", String).then {
-          render it.orElse("null")
+      get { Session session ->
+        session.data.then {
+          it.set(new Holder1(value: "1"))
+          it.set(new Holder2(value: "2"))
+          render "ok"
         }
       }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then {
-          storage.get("value", String).then {
-            render it.orElse("null")
-          }
+      get("get") { Session session ->
+        session.data.then {
+          render it.require(Holder1).value + it.require(Holder2).value
+        }
+      }
+    }
+
+    and:
+    get() // put data
+
+    then:
+    getText("get") == "12"
+  }
+
+  def "can invalidate session vars"() {
+    if (!supportsSize) {
+      return
+    }
+
+    when:
+    handlers {
+      get { Session session ->
+        session.data.then {
+          render it.get("value").orElse("null")
+        }
+      }
+      get("set/:value") { Session session ->
+        session.data.then {
+          it.set("value", pathTokens.value)
+          render pathTokens.value
         }
       }
       get("invalidate") { Session session ->
-        session.terminate()
-        response.send()
+        session.data.then {
+          it.terminate().then { render "ok" }
+        }
       }
-      get("size") { SessionStore store ->
-        render store.size().toString()
+      get("size") { SessionStore storeAdapter ->
+        render storeAdapter.size().map { it.toString() }
       }
     }
 
@@ -100,44 +150,110 @@ class SessionSpec extends RatpackGroovyDslSpec {
     then:
     getText() == "foo"
     getText("size") == "1"
-    getText("invalidate") == ""
+    getText("invalidate") == "ok"
     getText() == "null"
-    getText("size") == "1"
+    getText("size") == "0"
   }
 
   def "sessions are created on demand"() {
+    if (!supportsSize) {
+      return
+    }
+
     when:
     handlers {
       get { SessionStore store ->
-        render store.size().toString()
+        render store.size().map { it.toString() }
       }
-      get("store") { SessionStorage storage ->
-        render "ok"
+      get("readOnly") { Session session ->
+        session.data.then { render "ok" }
+      }
+      get("write") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 
     then:
     getText() == "0"
-    getText("store") == "ok"
+    getText("readOnly") == "ok"
+    getText("write") == "ok"
+    getText() == "1"
+    getText("write") == "ok"
     getText() == "1"
   }
 
   def "session cookies are only set when needed"() {
     when:
     handlers {
-      get("foo") {
+      get("nowrite") {
         response.send("foo")
       }
-      get("bar") { SessionStorage store ->
-        response.send("bar")
+      get("write") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 
     then:
-    get("foo").headers.get("Set-Cookie") == null
-    get("bar").headers.get("Set-Cookie").contains('JSESSIONID')
+    get("nowrite").headers.get("Set-Cookie") == null
+    get("write").headers.get("Set-Cookie").contains('JSESSIONID')
 
     // null because the session cookieSessionId is already set
-    !get("bar").headers.get("Set-Cookie")?.contains('JSESSIONID')
+    !get("write").headers.get("Set-Cookie")?.contains('JSESSIONID')
+  }
+
+  def "session cookies are all HTTPOnly"() {
+    when:
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    then:
+    def values = get("foo").headers.getAll("Set-Cookie")
+    values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are not HTTPOnly"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.httpOnly = false
+      }
+
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are all Secure, can be transmitted via secure protocol"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.secure = true
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
   }
 }

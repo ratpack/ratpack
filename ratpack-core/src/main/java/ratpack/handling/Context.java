@@ -20,6 +20,7 @@ import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.exec.*;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.handling.direct.DirectChannelAccess;
@@ -128,8 +129,8 @@ public interface Context extends ExecControl, Registry {
    *
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *         .handler(ctx -> ctx.next(Registries.just("foo")))
-   *         .handler(ctx -> ctx.render(ctx.get(String.class)))
+   *         .all(ctx -> ctx.next(Registries.just("foo")))
+   *         .all(ctx -> ctx.render(ctx.get(String.class)))
    *     ).test(httpClient -> {
    *       assertEquals("foo", httpClient.getText());
    *     });
@@ -176,14 +177,14 @@ public interface Context extends ExecControl, Registry {
    * public class Example {
    *   public static void main(String[] args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *       .handler("a", ctx -> {
+   *       .path("a", ctx -> {
    *         String val = "a";
    *         ctx.byMethod(m -> m
    *           .get(() -> ctx.render(val + " - " + "GET"))
    *           .post(() -> ctx.render(val + " - " + "POST"))
    *         );
    *       })
-   *       .handler("b", ctx -> {
+   *       .path("b", ctx -> {
    *         String val = "b";
    *         ctx.byMethod(m -> m
    *           .get(() -> ctx.render(val + " - " + "GET"))
@@ -397,7 +398,7 @@ public interface Context extends ExecControl, Registry {
    *           for (int i = 0; i < numJobs; ++i) {
    *             final int iteration = i;
    *
-   *             context.exec()
+   *             context.fork()
    *               .onError(throwable -> {
    *                 error.compareAndSet(null, throwable); // just take the first error
    *                 completeJob(fulfiller);
@@ -434,7 +435,7 @@ public interface Context extends ExecControl, Registry {
    * @return an execution starter
    */
   @Override
-  ExecStarter exec();
+  ExecBuilder fork();
 
   @Override
   ExecController getController();
@@ -703,5 +704,9 @@ public interface Context extends ExecControl, Registry {
    * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
    */
   Path file(String path) throws NotInRegistryException;
+
+  default FileSystemBinding getFileSystemBinding() throws NotInRegistryException {
+    return get(FileSystemBinding.class);
+  }
 
 }

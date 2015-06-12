@@ -35,7 +35,7 @@ class ServerSentEventsSpec extends HttpClientSpec {
   def "can send server sent event"() {
     given:
     handlers {
-      handler {
+      all {
         render serverSentEvents(publish(1..3)) { Event event ->
           event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
         }
@@ -70,7 +70,7 @@ id: 3
 
     given:
     handlers {
-      handler {
+      all {
         def stream = publish(1..1000)
         stream = wiretap(stream) {
           if (it.data) {
@@ -106,7 +106,7 @@ id: 3
 
     given:
     handlers {
-      handler {
+      all {
         context.directChannelAccess.channel.closeFuture().addListener(new GenericFutureListener<Future<? super Void>>() {
           @Override
           void operationComplete(Future<? super Void> future) throws Exception {
@@ -156,7 +156,7 @@ id: 3
       it.decompressResponse(false)
     }
     handlers {
-      handler {
+      all {
         render serverSentEvents(publish(1..3)) {
           it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
         }

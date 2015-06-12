@@ -16,133 +16,82 @@
 
 package ratpack.pac4j.openid
 
-import com.google.inject.Module
-import org.junit.ClassRule
-import org.junit.rules.TemporaryFolder
 import org.pac4j.core.profile.UserProfile
-import org.pac4j.openid.credentials.OpenIdCredentials
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.pac4j.InjectedPac4jModule
-import ratpack.pac4j.Pac4jModule
+import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
-import ratpack.session.store.MapSessionsModule
-import ratpack.test.embed.BaseDirBuilder
-import ratpack.test.embed.EmbeddedApp
+import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
-import static ratpack.pac4j.internal.AbstractPac4jModule.DEFAULT_CALLBACK_PATH
 
 /**
  * Tests OpenID Relying Party support.
  */
-class OpenIdRpSpec extends Specification {
-  private static final String CUSTOM_CALLBACK_PATH = "custom-callback"
+class OpenIdRpSpec extends RatpackGroovyDslSpec {
   private static final String EMAIL = "fake@example.com"
 
-  @Shared
-  @ClassRule
-  TemporaryFolder temporaryFolder
-
-  @Shared
   @AutoCleanup
-  BaseDirBuilder baseDir
+  EmbeddedProvider provider = new EmbeddedProvider()
 
-  @Shared
-  @AutoCleanup
-  EmbeddedApp autConstructed
+  def setup() {
+    provider.open()
 
-  @Shared
-  @AutoCleanup
-  EmbeddedApp autInjected
+    bindings {
+      module SessionModule
+    }
 
-  @Shared
-  @AutoCleanup
-  EmbeddedApp autCustom
-
-  @Shared
-  @AutoCleanup
-  EmbeddedProvider provider
-
-  def testApp(Module... additionalModules) {
-    GroovyEmbeddedApp.build {
-      baseDir(baseDir)
-
-      bindings {
-        additionalModules.each { module(it) }
-        module SessionModule
-        module new MapSessionsModule(10, 5)
+    handlers {
+      all(RatpackPac4j.authenticator(new OpenIdTestClient(provider.port)))
+      get("noauth") {
+        def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
+        def genericUserProfile = maybeGet(UserProfile).orElse(null)
+        response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
       }
-
-      handlers {
-        get("noauth") {
-          def typedUserProfile = request.maybeGet(YahooOpenIdProfile).orElse(null)
-          def genericUserProfile = request.maybeGet(UserProfile).orElse(null)
-          response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
-        }
-        get("auth") {
-          def typedUserProfile = request.maybeGet(YahooOpenIdProfile).orElse(null)
-          def genericUserProfile = request.maybeGet(UserProfile).orElse(null)
+      prefix("auth") {
+        all(RatpackPac4j.requireAuth(OpenIdTestClient))
+        get {
+          def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
+          def genericUserProfile = maybeGet(UserProfile).orElse(null)
           response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
         }
       }
     }
+
   }
 
-  def setupSpec() {
-    provider = new EmbeddedProvider()
-    provider.open()
-    baseDir = BaseDirBuilder.tmpDir()
-    autConstructed = testApp(new Pac4jModule<>(new OpenIdTestClient(provider.port), new AuthPathAuthorizer()))
-    autInjected = testApp(new InjectedPac4jModule<>(OpenIdCredentials, YahooOpenIdProfile), new OpenIdTestModule(provider.port))
-    autCustom = testApp(new Pac4jModule<>(new OpenIdTestClient(provider.port), new AuthPathAuthorizer()), new CustomConfigModule(CUSTOM_CALLBACK_PATH))
-  }
-
-  @Unroll
-  def "test noauth"(EmbeddedApp aut) {
-    setup:
-    def client = aut.httpClient
-
-    when: "request a page that doesn't require authentication"
+  def "test noauth"() {
+    when:
     def response = client.get("noauth")
 
-    then: "the page is returned without any redirects, and without authentication"
+    then:
     response.body.text == "noauth:null:null"
-
-    where:
-    aut << [autConstructed, autInjected, autCustom]
   }
 
-  @Unroll
-  def "test successful auth"(EmbeddedApp aut, String expectedCallbackPath) {
+  def "test successful auth"() {
     setup:
-    def client = aut.httpClient
     client.requestSpec { it.redirects(0) }
     provider.addResult(true, EMAIL)
 
-    when: "request a page that requires authentication"
+    when:
     def response1 = client.get("auth")
 
-    then: "the request is redirected to the openid provider"
+    then:
     response1.statusCode == FOUND.code()
     response1.headers.get(LOCATION).contains("/openid_provider")
 
-    when: "following the redirect"
+    when:
     def response2 = client.get(response1.headers.get(LOCATION))
 
-    then: "the response is redirected to the callback"
+    then:
     response2.statusCode == FOUND.code()
-    response2.headers.get(LOCATION).contains(expectedCallbackPath)
+    response2.headers.get(LOCATION).contains(RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH)
 
-    when: "following the redirect"
+    when:
     client.resetRequest()
     client.requestSpec {
       it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
@@ -150,42 +99,33 @@ class OpenIdRpSpec extends Specification {
     }
     def response3 = client.get(response2.headers.get(LOCATION))
 
-    then: "the response is redirected to the original page"
+    then:
     response3.statusCode == FOUND.code()
     response3.headers.get(LOCATION).contains("/auth")
 
-    when: "following the redirect"
+    when:
     client.resetRequest()
     client.requestSpec {
       it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
     }
     def response4 = client.get(response3.headers.get(LOCATION))
 
-    then: "the original page is returned"
+    then:
     response4.body.text == "auth:${EMAIL}:${EMAIL}"
 
-    when: "request a page that doesn't require authentication after authenticating"
+    when:
     client.resetRequest()
     client.requestSpec {
       it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
     }
     def response5 = client.get("noauth")
 
-    then: "authentication information is still available"
-    response5.body.text == "noauth:${EMAIL}:${EMAIL}"
-
-    where:
-    aut            | expectedCallbackPath
-    autConstructed | DEFAULT_CALLBACK_PATH
-    autInjected    | DEFAULT_CALLBACK_PATH
-    autCustom      | CUSTOM_CALLBACK_PATH
+    then:
+    response5.body.text == "noauth:null:null"
   }
 
-  @Unroll
-  def "it should not redirect ajax requests"(EmbeddedApp aut) {
+  def "it should not redirect ajax requests"() {
     setup:
-    def client = aut.httpClient
-
     // Set AJAX request header.
     client.requestSpec { RequestSpec requestSpec ->
       requestSpec.headers.add(
@@ -199,9 +139,6 @@ class OpenIdRpSpec extends Specification {
 
     then: "a 401 response is returned and no redirect is made"
     assert response.statusCode == UNAUTHORIZED.code()
-
-    where:
-    aut << [autConstructed, autInjected, autCustom]
   }
 
 }

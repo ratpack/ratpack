@@ -18,7 +18,7 @@ package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.ByteBufProcessor;
+import io.netty.util.ByteProcessor;
 import ratpack.func.Action;
 import ratpack.sse.Event;
 
@@ -38,9 +38,9 @@ public class ServerSentEventDecoder {
   private static final char[] EVENT_ID_FIELD_NAME = "event".toCharArray();
   private static final char[] DATA_FIELD_NAME = "data".toCharArray();
   private static final char[] ID_FIELD_NAME = "id".toCharArray();
-  private static final ByteBufProcessor SCAN_EOL_PROCESSOR = value -> !isLineDelimiter((char) value);
-  private static final ByteBufProcessor SCAN_COLON_PROCESSOR = value -> (char) value != ':';
-  private static final ByteBufProcessor SKIP_COLON_AND_WHITE_SPACE_PROCESSOR = value -> {
+  private static final ByteProcessor SCAN_EOL_PROCESSOR = value -> !isLineDelimiter((char) value);
+  private static final ByteProcessor SCAN_COLON_PROCESSOR = value -> (char) value != ':';
+  private static final ByteProcessor SKIP_COLON_AND_WHITE_SPACE_PROCESSOR = value -> {
     char valueChar = (char) value;
     return valueChar == ':' || valueChar == ' ';
   };
@@ -202,7 +202,7 @@ public class ServerSentEventDecoder {
     return skipTillFirstMatching(byteBuf, (byte) CARRIAGE_RETURN);
   }
 
-  private static boolean skipTillMatching(ByteBuf byteBuf, ByteBufProcessor processor) {
+  private static boolean skipTillMatching(ByteBuf byteBuf, ByteProcessor processor) {
     final int lastIndexProcessed = byteBuf.forEachByte(processor);
     if (-1 == lastIndexProcessed) {
       byteBuf.readerIndex(byteBuf.readerIndex() + byteBuf.readableBytes()); // If all the remaining bytes are to be ignored, discard the buffer.

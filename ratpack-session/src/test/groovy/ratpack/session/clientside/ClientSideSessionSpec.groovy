@@ -16,243 +16,172 @@
 
 package ratpack.session.clientside
 
-import io.netty.handler.codec.http.QueryStringDecoder
-import io.netty.util.CharsetUtil
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.session.store.SessionStorage
-import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.session.Session
+import ratpack.session.SessionModule
+import ratpack.session.SessionSpec
 import spock.lang.Unroll
 
-class ClientSideSessionSpec extends RatpackGroovyDslSpec {
+import java.time.Duration
+
+class ClientSideSessionSpec extends SessionSpec {
+
+  private String[] getCookies(String startsWith, String path) {
+    getCookies(path).findAll { it.name().startsWith(startsWith)?.value } .toArray()
+  }
 
   def setup() {
-    modules << new ClientSideSessionsModule()
+    modules << new ClientSideSessionModule()
+    supportsSize = false
   }
 
-  private String getSetCookie() {
-    response.headers.get("Set-Cookie")
-  }
-
-  private String getSessionCookie() {
-    getCookies("/").find { it.name().startsWith("ratpack_session") }?.value()
-  }
-
-  private String getSessionPayload() {
-    sessionCookie?.split(":")?.getAt(0)
-  }
-
-  def getDecodedPairs() {
-    new String(Base64.getUrlDecoder().decode(sessionPayload.getBytes("utf-8")))
-      .split("&")
-      .inject([:]) { m, kvp ->
-      def p = kvp.split("=")
-      m[urlDecode(p[0])] = urlDecode(p[1])
-      m
-    }
-  }
-
-  def urlDecode(String s) {
-    URLDecoder.decode(s, "utf-8")
-  }
-
-  def "new session with no entries should not set cookie"() {
+  def "session cookies are bounded to path"() {
     given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.path = "/bar"
+      }
+      module ClientSideSessionModule
+    }
     handlers {
-      get { SessionStorage storage ->
-        response.send "ok"
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 
     when:
-    get()
+    get("foo")
 
     then:
-    setCookie == null
+    getCookies("ratpack_session", "/").length == 0
+    getCookies("ratpack_session", "/bar").length == 1
+    getCookies("ratpack_session", "/foo").length == 0
   }
 
-  def "can store session vars"() {
+  def "last access time is set and changed on load or on store"() {
+    when:
+    handlers {
+      get("nosessionaccess") {
+        response.send("foo")
+      }
+      get("store") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+      get("load") { Session session ->
+        session.data.then { render it.get("foo").orElse("null")}
+      }
+    }
+
+    then:
+    !get("nosessionaccess").headers.getAll("Set-Cookie").contains("ratpack_lat")
+    def values = get("store").headers.getAll("Set-Cookie")
+    def value = values.find { it.contains("ratpack_lat") }
+    value
+    def values2 = get("load").headers.getAll("Set-Cookie")
+    def value2 = values2.find { it.contains("ratpack_lat") }
+    value2 != value
+  }
+
+  def "invalidated session clears session cookies"() {
     given:
     handlers {
-      get("") { SessionStorage storage ->
-        storage.get("value", String).then({
-          render it.orElse("null")
-        })
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok"}
       }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then({
-
-          storage.get("value", String).then({
-            render it.orElse("null")
-          })
-        })
+      get("terminate") { Session session ->
+        session.terminate().then { render "ok" }
       }
     }
 
     when:
-    get()
+    get("foo")
 
     then:
-    response.body.text == "null"
-    !sessionCookie
-    !setCookie
+    getCookies("ratpack_session", "/").length == 1
 
-    and:
-    getText("set/foo") == "foo"
-    decodedPairs.value == "foo"
+    when:
+    get("terminate")
 
+    then:
+    getCookies("ratpack_session", "/").length == 0
   }
 
-  @Unroll('key #key and value #value should be encoded')
-  def "can handle keys/values that should be encoded"() {
+  def "session partioned by max cookie size"() {
     given:
     handlers {
-      get { SessionStorage storage ->
-        storage.set(key, value).then({
-
-          storage.get(key, String).then({
-            response.send it.orElse("null")
-          })
-
-        })
-
+      get("foo") { Session session ->
+        String value = ""
+        for (int i = 0; i < 800; i++) {
+          value += "ab"
+        }
+        session.data.then { it.set("foo", value); render "ok" }
       }
-    }
-
-    expect:
-    getText() == value
-    decodedPairs[key] == value
-
-    where:
-    key   | value
-    'a'   | 'a'
-    ':'   | ':'
-    '='   | '='
-    '/'   | '/'
-    '\\'  | '\\'
-    '&'   | ':'
-    '&=:' | ':=&'
-
-  }
-
-
-  def "client should set-cookie only when session values have changed"() {
-    given:
-    handlers {
-
-      handler { SessionStorage storage ->
-        next()
-      }
-
-      get("") { SessionStorage storage ->
-        storage.get("value", String).then({
-          render it.orElse("null")
-        })
-      }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then({
-
-          storage.get("value", String).then({
-            render it.orElse("null")
-          })
-        })
-      }
-    }
-
-    expect:
-    get("")
-    response.body.text == "null"
-    setCookie == null
-
-    getText("set/foo")
-    response.body.text == "foo"
-    setCookie.startsWith("ratpack_session")
-    decodedPairs.value == "foo"
-
-    getText("")
-    response.body.text == "foo"
-    setCookie == null
-    decodedPairs.value == "foo"
-
-    getText("set/foo")
-    response.body.text == "foo"
-    setCookie == null
-    decodedPairs.value == "foo"
-
-    getText("set/bar")
-    response.body.text == "bar"
-    setCookie.startsWith("ratpack_session")
-    decodedPairs.value == "bar"
-
-    getText("set/bar")
-    response.body.text == "bar"
-    setCookie == null
-    decodedPairs.value == "bar"
-
-  }
-
-  def "clearing an existing session informs client to expire cookie"() {
-    given:
-    handlers {
-      get("") { SessionStorage storage ->
-        storage.get("value", String).then({
-          render it.orElse("null")
-        })
-      }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then({
-          storage.get("value", String).then({
-            render it.orElse("null")
-          })
-        })
-      }
-      get("clear") { SessionStorage storage ->
-        storage.clear().then({
-          render "OK"
-        })
+      get("bar") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok"}
       }
     }
 
     when:
-    get("set/foo")
+    get("foo")
 
     then:
-    decodedPairs.value == "foo"
+    getCookies("ratpack_session", "/").length == 2
 
     when:
-    get("clear")
+    get("bar")
 
     then:
-    setCookie.startsWith("ratpack_session")
-    setCookie.contains("Max-Age=0;")
-    setCookie.contains("Expires=")
-    !sessionCookie
+    getCookies("ratpack_session", "/").length == 1
+  }
+
+  def "timed out session invalidates cookies"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule
+      module ClientSideSessionModule, {
+        it.maxInactivityInterval = Duration.ofSeconds(1)
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok"}
+      }
+      get("wait") { Session session ->
+        Thread.sleep(1100)
+        session.data.then { render it.get("foo").orElse("null") }
+      }
+    }
 
     when:
-    get("")
+    get("foo")
 
     then:
-    !setCookie
-    !sessionCookie
+    getCookies("ratpack_lat", "/").length == 1
+    getCookies("ratpack_session", "/").length == 1
+
+    when:
+    get("wait")
+
+    then:
+    getCookies("ratpack_lat", "/").length == 0
+    getCookies("ratpack_session", "/").length == 0
   }
 
   @Unroll
   def "a malformed cookie (#value) results in an empty session"() {
     given:
     handlers {
-      get { SessionStorage storage ->
-        storage.getKeys().then({ keys ->
-          response.send(keys.isEmpty().toString())
-        })
-
+      get { Session session ->
+        session.data.then { response.send(it.getKeys().isEmpty().toString())}
       }
     }
-
     requestSpec { RequestSpec spec ->
       spec.headers { MutableHeaders headers ->
-        headers.set(HttpHeaderConstants.COOKIE, "ratpack_session=${value}")
+        headers.set(HttpHeaderConstants.COOKIE, "ratpack_session_0=${value}")
       }
     }
 
@@ -264,149 +193,102 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
 
     where:
     value << [null, '', ' ', '\t', 'foo', '::', ':', 'invalid:sequence', 'a:b:c']
-
   }
 
   def "a cookie with bad digest results in empty session"() {
     given:
     handlers {
-      get { SessionStorage storage ->
-        storage.getKeys().then({ keys ->
-          response.send(keys.isEmpty().toString())
-        })
+      get { Session session ->
+        session.data.then { response.send(it.getKeys().isEmpty().toString())}
       }
     }
-
     requestSpec { RequestSpec spec ->
       spec.headers { MutableHeaders headers ->
-        headers.set(HttpHeaderConstants.COOKIE, 'ratpack_session="dmFsdWU9Zm9v:DjZCDssly41x7tzrfXCaLvPuRAM="')
+        headers.set(HttpHeaderConstants.COOKIE, 'ratpack_session_0="dmFsdWU9Zm9v:DjZCDssly41x7tzrfXCaLvPuRAM="')
       }
     }
-
     when:
     get()
 
     then:
     response.body.text == "true"
-
   }
 
-  def aut(Closure sessionModuleConfig) {
-    GroovyEmbeddedApp.build {
-      bindings {
-        module ClientSideSessionsModule, {
-          it.with sessionModuleConfig
-        }
-      }
-      handlers {
-        get { SessionStorage storage ->
-          storage.get("value", String).then({
-            render it.orElse("null")
-          })
-        }
-        get("set/:value") { SessionStorage storage ->
-          storage.set("value", pathTokens.value).then({
-
-            storage.get("value", String).then({
-              render it.orElse("null")
-            })
-          })
-        }
-      }
-    }
-  }
-
-  @Unroll
-  def "cookies can be read across servers with the same secret token and key"() {
-    given:
-    def app1 = aut(sessionModuleConfig)
-    def client1 = app1.httpClient
-
-    def app2 = aut(sessionModuleConfig)
-    def client2 = app2.httpClient
-
-    expect:
-    client2.getText("") == "null"
-    !client2.response.headers.get("Set-Cookie")
-
-    and:
-    client1.getText("set/foo") == "foo"
-    client1.response.headers.get("Set-Cookie").startsWith("_sess")
-
+  def "session cookies are all HTTPOnly"() {
     when:
-    client2.requestSpec {
-      it.headers {
-        it.set(HttpHeaderConstants.COOKIE, client1.response.headers.get("Set-Cookie"))
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 
     then:
-    client2.getText("") == "foo"
-    !client2.response.headers.get("Set-Cookie")
-
-    where:
-    sessionModuleConfig << [
-      {
-        secretToken = "secret"
-        sessionName = "_sess"
-        macAlgorithm = "HmacMD5"
-      },
-      {
-        secretToken = "secret"
-        secretKey = "a" * 16
-        sessionName = "_sess"
-        macAlgorithm = "HmacMD5"
-      }
-    ]
+    def values = get("foo").headers.getAll("Set-Cookie")
+    values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && it.contains("HTTPOnly") }.size() == 1
   }
 
-  @Unroll
-  def "sessions with value of length #length can be serialized/deserialized"() {
+  def "session cookies are not HTTPOnly, when config.isHttpOnly() is false"() {
     given:
     modules.clear()
     bindings {
-      module ClientSideSessionsModule, {
-        it.secretKey = "a" * 16
+      module SessionModule, {
+        it.httpOnly = false
       }
+      module ClientSideSessionModule
     }
-
     handlers {
-      get("") { SessionStorage storage ->
-        storage.get("value", String).then({
-          render it.orElse("null")
-        })
-      }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then({
-          storage.get("value", String).then({
-            render it.orElse("null")
-          })
-        })
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
       }
     }
 
-    expect:
-    get()
-    response.body.text == "null"
-    !sessionCookie
-    !setCookie
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
 
-    def value = 'a' * length
-    getText("set/$value") == value
-    sessionPayload
+    then:
+    values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && !it.contains("HTTPOnly") }.size() == 1
+  }
 
-    getText() == value
+  def "session cookies are secure, when config.isSecure() is true"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.secure = true
+      }
+      module ClientSideSessionModule
+    }
+    handlers {
+      get("foo") { Session session ->
+        session.data.then { it.set("foo", "bar"); render "ok" }
+      }
+    }
 
-    where:
-    length << [1, 3, 129, 255, 256]
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_lat") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
+  }
+
+  private static class SessionContent {
+    Map<String, Optional> data
   }
 
   @Unroll
   def "secretKey with #algorithm renders session unreadable"() {
     given:
+    SessionContent sessionContent = new SessionContent()
     modules.clear()
     bindings {
-      module ClientSideSessionsModule, {
+      module SessionModule
+      module ClientSideSessionModule, {
         it.with {
           int length = 16
           switch (algorithm) {
@@ -424,43 +306,35 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
           cipherAlgorithm = algorithm
         }
       }
+      bindInstance(SessionContent, sessionContent)
     }
-
     handlers {
-      get("") { SessionStorage storage ->
-        storage.get("value", String).then({
-          render it.orElse("null")
-        })
+      get("") { Session session ->
+        session.data.then { render it.get("value").orElse("null") }
       }
-      get("set/:value") { SessionStorage storage ->
-        storage.set("value", pathTokens.value).then({
-
-          storage.get("value", String).then({
-            render it.orElse("null")
-          })
-        })
+      get("set/:value") { Session session ->
+        session.data.then {
+          it.set("value", pathTokens.value); render "ok"
+        }
+      }
+      get("session") { Session session, SessionContent sc ->
+        session.data.then {
+          sc.data = [:]
+          for (key in it.getKeys()) {
+            sc.data[key.name] = it.get(key)
+          }
+          render "ok"
+        }
       }
     }
 
     expect:
     get("")
     response.body.text == "null"
-    !sessionCookie
-    !setCookie
-
-    getText("set/foo") == "foo"
-    sessionPayload
-    String payload
-    try {
-      payload = new String(Base64.getUrlDecoder().decode(sessionPayload.bytes), CharsetUtil.UTF_8)
-      QueryStringDecoder queryStringDecoder = new QueryStringDecoder(payload, CharsetUtil.UTF_8, false)
-      queryStringDecoder.parameters().every { key, value ->
-        key != "value" && value != "foo"
-      }
-    } catch (Exception e) {
-    }
-
-    getText() == "foo"
+    getText("set/foo") == "ok"
+    get("session")
+    sessionContent.data["value"].orElse("null") == "foo"
+    getText("") == "foo"
 
     where:
     algorithm << [
@@ -478,7 +352,5 @@ class ClientSideSessionSpec extends RatpackGroovyDslSpec {
       "DESede/ECB/NoPadding",
       "DESede/ECB/PKCS5Padding"
     ]
-
   }
-
 }

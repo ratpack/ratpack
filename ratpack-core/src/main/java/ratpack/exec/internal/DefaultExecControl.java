@@ -77,21 +77,21 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
   }
 
   @Override
-  public ExecStarter exec() {
-    return new ExecStarter() {
+  public ExecBuilder fork() {
+    return new ExecBuilder() {
       private BiAction<? super Execution, ? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
       private Action<? super RegistrySpec> registry = noop();
       private EventLoop eventLoop = execController.getEventLoopGroup().next();
 
       @Override
-      public ExecStarter eventLoop(EventLoop eventLoop) {
+      public ExecBuilder eventLoop(EventLoop eventLoop) {
         this.eventLoop = eventLoop;
         return this;
       }
 
       @Override
-      public ExecStarter onError(BiAction<? super Execution, ? super Throwable> onError) {
+      public ExecBuilder onError(BiAction<? super Execution, ? super Throwable> onError) {
         List<Throwable> seen = Lists.newLinkedList();
         this.onError = (e, t) -> {
           if (seen.size() < MAX_ERRORS_THRESHOLD) {
@@ -106,19 +106,19 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
       }
 
       @Override
-      public ExecStarter onError(Action<? super Throwable> onError) {
+      public ExecBuilder onError(Action<? super Throwable> onError) {
         return onError((e, t) -> onError.execute(t));
       }
 
       @Override
-      public ExecStarter onComplete(Action<? super Execution> onComplete) {
+      public ExecBuilder onComplete(Action<? super Execution> onComplete) {
         this.onComplete = onComplete;
         return this;
       }
 
       @Override
-      public ExecStarter register(Action<? super RegistrySpec> registry) {
-        this.registry = registry;
+      public ExecBuilder register(Action<? super RegistrySpec> action) {
+        this.registry = action;
         return this;
       }
 

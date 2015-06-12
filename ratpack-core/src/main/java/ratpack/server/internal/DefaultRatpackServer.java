@@ -83,7 +83,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
-  protected SSLEngine sslEngine;
+  protected boolean useSsl;
   private final ServerCapturer.Overrides overrides;
 
   public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
@@ -189,10 +189,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
     SSLContext sslContext = serverConfig.getSSLContext();
-    if (sslContext != null) {
-      this.sslEngine = sslContext.createSSLEngine();
-      sslEngine.setUseClientMode(false);
-    }
+    this.useSsl = sslContext != null;
 
     return new ServerBootstrap()
       .group(execController.getEventLoopGroup())
@@ -204,6 +201,8 @@ public class DefaultRatpackServer implements RatpackServer {
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
           if (sslContext != null) {
+            SSLEngine sslEngine = sslContext.createSSLEngine();
+            sslEngine.setUseClientMode(false);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
@@ -249,7 +248,8 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
-    for (HandlerDecorator handlerDecorator : serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN)) {
+    final Iterable<? extends HandlerDecorator> all = serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN);
+    for (HandlerDecorator handlerDecorator : all) {
       rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
     }
     return rootHandler;
@@ -318,7 +318,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized String getScheme() {
-    return isRunning() ? sslEngine == null ? "http" : "https" : null;
+    return isRunning() ? this.useSsl ? "https" : "http" : null;
   }
 
   public synchronized int getBindPort() {
@@ -356,7 +356,7 @@ public class DefaultRatpackServer implements RatpackServer {
   private <E> void executeEvents(Iterator<? extends Service> services, CountDownLatch latch, AtomicReference<Throwable> error, E event, ExecControl execControl, BiAction<Service, E> action, BiAction<? super Service, ? super Throwable> onError) throws Exception {
     if (services.hasNext()) {
       Service service = services.next();
-      execControl.exec()
+      execControl.fork()
         .onError(t -> {
           try {
             onError.execute(service, t);
@@ -400,7 +400,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-      execController.getControl().exec().start(e ->
+      execController.getControl().fork().start(e ->
           e.<ChannelHandler>promise(f -> {
             boolean rebuild = false;
 

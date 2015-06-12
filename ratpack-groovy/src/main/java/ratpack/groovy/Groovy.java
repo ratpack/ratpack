@@ -30,8 +30,6 @@ import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
-import ratpack.groovy.handling.internal.DefaultGroovyChain;
-import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
@@ -45,7 +43,6 @@ import ratpack.groovy.template.TextTemplate;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.handling.Chain;
-import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -275,16 +272,6 @@ public abstract class Groovy {
   }
 
   /**
-   * Creates a specialized Groovy context.
-   *
-   * @param context The context to convert to a Groovy context
-   * @return The original context wrapped in a Groovy context
-   */
-  public static GroovyContext context(Context context) {
-    return context instanceof GroovyContext ? (GroovyContext) context : new DefaultGroovyContext(context);
-  }
-
-  /**
    * Builds a chain, backed by the given registry.
    *
    * @param serverConfig The application server config
@@ -321,7 +308,7 @@ public abstract class Groovy {
    * @throws Exception any exception thrown by the given closure
    */
   public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
-    return chain -> ClosureUtil.configureDelegateFirst(new DefaultGroovyChain(chain), closure);
+    return chain -> ClosureUtil.configureDelegateFirst(GroovyChain.from(chain), closure);
   }
 
   /**
@@ -454,8 +441,7 @@ public abstract class Groovy {
    * @throws Exception any exception thrown by {@code closure}
    */
   public static void chain(Chain chain, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
-    GroovyChain groovyChain = chain instanceof GroovyChain ? (GroovyChain) chain : new DefaultGroovyChain(chain);
-    new ClosureInvoker<Object, GroovyChain>(closure).invoke(chain.getRegistry(), groovyChain, Closure.DELEGATE_FIRST);
+    new ClosureInvoker<Object, GroovyChain>(closure).invoke(chain.getRegistry(), GroovyChain.from(chain), Closure.DELEGATE_FIRST);
   }
 
   /**

@@ -39,7 +39,7 @@ import ratpack.spring.internal.SpringRegistryBacking;
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandlers(chain -> chain
  *       .register(spring(ExampleSpringBootApp.class))
- *       .handler(context -> {
+ *       .all(context -> {
  *         String helloBean = context.get(String.class);
  *         context.render(helloBean);
  *       })
@@ -101,6 +101,7 @@ public abstract class Spring {
    * @see #spring(org.springframework.beans.factory.ListableBeanFactory)
    */
   public static Registry spring(SpringApplicationBuilder builder, String... args) {
+    builder.web(false);
     return spring(builder.run(args));
   }
 

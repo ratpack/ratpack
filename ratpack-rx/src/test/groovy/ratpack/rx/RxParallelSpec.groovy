@@ -43,7 +43,7 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    harness.exec().start {
+    harness.fork().start {
       rx.Observable.from((0..9).toList())
         .parallel { it.map { received << it; latch.countDown() } }
         .subscribe()
@@ -87,7 +87,7 @@ class RxParallelSpec extends Specification {
     List<Integer> nums = []
 
     when:
-    harness.exec()
+    harness.fork()
       .onComplete { latch.countDown() }
       .start { exec ->
       def o = rx.Observable.from(1, 2, 3, 4, 5)

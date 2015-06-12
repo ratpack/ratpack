@@ -91,7 +91,7 @@ import java.util.Map;
  * The client IP address will be appended to all log messages made while processing requests.
  * <h3>Inheritance</h3>
  * <p>
- * The MDC is not inherited by forked executions (e.g. {@link ratpack.handling.Context#exec()}).
+ * The MDC is not inherited by forked executions (e.g. {@link ratpack.handling.Context#fork()}).
  * If you wish context to be inherited, you must do so explicitly by capturing the variables you wish to be inherited
  * (i.e. via {@link MDC#get(String)}) as local variables and then add them to the MDC (i.e. via {@link MDC#put(String, String)}) in the forked execution.
  *

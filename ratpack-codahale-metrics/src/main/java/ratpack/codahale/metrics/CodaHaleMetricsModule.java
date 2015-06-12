@@ -123,7 +123,7 @@ import static ratpack.util.Exceptions.uncheck;
  *   }
  *
  *   handlers { MetricRegistry metricRegistry -&gt;
- *     handler {
+ *     all {
  *       metricRegistry.meter("my custom meter").mark()
  *       render ""
  *     }

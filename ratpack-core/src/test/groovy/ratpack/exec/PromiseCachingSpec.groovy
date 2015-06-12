@@ -32,7 +32,7 @@ class PromiseCachingSpec extends Specification {
   def latch = new CountDownLatch(1)
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    execHarness.exec()
+    execHarness.fork()
       .onError(onError)
       .onComplete({
       events << "complete"
@@ -66,7 +66,7 @@ class PromiseCachingSpec extends Specification {
     exec { e ->
       def cached = e.blocking { "foo" }.cache()
       cached.then { events << it }
-      e.exec().onComplete {
+      e.fork().onComplete {
         innerEvents << "complete"
         innerLatch.countDown()
       } start { forkedExecution ->
@@ -122,7 +122,7 @@ class PromiseCachingSpec extends Specification {
       def cached = execHarness.promiseOf("foo").cache()
     exec { e ->
       num.times {
-        e.exec().start({ cached.then {
+        e.fork().start({ cached.then {
           events << it
           latch.countDown() } })
       }

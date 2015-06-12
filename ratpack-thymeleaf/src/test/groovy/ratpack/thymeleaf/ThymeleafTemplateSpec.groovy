@@ -228,7 +228,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
       module new ThymeleafModule()
     }
     handlers {
-      handler {
+      all {
         render thymeleafTemplate(request.path, text: 'content types', request.queryParams.type)
       }
     }
@@ -252,7 +252,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      handler { TemplateEngine te, StandardCacheManager cm ->
+      all { TemplateEngine te, StandardCacheManager cm ->
         // Get the current engine
         engine = te
         cacheManager = cm
@@ -293,7 +293,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
       module new HelloDialectModule()
     }
     handlers {
-      handler {
+      all {
         render thymeleafTemplate('simple')
       }
     }
@@ -316,7 +316,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      handler {
+      all {
         render thymeleafTemplate('with-fragment', new DOMSelectorFragmentSpec('body'))
       }
     }

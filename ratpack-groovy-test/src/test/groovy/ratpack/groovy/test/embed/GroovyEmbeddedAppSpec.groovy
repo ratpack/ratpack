@@ -25,7 +25,7 @@ class GroovyEmbeddedAppSpec extends Specification {
     expect:
     GroovyEmbeddedApp.build {
       handlers {
-        handler {
+        all {
           render "foo"
         }
       }
@@ -38,7 +38,7 @@ class GroovyEmbeddedAppSpec extends Specification {
     when:
     GroovyEmbeddedApp.build {
       handlers {
-        assets "public"
+        files { dir "public" }
       }
     } test {
       assert it.text == "foo"

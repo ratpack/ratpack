@@ -17,9 +17,13 @@
 package ratpack.test.http.internal;
 
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
+import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.http.client.ReceivedResponse;
@@ -32,7 +36,9 @@ import ratpack.test.internal.BlockingHttpClient;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -212,7 +218,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
         List<Cookie> requestCookies = getCookies(path);
 
-        String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.encode(requestCookies);
+        String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
 
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
@@ -223,7 +229,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
     List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
     for (String cookieHeader : cookieHeaders) {
-      Cookie decodedCookie = ClientCookieDecoder.decode(cookieHeader);
+      Cookie decodedCookie = ClientCookieDecoder.STRICT.decode(cookieHeader);
       if (decodedCookie != null) {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
@@ -245,9 +251,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
           if (pathCookies.contains(decodedCookie)) {
             pathCookies.remove(decodedCookie);
           }
-          if (!decodedCookie.isDiscard()) {
-            pathCookies.add(decodedCookie);
-          }
+          pathCookies.add(decodedCookie);
         }
       }
     }
@@ -261,6 +265,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
       if (basePath.isAbsolute()) {
         return HttpUrlBuilder.base(basePath);
       } else {
+        path = path.startsWith("/") ? path.substring(1) : path;
         return HttpUrlBuilder.base(new URI(applicationUnderTest.getAddress().toString() + path));
       }
     } catch (URISyntaxException e) {

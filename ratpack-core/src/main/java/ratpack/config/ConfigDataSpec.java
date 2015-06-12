@@ -65,7 +65,7 @@ import java.util.Properties;
  *         spec
  *           .serverConfig(serverConfig)
  *           .handler(registry ->
- *             (ctx) -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
+ *             ctx -> ctx.render("threads:" + ctx.get(ServerConfig.class).getThreads())
  *           );
  *       });
  *       server.start();
@@ -302,10 +302,10 @@ public interface ConfigDataSpec {
   ConfigDataSpec yaml(URL url);
 
   /**
-   * Sets the error handler that will be used for added configuration sources.
-   * The error handler only applies to configuration sources added after this method is called; it is not applied retroactively.
+   * Sets the error all that will be used for added configuration sources.
+   * The error all only applies to configuration sources added after this method is called; it is not applied retroactively.
    *
-   * @param errorHandler the error handler
+   * @param errorHandler the error all
    * @return {@code this}
    * @see ratpack.func.Action#noop()
    * @see ratpack.func.Action#throwException()

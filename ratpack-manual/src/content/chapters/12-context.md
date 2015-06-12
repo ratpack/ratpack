@@ -68,18 +68,18 @@ public class Example {
     EmbeddedApp
       .fromHandlers(chain -> chain
           .prefix("person/:id", (personChain) -> personChain
-            .handler(context -> {
-              String id = context.getPathTokens().get("id"); // (1)
+            .all(ctx -> {
+              String id = ctx.getPathTokens().get("id"); // (1)
               Person person = new PersonImpl(id, "example-status", "example-age");
-              context.next(just(Person.class, person)); // (2)
+              ctx.next(just(Person.class, person)); // (2)
             })
-            .get("status", context -> {
-              Person person = context.get(Person.class); // (3)
-              context.render("person " + person.getId() + " status: " + person.getStatus());
+            .get("status", ctx -> {
+              Person person = ctx.get(Person.class); // (3)
+              ctx.render("person " + person.getId() + " status: " + person.getStatus());
             })
-            .get("age", context -> {
-              Person person = context.get(Person.class); // (4)
-              context.render("person " + person.getId() + " age: " + person.getAge());
+            .get("age", ctx -> {
+              Person person = ctx.get(Person.class); // (4)
+              ctx.render("person " + person.getId() + " age: " + person.getAge());
             }))
       )
       .test(httpClient -> {
@@ -150,16 +150,16 @@ public class Example {
                   context.render("api error: " + throwable.getMessage())
               )
             )
-            .handler(context -> {
-              throw new Exception("in api - " + context.getRequest().getPath());
+            .all(ctx -> {
+              throw new Exception("in api - " + ctx.getRequest().getPath());
             })
         )
-        .register(r -> r.add(ServerErrorHandler.class, (context, throwable) ->
-              context.render("app error: " + throwable.getMessage())
+        .register(r -> r.add(ServerErrorHandler.class, (ctx, throwable) ->
+              ctx.render("app error: " + throwable.getMessage())
           )
         )
-        .handler(context -> {
-          throw new Exception("in app - " + context.getRequest().getPath());
+        .all(ctx -> {
+          throw new Exception("in app - " + ctx.getRequest().getPath());
         })
     ).test(httpClient -> {
       assertEquals("api error: in api - api/foo", httpClient.get("api/foo").getBody().getText());

@@ -16,13 +16,19 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
@@ -34,17 +40,14 @@ import ratpack.util.MultiValueMap;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
 
 public class DefaultResponse implements Response {
 
-  private HttpResponseStatus status = HttpResponseStatus.OK;
+  private Status status = Status.OK;
   private final MutableHeaders headers;
   private final ByteBufAllocator byteBufAllocator;
   private final ResponseTransmitter responseTransmitter;
@@ -191,22 +194,13 @@ public class DefaultResponse implements Response {
   }
 
   public Status getStatus() {
-    return new DefaultStatus(status);
-  }
-
-  public Response status(int code) {
-    return status(HttpResponseStatus.valueOf(code));
-  }
-
-  @Override
-  public Response status(HttpResponseStatus status) {
-    this.status = status;
-    return this;
+    return status;
   }
 
   @Override
   public Response status(Status status) {
-    return status(status.getCode());
+    this.status = status;
+    return this;
   }
 
   @Override
@@ -270,7 +264,7 @@ public class DefaultResponse implements Response {
   public void sendFile(Path file) {
     finalizeResponse(responseFinalizers.iterator(), () -> {
       setCookieHeader();
-      responseTransmitter.transmit(status, file);
+      responseTransmitter.transmit(status.getNettyStatus(), file);
     });
   }
 
@@ -278,7 +272,7 @@ public class DefaultResponse implements Response {
   public void sendStream(Publisher<? extends ByteBuf> stream) {
     finalizeResponse(responseFinalizers.iterator(), () -> {
       setCookieHeader();
-      stream.subscribe(responseTransmitter.transmitter(status));
+      stream.subscribe(responseTransmitter.transmitter(status.getNettyStatus()));
     });
   }
 
@@ -310,16 +304,16 @@ public class DefaultResponse implements Response {
   private void setCookieHeader() {
     if (cookies != null && !cookies.isEmpty()) {
       for (Cookie cookie : cookies) {
-        headers.add(HttpHeaderConstants.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+        headers.add(HttpHeaderConstants.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
       }
     }
   }
 
   private void commit(ByteBuf buffer) {
     headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
-    finalizeResponse(responseFinalizers.iterator(), () -> {
+    finalizeResponse(Collections.emptyIterator(), () -> {
       setCookieHeader();
-      responseTransmitter.transmit(status, buffer);
+      responseTransmitter.transmit(status.getNettyStatus(), buffer);
     });
   }
 
@@ -330,7 +324,13 @@ public class DefaultResponse implements Response {
         () -> finalizeResponse(finalizers, then)
       );
     } else {
-      then.run();
+      List<Action<? super ResponseMetaData>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
+      responseFinalizers.clear();
+      if (finalizersCopy.isEmpty()) {
+        then.run();
+      } else {
+        finalizeResponse(finalizersCopy.iterator(), then);
+      }
     }
   }
 

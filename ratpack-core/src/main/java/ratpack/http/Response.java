@@ -17,7 +17,6 @@
 package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
@@ -33,13 +32,12 @@ import java.util.function.Supplier;
 public interface Response extends ResponseMetaData {
 
   @Override
-  Response status(int code);
+  default Response status(int code) {
+    return status(Status.of(code));
+  }
 
   @Override
   Response status(Status status);
-
-  @Override
-  Response status(HttpResponseStatus responseStatus);
 
   /**
    * Sends the response back to the client, with no body.
@@ -120,7 +118,7 @@ public interface Response extends ResponseMetaData {
    * <p>
    * This method does not set the content length, content type or anything else.
    * It is generally preferable to use the {@link ratpack.handling.Context#render(Object)} method with a file/path object,
-   * or an {@link ratpack.handling.Chain#assets(String, String...)}.
+   * or an {@link ratpack.handling.Chain#files(Action)}.
    *
    * @param file the response body
    */

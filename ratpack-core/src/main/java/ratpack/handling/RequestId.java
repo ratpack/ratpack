@@ -46,7 +46,7 @@ public interface RequestId {
    * A default implementation is provided uses random UUIDs as the ID value.
    * To supply your own implementation, put an implementation of this interface upstream from the {@link #bind() binding handler}.
    */
-  public interface Generator {
+  interface Generator {
 
     /**
      * Generate a request ID with a “unique” ID value.
@@ -70,8 +70,8 @@ public interface RequestId {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *       .handler(RequestId.bind())
-   *       .handler(ctx -> {
+   *       .all(RequestId.bind())
+   *       .all(ctx -> {
    *         ctx.getResponse().getHeaders().add("X-Request-Id", ctx.getRequest().get(RequestId.class).getId());
    *         ctx.render("ok");
    *       })

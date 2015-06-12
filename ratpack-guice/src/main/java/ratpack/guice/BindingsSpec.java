@@ -220,6 +220,9 @@ public interface BindingsSpec extends RegistrySpec {
    * @return this
    */
   default <T> BindingsSpec bindInstance(T instance) {
+    if (instance instanceof Class) {
+      throw new IllegalArgumentException("cannot use bindInstance() with a class object (use bind(Class) instead)");
+    }
     Class<T> type = Types.cast(instance.getClass());
     return binder(binder -> binder.bind(type).toInstance(instance));
   }
@@ -243,6 +246,9 @@ public interface BindingsSpec extends RegistrySpec {
   }
 
   default <T> BindingsSpec multiBindInstance(T instance) {
+    if (instance instanceof Class) {
+      throw new IllegalArgumentException("cannot use multiBindInstance() with a class object (use multiBind(Class) instead)");
+    }
     Class<T> type = Types.cast(instance.getClass());
     return multiBindInstance(type, instance);
   }

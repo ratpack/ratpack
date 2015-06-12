@@ -85,7 +85,7 @@ public class Example {
 
       EmbeddedApp.fromServer(ServerConfig.findBaseDir(), serverSpec ->
         serverSpec.handlers(chain ->
-          chain.assets("assets")
+          chain.files(f -> f.dir("assets"))
         )
       ).test(httpClient -> {
         String message = httpClient.getText("message.txt");

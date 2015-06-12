@@ -17,7 +17,6 @@
 package ratpack.site;
 
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
-import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Block;
 import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
@@ -71,7 +70,7 @@ public class SiteMain {
             int shortCache = 60 * 10; // ten mins
 
             c
-              .handler(ctx -> {
+              .all(ctx -> {
                 //noinspection ConstantConditions
                 String host = ctx.getRequest().getHeaders().get("host");
                 if (host != null && (host.endsWith("ratpack-framework.org") || host.equals("www.ratpack.io"))) {
@@ -87,12 +86,12 @@ public class SiteMain {
               })
 
               .prefix("assets", assets -> assets
-                  .handler(ctx -> {
+                  .all(ctx -> {
                     int cacheFor = ctx.getRequest().getQuery().isEmpty() ? shortCache : longCache;
                     ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
                     ctx.next();
                   })
-                  .assets("assets", "index.html")
+                  .files(f -> f.dir("assets").indexFiles("index.html"))
               )
 
               .get("index.html", ctx -> {
@@ -101,7 +100,7 @@ public class SiteMain {
 
               .get(ctx -> ctx.render(groovyMarkupTemplate("index.gtpl")))
 
-              .handler("reset", ctx -> {
+              .path("reset", ctx -> {
                 GitHubApi gitHubApi = ctx.get(GitHubApi.class);
                 ctx.byMethod(methods -> {
                   Block impl = () -> {
@@ -137,7 +136,7 @@ public class SiteMain {
                   .fileSystem("manual", c2 -> c2
                       .get(ctx -> ctx.redirect(301, "manual/current"))
                       .prefix(":label", c3 -> c3
-                          .handler(ctx -> {
+                          .all(ctx -> {
                             String label = ctx.getPathTokens().get("label");
 
                             ctx.get(RatpackVersions.class).getAll().then(all -> {
@@ -164,10 +163,10 @@ public class SiteMain {
                                   break;
                               }
 
-                              ctx.next(just(new DefaultFileSystemBinding(ctx.file(version.getVersion()))));
+                              ctx.next(just(ctx.getFileSystemBinding().binding(version.getVersion())));
                             });
                           })
-                          .assets("", "index.html")
+                          .files(f -> f.indexFiles("index.html"))
                       )
                   )
 
@@ -177,7 +176,7 @@ public class SiteMain {
                 ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
                 ctx.next();
               })
-              .assets("public", "index.html");
+              .files(f -> f.dir("public").indexFiles("index.html"));
           });
       }
     );

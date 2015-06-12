@@ -155,7 +155,7 @@ public interface RatpackServer {
    *     RatpackServer server = RatpackServer.of(s -> s
    *       .serverConfig(ServerConfig.embedded())
    *       .registry(r -> r.add(String.class, holder[0]))
-   *       .handler(registry -> (ctx) -> ctx.render(ctx.get(String.class)))
+   *       .all(registry -> (ctx) -> ctx.render(ctx.get(String.class)))
    *     );
    *
    *     ApplicationUnderTest.of(server).test(httpClient -> {

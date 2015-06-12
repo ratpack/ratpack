@@ -17,7 +17,7 @@
 package ratpack.test.http;
 
 import com.google.common.collect.ImmutableMultimap;
-import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.func.Factory;
@@ -40,7 +40,7 @@ public interface TestHttpClient {
    * @param applicationUnderTest Which Ratpack application to make requests against.
    * @return {@link ratpack.test.http.TestHttpClient} which is configured to make requests against the provided ApplicationUnderTest
    */
-  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest) {
+  static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest) {
     return testHttpClient(applicationUnderTest, null);
   }
 
@@ -51,15 +51,15 @@ public interface TestHttpClient {
    * @param requestConfigurer A {@link ratpack.func.Action} that will set up the {@link ratpack.http.client.RequestSpec} for all requests made through this instance of TestHttpClient. These settings can be overridden on a per request basis via {@link ratpack.test.http.TestHttpClient#requestSpec}.
    * @return {@link ratpack.test.http.TestHttpClient} which is configured to make requests against the provided ApplicationUnderTest
    */
-  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
+  static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
     return new DefaultTestHttpClient(applicationUnderTest, Action.noopIfNull(requestConfigurer));
   }
 
-  public static TestHttpClient testHttpClient(RatpackServer server) {
+  static TestHttpClient testHttpClient(RatpackServer server) {
     return testHttpClient(() -> server);
   }
 
-  public static TestHttpClient testHttpClient(Factory<? extends RatpackServer> server) {
+  static TestHttpClient testHttpClient(Factory<? extends RatpackServer> server) {
     return new DefaultTestHttpClient(ApplicationUnderTest.of(server), Action.noop());
   }
 

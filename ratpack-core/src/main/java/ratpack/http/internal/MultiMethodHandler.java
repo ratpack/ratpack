@@ -17,6 +17,7 @@
 package ratpack.http.internal;
 
 import com.google.common.base.Joiner;
+import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -30,29 +31,24 @@ public class MultiMethodHandler implements Handler {
 
   private static final Handler NO_METHOD_HANDLER = Handlers.clientError(METHOD_NOT_ALLOWED.code());
 
-  private final Map<String, Handler> handlers;
+  private final Map<String, Block> blocks;
 
-  public MultiMethodHandler(Map<String, Handler> handlers) {
-    this.handlers = handlers;
+  public MultiMethodHandler(Map<String, Block> blocks) {
+    this.blocks = blocks;
   }
 
   @Override
   public void handle(Context context) throws Exception {
     HttpMethod method = context.getRequest().getMethod();
     if (method.isOptions()) {
-      String methods = Joiner.on(",").join(handlers.keySet());
+      String methods = Joiner.on(",").join(blocks.keySet());
       context.getResponse().getHeaders().add(HttpHeaderConstants.ALLOW, methods);
       context.getResponse().status(200).send();
     } else {
-      for (Map.Entry<String, Handler> entry : handlers.entrySet()) {
+      for (Map.Entry<String, Block> entry : blocks.entrySet()) {
         String key = entry.getKey();
         if (method.name(key)) {
-          try {
-            entry.getValue().handle(context);
-          } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-          }
+          entry.getValue().execute();
           return;
         }
       }

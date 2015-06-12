@@ -42,7 +42,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
   def "default services available"() {
     when:
     handlers {
-      handler {
+      all {
         get(ServerErrorHandler)
         get(ClientErrorHandler)
         get(MimeTypes)
@@ -61,7 +61,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     handlers {
       get { ExecController execController ->
         promise { f ->
-          execController.control.exec().start {
+          execController.control.fork().start {
             f.success("ok")
           }
         } then {

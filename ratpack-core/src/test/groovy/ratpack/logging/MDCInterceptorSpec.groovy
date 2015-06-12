@@ -133,7 +133,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
         MDC.put("value", "1")
         values << MDC.get("value")
         promise { f ->
-          exec().start {
+          fork().start {
             MDC.put("value", "2")
             values << MDC.get("value")
             f.success("foo1")
