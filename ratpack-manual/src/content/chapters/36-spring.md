@@ -13,12 +13,11 @@ Here's an example of a main class that uses this API to configure the applicatio
 ```language-java hello-world
 package my.app;
 
-import static ratpack.spring.Spring.spring;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import ratpack.server.RatpackServer;
+
+import static ratpack.spring.Spring.spring;
 
 public class Main {
   public static void main(String... args) throws Exception {
@@ -26,7 +25,9 @@ public class Main {
       .registry(spring(MyConfiguration.class))
       .handlers(chain -> chain
         .get(ctx -> ctx
-          .render("Hello " + ctx.get(Service.class).message())
+          .render("Hello " + ctx.get(Service.class).message()))
+        .get(":message", ctx -> ctx
+          .render("Hello " + ctx.getPathTokens().get("message") + "!")
         )
       )
     );
