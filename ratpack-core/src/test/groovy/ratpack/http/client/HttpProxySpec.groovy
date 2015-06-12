@@ -18,8 +18,6 @@ package ratpack.http.client
 
 import ratpack.http.MutableHeaders
 
-import java.util.zip.GZIPOutputStream
-
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
@@ -198,25 +196,18 @@ transfer-encoding: chunked
 
   def "can proxy compressed responses"() {
     given:
-    def stringBuf = new ByteArrayOutputStream()
-    def writer = new OutputStreamWriter(new GZIPOutputStream(stringBuf))
-    writer.write("bar")
-    writer.close()
-
     otherApp {
       get("foo") {
-        response.headers.add(CONTENT_ENCODING, "gzip")
-        response.send(stringBuf.toByteArray())
-        response.status(200)
-        response.contentType("text/plain")
+        response.send("bar")
       }
     }
 
     and:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.request(otherAppUrl("foo")) { rs ->
-          rs.headers.add("Accept-Encoding", "compress, gzip")
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.decompressResponse(false)
+          rs.headers.copy(request.headers)
         } then { ReceivedResponse receivedResponse ->
           receivedResponse.send(response)
         }
@@ -225,6 +216,7 @@ transfer-encoding: chunked
 
     when:
     def response = requestSpec { RequestSpec rs ->
+      rs.decompressResponse(false)
       rs.headers { MutableHeaders h ->
         h.add("Accept-Encoding", "compress, gzip")
       }

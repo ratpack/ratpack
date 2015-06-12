@@ -24,7 +24,6 @@ import ratpack.http.internal.HttpHeaderConstants
 import ratpack.stream.Streams
 
 import java.time.Duration
-import java.util.zip.GZIPOutputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
@@ -522,15 +521,9 @@ BAR
 
   def "can handle compressed responses"() {
     given:
-    def stringBuf = new ByteArrayOutputStream()
-    def writer = new OutputStreamWriter(new GZIPOutputStream(stringBuf))
-    writer.write("bar")
-    writer.close()
-
     otherApp {
       get("foo") {
-        response.headers.add(CONTENT_ENCODING, "gzip")
-        response.send(stringBuf.toByteArray())
+        response.send("bar")
       }
     }
 
@@ -538,7 +531,7 @@ BAR
     handlers {
       get { HttpClient httpClient ->
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
-          rs.headers.set("Accept-Encoding", "compress, gzip")
+          rs.headers.set("accept-encoding", "compress, gzip")
           rs.decompressResponse(true)
         } then { ReceivedResponse receivedResponse ->
           receivedResponse.send(response)
@@ -557,15 +550,9 @@ BAR
 
   def "can handle streamed compressed responses"() {
     given:
-    def stringBuf = new ByteArrayOutputStream()
-    def writer = new OutputStreamWriter(new GZIPOutputStream(stringBuf))
-    writer.write("bar")
-    writer.close()
-
     otherApp {
       get("foo") {
-        response.headers.add(CONTENT_ENCODING, "gzip")
-        response.send(stringBuf.toByteArray())
+        response.send("bar")
       }
     }
 
@@ -573,7 +560,7 @@ BAR
     handlers {
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) { rs ->
-          rs.headers.set("Accept-Encoding", "compress, gzip")
+          rs.headers.set("accept-Encoding", "compress, gzip")
           rs.decompressResponse(true)
         } then { StreamedResponse streamedResponse ->
           response.getHeaders().copy(streamedResponse.headers)
@@ -587,5 +574,6 @@ BAR
 
     then:
     response.headers.get(CONTENT_ENCODING) ?: "identity" == "identity"
+    response.body.text == "bar"
   }
 }

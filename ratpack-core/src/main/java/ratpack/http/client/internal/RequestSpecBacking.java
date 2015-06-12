@@ -52,7 +52,7 @@ class RequestSpecBacking {
     this.byteBufAllocator = byteBufAllocator;
     this.requestParams = requestParams;
     this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
-    this.decompressResponse = false;
+    this.decompressResponse = true;
   }
 
   public String getMethod() {
