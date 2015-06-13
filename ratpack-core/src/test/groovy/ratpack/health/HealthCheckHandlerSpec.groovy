@@ -132,7 +132,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     assert result.contains("EXECUTION TIMEOUT")
   }
 
-  def "render unhealthy check while promise itself throwning exception"() {
+  def "render unhealthy check while promise itself throwing exception"() {
     when:
     bindings {
       bindInstance(HealthCheck, HealthCheck.of("bar") { execControl, r ->
@@ -155,7 +155,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     assert result.contains("Exception")
   }
 
-  def "render unhealthy check while promise creation throwning exception"() {
+  def "render unhealthy check while promise creation throwing exception"() {
     when:
     bindings {
       bind HealthCheckFooUnhealthy2
