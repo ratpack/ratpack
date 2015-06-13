@@ -60,7 +60,8 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     ReceivedResponse postResponse = post("bar")
 
     then: 'the request is logged with its correlation id'
-    loggerOutput.toString().contains("GET /foo 200 id=$getResponse.body.text")
-    loggerOutput.toString().contains("POST /bar 200 id=$postResponse.body.text")
+    String output = loggerOutput.toString()
+    output.contains("\"GET /foo -\" 200 - id=$getResponse.body.text")
+    output.contains("\"POST /bar -\" 200 - id=$postResponse.body.text")
   }
 }
