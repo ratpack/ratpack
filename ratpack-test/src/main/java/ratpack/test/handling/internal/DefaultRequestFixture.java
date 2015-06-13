@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -68,6 +69,7 @@ public class DefaultRequestFixture implements RequestFixture {
   private final NettyHeadersBackedMutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
   private String method = "GET";
+  private String protocol = "HTTP/1.1";
   private String uri = "/";
   private HostAndPort remoteHostAndPort = HostAndPort.fromParts("localhost", 45678);
   private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", ServerConfig.DEFAULT_PORT);
@@ -112,7 +114,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
-    Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), uri,
+    Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       requestBody);
@@ -224,6 +226,12 @@ public class DefaultRequestFixture implements RequestFixture {
   @Override
   public RequestFixture localAddress(HostAndPort local) {
     localHostAndPort = local;
+    return this;
+  }
+
+  @Override
+  public RequestFixture protocol(String protocol) {
+    this.protocol = protocol;
     return this;
   }
 

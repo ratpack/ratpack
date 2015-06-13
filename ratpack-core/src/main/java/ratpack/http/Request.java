@@ -39,6 +39,13 @@ public interface Request extends MutableRegistry {
   HttpMethod getMethod();
 
   /**
+   * The HTTP protocol of the request.
+   *
+   * @return The HTTP protocol of the request.
+   */
+  String getProtocol();
+
+  /**
    * The raw URI of the request.
    * <p>
    * This value may be an absolute URI or an absolute path.

@@ -145,4 +145,10 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
     delegate.localAddress(local);
     return this;
   }
+
+  @Override
+  public GroovyRequestFixture protocol(String protocol) {
+    delegate.protocol(protocol);
+    return this;
+  }
 }

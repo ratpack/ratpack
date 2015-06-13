@@ -40,7 +40,7 @@ public class DefaultRequestLogFormatter implements RequestLogFormatter {
       .append("\"")
       .append(request.getMethod().getName()).append(" ") //Request Method
       .append("/").append(request.getPath()).append(" ") //Request Path
-      .append("-") //Request Protocol //TODO
+      .append(request.getProtocol()) //Request HTTP Protocol
       .append("\" ")
       .append(outcome.getResponse().getStatus().getCode()).append(" ") //Response code
       .append("-"); //Response size //TODO
