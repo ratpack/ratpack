@@ -162,7 +162,7 @@ public abstract class ClosureUtil {
     }
 
     Path path;
-    if (uri.toString().equals("file:/groovy/script")) {
+    if (uri.toString().startsWith("file:/groovy/")) {
       path = findScriptByAnnotation(closure);
     } else {
       path = Paths.get(uri);
