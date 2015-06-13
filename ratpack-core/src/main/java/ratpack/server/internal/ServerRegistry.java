@@ -38,7 +38,9 @@ import ratpack.form.internal.FormNoOptParser;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
+import ratpack.handling.RequestLogFormatter;
 import ratpack.handling.internal.DefaultRedirector;
+import ratpack.handling.internal.DefaultRequestLogFormatter;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
 import ratpack.registry.Registries;
@@ -92,6 +94,7 @@ public abstract class ServerRegistry {
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
+        .add(RequestLogFormatter.class, new DefaultRequestLogFormatter())
         .with(new DefaultFileRenderer().register())
         .with(new PromiseRenderer().register())
         .with(new PublisherRenderer().register())

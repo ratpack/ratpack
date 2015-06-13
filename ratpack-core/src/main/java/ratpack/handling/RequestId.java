@@ -99,33 +99,37 @@ public interface RequestId {
     };
   }
 
-  // TODO docs here, including explanation of the log format.
-  static Handler bindAndLog() {
-    return Handlers.chain(bind(), new Handler() {
+  /**
+   * Adds a handler that logs each request.
+   * The format of the log is defined an instance of {@link RequestLogFormatter} in the registry.
+   * By default, the server provides an instance of {@link ratpack.handling.internal.DefaultRequestLogFormatter} which outputs the NCSA Common log format.
+   *
+   * @return a handler that logs each request
+   *
+   * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common</a>
+   */
+  static Handler log() {
+    return new Handler() {
       private final Logger logger = LoggerFactory.getLogger(RequestId.class);
 
       @Override
       public void handle(Context ctx) throws Exception {
         ctx.onClose((RequestOutcome outcome) -> {
           Request request = ctx.getRequest();
-          StringBuilder logLine = new StringBuilder()
-            .append(request.getMethod().toString())
-            .append(" ")
-            .append(request.getUri())
-            .append(" ")
-            .append(outcome.getResponse().getStatus().getCode());
-
-          request.maybeGet(RequestId.class).ifPresent(id1 -> {
-            logLine.append(" id=");
-            logLine.append(id1.toString());
-          });
-
-          logger.info(logLine.toString());
+          logger.info(ctx.get(RequestLogFormatter.class).format(request, outcome));
         });
-
         ctx.next();
       }
-    });
+    };
+  }
+
+  /**
+   * Adds both a new request ID and request log using {@link RequestId#bind()} and {@link RequestId#log()} respectively.
+   *
+   * @return a handler chain container both the request id and request log handlers.
+   */
+  static Handler bindAndLog() {
+    return Handlers.chain(bind(), log());
   }
 
 }
