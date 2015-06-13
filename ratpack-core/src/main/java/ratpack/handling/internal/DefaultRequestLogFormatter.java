@@ -16,34 +16,39 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.net.HostAndPort;
 import ratpack.handling.RequestId;
 import ratpack.handling.RequestLogFormatter;
 import ratpack.handling.RequestOutcome;
+import ratpack.http.HttpMethod;
 import ratpack.http.Request;
+import ratpack.http.Status;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class DefaultRequestLogFormatter implements RequestLogFormatter {
 
   private static final String DEFAULT_FORMAT = "dd/MMM/yyyy:HH:mm:ss Z";
-  private ThreadLocal<SimpleDateFormat> formatter = new ThreadLocal<>();
+  //TODO is systemDefault here correct or should we allow specifying the zoneId for the log?
+  private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DEFAULT_FORMAT).withZone(ZoneId.systemDefault());
 
   @Override
-  public String format(Request request, RequestOutcome outcome) {
+  public String format(RequestOutcome outcome) {
+    Request request = outcome.getRequest();
     StringBuilder logLine = new StringBuilder()
-      .append(request.getRemoteAddress().getHostText()).append(" ") //client IP
-      .append("-").append(" ") //RFC 1413 user-identifier
-      .append("-").append(" ") //userid //TODO
-      .append("[").append(timestamp()).append("]").append(" ") //timestamp
-      .append("\"")
-      .append(request.getMethod().getName()).append(" ") //Request Method
-      .append("/").append(request.getPath()).append(" ") //Request Path
-      .append(request.getProtocol()) //Request HTTP Protocol
-      .append("\" ")
-      .append(outcome.getResponse().getStatus().getCode()).append(" ") //Response code
-      .append("-"); //Response size //TODO
+      .append(
+        ncsaLogFormat(
+          request.getRemoteAddress(),
+          "-", //TODO can we use this as our request id?
+          "-", //TODO userId
+          request.getTimestamp(),
+          request.getMethod(),
+          request.getRawUri(),
+          request.getProtocol(),
+          outcome.getResponse().getStatus(),
+          0L)); //TODO response size
 
     request.maybeGet(RequestId.class).ifPresent(id1 -> {
       logLine.append(" id=");
@@ -52,13 +57,16 @@ public class DefaultRequestLogFormatter implements RequestLogFormatter {
     return logLine.toString();
   }
 
-  private String timestamp() {
-    if (formatter.get() == null) {
-      SimpleDateFormat format = new SimpleDateFormat(DEFAULT_FORMAT);
-      //TODO is this sufficient? It logs with whatever timezone the JVM is set with. Would people want these to be different?
-      format.setTimeZone(TimeZone.getDefault());
-      formatter.set(format);
-    }
-    return formatter.get().format(new Date()); //TODO Should we get this date from somewhere else?
+  String ncsaLogFormat(HostAndPort client, String rfc1413Ident, String userId, Instant timestamp, HttpMethod method, String uri, String httpProtocol, Status status, Long size) {
+    return String.format("%s %s %s [%s] \"%s %s %s\" %d %s",
+      client.getHostText(),
+      rfc1413Ident,
+      userId,
+      formatter.format(timestamp),
+      method.getName(),
+      uri,
+      httpProtocol,
+      status.getCode(),
+      "-"); //TODO should be "size"
   }
 }

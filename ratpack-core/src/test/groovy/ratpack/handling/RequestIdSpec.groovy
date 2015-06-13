@@ -42,7 +42,15 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   def "add request logging"() {
     def loggerOutput = new ByteArrayOutputStream()
     def logger = LoggerFactory.getLogger(RequestId)
-    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput)
+    def originalStream = logger.TARGET_STREAM
+    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
+
+      @Override
+      void println(String s) {
+        super.println(s)
+        originalStream.println(s)
+      }
+    }
 
     given:
     handlers {
@@ -60,6 +68,7 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     ReceivedResponse postResponse = post("bar")
 
     then: 'the request is logged with its correlation id'
+    Thread.sleep(500) //TODO blarg when running in Gradle we need some way of flushing and ensuring the logs exist
     String output = loggerOutput.toString()
     output.contains("\"GET /foo HTTP/1.1\" 200 - id=$getResponse.body.text")
     output.contains("\"POST /bar HTTP/1.1\" 200 - id=$postResponse.body.text")

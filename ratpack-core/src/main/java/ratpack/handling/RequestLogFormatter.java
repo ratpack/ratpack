@@ -16,9 +16,7 @@
 
 package ratpack.handling;
 
-import ratpack.http.Request;
-
 public interface RequestLogFormatter {
 
-  String format(Request request, RequestOutcome outcome);
+  String format(RequestOutcome outcome);
 }

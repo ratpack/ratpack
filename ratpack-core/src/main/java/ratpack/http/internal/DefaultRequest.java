@@ -38,6 +38,7 @@ import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -52,6 +53,7 @@ public class DefaultRequest implements Request {
   private final String protocol;
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
+  private final long timestamp;
 
   private TypedData body;
 
@@ -69,6 +71,7 @@ public class DefaultRequest implements Request {
     this.rawUri = rawUri;
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
+    this.timestamp = System.currentTimeMillis();
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -85,6 +88,10 @@ public class DefaultRequest implements Request {
 
   public String getProtocol() {
     return protocol;
+  }
+
+  public Instant getTimestamp() {
+    return Instant.ofEpochMilli(timestamp);
   }
 
   public String getRawUri() {

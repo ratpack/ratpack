@@ -19,7 +19,6 @@ package ratpack.handling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
-import ratpack.http.Request;
 
 /**
  * An opaque identifier for the request.
@@ -114,10 +113,7 @@ public interface RequestId {
 
       @Override
       public void handle(Context ctx) throws Exception {
-        ctx.onClose((RequestOutcome outcome) -> {
-          Request request = ctx.getRequest();
-          logger.info(ctx.get(RequestLogFormatter.class).format(request, outcome));
-        });
+        ctx.onClose((RequestOutcome outcome) -> logger.info(ctx.get(RequestLogFormatter.class).format(outcome)));
         ctx.next();
       }
     };
