@@ -70,7 +70,7 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     then: 'the request is logged with its correlation id'
     Thread.sleep(500) //TODO blarg when running in Gradle we need some way of flushing and ensuring the logs exist
     String output = loggerOutput.toString()
-    output.contains("\"GET /foo HTTP/1.1\" 200 - id=$getResponse.body.text")
-    output.contains("\"POST /bar HTTP/1.1\" 200 - id=$postResponse.body.text")
+    output.contains("\"GET /foo HTTP/1.1\" 200 36 id=$getResponse.body.text")
+    output.contains("\"POST /bar HTTP/1.1\" 200 36 id=$postResponse.body.text")
   }
 }
