@@ -154,7 +154,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    * {@inheritDoc}
    */
   @Override
-  GroovyRequestFixture header(String name, String value);
+  GroovyRequestFixture header(CharSequence name, String value);
 
   /**
    * {@inheritDoc}
@@ -172,7 +172,7 @@ public interface GroovyRequestFixture extends RequestFixture {
    * {@inheritDoc}
    */
   @Override
-  GroovyRequestFixture responseHeader(String name, String value);
+  GroovyRequestFixture responseHeader(CharSequence name, String value);
 
   /**
    * {@inheritDoc}
