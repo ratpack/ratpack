@@ -18,7 +18,7 @@ package ratpack.handling.internal;
 
 import com.google.common.net.HostAndPort;
 import ratpack.handling.RequestId;
-import ratpack.handling.RequestLogFormatter;
+import ratpack.handling.RequestLog;
 import ratpack.handling.RequestOutcome;
 import ratpack.http.*;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -27,7 +27,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-public class DefaultRequestLogFormatter implements RequestLogFormatter {
+/**
+ * TODO
+ */
+public class DefaultRequestLog implements RequestLog {
 
   private static final String DEFAULT_FORMAT = "dd/MMM/yyyy:HH:mm:ss Z";
   //TODO is systemDefault here correct or should we allow specifying the zoneId for the log?
@@ -47,7 +50,7 @@ public class DefaultRequestLogFormatter implements RequestLogFormatter {
       .append(
         ncsaLogFormat(
           request.getRemoteAddress(),
-          "-", //TODO can we use this as our request id?
+          "-",
           "-", //TODO userId
           request.getTimestamp(),
           request.getMethod(),

@@ -16,8 +16,6 @@
 
 package ratpack.handling;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 
 /**
@@ -99,33 +97,12 @@ public interface RequestId {
   }
 
   /**
-   * Adds a handler that logs each request.
-   * The format of the log is defined an instance of {@link RequestLogFormatter} in the registry.
-   * By default, the server provides an instance of {@link ratpack.handling.internal.DefaultRequestLogFormatter} which outputs the NCSA Common log format.
-   *
-   * @return a handler that logs each request
-   *
-   * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common</a>
-   */
-  static Handler log() {
-    return new Handler() {
-      private final Logger logger = LoggerFactory.getLogger(RequestId.class);
-
-      @Override
-      public void handle(Context ctx) throws Exception {
-        ctx.onClose((RequestOutcome outcome) -> logger.info(ctx.get(RequestLogFormatter.class).format(outcome)));
-        ctx.next();
-      }
-    };
-  }
-
-  /**
-   * Adds both a new request ID and request log using {@link RequestId#bind()} and {@link RequestId#log()} respectively.
+   * Adds both a new request ID and request log using {@link RequestId#bind()} and {@link RequestLog#log()} respectively.
    *
    * @return a handler chain container both the request id and request log handlers.
    */
   static Handler bindAndLog() {
-    return Handlers.chain(bind(), log());
+    return Handlers.chain(bind(), RequestLog.log());
   }
 
 }
