@@ -136,7 +136,7 @@ import ratpack.api.NonBlocking;
  * This can be used, for example, to get hold of a database connection that was added to the server registry as part of the server definition.
  * <p>
  * Alternatively, when using the Guice support the service can be injected by Guice.
- * <pre class="java">{@code
+ * <pre class="java"><code>
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
  * import ratpack.server.Service;
@@ -153,10 +153,10 @@ import ratpack.api.NonBlocking;
  * public class Example {
  *
  *   static class RecordingService implements Service {
- *     public final List<String> events;
+ *     public final {@code List<String>} events;
  *
  *     {@literal @}Inject
- *     public RecordingService(List<String> events) {
+ *     public RecordingService({@code List<String>} events) {
  *       this.events = events;
  *     }
  *
@@ -170,15 +170,15 @@ import ratpack.api.NonBlocking;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     List<String> list = new LinkedList<>();
+ *     {@code List<String>} list = new {@code LinkedList<>()};
  *
- *     RatpackServer server = RatpackServer.of(s -> s
+ *     RatpackServer server = RatpackServer.of(s {@code ->} s
  *       .serverConfig(ServerConfig.embedded())
- *       .registry(Guice.registry(b -> b
+ *       .registry(Guice.registry(b {@code ->} b
  *         .bindInstance(Types.listOf(String.class), list)
  *         .bind(RecordingService.class)
  *       ))
- *       .handler(r -> ctx -> ctx.render("ok"))
+ *       .handler(r {@code ->} ctx {@code ->} ctx.render("ok"))
  *     );
  *
  *     server.start();
@@ -187,7 +187,7 @@ import ratpack.api.NonBlocking;
  *     assertEquals("[start, stop]", list.toString());
  *   }
  * }
- * }</pre>
+ * </code></pre>
  *
  * <h3>Errors</h3>
  * <p>

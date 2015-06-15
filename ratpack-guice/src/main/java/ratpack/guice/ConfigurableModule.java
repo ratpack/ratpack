@@ -34,7 +34,7 @@ import java.lang.reflect.Constructor;
  * A configurable module provides a single, mutable, “config object” (type parameter {@code C}).
  * The {@link ratpack.guice.BindingsSpec#module(Class, Action)} method can be used to add the module and configure it at the same time.
  * It is conventional, but not required, for the config type to be a nested static class named {@code Config} of the module class.
- * <pre class="java">{@code
+ * <pre class="java"><code>
  * import com.google.inject.Provides;
  * import ratpack.guice.ConfigurableModule;
  * import ratpack.guice.Guice;
@@ -44,7 +44,7 @@ import java.lang.reflect.Constructor;
  *
  * public class Example {
  *
- *   public static class StringModule extends ConfigurableModule<StringModule.Config> {
+ *   public static class StringModule extends {@code ConfigurableModule<StringModule.Config>} {
  *     public static class Config {
  *       private String value;
  *
@@ -62,18 +62,18 @@ import java.lang.reflect.Constructor;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b.module(StringModule.class, c -> c.value("foo"))))
- *       .handlers(chain -> chain.get(ctx -> ctx.render(ctx.get(String.class))))
- *     ).test(httpClient -> {
+ *     EmbeddedApp.of(s {@code ->} s
+ *       .registry(Guice.registry(b {@code ->} b.module(StringModule.class, c {@code ->} c.value("foo"))))
+ *       .handlers(chain {@code ->} chain.get(ctx {@code ->} ctx.render(ctx.get(String.class))))
+ *     ).test(httpClient {@code ->} {
  *       assertEquals("foo", httpClient.getText());
  *     });
  *   }
  * }
- * }</pre>
+ * </code></pre>
  * <p>
  * Alternatively, the config object can be provided as a separate binding.
- * <pre class="java">{@code
+ * <pre class="java"><code>
  * import com.google.inject.Provides;
  * import ratpack.guice.ConfigurableModule;
  * import ratpack.guice.Guice;
@@ -82,7 +82,7 @@ import java.lang.reflect.Constructor;
  * import static org.junit.Assert.*;
  *
  * public class Example {
- *   public static class StringModule extends ConfigurableModule<StringModule.Config> {
+ *   public static class StringModule extends {@code ConfigurableModule<StringModule.Config>} {
  *     public static class Config {
  *       private String value;
  *
@@ -102,20 +102,20 @@ import java.lang.reflect.Constructor;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b
+ *     EmbeddedApp.of(s {@code ->} s
+ *       .registry(Guice.registry(b {@code ->} b
  *         .module(StringModule.class)
  *         .bindInstance(new StringModule.Config().value("bar"))
  *       ))
- *       .handlers(chain -> chain
- *         .get(ctx -> ctx.render(ctx.get(String.class)))
+ *       .handlers(chain {@code ->} chain
+ *         .get(ctx {@code ->} ctx.render(ctx.get(String.class)))
  *       )
- *     ).test(httpClient -> {
+ *     ).test(httpClient {@code ->} {
  *       assertEquals("bar", httpClient.getText());
  *     });
  *   }
  * }
- * }</pre>
+ * </code></pre>
  *
  * @param <T> the type of the config object
  */
