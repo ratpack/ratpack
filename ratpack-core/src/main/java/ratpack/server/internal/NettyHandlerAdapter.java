@@ -49,6 +49,7 @@ import ratpack.server.ServerConfig;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
@@ -103,6 +104,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
     final Request request = new DefaultRequest(
+      Instant.now(),
       new NettyHeadersBackedHeaders(nettyRequest.headers()),
       nettyRequest.method(),
       nettyRequest.protocolVersion(),

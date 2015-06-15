@@ -53,7 +53,7 @@ public class DefaultRequest implements Request {
   private final String protocol;
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
-  private final long timestamp;
+  private final Instant timestamp;
 
   private TypedData body;
 
@@ -63,7 +63,7 @@ public class DefaultRequest implements Request {
   private String path;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
+  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
     this.headers = headers;
     this.content = content;
     this.method = DefaultHttpMethod.valueOf(method);
@@ -71,7 +71,7 @@ public class DefaultRequest implements Request {
     this.rawUri = rawUri;
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
-    this.timestamp = System.currentTimeMillis();
+    this.timestamp = timestamp;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -91,7 +91,7 @@ public class DefaultRequest implements Request {
   }
 
   public Instant getTimestamp() {
-    return Instant.ofEpochMilli(timestamp);
+    return timestamp;
   }
 
   public String getRawUri() {
