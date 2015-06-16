@@ -17,8 +17,8 @@ package ratpack.ssl
 
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.IgnoreRest
 
+import javax.net.ssl.SSLHandshakeException
 import javax.net.ssl.SSLProtocolException
 import java.nio.channels.ClosedChannelException
 
@@ -30,15 +30,12 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
       ssl SSLContexts.sslContext(
         HttpsTruststoreSpec.getResource("server_dummy.keystore"), "password",
         HttpsTruststoreSpec.getResource("server_dummy.truststore"), "password")
+      sslClientAuth(true)
     }
-    file "public/static.text", "SSL VERIFIED"
 
     handlers {
-      files {
-        dir "public"
-      }
-      get("file") {
-        render file("public/static.text")
+      get("foo") {
+        render "SSL VERIFIED"
       }
     }
 
@@ -46,7 +43,7 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
     requestSpec { RequestSpec rs ->
       rs.sslContext {
         return SSLContexts.sslContext(
-          HttpsTruststoreSpec.getResource("dummy.keystore"), "password",
+          HttpsTruststoreSpec.getResource("client_dummy.keystore"), "password",
           HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
       }
     }
@@ -54,11 +51,10 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
     then:
     def address = applicationUnderTest.address
     address.scheme == "https"
-    getText("file") == "SSL VERIFIED"
+    getText("foo") == "SSL VERIFIED"
   }
 
-  @IgnoreRest
-  def "throw handshake exception when client provides no or wrong certificate"() {
+  def "throw exception when client provides no or wrong certificate and client ssl authentication is required"() {
     given:
     serverConfig {
       ssl SSLContexts.sslContext(
@@ -66,14 +62,10 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
         HttpsTruststoreSpec.getResource("server_dummy.truststore"), "password")
       sslClientAuth true  // require client ssl authentication
     }
-    file "public/static.text", "SSL VERIFIED"
 
     handlers {
-      files {
-        dir "public"
-      }
-      get("file") {
-        render file("public/static.text")
+      get("foo") {
+        render "SSL VERIFIED"
       }
     }
 
@@ -85,11 +77,83 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
           HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
       }
     }
-    get("file")
+    get("foo")
 
     then:
     UncheckedIOException ex = thrown()
     ex.getCause() instanceof SSLProtocolException || ex.getCause() instanceof ClosedChannelException
 
+    when: "client does not provide truststore"
+    resetRequest()
+    requestSpec { RequestSpec rs ->
+      rs.sslContext {
+        return SSLContexts.sslContext(
+          HttpsTruststoreSpec.getResource("dummy.keystore"), "password")
+      }
+    }
+    get("foo")
+
+    then:
+    ex = thrown()
+    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException
+  }
+
+  def "throw exception when server does not provide valid keystore"() {
+    given:
+    serverConfig {
+      ssl SSLContexts.sslContext(
+        HttpsTruststoreSpec.getResource("dummy.keystore"), "password",
+        HttpsTruststoreSpec.getResource("server_dummy.truststore"), "password")
+      sslClientAuth true  // require client ssl authentication
+    }
+
+    handlers {
+      get("foo") {
+        render "SSL VERIFIED"
+      }
+    }
+
+    when: "client provides valid certificate"
+    requestSpec { RequestSpec rs ->
+      rs.sslContext {
+        return SSLContexts.sslContext(
+          HttpsTruststoreSpec.getResource("client_dummy.keystore"), "password",
+          HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
+      }
+    }
+    get("foo")
+
+    then:
+    UncheckedIOException ex = thrown()
+    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException
+  }
+
+  def "throw exception when server does not provide truststore"() {
+    given:
+    serverConfig {
+      ssl SSLContexts.sslContext(
+        HttpsTruststoreSpec.getResource("server_dummy.keystore"), "password")
+      sslClientAuth true  // require client ssl authentication
+    }
+
+    handlers {
+      get("foo") {
+        render "SSL VERIFIED"
+      }
+    }
+
+    when: "client provides valid certificate"
+    requestSpec { RequestSpec rs ->
+      rs.sslContext {
+        return SSLContexts.sslContext(
+          HttpsTruststoreSpec.getResource("client_dummy.keystore"), "password",
+          HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
+      }
+    }
+    get("foo")
+
+    then:
+    UncheckedIOException ex = thrown()
+    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException
   }
 }
