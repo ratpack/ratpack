@@ -99,6 +99,12 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
+  public ServerConfig.Builder sslClientAuth(boolean sslClientAuth) {
+    serverConfigData.put("sslClientAuth", sslClientAuth);
+    return this;
+  }
+
+  @Override
   public ServerConfig.Builder configureObjectMapper(Action<ObjectMapper> action) {
     super.configureObjectMapper(action);
     return this;

@@ -16,9 +16,7 @@
 
 package ratpack.ssl;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -94,7 +92,7 @@ public class SSLContexts {
    * @throws IOException if any of the urls cannot be read
    */
   public static SSLContext sslContext(File keyStoreFile, String keyStorePassword, File trustStoreFile, String trustStorePassword) throws GeneralSecurityException, IOException {
-    try (InputStream keyStoreStream = new FileInputStream((keyStoreFile)); InputStream trustStoreStream = new FileInputStream(trustStoreFile)) {
+    try (InputStream keyStoreStream = new FileInputStream(keyStoreFile); InputStream trustStoreStream = new FileInputStream(trustStoreFile)) {
       return sslContext(keyStoreStream, keyStorePassword, trustStoreStream, trustStorePassword);
     }
   }

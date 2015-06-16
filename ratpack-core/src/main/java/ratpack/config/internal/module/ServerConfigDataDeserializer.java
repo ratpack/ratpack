@@ -67,6 +67,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("ssl")) {
       data.setSslContext(toValue(codec, serverNode.get("ssl"), SSLContext.class));
     }
+    if (serverNode.hasNonNull("sslClientAuth")) {
+      data.setSslClientAuth(serverNode.get("sslClientAuth").asBoolean(false));
+    }
     if (serverNode.hasNonNull("baseDir")) {
       data.setBaseDir(toValue(codec, serverNode.get("baseDir"), Path.class));
     }

@@ -82,6 +82,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
+  public boolean isSSLClientAuth() {
+    return serverConfigData.isSslClientAuth();
+  }
+
+  @Override
   public int getMaxContentLength() {
     return serverConfigData.getMaxContentLength();
   }

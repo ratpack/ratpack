@@ -24,10 +24,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 
+import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -44,6 +46,7 @@ class RequestSpecBacking {
 
   private String method = "GET";
   private int maxRedirects = 10;
+  private SSLContext sslContext;
 
   public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
     this.headers = headers;
@@ -59,6 +62,11 @@ class RequestSpecBacking {
 
   public int getMaxRedirects() {
     return maxRedirects;
+  }
+
+  @Nullable
+  public SSLContext getSslContext() {
+    return sslContext;
   }
 
   @Nullable
@@ -78,6 +86,18 @@ class RequestSpecBacking {
     public RequestSpec redirects(int maxRedirects) {
       Preconditions.checkArgument(maxRedirects >= 0);
       RequestSpecBacking.this.maxRedirects = maxRedirects;
+      return this;
+    }
+
+    @Override
+    public RequestSpec sslContext(SSLContext sslContext) {
+      RequestSpecBacking.this.sslContext = sslContext;
+      return this;
+    }
+
+    @Override
+    public RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
+      RequestSpecBacking.this.sslContext = factory.create();
       return this;
     }
 

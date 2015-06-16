@@ -218,6 +218,13 @@ public interface ServerConfig extends ConfigData {
   SSLContext getSSLContext();
 
   /**
+   * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}
+   *
+   * @return whether or not the server needs client SSL authentication
+   */
+  boolean isSSLClientAuth();
+
+  /**
    * The max content length to use for the HttpObjectAggregator.
    *
    * @return The max content length as an int.
@@ -328,6 +335,14 @@ public interface ServerConfig extends ConfigData {
      * @see ServerConfig#getSSLContext()
      */
     Builder ssl(SSLContext sslContext);
+
+    /**
+     * The server needs client SSL authentication.
+     *
+     * @param sslClientAuth whether or not server needs client SSL authentication
+     * @return {@code this}
+     */
+    Builder sslClientAuth(boolean sslClientAuth);
 
     /**
      * {@inheritDoc}
