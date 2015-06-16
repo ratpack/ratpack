@@ -16,6 +16,7 @@
 
 package ratpack.rx;
 
+import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
@@ -23,10 +24,10 @@ import ratpack.exec.UnmanagedThreadException;
 import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscriber;
+import rx.*;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
@@ -305,6 +306,46 @@ public abstract class RxRatpack {
    */
   public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
     return ExecControl.current().promise(f -> observable.single().subscribe(f::success, f::error));
+  }
+
+  /**
+   * Converts an {@link Observable} into a {@link Publisher}, for all of the observable's items.
+   * <p>
+   * This method can be used to simply adapt an observable to a ReactiveStreams publisher.
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   * import rx.Observable;
+   * import java.util.List;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static class AsyncService {
+   *     public <T> Observable<T> observe(final T value) {
+   *       return Observable.create(subscriber ->
+   *         new Thread(() -> {
+   *           subscriber.onNext(value);
+   *           subscriber.onCompleted();
+   *         }).start()
+   *       );
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Throwable {
+   *     List<String> result = ExecHarness.yieldSingle(execution ->
+   *       RxRatpack.publisher(new AsyncService().observe("foo")).toList()
+   *     ).getValue();
+   *     assertEquals("foo", result.get(0));
+   *   }
+   * }
+   * }</pre>
+   * @param observable the observable
+   * @param <T> the type of the value observed
+   * @return a ReactiveStreams publisher containing each value of the observable
+   */
+  public static <T> TransformablePublisher<T> publisher(Observable<T> observable) {
+    return Streams.transformable(RxReactiveStreams.toPublisher(observable));
   }
 
   /**

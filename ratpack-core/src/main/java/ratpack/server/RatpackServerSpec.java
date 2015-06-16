@@ -106,7 +106,7 @@ public interface RatpackServerSpec {
    * Sets the root handler by getting a handler of the given type from the server registry.
    * <p>
    * This can be useful when integrating with something that can wire together objects, such as Google Guice.
-   * <pre class="java">{@code
+   * <pre class="java"><code>
    * import ratpack.guice.Guice;
    * import ratpack.handling.Context;
    * import ratpack.handling.Handler;
@@ -131,18 +131,18 @@ public interface RatpackServerSpec {
    *   }
    *
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.of(s -> s
-   *         .registry(Guice.registry(b -> b
+   *     EmbeddedApp.of(s {@code ->} s
+   *         .registry(Guice.registry(b {@code ->} b
    *             .bindInstance("Hello World!")
    *             .bind(MyHandler.class)
    *         ))
    *         .handler(MyHandler.class)
-   *     ).test(httpClient ->
+   *     ).test(httpClient {@code ->}
    *         assertEquals("Hello World!", httpClient.getText())
    *     );
    *   }
    * }
-   * }</pre>
+   * </code></pre>
    *
    * @param handlerType the type of handler to retrieve from the registry
    * @return {@code this}

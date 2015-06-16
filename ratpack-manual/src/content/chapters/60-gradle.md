@@ -142,8 +142,29 @@ You can now have the build generate the fat-jar, by running…
 
 ## The base dir
 
-The `src/ratpack` directory in the Gradle project effectively becomes the base dir of your Ratpack application.
+By default, the plugin configures the base dir of your Ratpack application to be the `src/ratpack` directory in the Gradle project.
 That is, these are the files that are visible to your application (e.g. static files to serve).
+
+The base dir can by configured by setting the `ratpack.baseDir` property in the Gradle build.
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+  }
+}
+
+apply plugin: "io.ratpack.ratpack-groovy"
+
+repositories {
+  jcenter()
+}
+
+ratpack.baseDir = file('assets/ratpack')
+```
 
 This directory will be included in the distribution built by the `'application'` plugin as the `app` directory.
 This directory will be added to the classpath when starting the application, and will also be the JVM working directory.
@@ -152,7 +173,8 @@ See [Launching](launching.html) for more information.
 
 ### The 'ratpack.groovy' script
 
-The `'ratpack-groovy'` plugin expects the main application definition to be located at either `src/ratpack/ratpack.groovy` or `src/ratpack/Ratpack.groovy`.
+The `'ratpack-groovy'` plugin expects the main application definition to be located at either `<ratpackBaseDir>/ratpack.groovy` or `<ratpackBaseDir>/Ratpack.groovy`.
+By default, it will look in `src/ratpack/ratpack.groovy` and `src/ratpack/Ratpack.groovy` respectively.
 This file should *not* go in to `src/main/groovy`.
 
 See [Groovy](groovy.html) for more information about the contents of this file.
@@ -160,7 +182,7 @@ See [Groovy](groovy.html) for more information about the contents of this file.
 ### Generated files
 
 Your build may generate files to be served or otherwise used at runtime.
-The best approach is to have the tasks that generate these files generate into a subdirectory of `src/ratpack`.
+The best approach is to have the tasks that generate these files generate into a subdirectory of the `<ratpackBaseDir>` (by default `src/ratpack`).
 The Ratpack Gradle plugins add a special task named `'prepareBaseDir`' that you should make depend on your generation task.
 
 ```language-groovy gradle
@@ -181,7 +203,7 @@ repositories {
 
 task generateDocs(type: Copy) {
   from "src/documentation"
-  into "src/ratpack/documentation"
+  into "${ratpack.baseDir}/documentation"
   expand version: project.version
 }
 
@@ -201,7 +223,7 @@ Making `'prepareBaseDir'` depend on your generation task ensures that it is invo
 
 The `'application'` plugin provides the `'run'` task for starting the Ratpack application.
 This is a task of the core Gradle [`JavaExec`](http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.JavaExec.html) type.
-The `'ratpack-java'` plugin configures this `'run'` task to start the process in `src/ratpack` and to launch with the system property `'ratpack.development'` set to `true` (which enables development time code reloading).
+The `'ratpack-java'` plugin configures this `'run'` task to start the process in `<ratpackBaseDir>` (default `src/ratpack`) and to launch with the system property `'ratpack.development'` set to `true` (which enables development time code reloading).
 
 If you wish to set extra system properties for development time execution, you can configure this task…
 
@@ -305,7 +327,7 @@ In the second, run the following after making a code change…
 
 If you'd like to have Gradle automatically compile changes as they happen, you can use the [Gradle Watch](https://github.com/bluepapa32/gradle-watch-plugin) plugin.
 
-Note: You do not need SpringLoaded support for reloading changes to the `src/ratpack/Ratpack.groovy` file when using `'ratpack-groovy'`, nor do you need to have Gradle recompile the code.
+Note: You do not need SpringLoaded support for reloading changes to the `<ratpackBaseDir>/Ratpack.groovy` file when using `'ratpack-groovy'`, nor do you need to have Gradle recompile the code.
 The reloading of this file is handled at runtime in reloadable mode.
 
 ## IntelliJ IDEA support
@@ -347,5 +369,5 @@ Once the project is opened, you will see a “Run Configuration” named “Ratp
 
 If you have configured your build to use SpringLoaded, it will also be used by IDEA.
 However, IDEA will not automatically recompile code while there is an active run configuration.
-This means that after making a code change (to anything other than `src/ratpack/Ratpack.groovy`) you need to click “Make Project” in the “Build” menu (or use the corresponding key shortcut).
+This means that after making a code change (to anything other than `<ratpackBaseDir>/Ratpack.groovy`) you need to click “Make Project” in the “Build” menu (or use the corresponding key shortcut).
 

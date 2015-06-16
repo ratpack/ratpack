@@ -29,11 +29,11 @@ class RatpackGroovyPlugin implements Plugin<Project> {
 
     project.mainClassName = "ratpack.groovy.GroovyRatpackMain"
 
-    def ratpackDependencies = new RatpackDependencies(project.dependencies)
+    def ratpackExtension = project.extensions.getByType(RatpackExtension)
 
     project.dependencies {
-      compile ratpackDependencies.groovy
-      testCompile ratpackDependencies.groovyTest
+      compile ratpackExtension.groovy
+      testCompile ratpackExtension.groovyTest
     }
   }
 

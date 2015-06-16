@@ -19,6 +19,7 @@ package ratpack.pac4j;
 import com.google.common.collect.ImmutableList;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
@@ -36,6 +37,7 @@ import ratpack.pac4j.internal.RatpackWebContext;
 import ratpack.path.PathBinding;
 import ratpack.registry.Registries;
 import ratpack.session.Session;
+import ratpack.session.SessionData;
 
 import java.util.Optional;
 
@@ -378,6 +380,20 @@ public class RatpackPac4j {
     return ctx.get(Session.class).getData().operation(data -> data.remove(Pac4jSessionKeys.USER_PROFILE));
   }
 
+  /**
+   * Creates a Pac4j {@link WebContext} implementation based on Ratpack's context.
+   *
+   * @param ctx the Ratpack context
+   * @return a Pac4j web context
+   */
+  public static Promise<WebContext> webContext(Context ctx) {
+    return ctx.get(Session.class).getData().map(session -> webContext(ctx, session));
+  }
+
+  private static RatpackWebContext webContext(Context ctx, SessionData sessionData) {
+    return new RatpackWebContext(ctx, sessionData);
+  }
+
   private static <T extends UserProfile> void toProfile(Class<T> type, Fulfiller<Optional<T>> fulfiller, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
     if (userProfileOptional.isPresent()) {
       final UserProfile userProfile = userProfileOptional.get();
@@ -397,7 +413,7 @@ public class RatpackPac4j {
     Client<?, ?> client = clients.findClient(clientType);
 
     ctx.get(Session.class).getData().then(session -> {
-      RatpackWebContext webContext = new RatpackWebContext(ctx, session);
+      RatpackWebContext webContext = webContext(ctx, session);
       session.set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
 
       try {

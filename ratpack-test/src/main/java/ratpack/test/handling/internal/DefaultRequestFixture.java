@@ -142,7 +142,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture header(String name, String value) {
+  public RequestFixture header(CharSequence name, String value) {
     requestHeaders.add(name, value);
     return this;
   }
@@ -188,7 +188,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture responseHeader(String name, String value) {
+  public RequestFixture responseHeader(CharSequence name, String value) {
     responseHeaders.add(name, value);
     return this;
   }

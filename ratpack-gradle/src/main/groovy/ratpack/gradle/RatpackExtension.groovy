@@ -16,18 +16,22 @@
 
 package ratpack.gradle
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
-class RatpackDependencies {
+class RatpackExtension {
 
   public static final String GROUP = "io.ratpack"
   private final version = getClass().classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
   private final DependencyHandler dependencies
 
-  RatpackDependencies(DependencyHandler dependencies) {
-    this.dependencies = dependencies
+  File baseDir
+
+  RatpackExtension(Project project) {
+    this.dependencies = project.dependencies
+    baseDir = project.file('src/ratpack')
   }
 
   Dependency getCore() {
