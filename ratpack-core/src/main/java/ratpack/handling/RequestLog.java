@@ -21,14 +21,20 @@ import org.slf4j.LoggerFactory;
 import ratpack.handling.internal.DefaultRequestLog;
 
 /**
- * TODO
+ * An object that formats information about a {@link RequestOutcome}.
+ * By default the server provides the {@link DefaultRequestLog} which outputs the NCSA Common log format.
+ *
+ * The user can override the output format by adding an instance of this interface to the server registry.
+ *
+ * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common</a>
  */
 public interface RequestLog {
 
   /**
-   * TODO
-   * @param outcome
-   * @return
+   * Format the provided {@link RequestOutcome} into a {@link String} suitable for logging.
+   *
+   * @param outcome the resulting outcome of a received request.
+   * @return the formatted output to log.
    */
   String format(RequestOutcome outcome);
 
@@ -39,7 +45,6 @@ public interface RequestLog {
    *
    * @return a handler that logs each request
    *
-   * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common</a>
    */
   static Handler log() {
     return new Handler() {

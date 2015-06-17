@@ -27,9 +27,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-/**
- * TODO
- */
 public class DefaultRequestLog implements RequestLog {
 
   private static final String DEFAULT_FORMAT = "dd/MMM/yyyy:HH:mm:ss Z";
