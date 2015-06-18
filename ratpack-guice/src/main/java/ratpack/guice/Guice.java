@@ -54,7 +54,7 @@ import static ratpack.util.Exceptions.uncheck;
  * <p>
  * Below is a complete example for bootstrapping a Guice based Ratpack application.
  * </p>
- * <pre class="java">{@code
+ * <pre class="java"><code>
  * import com.google.inject.AbstractModule;
  * import ratpack.guice.Guice;
  * import ratpack.handling.Context;
@@ -115,20 +115,20 @@ import static ratpack.util.Exceptions.uncheck;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b.module(ServiceModule.class)))
- *       .handlers(chain -> {
+ *     EmbeddedApp.of(s {@code ->} s
+ *       .registry(Guice.registry(b {@code ->} b.module(ServiceModule.class)))
+ *       .handlers(chain {@code ->} {
  *         // The registry in a Guice backed chain can be used to retrieve objects that were bound,
  *         // or to create objects that are bound “just-in-time”.
  *         chain.get("some/path", InjectedHandler.class);
  *       })
- *     ).test(httpClient -> {
+ *     ).test(httpClient {@code ->} {
  *       assertEquals("foo-bar", httpClient.get("some/path").getBody().getText());
  *     });
  *   }
  *
  * }
- * }</pre>
+ * </code></pre>
  * <h3>Accessing Guice bound objects in Handlers</h3>
  * <p>
  * There are two ways to use Guice bound objects in your handler implementations.

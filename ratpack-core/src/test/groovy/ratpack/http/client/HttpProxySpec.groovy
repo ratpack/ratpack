@@ -19,6 +19,7 @@ package ratpack.http.client
 import ratpack.http.MutableHeaders
 
 import static ratpack.http.ResponseChunks.stringChunks
+import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
 
 class HttpProxySpec extends HttpClientSpec {
@@ -193,4 +194,35 @@ transfer-encoding: chunked
     }
   }
 
+  def "can proxy compressed responses"() {
+    given:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.decompressResponse(false)
+          rs.headers.copy(request.headers)
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.send(response)
+        }
+      }
+    }
+
+    when:
+    def response = requestSpec { RequestSpec rs ->
+      rs.decompressResponse(false)
+      rs.headers { MutableHeaders h ->
+        h.add("Accept-Encoding", "compress, gzip")
+      }
+    }.get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) == "gzip"
+  }
 }

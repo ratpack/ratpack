@@ -73,7 +73,7 @@ import ratpack.registry.Registry;
  * Handler decorators can't do anything that handlers can't do.
  * In the above example, the same result could have been achieved by just using the handler implementations.
  * Decorators are usually more useful when using something like Guice and where it is desired for a module to contribute handlers.
- * <pre class="java">{@code
+ * <pre class="java"><code>
  * import ratpack.handling.Handler;
  * import ratpack.handling.HandlerDecorator;
  * import ratpack.handling.Context;
@@ -105,7 +105,7 @@ import ratpack.registry.Registry;
  *     }
  *
  *     public Handler decorate(Registry serverRegistry, Handler rest) {
- *       return ctx -> {
+ *       return ctx {@code ->} {
  *         if (maintenanceWindow.active) {
  *           ctx.render("down for maintenance!");
  *         } else {
@@ -124,19 +124,19 @@ import ratpack.registry.Registry;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b -> b
+ *     EmbeddedApp.of(s {@code ->} s
+ *       .registry(Guice.registry(b {@code ->} b
  *         .module(MaintenanceWindowModule.class)
  *       ))
- *       .handler(r ->
- *         ctx -> ctx.render("ok!")
+ *       .handler(r {@code ->}
+ *         ctx {@code ->} ctx.render("ok!")
  *       )
- *     ).test(httpClient -> {
+ *     ).test(httpClient {@code ->} {
  *       assertEquals("down for maintenance!", httpClient.getText());
  *     });
  *   }
  * }
- * }</pre>
+ * </code></pre>
  * <p>
  * Handler decorators are invoked in the <i>reverse</i> order in which they are defined in the server registry.
  * That is, the reverse of the order that they were added to the server registry.

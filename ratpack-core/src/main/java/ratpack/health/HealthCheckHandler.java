@@ -98,7 +98,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * The concurrency of the health check execution is managed by a {@link Throttle}.
  * By default, an {@link Throttle#unlimited() unlimited throttle} is used.
- * A sized throttle can be exlicit given to the constructor.
+ * A sized throttle can be explicitly given to the constructor.
  *
  * <h3>Rendering single health checks</h3>
  * <p>

@@ -151,7 +151,10 @@ id: 3
 
   def "can send compressed server sent event"() {
     given:
-    requestSpec { it.headers.add("Accept-Encoding", "gzip") }
+    requestSpec {
+      it.headers.add("Accept-Encoding", "gzip")
+      it.decompressResponse(false)
+    }
     handlers {
       all {
         render serverSentEvents(publish(1..3)) {

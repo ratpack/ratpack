@@ -26,6 +26,7 @@ import ratpack.stream.Streams
 import java.time.Duration
 
 import static ratpack.http.ResponseChunks.stringChunks
+import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
@@ -517,4 +518,62 @@ BAR
     text == "bar"
   }
 
+
+  def "can handle compressed responses"() {
+    given:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.headers.set("accept-encoding", "compress, gzip")
+          rs.decompressResponse(true)
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.send(response)
+        }
+      }
+    }
+
+    when:
+    def response = get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) ?: "identity" == "identity"
+    response.body.text == "bar"
+  }
+
+
+  def "can handle streamed compressed responses"() {
+    given:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.requestStream(otherAppUrl("foo")) { rs ->
+          rs.headers.set("accept-Encoding", "compress, gzip")
+          rs.decompressResponse(true)
+        } then { StreamedResponse streamedResponse ->
+          response.getHeaders().copy(streamedResponse.headers)
+          response.sendStream(streamedResponse.body)
+        }
+      }
+    }
+
+    when:
+    def response = get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) ?: "identity" == "identity"
+    response.body.text == "bar"
+  }
 }

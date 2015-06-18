@@ -168,7 +168,9 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
               }
             }
           });
-
+          if (requestSpecBacking.isDecompressResponse()) {
+            p.addLast(new HttpContentDecompressor());
+          }
           addResponseHandlers(p, fulfiller);
         }
 
@@ -211,6 +213,12 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         error(fulfiller, connectFuture.cause());
       }
     });
+  }
+
+  protected void addDecompressor(ChannelPipeline p) {
+    if (requestSpecBacking.isDecompressResponse()) {
+      p.addLast(new HttpContentDecompressor());
+    }
   }
 
   protected abstract RequestAction<T> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl);

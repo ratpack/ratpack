@@ -225,7 +225,7 @@ public interface RequestFixture {
    * @param value the header value
    * @return this
    */
-  RequestFixture header(String name, String value);
+  RequestFixture header(CharSequence name, String value);
 
   /**
    * Configures the server config to have the given base dir and given configuration.
@@ -302,7 +302,7 @@ public interface RequestFixture {
    * @param value the header value
    * @return this
    */
-  RequestFixture responseHeader(String name, String value);
+  RequestFixture responseHeader(CharSequence name, String value);
 
   /**
    * Sets the maximum time to allow the handler under test to produce a result.
@@ -344,5 +344,13 @@ public interface RequestFixture {
    * @return this
    */
   RequestFixture localAddress(HostAndPort local);
+
+  /**
+   * Set the HTTP protocol for the request.
+   *
+   * @param protocol The string representation of the HTTP protocol.
+   * @return this
+   */
+  RequestFixture protocol(String protocol);
 
 }

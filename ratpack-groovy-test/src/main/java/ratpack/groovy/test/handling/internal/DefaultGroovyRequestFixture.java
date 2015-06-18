@@ -58,7 +58,7 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public GroovyRequestFixture header(String name, String value) {
+  public GroovyRequestFixture header(CharSequence name, String value) {
     delegate.header(name, value);
     return this;
   }
@@ -76,7 +76,7 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public GroovyRequestFixture responseHeader(String name, String value) {
+  public GroovyRequestFixture responseHeader(CharSequence name, String value) {
     delegate.responseHeader(name, value);
     return this;
   }
@@ -143,6 +143,12 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   @Override
   public GroovyRequestFixture localAddress(HostAndPort local) {
     delegate.localAddress(local);
+    return this;
+  }
+
+  @Override
+  public GroovyRequestFixture protocol(String protocol) {
+    delegate.protocol(protocol);
     return this;
   }
 }
