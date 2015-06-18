@@ -33,10 +33,11 @@ public interface RequestLog {
   /**
    * Format the provided {@link RequestOutcome} into a {@link String} suitable for logging.
    *
+   * @param context the handler context
    * @param outcome the resulting outcome of a received request.
    * @return the formatted output to log.
    */
-  String format(RequestOutcome outcome);
+  String format(Context context, RequestOutcome outcome);
 
   /**
    * Adds a handler that logs each request.
@@ -52,7 +53,7 @@ public interface RequestLog {
 
       @Override
       public void handle(Context ctx) throws Exception {
-        ctx.onClose((RequestOutcome outcome) -> logger.info(ctx.get(RequestLog.class).format(outcome)));
+        ctx.onClose((RequestOutcome outcome) -> logger.info(ctx.get(RequestLog.class).format(ctx, outcome)));
         ctx.next();
       }
     };

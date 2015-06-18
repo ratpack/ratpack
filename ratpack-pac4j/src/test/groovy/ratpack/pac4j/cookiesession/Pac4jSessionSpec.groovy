@@ -16,13 +16,20 @@
 
 package ratpack.pac4j.cookiesession
 
+import groovy.io.GroovyPrintStream
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.FormClient
 import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.http.profile.UsernameProfileCreator
+import org.slf4j.LoggerFactory
+import ratpack.handling.RequestId
+import ratpack.handling.RequestLog
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
+
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
@@ -120,5 +127,77 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     then: "the requested page is returned"
     resp9.statusCode == OK.code()
     resp9.body.text == "auth:bar"
+  }
+
+  def "log user id in request log"() {
+    def loggerOutput = new ByteArrayOutputStream()
+    def logger = LoggerFactory.getLogger(RequestId)
+    def originalStream = logger.TARGET_STREAM
+    def latch = new CountDownLatch(1)
+    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
+
+      @Override
+      void println(String s) {
+        super.println(s)
+        originalStream.println(s)
+        if (s.contains(RequestLog.simpleName)) {
+          latch.countDown()
+        }
+      }
+    }
+
+    given:
+    bindings {
+      module SessionModule
+    }
+    handlers {
+      all RequestId.bindAndLog()
+      all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()))
+      prefix("foo") {
+        all(RatpackPac4j.requireAuth(FormClient))
+        get {
+          render request.get(RequestId).id
+        }
+      }
+      get("login") {
+        def userProfile = maybeGet(UserProfile).orElse(null)
+        response.send "login:" + userProfile?.attributes?.username
+      }
+    }
+
+    when: "request a page that requires authentication"
+    requestSpec {
+      it.redirects(0)
+    }
+    def resp1 = get("foo")
+
+    then: "the request is redirected to login page"
+    resp1.statusCode == FOUND.code()
+    resp1.headers.get(LOCATION).contains("/login")
+
+    when: "follow the redirect"
+    def resp2 = get(resp1.headers.get(LOCATION))
+
+    then: "the response is redirected to login form"
+    resp2.statusCode == OK.code()
+    resp2.body.text == "login:null"
+
+    when: "send authorization request"
+    def resp3 = get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=foo&password=foo&client_name=FormClient")
+
+    then: "the response is redirected to auth page"
+    resp3.statusCode == FOUND.code()
+    resp3.headers.get(LOCATION).contains("/foo")
+
+    when: "following the redirect"
+    def resp4 = get(resp3.headers.get(LOCATION))
+
+    then: "the requested page is returned"
+    resp4.statusCode == OK.code()
+
+    then: 'the request is logged with the user id'
+    latch.await(5, TimeUnit.SECONDS)
+    String output = loggerOutput.toString()
+    output ==~ /(?s).*INFO ratpack\.handling\.RequestLog - 127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/
   }
 }

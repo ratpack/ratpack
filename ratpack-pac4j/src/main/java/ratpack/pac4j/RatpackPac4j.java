@@ -23,6 +23,7 @@ import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.auth.UserIdentifier;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
@@ -316,7 +317,10 @@ public class RatpackPac4j {
         toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
             ctx.get(Session.class).getData()
               .map(d -> d.get(Pac4jSessionKeys.USER_PROFILE))
-              .then(p -> toProfile(type, f, p, () -> f.success(Optional.empty())))
+              .then(p -> {
+                ctx.getRequest().add(UserIdentifier.class, () -> p.isPresent() ? p.get().getId() : null);
+                toProfile(type, f, p, () -> f.success(Optional.empty()));
+              })
         )
     );
   }

@@ -17,6 +17,8 @@
 package ratpack.handling.internal;
 
 import com.google.common.net.HostAndPort;
+import ratpack.auth.UserIdentifier;
+import ratpack.handling.Context;
 import ratpack.handling.RequestId;
 import ratpack.handling.RequestLog;
 import ratpack.handling.RequestOutcome;
@@ -26,6 +28,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 public class DefaultRequestLog implements RequestLog {
 
@@ -34,7 +37,7 @@ public class DefaultRequestLog implements RequestLog {
   private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DEFAULT_FORMAT).withZone(ZoneId.systemDefault());
 
   @Override
-  public String format(RequestOutcome outcome) {
+  public String format(Context ctx, RequestOutcome outcome) {
     Request request = outcome.getRequest();
     SentResponse response = outcome.getResponse();
     String responseSize = "-";
@@ -48,10 +51,10 @@ public class DefaultRequestLog implements RequestLog {
         ncsaLogFormat(
           request.getRemoteAddress(),
           "-",
-          "-", //TODO userId
+          request.maybeGet(UserIdentifier.class),
           request.getTimestamp(),
           request.getMethod(),
-          request.getRawUri(),
+          "/" + request.getPath(),
           request.getProtocol(),
           outcome.getResponse().getStatus(),
           responseSize));
@@ -63,11 +66,11 @@ public class DefaultRequestLog implements RequestLog {
     return logLine.toString();
   }
 
-  String ncsaLogFormat(HostAndPort client, String rfc1413Ident, String userId, Instant timestamp, HttpMethod method, String uri, String httpProtocol, Status status, String responseSize) {
+  String ncsaLogFormat(HostAndPort client, String rfc1413Ident, Optional<UserIdentifier> userId, Instant timestamp, HttpMethod method, String uri, String httpProtocol, Status status, String responseSize) {
     return String.format("%s %s %s [%s] \"%s %s %s\" %d %s",
       client.getHostText(),
       rfc1413Ident,
-      userId,
+      userId.isPresent() ? userId.get().getUserIdentifier() : "-",
       formatter.format(timestamp),
       method.getName(),
       uri,
