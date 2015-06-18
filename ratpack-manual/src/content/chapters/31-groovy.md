@@ -19,6 +19,7 @@ If you are new to Groovy, you may want to research the following foundational Gr
 
 1. Closures
 1. The `def` keyword
+1. Domain Specific Languages (DSL)
 
 > TODO: what else should be in this list? Also, links needed
 >
