@@ -24,7 +24,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -92,12 +91,6 @@ class RequestSpecBacking {
     @Override
     public RequestSpec sslContext(SSLContext sslContext) {
       RequestSpecBacking.this.sslContext = sslContext;
-      return this;
-    }
-
-    @Override
-    public RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
-      RequestSpecBacking.this.sslContext = factory.create();
       return this;
     }
 

@@ -35,7 +35,7 @@ public class ServerConfigData {
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private SSLContext sslContext;
-  private boolean sslClientAuth;
+  private boolean requireClientSslAuth;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
 
   public ServerConfigData(ServerEnvironment serverEnvironment) {
@@ -112,12 +112,12 @@ public class ServerConfigData {
     this.sslContext = sslContext;
   }
 
-  public boolean isSslClientAuth() {
-    return sslClientAuth;
+  public boolean isRequireClientSslAuth() {
+    return requireClientSslAuth;
   }
 
-  public void setSslClientAuth(boolean sslClientAuth) {
-    this.sslClientAuth = sslClientAuth;
+  public void setRequireClientSslAuth(boolean requireClientSslAuth) {
+    this.requireClientSslAuth = requireClientSslAuth;
   }
 
   public void setMaxContentLength(int maxContentLength) {

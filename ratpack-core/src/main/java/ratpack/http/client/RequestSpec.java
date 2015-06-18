@@ -56,7 +56,9 @@ public interface RequestSpec {
    * @return the {@link RequestSpec}
    * @throws Exception this can be thrown from the action
    */
-  RequestSpec sslContext(Factory<SSLContext> factory) throws Exception;
+  default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
+    return sslContext(factory.create());
+  }
 
   /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.

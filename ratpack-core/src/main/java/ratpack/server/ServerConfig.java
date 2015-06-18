@@ -222,7 +222,7 @@ public interface ServerConfig extends ConfigData {
    *
    * @return whether or not the server needs client SSL authentication
    */
-  boolean isSSLClientAuth();
+  boolean isRequireClientSslAuth();
 
   /**
    * The max content length to use for the HttpObjectAggregator.
@@ -339,10 +339,10 @@ public interface ServerConfig extends ConfigData {
     /**
      * The server needs client SSL authentication.
      *
-     * @param sslClientAuth whether or not server needs client SSL authentication
+     * @param requireClientSslAuth whether or not server needs client SSL authentication
      * @return {@code this}
      */
-    Builder sslClientAuth(boolean sslClientAuth);
+    Builder requireClientSslAuth(boolean requireClientSslAuth);
 
     /**
      * {@inheritDoc}

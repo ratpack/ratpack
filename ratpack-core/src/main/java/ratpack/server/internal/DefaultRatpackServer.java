@@ -189,7 +189,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
     SSLContext sslContext = serverConfig.getSSLContext();
-    boolean sslClientAuth = serverConfig.isSSLClientAuth();
+    boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
     this.useSsl = sslContext != null;
 
     return new ServerBootstrap()
@@ -204,7 +204,7 @@ public class DefaultRatpackServer implements RatpackServer {
           if (sslContext != null) {
             SSLEngine sslEngine = sslContext.createSSLEngine();
             sslEngine.setUseClientMode(false);
-            sslEngine.setNeedClientAuth(sslClientAuth);
+            sslEngine.setNeedClientAuth(requireClientSslAuth);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 

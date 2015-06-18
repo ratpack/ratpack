@@ -82,8 +82,8 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
-  public boolean isSSLClientAuth() {
-    return serverConfigData.isSslClientAuth();
+  public boolean isRequireClientSslAuth() {
+    return serverConfigData.isRequireClientSslAuth();
   }
 
   @Override

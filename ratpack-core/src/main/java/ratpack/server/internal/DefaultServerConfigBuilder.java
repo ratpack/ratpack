@@ -99,8 +99,8 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
-  public ServerConfig.Builder sslClientAuth(boolean sslClientAuth) {
-    serverConfigData.put("sslClientAuth", sslClientAuth);
+  public ServerConfig.Builder requireClientSslAuth(boolean requireClientSslAuth) {
+    serverConfigData.put("requireClientSslAuth", requireClientSslAuth);
     return this;
   }
 

@@ -15,38 +15,58 @@
  */
 package ratpack.ssl
 
-import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Unroll
 
 import javax.net.ssl.SSLHandshakeException
 import javax.net.ssl.SSLProtocolException
 import java.nio.channels.ClosedChannelException
 
 class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
-
-  def "can serve content over HTTPS with client SSL authentication"() {
-    given:
+  private def setupServerConfig(String keystore, String truststore) {
     serverConfig {
-      ssl SSLContexts.sslContext(
-        HttpsTruststoreSpec.getResource("server_dummy.keystore"), "password",
-        HttpsTruststoreSpec.getResource("server_dummy.truststore"), "password")
-      sslClientAuth(true)
-    }
+      if (keystore && truststore) {
+        ssl SSLContexts.sslContext(
+          HttpsTruststoreSpec.getResource(keystore), "password",
+          HttpsTruststoreSpec.getResource(truststore), "password")
+      } else if (keystore) {
+        ssl SSLContexts.sslContext(HttpsTruststoreSpec.getResource(keystore), "password")
+      }
 
+      requireClientSslAuth true
+    }
+  }
+
+  private def setupRequestSpec(String keystore, String truststore) {
+    resetRequest()
+    requestSpec {
+      it.sslContext {
+        if (keystore && truststore) {
+          SSLContexts.sslContext(
+            HttpsTruststoreSpec.getResource(keystore), "password",
+            HttpsTruststoreSpec.getResource(truststore), "password")
+        } else if (keystore) {
+          SSLContexts.sslContext(HttpsTruststoreSpec.getResource(keystore), "password")
+        }
+      }
+    }
+  }
+
+  private def setupHandlers() {
     handlers {
       get("foo") {
         render "SSL VERIFIED"
       }
     }
+  }
+
+  def "can serve content over HTTPS with client SSL authentication"() {
+    given:
+    setupServerConfig("server_dummy.keystore", "server_dummy.truststore")
+    setupHandlers()
 
     when:
-    requestSpec { RequestSpec rs ->
-      rs.sslContext {
-        return SSLContexts.sslContext(
-          HttpsTruststoreSpec.getResource("client_dummy.keystore"), "password",
-          HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
-      }
-    }
+    setupRequestSpec("client_dummy.keystore", "client_dummy.truststore")
 
     then:
     def address = applicationUnderTest.address
@@ -54,106 +74,25 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
     getText("foo") == "SSL VERIFIED"
   }
 
-  def "throw exception when client provides no or wrong certificate and client ssl authentication is required"() {
+  @Unroll
+  def "throw exception for [#clientKeystore, #clientTruststore, #serverKeystore, #serverTruststore]"() {
     given:
-    serverConfig {
-      ssl SSLContexts.sslContext(
-        HttpsTruststoreSpec.getResource("server_dummy.keystore"), "password",
-        HttpsTruststoreSpec.getResource("server_dummy.truststore"), "password")
-      sslClientAuth true  // require client ssl authentication
-    }
+    setupServerConfig(serverKeystore, serverTruststore)
+    setupHandlers()
 
-    handlers {
-      get("foo") {
-        render "SSL VERIFIED"
-      }
-    }
-
-    when: "client does not provide valid certificate"
-    requestSpec { RequestSpec rs ->
-      rs.sslContext {
-        return SSLContexts.sslContext(
-          HttpsTruststoreSpec.getResource("dummy.keystore"), "password",
-          HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
-      }
-    }
+    when:
+    setupRequestSpec(clientKeystore, clientTruststore)
     get("foo")
 
     then:
     UncheckedIOException ex = thrown()
-    ex.getCause() instanceof SSLProtocolException || ex.getCause() instanceof ClosedChannelException
+    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException || ex.getCause() instanceof SSLProtocolException
 
-    when: "client does not provide truststore"
-    resetRequest()
-    requestSpec { RequestSpec rs ->
-      rs.sslContext {
-        return SSLContexts.sslContext(
-          HttpsTruststoreSpec.getResource("dummy.keystore"), "password")
-      }
-    }
-    get("foo")
 
-    then:
-    ex = thrown()
-    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException
-  }
-
-  def "throw exception when server does not provide valid keystore"() {
-    given:
-    serverConfig {
-      ssl SSLContexts.sslContext(
-        HttpsTruststoreSpec.getResource("dummy.keystore"), "password",
-        HttpsTruststoreSpec.getResource("server_dummy.truststore"), "password")
-      sslClientAuth true  // require client ssl authentication
-    }
-
-    handlers {
-      get("foo") {
-        render "SSL VERIFIED"
-      }
-    }
-
-    when: "client provides valid certificate"
-    requestSpec { RequestSpec rs ->
-      rs.sslContext {
-        return SSLContexts.sslContext(
-          HttpsTruststoreSpec.getResource("client_dummy.keystore"), "password",
-          HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
-      }
-    }
-    get("foo")
-
-    then:
-    UncheckedIOException ex = thrown()
-    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException
-  }
-
-  def "throw exception when server does not provide truststore"() {
-    given:
-    serverConfig {
-      ssl SSLContexts.sslContext(
-        HttpsTruststoreSpec.getResource("server_dummy.keystore"), "password")
-      sslClientAuth true  // require client ssl authentication
-    }
-
-    handlers {
-      get("foo") {
-        render "SSL VERIFIED"
-      }
-    }
-
-    when: "client provides valid certificate"
-    requestSpec { RequestSpec rs ->
-      rs.sslContext {
-        return SSLContexts.sslContext(
-          HttpsTruststoreSpec.getResource("client_dummy.keystore"), "password",
-          HttpsTruststoreSpec.getResource("client_dummy.truststore"), "password")
-      }
-    }
-    get("foo")
-
-    then:
-    UncheckedIOException ex = thrown()
-    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException
+    where:
+    clientKeystore            | clientTruststore          | serverKeystore          | serverTruststore
+    "dummy.keystore"          | "client_dummy.truststore" | "server_dummy.keystore" | "server_dummy.truststore"
+    "client_dummy.keystore"   | "client_dummy.truststore" | "dummy.keystore"        | "server_dummy.truststore"
+    "client_dummy.keystore"   | "client_dummy.truststore" | "server_dummy.keystore" | null
   }
 }
