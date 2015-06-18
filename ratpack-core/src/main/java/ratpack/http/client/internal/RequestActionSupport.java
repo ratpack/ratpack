@@ -215,12 +215,6 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     });
   }
 
-  protected void addDecompressor(ChannelPipeline p) {
-    if (requestSpecBacking.isDecompressResponse()) {
-      p.addLast(new HttpContentDecompressor());
-    }
-  }
-
   protected abstract RequestAction<T> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl);
 
   protected abstract void addResponseHandlers(ChannelPipeline p, Fulfiller<? super T> fulfiller);

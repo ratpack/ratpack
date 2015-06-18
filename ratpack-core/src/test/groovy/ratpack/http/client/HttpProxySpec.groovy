@@ -18,6 +18,8 @@ package ratpack.http.client
 
 import ratpack.http.MutableHeaders
 
+import java.util.zip.GZIPInputStream
+
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
@@ -224,5 +226,6 @@ transfer-encoding: chunked
 
     then:
     response.headers.get(CONTENT_ENCODING) == "gzip"
+    new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
   }
 }

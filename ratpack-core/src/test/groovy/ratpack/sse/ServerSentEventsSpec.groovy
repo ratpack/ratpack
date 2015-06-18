@@ -155,6 +155,8 @@ id: 3
       it.headers.add("Accept-Encoding", "gzip")
       it.decompressResponse(false)
     }
+
+    and:
     handlers {
       all {
         render serverSentEvents(publish(1..3)) {

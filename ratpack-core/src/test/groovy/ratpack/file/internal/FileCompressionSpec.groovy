@@ -33,8 +33,9 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
 
   void requestCompression(boolean flag) {
     requestSpec {
+      it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
-        it.set(HttpHeaderNames.ACCEPT_ENCODING, flag ? "gzip" : HttpHeaderValues.IDENTITY)
+        it.set(HttpHeaderNames.ACCEPT_ENCODING, flag ? HttpHeaderValues.GZIP : HttpHeaderValues.IDENTITY)
       }
     }
   }
@@ -57,19 +58,14 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
 
   def "encodes when requested"() {
     when:
-    requestSpec {
-      it.decompressResponse(false)
-      it.headers {
-        it.set(HttpHeaderNames.ACCEPT_ENCODING, "gzip")
-      }
-    }
+    requestCompression(true)
     handlers {
       files { dir "public" }
     }
 
     then:
     get("file.txt")
-    response.headers.get("Content-Encoding") == "gzip"
+    response.headers.get("Content-Encoding") == HttpHeaderValues.GZIP.toString()
     response.headers.get("Content-Length").toInteger() < bytes.length
   }
 
