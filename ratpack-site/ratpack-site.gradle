@@ -91,7 +91,7 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.0'
+  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.1'
   runtime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
   
 
