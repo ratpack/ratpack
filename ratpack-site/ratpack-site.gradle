@@ -25,9 +25,9 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.2.7'
+    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.3.0'
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
-    classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.1.3'
+    classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
   }
 }
 
@@ -41,9 +41,6 @@ repositories {
   maven { url "https://oss.jfrog.org/repo" }
 }
 
-assets {
-    compileDir = "src/ratpack/assets"
-}
 
 ext {
   manualVersions = [
@@ -66,8 +63,6 @@ configurations {
   newrelicAgent {}
   browserTestCompile.extendsFrom testCompile
   browserTestRuntime.extendsFrom testRuntime
-  providedRuntime
-  runtime.extendsFrom providedRuntime
 
   manualVersions.each {
     delegate."manual-$it"
@@ -96,8 +91,8 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.2.8'
-  providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.1.3'
+  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.0'
+  runtime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
   
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"

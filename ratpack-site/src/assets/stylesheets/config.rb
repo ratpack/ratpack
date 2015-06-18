@@ -1,5 +1,5 @@
-images_path = "assets/images"
-fonts_path = "assets/stylesheets/fonts"
+images_path = "src/assets/images"
+fonts_path = "src/assets/stylesheets/fonts"
 
 relative_assets = false
 # http_path = "/"
