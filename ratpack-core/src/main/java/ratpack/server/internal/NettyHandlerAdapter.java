@@ -190,7 +190,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private boolean isIgnorableException(Throwable throwable) {
     // There really does not seem to be a better way of detecting this kind of exception
-    return throwable instanceof IOException && throwable.getMessage().equals("Connection reset by peer");
+    return throwable instanceof IOException && throwable.getMessage().endsWith("Connection reset by peer");
   }
 
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
