@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import com.google.common.net.HostAndPort;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -146,6 +147,8 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                       s.method("GET");
                     }
 
+                    HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
+                    s.getHeaders().set(HttpHeaderConstants.HOST, hostAndPort.toString());
 
                     s.redirects(maxRedirects - 1);
                   });
