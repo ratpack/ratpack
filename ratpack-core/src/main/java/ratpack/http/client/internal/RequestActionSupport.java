@@ -190,7 +190,8 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         String fullPath = getFullPath(uri);
         FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
         if (headers.get(HttpHeaderConstants.HOST) == null) {
-          headers.set(HttpHeaderConstants.HOST, host);
+          HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
+          headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
         }
         headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
         int contentLength = request.content().readableBytes();
