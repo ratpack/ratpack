@@ -19,6 +19,9 @@ package ratpack.exec;
 import ratpack.api.NonBlocking;
 
 import java.util.concurrent.CompletableFuture;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * A fulfiller of an asynchronous promise.
@@ -119,6 +122,25 @@ public interface Fulfiller<T> {
       }
 
       return null;
+    });
+  }
+
+  /**
+   * Fulfills via the given ListenableFuture.
+   *
+   * @param listenableFuture the future to use to fulfill
+   */
+  default void accept(ListenableFuture<? extends T> listenableFuture) {
+    Futures.addCallback(listenableFuture, new FutureCallback<T>() {
+      @Override
+      public void onSuccess(T result) {
+        success(result);
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        error(t);
+      }
     });
   }
 
