@@ -45,7 +45,7 @@ class DefaultRatpackServiceSpec extends Specification {
 
     then:
     def e = thrown IOException
-    e instanceof BindException || e.cause instanceof BindException
+    e instanceof BindException || e.cause instanceof BindException || (e instanceof IOException && e.message.contains("Address already in use"))
 
     cleanup:
     [server1, server2].each {
