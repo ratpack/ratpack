@@ -14,11 +14,11 @@ head {
   meta(name: 'viewport', content: 'width=device-width, initial-scale=1')
 
   link(rel: 'author', href: '/assets/humans.txt')
-  link(rel: 'stylesheet', href: assets['assets/lib/normalize/normalize.css'])
-  link(rel: 'stylesheet', href: assets['assets/styles/ratpack.css'])
+  link(rel: 'stylesheet', href: assets['normalize/normalize.css'])
+  link(rel: 'stylesheet', href: assets['ratpack.css'])
 
-  script(src: assets['assets/lib/modernizr/modernizr.js']) {}
-  script(src: assets['assets/lib/prism/prism.js']) {}
+  script(src: assets['modernizr/modernizr.js']) {}
+  script(src: assets['prism/prism.js']) {}
 }
 body {
 
@@ -75,7 +75,7 @@ body {
         section(class: 'credits') {
           credits.each { credit ->
             a(href: credit.href, rel: 'external') {
-              img(src: assets["assets/images/${credit.img.src}"], alt: credit.img.alt, width: credit.img.width, height: credit.img.height)
+              img(src: assets["${credit.img.src}"], alt: credit.img.alt, width: credit.img.width, height: credit.img.height)
             }
           }
         }
@@ -94,7 +94,7 @@ ga('send', 'pageview');
 '''
   }
 
-  link(rel: 'stylesheet', href: assets['assets/styles/fonts.css'])
+  link(rel: 'stylesheet', href: assets['fonts.css'])
 }
 
 yieldUnescaped '</html>'

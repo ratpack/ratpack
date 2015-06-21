@@ -17,6 +17,7 @@
 package ratpack.site
 
 import ratpack.file.FileSystemChecksumService
+import asset.pipeline.AssetPipelineConfigHolder
 
 class AssetLinkService {
 
@@ -27,7 +28,12 @@ class AssetLinkService {
   }
 
   String getAt(String path) {
-    return "/$path?" + (checksumService.checksum(path) ?: "")
+  	final Properties manifest = AssetPipelineConfigHolder.manifest;
+    final String manifestPath = path.startsWith("/") ? path.substring(1) : path;
+    if(manifest) {
+    	manifestPath = manifest.getProperty(manifestPath, manifestPath)
+    }
+    return "/assets/${manifestPath}"
   }
 
 }

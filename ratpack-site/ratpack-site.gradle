@@ -25,22 +25,22 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
+    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.3.0'
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
+    classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
   }
 }
 
 import static org.apache.commons.lang.SystemUtils.*
 
-apply plugin: 'coffeescript-base'
-apply plugin: "com.github.robfletcher.compass"
 apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'asset-pipeline'
 
 repositories {
   maven { url "https://oss.jfrog.org/repo" }
-  maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
 }
+
 
 ext {
   manualVersions = [
@@ -60,7 +60,6 @@ configurations {
       cacheChangingModulesFor 0, 'seconds'
     }
   }
-
   newrelicAgent {}
   browserTestCompile.extendsFrom testCompile
   browserTestRuntime.extendsFrom testRuntime
@@ -92,7 +91,9 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compass commonDependencies.compass
+  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.1'
+  runtime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
+  
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"
   runtime "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
@@ -116,6 +117,14 @@ dependencies {
   }
 
   newrelicAgent "com.newrelic.agent.java:newrelic-agent:${commonVersions.newrelic}"
+}
+
+
+shadowJar {
+  dependencies {
+    exclude(dependency("com.bertramlabs.plugins:sass-asset-pipeline:.*"))
+    exclude(dependency("org.jruby:jruby-complete:.*"))
+  }
 }
 
 task gatherManuals(type: Sync) {
@@ -211,13 +220,10 @@ sourceSets.test.resources.srcDir generatedTestResourcesDir
 
 processTestResources.dependsOn writeTestConfig
 
-task compileCoffee(type: CoffeeScriptCompile) {
-  source fileTree('src/main/static/scripts')
-  destinationDir file('src/ratpack/assets/scripts')
-}
+
 
 prepareBaseDir {
-  dependsOn gatherManuals, compileCoffee, compassCompile
+  dependsOn gatherManuals
 }
 
 applicationDistribution.into("newrelic") {
@@ -227,41 +233,14 @@ applicationDistribution.into("newrelic") {
   from "src/newrelic"
 }
 
-jruby {
-  gemInstallDir = file("$project.rootProject.buildDir/build/gems")
-}
-
-compass {
-  gemDir = file("${gradle.gradleUserHomeDir}/ruby-gems")
-  cssDir = file('src/ratpack/assets/styles')
-  sassDir = file('src/main/static/styles')
-  imagesDir = file('src/ratpack/assets/images')
-  importPath = files('../ratpack-stylesheets')
-  fontsDir = file('../ratpack-stylesheets/fonts')
-  relativeAssets = true
-  quiet = true
-  environment = 'production'
-  debugInfo = false
-}
 
 run {
-  dependsOn compassWatchStart
-  finalizedBy compassWatchStop
   main "ratpack.site.SiteMain"
 }
 
 mainClassName = "ratpack.site.SiteMain"
 
-task createScriptsDir {
-  doLast {
-    mkdir "src/ratpack/assets/scripts"
-  }
-}
-configure([compassWatchStart, compassCompile]) {
-  dependsOn createScriptsDir
-}
 
-clean.dependsOn cleanCompileCoffee
 clean.dependsOn cleanGatherManuals
 
 idea {
@@ -277,3 +256,4 @@ task prepareDeployment(type: Sync) {
   into deployDir
   with distributions.main.contents
 }
+

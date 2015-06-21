@@ -244,8 +244,8 @@ compass {
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
-  importPath = files('../ratpack-stylesheets')
-  fontsDir = file('../ratpack-stylesheets/fonts')
+  importPath = files('../ratpack-site/src/assets/shared-styles')
+  fontsDir = file('../ratpack-site/src/assets/shared-styles/fonts')
   relativeAssets = true
   quiet = true
   debugInfo = false

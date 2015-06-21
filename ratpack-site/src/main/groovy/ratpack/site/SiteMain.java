@@ -31,6 +31,7 @@ import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
+import asset.pipeline.ratpack.AssetPipelineModule;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
 import static ratpack.registry.Registries.just;
@@ -50,6 +51,7 @@ public class SiteMain {
             Guice.registry(s -> s
                 .module(JacksonModule.class)
                 .module(NewRelicModule.class)
+                .module(new AssetPipelineModule())
                 .module(new CodaHaleMetricsModule(), c ->
                     c.csv(csv -> csv.enable(false))
                 )
