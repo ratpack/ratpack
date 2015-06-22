@@ -212,9 +212,10 @@ public interface Session {
    * @param key the key
    * @param value the value
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(SessionKey<T> key, T value) {
-    getData().operation(d -> d.set(key, value));
+  default <T> Operation set(SessionKey<T> key, T value) {
+    return getData().operation(d -> d.set(key, value));
   }
 
   /**
@@ -224,9 +225,10 @@ public interface Session {
    * @param value the value
    * @param serializer the serializer
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(SessionKey<T> key, T value, SessionSerializer serializer) {
-    getData().operation(d -> d.set(key, value, serializer));
+  default <T> Operation set(SessionKey<T> key, T value, SessionSerializer serializer) {
+    return getData().operation(d -> d.set(key, value, serializer));
   }
 
   /**
@@ -235,9 +237,10 @@ public interface Session {
    * @param type the type
    * @param value the value
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(Class<T> type, T value) {
-    getData().operation(d -> d.set(type, value));
+  default <T> Operation set(Class<T> type, T value) {
+    return getData().operation(d -> d.set(type, value));
   }
 
   /**
@@ -247,9 +250,10 @@ public interface Session {
    * @param value the value
    * @param serializer the serializer
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(Class<T> type, T value, SessionSerializer serializer) {
-    getData().operation(d -> d.set(type, value, serializer));
+  default <T> Operation set(Class<T> type, T value, SessionSerializer serializer) {
+    return getData().operation(d -> d.set(type, value, serializer));
   }
 
   /**
@@ -258,9 +262,10 @@ public interface Session {
    * @param name the name
    * @param value the value
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(String name, T value) {
-    getData().operation(d -> d.set(name, value));
+  default <T> Operation set(String name, T value) {
+    return getData().operation(d -> d.set(name, value));
   }
 
   /**
@@ -270,9 +275,10 @@ public interface Session {
    * @param value the value
    * @param serializer the serializer
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(String name, T value, SessionSerializer serializer) {
-    getData().operation(d -> d.set(name, value, serializer));
+  default <T> Operation set(String name, T value, SessionSerializer serializer) {
+    return getData().operation(d -> d.set(name, value, serializer));
   }
 
   /**
@@ -280,9 +286,10 @@ public interface Session {
    *
    * @param value the value
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(T value) {
-    getData().operation(d -> d.set(value));
+  default <T> Operation set(T value) {
+    return getData().operation(d -> d.set(value));
   }
 
   /**
@@ -291,43 +298,49 @@ public interface Session {
    * @param value the value
    * @param serializer the serializer
    * @param <T> the type
+   * @return the operation for setting the value
    */
-  default <T> void set(T value, SessionSerializer serializer) {
-    getData().operation(d -> d.set(value, serializer));
+  default <T> Operation set(T value, SessionSerializer serializer) {
+    return getData().operation(d -> d.set(value, serializer));
   }
 
   /**
    * A convenience shorthand for {@link SessionData#remove(SessionKey)}.
    *
    * @param key the key
+   * @return the operation for removing the value
    */
-  default void remove(SessionKey<?> key) {
-    getData().operation(d -> d.remove(key));
+  default Operation remove(SessionKey<?> key) {
+    return getData().operation(d -> d.remove(key));
   }
 
   /**
    * A convenience shorthand for {@link SessionData#remove(Class)}.
    *
    * @param type the type
+   * @return the operation for removing the value
    */
-  default void remove(Class<?> type) {
-    getData().operation(d -> d.remove(type));
+  default Operation remove(Class<?> type) {
+    return getData().operation(d -> d.remove(type));
   }
 
   /**
    * A convenience shorthand for {@link SessionData#remove(String)}.
    *
    * @param name the name
+   * @return the operation for removing the value
    */
-  default void remove(String name) {
-    getData().operation(d -> d.remove(name));
+  default Operation remove(String name) {
+    return getData().operation(d -> d.remove(name));
   }
 
   /**
    * A convenience shorthand for {@link SessionData#clear()}.
+   *
+   * @return the operation for clearing the session
    */
-  default void clear() {
-    getData().operation(SessionData::clear);
+  default Operation clear() {
+    return getData().operation(SessionData::clear);
   }
 
   /**
