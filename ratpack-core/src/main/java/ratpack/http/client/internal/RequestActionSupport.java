@@ -136,7 +136,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                 final Headers headers = new NettyHeadersBackedHeaders(response.headers());
                 final Status status = new DefaultStatus(response.status());
                 int maxRedirects = requestSpecBacking.getMaxRedirects();
-                String locationValue = headers.get("Location");
+                String locationValue = headers.get(HttpHeaderConstants.LOCATION);
 
                 //Check for redirect and location header if it is follow redirect if we have request forwarding left
                 if (shouldRedirect(status) && maxRedirects > 0 && locationValue != null) {

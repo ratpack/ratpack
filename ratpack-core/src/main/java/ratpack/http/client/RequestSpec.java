@@ -39,6 +39,8 @@ public interface RequestSpec {
    */
   RequestSpec redirects(int maxRedirects);
 
+  int getRedirects();
+
   /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
    */

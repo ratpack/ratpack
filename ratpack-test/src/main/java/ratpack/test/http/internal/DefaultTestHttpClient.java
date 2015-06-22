@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -39,6 +40,7 @@ import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -210,18 +212,25 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   private ReceivedResponse sendRequest(final String method, String path) {
+    AtomicInteger maxRedirects = new AtomicInteger();
+
     try {
       URI uri = builder(path).params(params).build();
 
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
+        maxRedirects.set(requestSpec.getRedirects());
+
+        requestSpec.redirects(0); // we will take care of redirect here to handle cookies
 
         List<Cookie> requestCookies = getCookies(path);
 
         String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
 
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
-        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
+
+        int port = uri.getPort() > 0 ? uri.getPort() : 80;
+        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
       }));
     } catch (Throwable throwable) {
       throw uncheck(throwable);
@@ -256,7 +265,50 @@ public class DefaultTestHttpClient implements TestHttpClient {
       }
     }
 
+    int redirects = maxRedirects.get();
+    boolean isRedirect = redirects > 0 && isRedirect(method, response.getStatusCode());
+    if (isRedirect) {
+      String redirectPath = response.getHeaders().get(HttpHeaderConstants.LOCATION);
+      String redirectMethod = getRedirectMethod(method, response.getStatusCode());
+      if (redirectPath != null) {
+        response = sendRequest(redirectMethod, redirectPath);
+      }
+    }
+
     return response;
+  }
+
+  private String getRedirectMethod(String method, int statusCode) {
+    switch(statusCode) {
+      case 303:
+        return HttpMethod.GET.name();
+      default:
+        return method;
+    }
+  }
+
+  private boolean isRedirect(String httpMethod, int responseCode) {
+    HttpMethod method = HttpMethod.valueOf(httpMethod);
+    switch(responseCode) {
+      case 300:
+        return true;
+      case 301:
+      case 302:
+        return HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method);
+      case 303:
+        return true;
+      case 304:
+        return false;
+      case 305:
+        return true;
+      case 306:
+        return false;
+      case 307:
+      case 308:
+        return true;
+      default:
+        return false;
+    }
   }
 
   private HttpUrlBuilder builder(String path) {
