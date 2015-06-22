@@ -136,6 +136,7 @@ public class RatpackPac4j {
    *             .get(ctx -> ctx.render("no auth required"))
    *         )
    *     ).test(httpClient -> {
+   *       httpClient.requestSpec(r -> r.redirects(1));
    *       assertEquals("no auth required", httpClient.getText());
    *       assertEquals(401, httpClient.get("require-auth").getStatusCode());
    *       assertEquals("Hello user", httpClient.requestSpec(r -> r.basicAuth("user", "user")).getText("require-auth"));
