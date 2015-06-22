@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlBuilder;
+import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -54,6 +55,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private Action<? super RequestSpec> request = Action.noop();
   private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
 
+  private RequestSpecCapturingDelegate requestSpecCapturingDelegate;
+
   private ReceivedResponse response;
 
   public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, Action<? super RequestSpec> defaultRequestConfig) {
@@ -68,8 +71,82 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public TestHttpClient requestSpec(Action<? super RequestSpec> requestAction) {
-    request = requestAction;
+    request = (requestSpec) -> {
+      requestSpecCapturingDelegate = new RequestSpecCapturingDelegate(requestSpec);
+      requestAction.execute(requestSpecCapturingDelegate);
+    };
     return this;
+  }
+
+  class RequestSpecCapturingDelegate implements RequestSpec {
+
+    final RequestSpec requestSpec;
+
+    public RequestSpecCapturingDelegate(RequestSpec requestSpec) {
+      this.requestSpec = requestSpec;
+    }
+
+    String method = "GET";
+    int maxRedirects = 10;
+    boolean decompressResponse;
+
+    @Override
+    public RequestSpec redirects(int maxRedirects) {
+      this.maxRedirects = maxRedirects;
+      return requestSpec.redirects(maxRedirects);
+    }
+
+    @Override
+    public MutableHeaders getHeaders() {
+      return requestSpec.getHeaders();
+    }
+
+    @Override
+    public RequestSpec headers(Action<? super MutableHeaders> action) throws Exception {
+      return requestSpec.headers(action);
+    }
+
+    @Override
+    public RequestSpec method(String method) {
+      this.method = method;
+      return requestSpec.method(method);
+    }
+
+    @Override
+    public RequestSpec decompressResponse(boolean shouldDecompress) {
+      this.decompressResponse = shouldDecompress;
+      return requestSpec.decompressResponse(shouldDecompress);
+    }
+
+    @Override
+    public URI getUrl() {
+      return requestSpec.getUrl();
+    }
+
+    @Override
+    public RequestSpec readTimeoutSeconds(int seconds) {
+      return requestSpec.readTimeoutSeconds(seconds);
+    }
+
+    @Override
+    public RequestSpec readTimeout(Duration duration) {
+      return requestSpec.readTimeout(duration);
+    }
+
+    @Override
+    public Body getBody() {
+      return requestSpec.getBody();
+    }
+
+    @Override
+    public RequestSpec body(Action<? super Body> action) throws Exception {
+      return requestSpec.body(action);
+    }
+
+    @Override
+    public RequestSpec basicAuth(String username, String password) {
+      return requestSpec.basicAuth(username, password);
+    }
   }
 
   @Override
@@ -81,6 +158,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public void resetRequest() {
     request = Action.noop();
+    requestSpecCapturingDelegate = null;
     cookies.clear();
   }
 
@@ -219,7 +297,10 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
-        maxRedirects.set(requestSpec.getRedirects());
+
+        if (requestSpecCapturingDelegate != null) {
+          maxRedirects.set(requestSpecCapturingDelegate.maxRedirects);
+        }
 
         requestSpec.redirects(0); // we will take care of redirect here to handle cookies
 

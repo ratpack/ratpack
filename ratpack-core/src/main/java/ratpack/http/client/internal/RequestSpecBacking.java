@@ -88,11 +88,6 @@ class RequestSpecBacking {
     }
 
     @Override
-    public int getRedirects() {
-      return RequestSpecBacking.this.maxRedirects;
-    }
-
-    @Override
     public MutableHeaders getHeaders() {
       return headers;
     }
