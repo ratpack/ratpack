@@ -25,7 +25,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.3.0'
+    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.3.4'
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
     classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
   }
@@ -63,7 +63,8 @@ configurations {
   newrelicAgent {}
   browserTestCompile.extendsFrom testCompile
   browserTestRuntime.extendsFrom testRuntime
-
+  providedRuntime
+  runtime.extendsFrom providedRuntime
   manualVersions.each {
     delegate."manual-$it"
   }
@@ -91,8 +92,8 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.1'
-  runtime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
+  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.4'
+  providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
   
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"

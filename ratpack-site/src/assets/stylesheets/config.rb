@@ -1,5 +1,8 @@
-images_path = "src/assets/images"
-fonts_path = "src/assets/stylesheets/fonts"
+require 'java'
+
+asset_pipe_path = Java::AssetPipeline::AssetPipelineConfigHolder.getResolvers()[0].getBaseDirectory().getCanonicalPath()
+images_path = "#{asset_pipe_path}/images"
+fonts_path = "#{asset_pipe_path}/stylesheets/fonts"
 
 relative_assets = false
 # http_path = "/"
