@@ -329,7 +329,7 @@ class ExecutionSpec extends Specification {
     events == ["foo", "complete"]
   }
 
-  def "can complete ListenableFuture"(){
+  def "can complete ListenableFuture"() {
     when:
     exec({ ExecControl c ->
       c.promise { Fulfiller<String> f ->
@@ -341,6 +341,22 @@ class ExecutionSpec extends Specification {
 
     then:
     events == ["foo", "complete"]
+  }
+
+  def "can error from ListenableFuture"() {
+    when:
+    exec({ ExecControl c ->
+      c.promise { Fulfiller<String> f ->
+        f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
+      } onError {
+        events << "error"
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["error", "complete"]
   }
 
 
