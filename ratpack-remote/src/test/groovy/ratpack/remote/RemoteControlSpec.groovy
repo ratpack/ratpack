@@ -24,7 +24,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import java.nio.file.Path
 
@@ -43,39 +42,32 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_FOUND.code()
   }
 
-  @Unroll
-  void 'only posts are allowed when registered as #type'() {
+  void 'only posts are allowed'() {
     when:
-    bindings binding
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
     then:
     get(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
     head(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
-
-    where:
-    type           | binding
-    "bindInstance" | { bindInstance ratpack.remote.RemoteControl.handlerDecorator() }
-    "module"       | { module ratpack.remote.RemoteModule }
   }
 
-  @Unroll
-  void 'only requests that contain groovy-remote-control-command are allowed when registered as #type'() {
+  void 'only requests that contain groovy-remote-control-command are allowed'() {
     when:
-    bindings binding
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
     then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == UNSUPPORTED_MEDIA_TYPE.code()
-
-    where:
-    type           | binding
-    "bindInstance" | { bindInstance ratpack.remote.RemoteControl.handlerDecorator() }
-    "module"       | { module ratpack.remote.RemoteModule }
   }
 
-  @Unroll
-  void 'only requests that accept groovy-remote-control-result are allowed when registered as #type'() {
+  void 'only requests that accept groovy-remote-control-result are allowed'() {
     when:
-    bindings binding
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
     then:
     requestSpec { RequestSpec requestSpec ->
@@ -85,36 +77,28 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
     then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_ACCEPTABLE.code()
-
-    where:
-    type           | binding
-    "bindInstance" | { bindInstance ratpack.remote.RemoteControl.handlerDecorator() }
-    "module"       | { module ratpack.remote.RemoteModule }
   }
 
-  @Unroll
-  void 'can use a custom path when registered as #type'() {
+  void 'can use a custom path'() {
     when:
-    def path = "foo"
-    bindings(binding.call(path))
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator("foo")
+    }
 
     and:
     server.start()
-    def remoteControl = new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/$path"))
+    def remoteControl = new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/foo"))
 
     then:
     remoteControl { 1 + 2 } == 3
-
-    where:
-    type           | binding
-    "bindInstance" | { p -> ({ bindInstance ratpack.remote.RemoteControl.handlerDecorator(p) })}
-    "module"       | { p -> ({ module ratpack.remote.RemoteModule, { it.remotePath(p) } })}
   }
 
-  @Unroll
-  void 'registry is available in command context when registered as #type'() {
+  void 'registry is available in command context'() {
     when:
-    bindings binding
+    bindings {
+      bindInstance String, "foo"
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
     then:
     //from guice
@@ -123,27 +107,18 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     remote.exec { get(FileSystemBinding) != null }
     //created just in time
     remote.exec { get(Renderer.typeOf(Path)) != null }
-
-    where:
-    type           | binding
-    "bindInstance" | { bindInstance String, "foo"; bindInstance ratpack.remote.RemoteControl.handlerDecorator() }
-    "module"       | { bindInstance String, "foo"; module ratpack.remote.RemoteModule }
   }
 
-  @Unroll
-  void 'endpoint is also enabled if reloading is enabled when registered as #type'() {
+  void 'endpoint is also enabled if reloading is enabled'() {
     given:
-    bindings binding
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
     serverConfig {
       development(true)
     }
 
     expect:
     remote.exec { 1 + 2 } == 3
-
-    where:
-    type           | binding
-    "bindInstance" | { bindInstance ratpack.remote.RemoteControl.handlerDecorator() }
-    "module"       | { module ratpack.remote.RemoteModule }
   }
 }

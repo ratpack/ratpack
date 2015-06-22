@@ -26,7 +26,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      module ratpack.remote.RemoteModule
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
       bind ValueHolder
     }
     handlers {
