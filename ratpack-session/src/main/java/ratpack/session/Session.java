@@ -23,6 +23,8 @@ import ratpack.func.Action;
 import ratpack.http.Response;
 
 import java.io.Serializable;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * A mechanism for associating semi persistent data with an individual user/client.
@@ -54,6 +56,279 @@ public interface Session {
    * @return the session data
    */
   Promise<SessionData> getData();
+
+  /**
+   * A convenience shorthand for {@link SessionData#getKeys()}.
+   *
+   * @return the keys of all objects currently in the session
+   */
+  default Promise<Set<SessionKey<?>>> getKeys() {
+    return getData().map(SessionData::getKeys);
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#get(SessionKey)}.
+   *
+   * @param key the key
+   * @param <T> the type of object
+   * @return the value for the given key
+   * @see #require(SessionKey)
+   */
+  default <T> Promise<Optional<T>> get(SessionKey<T> key) {
+    return getData().map(d -> d.get(key));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#get(SessionKey, SessionSerializer)}.
+   *
+   * @param key the key
+   * @param serializer the serializer
+   * @param <T> the type of object
+   * @return the value for the given key
+   * @see #require(SessionKey, SessionSerializer)
+   */
+  default <T> Promise<Optional<T>> get(SessionKey<T> key, SessionSerializer serializer) {
+    return getData().map(d -> d.get(key, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#get(String)}.
+   *
+   * @param name the object name
+   * @return the value for the given key
+   * @see #require(String)
+   */
+  default Promise<Optional<?>> get(String name) {
+    return getData().map(d -> d.get(name));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#get(String, SessionSerializer)}.
+   *
+   * @param name the object name
+   * @param serializer the serializer
+   * @return the value for the given key
+   * @see #require(String, SessionSerializer)
+   */
+  default Promise<Optional<?>> get(String name, SessionSerializer serializer) {
+    return getData().map(d -> d.get(name, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#get(Class)}.
+   *
+   * @param type the type
+   * @param <T> the type
+   * @return the value for the given key
+   * @see #require(Class)
+   */
+  default <T> Promise<Optional<T>> get(Class<T> type) {
+    return getData().map(d -> d.get(type));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#get(Class, SessionSerializer)}.
+   *
+   * @param type the type
+   * @param serializer the serializer
+   * @param <T> the type
+   * @return the value for the given key
+   * @see #require(Class, SessionSerializer)
+   */
+  default <T> Promise<Optional<T>> get(Class<T> type, SessionSerializer serializer) {
+    return getData().map(d -> d.get(type, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#require(SessionKey)}.
+   *
+   * @param key the object key
+   * @param <T> the type
+   * @return the value for the given key
+   */
+  default <T> Promise<T> require(SessionKey<T> key) {
+    return getData().map(d -> d.require(key));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#require(SessionKey, SessionSerializer)}.
+   *
+   * @param key the object key
+   * @param serializer the serializer
+   * @param <T> the type
+   * @return the value for the given key
+   */
+  default <T> Promise<T> require(SessionKey<T> key, SessionSerializer serializer) {
+    return getData().map(d -> d.require(key, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#require(Class)}.
+   *
+   * @param type the type
+   * @param <T> the type
+   * @return the value for the given key
+   */
+  default <T> Promise<T> require(Class<T> type) {
+    return getData().map(d -> d.require(type));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#require(Class, SessionSerializer)}.
+   *
+   * @param type the type
+   * @param serializer the serializer
+   * @param <T> the type
+   * @return the value for the given key
+   */
+  default <T> Promise<T> require(Class<T> type, SessionSerializer serializer) {
+    return getData().map(d -> d.require(type, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#require(String)}.
+   *
+   * @param name the object name
+   * @return the value for the given key
+   */
+  default Promise<?> require(String name) {
+    return getData().map(d -> d.require(name));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#require(String, SessionSerializer)}.
+   *
+   * @param name the object name
+   * @param serializer the serializer
+   * @return the value for the given key
+   */
+  default Promise<?> require(String name, SessionSerializer serializer) {
+    return getData().map(d -> d.require(name, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(SessionKey, Object)}.
+   *
+   * @param key the key
+   * @param value the value
+   * @param <T> the type
+   */
+  default <T> void set(SessionKey<T> key, T value) {
+    getData().operation(d -> d.set(key, value));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(SessionKey, Object, SessionSerializer)}
+   *
+   * @param key the key
+   * @param value the value
+   * @param serializer the serializer
+   * @param <T> the type
+   */
+  default <T> void set(SessionKey<T> key, T value, SessionSerializer serializer) {
+    getData().operation(d -> d.set(key, value, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(Class, Object)}.
+   *
+   * @param type the type
+   * @param value the value
+   * @param <T> the type
+   */
+  default <T> void set(Class<T> type, T value) {
+    getData().operation(d -> d.set(type, value));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(Class, Object, SessionSerializer)}.
+   *
+   * @param type the type
+   * @param value the value
+   * @param serializer the serializer
+   * @param <T> the type
+   */
+  default <T> void set(Class<T> type, T value, SessionSerializer serializer) {
+    getData().operation(d -> d.set(type, value, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(String, Object)}.
+   *
+   * @param name the name
+   * @param value the value
+   * @param <T> the type
+   */
+  default <T> void set(String name, T value) {
+    getData().operation(d -> d.set(name, value));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(String, Object, SessionSerializer)}.
+   *
+   * @param name the name
+   * @param value the value
+   * @param serializer the serializer
+   * @param <T> the type
+   */
+  default <T> void set(String name, T value, SessionSerializer serializer) {
+    getData().operation(d -> d.set(name, value, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(Object)}.
+   *
+   * @param value the value
+   * @param <T> the type
+   */
+  default <T> void set(T value) {
+    getData().operation(d -> d.set(value));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#set(Object, SessionSerializer)}.
+   *
+   * @param value the value
+   * @param serializer the serializer
+   * @param <T> the type
+   */
+  default <T> void set(T value, SessionSerializer serializer) {
+    getData().operation(d -> d.set(value, serializer));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#remove(SessionKey)}.
+   *
+   * @param key the key
+   */
+  default void remove(SessionKey<?> key) {
+    getData().operation(d -> d.remove(key));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#remove(Class)}.
+   *
+   * @param type the type
+   */
+  default void remove(Class<?> type) {
+    getData().operation(d -> d.remove(type));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#remove(String)}.
+   *
+   * @param name the name
+   */
+  default void remove(String name) {
+    getData().operation(d -> d.remove(name));
+  }
+
+  /**
+   * A convenience shorthand for {@link SessionData#clear()}.
+   */
+  default void clear() {
+    getData().operation(SessionData::clear);
+  }
 
   /**
    * Whether or not any changes have been made to the session data since it was accessed.
