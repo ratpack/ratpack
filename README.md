@@ -1,7 +1,7 @@
 [![Build Status](https://snap-ci.com/ratpack/ratpack/branch/master/build_image)](https://snap-ci.com/ratpack/ratpack/branch/master)
 [![Coverage Status](https://img.shields.io/coveralls/ratpack/ratpack.svg)](https://coveralls.io/r/ratpack/ratpack)
 
-[![Ratpack.io](https://raw.githubusercontent.com/ratpack/ratpack/master/ratpack-site/src/ratpack/assets/images/ratpack-logo.png)](https://ratpack.io)
+[![Ratpack.io](/ratpack-site/src/assets/images/ratpack-logo.png?raw=true)](https://ratpack.io)
 
 # What is Ratpack?
 
