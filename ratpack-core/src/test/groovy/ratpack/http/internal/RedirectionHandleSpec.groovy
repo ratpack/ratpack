@@ -93,4 +93,31 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
     responseCode << [301, 302]
   }
 
+  def "Response contains Set-Cookie header on redirect"() {
+    given:
+    handlers {
+      get {
+        render(request.oneCookie("value") ?: "not set")
+      }
+      get(":cookie") {
+        response.cookie("value", pathTokens.get("cookie"))
+        redirect(responseCode, "/")
+      }
+    }
+
+    expect:
+    getText() == "not set"
+
+    when:
+    get("/redirect")
+
+    then:
+    response.statusCode > 300 && response.statusCode < 303
+    response.headers.get("Set-Cookie") == "value=redirect"
+
+    where:
+    responseCode << [301, 302]
+
+  }
+
 }
