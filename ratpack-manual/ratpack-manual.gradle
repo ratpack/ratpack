@@ -136,11 +136,17 @@ task api(type: Javadoc) {
 
   // For some awesome reason, the 'bottom' arg doesn't get applied to these files
   doLast {
-	def replacementString = additionalAssets.replaceAll(java.util.regex.Pattern.quote("{@docRoot}/"), "") + "</html>"
-	["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
-	  def f = new File(destinationDir, it)
-	  f.text = f.text.replace("</html>", replacementString)
-	}
+    def replacementString = additionalAssets.replaceAll(java.util.regex.Pattern.quote("{@docRoot}/"), "") + "</html>"
+    ["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
+      def f = new File(destinationDir, it)
+      f.text = f.text.replace("</html>", replacementString)
+    }
+
+    fileTree(dir: destinationDir, include: '**/*.html').each { File f ->
+      if (f.text.contains("{@literal @}")) {
+        f.text = f.text.replace("{@literal @}", "@")
+      }
+    }
   }
 }
 
