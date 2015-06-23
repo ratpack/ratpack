@@ -35,6 +35,7 @@ import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
 
+import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
@@ -94,6 +95,11 @@ public class DefaultTestHttpClient implements TestHttpClient {
     public RequestSpec redirects(int maxRedirects) {
       this.maxRedirects = maxRedirects;
       return requestSpec.redirects(maxRedirects);
+    }
+
+    @Override
+    public RequestSpec sslContext(SSLContext sslContext) {
+      return requestSpec.sslContext(sslContext);
     }
 
     @Override

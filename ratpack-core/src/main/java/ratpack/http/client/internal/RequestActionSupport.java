@@ -103,7 +103,6 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline p = ch.pipeline();
 
-
           if (finalUseSsl) {
             SSLEngine sslEngine = null;
             if (requestSpecBacking.getSslContext() != null) {
