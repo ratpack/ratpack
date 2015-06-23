@@ -316,8 +316,8 @@ public class RatpackPac4j {
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
     return ctx.promise(f ->
         toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
-            ctx.get(Session.class).getData()
-              .map(d -> d.get(Pac4jSessionKeys.USER_PROFILE))
+            ctx.get(Session.class)
+              .get(Pac4jSessionKeys.USER_PROFILE)
               .then(p -> {
                 ctx.getRequest().add(UserIdentifier.class, () -> p.isPresent() ? p.get().getId() : null);
                 toProfile(type, f, p, () -> f.success(Optional.empty()));
@@ -382,7 +382,8 @@ public class RatpackPac4j {
    * @return the logout operation
    */
   public static Operation logout(Context ctx) {
-    return ctx.get(Session.class).getData().operation(data -> data.remove(Pac4jSessionKeys.USER_PROFILE));
+    return ctx.get(Session.class)
+      .remove(Pac4jSessionKeys.USER_PROFILE);
   }
 
   /**
