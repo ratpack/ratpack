@@ -258,9 +258,9 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can use two different rx ratpack apps in same jvm"() {
     when:
-    def app1 = GroovyEmbeddedApp.build {
-      bindings {
-        bindInstance ServerErrorHandler, new ServerErrorHandler() {
+    def app1 = GroovyEmbeddedApp.of {
+      registryOf {
+        add ServerErrorHandler, new ServerErrorHandler() {
           @Override
           void error(Context context, Throwable throwable) throws Exception {
             context.render "app1"
@@ -271,9 +271,9 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         get { Observable.error(new Exception("1")).subscribe() }
       }
     }
-    def app2 = GroovyEmbeddedApp.build {
-      bindings {
-        bindInstance ServerErrorHandler, new ServerErrorHandler() {
+    def app2 = GroovyEmbeddedApp.of {
+      registryOf {
+        add ServerErrorHandler, new ServerErrorHandler() {
           @Override
           void error(Context context, Throwable throwable) throws Exception {
             context.render "app2"

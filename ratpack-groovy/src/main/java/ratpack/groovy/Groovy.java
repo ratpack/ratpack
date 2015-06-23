@@ -305,9 +305,8 @@ public abstract class Groovy {
    *
    * @param closure The chain building closure.
    * @return A chain action
-   * @throws Exception any exception thrown by the given closure
    */
-  public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
+  public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return chain -> ClosureUtil.configureDelegateFirst(GroovyChain.from(chain), closure);
   }
 

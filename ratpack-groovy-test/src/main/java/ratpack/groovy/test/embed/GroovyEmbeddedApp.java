@@ -16,26 +16,19 @@
 
 package ratpack.groovy.test.embed;
 
-import com.google.inject.Injector;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
+import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.guice.BindingsSpec;
-import ratpack.guice.Guice;
-import ratpack.server.RatpackServer;
+import ratpack.groovy.server.GroovyRatpackServerSpec;
+import ratpack.groovy.test.embed.internal.DefaultGroovyEmbeddedApp;
 import ratpack.server.ServerConfig;
-import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.test.embed.internal.EmbeddedAppSupport;
+import ratpack.test.http.TestHttpClient;
 
 import java.nio.file.Path;
-import java.util.function.Supplier;
-
-import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
-import static ratpack.util.Exceptions.uncheck;
 
 /**
  * A highly configurable {@link ratpack.test.embed.EmbeddedApp} implementation that allows the application to be defined in code at runtime.
@@ -44,25 +37,13 @@ import static ratpack.util.Exceptions.uncheck;
  *
  * <pre class="tested">
  * import ratpack.test.embed.BaseDirBuilder
- * import ratpack.session.SessionModule
  * import ratpack.groovy.test.embed.GroovyEmbeddedApp
  *
- * GroovyEmbeddedApp.build {
- *   baseDir {
- *     BaseDirBuilder.tmpDir().build {
- *       it.file "public/foo.txt", "bar"
- *     }
- *   }
+ * def baseDir = BaseDirBuilder.tmpDir().build {
+ *   it.file "public/foo.txt", "bar"
+ * }
  *
- *   serverConfig {
- *     development true
- *   }
- *
- *   // Configure the module registry
- *   bindings {
- *     add new SessionModule()
- *   }
- *
+ * GroovyEmbeddedApp.of(baseDir) {
  *   // Use the GroovyChain DSL for defining the application handlers
  *   handlers {
  *     get {
@@ -70,9 +51,9 @@ import static ratpack.util.Exceptions.uncheck;
  *     }
  *     files { dir "public" }
  *   }
- * }.test {
- *   assert it.getText() == "root"
- *   assert it.getText("foo.txt") == "bar"
+ * } test {
+ *   assert getText() == "root"
+ *   assert getText("foo.txt") == "bar"
  * }
  * </pre>
  *
@@ -81,132 +62,44 @@ import static ratpack.util.Exceptions.uncheck;
  */
 public interface GroovyEmbeddedApp extends EmbeddedApp {
 
-  interface Spec {
-
-    /**
-     * Specifies the handlers of the application.
-     * <p>
-     * The given closure will not be executed until this application is started.
-     * <p>
-     * Subsequent calls to this method will <i>replace</i> the previous definition.
-     * Calling this method after the application has started has no effect.
-     *
-     * @param closure The definition of the application handlers
-     * @return {@code this}
-     */
-    Spec handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
-
-    /**
-     * Specifies the bindings of the application.
-     * <p>
-     * The given closure will not be executed until this application is started.
-     * <p>
-     * Subsequent calls to this method will <i>replace</i> the previous definition.
-     * Calling this method after the application has started has no effect.
-     *
-     * @param closure The definition of the application handlers
-     * @return {@code this}
-     */
-    Spec bindings(@DelegatesTo(value = BindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
-
-    /**
-     * Modifies the server config of the application.
-     * <p>
-     * The given closure will not be executed until this application is started.
-     * <p>
-     * Subsequent calls to this method will <i>replace</i> the previous definition.
-     * Calling this method after the application has started has no effect.
-     *
-     * @param closure The definition of the application handlers
-     * @return {@code this}
-     */
-    Spec serverConfig(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
-
-    Spec parentInjector(Injector parentInjector);
-
-    Spec baseDir(Supplier<? extends Path> baseDirSupplier);
-
-    default Spec baseDir(BaseDirBuilder baseDirBuilder) {
-      return baseDir(baseDirBuilder::build);
-    }
-
-    default Spec baseDir(Path baseDir) {
-      return baseDir(() -> baseDir);
-    }
+  static GroovyEmbeddedApp from(EmbeddedApp embeddedApp) {
+    return embeddedApp instanceof GroovyEmbeddedApp ? (GroovyEmbeddedApp) embeddedApp : new DefaultGroovyEmbeddedApp(embeddedApp);
   }
 
-  static EmbeddedApp build(@DelegatesTo(value = Spec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return new EmbeddedAppSupport() {
-      @Override
-      protected RatpackServer createServer() {
-        final SpecWrapper spec = new SpecWrapper();
-        configureDelegateFirst(spec.getSpec(), closure);
-        ServerConfig.Builder serverConfigBuilder;
-
-        if (spec.baseDirSupplier != null) {
-          Path baseDirPath = spec.baseDirSupplier.get();
-          serverConfigBuilder = ServerConfig.baseDir(baseDirPath);
-        } else {
-          serverConfigBuilder = ServerConfig.noBaseDir();
-        }
-
-        configureDelegateFirst(serverConfigBuilder.port(0), spec.serverConfig);
-
-        final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(bindingsSpec, spec.bindings);
-
-        try {
-          return RatpackServer.of(serverSpec -> serverSpec
-              .serverConfig(serverConfigBuilder)
-              .registry(spec.parentInjector == null ? Guice.registry(bindingsAction) : Guice.registry(spec.parentInjector, bindingsAction))
-              .handlers(c -> Groovy.chain(c, spec.handlers))
-          );
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
-      }
-    };
+  static GroovyEmbeddedApp of(@DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) throws Exception {
+    return from(EmbeddedApp.of(s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
   }
 
-  class SpecWrapper {
-    private Closure<?> handlers = ClosureUtil.noop();
-    private Closure<?> bindings = ClosureUtil.noop();
-    private Closure<?> serverConfig = ClosureUtil.noop();
-    private Injector parentInjector;
-    private Supplier<? extends Path> baseDirSupplier;
-
-    Spec getSpec() {
-      return new Spec() {
-        @Override
-        public Spec handlers(Closure<?> closure) {
-          handlers = closure;
-          return this;
-        }
-
-        @Override
-        public Spec bindings(Closure<?> closure) {
-          bindings = closure;
-          return this;
-        }
-
-        @Override
-        public Spec serverConfig(Closure<?> closure) {
-          serverConfig = closure;
-          return this;
-        }
-
-        @Override
-        public Spec parentInjector(Injector injector) {
-          parentInjector = injector;
-          return this;
-        }
-
-        @Override
-        public Spec baseDir(Supplier<? extends Path> supplier) {
-          baseDirSupplier = supplier;
-          return this;
-        }
-      };
-    }
-
+  static GroovyEmbeddedApp of(Path baseDir, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) throws Exception {
+    return from(EmbeddedApp.of(baseDir, s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
   }
+
+  static GroovyEmbeddedApp fromServer(ServerConfig.Builder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {
+    return from(EmbeddedApp.fromServer(serverConfig.build(), s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
+  }
+
+  static GroovyEmbeddedApp fromServer(ServerConfig serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {
+    return from(EmbeddedApp.fromServer(serverConfig, s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
+  }
+
+  static GroovyEmbeddedApp fromHandler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return from(EmbeddedApp.fromHandler(Groovy.groovyHandler(handler)));
+  }
+
+  static GroovyEmbeddedApp fromHandler(Path baseDir, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return from(EmbeddedApp.fromHandler(baseDir, Groovy.groovyHandler(handler)));
+  }
+
+  static GroovyEmbeddedApp fromHandlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return from(EmbeddedApp.fromHandlers(Groovy.chainAction(handlers)));
+  }
+
+  static GroovyEmbeddedApp fromHandlers(Path baseDir, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return from(EmbeddedApp.fromHandlers(baseDir, Groovy.chainAction(handlers)));
+  }
+
+  default void test(@DelegatesTo(value = TestHttpClient.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test) throws Exception {
+    test(ClosureUtil.delegatingAction(TestHttpClient.class, test));
+  }
+
 }

@@ -159,8 +159,11 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 404 Not Found
 x-foo-header: foo
+content-type: text/plain
 transfer-encoding: chunked
 
+10
+Client error 404
 0
 
 """

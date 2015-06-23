@@ -16,14 +16,13 @@
 
 package ratpack.groovy.test.embed
 
-import ratpack.file.BaseDirRequiredException
 import spock.lang.Specification
 
 class GroovyEmbeddedAppSpec extends Specification {
 
   def "embedded app without base dir"() {
     expect:
-    GroovyEmbeddedApp.build {
+    GroovyEmbeddedApp.of {
       handlers {
         all {
           render "foo"
@@ -32,20 +31,6 @@ class GroovyEmbeddedAppSpec extends Specification {
     } test {
       assert it.text == "foo"
     }
-  }
-
-  def "asset serving embedded app without base dir"() {
-    when:
-    GroovyEmbeddedApp.build {
-      handlers {
-        files { dir "public" }
-      }
-    } test {
-      assert it.text == "foo"
-    }
-
-    then:
-    thrown(BaseDirRequiredException)
   }
 
 }
