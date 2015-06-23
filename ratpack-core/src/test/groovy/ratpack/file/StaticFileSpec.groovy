@@ -98,6 +98,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file "public/index.html", "foo"
     file "public/dir/index.xhtml", "bar"
 
+    given:
+    requestSpec { r -> r.redirects 1 }
+
     when:
     handlers {
       files { dir "public" indexFiles "index.html", "index.xhtml" }

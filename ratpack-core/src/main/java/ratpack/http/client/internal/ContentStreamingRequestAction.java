@@ -132,6 +132,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
         throw uncheck(e);
       }
       response.getHeaders().set(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
+
       response.status(this.status);
       response.sendStream(getBody());
     }

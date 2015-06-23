@@ -23,6 +23,7 @@ import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.auth.UserIdentifier;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
@@ -135,6 +136,7 @@ public class RatpackPac4j {
    *             .get(ctx -> ctx.render("no auth required"))
    *         )
    *     ).test(httpClient -> {
+   *       httpClient.requestSpec(r -> r.redirects(1));
    *       assertEquals("no auth required", httpClient.getText());
    *       assertEquals(401, httpClient.get("require-auth").getStatusCode());
    *       assertEquals("Hello user", httpClient.requestSpec(r -> r.basicAuth("user", "user")).getText("require-auth"));
@@ -314,9 +316,12 @@ public class RatpackPac4j {
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
     return ctx.promise(f ->
         toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
-            ctx.get(Session.class).getData()
-              .map(d -> d.get(Pac4jSessionKeys.USER_PROFILE))
-              .then(p -> toProfile(type, f, p, () -> f.success(Optional.empty())))
+            ctx.get(Session.class)
+              .get(Pac4jSessionKeys.USER_PROFILE)
+              .then(p -> {
+                ctx.getRequest().add(UserIdentifier.class, () -> p.isPresent() ? p.get().getId() : null);
+                toProfile(type, f, p, () -> f.success(Optional.empty()));
+              })
         )
     );
   }
@@ -377,7 +382,8 @@ public class RatpackPac4j {
    * @return the logout operation
    */
   public static Operation logout(Context ctx) {
-    return ctx.get(Session.class).getData().operation(data -> data.remove(Pac4jSessionKeys.USER_PROFILE));
+    return ctx.get(Session.class)
+      .remove(Pac4jSessionKeys.USER_PROFILE);
   }
 
   /**

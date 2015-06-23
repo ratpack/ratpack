@@ -23,6 +23,7 @@ import ratpack.api.Nullable;
 import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -37,6 +38,13 @@ public interface Request extends MutableRegistry {
    * @return The method of the request.
    */
   HttpMethod getMethod();
+
+  /**
+   * The HTTP protocol of the request.
+   *
+   * @return The HTTP protocol of the request.
+   */
+  String getProtocol();
 
   /**
    * The raw URI of the request.
@@ -134,6 +142,14 @@ public interface Request extends MutableRegistry {
    * @return A flag representing whether or not the request originated via AJAX.
    */
   boolean isAjaxRequest();
+
+  /**
+   * The timestamp for when this request was received.
+   * Specifically, this is the timestamp of creation of the request object.
+   *
+   * @return the instant timestamp for the request.
+   */
+  Instant getTimestamp();
 
   /**
    * {@inheritDoc}

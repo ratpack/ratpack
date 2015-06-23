@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import com.google.common.util.concurrent.Futures
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
@@ -327,6 +328,37 @@ class ExecutionSpec extends Specification {
     then:
     events == ["foo", "complete"]
   }
+
+  def "can complete ListenableFuture"() {
+    when:
+    exec({ ExecControl c ->
+      c.promise { Fulfiller<String> f ->
+        f.accept(Futures.immediateFuture("foo"))
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "can error from ListenableFuture"() {
+    when:
+    exec({ ExecControl c ->
+      c.promise { Fulfiller<String> f ->
+        f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
+      } onError {
+        events << "error"
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["error", "complete"]
+  }
+
 
   def "can nest promises"() {
     when:

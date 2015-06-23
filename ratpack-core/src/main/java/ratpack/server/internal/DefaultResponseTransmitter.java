@@ -98,10 +98,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   @Override
   public void transmit(HttpResponseStatus responseStatus, ByteBuf body) {
-    transmit(responseStatus, new DefaultHttpContent(body));
+    transmit(responseStatus, new DefaultHttpContent(body), true);
   }
 
-  private void transmit(final HttpResponseStatus responseStatus, Object body) {
+  private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
     ChannelFuture channelFuture = pre(responseStatus);
     if (channelFuture == null) {
       return;
@@ -109,8 +109,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
     channelFuture.addListener(future -> {
       if (channel.isOpen()) {
-        channel.write(body);
-        post(responseStatus);
+        if (sendLastHttpContent) {
+          channel.write(body);
+          post(responseStatus);
+        } else {
+          post(responseStatus, channel.writeAndFlush(body));
+        }
       }
     });
   }
@@ -126,13 +130,13 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
       execControl.blocking(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
         FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
-        transmit(status, defaultFileRegion);
+        transmit(status, defaultFileRegion, true);
       });
     } else {
       execControl.blocking(() ->
           Files.newByteChannel(file)
       ).then(fileChannel ->
-          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
+          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
       );
     }
   }
@@ -221,8 +225,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void post(HttpResponseStatus responseStatus) {
+    post(responseStatus, channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
+  }
+
+  private void post(HttpResponseStatus responseStatus, ChannelFuture lastContentFuture) {
     if (channel.isOpen()) {
-      ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
       if (!isKeepAlive) {
         lastContentFuture.addListener(ChannelFutureListener.CLOSE);
       }

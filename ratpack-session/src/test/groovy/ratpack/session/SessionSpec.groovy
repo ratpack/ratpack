@@ -30,10 +30,11 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { Session session ->
-        session.data.then {
-          it.set("foo", "bar")
-          render it.require("foo")
-        }
+        session
+          .set("foo", "bar")
+          .then {
+            render session.require("foo")
+          }
       }
     }
 
@@ -45,13 +46,14 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { Session session ->
-        render session.data.map { it.require("value") }
+        render session.require("value")
       }
       get("set/:value") { Session session ->
-        session.data.then {
-          it.set("value", pathTokens.value)
-          render pathTokens.value
-        }
+        session
+          .set("value", pathTokens.value)
+          .then {
+            render pathTokens.value
+          }
       }
     }
 
@@ -74,14 +76,15 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { Session session ->
-        render session.data.map { it.require(Holder1).value }
+        render session.require(Holder1).map { it.value }
       }
       get("set/:value") { Session session ->
         def value = pathTokens.value
-        session.data.then {
-          it.set(new Holder1(value: value))
-          render value
-        }
+        render session
+          .set(new Holder1(value: value))
+          .map {
+            value
+          }
       }
     }
 
@@ -124,20 +127,15 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { Session session ->
-        session.data.then {
-          render it.get("value").orElse("null")
-        }
+        render session.get("value").map{ it.orElse("null") }
       }
       get("set/:value") { Session session ->
-        session.data.then {
-          it.set("value", pathTokens.value)
-          render pathTokens.value
+        render session.set("value", pathTokens.value).map {
+          pathTokens.value
         }
       }
       get("invalidate") { Session session ->
-        session.data.then {
-          it.terminate().then { render "ok" }
-        }
+        render session.terminate().map { "ok" }
       }
       get("size") { SessionStore storeAdapter ->
         render storeAdapter.size().map { it.toString() }
@@ -166,10 +164,10 @@ class SessionSpec extends RatpackGroovyDslSpec {
         render store.size().map { it.toString() }
       }
       get("readOnly") { Session session ->
-        session.data.then { render "ok" }
+        render session.data.map { "ok" }
       }
       get("write") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{"ok"}
       }
     }
 
@@ -189,7 +187,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
         response.send("foo")
       }
       get("write") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -205,7 +203,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -225,7 +223,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -246,7 +244,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 

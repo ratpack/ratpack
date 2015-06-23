@@ -17,10 +17,8 @@
 package ratpack.handling.internal;
 
 import ratpack.api.Nullable;
-import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
@@ -37,12 +35,6 @@ public class DefaultChain implements Chain {
     this.serverConfig = serverConfig;
     this.registry = registry;
   }
-
-  @Override
-  public Handler chain(Action<? super Chain> action) throws Exception {
-    return Handlers.chain(getServerConfig(), getRegistry(), action);
-  }
-
 
   @Override
   public ServerConfig getServerConfig() {

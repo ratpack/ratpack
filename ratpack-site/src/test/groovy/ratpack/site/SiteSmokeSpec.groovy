@@ -26,6 +26,10 @@ class SiteSmokeSpec extends Specification {
   @Delegate
   TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
+  def setup() {
+    requestSpec { r -> r.redirects(1) }
+  }
+
   def "Check Site Index"() {
     when:
     get("index.html")

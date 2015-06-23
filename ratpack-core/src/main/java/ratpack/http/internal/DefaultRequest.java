@@ -21,6 +21,7 @@ import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
@@ -37,6 +38,7 @@ import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -48,8 +50,10 @@ public class DefaultRequest implements Request {
   private final ByteBuf content;
   private final String rawUri;
   private final HttpMethod method;
+  private final String protocol;
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
+  private final Instant timestamp;
 
   private TypedData body;
 
@@ -59,13 +63,15 @@ public class DefaultRequest implements Request {
   private String path;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, io.netty.handler.codec.http.HttpMethod method, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
+  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
     this.headers = headers;
     this.content = content;
     this.method = DefaultHttpMethod.valueOf(method);
+    this.protocol = protocol.toString();
     this.rawUri = rawUri;
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
+    this.timestamp = timestamp;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -78,6 +84,14 @@ public class DefaultRequest implements Request {
 
   public HttpMethod getMethod() {
     return method;
+  }
+
+  public String getProtocol() {
+    return protocol;
+  }
+
+  public Instant getTimestamp() {
+    return timestamp;
   }
 
   public String getRawUri() {

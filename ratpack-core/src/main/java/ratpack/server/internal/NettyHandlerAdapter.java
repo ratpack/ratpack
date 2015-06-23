@@ -49,6 +49,7 @@ import ratpack.server.ServerConfig;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
@@ -102,7 +103,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.method(), nettyRequest.uri(), remoteAddress, socketAddress, nettyRequest.content());
+    final Request request = new DefaultRequest(
+      Instant.now(),
+      new NettyHeadersBackedHeaders(nettyRequest.headers()),
+      nettyRequest.method(),
+      nettyRequest.protocolVersion(),
+      nettyRequest.uri(),
+      remoteAddress,
+      socketAddress,
+      nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
@@ -181,7 +190,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private boolean isIgnorableException(Throwable throwable) {
     // There really does not seem to be a better way of detecting this kind of exception
-    return throwable instanceof IOException && throwable.getMessage().equals("Connection reset by peer");
+    return throwable instanceof IOException && throwable.getMessage().endsWith("Connection reset by peer");
   }
 
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {

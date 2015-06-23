@@ -166,6 +166,7 @@ public interface FileHandlerSpec {
    *             .files(f -> f.path("noIndex"))
    *             .files(f -> f.path("indexes").indexFiles("a.txt", "b.txt"))
    *         ).test(httpClient -> {
+   *           httpClient.requestSpec(r -> r.redirects(1));
    *           assertEquals(404, httpClient.get("noIndex/dir1").getStatusCode());
    *           assertEquals("a1", httpClient.getText("indexes/dir1"));
    *           assertEquals("b2", httpClient.getText("indexes/dir2"));

@@ -18,7 +18,10 @@ package ratpack.http.client
 
 import ratpack.http.MutableHeaders
 
+import java.util.zip.GZIPInputStream
+
 import static ratpack.http.ResponseChunks.stringChunks
+import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
 
 class HttpProxySpec extends HttpClientSpec {
@@ -156,8 +159,11 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 404 Not Found
 x-foo-header: foo
+content-type: text/plain
 transfer-encoding: chunked
 
+10
+Client error 404
 0
 
 """
@@ -193,4 +199,36 @@ transfer-encoding: chunked
     }
   }
 
+  def "can proxy compressed responses"() {
+    given:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.decompressResponse(false)
+          rs.headers.copy(request.headers)
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.send(response)
+        }
+      }
+    }
+
+    when:
+    def response = requestSpec { RequestSpec rs ->
+      rs.decompressResponse(false)
+      rs.headers { MutableHeaders h ->
+        h.add("Accept-Encoding", "compress, gzip")
+      }
+    }.get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) == "gzip"
+    new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
+  }
 }

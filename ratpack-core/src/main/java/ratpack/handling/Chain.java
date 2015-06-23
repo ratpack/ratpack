@@ -308,7 +308,9 @@ public interface Chain {
    * @return A all representing the chain
    * @throws Exception any thrown by {@code action}
    */
-  Handler chain(Action<? super Chain> action) throws Exception;
+  default Handler chain(Action<? super Chain> action) throws Exception {
+    return Handlers.chain(getServerConfig(), getRegistry(), action);
+  }
 
   default Handler chain(Class<? extends Action<? super Chain>> action) throws Exception {
     return chain(getRegistry().get(action));

@@ -75,7 +75,7 @@ public final class RatpackServerDefinition {
     @Override
     public RatpackServerSpec handler(Function<? super Registry, ? extends Handler> handlerFactory) {
       this.handler = handlerFactory;
-      return null;
+      return this;
     }
   }
 }

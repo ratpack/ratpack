@@ -17,6 +17,8 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
@@ -24,8 +26,10 @@ import ratpack.http.internal.HttpHeaderConstants
 import ratpack.stream.Streams
 
 import java.time.Duration
+import java.util.zip.GZIPInputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
+import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
@@ -517,4 +521,110 @@ BAR
     text == "bar"
   }
 
+  def "can decompress a compressed response"() {
+    given:
+    requestSpec {
+      it.decompressResponse(false) // tell test http client to not decompress the response
+      it.headers {
+        it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
+      }
+    }
+
+    and:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.headers.set("accept-encoding", "compress, gzip")
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.send(response)
+        }
+      }
+    }
+
+    when:
+    def response = get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) == null
+    response.body.text == "bar"
+  }
+
+  def "can not decompress a compressed response"() {
+    given:
+    requestSpec {
+      it.decompressResponse(false) // tell test http client to not decompress the response
+      it.headers {
+        it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
+      }
+    }
+
+    and:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.headers.set("accept-encoding", "compress, gzip")
+          rs.decompressResponse(false)
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.send(response)
+        }
+      }
+    }
+
+    when:
+    def response = get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) == "gzip"
+    new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
+  }
+
+  def "can decompress a streamed compressed response"() {
+    given:
+    requestSpec {
+      it.decompressResponse(false) // tell test http client to not decompress the response
+      it.headers {
+        it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
+      }
+    }
+
+    and:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.requestStream(otherAppUrl("foo")) { rs ->
+          rs.headers.set("accept-Encoding", "compress, gzip")
+        } then { StreamedResponse streamedResponse ->
+          response.getHeaders().copy(streamedResponse.headers)
+          response.sendStream(streamedResponse.body)
+        }
+      }
+    }
+
+    when:
+    def response = get()
+
+    then:
+    response.headers.get(CONTENT_ENCODING) == null
+    response.body.text == "bar"
+  }
 }

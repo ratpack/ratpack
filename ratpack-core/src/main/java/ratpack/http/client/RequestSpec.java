@@ -81,6 +81,13 @@ public interface RequestSpec {
    */
   RequestSpec method(String method);
 
+  /**
+   * Enables automatic decompression of the response.
+   * @param shouldDecompress whether to enable decompression
+   * @return this
+   */
+  RequestSpec decompressResponse(boolean shouldDecompress);
+
   URI getUrl();
 
   default RequestSpec readTimeoutSeconds(int seconds) {

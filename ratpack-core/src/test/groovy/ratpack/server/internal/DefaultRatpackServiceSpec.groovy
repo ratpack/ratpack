@@ -44,7 +44,8 @@ class DefaultRatpackServiceSpec extends Specification {
     server2.start()
 
     then:
-    thrown BindException
+    def e = thrown IOException
+    e instanceof BindException || e.cause instanceof BindException || (e instanceof IOException && e.message.contains("Address already in use"))
 
     cleanup:
     [server1, server2].each {
@@ -56,7 +57,7 @@ class DefaultRatpackServiceSpec extends Specification {
 
   def "responds to Expect: 100-continue header"() {
     given:
-    def app = EmbeddedApp.fromHandler {
+    def app = EmbeddedApp.fromHandlers {
       it.post { it.render("Hello") }
     }
     def client = app.httpClient

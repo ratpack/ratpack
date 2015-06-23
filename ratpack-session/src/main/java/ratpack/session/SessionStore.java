@@ -36,7 +36,7 @@ import ratpack.server.Service;
  * <h3>Example implementation</h3>
  * <p>
  * Here is an example implementation that uses files on the filesystem to store session data.
- * <pre class="java"><code>
+ * <pre class="java">{@code
  * import com.google.common.io.Files;
  * import com.google.inject.Singleton;
  * import io.netty.buffer.ByteBuf;
@@ -80,14 +80,14 @@ import ratpack.server.Service;
  *
  *     {@literal @}Override
  *     public void onStart(StartEvent event) throws Exception {
- *       execControl.blocking(dir::mkdirs).then(created {@code ->} {
+ *       execControl.blocking(dir::mkdirs).then(created -> {
  *         assert created || dir.exists();
  *       });
  *     }
  *
  *     {@literal @}Override
  *     public void onStop(StopEvent event) throws Exception {
- *       execControl.blocking(() {@code ->} {
+ *       execControl.blocking(() -> {
  *         Arrays.asList(dir.listFiles()).forEach(File::delete);
  *         return dir.delete();
  *       }).operation().then();
@@ -95,15 +95,15 @@ import ratpack.server.Service;
  *
  *     {@literal @}Override
  *     public Operation store(AsciiString sessionId, ByteBuf sessionData) {
- *       return execControl.blockingOperation(() {@code ->}
+ *       return execControl.blockingOperation(() ->
  *           Files.asByteSink(file(sessionId)).writeFrom(new ByteBufInputStream(sessionData))
  *       );
  *     }
  *
  *     {@literal @}Override
- *     public {@code Promise<ByteBuf>} load(AsciiString sessionId) {
+ *     public Promise<ByteBuf> load(AsciiString sessionId) {
  *       File sessionFile = file(sessionId);
- *       return execControl.blocking(() {@code ->} {
+ *       return execControl.blocking(() -> {
  *         if (sessionFile.exists()) {
  *           ByteBuf buffer = bufferAllocator.buffer((int) sessionFile.length());
  *           try {
@@ -125,16 +125,16 @@ import ratpack.server.Service;
  *
  *     {@literal @}Override
  *     public Operation remove(AsciiString sessionId) {
- *       return execControl.blockingOperation(() {@code ->} file(sessionId).delete());
+ *       return execControl.blockingOperation(() -> file(sessionId).delete());
  *     }
  *
  *     {@literal @}Override
- *     public {@code Promise<Long>} size() {
- *       return execControl.blocking(() {@code ->} (long) dir.listFiles(File::isFile).length);
+ *     public Promise<Long> size() {
+ *       return execControl.blocking(() -> (long) dir.listFiles(File::isFile).length);
  *     }
  *   }
  *
- *   public static class FileSessionModule extends {@code ConfigurableModule<FileSessionModule.Config>} {
+ *   public static class FileSessionModule extends ConfigurableModule<FileSessionModule.Config> {
  *     public static class Config {
  *       File dir;
  *     }
@@ -147,29 +147,29 @@ import ratpack.server.Service;
  *
  *   public static void main(String... args) throws Exception {
  *     File sessionsDir = BaseDirBuilder.tmpDir().build().toFile();
- *     EmbeddedApp.of(s {@code ->} s
- *         .registry(Guice.registry(b {@code ->} b
+ *     EmbeddedApp.of(s -> s
+ *         .registry(Guice.registry(b -> b
  *             .module(SessionModule.class)
- *             .module(FileSessionModule.class, c {@code ->} c.dir = sessionsDir)
+ *             .module(FileSessionModule.class, c -> c.dir = sessionsDir)
  *         ))
- *         .handlers(c {@code ->} c
- *             .get("set/:name/:value", ctx {@code ->}
- *                 ctx.get(Session.class).getData().then(sessionData {@code ->} {
+ *         .handlers(c -> c
+ *             .get("set/:name/:value", ctx ->
+ *                 ctx.get(Session.class).getData().then(sessionData -> {
  *                   sessionData.set(ctx.getPathTokens().get("name"), ctx.getPathTokens().get("value"));
  *                   ctx.render("ok");
  *                 })
  *             )
- *             .get("get/:name", ctx {@code ->}
- *                 ctx.render(ctx.get(Session.class).getData().map(sessionData {@code ->} sessionData.require(ctx.getPathTokens().get("name"))))
+ *             .get("get/:name", ctx ->
+ *                 ctx.render(ctx.get(Session.class).getData().map(sessionData -> sessionData.require(ctx.getPathTokens().get("name"))))
  *             )
  *         )
- *     ).test(httpClient {@code ->} {
+ *     ).test(httpClient -> {
  *       assertEquals("ok", httpClient.getText("set/foo/bar"));
  *       assertEquals("bar", httpClient.getText("get/foo"));
  *     });
  *   }
  * }
- * </code></pre>
+ * }</pre>
  *
  * @see SessionModule
  */

@@ -15,6 +15,7 @@
  */
 package ratpack.handling
 
+import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -105,6 +106,43 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     def resp = get("index")
     resp.statusCode == 302
     resp.headers.get("Location") == publicUrl + "/other"
+  }
+
+  def "Should set cookies from redirect"() {
+    given:
+    requestSpec { r -> r.redirects(1) }
+
+    and:
+    handlers {
+      get {
+        response.send(request.oneCookie("value") ?: 'none')
+      }
+      get(':cookie') {
+        response.cookie('value', pathTokens.cookie)
+        redirect '/'
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'none'
+
+    when:
+    get('Ratpack')
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'Ratpack'
+
+    when:
+    get()
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'Ratpack'
   }
 
 }
