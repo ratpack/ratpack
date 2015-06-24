@@ -18,7 +18,7 @@ package ratpack.registry
 
 import spock.lang.Specification
 
-import static ratpack.registry.Registries.just
+import static ratpack.registry.Registry.just
 
 class RegistryBuilderSpec extends Specification {
 

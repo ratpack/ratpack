@@ -29,7 +29,6 @@ import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
@@ -200,7 +199,7 @@ public abstract class Guice {
    * @return A registry that wraps the injector
    */
   public static Registry registry(Injector injector) {
-    return Registries.backedRegistry(new InjectorRegistryBacking(injector));
+    return Registry.backedRegistry(new InjectorRegistryBacking(injector));
   }
 
   public static Function<Registry, Registry> registry(Action<? super BindingsSpec> bindings) {

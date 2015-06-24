@@ -48,7 +48,6 @@ import ratpack.path.PathTokens;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.path.internal.DefaultPathTokens;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
@@ -139,7 +138,7 @@ public class DefaultContext implements Context {
 
   public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     PathBinding initialPathBinding = new DefaultPathBinding("/".concat(requestConstants.request.getPath()), "", ImmutableMap.of(), Optional.empty());
-    Registry pathBindingRegistry = Registries.just(PathBinding.class, initialPathBinding);
+    Registry pathBindingRegistry = Registry.just(PathBinding.class, initialPathBinding);
     ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
     requestConstants.indexes.push(index);
 

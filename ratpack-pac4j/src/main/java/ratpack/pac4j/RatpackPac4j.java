@@ -36,7 +36,7 @@ import ratpack.pac4j.internal.Pac4jAuthenticator;
 import ratpack.pac4j.internal.Pac4jSessionKeys;
 import ratpack.pac4j.internal.RatpackWebContext;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.session.SessionData;
 
@@ -150,7 +150,7 @@ public class RatpackPac4j {
    */
   public static Handler requireAuth(Class<? extends Client<?, ?>> clientType) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
-        ctx.next(Registries.just(userProfile))
+        ctx.next(Registry.just(userProfile))
     );
   }
 

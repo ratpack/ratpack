@@ -17,7 +17,6 @@
 package ratpack.registry.internal
 
 import ratpack.func.Action
-import ratpack.registry.Registries
 import ratpack.registry.Registry
 import ratpack.registry.RegistrySpec
 import ratpack.test.internal.registry.RegistryContractSpec
@@ -26,7 +25,7 @@ class BuiltRegistrySpec extends RegistryContractSpec {
 
   @Override
   Registry build(Action<? super RegistrySpec> spec) {
-    Registries.registry(spec)
+    Registry.registry(spec)
   }
 
 }

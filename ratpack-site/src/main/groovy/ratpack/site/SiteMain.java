@@ -34,7 +34,7 @@ import ratpack.site.github.RatpackVersions;
 import asset.pipeline.ratpack.AssetPipelineModule;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
-import static ratpack.registry.Registries.just;
+import static ratpack.registry.Registry.just;
 
 public class SiteMain {
   public static void main(String... args) throws Exception {

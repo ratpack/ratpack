@@ -18,7 +18,6 @@ package ratpack.spring;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.spring.internal.SpringRegistryBacking;
 
@@ -75,7 +74,7 @@ public abstract class Spring {
    * @return a registry that retrieves objects from the given bean factory
    */
   public static Registry spring(ListableBeanFactory beanFactory) {
-    return Registries.backedRegistry(new SpringRegistryBacking(beanFactory));
+    return Registry.backedRegistry(new SpringRegistryBacking(beanFactory));
   }
 
   /**

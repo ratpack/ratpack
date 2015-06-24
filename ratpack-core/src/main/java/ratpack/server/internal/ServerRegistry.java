@@ -43,7 +43,6 @@ import ratpack.handling.internal.DefaultRedirector;
 import ratpack.handling.internal.DefaultRequestLog;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.CharSequenceRenderer;
@@ -84,7 +83,7 @@ public abstract class ServerRegistry {
 
     RegistryBuilder baseRegistryBuilder;
     try {
-      baseRegistryBuilder = Registries.registry()
+      baseRegistryBuilder = Registry.registry()
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)

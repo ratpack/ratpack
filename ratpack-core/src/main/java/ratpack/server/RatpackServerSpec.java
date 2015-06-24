@@ -21,7 +21,6 @@ import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
@@ -55,7 +54,7 @@ public interface RatpackServerSpec {
    * @see #registry(ratpack.registry.Registry)
    */
   default RatpackServerSpec registryOf(Action<? super RegistrySpec> action) throws Exception {
-    return registry(r -> Registries.registry(action));
+    return registry(r -> Registry.registry(action));
   }
 
   /**
@@ -73,7 +72,7 @@ public interface RatpackServerSpec {
    * <p>
    * The given function receives the “base” registry (i.e. the base infrastructure provided by Ratpack) as its argument.
    * <p>
-   * If a user registry is not set, an {@link Registries#empty() empty registry} will be used.
+   * If a user registry is not set, an {@link Registry#empty() empty registry} will be used.
    *
    * @param function a function that provides the user registry
    * @return {@code this}

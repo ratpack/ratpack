@@ -42,7 +42,6 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.handling.internal.FactoryHandler;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
@@ -78,7 +77,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected InetSocketAddress boundAddress;
   protected Channel channel;
   protected DefaultExecController execController;
-  protected Registry serverRegistry = Registries.empty();
+  protected Registry serverRegistry = Registry.empty();
 
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
@@ -144,7 +143,7 @@ public class DefaultRatpackServer implements RatpackServer {
         }
       };
 
-      Registry serverConfigOverrideRegistry = Registries.just(ServerConfig.class, serverConfig);
+      Registry serverConfigOverrideRegistry = Registry.just(ServerConfig.class, serverConfig);
       this.userRegistryFactory = baseRegistry -> {
         Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
         Registry userRegistry = definition.getRegistry().apply(actualBaseRegistry);

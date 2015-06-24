@@ -38,7 +38,6 @@ import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
@@ -76,7 +75,7 @@ public class DefaultRequestFixture implements RequestFixture {
   private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", ServerConfig.DEFAULT_PORT);
   private int timeout = 5;
 
-  private RegistryBuilder registryBuilder = Registries.registry();
+  private RegistryBuilder registryBuilder = Registry.registry();
 
   private ServerConfig.Builder serverConfigBuilder = ServerConfig.noBaseDir();
   private DefaultPathBinding pathBinding;
@@ -122,7 +121,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
     if (pathBinding != null) {
       handler = Handlers.chain(
-        Handlers.register(Registries.just(PathBinding.class, pathBinding)),
+        Handlers.register(Registry.just(PathBinding.class, pathBinding)),
         handler
       );
     }
@@ -248,7 +247,7 @@ public class DefaultRequestFixture implements RequestFixture {
       results.getLatch().countDown();
     };
 
-    final Registry userRegistry = Registries.registry().
+    final Registry userRegistry = Registry.registry().
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();

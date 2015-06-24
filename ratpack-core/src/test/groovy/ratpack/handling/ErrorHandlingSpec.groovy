@@ -21,7 +21,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.registry.Registries.just
+import static ratpack.registry.Registry.just
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 

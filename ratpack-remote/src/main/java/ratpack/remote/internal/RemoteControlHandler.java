@@ -20,7 +20,6 @@ import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 
@@ -70,7 +69,7 @@ public class RemoteControlHandler implements Handler {
     @Override
     public void handle(Context context) throws Exception {
       final Registry commandRegistry = context.join(registry);
-      final RegistryBuilder registryBuilder = Registries.registry();
+      final RegistryBuilder registryBuilder = Registry.registry();
 
       Receiver receiver = new RatpackReceiver(chain -> new DelegatingCommandDelegate(registryBuilder, commandRegistry) {
         @Override

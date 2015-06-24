@@ -20,7 +20,6 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
@@ -57,7 +56,7 @@ public final class RatpackServerDefinition {
 
   private static class SpecImpl implements RatpackServerSpec {
     private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
-    private Function<? super Registry, ? extends Registry> registry = (r) -> Registries.empty();
+    private Function<? super Registry, ? extends Registry> registry = (r) -> Registry.empty();
     private Function<? super Registry, ? extends Handler> handler = (r) -> Handlers.notFound();
 
     @Override

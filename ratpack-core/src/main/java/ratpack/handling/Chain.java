@@ -20,7 +20,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.file.FileHandlerSpec;
 import ratpack.func.Action;
 import ratpack.func.Predicate;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServerSpec;
@@ -758,7 +757,7 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   default Chain register(Action<? super RegistrySpec> action) throws Exception {
-    return register(Registries.registry(action));
+    return register(Registry.registry(action));
   }
 
   /**
@@ -786,7 +785,7 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   default Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception {
-    return register(Registries.registry(registryAction), action);
+    return register(Registry.registry(registryAction), action);
   }
 
   default Chain register(Action<? super RegistrySpec> registryAction, Class<? extends Action<? super Chain>> action) throws Exception {

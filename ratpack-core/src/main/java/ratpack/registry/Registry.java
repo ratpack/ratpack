@@ -17,11 +17,15 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.registry.internal.CachingBackedRegistry;
+import ratpack.registry.internal.DefaultRegistryBuilder;
 import ratpack.registry.internal.EmptyRegistry;
 import ratpack.registry.internal.HierarchicalRegistry;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * An object registry.
@@ -32,7 +36,7 @@ import java.util.Optional;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.registry.Registry;
- * import static ratpack.registry.Registries.just;
+ * import static ratpack.registry.Registry.just;
  *
  * import static org.junit.Assert.assertTrue;
  *
@@ -84,7 +88,7 @@ import java.util.Optional;
  * When retrieving all objects by type, an Iterable is returned sorted by reversed insertion order.
  *
  * <pre class="java">{@code
- * import ratpack.registry.Registries;
+ * import ratpack.registry.Registry;
  * import ratpack.registry.Registry;
  *
  * import java.util.StringJoiner;
@@ -93,7 +97,7 @@ import java.util.Optional;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
- *     Registry registry = Registries.registry(r -> r
+ *     Registry registry = Registry.registry(r -> r
  *         .add(String.class, "Ratpack")
  *         .add(String.class, "foo")
  *         .add(String.class, "bar"));
@@ -225,7 +229,7 @@ public interface Registry {
    * <pre class="java">{@code
    * import ratpack.registry.Registry;
    *
-   * import static ratpack.registry.Registries.registry;
+   * import static ratpack.registry.Registry.registry;
    *
    * import java.util.List;
    * import com.google.common.collect.Lists;
@@ -277,4 +281,85 @@ public interface Registry {
       return new HierarchicalRegistry(this, child);
     }
   }
+
+  /**
+   * Returns an empty registry.
+   *
+   * @return an empty registry
+   */
+  static Registry empty() {
+    return EmptyRegistry.INSTANCE;
+  }
+
+  /**
+   * Creates a new {@link RegistryBuilder registry builder}.
+   *
+   * @return a new registry builder
+   * @see RegistryBuilder
+   */
+  static RegistryBuilder registry() {
+    return new DefaultRegistryBuilder();
+  }
+
+  /**
+   * Builds a registry from the given action.
+   *
+   * @param action the action that defines the registry
+   * @return a registry created by the given action
+   * @throws Exception any thrown by the action
+   */
+  static Registry registry(Action<? super RegistrySpec> action) throws Exception {
+    RegistryBuilder builder = registry();
+    action.execute(builder);
+    return builder.build();
+  }
+
+  /**
+   * Creates a new registry instance that is backed by a RegistryBacking implementation.
+   * The registry instance caches lookups.
+   *
+   * @param registryBacking the implementation that returns instances for the registry
+   * @return a new registry
+   */
+  static Registry backedRegistry(final RegistryBacking registryBacking) {
+    return new CachingBackedRegistry(registryBacking);
+  }
+
+  /**
+   * Creates a single lazily created entry registry, using {@link RegistryBuilder#addLazy(Class, Supplier)}.
+   *
+   * @param publicType the public type of the entry
+   * @param supplier the supplier for the object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#addLazy(Class, Supplier)
+   */
+  static <T> Registry just(Class<T> publicType, Supplier<? extends T> supplier) {
+    return registry().addLazy(publicType, supplier).build();
+  }
+
+  /**
+   * Creates a single entry registry, using {@link RegistryBuilder#add(Object)}.
+   *
+   * @param object the entry object
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(java.lang.Object)
+   */
+  static Registry just(Object object) {
+    return registry().add(object).build();
+  }
+
+  /**
+   * Creates a single entry registry, using {@link RegistryBuilder#add(Class, Object)}.
+   *
+   * @param publicType the public type of the entry
+   * @param implementation the entry object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(Class, Object)
+   */
+  static <T> Registry just(Class<? super T> publicType, T implementation) {
+    return registry().add(publicType, implementation).build();
+  }
+
 }

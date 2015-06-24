@@ -27,7 +27,6 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.PublicAddress;
 import ratpack.session.Session;
@@ -79,7 +78,7 @@ public class Pac4jAuthenticator implements Handler {
         }
       });
     } else {
-      Registry registry = Registries.just(Clients.class, clients);
+      Registry registry = Registry.just(Clients.class, clients);
       ctx.next(registry);
     }
   }

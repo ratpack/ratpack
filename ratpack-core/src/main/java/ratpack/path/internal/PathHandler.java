@@ -23,7 +23,6 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 
 import java.util.Optional;
@@ -37,7 +36,7 @@ public class PathHandler implements Handler {
       @Override
       public Optional<Registry> load(CacheKey key) throws Exception {
         return key.pathBinder.bind(key.path, key.parentBinding).map(b ->
-            Registries.just(PathBinding.class, b)
+            Registry.just(PathBinding.class, b)
         );
       }
     });

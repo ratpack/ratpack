@@ -22,7 +22,7 @@ import ratpack.registry.NotInRegistryException
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
-import static ratpack.registry.Registries.just
+import static ratpack.registry.Registry.just
 
 class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 

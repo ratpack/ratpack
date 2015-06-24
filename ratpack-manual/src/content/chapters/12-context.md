@@ -25,7 +25,7 @@ Consider the following example:
 import ratpack.test.embed.EmbeddedApp;
 
 import static org.junit.Assert.assertEquals;
-import static ratpack.registry.Registries.just;
+import static ratpack.registry.Registry.just;
 
 public class Example {
 

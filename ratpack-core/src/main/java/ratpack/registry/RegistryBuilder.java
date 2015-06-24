@@ -24,10 +24,10 @@ import java.util.function.Supplier;
 /**
  * A builder of {@link Registry registries}.
  * <p>
- * For create single entry registries, see the factory methods on {@link Registries}.
+ * For create single entry registries, see the factory methods on {@link Registry}.
  * A builder can be used for creating an registry with multiple entries.
  *
- * @see Registries#registry()
+ * @see Registry#registry()
  */
 public interface RegistryBuilder extends RegistrySpec {
 

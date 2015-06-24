@@ -18,7 +18,6 @@ package ratpack.site
 
 import groovy.transform.CompileStatic
 import ratpack.exec.ExecControl
-import ratpack.registry.Registries
 import ratpack.registry.Registry
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
@@ -35,7 +34,7 @@ class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   @Override
   protected Registry createOverrides(Registry serverRegistry) throws Exception {
-    Registries.registry {
+    Registry.registry {
       def data = new MockGithubData()
 
       def config = new TestConfig()

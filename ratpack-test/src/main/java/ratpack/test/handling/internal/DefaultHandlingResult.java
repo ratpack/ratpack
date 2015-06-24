@@ -39,7 +39,6 @@ import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.Stopper;
@@ -118,7 +117,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
-    Registry effectiveRegistry = Registries.just(Stopper.class, stopper).join(registry);
+    Registry effectiveRegistry = Registry.just(Stopper.class, stopper).join(registry);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, request, null, eventController.getRegistry()
