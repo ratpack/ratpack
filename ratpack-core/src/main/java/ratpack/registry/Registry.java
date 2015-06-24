@@ -76,6 +76,44 @@ import java.util.Optional;
  * As registry objects may be used across multiple requests, they should be thread safe.
  * <p>
  * Registries that are <b>created</b> per request however do not need to be thread safe.
+ *
+ * <h3>Retrieving objects from the Registry</h3>
+ * <p>
+ * Registry objects are retrieved in a LIFO manner.
+ * When retrieving objects by {@code Class} or {@code TypeToken}, the most recently added object will be the first returned.
+ * When retrieving all objects by type, an Iterable is returned sorted by reversed insertion order.
+ *
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import java.util.StringJoiner;
+ * import static org.junit.Assert.assertEquals;
+ *
+ * public class Example {
+ *   public static void main(String[] args) throws Exception {
+ *     EmbeddedApp.of(server -> server
+ *         .registryOf(r -> r
+ *             .add(String.class, "Ratpack")
+ *             .add(String.class, "foo")
+ *             .add(String.class, "bar")
+ *         ).handlers(c -> c
+ *             .get(ctx ->
+ *               ctx.render(ctx.get(String.class)))
+ *             .get("all", ctx -> {
+ *               StringJoiner joiner = new StringJoiner(", ", "[", "]");
+ *               for (String s : ctx.getAll(String.class)) {
+ *                 joiner.add(s);
+ *               }
+ *               ctx.render(joiner.toString());
+ *             })
+ *         )
+ *     ).test(testHttpClient -> {
+ *       assertEquals("bar", testHttpClient.getText());
+ *       assertEquals("[bar, foo, Ratpack]", testHttpClient.getText("all"));
+ *     });
+ *   }
+ * }
+ * }</pre>
+ *
  */
 public interface Registry {
 
@@ -169,6 +207,17 @@ public interface Registry {
     return Optional.empty();
   }
 
+  /**
+   * A convenience method for {@link #first(TypeToken, Function)}.
+   *
+   * @param type the type of object to search for
+   * @param function a function to apply to each item
+   * @param <T> the type of the object to search for
+   * @param <O> the type of transformed object
+   * @throws Exception any thrown by the function
+   * @return An optional of the object of the specified type that satisfied the specified predicate
+   * @see #first(TypeToken, Function)
+   */
   default <T, O> Optional<O> first(Class<T> type, Function<? super T, ? extends O> function) throws Exception {
     return first(TypeToken.of(type), function);
   }
