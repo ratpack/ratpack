@@ -84,36 +84,31 @@ import java.util.Optional;
  * When retrieving all objects by type, an Iterable is returned sorted by reversed insertion order.
  *
  * <pre class="java">{@code
- * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.registry.Registries;
+ * import ratpack.registry.Registry;
+ *
  * import java.util.StringJoiner;
+ *
  * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
- *     EmbeddedApp.of(server -> server
- *         .registryOf(r -> r
- *             .add(String.class, "Ratpack")
- *             .add(String.class, "foo")
- *             .add(String.class, "bar")
- *         ).handlers(c -> c
- *             .get(ctx ->
- *               ctx.render(ctx.get(String.class)))
- *             .get("all", ctx -> {
- *               StringJoiner joiner = new StringJoiner(", ", "[", "]");
- *               for (String s : ctx.getAll(String.class)) {
- *                 joiner.add(s);
- *               }
- *               ctx.render(joiner.toString());
- *             })
- *         )
- *     ).test(testHttpClient -> {
- *       assertEquals("bar", testHttpClient.getText());
- *       assertEquals("[bar, foo, Ratpack]", testHttpClient.getText("all"));
- *     });
+ *     Registry registry = Registries.registry(r -> r
+ *         .add(String.class, "Ratpack")
+ *         .add(String.class, "foo")
+ *         .add(String.class, "bar"));
+ *
+ *     assertEquals("bar", registry.get(String.class));
+ *
+ *     StringJoiner joiner = new StringJoiner(", ", "[", "]");
+ *     for (String s : registry.getAll(String.class)) {
+ *       joiner.add(s);
+ *     }
+ *
+ *     assertEquals("[bar, foo, Ratpack]", joiner.toString());
  *   }
  * }
  * }</pre>
- *
  */
 public interface Registry {
 
