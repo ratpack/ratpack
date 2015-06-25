@@ -92,7 +92,7 @@ import java.util.function.Supplier;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
- *     Registry registry = Registry.registry(r -> r
+ *     Registry registry = Registry.of(r -> r
  *         .add("Ratpack")
  *         .add("foo")
  *         .add("bar")
