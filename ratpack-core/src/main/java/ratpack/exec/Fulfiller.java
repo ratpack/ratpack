@@ -75,7 +75,6 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @param <T> the type of value that was promised.
  * @see ExecControl#promise(ratpack.func.Action)
  * @see Promise
- * @see Fulfillment
  */
 public interface Fulfiller<T> {
 

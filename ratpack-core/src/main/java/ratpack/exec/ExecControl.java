@@ -170,7 +170,6 @@ public interface ExecControl {
    * @param <T> the type of promised value
    * @return a promise for the asynchronously created value
    * @see Fulfiller
-   * @see Fulfillment
    */
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
