@@ -54,7 +54,7 @@ public interface RatpackServerSpec {
    * @see #registry(ratpack.registry.Registry)
    */
   default RatpackServerSpec registryOf(Action<? super RegistrySpec> action) throws Exception {
-    return registry(r -> Registry.registry(action));
+    return registry(r -> Registry.of(action));
   }
 
   /**

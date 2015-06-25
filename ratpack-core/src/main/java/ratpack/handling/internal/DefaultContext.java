@@ -138,7 +138,7 @@ public class DefaultContext implements Context {
 
   public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     PathBinding initialPathBinding = new DefaultPathBinding("/".concat(requestConstants.request.getPath()), "", ImmutableMap.of(), Optional.empty());
-    Registry pathBindingRegistry = Registry.just(PathBinding.class, initialPathBinding);
+    Registry pathBindingRegistry = Registry.single(PathBinding.class, initialPathBinding);
     ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
     requestConstants.indexes.push(index);
 

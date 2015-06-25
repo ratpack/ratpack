@@ -36,7 +36,7 @@ public class PathHandler implements Handler {
       @Override
       public Optional<Registry> load(CacheKey key) throws Exception {
         return key.pathBinder.bind(key.path, key.parentBinding).map(b ->
-            Registry.just(PathBinding.class, b)
+            Registry.single(PathBinding.class, b)
         );
       }
     });

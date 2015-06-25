@@ -56,7 +56,7 @@ public interface ApplicationUnderTest {
     return new MainClassApplicationUnderTest(mainClass) {
       @Override
       protected Registry createOverrides(Registry serverRegistry) throws Exception {
-        return Registry.registry(action);
+        return Registry.of(action);
       }
     };
   }

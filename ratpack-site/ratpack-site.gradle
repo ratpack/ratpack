@@ -83,7 +83,7 @@ sourceSets {
 }
 
 dependencies {
-//  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
+//  springloaded "org.springframework:springloaded:1.2.3.RELEASE"
   compile project(":ratpack-groovy")
   compile project(":ratpack-codahale-metrics")
   compile project(":ratpack-jackson")
@@ -94,7 +94,6 @@ dependencies {
 
   compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.4'
   providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
-  
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"
   runtime "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"

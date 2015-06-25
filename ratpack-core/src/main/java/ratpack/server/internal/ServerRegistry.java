@@ -83,7 +83,7 @@ public abstract class ServerRegistry {
 
     RegistryBuilder baseRegistryBuilder;
     try {
-      baseRegistryBuilder = Registry.registry()
+      baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)

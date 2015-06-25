@@ -48,7 +48,7 @@ class GuiceRegistrySpec extends RegistryContractSpec {
   @Override
   Registry build(Action<? super RegistrySpec> spec) {
     Guice.registry(
-      Guice.buildInjector(Registry.just(ServerConfig.embedded().build()), spec) { Module it ->
+      Guice.buildInjector(Registry.single(ServerConfig.embedded().build()), spec) { Module it ->
         com.google.inject.Guice.createInjector(it)
       }
     )

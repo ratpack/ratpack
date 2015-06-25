@@ -58,7 +58,7 @@ class RenderingSpec extends RatpackGroovyDslSpec {
       bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
     handlers {
-      register(Registry.just(new ThingRenderer())) {
+      register(Registry.single(new ThingRenderer())) {
         get {
           render new Thing("foo")
         }

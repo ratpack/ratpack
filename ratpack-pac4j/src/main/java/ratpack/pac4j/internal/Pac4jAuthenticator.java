@@ -78,7 +78,7 @@ public class Pac4jAuthenticator implements Handler {
         }
       });
     } else {
-      Registry registry = Registry.just(Clients.class, clients);
+      Registry registry = Registry.single(Clients.class, clients);
       ctx.next(registry);
     }
   }

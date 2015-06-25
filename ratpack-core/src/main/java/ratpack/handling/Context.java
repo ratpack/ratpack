@@ -129,7 +129,7 @@ public interface Context extends ExecControl, Registry {
    *
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *         .all(ctx -> ctx.next(Registry.just("foo")))
+   *         .all(ctx -> ctx.next(Registry.single("foo")))
    *         .all(ctx -> ctx.render(ctx.get(String.class)))
    *     ).test(httpClient -> {
    *       assertEquals("foo", httpClient.getText());

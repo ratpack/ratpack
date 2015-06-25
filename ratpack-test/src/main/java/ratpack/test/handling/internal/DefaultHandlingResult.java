@@ -117,7 +117,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
-    Registry effectiveRegistry = Registry.just(Stopper.class, stopper).join(registry);
+    Registry effectiveRegistry = Registry.single(Stopper.class, stopper).join(registry);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, request, null, eventController.getRegistry()

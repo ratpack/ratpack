@@ -75,7 +75,7 @@ public class DefaultRequestFixture implements RequestFixture {
   private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", ServerConfig.DEFAULT_PORT);
   private int timeout = 5;
 
-  private RegistryBuilder registryBuilder = Registry.registry();
+  private RegistryBuilder registryBuilder = Registry.builder();
 
   private ServerConfig.Builder serverConfigBuilder = ServerConfig.noBaseDir();
   private DefaultPathBinding pathBinding;
@@ -121,7 +121,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
     if (pathBinding != null) {
       handler = Handlers.chain(
-        Handlers.register(Registry.just(PathBinding.class, pathBinding)),
+        Handlers.register(Registry.single(PathBinding.class, pathBinding)),
         handler
       );
     }
@@ -247,7 +247,7 @@ public class DefaultRequestFixture implements RequestFixture {
       results.getLatch().countDown();
     };
 
-    final Registry userRegistry = Registry.registry().
+    final Registry userRegistry = Registry.builder().
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();

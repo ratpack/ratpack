@@ -34,7 +34,7 @@ class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   @Override
   protected Registry createOverrides(Registry serverRegistry) throws Exception {
-    Registry.registry {
+    Registry.of {
       def data = new MockGithubData()
 
       def config = new TestConfig()

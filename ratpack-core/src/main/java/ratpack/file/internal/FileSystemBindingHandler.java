@@ -38,7 +38,7 @@ public class FileSystemBindingHandler implements Handler {
     .build(new CacheLoader<FileSystemBinding, Registry>() {
       @Override
       public Registry load(FileSystemBinding key) throws Exception {
-        return Registry.just(FileSystemBinding.class, key);
+        return Registry.single(FileSystemBinding.class, key);
       }
     });
 

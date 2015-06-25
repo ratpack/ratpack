@@ -23,9 +23,9 @@ Consider the following example:
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
+import ratpack.registry.Registry;
 
 import static org.junit.Assert.assertEquals;
-import static ratpack.registry.Registry.just;
 
 public class Example {
 
@@ -71,7 +71,7 @@ public class Example {
             .all(ctx -> {
               String id = ctx.getPathTokens().get("id"); // (1)
               Person person = new PersonImpl(id, "example-status", "example-age");
-              ctx.next(just(Person.class, person)); // (2)
+              ctx.next(Registry.single(Person.class, person)); // (2)
             })
             .get("status", ctx -> {
               Person person = ctx.get(Person.class); // (3)

@@ -74,7 +74,7 @@ public abstract class Spring {
    * @return a registry that retrieves objects from the given bean factory
    */
   public static Registry spring(ListableBeanFactory beanFactory) {
-    return Registry.backedRegistry(new SpringRegistryBacking(beanFactory));
+    return Registry.backedBy(new SpringRegistryBacking(beanFactory));
   }
 
   /**

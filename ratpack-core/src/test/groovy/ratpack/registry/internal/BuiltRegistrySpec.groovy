@@ -25,7 +25,7 @@ class BuiltRegistrySpec extends RegistryContractSpec {
 
   @Override
   Registry build(Action<? super RegistrySpec> spec) {
-    Registry.registry(spec)
+    Registry.of(spec)
   }
 
 }

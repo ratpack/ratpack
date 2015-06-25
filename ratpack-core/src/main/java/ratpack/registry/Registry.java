@@ -36,7 +36,6 @@ import java.util.function.Supplier;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.registry.Registry;
- * import static ratpack.registry.Registry.just;
  *
  * import static org.junit.Assert.assertTrue;
  *
@@ -48,7 +47,7 @@ import java.util.function.Supplier;
  *
  * public class UpstreamHandler implements Handler {
  *   public void handle(Context context) {
- *     context.next(just(new Thing("foo")));
+ *     context.next(Registry.single(new Thing("foo")));
  *   }
  * }
  *
@@ -225,8 +224,6 @@ public interface Registry {
    * <pre class="java">{@code
    * import ratpack.registry.Registry;
    *
-   * import static ratpack.registry.Registry.registry;
-   *
    * import java.util.List;
    * import com.google.common.collect.Lists;
    *
@@ -251,8 +248,8 @@ public interface Registry {
    *   }
    *
    *   public static void main(String[] args) {
-   *     Registry child = registry().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
-   *     Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
+   *     Registry child = Registry.builder().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
+   *     Registry parent = Registry.builder().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
    *     Registry joined = parent.join(child);
    *
    *     assertEquals("child-2", joined.get(Thing.class).getName());
@@ -293,7 +290,7 @@ public interface Registry {
    * @return a new registry builder
    * @see RegistryBuilder
    */
-  static RegistryBuilder registry() {
+  static RegistryBuilder builder() {
     return new DefaultRegistryBuilder();
   }
 
@@ -304,8 +301,8 @@ public interface Registry {
    * @return a registry created by the given action
    * @throws Exception any thrown by the action
    */
-  static Registry registry(Action<? super RegistrySpec> action) throws Exception {
-    RegistryBuilder builder = registry();
+  static Registry of(Action<? super RegistrySpec> action) throws Exception {
+    RegistryBuilder builder = builder();
     action.execute(builder);
     return builder.build();
   }
@@ -317,7 +314,7 @@ public interface Registry {
    * @param registryBacking the implementation that returns instances for the registry
    * @return a new registry
    */
-  static Registry backedRegistry(final RegistryBacking registryBacking) {
+  static Registry backedBy(final RegistryBacking registryBacking) {
     return new CachingBackedRegistry(registryBacking);
   }
 
@@ -330,8 +327,8 @@ public interface Registry {
    * @return a new single entry registry
    * @see RegistryBuilder#addLazy(Class, Supplier)
    */
-  static <T> Registry just(Class<T> publicType, Supplier<? extends T> supplier) {
-    return registry().addLazy(publicType, supplier).build();
+  static <T> Registry single(Class<T> publicType, Supplier<? extends T> supplier) {
+    return builder().addLazy(publicType, supplier).build();
   }
 
   /**
@@ -341,8 +338,8 @@ public interface Registry {
    * @return a new single entry registry
    * @see RegistryBuilder#add(java.lang.Object)
    */
-  static Registry just(Object object) {
-    return registry().add(object).build();
+  static Registry single(Object object) {
+    return builder().add(object).build();
   }
 
   /**
@@ -354,8 +351,8 @@ public interface Registry {
    * @return a new single entry registry
    * @see RegistryBuilder#add(Class, Object)
    */
-  static <T> Registry just(Class<? super T> publicType, T implementation) {
-    return registry().add(publicType, implementation).build();
+  static <T> Registry single(Class<? super T> publicType, T implementation) {
+    return builder().add(publicType, implementation).build();
   }
 
 }

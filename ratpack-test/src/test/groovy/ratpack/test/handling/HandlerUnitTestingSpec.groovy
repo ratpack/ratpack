@@ -351,11 +351,11 @@ class HandlerUnitTestingSpec extends Specification {
   def "can access things inserted into registry"() {
     when:
     handle {
-      insert(Registry.just("foo"), groovyHandler {
+      insert(Registry.single("foo"), groovyHandler {
         blocking {
 
         } then {
-          context.insert(Registry.just("bar"), groovyHandler {
+          context.insert(Registry.single("bar"), groovyHandler {
             context.request.add(Number, 4)
             function(context)
           })

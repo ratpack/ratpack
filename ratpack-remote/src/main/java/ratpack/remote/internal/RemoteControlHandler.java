@@ -69,7 +69,7 @@ public class RemoteControlHandler implements Handler {
     @Override
     public void handle(Context context) throws Exception {
       final Registry commandRegistry = context.join(registry);
-      final RegistryBuilder registryBuilder = Registry.registry();
+      final RegistryBuilder registryBuilder = Registry.builder();
 
       Receiver receiver = new RatpackReceiver(chain -> new DelegatingCommandDelegate(registryBuilder, commandRegistry) {
         @Override

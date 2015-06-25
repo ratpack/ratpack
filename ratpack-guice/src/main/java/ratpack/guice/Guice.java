@@ -199,7 +199,7 @@ public abstract class Guice {
    * @return A registry that wraps the injector
    */
   public static Registry registry(Injector injector) {
-    return Registry.backedRegistry(new InjectorRegistryBacking(injector));
+    return Registry.backedBy(new InjectorRegistryBacking(injector));
   }
 
   public static Function<Registry, Registry> registry(Action<? super BindingsSpec> bindings) {

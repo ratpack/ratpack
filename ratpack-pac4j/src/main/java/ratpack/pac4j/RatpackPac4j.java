@@ -150,7 +150,7 @@ public class RatpackPac4j {
    */
   public static Handler requireAuth(Class<? extends Client<?, ?>> clientType) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
-        ctx.next(Registry.just(userProfile))
+        ctx.next(Registry.single(userProfile))
     );
   }
 

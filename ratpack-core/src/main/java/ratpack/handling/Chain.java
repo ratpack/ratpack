@@ -757,7 +757,7 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   default Chain register(Action<? super RegistrySpec> action) throws Exception {
-    return register(Registry.registry(action));
+    return register(Registry.of(action));
   }
 
   /**
@@ -785,7 +785,7 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   default Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception {
-    return register(Registry.registry(registryAction), action);
+    return register(Registry.of(registryAction), action);
   }
 
   default Chain register(Action<? super RegistrySpec> registryAction, Class<? extends Action<? super Chain>> action) throws Exception {

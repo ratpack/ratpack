@@ -143,7 +143,7 @@ public class DefaultRatpackServer implements RatpackServer {
         }
       };
 
-      Registry serverConfigOverrideRegistry = Registry.just(ServerConfig.class, serverConfig);
+      Registry serverConfigOverrideRegistry = Registry.single(ServerConfig.class, serverConfig);
       this.userRegistryFactory = baseRegistry -> {
         Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
         Registry userRegistry = definition.getRegistry().apply(actualBaseRegistry);

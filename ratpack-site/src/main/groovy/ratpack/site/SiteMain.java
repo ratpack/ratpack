@@ -24,6 +24,7 @@ import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
 import ratpack.jackson.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
+import ratpack.registry.Registry;
 import ratpack.rx.RxRatpack;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
@@ -34,7 +35,6 @@ import ratpack.site.github.RatpackVersions;
 import asset.pipeline.ratpack.AssetPipelineModule;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
-import static ratpack.registry.Registry.just;
 
 public class SiteMain {
   public static void main(String... args) throws Exception {
@@ -165,7 +165,7 @@ public class SiteMain {
                                   break;
                               }
 
-                              ctx.next(just(ctx.getFileSystemBinding().binding(version.getVersion())));
+                              ctx.next(Registry.single(ctx.getFileSystemBinding().binding(version.getVersion())));
                             });
                           })
                           .files(f -> f.indexFiles("index.html"))

@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  * For create single entry registries, see the factory methods on {@link Registry}.
  * A builder can be used for creating an registry with multiple entries.
  *
- * @see Registry#registry()
+ * @see Registry#builder()
  */
 public interface RegistryBuilder extends RegistrySpec {
 
