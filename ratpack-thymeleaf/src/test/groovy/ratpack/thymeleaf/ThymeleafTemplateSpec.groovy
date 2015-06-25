@@ -176,6 +176,33 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<div>page footer</div>'
   }
 
+  @Unroll
+  void 'can render a thymeleaf template with #urlType link URL expressions'() {
+    given:
+    file 'thymeleaf/link.html', "<a th:href=\"${linkExpression}\">link</a>"
+
+    when:
+    bindings {
+      module new ThymeleafModule()
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('link')
+      }
+    }
+
+    then:
+    text == "<a href=\"${expectedText}\">link</a>"
+
+    where:
+    urlType             | linkExpression                       | expectedText
+    'absolute'          | '@{http://example.com/absolute}'     | 'http://example.com/absolute'
+    'page-relative'     | '@{page-relative/link}'              | 'page-relative/link'
+    'context-relative'  | '@{/context-relative/link}'          | '/context-relative/link'
+    'server-relative'   | '@{~/server-relative/link}'          | '/server-relative/link'
+    'protocol-relative' | '@{//example.com/protocol-relative}' | '//example.com/protocol-relative'
+  }
+
   void 'surrounding html tags can be removed'() {
     given:
     file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
