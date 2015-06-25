@@ -81,38 +81,34 @@ import java.util.function.Supplier;
  * <p>
  * Registries that are <b>created</b> per request however do not need to be thread safe.
  *
- * <h3>Retrieving objects from the Registry</h3>
+ * <h3>Ordering</h3>
  * <p>
- * Registry objects are retrieved in a LIFO manner.
- * When retrieving objects by {@code Class} or {@code TypeToken}, the most recently added object will be the first returned.
- * When retrieving all objects by type, an Iterable is returned sorted by reversed insertion order.
+ * Registry objects are returned in the reverse order that they were added (i.e. Last-In-First-Out).
  *
  * <pre class="java">{@code
+ * import com.google.common.base.Joiner;
  * import ratpack.registry.Registry;
- * import ratpack.registry.Registry;
- *
- * import java.util.StringJoiner;
  *
  * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
- *   public static void main(String[] args) throws Exception {
+ *   public static void main(String... args) throws Exception {
  *     Registry registry = Registry.registry(r -> r
- *         .add(String.class, "Ratpack")
- *         .add(String.class, "foo")
- *         .add(String.class, "bar"));
+ *         .add("Ratpack")
+ *         .add("foo")
+ *         .add("bar")
+ *     );
  *
  *     assertEquals("bar", registry.get(String.class));
  *
- *     StringJoiner joiner = new StringJoiner(", ", "[", "]");
- *     for (String s : registry.getAll(String.class)) {
- *       joiner.add(s);
- *     }
- *
- *     assertEquals("[bar, foo, Ratpack]", joiner.toString());
+ *     String joined = Joiner.on(", ").join(registry.getAll(String.class));
+ *     assertEquals("bar, foo, Ratpack", joined);
  *   }
  * }
  * }</pre>
+ * <p>
+ * While this is strictly the case for the core registry implementations in Ratpack, adapted implementations (e.g. Guice, Spring etc.) may have more nuanced ordering semantics.
+ * To the greatest extent possible, registry implementations should strive to honor LIFO ordering.
  */
 public interface Registry {
 
