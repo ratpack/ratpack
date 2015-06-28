@@ -65,7 +65,7 @@ import java.util.function.Consumer;
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.JacksonModule;
+ * import ratpack.jackson.guice.JacksonModule;
  * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
  *

@@ -32,7 +32,7 @@ See the documentation of the [Guice](api/ratpack/guice/Guice.html) class for exa
 
 Ratpack does not have a formal plugin system. However, reusable functionality can be packaged as Guice modules.
 
-For example, that `ratpack-jackson` library provides the [`JacksonModule`](api/ratpack/jackson/JacksonModule.html) class which is a Guice module.
+For example, that `ratpack-jackson-guice` library provides the [`JacksonModule`](api/ratpack/jackson/guice/JacksonModule.html) class which is a Guice module.
 To integrate Jackson into your Guice backed Ratpack application (e.g. for serializing objects as JSON), you simply use this module.
 
 In Groovy script application this is as easy as:

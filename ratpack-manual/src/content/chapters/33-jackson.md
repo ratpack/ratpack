@@ -10,7 +10,7 @@ The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides
 ## Initialisation
 
 The Jackson can be used with the [Guice integration](guice.html).
-The [`JacksonModule`](api/ratpack/jackson/JacksonModule.html) is a Guice module that enables the integration.
+The [`JacksonModule`](api/ratpack/jackson/guice/JacksonModule.html) is a Guice module that enables the integration.
 
 If not using Guice, you can use the [`Jackson.Init.register()`](api/ratpack/jackson/Jackson.Init.html#register-ratpack.registry.RegistrySpec-com.fasterxml.jackson.databind.ObjectMapper-com.fasterxml.jackson.databind.ObjectWriter-)
 method to add the necessary objects to the context registry.
