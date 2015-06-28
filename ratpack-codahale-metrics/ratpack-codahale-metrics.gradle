@@ -28,6 +28,6 @@ dependencies {
   compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.codahaleMetrics}"
 
-  testCompile project(":ratpack-jackson")
+  testCompile project(":ratpack-jackson-guice")
 }
 

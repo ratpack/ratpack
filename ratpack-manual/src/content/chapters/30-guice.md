@@ -38,7 +38,7 @@ To integrate Jackson into your Guice backed Ratpack application (e.g. for serial
 In Groovy script application this is as easy as:
 
 ```language-groovy groovy-ratpack
-import ratpack.jackson.JacksonModule
+import ratpack.jackson.guice.JacksonModule
 import static ratpack.jackson.Jackson.json
 import static ratpack.groovy.Groovy.ratpack
 

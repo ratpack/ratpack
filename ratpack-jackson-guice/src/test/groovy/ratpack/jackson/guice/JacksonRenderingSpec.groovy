@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.jackson
+package ratpack.jackson.guice
 
 import com.google.common.base.StandardSystemProperty
+import ratpack.jackson.Jackson
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -39,7 +40,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        render json(new User(username: "foo", password: "bar"))
+        render Jackson.json(new User(username: "foo", password: "bar"))
       }
     }
 

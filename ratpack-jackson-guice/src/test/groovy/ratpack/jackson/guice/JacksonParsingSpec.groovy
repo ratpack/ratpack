@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.jackson
+package ratpack.jackson.guice
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.reflect.TypeToken
 import ratpack.http.client.RequestSpec
+import ratpack.jackson.Jackson
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -35,7 +36,7 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def node = parse jsonNode()
+        def node = parse Jackson.jsonNode()
         response.send node.get("value").toString()
       }
     }

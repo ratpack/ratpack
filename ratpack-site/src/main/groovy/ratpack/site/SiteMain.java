@@ -22,7 +22,7 @@ import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
 import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
 import ratpack.registry.Registry;
 import ratpack.rx.RxRatpack;

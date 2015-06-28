@@ -29,6 +29,6 @@ dependencies {
   compile "org.springframework.boot:spring-boot-autoconfigure:1.2.4.RELEASE"
   testCompile "org.springframework:spring-web:4.1.6.RELEASE"
   testCompile "org.springframework:spring-test:4.1.6.RELEASE"
-  testCompile project(":ratpack-jackson")
+  testCompile project(":ratpack-jackson-guice")
   testCompile project(":ratpack-groovy")
 }

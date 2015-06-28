@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.jackson;
+package ratpack.jackson.guice;
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
@@ -25,6 +25,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.Lists;
 import com.google.inject.Provides;
 import ratpack.guice.ConfigurableModule;
+import ratpack.jackson.Jackson;
+import ratpack.jackson.JsonParseOpts;
+import ratpack.jackson.JsonRender;
 import ratpack.parse.NullParseOpts;
 import ratpack.parse.Parser;
 import ratpack.render.Renderer;
@@ -58,7 +61,7 @@ import java.util.function.Consumer;
  * <h3>Configuration</h3>
  * <p>
  * This module follows Ratpack's {@link ConfigurableModule configurable module} pattern, using the {@link Config} type as the configuration.
- * <p>Note that Jackson feature modules can be conveniently registered via the {@link ratpack.jackson.JacksonModule.Config#modules(Iterable)} method.
+ * <p>Note that Jackson feature modules can be conveniently registered via the {@link JacksonModule.Config#modules(Iterable)} method.
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;

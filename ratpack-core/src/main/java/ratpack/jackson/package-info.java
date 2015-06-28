@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,6 @@
 /**
  * Integration with the <a href="https://github.com/FasterXML/jackson-databind">Jackson JSON marshalling library</a>.
  * <p>
- * See {@link ratpack.jackson.Jackson} and {@link ratpack.jackson.JacksonModule} to get started.
+ * See {@link ratpack.jackson.Jackson} to get started.
  */
 package ratpack.jackson;
