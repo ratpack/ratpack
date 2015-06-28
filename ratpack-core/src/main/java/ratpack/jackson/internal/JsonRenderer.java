@@ -26,14 +26,12 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.JsonRender;
 import ratpack.render.RendererSupport;
 
-import javax.inject.Inject;
 import java.io.OutputStream;
 
 public class JsonRenderer extends RendererSupport<JsonRender> {
 
   private final ObjectWriter defaultObjectWriter;
 
-  @Inject
   public JsonRenderer(ObjectWriter defaultObjectWriter) {
     this.defaultObjectWriter = defaultObjectWriter;
   }

@@ -43,17 +43,16 @@ import java.io.OutputStream;
 /**
  * Provides key integration points with the Jackson support for dealing with JSON.
  * <p>
- * The {@link ratpack.jackson.JacksonModule} Guice module provides the infrastructure necessary to use these functions.
- * See {@link Jackson.Init} for alternative ways to initialise the integration to using the Guice module.
+ * The {@link Jackson.Init} object provides methods for initializing the necessary infrastructure to use these function.
  *
  * <h3><a name="rendering">Rendering as JSON</a></h3>
  * <p>
  * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.handling.Context#render(Object)} method for serializing objects to the response as JSON.
  * <pre class="java">{@code
- * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.JacksonModule;
+ * import ratpack.jackson.Jackson;
  * import ratpack.http.client.ReceivedResponse;
+ * import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * import static ratpack.jackson.Jackson.json;
  * import static org.junit.Assert.*;
@@ -71,10 +70,9 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
+ *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b ->
- *           b.module(JacksonModule.class, c -> c.prettyPrint(false))
- *       ))
+ *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain ->
  *         chain.get(ctx -> ctx.render(json(new Person("John"))))
  *       )
@@ -95,11 +93,11 @@ import java.io.OutputStream;
  * <p>
  * It is also easy to render {@link ratpack.sse.ServerSentEvents server sent events}, which can be useful for real time applications and infinite data streams.
  * <pre class="java">{@code
- * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.JacksonModule;
+ * import ratpack.jackson.Jackson;
  * import ratpack.stream.Streams;
  * import ratpack.http.client.ReceivedResponse;
+ * import com.fasterxml.jackson.databind.ObjectMapper;
  * import org.reactivestreams.Publisher;
  *
  * import java.util.Arrays;
@@ -122,10 +120,9 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
+ *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b ->
- *         b.module(JacksonModule.class, c -> c.prettyPrint(false))
- *       ))
+ *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .get("stream", ctx -> {
  *           Publisher<Person> people = Streams.publish(Arrays.asList(
@@ -159,11 +156,11 @@ import java.io.OutputStream;
  * <p>
  * The methods that return a {@link Parse} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing request bodies containing JSON.
  * <pre class="java">{@code
- * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.JacksonModule;
+ * import ratpack.jackson.Jackson;
  * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.JsonNode;
+ * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.fasterxml.jackson.annotation.JsonProperty;
  * import com.google.common.reflect.TypeToken;
  *
@@ -187,10 +184,9 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
+ *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b ->
- *         b.module(JacksonModule.class, c -> c.prettyPrint(false))
- *       ))
+ *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .post("asNode", ctx -> {
  *           JsonNode node = ctx.parse(jsonNode());
@@ -228,11 +224,11 @@ import java.io.OutputStream;
  * A {@link ratpack.parse.NoOptParserSupport} parser is also rendered for the {@code "application/json"} content type.
  * This allows the use of the {@link ratpack.handling.Context#parse(java.lang.Class)} and {@link ratpack.handling.Context#parse(com.google.common.reflect.TypeToken)} methods.
  * <pre class="java">{@code
- * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.JacksonModule;
+ * import ratpack.jackson.Jackson;
  * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.annotation.JsonProperty;
+ * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.google.common.reflect.TypeToken;
  *
  * import java.util.List;
@@ -253,10 +249,9 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
+ *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registry(Guice.registry(b ->
- *         b.module(JacksonModule.class, c -> c.prettyPrint(false))
- *       ))
+ *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .post("asPerson", ctx -> {
  *           Person person = ctx.parse(Person.class);
@@ -431,11 +426,11 @@ public abstract class Jackson {
    * This does mean that if on object-to-JSON conversion fails midway through the stream, then the output JSON will be malformed due to being incomplete.
    * If the publisher emits an error, the response will be terminated and no more JSON will be sent.
    * <pre class="java">{@code
-   * import ratpack.guice.Guice;
    * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.jackson.JacksonModule;
+   * import ratpack.jackson.Jackson;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.stream.Streams;
+   * import com.fasterxml.jackson.databind.ObjectMapper;
    * import org.reactivestreams.Publisher;
    *
    * import java.util.Arrays;
@@ -445,8 +440,9 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
+   *     ObjectMapper objectMapper = new ObjectMapper();
    *     EmbeddedApp.of(s -> s
-   *       .registry(Guice.registry(b -> b.module(JacksonModule.class)))
+   *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
    *       .handlers(chain ->
    *         chain.get(ctx -> {
    *           Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
@@ -538,10 +534,10 @@ public abstract class Jackson {
    * An {@link ObjectWriter} instance is obtained from the given registry eagerly.
    * The returned function uses the {@link ObjectWriter#writeValueAsString(Object)} method to convert the input object to JSON.
    * <pre class="java">{@code
-   * import ratpack.guice.Guice;
    * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.jackson.JacksonModule;
+   * import ratpack.jackson.Jackson;
    * import ratpack.http.client.ReceivedResponse;
+   * import com.fasterxml.jackson.databind.ObjectMapper;
    *
    * import java.util.Arrays;
    *
@@ -551,8 +547,9 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
+   *     ObjectMapper objectMapper = new ObjectMapper();
    *     EmbeddedApp.of(s -> s
-   *       .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
+   *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
    *       .handlers(chain -> chain
    *         .get(ctx -> ctx
    *           .blocking(() -> singletonMap("foo", "bar"))
@@ -581,8 +578,6 @@ public abstract class Jackson {
 
   /**
    * Factories for Ratpack specific integration types.
-   * <p>
-   * Use of these methods are not required at all if using the Guice integration and {@link JacksonModule}.
    */
   public static abstract class Init {
 
@@ -617,9 +612,6 @@ public abstract class Jackson {
 
     /**
      * Registers the renderer and parsers with the given registry.
-     * <p>
-     * If using Jackson support without Guice and the {@link JacksonModule}, this method should be used to register the renderer and parsers with the context registry.
-     * Use of this method is not necessary if using {@link JacksonModule} as it makes the renderer and parsers available.
      *
      * @param registrySpec the registry to register with
      * @param objectMapper the object mapper for parsing requests
@@ -628,6 +620,7 @@ public abstract class Jackson {
      */
     public static RegistrySpec register(RegistrySpec registrySpec, ObjectMapper objectMapper, ObjectWriter objectWriter) {
       return registrySpec
+        .add(new TypeToken<ObjectWriter>() {}, objectWriter)
         .add(new TypeToken<Renderer<JsonRender>>() {}, renderer(objectWriter))
         .add(new TypeToken<Parser<NullParseOpts>>() {}, noOptParser())
         .add(new TypeToken<Parser<JsonParseOpts>>() {}, parser(objectMapper));

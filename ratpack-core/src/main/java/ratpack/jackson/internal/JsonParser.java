@@ -26,7 +26,6 @@ import ratpack.jackson.JsonParseOpts;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserSupport;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -38,7 +37,6 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
 
   private final ObjectMapper objectMapper;
 
-  @Inject
   public JsonParser(ObjectMapper objectMapper) {
     super("application/json");
     this.objectMapper = objectMapper;
