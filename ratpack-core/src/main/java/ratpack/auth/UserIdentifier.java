@@ -23,7 +23,7 @@ public interface UserIdentifier {
 
   /**
    * TODO
-   * @return
+   * @return the unique identifier for the user
    */
   String getUserIdentifier();
 }

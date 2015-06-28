@@ -792,13 +792,6 @@ public interface Chain {
     return register(registryAction, getRegistry().get(action));
   }
 
-  /**
-   *
-   * @param test
-   * @param action
-   * @return
-   * @throws Exception
-   */
   default Chain route(Predicate<? super Context> test, Action<? super Chain> action) throws Exception {
     return all(Handlers.route(test, chain(action)));
   }

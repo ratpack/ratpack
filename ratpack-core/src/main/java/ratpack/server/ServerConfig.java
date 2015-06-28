@@ -256,7 +256,7 @@ public interface ServerConfig extends ConfigData {
     /**
      * Sets the port to listen for requests on.
      * <p>
-     * Defaults to {@value ServerConfig#DEFAULT_PORT}.
+     * Defaults to {@value ratpack.server.ServerConfig#DEFAULT_PORT}.
      *
      * @param port the port to listen for requests on
      * @return {@code this}
