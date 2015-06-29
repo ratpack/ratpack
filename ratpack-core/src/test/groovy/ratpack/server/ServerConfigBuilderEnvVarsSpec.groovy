@@ -56,7 +56,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
     config.port == 6060
   }
 
-  def "multiple sourcees override"() {
+  def "multiple sources override"() {
     given:
     source['RATPACK_SERVER__PORT'] = '5060'
     source['APP_SERVER__PORT'] = '8080'
@@ -196,6 +196,93 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
 
     then:
     sslContext
+  }
+
+  def "set connect timeout millis"() {
+    given:
+    source['RATPACK_SERVER__CONNECT_TIMEOUT_MILLIS'] = '1000'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    config.connectTimeoutMillis.get() == 1000
+  }
+
+  def "malformed connect timeout millis uses default"() {
+    given:
+    source['RATPACK_SERVER__CONNECT_TIMEOUT_MILLIS'] = 'abcd'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    !config.connectTimeoutMillis.present
+  }
+
+  def "set max messages per read"() {
+    given:
+    source['RATPACK_SERVER__MAX_MESSAGES_PER_READ'] = '1'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    config.maxMessagesPerRead.get() == 1
+  }
+
+  def "malformed max messages per read uses default"() {
+    given:
+    source['RATPACK_SERVER__MAX_MESSAGES_PER_READ'] = 'abcd'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    !config.maxMessagesPerRead.present
+  }
+
+  def "set receive buffer size"() {
+    given:
+    source['RATPACK_SERVER__RECEIVE_BUFFER_SIZE'] = '1'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    config.receiveBufferSize.get() == 1
+  }
+
+  def "malformed receive buffer size uses default"() {
+    given:
+    source['RATPACK_SERVER__RECEIVE_BUFFER_SIZE'] = 'abcd'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    !config.receiveBufferSize.present
+  }
+  def "set write spin count"() {
+    given:
+    source['RATPACK_SERVER__WRITE_SPIN_COUNT'] = '1'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    config.writeSpinCount.get() == 1
+  }
+
+  def "malformed write spin count uses default"() {
+    given:
+    source['RATPACK_SERVER__WRITE_SPIN_COUNT'] = 'abcd'
+
+    when:
+    def config = builder.env().build()
+
+    then:
+    !config.writeSpinCount.present
   }
 
 }

@@ -190,7 +190,26 @@ public class DefaultRatpackServer implements RatpackServer {
     SSLContext sslContext = serverConfig.getSSLContext();
     this.useSsl = sslContext != null;
 
-    return new ServerBootstrap()
+    ServerBootstrap serverBootstrap = new ServerBootstrap();
+
+    serverConfig.getConnectTimeoutMillis().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, i);
+      serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, i);
+    });
+    serverConfig.getMaxMessagesPerRead().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.MAX_MESSAGES_PER_READ, i);
+      serverBootstrap.childOption(ChannelOption.MAX_MESSAGES_PER_READ, i);
+    });
+    serverConfig.getReceiveBufferSize().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.SO_RCVBUF, i);
+      serverBootstrap.childOption(ChannelOption.SO_RCVBUF, i);
+    });
+    serverConfig.getWriteSpinCount().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.WRITE_SPIN_COUNT, i);
+      serverBootstrap.childOption(ChannelOption.WRITE_SPIN_COUNT, i);
+    });
+
+    return serverBootstrap
       .group(execController.getEventLoopGroup())
       .channel(ChannelImplDetector.getServerSocketChannelImpl())
       .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)

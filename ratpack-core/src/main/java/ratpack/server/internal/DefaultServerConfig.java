@@ -96,4 +96,24 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
     return baseDir.orElseThrow(() -> new NoBaseDirException("No base dir has been set"));
   }
 
+  @Override
+  public Optional<Integer> getConnectTimeoutMillis() {
+    return serverConfigData.getConnectTimeoutMillis();
+  }
+
+  @Override
+  public Optional<Integer> getMaxMessagesPerRead() {
+    return serverConfigData.getMaxMessagesPerRead();
+  }
+
+  @Override
+  public Optional<Integer> getReceiveBufferSize() {
+    return serverConfigData.getReceiveBufferSize();
+  }
+
+  @Override
+  public Optional<Integer> getWriteSpinCount() {
+    return serverConfigData.getWriteSpinCount();
+  }
+
 }

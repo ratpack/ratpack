@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.ServerConfigData;
 import ratpack.server.internal.ServerEnvironment;
@@ -33,8 +35,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigData> {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigDataDeserializer.class);
   private final ServerEnvironment serverEnvironment;
 
   public ServerConfigDataDeserializer(ServerEnvironment serverEnvironment) {
@@ -70,6 +74,19 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("baseDir")) {
       data.setBaseDir(toValue(codec, serverNode.get("baseDir"), Path.class));
     }
+    if (serverNode.hasNonNull("connectTimeoutMillis")) {
+      parseOptionalIntValue("connectTimeoutMillis", serverNode.get("connectTimeoutMillis")).ifPresent(data::setConnectTimeoutMillis);
+    }
+    if (serverNode.hasNonNull("maxMessagesPerRead")) {
+      parseOptionalIntValue("maxMessagesPerRead", serverNode.get("maxMessagesPerRead")).ifPresent(data::setMaxMessagesPerRead);
+    }
+    if (serverNode.hasNonNull("receiveBufferSize")) {
+      parseOptionalIntValue("receiveBufferSize", serverNode.get("receiveBufferSize")).ifPresent(data::setReceiveBufferSize);
+    }
+    if (serverNode.hasNonNull("writeSpinCount")) {
+      parseOptionalIntValue("writeSpinCount", serverNode.get("writeSpinCount")).ifPresent(data::setWriteSpinCount);
+    }
+
     return data;
   }
 
@@ -85,5 +102,14 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
       }
     }
     return codec.treeToValue(node, valueType);
+  }
+
+  public Optional<Integer> parseOptionalIntValue(String description, JsonNode node) {
+    try {
+      return Optional.of(Integer.parseInt(node.asText()));
+    } catch (NumberFormatException e) {
+      LOGGER.warn("Failed to parse {} value {} to int", description, node.asText());
+      return Optional.empty();
+    }
   }
 }

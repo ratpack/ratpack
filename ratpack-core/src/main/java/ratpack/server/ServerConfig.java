@@ -38,6 +38,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -225,6 +226,42 @@ public interface ServerConfig extends ConfigData {
   int getMaxContentLength();
 
   /**
+   * The connect timeout of the channel.
+   *
+   * @return The connect timeout in milliseconds
+   * @see <a href="http://netty.io/4.0/api/io/netty/channel/socket/ServerSocketChannelConfig.html#setConnectTimeoutMillis(int)" target="_blank">setConnectTimeoutMillis</a>
+   */
+  Optional<Integer> getConnectTimeoutMillis();
+
+  /**
+   * The maximum number of messages to read per read loop.
+   * <p>
+   * If this value is greater than 1, an event loop might attempt to read multiple times to procure multiple messages.
+   *
+   * @return The maximum number of messages to read
+   * @see <a href="http://netty.io/4.0/api/io/netty/channel/socket/ServerSocketChannelConfig.html#setMaxMessagesPerRead(int)" target="_blank">setMaxMessagesPerRead</a>
+   */
+  Optional<Integer> getMaxMessagesPerRead();
+
+  /**
+   * The <a href="http://docs.oracle.com/javase/7/docs/api/java/net/StandardSocketOptions.html?is-external=true#SO_RCVBUF" target="_blank">StandardSocketOptions.SO_RCVBUF</a> option.
+   *
+   * @return The receive buffer size
+   * @see <a href="http://netty.io/4.0/api/io/netty/channel/socket/ServerSocketChannelConfig.html#setReceiveBufferSize(int)" target="_blank">setReceiveBufferSize</a>
+   */
+  Optional<Integer> getReceiveBufferSize();
+
+  /**
+   * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.
+   * <p>
+   * It is similar to what a spin lock is used for in concurrency programming. It improves memory utilization and write throughput depending on the platform that JVM runs on.
+   *
+   * @return The write spin count
+   * @see <a href="http://netty.io/4.0/api/io/netty/channel/socket/ServerSocketChannelConfig.html#setWriteSpinCount(int)" target="_blank">setWriteSpinCount</a>
+   */
+  Optional<Integer> getWriteSpinCount();
+
+  /**
    * Whether or not the base dir of the application has been set.
    *
    * @return whether or not the base dir of the application has been set.
@@ -318,6 +355,42 @@ public interface ServerConfig extends ConfigData {
      * @see ServerConfig#getMaxContentLength()
      */
     Builder maxContentLength(int maxContentLength);
+
+    /**
+     * The connect timeout of the channel.
+     *
+     * @param connectTimeoutMillis the connect timeout in milliseconds
+     * @return {@code this}
+     * @see ServerConfig#getConnectTimeoutMillis()
+     */
+    Builder connectTimeoutMillis(int connectTimeoutMillis);
+
+    /**
+     * The maximum number of messages to read per read loop.
+     *
+     * @param maxMessagesPerRead the max messages per read
+     * @return {@code this}
+     * @see ServerConfig#getMaxMessagesPerRead()
+     */
+    Builder maxMessagesPerRead(int maxMessagesPerRead);
+
+    /**
+     * The <a href="http://docs.oracle.com/javase/7/docs/api/java/net/StandardSocketOptions.html?is-external=true#SO_RCVBUF" target="_blank">StandardSocketOptions.SO_RCVBUF</a> option.
+     *
+     * @param receiveBufferSize the recieve buffer size
+     * @return {@code this}
+     * @see ServerConfig#getReceiveBufferSize()
+     */
+    Builder receiveBufferSize(int receiveBufferSize);
+
+    /**
+     * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.
+     *
+     * @param writeSpinCount the write spin count
+     * @return {@code this}
+     * @see ServerConfig#getWriteSpinCount()
+     */
+    Builder writeSpinCount(int writeSpinCount);
 
     /**
      * The SSL context to use if the application serves content over HTTPS.

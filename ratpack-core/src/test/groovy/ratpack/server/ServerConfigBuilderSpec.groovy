@@ -144,4 +144,44 @@ class ServerConfigBuilderSpec extends Specification {
     sslContext
 
   }
+
+  def "new builder has default connect timeout millis"() {
+    expect:
+    !builder.build().connectTimeoutMillis.present
+  }
+
+  def "set connect timeout millis"() {
+    expect:
+    builder.connectTimeoutMillis(1000).build().connectTimeoutMillis.get() == 1000
+  }
+
+  def "new builder has default max messages per read"() {
+    expect:
+    !builder.build().maxMessagesPerRead.present
+  }
+
+  def "set max messages per read"() {
+    expect:
+    builder.maxMessagesPerRead(5).build().maxMessagesPerRead.get() == 5
+  }
+
+  def "new builder has default receive buffers size"() {
+    expect:
+    !builder.build().receiveBufferSize.present
+  }
+
+  def "set receive buffers size"() {
+    expect:
+    builder.receiveBufferSize(256).build().receiveBufferSize.get() == 256
+  }
+
+  def "new builder has default write spin count"() {
+    expect:
+    !builder.build().writeSpinCount.present
+  }
+
+  def "set write spin count"() {
+    expect:
+    builder.writeSpinCount(2).build().writeSpinCount.get() == 2
+  }
 }
