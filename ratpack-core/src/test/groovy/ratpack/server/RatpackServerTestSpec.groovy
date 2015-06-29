@@ -212,12 +212,10 @@ class RatpackServerTestSpec extends Specification {
         .serverConfig(ServerConfig.embedded()
           .connectTimeoutMillis(1000)
           .maxMessagesPerRead(3)
-          .receiveBufferSize(15)
           .writeSpinCount(10))
         .handlers {
           it.path("connectTimeoutMillis") { it.render it.directChannelAccess.channel.config().connectTimeoutMillis.toString() }
           it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().maxMessagesPerRead.toString() }
-          it.path("receiveBufferSize") { it.render it.directChannelAccess.channel.config().receiveBufferSize.toString() }
           it.path("writeSpinCount") { it.render it.directChannelAccess.channel.config().writeSpinCount.toString() }
         }
     } as Action<RatpackServerSpec>)
@@ -228,7 +226,6 @@ class RatpackServerTestSpec extends Specification {
     then:
     http.getText("connectTimeoutMillis") == "1000"
     http.getText("maxMessagesPerRead") == "3"
-    http.getText("receiveBufferSize") == "15"
     http.getText("writeSpinCount") == "10"
   }
 }
