@@ -20,7 +20,6 @@ import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
-import ratpack.exec.Execution;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.internal.DelegatingMutableRegistry;
 import ratpack.util.MultiValueMap;
