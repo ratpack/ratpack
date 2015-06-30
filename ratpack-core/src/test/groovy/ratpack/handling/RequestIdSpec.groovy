@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit
 
 class RequestIdSpec extends RatpackGroovyDslSpec {
 
-  def "add request uuids"() {
-    given: 'a ratpack app with the logging request handlers added'
+  def "add request id"() {
+    given:
     handlers {
       all RequestId.bind()
       all {
@@ -35,14 +35,35 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when: 'a response is received'
+    when:
     ReceivedResponse response = get()
 
-    then: 'a correlation id was returned'
+    then:
     response.body.text.length() == 36 // not the best test ever but UUIDs should be 36 characters long including the dashes.
   }
 
-  def "add request logging"() {
+  def "use custom request id generator"() {
+    given:
+    bindings {
+      bindInstance RequestId.Generator, { ctx ->
+          return { 'foo' } as RequestId
+      } as RequestId.Generator
+    }
+    handlers {
+      all RequestId.bind()
+      all {
+        render request.get(RequestId).id
+      }
+    }
+
+    when:
+    ReceivedResponse response = get()
+
+    then:
+    response.body.text == 'foo'
+  }
+
+  def "request log includes request id"() {
     def loggerOutput = new ByteArrayOutputStream()
     def logger = LoggerFactory.getLogger(RequestId)
     def originalStream = logger.TARGET_STREAM
@@ -60,6 +81,20 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     }
 
     given:
+    int count = 0
+    bindings {
+      bindInstance RequestId.Generator, { ctx ->
+        return new RequestId() {
+
+          private final String id = "request-${count++}"
+
+          @Override
+          String getId() {
+            return id
+          }
+        }
+      } as RequestId.Generator
+    }
     handlers {
       all RequestId.bindAndLog()
       path("foo") {
@@ -70,14 +105,15 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when: 'a request is sent'
+    when:
     ReceivedResponse getResponse = get("foo")
     ReceivedResponse postResponse = post("bar")
 
-    then: 'the request is logged with its correlation id'
+    then:
     latch.await(5, TimeUnit.SECONDS)
     String output = loggerOutput.toString()
-    output.contains("\"GET /foo HTTP/1.1\" 200 36 id=$getResponse.body.text")
-    output.contains("\"POST /bar HTTP/1.1\" 200 36 id=$postResponse.body.text")
+    output.contains("\"GET /foo HTTP/1.1\" 200 ${getResponse.body.text.length()} id=$getResponse.body.text")
+    output.contains("\"POST /bar HTTP/1.1\" 200 ${postResponse.body.text.length()} id=$postResponse.body.text")
+    count == 2
   }
 }

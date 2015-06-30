@@ -61,7 +61,7 @@ public class DefaultRequestLog implements RequestLog {
 
     request.maybeGet(RequestId.class).ifPresent(id1 -> {
       logLine.append(" id=");
-      logLine.append(id1.toString());
+      logLine.append(id1.getId());
     });
     return logLine.toString();
   }

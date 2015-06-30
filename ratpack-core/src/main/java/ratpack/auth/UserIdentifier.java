@@ -17,13 +17,13 @@
 package ratpack.auth;
 
 /**
- * TODO
+ * Interface for retrieving potential user identification data without being tied to the authentication system.
  */
 public interface UserIdentifier {
 
   /**
-   * TODO
-   * @return the unique identifier for the user
+   * The unique user identifier.
+   * @return the unique user identifier.
    */
   String getUserIdentifier();
 }

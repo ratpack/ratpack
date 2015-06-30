@@ -22,9 +22,13 @@ import ratpack.handling.internal.DefaultRequestLog;
 
 /**
  * An object that formats information about a {@link RequestOutcome}.
- * By default the server provides the {@link DefaultRequestLog} which outputs the NCSA Common log format.
+ * By default the server provides the {@link DefaultRequestLog} which outputs the NCSA Common log format (with a slight variation explained below).
  *
  * The user can override the output format by adding an instance of this interface to the server registry.
+ *
+ * The format for the request log is "host rfc931 username date:time request statuscode bytes" as defined by the NCSA Common (access logs) format (see link).
+ * However, if the {@link RequestId} is additionally being added to requests, the value of the request Id will be appended to the end of the request log in the form: id=requestId
+ * The resulting format is thus: "host rfc931 username date:time request statuscode bytes id=requestId"
  *
  * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common</a>
  */
@@ -43,6 +47,29 @@ public interface RequestLog {
    * Adds a handler that logs each request.
    * The format of the log is defined an instance of {@link RequestLog} in the registry.
    * By default, the server provides an instance of {@link DefaultRequestLog} which outputs the NCSA Common log format.
+   *
+   * <pre class="java">{@code
+   * import ratpack.handling.RequestLog;
+   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.test.embed.EmbeddedApp;
+   * import static org.junit.Assert.*;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.fromHandlers(chain -> chain
+   *       .all(RequestLog.log())
+   *       .all(ctx -> {
+   *         ctx.render("ok");
+   *       })
+   *     ).test(httpClient -> {
+   *       ReceivedResponse response = httpClient.get();
+   *       assertEquals("ok", response.getBody().getText());
+   *
+   *       // Check log output
+   *     });
+   *   }
+   * }
+   * }</pre>
    *
    * @return a handler that logs each request
    *
