@@ -23,6 +23,7 @@
 [defaultdriver]: browser.html#the_default_driver
 [defaultdriver-lifecycle]: browser.html#lifecycle
 [spock]: http://spockframework.org/
+[asset-pipeline]: https://github.com/bertramdev/asset-pipeline-core
 [junit]: http://www.junit.org/
 [testng]: http://testng.org/
 [cuke4duke]: https://github.com/cucumber/cuke4duke/wiki
