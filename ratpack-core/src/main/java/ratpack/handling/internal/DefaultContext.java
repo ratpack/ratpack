@@ -154,7 +154,11 @@ public class DefaultContext implements Context {
           .add(Response.class, requestConstants.response)
       )
       .eventLoop(eventLoop)
-      .start(e -> context.next());
+      .start(e -> {
+        requestConstants.request.setDelegate(e);
+        e.setRequest(requestConstants.request);
+        context.next();
+      });
   }
 
   public DefaultContext(RequestConstants requestConstants) {
@@ -163,6 +167,10 @@ public class DefaultContext implements Context {
 
   private Registry getRegistry() {
     return requestConstants.indexes.peek().registry;
+  }
+
+  private Registry getJoinedRegistry() {
+    return getRegistry().join(requestConstants.request);
   }
 
   private void setRegistry(Registry registry) {
@@ -310,7 +318,7 @@ public class DefaultContext implements Context {
     }
     final String finalRequestContentType = requestContentType;
 
-    return getRegistry()
+    return getJoinedRegistry()
       .first(PARSER_TYPE_TOKEN, parser -> {
         if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
           Parser<O> cast = Types.cast(parser);
@@ -354,7 +362,7 @@ public class DefaultContext implements Context {
   }
 
   public void redirect(int code, String location) {
-    Redirector redirector = getRegistry().get(Redirector.class);
+    Redirector redirector = getJoinedRegistry().get(Redirector.class);
     redirector.redirect(this, location, code);
   }
 
@@ -442,22 +450,22 @@ public class DefaultContext implements Context {
 
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return getRegistry().get(type);
+    return getJoinedRegistry().get(type);
   }
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return getRegistry().maybeGet(type);
+    return getJoinedRegistry().maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return getRegistry().getAll(type);
+    return getJoinedRegistry().getAll(type);
   }
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return getRegistry().first(type, function);
+    return getJoinedRegistry().first(type, function);
   }
 
 }

@@ -32,7 +32,6 @@ import ratpack.http.Request;
 import ratpack.http.TypedData;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -44,7 +43,7 @@ import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
-  private final MutableRegistry registry = new SimpleMutableRegistry();
+  private MutableRegistry delegate;
 
   private final Headers headers;
   private final ByteBuf content;
@@ -227,33 +226,42 @@ public class DefaultRequest implements Request {
 
   @Override
   public <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
-    registry.addLazy(type, supplier);
+    getDelegate().addLazy(type, supplier);
     return this;
   }
 
   @Override
   public <O> Request add(TypeToken<? super O> type, O object) {
-    registry.add(type, object);
+    getDelegate().add(type, object);
     return this;
   }
 
   @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
-    registry.remove(type);
+    getDelegate().remove(type);
   }
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return registry.maybeGet(type);
+    return getDelegate().maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return registry.getAll(type);
+    return getDelegate().getAll(type);
   }
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return registry.first(type, function);
+    return getDelegate().first(type, function);
+  }
+
+  @Override
+  public MutableRegistry getDelegate() {
+    return delegate;
+  }
+
+  public void setDelegate(MutableRegistry delegate) {
+    this.delegate = delegate;
   }
 }
