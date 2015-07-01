@@ -27,7 +27,6 @@ import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Context;
 import ratpack.handling.internal.DescribingHandler;
-import ratpack.registry.internal.HierarchicalRegistry;
 
 public class ClosureBackedHandler implements DescribingHandler {
 
@@ -38,7 +37,7 @@ public class ClosureBackedHandler implements DescribingHandler {
   }
 
   public void handle(Context context) {
-    invoker.invoke(new HierarchicalRegistry(context.getRequest(), context), GroovyContext.from(context), Closure.DELEGATE_FIRST);
+    invoker.invoke(context, GroovyContext.from(context), Closure.DELEGATE_FIRST);
   }
 
   @Override
