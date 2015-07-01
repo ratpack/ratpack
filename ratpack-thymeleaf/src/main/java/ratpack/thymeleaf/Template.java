@@ -17,10 +17,16 @@
 package ratpack.thymeleaf;
 
 import com.google.common.collect.ImmutableMap;
-import org.thymeleaf.context.Context;
+import org.thymeleaf.context.WebContext;
 import org.thymeleaf.fragment.IFragmentSpec;
 import org.thymeleaf.fragment.WholeFragmentSpec;
+import ratpack.thymeleaf.internal.ThymeleafHttpServletRequestAdapter;
+import ratpack.thymeleaf.internal.ThymeleafHttpServletResponseAdapter;
+import ratpack.thymeleaf.internal.ThymeleafServletContextAdapter;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -28,7 +34,7 @@ import java.util.function.Consumer;
 public class Template {
 
   private final String name;
-  private final Context model;
+  private final WebContext model;
   private final String contentType;
   private final IFragmentSpec fragmentSpec;
 
@@ -36,7 +42,7 @@ public class Template {
     return name;
   }
 
-  public Context getModel() {
+  public WebContext getModel() {
     return model;
   }
 
@@ -48,7 +54,7 @@ public class Template {
     return fragmentSpec;
   }
 
-  private Template(String name, Context model, String contentType, IFragmentSpec fragmentSpec) {
+  private Template(String name, WebContext model, String contentType, IFragmentSpec fragmentSpec) {
     this.name = name;
     this.model = model;
     this.contentType = contentType;
@@ -95,7 +101,10 @@ public class Template {
 
 
   public static Template thymeleafTemplate(Map<String, ?> model, String name, String contentType, IFragmentSpec fragmentSpec) {
-    Context context = new Context();
+    HttpServletRequest request = new ThymeleafHttpServletRequestAdapter();
+    HttpServletResponse response = new ThymeleafHttpServletResponseAdapter();
+    ServletContext servletContext = new ThymeleafServletContextAdapter();
+    WebContext context = new WebContext(request, response, servletContext);
     if (model != null) {
       context.setVariables(model);
     }
