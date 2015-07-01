@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
+import ratpack.http.Request;
 import ratpack.registry.MutableRegistry;
 
 import java.util.function.Supplier;
@@ -122,4 +123,6 @@ public interface Execution extends MutableRegistry, ExecControl {
    */
   @Override
   <O> Execution addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
+
+  void setRequest(Request request);
 }

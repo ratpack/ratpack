@@ -56,7 +56,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     text == Thing.name
   }
 
-  def "context scope shadows request scope for handlers"() {
+  def "request scope shadows context scope for handlers"() {
     when:
     bindings {
       bindInstance "bar"
@@ -74,7 +74,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "${Thing.name} bar"
+    text == "${Thing.name} foo"
   }
 
 }
