@@ -76,6 +76,11 @@ public class DelegatingServerConfig extends DelegatingConfigData implements Serv
   }
 
   @Override
+  public boolean isRequireClientSslAuth() {
+    return delegate.isRequireClientSslAuth();
+  }
+
+  @Override
   public int getMaxContentLength() {
     return delegate.getMaxContentLength();
   }

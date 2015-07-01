@@ -123,6 +123,12 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
+  public ServerConfig.Builder requireClientSslAuth(boolean requireClientSslAuth) {
+    serverConfigData.put("requireClientSslAuth", requireClientSslAuth);
+    return this;
+  }
+
+  @Override
   public ServerConfig.Builder configureObjectMapper(Action<ObjectMapper> action) {
     super.configureObjectMapper(action);
     return this;

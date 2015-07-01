@@ -104,9 +104,14 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
           ChannelPipeline p = ch.pipeline();
 
           if (finalUseSsl) {
-            SSLEngine engine = SSLContext.getDefault().createSSLEngine();
-            engine.setUseClientMode(true);
-            p.addLast("ssl", new SslHandler(engine));
+            SSLEngine sslEngine = null;
+            if (requestSpecBacking.getSslContext() != null) {
+              sslEngine = requestSpecBacking.getSslContext().createSSLEngine();
+            } else {
+              sslEngine = SSLContext.getDefault().createSSLEngine();
+            }
+            sslEngine.setUseClientMode(true);
+            p.addLast("ssl", new SslHandler(sslEngine));
           }
 
           p.addLast("codec", new HttpClientCodec());

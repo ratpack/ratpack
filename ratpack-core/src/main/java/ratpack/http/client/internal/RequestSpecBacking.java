@@ -28,6 +28,7 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 
+import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -45,6 +46,7 @@ class RequestSpecBacking {
 
   private String method = "GET";
   private int maxRedirects = 10;
+  private SSLContext sslContext;
 
   public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
     this.headers = headers;
@@ -68,6 +70,11 @@ class RequestSpecBacking {
   }
 
   @Nullable
+  public SSLContext getSslContext() {
+    return sslContext;
+  }
+
+  @Nullable
   public ByteBuf getBody() {
     return bodyByteBuf;
   }
@@ -84,6 +91,12 @@ class RequestSpecBacking {
     public RequestSpec redirects(int maxRedirects) {
       Preconditions.checkArgument(maxRedirects >= 0);
       RequestSpecBacking.this.maxRedirects = maxRedirects;
+      return this;
+    }
+
+    @Override
+    public RequestSpec sslContext(SSLContext sslContext) {
+      RequestSpecBacking.this.sslContext = sslContext;
       return this;
     }
 
