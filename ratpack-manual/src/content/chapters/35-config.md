@@ -43,6 +43,7 @@ The default `Properties`/`Map` config source uses the following rules:
 * The key is split into per-object segments using dot (".") as an object boundary
 * Integer indexes between square brackets may be used to populate lists
   * This is supported both for simple values (strings) and objects (which would then have additional segments after the index)
+  * This syntax is not supported for environment variables. 
 
 ## Usage
 
