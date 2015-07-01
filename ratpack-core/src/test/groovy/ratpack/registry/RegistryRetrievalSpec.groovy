@@ -16,7 +16,6 @@
 
 package ratpack.registry
 
-import ratpack.exec.Execution
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
@@ -43,7 +42,8 @@ class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
   }
 
   def "Request registry and Execution registry are the same"() {
-    given: {
+    given:
+    {
       handlers {
         all {
           request.add("request 2")
@@ -52,9 +52,6 @@ class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
         all {
           request.add("request 1")
           next()
-        }
-        get("execution") {
-          render Execution.execution().getAll(String).join(', ')
         }
       }
 
@@ -85,9 +82,6 @@ class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
       }
       get {
         render getAll(String).join(', ')
-      }
-      get("execution") {
-        render Execution.execution().getAll(String).join(', ')
       }
     }
 
