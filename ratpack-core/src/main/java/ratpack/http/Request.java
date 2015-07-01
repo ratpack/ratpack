@@ -21,7 +21,6 @@ import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.registry.MutableRegistry;
-import ratpack.registry.internal.DelegatingMutableRegistry;
 import ratpack.util.MultiValueMap;
 
 import java.time.Instant;
@@ -31,7 +30,7 @@ import java.util.function.Supplier;
 /**
  * A request to be handled.
  */
-public interface Request extends DelegatingMutableRegistry {
+public interface Request extends MutableRegistry {
 
   /**
    * The method of the request.
@@ -156,37 +155,25 @@ public interface Request extends DelegatingMutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  default <O> Request add(Class<? super O> type, O object) {
-    getDelegate().add(type, object);
-    return this;
-  }
+  <O> Request add(Class<? super O> type, O object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default <O> Request add(TypeToken<? super O> type, O object) {
-    getDelegate().add(type, object);
-    return this;
-  }
+  <O> Request add(TypeToken<? super O> type, O object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default Request add(Object object) {
-    getDelegate().add(object);
-    return this;
-  }
+  Request add(Object object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier) {
-    getDelegate().addLazy(type, supplier);
-    return this;
-  }
+  <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier);
 
   /**
    * {@inheritDoc}
@@ -194,5 +181,4 @@ public interface Request extends DelegatingMutableRegistry {
   @Override
   <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
 
-  void setDelegate(MutableRegistry delegate);
 }

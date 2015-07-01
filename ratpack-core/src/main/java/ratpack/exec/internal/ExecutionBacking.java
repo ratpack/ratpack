@@ -60,6 +60,7 @@ public class ExecutionBacking {
     Action<? super RegistrySpec> registry,
     Action<? super Execution> action,
     BiAction<? super Execution, ? super Throwable> onError,
+    Action<? super Execution> onStart,
     Action<? super Execution> onComplete
   ) throws Exception {
     this.eventLoop = eventLoop;
@@ -68,6 +69,7 @@ public class ExecutionBacking {
     this.execution = new DefaultExecution(eventLoop, controller, closeables);
 
     registry.execute(execution);
+    onStart.execute(execution);
 
     this.registryInterceptors = ImmutableList.copyOf(execution.getAll(ExecInterceptor.class));
     this.globalInterceptors = globalInterceptors;

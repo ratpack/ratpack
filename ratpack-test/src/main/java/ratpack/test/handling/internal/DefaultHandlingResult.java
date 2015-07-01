@@ -35,7 +35,11 @@ import ratpack.handling.internal.ChainHandler;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
-import ratpack.http.*;
+import ratpack.http.Headers;
+import ratpack.http.MutableHeaders;
+import ratpack.http.Response;
+import ratpack.http.Status;
+import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
@@ -65,7 +69,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private ResultsHolder results;
 
-  public DefaultHandlingResult(final Request request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, final Handler handler) throws Exception {
+  public DefaultHandlingResult(final DefaultRequest request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs

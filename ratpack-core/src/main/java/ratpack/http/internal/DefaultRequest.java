@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
-  private MutableRegistry delegate;
+  private MutableRegistry registry;
 
   private final Headers headers;
   private final ByteBuf content;
@@ -226,42 +226,63 @@ public class DefaultRequest implements Request {
 
   @Override
   public <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
-    getDelegate().addLazy(type, supplier);
+    getDelegateRegistry().addLazy(type, supplier);
     return this;
   }
 
   @Override
   public <O> Request add(TypeToken<? super O> type, O object) {
-    getDelegate().add(type, object);
+    getDelegateRegistry().add(type, object);
+    return this;
+  }
+
+  @Override
+  public <O> Request add(Class<? super O> type, O object) {
+    getDelegateRegistry().add(type, object);
+    return this;
+  }
+
+  @Override
+  public Request add(Object object) {
+    getDelegateRegistry().add(object);
+    return this;
+  }
+
+  @Override
+  public <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    getDelegateRegistry().addLazy(type, supplier);
     return this;
   }
 
   @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
-    getDelegate().remove(type);
+    getDelegateRegistry().remove(type);
   }
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return getDelegate().maybeGet(type);
+    return getDelegateRegistry().maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return getDelegate().getAll(type);
+    return getDelegateRegistry().getAll(type);
   }
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return getDelegate().first(type, function);
+    return getDelegateRegistry().first(type, function);
   }
 
-  @Override
-  public MutableRegistry getDelegate() {
-    return delegate;
+  private MutableRegistry getDelegateRegistry() {
+    if (registry == null) {
+      throw new IllegalStateException("Cannot access registry before it has been set");
+    }
+    return registry;
   }
 
-  public void setDelegate(MutableRegistry delegate) {
-    this.delegate = delegate;
+  // Implemented as static method (instead of public instance) so that it's not accidentally callable from dynamic languages
+  public static void setDelegateRegistry(DefaultRequest request, MutableRegistry registry) {
+    request.registry = registry;
   }
 }

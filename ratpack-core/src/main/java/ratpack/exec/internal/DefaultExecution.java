@@ -22,7 +22,6 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Block;
-import ratpack.http.Request;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
@@ -35,8 +34,6 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   private final EventLoop eventLoop;
   private final ExecController controller;
   private final List<AutoCloseable> closeables;
-
-  private Request request;
 
   public DefaultExecution(EventLoop eventLoop, ExecController controller, List<AutoCloseable> closeables) {
     this.eventLoop = eventLoop;
@@ -115,8 +112,4 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
     getControl().addInterceptor(execInterceptor, continuation);
   }
 
-  @Override
-  public void setRequest(Request request) {
-    this.request = request;
-  }
 }

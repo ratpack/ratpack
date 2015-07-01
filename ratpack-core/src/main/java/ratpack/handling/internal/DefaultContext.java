@@ -38,6 +38,7 @@ import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.internal.ContentNegotiationHandler;
+import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.MultiMethodHandler;
 import ratpack.parse.NoSuchParserException;
@@ -89,7 +90,7 @@ public class DefaultContext implements Context {
   public static class RequestConstants {
     private final ApplicationConstants applicationConstants;
 
-    private final Request request;
+    private final DefaultRequest request;
 
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
@@ -101,7 +102,7 @@ public class DefaultContext implements Context {
     public Handler handler;
 
     public RequestConstants(
-      ApplicationConstants applicationConstants, Request request,
+      ApplicationConstants applicationConstants, DefaultRequest request,
       DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
@@ -154,11 +155,8 @@ public class DefaultContext implements Context {
           .add(Response.class, requestConstants.response)
       )
       .eventLoop(eventLoop)
-      .start(e -> {
-        requestConstants.request.setDelegate(e);
-        e.setRequest(requestConstants.request);
-        context.next();
-      });
+      .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
+      .start(e -> context.next());
   }
 
   public DefaultContext(RequestConstants requestConstants) {

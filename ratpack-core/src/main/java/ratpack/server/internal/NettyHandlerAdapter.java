@@ -39,7 +39,6 @@ import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DescribingHandler;
 import ratpack.handling.internal.DescribingHandlers;
 import ratpack.http.MutableHeaders;
-import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.internal.*;
 import ratpack.registry.Registry;
@@ -103,7 +102,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-    final Request request = new DefaultRequest(
+    final DefaultRequest request = new DefaultRequest(
       Instant.now(),
       new NettyHeadersBackedHeaders(nettyRequest.headers()),
       nettyRequest.method(),
