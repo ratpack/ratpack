@@ -200,7 +200,7 @@ task configureWriteTestConfig {
 }
 
 task browserTest(type: Test) {
-  dependsOn assetCompile
+//  dependsOn assetCompile
   testClassesDir = sourceSets.browserTest.output.classesDir
   classpath = sourceSets.browserTest.runtimeClasspath
 
