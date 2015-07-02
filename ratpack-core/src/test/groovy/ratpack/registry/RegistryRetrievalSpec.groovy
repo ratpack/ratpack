@@ -16,6 +16,7 @@
 
 package ratpack.registry
 
+import ratpack.exec.Execution
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
@@ -43,21 +44,22 @@ class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
 
   def "Request registry and Execution registry are the same"() {
     given:
-    {
-      handlers {
-        all {
-          request.add("request 2")
-          next()
-        }
-        all {
-          request.add("request 1")
-          next()
-        }
+    handlers {
+      all {
+        request.add("request 2")
+        next()
       }
-
-      expect:
-      text == "1, 2"
+      all {
+        request.add("request 1")
+        next()
+      }
+      all {
+        render Execution.execution().getAll(String).join(', ')
+      }
     }
+
+    expect:
+    text == "request 1, request 2"
   }
 
   def "Context should check request registry first"() {
