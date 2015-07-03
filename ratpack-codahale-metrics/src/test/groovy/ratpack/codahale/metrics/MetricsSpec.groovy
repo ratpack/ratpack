@@ -73,6 +73,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         .jmx()
         .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
         .console { it.reporterInterval(Duration.ofSeconds(1)) }
+        .slf4j { it.reporterInterval(Duration.ofSeconds(1)).prefix("test.") }
       }
     }
     handlers { MetricRegistry metrics ->
@@ -476,6 +477,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     bindings {
       module new CodaHaleMetricsModule(), {
         it.console { it.reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*") }
+        it.slf4j { it.reporterInterval(Duration.ofSeconds(1)).prefix("test.").includeFilter(".*ar.*").excludeFilter(".*bar.*") }
         it.jmx { it.includeFilter(".*ar.*") }
         it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
       }
