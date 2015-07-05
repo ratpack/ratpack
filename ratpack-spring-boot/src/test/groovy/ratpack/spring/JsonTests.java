@@ -97,8 +97,10 @@ public class JsonTests {
     public Handler handler() {
       // @formatter:off
       return context -> context.byMethod(spec -> spec.get(() -> context.render(json(map))).post(() -> {
-        map.putAll(context.parse(fromJson(Map.class)));
-        context.render(json(map));
+        context.parse(fromJson(Map.class)).then(m -> {
+          map.putAll(m);
+          context.render(json(map));
+        });
       }));
       // @formatter:on
     }

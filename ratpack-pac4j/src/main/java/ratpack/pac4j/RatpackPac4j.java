@@ -24,9 +24,8 @@ import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.auth.UserIdentifier;
-import ratpack.exec.Fulfiller;
-import ratpack.exec.Operation;
-import ratpack.exec.Promise;
+import ratpack.exec.*;
+import ratpack.form.Form;
 import ratpack.func.Block;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
@@ -392,12 +391,13 @@ public class RatpackPac4j {
    * @param ctx the Ratpack context
    * @return a Pac4j web context
    */
-  public static Promise<WebContext> webContext(Context ctx) {
-    return ctx.get(Session.class).getData().map(session -> webContext(ctx, session));
+  public static Promise<RatpackWebContext> webContext(Context ctx) {
+    return ctx.get(Session.class).getData().flatMap(session -> webContext(ctx, session));
   }
 
-  private static RatpackWebContext webContext(Context ctx, SessionData sessionData) {
-    return new RatpackWebContext(ctx, sessionData);
+  private static Promise<RatpackWebContext> webContext(Context ctx, SessionData sessionData) {
+    return ExecControl.execControl().blocking(() -> new RatpackWebContext(ctx, ctx.getRequest().getBody().block(),
+      ctx.parse(Form.class).onError(t -> Execution.execution().promiseOf((Form) null)).block(), sessionData));
   }
 
   private static <T extends UserProfile> void toProfile(Class<T> type, Fulfiller<Optional<T>> fulfiller, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
@@ -418,10 +418,8 @@ public class RatpackPac4j {
     Clients clients = ctx.get(Clients.class);
     Client<?, ?> client = clients.findClient(clientType);
 
-    ctx.get(Session.class).getData().then(session -> {
-      RatpackWebContext webContext = webContext(ctx, session);
-      session.set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
-
+    webContext(ctx).then(webContext -> {
+      webContext.getSession().set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
       try {
         client.redirect(webContext, true, request.isAjaxRequest());
       } catch (Exception e) {

@@ -17,6 +17,7 @@
 package ratpack.parse;
 
 import ratpack.api.Nullable;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 
@@ -64,6 +65,6 @@ public interface Parser<O> {
    * @throws Exception if an error occurs parsing the request
    */
   @Nullable
-  <T> T parse(Context context, TypedData requestBody, Parse<T, O> parse) throws Exception;
+  <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, Parse<T, O> parse) throws Exception;
 
 }

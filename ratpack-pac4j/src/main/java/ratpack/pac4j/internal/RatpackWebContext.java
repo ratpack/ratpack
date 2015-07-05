@@ -27,9 +27,9 @@ import ratpack.handling.Context;
 import ratpack.http.HttpMethod;
 import ratpack.http.MediaType;
 import ratpack.http.Request;
+import ratpack.http.TypedData;
 import ratpack.server.PublicAddress;
 import ratpack.session.SessionData;
-import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
@@ -42,21 +42,24 @@ public class RatpackWebContext implements WebContext {
   private final Context context;
   private final SessionData session;
   private final Request request;
+  private final TypedData body;
+  private final Form form;
 
   private String responseContent = "";
-  private Form form;
 
-  public RatpackWebContext(Context context, SessionData session) {
+  public RatpackWebContext(Context context, TypedData body, Form form, SessionData session) {
     this.context = context;
     this.session = session;
     this.request = context.getRequest();
+    this.body = body;
+    this.form = form;
   }
 
   @Override
   public String getRequestParameter(String name) {
     String value = request.getQueryParams().get(name);
     if (value == null && isFormAvailable()) {
-      value = getForm().get(name);
+      value = form.get(name);
     }
     return value;
   }
@@ -64,7 +67,7 @@ public class RatpackWebContext implements WebContext {
   @Override
   public Map<String, String[]> getRequestParameters() {
     if (isFormAvailable()) {
-      return flattenMap(combineMaps(request.getQueryParams(), getForm()));
+      return flattenMap(combineMaps(request.getQueryParams(), form));
     } else {
       return flattenMap(request.getQueryParams().getAll());
     }
@@ -143,20 +146,17 @@ public class RatpackWebContext implements WebContext {
     }
   }
 
+  public SessionData getSession() {
+    return session;
+  }
+
   private URI getAddress() {
     return context.get(PublicAddress.class).getAddress(context);
   }
 
   private boolean isFormAvailable() {
     HttpMethod method = request.getMethod();
-    return request.getBody().getContentType().isForm() && (method.isPost() || method.isPut());
-  }
-
-  private Form getForm() {
-    if (form == null) {
-      form = Exceptions.uncheck(() -> context.parse(Form.class));
-    }
-    return form;
+    return body.getContentType().isForm() && (method.isPost() || method.isPut());
   }
 
   private Map<String, List<String>> combineMaps(MultiValueMap<String, String> first, MultiValueMap<String, String> second) {

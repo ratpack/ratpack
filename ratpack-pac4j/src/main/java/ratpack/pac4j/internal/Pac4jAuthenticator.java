@@ -26,10 +26,11 @@ import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.pac4j.RatpackPac4j;
 import ratpack.path.PathBinding;
 import ratpack.registry.Registry;
 import ratpack.server.PublicAddress;
-import ratpack.session.Session;
+import ratpack.session.SessionData;
 import ratpack.util.Types;
 
 import java.util.List;
@@ -58,8 +59,9 @@ public class Pac4jAuthenticator implements Handler {
     Clients clients = new Clients(absoluteCallbackUrl, cast);
 
     if (pastBinding.equals(path)) {
-      ctx.get(Session.class).getData().then(sessionData -> {
-        RatpackWebContext webContext = new RatpackWebContext(ctx, sessionData);
+
+      RatpackPac4j.webContext(ctx).then(webContext -> {
+        SessionData sessionData = webContext.getSession();
         try {
           Client<?, ?> client = clients.findClient(webContext);
           UserProfile profile = getProfile(webContext, client);

@@ -43,11 +43,12 @@ import java.util.List;
  * public class Example {
  *   public static class FormHandler implements Handler {
  *     public void handle(Context context) throws Exception {
- *       Form form = context.parse(Form.class);
- *       UploadedFile file = form.file("someFile.txt");
- *       String param = form.get("param");
- *       List&lt;String&gt; multi = form.getAll("multi");
- *       context.render("form uploaded!");
+ *       context.parse(Form.class).then(form -&gt; {
+ *         UploadedFile file = form.file("someFile.txt");
+ *         String param = form.get("param");
+ *         List&lt;String&gt; multi = form.getAll("multi");
+ *         context.render("form uploaded!");
+ *       });
  *     }
  *   }
  * }

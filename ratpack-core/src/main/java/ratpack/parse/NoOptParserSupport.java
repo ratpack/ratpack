@@ -17,6 +17,7 @@
 package ratpack.parse;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 
@@ -26,6 +27,7 @@ import ratpack.http.TypedData;
  * The following is an example of an implementation that parses to an {@code Integer}.
  * <pre class="java">{@code
  * import com.google.common.reflect.TypeToken;
+ * import ratpack.exec.Promise;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
  * import ratpack.http.TypedData;
@@ -42,19 +44,20 @@ import ratpack.http.TypedData;
  *       super("text/plain");
  *     }
  *
- *     public <T> T parse(Context context, TypedData body, TypeToken<T> type) {
- *       if (type.getRawType().equals(Integer.class)) {
- *         return Types.cast(Integer.valueOf(body.getText()));
- *       } else {
- *         return null;
- *       }
+ *     public <T> Promise<T> parse(Context context, Promise<TypedData> body, TypeToken<T> type) {
+ *       return body.map(b -> {
+ *         if (type.getRawType().equals(Integer.class)) {
+ *           return Types.cast(Integer.valueOf(b.getText()));
+ *         } else {
+ *           return null;
+ *         }
+ *       });
  *     }
  *   }
  *
  *   public static class ExampleHandler implements Handler {
  *     public void handle(Context context) throws Exception {
- *       Integer integer = context.parse(Integer.class);
- *       context.render(integer.toString());
+ *       context.parse(Integer.class).then(integer -> context.render(integer.toString()));
  *     }
  *   }
  *
@@ -83,17 +86,17 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
   }
 
   /**
-   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
+   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.exec.Promise, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
    *
    * @param context The context to deserialize
    * @param requestBody The request body to deserialize
    * @param parse The description of how to parse the request body
    * @param <T> the type of object to construct from the request body
-   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
-   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
+   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.exec.Promise, TypeToken)}
+   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.exec.Promise, TypeToken)}
    */
   @Override
-  public final <T> T parse(Context context, TypedData requestBody, Parse<T, NullParseOpts> parse) throws Exception {
+  public final <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, Parse<T, NullParseOpts> parse) throws Exception {
     return parse(context, requestBody, parse.getType());
   }
 
@@ -107,6 +110,6 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
    * @return an instance of {@code T} if this parser can construct this type, otherwise {@code null}
    * @throws Exception any exception thrown while parsing
    */
-  abstract protected <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception;
+  abstract protected <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, TypeToken<T> type) throws Exception;
 
 }

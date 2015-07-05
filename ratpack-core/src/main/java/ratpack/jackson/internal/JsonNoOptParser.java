@@ -17,6 +17,7 @@
 package ratpack.jackson.internal;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.jackson.Jackson;
@@ -29,7 +30,7 @@ public class JsonNoOptParser extends NoOptParserSupport {
   }
 
   @Override
-  public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
+  public <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, TypeToken<T> type) throws Exception {
     return context.parse(Jackson.fromJson(type));
   }
 

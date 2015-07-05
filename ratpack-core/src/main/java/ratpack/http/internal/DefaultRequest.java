@@ -25,6 +25,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import ratpack.exec.ExecControl;
+import ratpack.exec.Promise;
 import ratpack.func.Function;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
@@ -54,7 +56,7 @@ public class DefaultRequest implements Request {
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
 
-  private TypedData body;
+  private Promise<TypedData> body;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -202,9 +204,9 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public TypedData getBody() {
+  public Promise<TypedData> getBody() {
     if (body == null) {
-      body = new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE)));
+      body = ExecControl.current().promiseOf(new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE))));
     }
     return body;
   }
