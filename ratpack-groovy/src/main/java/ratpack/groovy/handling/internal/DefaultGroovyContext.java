@@ -211,27 +211,27 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> T parse(Class<T> type) throws Exception {
+  public <T> Promise<T> parse(Class<T> type) {
     return delegate.parse(type);
   }
 
   @Override
-  public <T> T parse(TypeToken<T> type) throws Exception {
+  public <T> Promise<T> parse(TypeToken<T> type) {
     return delegate.parse(type);
   }
 
   @Override
-  public <T, O> T parse(TypeToken<T> type, O options) throws Exception {
+  public <T, O> Promise<T> parse(TypeToken<T> type, O options) {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> T parse(Class<T> type, O options) throws Exception {
+  public <T, O> Promise<T> parse(Class<T> type, O options) {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> T parse(Parse<T, O> parse) throws Exception {
+  public <T, O> Promise<T> parse(Parse<T, O> parse) {
     return delegate.parse(parse);
   }
 

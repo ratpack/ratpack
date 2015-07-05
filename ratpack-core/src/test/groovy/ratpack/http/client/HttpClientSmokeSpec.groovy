@@ -60,7 +60,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     given:
     otherApp {
       post("foo") {
-        render request.body.text
+        request.body.then { body ->
+          render body.text
+        }
       }
     }
 
@@ -117,7 +119,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     given:
     otherApp {
       post {
-        render request.body.text
+        request.body.then { body ->
+          render body.text
+        }
       }
     }
 
@@ -142,7 +146,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     given:
     otherApp {
       post {
-        render request.body.text
+        request.body.then { body ->
+          render body.text
+        }
       }
     }
 
@@ -215,8 +221,10 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     given:
     otherApp {
       post {
-        assert request.body.contentType.toString() == "text/plain;charset=UTF-8"
-        render request.body.text
+        request.body.then { body ->
+          assert body.contentType.toString() == "text/plain;charset=UTF-8"
+          render body.text
+        }
       }
     }
 
@@ -239,7 +247,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     given:
     otherApp {
       post {
-        render request.body.contentType.toString()
+        request.body.then { body ->
+          render body.contentType.toString()
+        }
       }
     }
 

@@ -98,16 +98,13 @@ public class Example {
       .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asNode", ctx -> {
-          JsonNode node = ctx.parse(jsonNode());
-          ctx.render(node.get("name").asText());
+          ctx.parse(jsonNode()).then(node -> ctx.render(node.get("name").asText()));
         })
         .post("asPerson", ctx -> {
-          Person person = ctx.parse(fromJson(Person.class));
-          ctx.render(person.getName());
+          ctx.parse(fromJson(Person.class)).then(person -> ctx.render(person.getName()));
         })
         .post("asPersonList", ctx -> {
-          List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
-          ctx.render(person.get(0).getName());
+          ctx.parse(fromJson(listOf(Person.class))).then(person -> ctx.render(person.get(0).getName()));
         })
       )
     ).test(httpClient -> {
@@ -162,12 +159,10 @@ public class Example {
       .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asPerson", ctx -> {
-          Person person = ctx.parse(Person.class);
-          ctx.render(person.getName());
+          ctx.parse(Person.class).then(person -> ctx.render(person.getName()));
         })
         .post("asPersonList", ctx -> {
-          List<Person> person = ctx.parse(listOf(Person.class));
-          ctx.render(person.get(0).getName());
+          ctx.parse(listOf(Person.class)).then(person -> ctx.render(person.get(0).getName()));
         })
       )
     ).test(httpClient -> {

@@ -17,6 +17,7 @@
 package ratpack.form.internal;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
@@ -34,9 +35,9 @@ public class FormNoOptParser extends NoOptParserSupport {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
+  public <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, TypeToken<T> type) throws Exception {
     if (type.equals(FORM_TYPE)) {
-      return (T) FormDecoder.parseForm(context, requestBody, empty());
+      return (Promise) FormDecoder.parseForm(context, requestBody, empty());
     } else {
       return null;
     }

@@ -17,6 +17,7 @@
 package ratpack.form.internal;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.form.FormParseOpts;
 import ratpack.handling.Context;
@@ -37,11 +38,11 @@ public class FormParser extends ParserSupport<FormParseOpts> {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T parse(Context context, TypedData requestBody, Parse<T, FormParseOpts> parse) throws Exception {
+  public <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, Parse<T, FormParseOpts> parse) throws Exception {
     if (parse.getType().equals(FORM_TYPE)) {
       MultiValueMap<String, String> base =
         parse.getOpts().isIncludeQueryParams() ? context.getRequest().getQueryParams() : empty();
-      return (T) FormDecoder.parseForm(context, requestBody, base);
+      return (Promise) FormDecoder.parseForm(context, requestBody, base);
     } else {
       return null;
     }

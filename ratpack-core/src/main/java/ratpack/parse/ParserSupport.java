@@ -21,8 +21,9 @@ import com.google.common.reflect.TypeToken;
 /**
  * A convenience superclass for {@link Parser} implementations.
  * <p>
- * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
+ * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.exec.Promise, Parse)} method.
  * <pre class="java">{@code
+ * import ratpack.exec.Promise;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
@@ -59,24 +60,25 @@ import com.google.common.reflect.TypeToken;
  *       super("text/plain");
  *     }
  *
- *     public <T> T parse(Context context, TypedData requestBody, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
- *       if (!parse.getType().getRawType().equals(String.class)) {
- *         return null;
- *       }
+ *     public <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
+ *       return requestBody.map(b -> {
+ *         if (!parse.getType().getRawType().equals(String.class)) {
+ *           return null;
+ *         }
  *
- *       String rawString = requestBody.getText();
- *       if (rawString.length() < parse.getOpts().getMaxLength()) {
- *         return Types.cast(rawString);
- *       } else {
- *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
- *       }
+ *         String rawString = b.getText();
+ *         if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *           return Types.cast(rawString);
+ *         } else {
+ *           return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
+ *         }
+ *       });
  *     }
  *   }
  *
  *   public static class ToUpperCaseHandler implements Handler {
  *     public void handle(Context context) throws Exception {
- *       String string = context.parse(String.class, new StringParseOpts(5));
- *       context.render(string);
+ *       context.parse(String.class, new StringParseOpts(5)).then(string -> context.render(string));
  *     }
  *   }
  *
