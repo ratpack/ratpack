@@ -206,7 +206,7 @@ public class DefaultRequest implements Request {
   @Override
   public Promise<TypedData> getBody() {
     if (body == null) {
-      body = ExecControl.current().promiseOf(new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE))));
+      body = ExecControl.execControl().promise(f -> f.success(new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE)))));
     }
     return body;
   }
