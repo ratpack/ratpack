@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -32,12 +33,10 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
-import ratpack.http.Request;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
@@ -51,6 +50,7 @@ import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -68,12 +68,13 @@ public class DefaultRequestFixture implements RequestFixture {
   private final NettyHeadersBackedMutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
   private String method = "GET";
+  private String protocol = "HTTP/1.1";
   private String uri = "/";
   private HostAndPort remoteHostAndPort = HostAndPort.fromParts("localhost", 45678);
   private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", ServerConfig.DEFAULT_PORT);
   private int timeout = 5;
 
-  private RegistryBuilder registryBuilder = Registries.registry();
+  private RegistryBuilder registryBuilder = Registry.builder();
 
   private ServerConfig.Builder serverConfigBuilder = ServerConfig.noBaseDir();
   private DefaultPathBinding pathBinding;
@@ -112,14 +113,14 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
-    Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), uri,
+    DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       requestBody);
 
     if (pathBinding != null) {
       handler = Handlers.chain(
-        Handlers.register(Registries.just(PathBinding.class, pathBinding)),
+        Handlers.register(Registry.single(PathBinding.class, pathBinding)),
         handler
       );
     }
@@ -227,6 +228,12 @@ public class DefaultRequestFixture implements RequestFixture {
     return this;
   }
 
+  @Override
+  public RequestFixture protocol(String protocol) {
+    this.protocol = protocol;
+    return this;
+  }
+
   private Registry getEffectiveRegistry(final DefaultHandlingResult.ResultsHolder results) {
 
     ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
@@ -239,7 +246,7 @@ public class DefaultRequestFixture implements RequestFixture {
       results.getLatch().countDown();
     };
 
-    final Registry userRegistry = Registries.registry().
+    final Registry userRegistry = Registry.builder().
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
       build();

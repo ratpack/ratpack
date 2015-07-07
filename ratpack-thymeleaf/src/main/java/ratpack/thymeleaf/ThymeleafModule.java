@@ -110,7 +110,7 @@ public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> 
     /**
      * The mode for templates.
      * <p>
-     * {@value #DEFAULT_TEMPLATE_MODE} by default.
+     * {@value ratpack.thymeleaf.ThymeleafModule#DEFAULT_TEMPLATE_MODE} by default.
      *
      * @return the mode for templates.
      */
@@ -121,7 +121,7 @@ public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> 
     /**
      * The prefix for templates.
      * <p>
-     * {@value #DEFAULT_TEMPLATE_PREFIX} by default.
+     * {@value ratpack.thymeleaf.ThymeleafModule#DEFAULT_TEMPLATE_PREFIX} by default.
      *
      * @return the prefix for templates.
      */
@@ -132,7 +132,7 @@ public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> 
     /**
      * The suffix for templates.
      * <p>
-     * {@value #DEFAULT_TEMPLATE_SUFFIX} by default.
+     * {@value ratpack.thymeleaf.ThymeleafModule#DEFAULT_TEMPLATE_SUFFIX} by default.
      *
      * @return the suffix for templates.
      */
@@ -185,9 +185,9 @@ public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> 
     }
   }
 
-  private static final String DEFAULT_TEMPLATE_MODE = "XHTML";
-  private static final String DEFAULT_TEMPLATE_PREFIX = "thymeleaf";
-  private static final String DEFAULT_TEMPLATE_SUFFIX = ".html";
+  public static final String DEFAULT_TEMPLATE_MODE = "XHTML";
+  public static final String DEFAULT_TEMPLATE_PREFIX = "thymeleaf";
+  public static final String DEFAULT_TEMPLATE_SUFFIX = ".html";
 
   private String templatesMode;
   private String templatesPrefix;

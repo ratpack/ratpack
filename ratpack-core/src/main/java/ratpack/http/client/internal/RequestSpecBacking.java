@@ -28,6 +28,7 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 
+import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -39,11 +40,13 @@ class RequestSpecBacking {
   private final URI uri;
   private final ByteBufAllocator byteBufAllocator;
   private final RequestParams requestParams;
+  private boolean decompressResponse;
 
   private ByteBuf bodyByteBuf;
 
   private String method = "GET";
   private int maxRedirects = 10;
+  private SSLContext sslContext;
 
   public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
     this.headers = headers;
@@ -51,6 +54,7 @@ class RequestSpecBacking {
     this.byteBufAllocator = byteBufAllocator;
     this.requestParams = requestParams;
     this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
+    this.decompressResponse = true;
   }
 
   public String getMethod() {
@@ -59,6 +63,15 @@ class RequestSpecBacking {
 
   public int getMaxRedirects() {
     return maxRedirects;
+  }
+
+  public boolean isDecompressResponse() {
+    return decompressResponse;
+  }
+
+  @Nullable
+  public SSLContext getSslContext() {
+    return sslContext;
   }
 
   @Nullable
@@ -82,6 +95,12 @@ class RequestSpecBacking {
     }
 
     @Override
+    public RequestSpec sslContext(SSLContext sslContext) {
+      RequestSpecBacking.this.sslContext = sslContext;
+      return this;
+    }
+
+    @Override
     public MutableHeaders getHeaders() {
       return headers;
     }
@@ -95,6 +114,12 @@ class RequestSpecBacking {
     @Override
     public RequestSpec method(String method) {
       RequestSpecBacking.this.method = method.toUpperCase();
+      return this;
+    }
+
+    @Override
+    public RequestSpec decompressResponse(boolean shouldDecompress) {
+      RequestSpecBacking.this.decompressResponse = shouldDecompress;
       return this;
     }
 

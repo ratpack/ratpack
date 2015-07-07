@@ -81,6 +81,7 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
     return new ExecBuilder() {
       private BiAction<? super Execution, ? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
+      private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
       private EventLoop eventLoop = execController.getEventLoopGroup().next();
 
@@ -117,6 +118,12 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
       }
 
       @Override
+      public ExecBuilder onStart(Action<? super Execution> onStart) {
+        this.onStart = onStart;
+        return this;
+      }
+
+      @Override
       public ExecBuilder register(Action<? super RegistrySpec> action) {
         this.registry = action;
         return this;
@@ -125,10 +132,10 @@ public class DefaultExecControl implements ExecControl, ExecControlInternal {
       @Override
       public void start(Action<? super Execution> action) {
         if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
-          Exceptions.uncheck(() -> new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete));
+          Exceptions.uncheck(() -> new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onStart, onComplete));
         } else {
           eventLoop.submit(() ->
-              new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onComplete)
+              new ExecutionBacking(execController, eventLoop, interceptors, registry, action, onError, onStart, onComplete)
           );
         }
       }

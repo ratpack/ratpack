@@ -22,7 +22,6 @@ import com.google.inject.Module
 import com.google.inject.Provider
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
-import ratpack.registry.Registries
 import ratpack.registry.Registry
 import ratpack.registry.RegistrySpec
 import ratpack.server.ServerConfig
@@ -49,7 +48,7 @@ class GuiceRegistrySpec extends RegistryContractSpec {
   @Override
   Registry build(Action<? super RegistrySpec> spec) {
     Guice.registry(
-      Guice.buildInjector(Registries.just(ServerConfig.embedded().build()), spec) { Module it ->
+      Guice.buildInjector(Registry.single(ServerConfig.embedded().build()), spec) { Module it ->
         com.google.inject.Guice.createInjector(it)
       }
     )

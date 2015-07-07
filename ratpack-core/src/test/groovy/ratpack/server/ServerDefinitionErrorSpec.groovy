@@ -17,7 +17,7 @@
 package ratpack.server
 
 import ratpack.handling.Handler
-import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.server.internal.ServerEnvironment
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.http.TestHttpClient
@@ -141,7 +141,7 @@ class ServerDefinitionErrorSpec extends Specification {
         if (error) {
           throw new IllegalStateException(error)
         } else {
-          Registries.empty()
+          Registry.empty()
         }
       }
       it.handler { return { it.render "ok" } as Handler }

@@ -23,6 +23,7 @@ import ratpack.api.Nullable;
 import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -37,6 +38,13 @@ public interface Request extends MutableRegistry {
    * @return The method of the request.
    */
   HttpMethod getMethod();
+
+  /**
+   * The HTTP protocol of the request.
+   *
+   * @return The HTTP protocol of the request.
+   */
+  String getProtocol();
 
   /**
    * The raw URI of the request.
@@ -136,44 +144,41 @@ public interface Request extends MutableRegistry {
   boolean isAjaxRequest();
 
   /**
-   * {@inheritDoc}
+   * The timestamp for when this request was received.
+   * Specifically, this is the timestamp of creation of the request object.
+   *
+   * @return the instant timestamp for the request.
    */
-  @Override
-  default <O> Request add(Class<? super O> type, O object) {
-    MutableRegistry.super.add(type, object);
-    return this;
-  }
+  Instant getTimestamp();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default <O> Request add(TypeToken<? super O> type, O object) {
-    MutableRegistry.super.add(type, object);
-    return this;
-  }
+  <O> Request add(Class<? super O> type, O object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default Request add(Object object) {
-    MutableRegistry.super.add(object);
-    return this;
-  }
+  <O> Request add(TypeToken<? super O> type, O object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier) {
-    MutableRegistry.super.addLazy(type, supplier);
-    return this;
-  }
+  Request add(Object object);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier);
 
   /**
    * {@inheritDoc}
    */
   @Override
   <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
+
 }

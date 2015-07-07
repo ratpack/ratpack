@@ -42,7 +42,6 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.handling.internal.FactoryHandler;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
@@ -78,7 +77,7 @@ public class DefaultRatpackServer implements RatpackServer {
   protected InetSocketAddress boundAddress;
   protected Channel channel;
   protected DefaultExecController execController;
-  protected Registry serverRegistry = Registries.empty();
+  protected Registry serverRegistry = Registry.empty();
 
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
@@ -144,7 +143,7 @@ public class DefaultRatpackServer implements RatpackServer {
         }
       };
 
-      Registry serverConfigOverrideRegistry = Registries.just(ServerConfig.class, serverConfig);
+      Registry serverConfigOverrideRegistry = Registry.single(ServerConfig.class, serverConfig);
       this.userRegistryFactory = baseRegistry -> {
         Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
         Registry userRegistry = definition.getRegistry().apply(actualBaseRegistry);
@@ -189,9 +188,29 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
     SSLContext sslContext = serverConfig.getSSLContext();
+    boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
     this.useSsl = sslContext != null;
 
-    return new ServerBootstrap()
+    ServerBootstrap serverBootstrap = new ServerBootstrap();
+
+    serverConfig.getConnectTimeoutMillis().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, i);
+      serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, i);
+    });
+    serverConfig.getMaxMessagesPerRead().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.MAX_MESSAGES_PER_READ, i);
+      serverBootstrap.childOption(ChannelOption.MAX_MESSAGES_PER_READ, i);
+    });
+    serverConfig.getReceiveBufferSize().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.SO_RCVBUF, i);
+      serverBootstrap.childOption(ChannelOption.SO_RCVBUF, i);
+    });
+    serverConfig.getWriteSpinCount().ifPresent(i -> {
+      serverBootstrap.option(ChannelOption.WRITE_SPIN_COUNT, i);
+      serverBootstrap.childOption(ChannelOption.WRITE_SPIN_COUNT, i);
+    });
+
+    return serverBootstrap
       .group(execController.getEventLoopGroup())
       .channel(ChannelImplDetector.getServerSocketChannelImpl())
       .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -203,6 +222,7 @@ public class DefaultRatpackServer implements RatpackServer {
           if (sslContext != null) {
             SSLEngine sslEngine = sslContext.createSSLEngine();
             sslEngine.setUseClientMode(false);
+            sslEngine.setNeedClientAuth(requireClientSslAuth);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 

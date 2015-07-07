@@ -22,8 +22,9 @@ import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
 import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
+import ratpack.registry.Registry;
 import ratpack.rx.RxRatpack;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
@@ -31,9 +32,9 @@ import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
+import asset.pipeline.ratpack.AssetPipelineModule;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
-import static ratpack.registry.Registries.just;
 
 public class SiteMain {
   public static void main(String... args) throws Exception {
@@ -50,6 +51,7 @@ public class SiteMain {
             Guice.registry(s -> s
                 .module(JacksonModule.class)
                 .module(NewRelicModule.class)
+                .module(new AssetPipelineModule())
                 .module(new CodaHaleMetricsModule(), c ->
                     c.csv(csv -> csv.enable(false))
                 )
@@ -163,7 +165,7 @@ public class SiteMain {
                                   break;
                               }
 
-                              ctx.next(just(ctx.getFileSystemBinding().binding(version.getVersion())));
+                              ctx.next(Registry.single(ctx.getFileSystemBinding().binding(version.getVersion())));
                             });
                           })
                           .files(f -> f.indexFiles("index.html"))

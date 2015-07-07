@@ -18,7 +18,6 @@ package ratpack.server.internal;
 
 import ratpack.func.Function;
 import ratpack.func.Block;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 
@@ -34,7 +33,7 @@ public abstract class ServerCapturer {
 
   public static class Overrides {
     private int port = -1;
-    private Function<? super Registry, ? extends Registry> registryFunction = Function.constant(Registries.empty());
+    private Function<? super Registry, ? extends Registry> registryFunction = Function.constant(Registry.empty());
     private Boolean development;
 
     public Overrides port(int port) {

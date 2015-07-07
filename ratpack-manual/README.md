@@ -50,6 +50,13 @@ The edit process is usually:
 
 Note: instead of running `./gradlew packageManual`, you can abbreviate it to `./gradlew pM`.
 
+### Building on Windows
+
+Note that the site makes use of SASS which means we're making use of Ruby via JRuby.
+JRuby has poor Windows support and requires that the project is built from a terminal as an administrator.
+
+Refer to https://github.com/jruby/jruby/issues/1219 for details.
+
 ## Guide to writing content
 
 ### Goals

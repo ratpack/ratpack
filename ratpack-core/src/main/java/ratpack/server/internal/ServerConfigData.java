@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 public class ServerConfigData {
 
@@ -35,7 +36,12 @@ public class ServerConfigData {
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private SSLContext sslContext;
+  private boolean requireClientSslAuth;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
+  private Optional<Integer> connectTimeoutMillis = Optional.empty();
+  private Optional<Integer> maxMessagesPerRead = Optional.empty();
+  private Optional<Integer> receiveBufferSize = Optional.empty();
+  private Optional<Integer> writeSpinCount = Optional.empty();
 
   public ServerConfigData(ServerEnvironment serverEnvironment) {
     this.port = serverEnvironment.getPort();
@@ -65,6 +71,22 @@ public class ServerConfigData {
 
   public int getMaxContentLength() {
     return maxContentLength;
+  }
+
+  public Optional<Integer> getConnectTimeoutMillis() {
+    return connectTimeoutMillis;
+  }
+
+  public Optional<Integer> getMaxMessagesPerRead() {
+    return maxMessagesPerRead;
+  }
+
+  public Optional<Integer> getReceiveBufferSize() {
+    return receiveBufferSize;
+  }
+
+  public Optional<Integer> getWriteSpinCount() {
+    return writeSpinCount;
   }
 
   public void setBaseDir(String baseDir) {
@@ -111,8 +133,32 @@ public class ServerConfigData {
     this.sslContext = sslContext;
   }
 
+  public boolean isRequireClientSslAuth() {
+    return requireClientSslAuth;
+  }
+
+  public void setRequireClientSslAuth(boolean requireClientSslAuth) {
+    this.requireClientSslAuth = requireClientSslAuth;
+  }
+
   public void setMaxContentLength(int maxContentLength) {
     this.maxContentLength = maxContentLength;
+  }
+
+  public void setConnectTimeoutMillis(int connectTimeoutMillis) {
+    this.connectTimeoutMillis = Optional.of(connectTimeoutMillis);
+  }
+
+  public void setMaxMessagesPerRead(int maxMessagesPerRead) {
+    this.maxMessagesPerRead = Optional.of(maxMessagesPerRead);
+  }
+
+  public void setReceiveBufferSize(int receiveBufferSize) {
+    this.receiveBufferSize = Optional.of(receiveBufferSize);
+  }
+
+  public void setWriteSpinCount(int writeSpinCount) {
+    this.writeSpinCount = Optional.of(writeSpinCount);
   }
 
   public Path getBaseDir() {

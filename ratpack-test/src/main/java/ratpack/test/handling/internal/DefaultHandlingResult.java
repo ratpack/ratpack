@@ -35,11 +35,14 @@ import ratpack.handling.internal.ChainHandler;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
-import ratpack.http.*;
+import ratpack.http.Headers;
+import ratpack.http.MutableHeaders;
+import ratpack.http.Response;
+import ratpack.http.Status;
+import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.Stopper;
@@ -66,7 +69,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private ResultsHolder results;
 
-  public DefaultHandlingResult(final Request request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, final Handler handler) throws Exception {
+  public DefaultHandlingResult(final DefaultRequest request, final ResultsHolder results, final MutableHeaders responseHeaders, Registry registry, final int timeout, final Handler handler) throws Exception {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -118,7 +121,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ExecController execController = registry.get(ExecController.class);
     ExecControl execControl = execController.getControl();
-    Registry effectiveRegistry = Registries.just(Stopper.class, stopper).join(registry);
+    Registry effectiveRegistry = Registry.single(Stopper.class, stopper).join(registry);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, request, null, eventController.getRegistry()

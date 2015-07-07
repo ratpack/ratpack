@@ -111,4 +111,5 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     getControl().addInterceptor(execInterceptor, continuation);
   }
+
 }

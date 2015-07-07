@@ -48,7 +48,7 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -68,10 +68,10 @@ class ClientSideSessionSpec extends SessionSpec {
         response.send("foo")
       }
       get("store") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
       get("load") { Session session ->
-        session.data.then { render it.get("foo").orElse("null")}
+        render session.get("foo").map { it.orElse "null" }
       }
     }
 
@@ -89,10 +89,10 @@ class ClientSideSessionSpec extends SessionSpec {
     given:
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok"}
+        render session.set("foo", "bar").map{ "ok" }
       }
       get("terminate") { Session session ->
-        session.terminate().then { render "ok" }
+        render session.terminate().map{ "ok" }
       }
     }
 
@@ -113,14 +113,11 @@ class ClientSideSessionSpec extends SessionSpec {
     given:
     handlers {
       get("foo") { Session session ->
-        String value = ""
-        for (int i = 0; i < 800; i++) {
-          value += "ab"
-        }
-        session.data.then { it.set("foo", value); render "ok" }
+        String value = "ab" * 800
+        render session.set("foo", value).map{ "ok" }
       }
       get("bar") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok"}
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -148,11 +145,11 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok"}
+        render session.set("foo", "bar").map{ "ok" }
       }
       get("wait") { Session session ->
         Thread.sleep(1100)
-        session.data.then { render it.get("foo").orElse("null") }
+        render session.get("foo").map{ it.orElse("null") }
       }
     }
 
@@ -176,7 +173,7 @@ class ClientSideSessionSpec extends SessionSpec {
     given:
     handlers {
       get { Session session ->
-        session.data.then { response.send(it.getKeys().isEmpty().toString())}
+        render session.keys.map { it.isEmpty().toString() }
       }
     }
     requestSpec { RequestSpec spec ->
@@ -199,7 +196,7 @@ class ClientSideSessionSpec extends SessionSpec {
     given:
     handlers {
       get { Session session ->
-        session.data.then { response.send(it.getKeys().isEmpty().toString())}
+        render session.keys.map { it.isEmpty().toString() }
       }
     }
     requestSpec { RequestSpec spec ->
@@ -218,7 +215,7 @@ class ClientSideSessionSpec extends SessionSpec {
     when:
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -240,7 +237,7 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -264,7 +261,7 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        session.data.then { it.set("foo", "bar"); render "ok" }
+        render session.set("foo", "bar").map{ "ok" }
       }
     }
 
@@ -310,21 +307,19 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("") { Session session ->
-        session.data.then { render it.get("value").orElse("null") }
+        render session.get("value").map { it.orElse("null") }
       }
       get("set/:value") { Session session ->
-        session.data.then {
-          it.set("value", pathTokens.value); render "ok"
-        }
+        render session.set("value", pathTokens.value).map { "ok" }
       }
       get("session") { Session session, SessionContent sc ->
-        session.data.then {
-          sc.data = [:]
-          for (key in it.getKeys()) {
-            sc.data[key.name] = it.get(key)
-          }
-          render "ok"
-        }
+        render session.data
+          .map {
+            sc.data = [:]
+            for (key in it.keys) {
+              sc.data[key.name] = it.get(key)
+            }
+          }.map { "ok" }
       }
     }
 

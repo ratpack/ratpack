@@ -91,17 +91,23 @@ class JavadocSnippetExtractor {
   private static String extractSnippetFromTag(String tag) {
     String tagInner = tag.substring(tag.indexOf(">") + 1, tag.lastIndexOf("<"))
     String html = tagInner.replaceAll("(?m)^\\s*\\*", "").trim()
-    [
+
+    String trimmed = [
       [start: "{@code", end: "}"],
       [start: "<code>", end: "</code>"]
-    ].each { delimiters ->
-      if (html.startsWith(delimiters.start) && html.endsWith(delimiters.end)) {
-        html = html.subSequence(delimiters.start.length(), html.length() - delimiters.end.length())
+    ].inject(html) { h, delimiters ->
+      if (h.startsWith(delimiters.start) && h.endsWith(delimiters.end)) {
+        return h.subSequence(delimiters.start.length(), h.length() - delimiters.end.length())
       }
+      return h
     }
 
-    String deliteral = html.replaceAll("\\{@literal (.+?)}", '$1').replaceAll("\\{@code (.+?)}", '$1')
-    def snippet = StringEscapeUtils.unescapeHtml4(deliteral)
+    String detagged = ["\\{@literal (.+?)}", "\\{@code (.+?)}"]
+      .inject(trimmed) { h, p ->
+        h.replaceAll(p, '$1')
+      }
+
+    def snippet = StringEscapeUtils.unescapeHtml4(detagged)
     snippet
   }
 

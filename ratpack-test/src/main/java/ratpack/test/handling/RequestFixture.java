@@ -345,4 +345,12 @@ public interface RequestFixture {
    */
   RequestFixture localAddress(HostAndPort local);
 
+  /**
+   * Set the HTTP protocol for the request.
+   *
+   * @param protocol The string representation of the HTTP protocol.
+   * @return this
+   */
+  RequestFixture protocol(String protocol);
+
 }

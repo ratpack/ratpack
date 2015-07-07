@@ -24,7 +24,6 @@ import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.server.ServerConfig;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 
 import java.util.concurrent.ExecutionException;
@@ -39,7 +38,7 @@ public class FileSystemBindingHandler implements Handler {
     .build(new CacheLoader<FileSystemBinding, Registry>() {
       @Override
       public Registry load(FileSystemBinding key) throws Exception {
-        return Registries.just(FileSystemBinding.class, key);
+        return Registry.single(FileSystemBinding.class, key);
       }
     });
 

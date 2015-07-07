@@ -38,6 +38,7 @@ import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.internal.ContentNegotiationHandler;
+import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.MultiMethodHandler;
 import ratpack.parse.NoSuchParserException;
@@ -48,8 +49,8 @@ import ratpack.path.PathTokens;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.path.internal.DefaultPathTokens;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
+import ratpack.registry.internal.DelegatingRegistry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
@@ -90,7 +91,7 @@ public class DefaultContext implements Context {
   public static class RequestConstants {
     private final ApplicationConstants applicationConstants;
 
-    private final Request request;
+    private final DefaultRequest request;
 
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
@@ -102,7 +103,7 @@ public class DefaultContext implements Context {
     public Handler handler;
 
     public RequestConstants(
-      ApplicationConstants applicationConstants, Request request,
+      ApplicationConstants applicationConstants, DefaultRequest request,
       DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
@@ -110,7 +111,6 @@ public class DefaultContext implements Context {
       this.directChannelAccess = directChannelAccess;
       this.onCloseRegistry = onCloseRegistry;
     }
-
   }
 
   private static class ChainIndex implements Iterator<Handler> {
@@ -136,10 +136,11 @@ public class DefaultContext implements Context {
   }
 
   private final RequestConstants requestConstants;
+  private final Registry joinedRegistry;
 
   public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     PathBinding initialPathBinding = new DefaultPathBinding("/".concat(requestConstants.request.getPath()), "", ImmutableMap.of(), Optional.empty());
-    Registry pathBindingRegistry = Registries.just(PathBinding.class, initialPathBinding);
+    Registry pathBindingRegistry = Registry.single(PathBinding.class, initialPathBinding);
     ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
     requestConstants.indexes.push(index);
 
@@ -155,19 +156,18 @@ public class DefaultContext implements Context {
           .add(Response.class, requestConstants.response)
       )
       .eventLoop(eventLoop)
+      .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
       .start(e -> context.next());
   }
 
+
   public DefaultContext(RequestConstants requestConstants) {
     this.requestConstants = requestConstants;
+    this.joinedRegistry = ((DelegatingRegistry) DefaultContext.this::getContextRegistry).join(requestConstants.request);
   }
 
-  private Registry getRegistry() {
+  private Registry getContextRegistry() {
     return requestConstants.indexes.peek().registry;
-  }
-
-  private void setRegistry(Registry registry) {
-    requestConstants.indexes.peek().registry = registry;
   }
 
   @Override
@@ -231,7 +231,7 @@ public class DefaultContext implements Context {
       if (index.hasNext()) {
         handler = index.next();
         if (handler.getClass().equals(ChainHandler.class)) {
-          requestConstants.indexes.push(new ChainIndex(((ChainHandler) handler).getHandlers(), getRegistry(), false));
+          requestConstants.indexes.push(new ChainIndex(((ChainHandler) handler).getHandlers(), getContextRegistry(), false));
           index = requestConstants.indexes.peek();
           handler = null;
         }
@@ -257,7 +257,7 @@ public class DefaultContext implements Context {
 
   @Override
   public void next(Registry registry) {
-    setRegistry(getRegistry().join(registry));
+    requestConstants.indexes.peek().registry = getContextRegistry().join(registry);
     next();
   }
 
@@ -266,7 +266,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.push(new ChainIndex(handlers, getRegistry(), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getContextRegistry(), false));
     next();
   }
 
@@ -275,7 +275,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.push(new ChainIndex(handlers, getRegistry().join(registry), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getContextRegistry().join(registry), false));
     next();
   }
 
@@ -311,7 +311,7 @@ public class DefaultContext implements Context {
     }
     final String finalRequestContentType = requestContentType;
 
-    return getRegistry()
+    return joinedRegistry
       .first(PARSER_TYPE_TOKEN, parser -> {
         if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
           Parser<O> cast = Types.cast(parser);
@@ -355,7 +355,7 @@ public class DefaultContext implements Context {
   }
 
   public void redirect(int code, String location) {
-    Redirector redirector = getRegistry().get(Redirector.class);
+    Redirector redirector = joinedRegistry.get(Redirector.class);
     redirector.redirect(this, location, code);
   }
 
@@ -443,22 +443,22 @@ public class DefaultContext implements Context {
 
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return getRegistry().get(type);
+    return joinedRegistry.get(type);
   }
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return getRegistry().maybeGet(type);
+    return joinedRegistry.maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return getRegistry().getAll(type);
+    return joinedRegistry.getAll(type);
   }
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return getRegistry().first(type, function);
+    return joinedRegistry.first(type, function);
   }
 
 }

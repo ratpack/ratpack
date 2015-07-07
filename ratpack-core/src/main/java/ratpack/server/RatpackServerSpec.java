@@ -21,7 +21,6 @@ import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
@@ -55,7 +54,7 @@ public interface RatpackServerSpec {
    * @see #registry(ratpack.registry.Registry)
    */
   default RatpackServerSpec registryOf(Action<? super RegistrySpec> action) throws Exception {
-    return registry(r -> Registries.registry(action));
+    return registry(r -> Registry.of(action));
   }
 
   /**
@@ -73,7 +72,7 @@ public interface RatpackServerSpec {
    * <p>
    * The given function receives the “base” registry (i.e. the base infrastructure provided by Ratpack) as its argument.
    * <p>
-   * If a user registry is not set, an {@link Registries#empty() empty registry} will be used.
+   * If a user registry is not set, an {@link Registry#empty() empty registry} will be used.
    *
    * @param function a function that provides the user registry
    * @return {@code this}
@@ -106,7 +105,7 @@ public interface RatpackServerSpec {
    * Sets the root handler by getting a handler of the given type from the server registry.
    * <p>
    * This can be useful when integrating with something that can wire together objects, such as Google Guice.
-   * <pre class="java"><code>
+   * <pre class="java">{@code
    * import ratpack.guice.Guice;
    * import ratpack.handling.Context;
    * import ratpack.handling.Handler;
@@ -131,18 +130,18 @@ public interface RatpackServerSpec {
    *   }
    *
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.of(s {@code ->} s
-   *         .registry(Guice.registry(b {@code ->} b
+   *     EmbeddedApp.of(s -> s
+   *         .registry(Guice.registry(b -> b
    *             .bindInstance("Hello World!")
    *             .bind(MyHandler.class)
    *         ))
    *         .handler(MyHandler.class)
-   *     ).test(httpClient {@code ->}
+   *     ).test(httpClient ->
    *         assertEquals("Hello World!", httpClient.getText())
    *     );
    *   }
    * }
-   * </code></pre>
+   * }</pre>
    *
    * @param handlerType the type of handler to retrieve from the registry
    * @return {@code this}

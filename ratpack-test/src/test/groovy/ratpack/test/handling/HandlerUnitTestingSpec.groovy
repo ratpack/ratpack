@@ -25,7 +25,7 @@ import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
-import ratpack.registry.Registries
+import ratpack.registry.Registry
 import spock.lang.Specification
 import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
@@ -351,11 +351,11 @@ class HandlerUnitTestingSpec extends Specification {
   def "can access things inserted into registry"() {
     when:
     handle {
-      insert(Registries.just("foo"), groovyHandler {
+      insert(Registry.single("foo"), groovyHandler {
         blocking {
 
         } then {
-          context.insert(Registries.just("bar"), groovyHandler {
+          context.insert(Registry.single("bar"), groovyHandler {
             context.request.add(Number, 4)
             function(context)
           })

@@ -18,10 +18,9 @@ package ratpack.handling
 
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.registry.Registry
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.registry.Registries.just
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -61,7 +60,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
       bindInstance ServerErrorHandler, errorHandler1
     }
     handlers {
-      register(just(errorHandler2)) {
+      register(Registry.single(errorHandler2)) {
         get("a") {
           throw new Exception("1")
         }

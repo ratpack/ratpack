@@ -29,7 +29,6 @@ import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
@@ -54,7 +53,7 @@ import static ratpack.util.Exceptions.uncheck;
  * <p>
  * Below is a complete example for bootstrapping a Guice based Ratpack application.
  * </p>
- * <pre class="java"><code>
+ * <pre class="java">{@code
  * import com.google.inject.AbstractModule;
  * import ratpack.guice.Guice;
  * import ratpack.handling.Context;
@@ -115,20 +114,20 @@ import static ratpack.util.Exceptions.uncheck;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s {@code ->} s
- *       .registry(Guice.registry(b {@code ->} b.module(ServiceModule.class)))
- *       .handlers(chain {@code ->} {
+ *     EmbeddedApp.of(s -> s
+ *       .registry(Guice.registry(b -> b.module(ServiceModule.class)))
+ *       .handlers(chain -> {
  *         // The registry in a Guice backed chain can be used to retrieve objects that were bound,
  *         // or to create objects that are bound “just-in-time”.
  *         chain.get("some/path", InjectedHandler.class);
  *       })
- *     ).test(httpClient {@code ->} {
+ *     ).test(httpClient -> {
  *       assertEquals("foo-bar", httpClient.get("some/path").getBody().getText());
  *     });
  *   }
  *
  * }
- * </code></pre>
+ * }</pre>
  * <h3>Accessing Guice bound objects in Handlers</h3>
  * <p>
  * There are two ways to use Guice bound objects in your handler implementations.
@@ -200,7 +199,7 @@ public abstract class Guice {
    * @return A registry that wraps the injector
    */
   public static Registry registry(Injector injector) {
-    return Registries.backedRegistry(new InjectorRegistryBacking(injector));
+    return Registry.backedBy(new InjectorRegistryBacking(injector));
   }
 
   public static Function<Registry, Registry> registry(Action<? super BindingsSpec> bindings) {

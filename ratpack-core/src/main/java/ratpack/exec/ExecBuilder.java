@@ -75,6 +75,19 @@ public interface ExecBuilder {
   ExecBuilder onComplete(Action<? super Execution> onComplete);
 
   /**
+   * Specifies an action to be taken just before the execution starts.
+   * <p>
+   * The action will be invoked after the execution registry has been populated.
+   * <p>
+   * This method is not additive.
+   * That is, any subsequent calls replace the previous value.
+
+   * @param onStart the action to invoke just before the execution starts
+   * @return {@code this}
+   */
+  ExecBuilder onStart(Action<? super Execution> onStart);
+
+  /**
    * Populates the execution's registry.
    * <p>
    * This method is not additive.

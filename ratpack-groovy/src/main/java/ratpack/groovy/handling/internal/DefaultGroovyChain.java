@@ -16,7 +16,6 @@
 
 package ratpack.groovy.handling.internal;
 
-import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -35,11 +34,6 @@ public class DefaultGroovyChain implements GroovyChain {
   public GroovyChain all(Handler handler) {
     delegate.all(handler);
     return this;
-  }
-
-  @Override
-  public Handler chain(Action<? super Chain> action) throws Exception {
-    return delegate.chain(action);
   }
 
   @Override

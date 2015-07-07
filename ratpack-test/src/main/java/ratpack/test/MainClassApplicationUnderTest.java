@@ -16,7 +16,6 @@
 
 package ratpack.test;
 
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
@@ -34,7 +33,7 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
   }
 
   protected Registry createOverrides(Registry serverRegistry) throws Exception {
-    return Registries.empty();
+    return Registry.empty();
   }
 
   @Override

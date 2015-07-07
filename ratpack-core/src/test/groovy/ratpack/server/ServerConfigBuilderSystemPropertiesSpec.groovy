@@ -173,7 +173,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     config.maxContentLength == 256
   }
 
-  def "malformed max content length throws exception"() {
+  def "malformed max content length uses default"() {
     given:
     properties.setProperty('ratpack.server.maxContentLength', 'abcd')
 
@@ -196,5 +196,93 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
     then:
     sslContext
+  }
+
+  def "set connect timeout millis"() {
+    given:
+    properties.setProperty('ratpack.server.connectTimeoutMillis', '1000')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.connectTimeoutMillis.get() == 1000
+  }
+
+  def "malformed connect timeout millis uses default"() {
+    given:
+    properties.setProperty('ratpack.server.connectTimeoutMillis', 'abcd')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    !config.connectTimeoutMillis.present
+  }
+
+  def "set max messages per read"() {
+    given:
+    properties.setProperty('ratpack.server.maxMessagesPerRead', '10')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.maxMessagesPerRead.get() == 10
+  }
+
+  def "malformed max messages per read uses default"() {
+    given:
+    properties.setProperty('ratpack.server.connectTimeoutMillis', 'abcd')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    !config.maxMessagesPerRead.present
+  }
+
+  def "set receive buffer size"() {
+    given:
+    properties.setProperty('ratpack.server.receiveBufferSize', '1')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.receiveBufferSize.get() == 1
+  }
+
+  def "malformed receive buffer size uses default"() {
+    given:
+    properties.setProperty('ratpack.server.receiveBufferSize', 'abcd')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    !config.receiveBufferSize.present
+  }
+
+  def "set write spin count"() {
+    given:
+    properties.setProperty('ratpack.server.writeSpinCount', '100')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    config.writeSpinCount.get() == 100
+  }
+
+  def "malformed write spin count uses default"() {
+    given:
+    properties.setProperty('ratpack.server.writeSpinCount', 'abcd')
+
+    when:
+    def config = builder.sysProps().build()
+
+    then:
+    !config.writeSpinCount.present
   }
 }

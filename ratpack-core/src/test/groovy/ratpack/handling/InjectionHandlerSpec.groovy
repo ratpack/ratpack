@@ -165,7 +165,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     text == "10:foo"
   }
 
-  def "context registry shadows request registry"() {
+  def "request registry shadows context registry"() {
     when:
     bindings {
       bindInstance 10
@@ -180,7 +180,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "10:bar"
+    text == "10:foo"
   }
 
   @Unroll

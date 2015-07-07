@@ -120,7 +120,7 @@ public interface Context extends ExecControl, Registry {
    * The given registry is appended to the existing.
    * This means that it can shadow objects previously available.
    * <pre class="java">{@code
-   * import ratpack.registry.Registries;
+   * import ratpack.registry.Registry;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static org.junit.Assert.assertEquals;
@@ -129,7 +129,7 @@ public interface Context extends ExecControl, Registry {
    *
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlers(chain -> chain
-   *         .all(ctx -> ctx.next(Registries.just("foo")))
+   *         .all(ctx -> ctx.next(Registry.single("foo")))
    *         .all(ctx -> ctx.render(ctx.get(String.class)))
    *     ).test(httpClient -> {
    *       assertEquals("foo", httpClient.getText());

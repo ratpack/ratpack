@@ -18,9 +18,12 @@ package ratpack.http.internal
 
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpVersion
 import ratpack.http.Headers
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
+
+import java.time.Instant
 
 class DefaultRequestSpec extends RatpackGroovyDslSpec {
 
@@ -31,7 +34,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     def content = Unpooled.buffer()
 
     when:
-    def request = new DefaultRequest(headers, HttpMethod.GET, inputUri, new InetSocketAddress('localhost', 45678), new InetSocketAddress('localhost', 5050), content)
+    def request = new DefaultRequest(Instant.now(), headers, HttpMethod.GET, HttpVersion.HTTP_1_1, inputUri, new InetSocketAddress('localhost', 45678), new InetSocketAddress('localhost', 5050), content)
 
     then:
     request.rawUri == inputUri
@@ -62,7 +65,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     def content = Unpooled.buffer()
 
     when:
-    def request = new DefaultRequest(headers, HttpMethod.GET, '/user/12345', new InetSocketAddress('localhost', 45678), new InetSocketAddress('localhost', 5050), content)
+    def request = new DefaultRequest(Instant.now(), headers, HttpMethod.GET, HttpVersion.HTTP_1_1, '/user/12345', new InetSocketAddress('localhost', 45678), new InetSocketAddress('localhost', 5050), content)
     Boolean result = request.isAjaxRequest()
 
     then:

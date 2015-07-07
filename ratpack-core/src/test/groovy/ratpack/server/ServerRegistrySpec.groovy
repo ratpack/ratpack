@@ -17,7 +17,7 @@
 package ratpack.server
 
 import ratpack.groovy.Groovy
-import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.test.ApplicationUnderTest
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ class ServerRegistrySpec extends Specification {
     when:
     def server = RatpackServer.of {
       it
-        .registry { Registries.just(it.get(ServerConfig)) }
+        .registry { Registry.single(it.get(ServerConfig)) }
         .handler {
         Groovy.groovyHandler {
           render getAll(ServerConfig).toList().size().toString()

@@ -21,7 +21,7 @@ Ratpack provides two parsable types:
 * [`Form`](api/ratpack/form/Form.html) for parsing form submission data
 * [`JsonNode`](http://fasterxml.github.io/jackson-databind/javadoc/2.4/com/fasterxml/jackson/databind/JsonNode.html) for parsing JSON
 
-To use the JSON parser you'll need to use the [`JacksonModule`](api/ratpack/jackson/JacksonModule.html) provided by the `ratpack-jackson` module.
+To use the JSON parser you'll need to use the [`JacksonModule`](api/ratpack/jackson/guice/JacksonModule.html) provided by the `ratpack-jackson-guice` module.
 In addition to the `JsonNode`, the `ratpack-jackson` module also provides a way to convert POJOs into parsable types via [`Jackson.fromJson()`](api/ratpack/jackson/Jackson.html#fromJson-java.lang.Class-).
 This allows you to parse incoming JSON to POJOs in your Handlers. See [`Jackson`](api/ratpack/jackson/Jackson.html#parsing) for examples of JSON parsing.
 

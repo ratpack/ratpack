@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import com.google.common.net.HostAndPort;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -103,9 +104,14 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
           ChannelPipeline p = ch.pipeline();
 
           if (finalUseSsl) {
-            SSLEngine engine = SSLContext.getDefault().createSSLEngine();
-            engine.setUseClientMode(true);
-            p.addLast("ssl", new SslHandler(engine));
+            SSLEngine sslEngine = null;
+            if (requestSpecBacking.getSslContext() != null) {
+              sslEngine = requestSpecBacking.getSslContext().createSSLEngine();
+            } else {
+              sslEngine = SSLContext.getDefault().createSSLEngine();
+            }
+            sslEngine.setUseClientMode(true);
+            p.addLast("ssl", new SslHandler(sslEngine));
           }
 
           p.addLast("codec", new HttpClientCodec());
@@ -135,7 +141,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                 final Headers headers = new NettyHeadersBackedHeaders(response.headers());
                 final Status status = new DefaultStatus(response.status());
                 int maxRedirects = requestSpecBacking.getMaxRedirects();
-                String locationValue = headers.get("Location");
+                String locationValue = headers.get(HttpHeaderConstants.LOCATION);
 
                 //Check for redirect and location header if it is follow redirect if we have request forwarding left
                 if (shouldRedirect(status) && maxRedirects > 0 && locationValue != null) {
@@ -146,6 +152,8 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                       s.method("GET");
                     }
 
+                    HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
+                    s.getHeaders().set(HttpHeaderConstants.HOST, hostAndPort.toString());
 
                     s.redirects(maxRedirects - 1);
                   });
@@ -168,7 +176,9 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
               }
             }
           });
-
+          if (requestSpecBacking.isDecompressResponse()) {
+            p.addLast(new HttpContentDecompressor());
+          }
           addResponseHandlers(p, fulfiller);
         }
 
@@ -185,7 +195,8 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         String fullPath = getFullPath(uri);
         FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
         if (headers.get(HttpHeaderConstants.HOST) == null) {
-          headers.set(HttpHeaderConstants.HOST, host);
+          HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
+          headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
         }
         headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
         int contentLength = request.content().readableBytes();

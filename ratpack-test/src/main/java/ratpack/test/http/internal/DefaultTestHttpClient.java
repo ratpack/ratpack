@@ -21,11 +21,13 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlBuilder;
+import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -33,12 +35,14 @@ import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
 
+import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -51,6 +55,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   private Action<? super RequestSpec> request = Action.noop();
   private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
+
+  private RequestSpecCapturingDelegate requestSpecCapturingDelegate;
 
   private ReceivedResponse response;
 
@@ -66,8 +72,87 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public TestHttpClient requestSpec(Action<? super RequestSpec> requestAction) {
-    request = requestAction;
+    request = (requestSpec) -> {
+      requestSpecCapturingDelegate = new RequestSpecCapturingDelegate(requestSpec);
+      requestAction.execute(requestSpecCapturingDelegate);
+    };
     return this;
+  }
+
+  class RequestSpecCapturingDelegate implements RequestSpec {
+
+    final RequestSpec requestSpec;
+
+    public RequestSpecCapturingDelegate(RequestSpec requestSpec) {
+      this.requestSpec = requestSpec;
+    }
+
+    String method = "GET";
+    int maxRedirects = 10;
+    boolean decompressResponse;
+
+    @Override
+    public RequestSpec redirects(int maxRedirects) {
+      this.maxRedirects = maxRedirects;
+      return requestSpec.redirects(maxRedirects);
+    }
+
+    @Override
+    public RequestSpec sslContext(SSLContext sslContext) {
+      return requestSpec.sslContext(sslContext);
+    }
+
+    @Override
+    public MutableHeaders getHeaders() {
+      return requestSpec.getHeaders();
+    }
+
+    @Override
+    public RequestSpec headers(Action<? super MutableHeaders> action) throws Exception {
+      return requestSpec.headers(action);
+    }
+
+    @Override
+    public RequestSpec method(String method) {
+      this.method = method;
+      return requestSpec.method(method);
+    }
+
+    @Override
+    public RequestSpec decompressResponse(boolean shouldDecompress) {
+      this.decompressResponse = shouldDecompress;
+      return requestSpec.decompressResponse(shouldDecompress);
+    }
+
+    @Override
+    public URI getUrl() {
+      return requestSpec.getUrl();
+    }
+
+    @Override
+    public RequestSpec readTimeoutSeconds(int seconds) {
+      return requestSpec.readTimeoutSeconds(seconds);
+    }
+
+    @Override
+    public RequestSpec readTimeout(Duration duration) {
+      return requestSpec.readTimeout(duration);
+    }
+
+    @Override
+    public Body getBody() {
+      return requestSpec.getBody();
+    }
+
+    @Override
+    public RequestSpec body(Action<? super Body> action) throws Exception {
+      return requestSpec.body(action);
+    }
+
+    @Override
+    public RequestSpec basicAuth(String username, String password) {
+      return requestSpec.basicAuth(username, password);
+    }
   }
 
   @Override
@@ -79,6 +164,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public void resetRequest() {
     request = Action.noop();
+    requestSpecCapturingDelegate = null;
     cookies.clear();
   }
 
@@ -210,18 +296,28 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   private ReceivedResponse sendRequest(final String method, String path) {
+    AtomicInteger maxRedirects = new AtomicInteger();
+
     try {
       URI uri = builder(path).params(params).build();
 
       response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
 
+        if (requestSpecCapturingDelegate != null) {
+          maxRedirects.set(requestSpecCapturingDelegate.maxRedirects);
+        }
+
+        requestSpec.redirects(0); // we will take care of redirect here to handle cookies
+
         List<Cookie> requestCookies = getCookies(path);
 
         String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
 
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
-        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
+
+        int port = uri.getPort() > 0 ? uri.getPort() : 80;
+        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
       }));
     } catch (Throwable throwable) {
       throw uncheck(throwable);
@@ -256,7 +352,50 @@ public class DefaultTestHttpClient implements TestHttpClient {
       }
     }
 
+    int redirects = maxRedirects.get();
+    boolean isRedirect = redirects > 0 && isRedirect(method, response.getStatusCode());
+    if (isRedirect) {
+      String redirectPath = response.getHeaders().get(HttpHeaderConstants.LOCATION);
+      String redirectMethod = getRedirectMethod(method, response.getStatusCode());
+      if (redirectPath != null) {
+        response = sendRequest(redirectMethod, redirectPath);
+      }
+    }
+
     return response;
+  }
+
+  private String getRedirectMethod(String method, int statusCode) {
+    switch(statusCode) {
+      case 303:
+        return HttpMethod.GET.name();
+      default:
+        return method;
+    }
+  }
+
+  private boolean isRedirect(String httpMethod, int responseCode) {
+    HttpMethod method = HttpMethod.valueOf(httpMethod);
+    switch(responseCode) {
+      case 300:
+        return true;
+      case 301:
+      case 302:
+        return HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method);
+      case 303:
+        return true;
+      case 304:
+        return false;
+      case 305:
+        return true;
+      case 306:
+        return false;
+      case 307:
+      case 308:
+        return true;
+      default:
+        return false;
+    }
   }
 
   private HttpUrlBuilder builder(String path) {

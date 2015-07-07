@@ -18,7 +18,6 @@ package ratpack.test;
 
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
@@ -57,7 +56,7 @@ public interface ApplicationUnderTest {
     return new MainClassApplicationUnderTest(mainClass) {
       @Override
       protected Registry createOverrides(Registry serverRegistry) throws Exception {
-        return Registries.registry(action);
+        return Registry.of(action);
       }
     };
   }

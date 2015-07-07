@@ -19,7 +19,7 @@ package ratpack.render
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.handling.Context
-import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RenderingSpec extends RatpackGroovyDslSpec {
@@ -58,7 +58,7 @@ class RenderingSpec extends RatpackGroovyDslSpec {
       bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
     handlers {
-      register(Registries.just(new ThingRenderer())) {
+      register(Registry.single(new ThingRenderer())) {
         get {
           render new Thing("foo")
         }

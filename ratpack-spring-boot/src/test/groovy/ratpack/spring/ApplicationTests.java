@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import ratpack.func.Action;
 import ratpack.handling.Chain;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.server.RatpackServer;
 import ratpack.spring.ApplicationTests.Application;
 import ratpack.spring.config.EnableRatpack;

@@ -93,8 +93,38 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
+  public ServerConfig.Builder connectTimeoutMillis(int connectTimeoutMillis) {
+    serverConfigData.put("connectTimeoutMillis", connectTimeoutMillis);
+    return this;
+  }
+
+  @Override
+  public ServerConfig.Builder maxMessagesPerRead(int maxMessagesPerRead) {
+    serverConfigData.put("maxMessagesPerRead", maxMessagesPerRead);
+    return this;
+  }
+
+  @Override
+  public ServerConfig.Builder receiveBufferSize(int receiveBufferSize) {
+    serverConfigData.put("receiveBufferSize", receiveBufferSize);
+    return this;
+  }
+
+  @Override
+  public ServerConfig.Builder writeSpinCount(int writeSpinCount) {
+    serverConfigData.put("writeSpinCount", writeSpinCount);
+    return this;
+  }
+
+  @Override
   public ServerConfig.Builder ssl(SSLContext sslContext) {
     serverConfigData.putPOJO("ssl", sslContext);
+    return this;
+  }
+
+  @Override
+  public ServerConfig.Builder requireClientSslAuth(boolean requireClientSslAuth) {
+    serverConfigData.put("requireClientSslAuth", requireClientSslAuth);
     return this;
   }
 

@@ -191,7 +191,7 @@ public interface HealthCheck {
    * Convenience factory for health check implementations.
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.registry.Registries;
+   * import ratpack.registry.Registry;
    * import ratpack.health.HealthCheck;
    * import static org.junit.Assert.*;
    *
@@ -200,7 +200,7 @@ public interface HealthCheck {
    *     HealthCheck.Result result = ExecHarness.yieldSingle(e ->
    *       HealthCheck.of("test", (execControl, registry) ->
    *         execControl.promiseOf(HealthCheck.Result.healthy())
-   *       ).check(e, Registries.empty())
+   *       ).check(e, Registry.empty())
    *     ).getValue();
    *
    *     assertTrue(result.isHealthy());

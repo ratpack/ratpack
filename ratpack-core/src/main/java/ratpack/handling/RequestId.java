@@ -16,10 +16,7 @@
 
 package ratpack.handling;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
-import ratpack.http.Request;
 
 /**
  * An opaque identifier for the request.
@@ -99,33 +96,13 @@ public interface RequestId {
     };
   }
 
-  // TODO docs here, including explanation of the log format.
+  /**
+   * Adds both a new request ID and request log using {@link RequestId#bind()} and {@link RequestLog#log()} respectively.
+   *
+   * @return a handler chain container both the request id and request log handlers.
+   */
   static Handler bindAndLog() {
-    return Handlers.chain(bind(), new Handler() {
-      private final Logger logger = LoggerFactory.getLogger(RequestId.class);
-
-      @Override
-      public void handle(Context ctx) throws Exception {
-        ctx.onClose((RequestOutcome outcome) -> {
-          Request request = ctx.getRequest();
-          StringBuilder logLine = new StringBuilder()
-            .append(request.getMethod().toString())
-            .append(" ")
-            .append(request.getUri())
-            .append(" ")
-            .append(outcome.getResponse().getStatus().getCode());
-
-          request.maybeGet(RequestId.class).ifPresent(id1 -> {
-            logLine.append(" id=");
-            logLine.append(id1.toString());
-          });
-
-          logger.info(logLine.toString());
-        });
-
-        ctx.next();
-      }
-    });
+    return Handlers.chain(bind(), RequestLog.log());
   }
 
 }

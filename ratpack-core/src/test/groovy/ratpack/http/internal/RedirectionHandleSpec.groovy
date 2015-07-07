@@ -18,6 +18,7 @@ package ratpack.http.internal
 
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Unroll
 
 class RedirectionHandleSpec extends RatpackGroovyDslSpec {
 
@@ -54,6 +55,69 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
 
     where:
     statusCode << [299, 400]
+  }
+
+  @Unroll
+  def "Cookies should be set on testClient during redirect"() {
+    given:
+    requestSpec { r -> r.redirects(10) }
+    handlers {
+      get {
+        render(request.oneCookie("value") ?: "not set")
+      }
+      get(":cookie") {
+        response.cookie("value", pathTokens.get("cookie"))
+        redirect(responseCode, "/")
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    response.body.text == "not set"
+
+    when:
+    get("/redirect")
+
+    then:
+    response.body.text == "redirect"
+
+    when:
+    get()
+
+    then:
+    response.body.text == "redirect"
+
+    where:
+    responseCode << [301, 302]
+  }
+
+  def "Response contains Set-Cookie header on redirect"() {
+    given:
+    handlers {
+      get {
+        render(request.oneCookie("value") ?: "not set")
+      }
+      get(":cookie") {
+        response.cookie("value", pathTokens.get("cookie"))
+        redirect(responseCode, "/")
+      }
+    }
+
+    expect:
+    getText() == "not set"
+
+    when:
+    get("/redirect")
+
+    then:
+    response.statusCode > 300 && response.statusCode < 303
+    response.headers.get("Set-Cookie") == "value=redirect"
+
+    where:
+    responseCode << [301, 302]
+
   }
 
 }

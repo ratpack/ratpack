@@ -10,7 +10,7 @@ The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides
 ## Initialisation
 
 The Jackson can be used with the [Guice integration](guice.html).
-The [`JacksonModule`](api/ratpack/jackson/JacksonModule.html) is a Guice module that enables the integration.
+The [`JacksonModule`](api/ratpack/jackson/guice/JacksonModule.html) is a Guice module that enables the integration.
 
 If not using Guice, you can use the [`Jackson.Init.register()`](api/ratpack/jackson/Jackson.Init.html#register-ratpack.registry.RegistrySpec-com.fasterxml.jackson.databind.ObjectMapper-com.fasterxml.jackson.databind.ObjectWriter-)
 method to add the necessary objects to the context registry.
@@ -24,7 +24,7 @@ The [`Jackson.json()`](api/ratpack/jackson/Jackson.html#json-java.lang.Object-) 
 ```language-java
 import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 
 import static ratpack.jackson.Jackson.json;
@@ -68,7 +68,7 @@ The [`Jackson.jsonNode()`](api/ratpack/jackson/Jackson.html#Jackson.html#jsonNod
 ```language-java
 import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -135,7 +135,7 @@ The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.htm
 ```language-java
 import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.reflect.TypeToken;
@@ -195,7 +195,7 @@ If using Guice, such modules can easily be registered via the module's config.
 ```language-java
 import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.JacksonModule;
+import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 

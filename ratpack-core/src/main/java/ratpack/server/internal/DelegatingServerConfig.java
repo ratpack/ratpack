@@ -27,6 +27,7 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Optional;
 
 public class DelegatingServerConfig extends DelegatingConfigData implements ServerConfig {
 
@@ -75,6 +76,11 @@ public class DelegatingServerConfig extends DelegatingConfigData implements Serv
   }
 
   @Override
+  public boolean isRequireClientSslAuth() {
+    return delegate.isRequireClientSslAuth();
+  }
+
+  @Override
   public int getMaxContentLength() {
     return delegate.getMaxContentLength();
   }
@@ -87,5 +93,25 @@ public class DelegatingServerConfig extends DelegatingConfigData implements Serv
   @Override
   public FileSystemBinding getBaseDir() throws NoBaseDirException {
     return delegate.getBaseDir();
+  }
+
+  @Override
+  public Optional<Integer> getConnectTimeoutMillis() {
+    return delegate.getConnectTimeoutMillis();
+  }
+
+  @Override
+  public Optional<Integer> getMaxMessagesPerRead() {
+    return delegate.getMaxMessagesPerRead();
+  }
+
+  @Override
+  public Optional<Integer> getReceiveBufferSize() {
+    return delegate.getReceiveBufferSize();
+  }
+
+  @Override
+  public Optional<Integer> getWriteSpinCount() {
+    return delegate.getWriteSpinCount();
   }
 }

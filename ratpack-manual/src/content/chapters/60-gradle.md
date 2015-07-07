@@ -305,7 +305,7 @@ repositories {
 }
 
 dependencies {
-  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
+  springloaded "org.springframework:springloaded:1.2.3.RELEASE"
 }
 ```
 

@@ -38,10 +38,11 @@ import ratpack.form.internal.FormNoOptParser;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
+import ratpack.handling.RequestLog;
 import ratpack.handling.internal.DefaultRedirector;
+import ratpack.handling.internal.DefaultRequestLog;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.CharSequenceRenderer;
@@ -82,7 +83,7 @@ public abstract class ServerRegistry {
 
     RegistryBuilder baseRegistryBuilder;
     try {
-      baseRegistryBuilder = Registries.registry()
+      baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
@@ -92,6 +93,7 @@ public abstract class ServerRegistry {
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
+        .add(RequestLog.class, new DefaultRequestLog())
         .with(new DefaultFileRenderer().register())
         .with(new PromiseRenderer().register())
         .with(new PublisherRenderer().register())

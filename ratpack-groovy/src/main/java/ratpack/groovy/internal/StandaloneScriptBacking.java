@@ -17,24 +17,23 @@
 package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import groovy.lang.GroovySystem;
 import ratpack.func.Action;
 import ratpack.groovy.Groovy;
-import ratpack.groovy.handling.GroovyChain;
-import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.server.RatpackServer;
+import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 import ratpack.util.Exceptions;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
   private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
-  private final static ThreadLocal<RatpackServer> LAST = new ThreadLocal<>();
+  private final ThreadLocal<RatpackServer> running = new ThreadLocal<>();
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
@@ -43,38 +42,14 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
-    RatpackServer lastServer = LAST.get();
-    if (lastServer != null) {
-      lastServer.stop();
-    }
+    Optional.ofNullable(running.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
 
     RatpackServer ratpackServer;
     Path scriptFile = ClosureUtil.findScript(closure);
     if (scriptFile == null) {
-      ratpackServer = RatpackServer.of(server -> {
-        Groovy.Ratpack ratpack = new Groovy.Ratpack() {
-          @Override
-          public void bindings(@DelegatesTo(value = BindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-            server.registry(Guice.registry(ClosureUtil.delegatingAction(configurer)));
-          }
-
-          @Override
-          public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-            Exceptions.uncheck(() -> server.handlers(Groovy.chainAction(configurer)));
-          }
-
-          @Override
-          public void serverConfig(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-            ServerConfig.Builder builder = ServerConfig.noBaseDir().development(true);
-            ClosureUtil.configureDelegateFirst(builder, configurer);
-            server.serverConfig(builder);
-          }
-        };
-        ClosureUtil.configureDelegateFirst(ratpack, closure);
-      });
+      ratpackServer = RatpackServer.of(server -> ClosureUtil.configureDelegateFirst(new RatpackBacking(server), closure));
     } else {
       ratpackServer = RatpackServer.of(Groovy.Script.app(scriptFile));
-
       Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
       if (action != null) {
         action.execute(ratpackServer);
@@ -82,9 +57,31 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
 
     ratpackServer.start();
-    LAST .set(ratpackServer);
-
-
+    running.set(ratpackServer);
   }
 
+  private static class RatpackBacking implements Groovy.Ratpack {
+    private final RatpackServerSpec server;
+
+    public RatpackBacking(RatpackServerSpec server) {
+      this.server = server;
+    }
+
+    @Override
+    public void bindings(Closure<?> configurer) {
+      server.registry(Guice.registry(ClosureUtil.delegatingAction(configurer)));
+    }
+
+    @Override
+    public void handlers(Closure<?> configurer) {
+      Exceptions.uncheck(() -> server.handlers(Groovy.chainAction(configurer)));
+    }
+
+    @Override
+    public void serverConfig(Closure<?> configurer) {
+      ServerConfig.Builder builder = ServerConfig.noBaseDir().development(true);
+      ClosureUtil.configureDelegateFirst(builder, configurer);
+      server.serverConfig(builder);
+    }
+  }
 }

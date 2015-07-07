@@ -16,7 +16,7 @@
 
 package ratpack.server
 
-import ratpack.registry.Registries
+import ratpack.registry.Registry
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
@@ -91,7 +91,7 @@ class StartupErrorSpec extends Specification {
         if (error) {
           throw ex
         } else {
-          Registries.empty()
+          Registry.empty()
         }
       }
       it.handlers { it.all { it.render "ok" } }

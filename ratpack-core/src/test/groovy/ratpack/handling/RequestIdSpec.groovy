@@ -21,10 +21,13 @@ import org.slf4j.LoggerFactory
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 class RequestIdSpec extends RatpackGroovyDslSpec {
 
-  def "add request uuids"() {
-    given: 'a ratpack app with the logging request handlers added'
+  def "add request id"() {
+    given:
     handlers {
       all RequestId.bind()
       all {
@@ -32,19 +35,66 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when: 'a response is received'
+    when:
     ReceivedResponse response = get()
 
-    then: 'a correlation id was returned'
+    then:
     response.body.text.length() == 36 // not the best test ever but UUIDs should be 36 characters long including the dashes.
   }
 
-  def "add request logging"() {
+  def "use custom request id generator"() {
+    given:
+    bindings {
+      bindInstance RequestId.Generator, { ctx ->
+          return { 'foo' } as RequestId
+      } as RequestId.Generator
+    }
+    handlers {
+      all RequestId.bind()
+      all {
+        render request.get(RequestId).id
+      }
+    }
+
+    when:
+    ReceivedResponse response = get()
+
+    then:
+    response.body.text == 'foo'
+  }
+
+  def "request log includes request id"() {
     def loggerOutput = new ByteArrayOutputStream()
     def logger = LoggerFactory.getLogger(RequestId)
-    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput)
+    def originalStream = logger.TARGET_STREAM
+    def latch = new CountDownLatch(2)
+    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
+
+      @Override
+      void println(String s) {
+        super.println(s)
+        originalStream.println(s)
+        if (s.contains(RequestLog.simpleName)) {
+          latch.countDown()
+        }
+      }
+    }
 
     given:
+    int count = 0
+    bindings {
+      bindInstance RequestId.Generator, { ctx ->
+        return new RequestId() {
+
+          private final String id = "request-${count++}"
+
+          @Override
+          String getId() {
+            return id
+          }
+        }
+      } as RequestId.Generator
+    }
     handlers {
       all RequestId.bindAndLog()
       path("foo") {
@@ -55,12 +105,15 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when: 'a request is sent'
+    when:
     ReceivedResponse getResponse = get("foo")
     ReceivedResponse postResponse = post("bar")
 
-    then: 'the request is logged with its correlation id'
-    loggerOutput.toString().contains("GET /foo 200 id=$getResponse.body.text")
-    loggerOutput.toString().contains("POST /bar 200 id=$postResponse.body.text")
+    then:
+    latch.await(5, TimeUnit.SECONDS)
+    String output = loggerOutput.toString()
+    output.contains("\"GET /foo HTTP/1.1\" 200 ${getResponse.body.text.length()} id=$getResponse.body.text")
+    output.contains("\"POST /bar HTTP/1.1\" 200 ${postResponse.body.text.length()} id=$postResponse.body.text")
+    count == 2
   }
 }

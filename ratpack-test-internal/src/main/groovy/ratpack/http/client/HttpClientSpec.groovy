@@ -30,8 +30,8 @@ abstract class HttpClientSpec extends RatpackGroovyDslSpec {
   EmbeddedApp otherApp
 
   EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    otherApp = GroovyEmbeddedApp.build {
-      bindings { bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
+    otherApp = GroovyEmbeddedApp.of {
+      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
       handlers(closure)
     }
   }

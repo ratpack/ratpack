@@ -21,6 +21,7 @@ import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
@@ -31,25 +32,27 @@ import ratpack.http.Request;
 import ratpack.http.TypedData;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
-  private final MutableRegistry registry = new SimpleMutableRegistry();
+  private MutableRegistry registry;
 
   private final Headers headers;
   private final ByteBuf content;
   private final String rawUri;
   private final HttpMethod method;
+  private final String protocol;
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
+  private final Instant timestamp;
 
   private TypedData body;
 
@@ -59,13 +62,15 @@ public class DefaultRequest implements Request {
   private String path;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, io.netty.handler.codec.http.HttpMethod method, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
+  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
     this.headers = headers;
     this.content = content;
     this.method = DefaultHttpMethod.valueOf(method);
+    this.protocol = protocol.toString();
     this.rawUri = rawUri;
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
+    this.timestamp = timestamp;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -78,6 +83,14 @@ public class DefaultRequest implements Request {
 
   public HttpMethod getMethod() {
     return method;
+  }
+
+  public String getProtocol() {
+    return protocol;
+  }
+
+  public Instant getTimestamp() {
+    return timestamp;
   }
 
   public String getRawUri() {
@@ -213,33 +226,63 @@ public class DefaultRequest implements Request {
 
   @Override
   public <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
-    registry.addLazy(type, supplier);
+    getDelegateRegistry().addLazy(type, supplier);
     return this;
   }
 
   @Override
   public <O> Request add(TypeToken<? super O> type, O object) {
-    registry.add(type, object);
+    getDelegateRegistry().add(type, object);
+    return this;
+  }
+
+  @Override
+  public <O> Request add(Class<? super O> type, O object) {
+    getDelegateRegistry().add(type, object);
+    return this;
+  }
+
+  @Override
+  public Request add(Object object) {
+    getDelegateRegistry().add(object);
+    return this;
+  }
+
+  @Override
+  public <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    getDelegateRegistry().addLazy(type, supplier);
     return this;
   }
 
   @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
-    registry.remove(type);
+    getDelegateRegistry().remove(type);
   }
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return registry.maybeGet(type);
+    return getDelegateRegistry().maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return registry.getAll(type);
+    return getDelegateRegistry().getAll(type);
   }
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return registry.first(type, function);
+    return getDelegateRegistry().first(type, function);
+  }
+
+  private MutableRegistry getDelegateRegistry() {
+    if (registry == null) {
+      throw new IllegalStateException("Cannot access registry before it has been set");
+    }
+    return registry;
+  }
+
+  // Implemented as static method (instead of public instance) so that it's not accidentally callable from dynamic languages
+  public static void setDelegateRegistry(DefaultRequest request, MutableRegistry registry) {
+    request.registry = registry;
   }
 }

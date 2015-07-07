@@ -19,8 +19,10 @@ package ratpack.http.client;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.http.MutableHeaders;
 
+import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -38,6 +40,25 @@ public interface RequestSpec {
    * @return The RequestSpec
    */
   RequestSpec redirects(int maxRedirects);
+
+  /**
+   * Sets the {@link SSLContext} used for client and server SSL authentication.
+   *
+   * @param sslContext SSL context with keystore as well as trust store
+   * @return the {@link RequestSpec}
+   */
+  RequestSpec sslContext(SSLContext sslContext);
+
+  /**
+   * Factory method to create {@link SSLContext} used for client and server SSL authentication.
+   *
+   * @param factory provides a factory that will create {@link SSLContext} instance
+   * @return the {@link RequestSpec}
+   * @throws Exception this can be thrown from the action
+   */
+  default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
+    return sslContext(factory.create());
+  }
 
   /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
@@ -59,6 +80,13 @@ public interface RequestSpec {
    * @return this
    */
   RequestSpec method(String method);
+
+  /**
+   * Enables automatic decompression of the response.
+   * @param shouldDecompress whether to enable decompression
+   * @return this
+   */
+  RequestSpec decompressResponse(boolean shouldDecompress);
 
   URI getUrl();
 
