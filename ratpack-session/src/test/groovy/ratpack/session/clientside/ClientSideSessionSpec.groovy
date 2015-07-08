@@ -274,14 +274,9 @@ class ClientSideSessionSpec extends SessionSpec {
     values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
   }
 
-  private static class SessionContent {
-    Map<String, Optional> data
-  }
-
   @Unroll
-  def "secretKey with #algorithm renders session unreadable"() {
+  def "can use algorithm #algorithm"() {
     given:
-    SessionContent sessionContent = new SessionContent()
     modules.clear()
     bindings {
       module SessionModule
@@ -303,33 +298,20 @@ class ClientSideSessionSpec extends SessionSpec {
           cipherAlgorithm = algorithm
         }
       }
-      bindInstance(SessionContent, sessionContent)
     }
     handlers {
-      get("") { Session session ->
+      get { Session session ->
         render session.get("value").map { it.orElse("null") }
       }
       get("set/:value") { Session session ->
         render session.set("value", pathTokens.value).map { "ok" }
       }
-      get("session") { Session session, SessionContent sc ->
-        render session.data
-          .map {
-          sc.data = [:]
-          for (key in it.keys) {
-            sc.data[key.name] = it.get(key)
-          }
-        }.map { "ok" }
-      }
     }
 
     expect:
-    get("")
-    response.body.text == "null"
+    text == "null"
     getText("set/foo") == "ok"
-    get("session")
-    sessionContent.data["value"].orElse("null") == "foo"
-    getText("") == "foo"
+    text == "foo"
 
     where:
     algorithm << [
