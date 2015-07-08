@@ -29,7 +29,7 @@ import java.time.Duration
 class ClientSideSessionSpec extends SessionSpec {
 
   private String[] getCookies(String startsWith, String path) {
-    getCookies(path).findAll { it.name().startsWith(startsWith)?.value } .toArray()
+    getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
   }
 
   def setup() {
@@ -48,7 +48,7 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -68,7 +68,7 @@ class ClientSideSessionSpec extends SessionSpec {
         response.send("foo")
       }
       get("store") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
       get("load") { Session session ->
         render session.get("foo").map { it.orElse "null" }
@@ -89,10 +89,10 @@ class ClientSideSessionSpec extends SessionSpec {
     given:
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
       get("terminate") { Session session ->
-        render session.terminate().map{ "ok" }
+        render session.terminate().map { "ok" }
       }
     }
 
@@ -114,10 +114,10 @@ class ClientSideSessionSpec extends SessionSpec {
     handlers {
       get("foo") { Session session ->
         String value = "ab" * 800
-        render session.set("foo", value).map{ "ok" }
+        render session.set("foo", value).map { "ok" }
       }
       get("bar") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -145,11 +145,11 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
       get("wait") { Session session ->
         Thread.sleep(1100)
-        render session.get("foo").map{ it.orElse("null") }
+        render session.get("foo").map { it.orElse("null") }
       }
     }
 
@@ -215,7 +215,7 @@ class ClientSideSessionSpec extends SessionSpec {
     when:
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -237,7 +237,7 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -261,7 +261,7 @@ class ClientSideSessionSpec extends SessionSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -315,11 +315,11 @@ class ClientSideSessionSpec extends SessionSpec {
       get("session") { Session session, SessionContent sc ->
         render session.data
           .map {
-            sc.data = [:]
-            for (key in it.keys) {
-              sc.data[key.name] = it.get(key)
-            }
-          }.map { "ok" }
+          sc.data = [:]
+          for (key in it.keys) {
+            sc.data[key.name] = it.get(key)
+          }
+        }.map { "ok" }
       }
     }
 
