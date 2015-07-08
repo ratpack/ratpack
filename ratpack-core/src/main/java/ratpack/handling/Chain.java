@@ -519,7 +519,7 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   default Chain host(String hostName, Action<? super Chain> action) throws Exception {
-    return route(ctx ->
+    return when(ctx ->
         Optional.ofNullable(ctx.getRequest().getHeaders().get(HttpHeaderNames.HOST))
           .map(s -> s.equals(hostName))
           .orElse(false),
@@ -792,11 +792,11 @@ public interface Chain {
     return register(registryAction, getRegistry().get(action));
   }
 
-  default Chain route(Predicate<? super Context> test, Action<? super Chain> action) throws Exception {
-    return all(Handlers.route(test, chain(action)));
+  default Chain when(Predicate<? super Context> test, Action<? super Chain> action) throws Exception {
+    return all(Handlers.when(test, chain(action)));
   }
 
-  default Chain route(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
-    return all(Handlers.route(test, chain(action)));
+  default Chain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return all(Handlers.when(test, chain(action)));
   }
 }

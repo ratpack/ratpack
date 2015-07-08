@@ -20,12 +20,12 @@ import ratpack.func.Predicate;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-public class RouteHandler implements Handler {
+public class WhenHandler implements Handler {
 
   private final Predicate<? super Context> test;
   private final Handler handler;
 
-  public RouteHandler(Predicate<? super Context> test, Handler handler) {
+  public WhenHandler(Predicate<? super Context> test, Handler handler) {
     this.test = test;
     this.handler = handler;
   }
