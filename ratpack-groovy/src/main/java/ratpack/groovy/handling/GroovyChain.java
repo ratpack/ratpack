@@ -672,9 +672,12 @@ public interface GroovyChain extends Chain {
     Action<? super Chain> chain
   ) throws Exception {
     return route(
-      ctx -> DefaultGroovyMethods.asBoolean(
-        ClosureUtil.configureDelegateFirst(GroovyContext.from(ctx), test)
-      ),
+      ctx -> {
+        final GroovyContext groovyContext = GroovyContext.from(ctx);
+        return DefaultGroovyMethods.asBoolean(
+          ClosureUtil.cloneAndSetDelegate(groovyContext, test, Closure.DELEGATE_FIRST).isCase(groovyContext)
+        );
+      },
       chain
     );
   }

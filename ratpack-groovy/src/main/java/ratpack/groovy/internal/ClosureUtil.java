@@ -58,15 +58,20 @@ public abstract class ClosureUtil {
     if (configurer == null) {
       return null;
     }
-    @SuppressWarnings("unchecked")
-    Closure<R> clone = (Closure<R>) configurer.clone();
-    clone.setDelegate(delegate);
-    clone.setResolveStrategy(resolveStrategy);
+    Closure<R> clone = cloneAndSetDelegate(delegate, configurer, resolveStrategy);
     if (clone.getMaximumNumberOfParameters() == 0) {
       return clone.call();
     } else {
       return clone.call(argument);
     }
+  }
+
+  public static <R, D> Closure<R> cloneAndSetDelegate(D delegate, Closure<R> configurer, int resolveStrategy) {
+    @SuppressWarnings("unchecked")
+    Closure<R> clone = (Closure<R>) configurer.clone();
+    clone.setDelegate(delegate);
+    clone.setResolveStrategy(resolveStrategy);
+    return clone;
   }
 
   // Type token is here for in the future when @DelegatesTo supports this kind of API
