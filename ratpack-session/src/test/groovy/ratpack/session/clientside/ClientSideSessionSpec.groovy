@@ -144,24 +144,24 @@ class ClientSideSessionSpec extends SessionSpec {
       }
     }
     handlers {
-      get("foo") { Session session ->
+      get("set") { Session session ->
         render session.set("foo", "bar").map { "ok" }
       }
-      get("wait") { Session session ->
-        Thread.sleep(1100)
+      get("get") { Session session ->
         render session.get("foo").map { it.orElse("null") }
       }
     }
 
     when:
-    get("foo")
+    get("set")
 
     then:
     getCookies("ratpack_lat", "/").length == 1
     getCookies("ratpack_session", "/").length == 1
 
     when:
-    get("wait")
+    sleep(1100)
+    get("get")
 
     then:
     getCookies("ratpack_lat", "/").length == 0
