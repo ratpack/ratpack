@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-description = "Authentication via pac4j - https://github.com/leleuj/pac4j"
+description = "Authentication via pac4j - https://github.com/pac4j/pac4j"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
