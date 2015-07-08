@@ -21,7 +21,7 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
   def "can use groovy truth in condition for true"() {
     when:
     handlers {
-      route { 1 } {
+      when { 1 } {
         get { render "true" }
       }
     }
@@ -33,7 +33,7 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
   def "can use groovy truth in condition for false"() {
     when:
     handlers {
-      route { "" } {
+      when { "" } {
         get { render "true" }
       }
       get { render "false" }
@@ -47,7 +47,7 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
     when:
     handlers {
       prefix(":foo?") {
-        route { pathTokens.foo } {
+        when { pathTokens.foo } {
           all { render "true" }
         }
         all { render "false" }

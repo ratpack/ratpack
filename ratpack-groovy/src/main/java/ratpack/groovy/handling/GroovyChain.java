@@ -644,34 +644,34 @@ public interface GroovyChain extends Chain {
   }
 
   @Override
-  default GroovyChain route(Predicate<? super Context> test, Action<? super Chain> action) throws Exception {
-    return from(Chain.super.route(test, action));
+  default GroovyChain when(Predicate<? super Context> test, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.when(test, action));
   }
 
   @Override
-  default GroovyChain route(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
-    return from(Chain.super.route(test, action));
+  default GroovyChain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return from(Chain.super.when(test, action));
   }
 
-  default GroovyChain route(
+  default GroovyChain when(
     Predicate<? super Context> test,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers
   ) throws Exception {
-    return route(test, chainAction(handlers));
+    return when(test, chainAction(handlers));
   }
 
-  default GroovyChain route(
+  default GroovyChain when(
     @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers
   ) throws Exception {
-    return route(test, chainAction(handlers));
+    return when(test, chainAction(handlers));
   }
 
-  default GroovyChain route(
+  default GroovyChain when(
     @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
     Action<? super Chain> chain
   ) throws Exception {
-    return route(
+    return when(
       ctx -> {
         final GroovyContext groovyContext = GroovyContext.from(ctx);
         return DefaultGroovyMethods.asBoolean(

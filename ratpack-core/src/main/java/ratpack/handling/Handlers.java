@@ -316,11 +316,11 @@ public abstract class Handlers {
    * <p>
    * If the predicate does not apply, calls {@link Context#next()}.
    *
-   * @param test the test whether to route to the given handler
+   * @param test the test whether to when to the given handler
    * @param handler the handler to insert if the predicate applies
    * @return a handler
    */
-  public static Handler route(Predicate<? super Context> test, Handler handler) {
-    return new RouteHandler(test, handler);
+  public static Handler when(Predicate<? super Context> test, Handler handler) {
+    return new WhenHandler(test, handler);
   }
 }
