@@ -114,3 +114,6 @@ The server [handler](handlers.html) receives all incoming HTTP requests.
 Handlers are composable, and very few applications are actually comprised of only one handler.
 The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
 that uses the [`Chain`](api/ratpack/handling/Chain.html) DSL to create the composite handler.
+
+### Hooking into the application lifecycle
+The [`service`](api/ratpack/server/Service.html) interface is used to hook into the applications lifecycle.
