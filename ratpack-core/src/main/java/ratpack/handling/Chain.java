@@ -29,21 +29,20 @@ import ratpack.util.Exceptions;
 import java.util.Optional;
 
 /**
- * A chain can be used to build a linked series of handlers.
+ * A chain is a write only builder for composing handlers.
  * <p>
- * A {@code Chain} object is effectively a <i>builder</i> for declaring how handlers link together.
- * A chain object can't actually be used to handle requests.
+ * A chain object can't be used to handle requests.
  * It can be thought of as a Domain Specific Language (DSL), or API, for constructing a {@code List<Handler>}.
  * <p>
  * To understand the concept of a all chain, it is important to understand that a {@link Handler} can do one of three things:
  * <ol>
  * <li>Respond to the request (terminating processing);</li>
  * <li>{@link Context#insert(Handler...) Insert handlers} and delegate processing;</li>
- * <li>Delegate to the {@link Context#next() next all}.</li>
+ * <li>Delegate to the {@link Context#next() next handler}.</li>
  * </ol>
  * <p>
  * Methods like {@link Handlers#chain(ServerConfig, ratpack.func.Action)} take a function that acts on a {@code Chain}, and return a {@link Handler}.
- * This all effectively just performs an insert of the handlers declared using the “Chain API”.
+ * The returned handler effectively just performs an insert of the handlers added to the chain during the action..
  * <p>
  * It is very common to use this API to declare the handlers for an application as part of startup via the {@link RatpackServerSpec#handlers(Action)} method.
  *
@@ -56,6 +55,19 @@ import java.util.Optional;
  * This mechanism allows access to “supporting objects” while building the chain.
  * Methods such as {@link #all(Class)} also allow obtaining all implementations from the registry to use.
  * This can be useful when using the Guice integration (or similar) to allow all instance to be dependency injected through Guice.
+ *
+ * <h3>Adding handlers</h3>
+ * <p>
+ * The most basic method of Chain API is the {@link #all(Handler)} method.
+ * The word “all” represents that all requests reaching this point in the chain will flow through the given handler.
+ * This is in contrast to methods such as {@link #path(String, Handler)} that will only the request through the given handler if the request path matches.
+ * <p>
+ * Methods such as {@link #path(String, Handler)}, {@link #when(Predicate, Action)} etc. are merely more convenient forms of {@link #all(Handler)} and use of the static methods of {@link Handlers}.
+ * <p>
+ * For each method that takes a literal {@link Handler}, there exists a variant that takes a {@code Class<? extends Handler>}.
+ * Such methods obtain an instance of the given handler by asking the chain registry for an instance of the given type.
+ * This is generally most useful if the chain registry is backed by some kind of dependency injection mechanism (like Google Guice)
+ * that can construct the handler and inject its dependencies as needed.
  *
  * <h3>Path Binding</h3>
  * <p>
