@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock
 class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackboxVerification<ByteBuf> {
 
   public WebsocketBroadcastSubscriberBlackboxVerification() {
-    super(new TestEnvironment(1000L))
+    super(new TestEnvironment(10000L))
   }
 
   @Override
