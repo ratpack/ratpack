@@ -19,9 +19,6 @@ package ratpack.path.internal;
 import com.google.common.collect.ImmutableMap;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
-import ratpack.util.internal.Validations;
-
-import java.util.Optional;
 
 public class DefaultPathBinding implements PathBinding {
 
@@ -43,7 +40,7 @@ public class DefaultPathBinding implements PathBinding {
 
     DefaultPathBinding that = (DefaultPathBinding) o;
 
-    return allTokens.equals(that.allTokens) && binding.equals(that.binding) && pastBinding.equals(that.pastBinding);
+    return binding.equals(that.binding) && pastBinding.equals(that.pastBinding) && allTokens.equals(that.allTokens);
   }
 
   @Override
@@ -54,17 +51,13 @@ public class DefaultPathBinding implements PathBinding {
     return result;
   }
 
-  public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, Optional<PathBinding> parent) {
+  public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
     this.binding = binding;
     this.bindingWithSlash = binding.concat("/");
-    this.tokens = new DefaultPathTokens(tokens);
+    this.tokens = DefaultPathTokens.of(tokens);
+    this.allTokens = parent.getAllTokens().isEmpty() ? this.tokens : DefaultPathTokens.of(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
 
-    if (parent.isPresent()) {
-      allTokens = new DefaultPathTokens(ImmutableMap.<String, String>builder().putAll(parent.get().getAllTokens()).putAll(tokens).build());
-    } else {
-      allTokens = this.tokens;
-    }
-
+    String path = parent.getPastBinding();
     if (path.equals(binding)) {
       pastBinding = "";
     } else if (path.startsWith(bindingWithSlash)) {
@@ -80,11 +73,6 @@ public class DefaultPathBinding implements PathBinding {
 
   public String getBoundTo() {
     return binding;
-  }
-
-  public String childPath(String path) {
-    Validations.noLeadingForwardSlash(path, "child path");
-    return bindingWithSlash.concat(path);
   }
 
   public PathTokens getTokens() {

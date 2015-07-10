@@ -35,7 +35,7 @@ public class PathHandler implements Handler {
     .build(new CacheLoader<CacheKey, Optional<Registry>>() {
       @Override
       public Optional<Registry> load(CacheKey key) throws Exception {
-        return key.pathBinder.bind(key.path, key.parentBinding).map(b ->
+        return key.pathBinder.bind(key.parentBinding).map(b ->
             Registry.single(PathBinding.class, b)
         );
       }
@@ -44,9 +44,9 @@ public class PathHandler implements Handler {
   private static class CacheKey {
     private final PathBinder pathBinder;
     private final String path;
-    private final Optional<PathBinding> parentBinding;
+    private final PathBinding parentBinding;
 
-    public CacheKey(PathBinder pathBinder, String path, Optional<PathBinding> parentBinding) {
+    public CacheKey(PathBinder pathBinder, String path, PathBinding parentBinding) {
       this.pathBinder = pathBinder;
       this.path = path;
       this.parentBinding = parentBinding;
@@ -84,7 +84,7 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Context context) throws ExecutionException {
-    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.maybeGet(PathBinding.class)));
+    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.get(PathBinding.class)));
     if (registry.isPresent()) {
       context.insert(registry.get(), handler);
     } else {
