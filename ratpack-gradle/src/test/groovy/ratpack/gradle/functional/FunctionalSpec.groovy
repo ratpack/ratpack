@@ -21,6 +21,7 @@ import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.tasks.TaskState
 import org.gradle.cli.CommandLineParser
 import org.gradle.configuration.GradleLauncherMetaData
@@ -86,6 +87,11 @@ abstract class FunctionalSpec extends Specification {
           void removeCallback(Runnable runnable) {
 
           }
+
+          @Override
+          void cancel() {
+
+          }
         }
       }
 
@@ -107,6 +113,16 @@ abstract class FunctionalSpec extends Specification {
       @Override
       Clock getBuildTimeClock() {
         return new Clock()
+      }
+
+      @Override
+      StandardOutputListener getOutputListener() {
+        return {} as StandardOutputListener
+      }
+
+      @Override
+      StandardOutputListener getErrorListener() {
+        return {} as StandardOutputListener
       }
     })
     executedTasks.clear()
