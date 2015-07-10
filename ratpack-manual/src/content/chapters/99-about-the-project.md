@@ -66,6 +66,7 @@ The following people have provided significant contributions.
 * [Steve Anderson](https://github.com/saanvik)
 * [Dave Syer](https://github.com/dsyer)
 * [João Cabrita](https://github.com/kewne)
+* [Daniel Lopes] (https://github.com/djjorjinho)
 
 ### Past project members
 
