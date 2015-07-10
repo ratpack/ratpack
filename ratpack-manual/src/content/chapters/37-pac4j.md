@@ -1,141 +1,37 @@
-# Security using pac4j
+# Pac4j
 
-The `ratpack-pac4j` extension provides authentication support based on [pac4j](https://github.com/pac4j/pac4j).
+The `ratpack-pac4j` extension provides authentication support via integration with [pac4j](https://github.com/pac4j/pac4j).
 
-`pac4j` is a generic authentication engine which is implemented by many frameworks and supports multiple protocols: OAuth, CAS, OpenID (Connect), SAML, Google App Engine and HTTP (form and basic auth).
+The pac4j library is an authentication engine which abstracts over different authentication protocols such as OAuth, CAS, OpenID (Connect), SAML, Google App Engine and HTTP (form and basic auth).
+It is also possible to use custom authentication mechanisms (e.g. database backed). 
 
-The [`RatpackPac4j`](api/ratpack/pac4j/RatpackPac4j.html) class is the main component to use to manage the security of your web application.
+The [`RatpackPac4j`](api/ratpack/pac4j/RatpackPac4j.html) class provides the entirety of the integration.
+This class provides static methods that provide handler implementations along with other finer grained constructs for use within your handler implementations.
+The API reference for this class provides usage examples of each of the methods.
 
+The `ratpack-pac4j` library requires the `ratpack-session` module, and use of the associated [`SessionModule`](api/ratpack/session/SessionModule.html).
 
-## Prerequisite
-
-All authentication mechanisms work by redirecting the user to an identity provider and finishing the login process when he is redirected back to the application with some dedicated credentials.
-To make these authentication processes work and to save the originally requested url, the session is required. That's why the [`SessionModule`](api/ratpack/session/SessionModule.html) is necessary.
-
-
-## Authentication mechanisms definition
+## Usage
 
 Each authentication mechanism in `pac4j` is defined as a [Client](https://github.com/pac4j/pac4j/blob/master/pac4j-core/src/main/java/org/pac4j/core/client/Client.java).
-Thus, configuring the ways to login into your application requires to create the right [clients](https://github.com/pac4j/pac4j/wiki/Clients): a `FacebookClient` to log in with Facebook, a `TwitterClient` to log in with Twitter, a `Google2Client` to log in with Google (using OAuth v2.0 protocol), and so on.
+For example, Pac4j provides the [FacebookClient](http://www.pac4j.org/apidocs/pac4j/org/pac4j/oauth/client/FacebookClient.html) type that implements the Facebook authentication protocol.
+Your application must expose an “authenticator” endpoint, that given a user and an intended “client”, authenticates the user.
+The [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-org.pac4j.core.client.Client...-) provides a handler implementation to act as this endpoint.
+When an authenticated user is required within your application, the user will be redirected to the “authenticator”.
 
-Create your `pac4j` clients and define them **BEFORE** any other authentication operation in your web chain using the [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-org.pac4j.core.client.Client...-) method. Then secure an url, get the authenticated user profile or log out. 
+There are two ways to require authentication:
 
-```language-java
-import com.google.appengine.repackaged.com.google.common.collect.Maps;
-import org.pac4j.cas.client.CasClient;
-import org.pac4j.core.client.Client;
-import org.pac4j.core.client.Clients;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.profile.UserProfile;
-import org.pac4j.http.client.BasicAuthClient;
-import org.pac4j.http.client.FormClient;
-import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-import org.pac4j.http.profile.UsernameProfileCreator;
-import org.pac4j.oauth.client.FacebookClient;
-import org.pac4j.oauth.client.TwitterClient;
-import ratpack.func.Action;
-import ratpack.groovy.template.TextTemplateModule;
-import ratpack.guice.Guice;
-import ratpack.handling.Chain;
-import ratpack.pac4j.RatpackPac4j;
-import ratpack.server.RatpackServer;
-import ratpack.server.ServerConfig;
-import ratpack.session.SessionModule;
+1. [`RatpackPac4j.requireAuth()`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-) - a handler implementation that acts as a “filter”
+1. [`RatpackPac4j.login()`](api/ratpack/pac4j/RatpackPac4j.html#login-ratpack.handling.Context-java.lang.Class-) - method that initiates login if required (to be used within a handler implementation)
 
-import java.io.File;
-import java.util.Map;
-import java.util.Optional;
+The [`RatpackPac4j.userProfile()`](api/ratpack/pac4j/RatpackPac4j.html#userProfile-ratpack.handling.Context-) method can be used to obtain the user profile if the user is logged in, without requiring authentication.
 
-import static java.util.Collections.singletonMap;
-import static ratpack.groovy.Groovy.groovyTemplate;
+## Session Usage
 
-public class Example {
+As previously mentioned, using `ratpack-pac4j` requires session support via `ratpack-session`.
+When authenticated, the user's profile is stored in the session.
+Therefore, terminating the session will effectively log the user out.
 
-    public static void main(final String[] args) throws Exception {
-        RatpackServer.start(server -> server
-                .serverConfig(ServerConfig
-                        .baseDir(new File("src/main"))
-                        .port(8080)
-                )
-                .registry(Guice.registry(b -> b
-                        .module(TextTemplateModule.class)
-                        .module(SessionModule.class)
-                ))
-                .handlers(chain -> {
-                    final FacebookClient facebookClient = new FacebookClient("fkey", "fsecret");
-                    final TwitterClient twitterClient = new TwitterClient("tkey", "tsecret");
-                    final FormClient formClient = new FormClient("/theForm.html", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator());
-                    final BasicAuthClient basicAuthClient = new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator());
-                    final CasClient casClient = new CasClient();
-                    casClient.setCasLoginUrl("http://mycasserver/login");
-                    chain
-                        .all(RatpackPac4j.authenticator(formClient, formClient, facebookClient, twitterClient, basicAuthClient, casClient))
-                        .prefix("facebook", requireAuth(FacebookClient.class))
-                        .prefix("twitter", requireAuth(TwitterClient.class))
-                        .prefix("form", requireAuth(FormClient.class))
-                        .prefix("basicauth", requireAuth(BasicAuthClient.class))
-                        .prefix("cas", requireAuth(CasClient.class))
-                        .path("theForm.html", ctx ->
-                            ctx.render(groovyTemplate(
-                                singletonMap("callbackUrl", formClient.getCallbackUrl()),
-                                "theForm.html"
-                            ))
-                        )
-                        .path("logout.html", ctx ->
-                                RatpackPac4j.logout(ctx).then(() -> ctx.redirect("index.html"))
-                        )
-                        .path("index.html", ctx -> {
-                            RatpackPac4j.userProfile(ctx)
-                                .left(RatpackPac4j.webContext(ctx))
-                                .then(pair -> {
-                                    final WebContext webContext = pair.left;
-                                    final Optional<UserProfile> profile = pair.right;
-                                    final Map<String, Object> model = Maps.newHashMap();
-                                    profile.ifPresent(p -> model.put("profile", p));
-                                    final Clients clients = ctx.get(Clients.class);
-                                    final FacebookClient fbclient = clients.findClient(FacebookClient.class);
-                                    final String fbUrl = fbclient.getRedirectionUrl(webContext);
-                                    model.put("facebookLoginUrl", fbUrl);
-                                    ctx.render(groovyTemplate(model, "index.html"));
-                                });
-                        });
-                })
-        );
-    }
-    private static Action<Chain> requireAuth(Class<? extends Client<?, ?>> clientClass) {
-        return chain -> chain
-            .all(RatpackPac4j.requireAuth(clientClass))
-            .path("index.html", ctx ->
-                    ctx.render(groovyTemplate(
-                        singletonMap("profile", ctx.get(UserProfile.class)),
-                        "protected.html"
-                    ))
-            );
-    }
-}
-```
+## Demo application
 
-The `authenticator` method creates the `/authenticator` url endpoint to receive callbacks and finish the login processes (it can be set to an another `path` using [`RatpackPac4j.authenticator(String path, Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-java.lang.String-org.pac4j.core.client.Client...-).
-
-
-## Url protection
-
-If you want to protect an url and request the user to be authenticated, you need to use the [`Ratpack.requireAuth(Class<? extends Client<?, ?>> clientType)`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-) method and provide the client required to perform the authentication.
-After a successful authentication, the authenticated user profile is available in the *context*.
-
-You can also use the [`RatpackPac4j.login(Context ctx, Class<? extends Client<?, ?>> clientType)`](api/ratpack/pac4j/RatpackPac4j.html#login-ratpack.handling.Context-java.lang.Class-) method which does not save the user profile in *context* but returns a promise of it (`Promise<UserProfile>`).
-
-
-## User profile retrieval
-
-To get the user profile (or not) without initiating an authentication, you can just use the [`RatpackPac4j.userProfile(Context ctx)`](api/ratpack/pac4j/RatpackPac4j.html#userProfile-ratpack.handling.Context-) method.
-
-
-## Logout
-
-The authenticated user profile is stored in session. To logout the current authenticated user, the [`RatpakcPac4j.logout(Context ctx)`](api/ratpack/pac4j/RatpackPac4j.html#logout-ratpack.handling.Context-) method must be used.
-
-
-## Demo
-
-All capabilities available through this extension are demonstrated in the [ratpack-pac4j-demo](https://github.com/pac4j/ratpack-pac4j-demo).
+Please see the [ratpack-pac4j-demo](https://github.com/pac4j/ratpack-pac4j-demo) application for a complete application that demonstrates how to use pac4j with Ratpack. 
