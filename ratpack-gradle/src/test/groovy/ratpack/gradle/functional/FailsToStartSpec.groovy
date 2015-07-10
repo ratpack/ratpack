@@ -16,7 +16,7 @@
 
 package ratpack.gradle.functional
 
-import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.initialization.ReportedException
 
 class FailsToStartSpec extends FunctionalSpec {
 
@@ -24,18 +24,17 @@ class FailsToStartSpec extends FunctionalSpec {
     given:
     buildFile << """
       configureRun.doLast { run.systemProperty "ratpack.development", false }
+      mainClassName = "org.Main"
     """
 
-    file("src/ratpack/ratpack.properties") << "handlerFactory=test.HandlerFactory"
-    file("src/main/java/test/HandlerFactory.java") << """
-      package test;
+    file("src/main/java/org/Main.java") << """
+      package org;
 
-      import ratpack.launch.*;
-      import ratpack.handling.*;
+      import ratpack.server.*;
 
-      public class HandlerFactory implements ratpack.launch.HandlerFactory {
-        public Handler create(LaunchConfig launchConfig) {
-          throw new RuntimeException("bang!");
+      public class Main {
+        public static void main(String... args) throws Exception {
+          RatpackServer.start(s -> { throw new RuntimeException("!"); });
         }
       }
     """
@@ -44,7 +43,7 @@ class FailsToStartSpec extends FunctionalSpec {
     run("run").failure
 
     then:
-    thrown LocationAwareException
+    thrown ReportedException
   }
 
 }
