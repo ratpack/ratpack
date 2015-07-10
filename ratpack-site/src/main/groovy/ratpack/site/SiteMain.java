@@ -16,6 +16,9 @@
 
 package ratpack.site;
 
+import asset.pipeline.ratpack.AssetPipelineModule;
+import com.google.common.base.Joiner;
+import com.google.common.collect.FluentIterable;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
 import ratpack.func.Block;
 import ratpack.func.Pair;
@@ -32,7 +35,6 @@ import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
-import asset.pipeline.ratpack.AssetPipelineModule;
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate;
 
@@ -174,6 +176,13 @@ public class SiteMain {
 
               )
 
+              .get("robots.txt", ctx ->
+                  ctx.get(RatpackVersions.class).getAll()
+                    .map(RatpackVersions.All::getAll)
+                    .map(v -> FluentIterable.from(v).transform(i -> "Disallow: /manual/" + i.getVersion()).join(Joiner.on("\n")))
+                    .map(s -> "User-agent: *\nDisallow: /manual/snapshot\n" + s)
+                    .then(ctx::render)
+              )
               .get("favicon.ico", ctx -> {
                 ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
                 ctx.next();

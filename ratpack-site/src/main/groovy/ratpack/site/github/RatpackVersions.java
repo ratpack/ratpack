@@ -1,5 +1,7 @@
 package ratpack.site.github;
 
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
@@ -95,6 +97,10 @@ public class RatpackVersions {
 
     public final List<RatpackVersion> getUnreleased() {
       return unreleased;
+    }
+
+    public final List<RatpackVersion> getAll() {
+      return ImmutableList.<RatpackVersion>builder().addAll(unreleased).addAll(released).build();
     }
   }
 }
