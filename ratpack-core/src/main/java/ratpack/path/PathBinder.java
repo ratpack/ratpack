@@ -16,29 +16,74 @@
 
 package ratpack.path;
 
+import ratpack.func.Action;
+import ratpack.handling.Chain;
+import ratpack.handling.Handler;
+import ratpack.handling.Handlers;
+import ratpack.path.internal.DefaultPathBinderBuilder;
+
 import java.util.Optional;
 
 /**
  * A path binder binds to a request path, extracting information from it.
  * <p>
- * They are used to conditionally execute handlers based on the request path.
+ * Path binders are the basis of path based “routing” in Ratpack, in conjunction with {@link Handlers#path(PathBinder, Handler)}.
+ * It is not common to use or create a path binder directly.
+ * Instead, methods such as {@link Chain#path(String, Handler)} create a binder from a string specification (using {@link #parse(String, boolean)}).
+ * <p>
+ * See <a href="../handling/Chain.html#path-binding">the section on path binding as part of the Chain documentation</a> for more information.
  *
- * @see ratpack.handling.Handlers#path(String, ratpack.handling.Handler)
- * @see ratpack.handling.Handlers#path(PathBinder, ratpack.handling.Handler)
- * @see ratpack.handling.Handlers#prefix(String, ratpack.handling.Handler)
+ * @see Chain#path(String, Handler)
+ * @see Handlers#path(String, Handler)
+ * @see Handlers#path(PathBinder, Handler)
+ * @see Handlers#prefix(String, Handler)
  */
 public interface PathBinder {
 
   /**
-   * Creates a binding for the given path, if this binder can bind to this path.
+   * Attempts to bind in the context of the given parent binding.
    * <p>
    * A binder may use whatever strategy it desires to decider whether or not it wants to
    * create a binding for the given path.
    *
-   * @param path The path to maybe create a binding for
-   * @param parentBinding The most recent upstream binding for this path, or null if there is no upstream binding
+   * @param parentBinding the parent binding
    * @return A binding if one could be created
    */
-  Optional<PathBinding> bind(String path, Optional<PathBinding> parentBinding);
+  Optional<PathBinding> bind(PathBinding parentBinding);
 
+  /**
+   * Creates a path binder by parsing the given path binding specification.
+   * <p>
+   * This method is used by methods such as {@link Chain#path(String, Class)}.
+   * <p>
+   * See <a href="../handling/Chain.html#path-binding">the section on path binding as part of the Chain documentation</a> for the format of the string.
+   *
+   * @param pathBindingSpec the path binding specification.
+   * @param exhaustive whether the binder must match the entire unbound path (false for a prefix match)
+   * @return a path binder constructed from the given path binding specification
+   */
+  static PathBinder parse(String pathBindingSpec, boolean exhaustive) {
+    return DefaultPathBinderBuilder.parse(pathBindingSpec, exhaustive);
+  }
+
+  /**
+   * Builds a path binder programmatically.
+   *
+   * @param exhaustive whether the binder must match the entire unbound path (false for a prefix match)
+   * @param action the binder definition
+   * @return a path binder
+   * @throws Exception any thrown by {@code action}
+   */
+  static PathBinder build(boolean exhaustive, Action<? super PathBinderBuilder> action) throws Exception {
+    return action.with(builder()).build(exhaustive);
+  }
+
+  /**
+   * Creates a new path binder builder.
+   *
+   * @return a new path binder builder
+   */
+  static PathBinderBuilder builder() {
+    return new DefaultPathBinderBuilder();
+  }
 }

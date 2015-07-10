@@ -73,8 +73,8 @@ public interface PathBinderBuilder {
   /**
    * Generate a {@link PathBinder} from the contents of the builder.
    *
-   * @param exact whether this path should be an exact match
+   * @param exhaustive whether this path should be an exact match
    * @return a new {@link PathBinder} based on the state of this builder
    */
-  PathBinder build(boolean exact);
+  PathBinder build(boolean exhaustive);
 }

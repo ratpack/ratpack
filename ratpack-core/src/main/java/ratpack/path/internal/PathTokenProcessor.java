@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.util.internal;
+package ratpack.path.internal;
 
-public abstract class Validations {
+import ratpack.path.PathBinderBuilder;
 
-  public static void noLeadingForwardSlash(String string, String description) {
-    if (string.startsWith("/")) {
-      throw new IllegalArgumentException(String.format("%s string (value: %s) should not start with a forward slash", description, string));
-    }
-  }
+import java.util.regex.Matcher;
+
+public interface PathTokenProcessor {
+  void process(Matcher matcher, PathBinderBuilder builder);
 }

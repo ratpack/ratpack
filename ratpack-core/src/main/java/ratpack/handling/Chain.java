@@ -69,7 +69,7 @@ import java.util.Optional;
  * This is generally most useful if the chain registry is backed by some kind of dependency injection mechanism (like Google Guice)
  * that can construct the handler and inject its dependencies as needed.
  *
- * <h3>Path Binding</h3>
+ * <h3><a name="path-binding">Path Binding</a></h3>
  * <p>
  * Methods such as {@link #get(String, Handler)}, {@link #prefix(String, Action)}, accept a string argument as a request path binding specification.
  * These strings can contain symbols that allow {@link ratpack.path.PathTokens} to be captured and for path binding to be dynamic.

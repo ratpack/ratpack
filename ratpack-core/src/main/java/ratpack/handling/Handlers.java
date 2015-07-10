@@ -25,7 +25,6 @@ import ratpack.func.Predicate;
 import ratpack.handling.internal.*;
 import ratpack.http.internal.*;
 import ratpack.path.PathBinder;
-import ratpack.path.PathBinders;
 import ratpack.path.internal.PathHandler;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
@@ -227,7 +226,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler path(String path, Handler handler) {
-    return path(PathBinders.parse(path, true), handler);
+    return path(PathBinder.parse(path, true), handler);
   }
 
   /**
@@ -263,7 +262,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler prefix(String prefix, Handler handler) {
-    return path(PathBinders.parse(prefix, false), handler);
+    return path(PathBinder.parse(prefix, false), handler);
   }
 
   /**

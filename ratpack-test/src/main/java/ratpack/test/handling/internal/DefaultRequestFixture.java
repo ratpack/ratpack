@@ -37,6 +37,7 @@ import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
+import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
@@ -52,7 +53,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 
 import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
@@ -178,7 +178,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
-    pathBinding = new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), Optional.empty());
+    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding));
     return this;
   }
 

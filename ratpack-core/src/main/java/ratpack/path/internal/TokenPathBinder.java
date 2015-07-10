@@ -18,11 +18,10 @@ package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.Optional;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -38,11 +37,8 @@ public class TokenPathBinder implements PathBinder {
     this.regex = regex;
   }
 
-  public Optional<PathBinding> bind(String path, Optional<PathBinding> parentBinding) {
-    if (parentBinding.isPresent()) {
-      path = parentBinding.get().getPastBinding();
-    }
-    Matcher matcher = regex.matcher(path);
+  public Optional<PathBinding> bind(PathBinding parentBinding) {
+    Matcher matcher = regex.matcher(parentBinding.getPastBinding());
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
       String boundPath = matchResult.group(1);
@@ -55,20 +51,14 @@ public class TokenPathBinder implements PathBinder {
         }
       }
 
-      return Optional.of(new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding));
+      return Optional.of(new DefaultPathBinding(boundPath, paramsBuilder.build(), parentBinding));
     } else {
       return Optional.empty();
     }
   }
 
   private String decodeURIComponent(String s) {
-    String str;
-    try {
-      str = URLDecoder.decode(s.replaceAll("\\+", "%2B"), "UTF-8");
-    } catch (UnsupportedEncodingException ignored) {
-      throw new IllegalStateException("UTF-8 decoder should always be available");
-    }
-    return str;
+    return QueryStringDecoder.decodeComponent(s.replace("+", "%2B"));
   }
 
   @Override
