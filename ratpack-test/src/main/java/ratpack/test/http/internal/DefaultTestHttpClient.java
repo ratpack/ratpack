@@ -330,7 +330,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
+            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext(); ) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }
@@ -353,7 +353,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
 
     int redirects = maxRedirects.get();
-    boolean isRedirect = redirects > 0 && isRedirect(method, response.getStatusCode());
+    boolean isRedirect = redirects > 0 && isRedirect(response.getStatusCode());
     if (isRedirect) {
       String redirectPath = response.getHeaders().get(HttpHeaderConstants.LOCATION);
       String redirectMethod = getRedirectMethod(method, response.getStatusCode());
@@ -366,7 +366,9 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   private String getRedirectMethod(String method, int statusCode) {
-    switch(statusCode) {
+    switch (statusCode) {
+      case 301:
+      case 302:
       case 303:
         return HttpMethod.GET.name();
       default:
@@ -374,28 +376,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
   }
 
-  private boolean isRedirect(String httpMethod, int responseCode) {
-    HttpMethod method = HttpMethod.valueOf(httpMethod);
-    switch(responseCode) {
-      case 300:
-        return true;
-      case 301:
-      case 302:
-        return HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method);
-      case 303:
-        return true;
-      case 304:
-        return false;
-      case 305:
-        return true;
-      case 306:
-        return false;
-      case 307:
-      case 308:
-        return true;
-      default:
-        return false;
-    }
+  private boolean isRedirect(int code) {
+    return code == 301 || code == 302 || code == 303 || code == 307;
   }
 
   private HttpUrlBuilder builder(String path) {
