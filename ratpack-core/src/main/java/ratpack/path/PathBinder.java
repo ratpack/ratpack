@@ -74,7 +74,7 @@ public interface PathBinder {
    * @return a path binder
    * @throws Exception any thrown by {@code action}
    */
-  static PathBinder build(boolean exhaustive, Action<? super PathBinderBuilder> action) throws Exception {
+  static PathBinder of(boolean exhaustive, Action<? super PathBinderBuilder> action) throws Exception {
     return action.with(builder()).build(exhaustive);
   }
 
