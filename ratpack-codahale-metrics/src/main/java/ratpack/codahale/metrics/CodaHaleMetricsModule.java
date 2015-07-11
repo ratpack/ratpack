@@ -20,20 +20,21 @@ import com.codahale.metrics.*;
 import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
+import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
 import ratpack.codahale.metrics.internal.*;
 import ratpack.func.Action;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.server.Service;
 import ratpack.server.StartEvent;
-import org.slf4j.Logger;
-import org.slf4j.Marker;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -159,6 +160,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     private Optional<WebSocket> webSocket = Optional.empty();
     private Optional<Csv> csv = Optional.empty();
     private Optional<Slf4j> slf4j = Optional.empty();
+    private Optional<Graphite> graphite = Optional.empty();
 
     /**
      * The state of jvm metrics collection.
@@ -362,6 +364,32 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
         configure.execute(csv.orElseGet(() -> {
           csv = Optional.of(new Csv());
           return csv.get();
+        }));
+        return this;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+    /**
+     * Get the settings for the Graphite metrics publisher.
+     * @return the Graphite publisher settings
+     */
+    public Optional<Graphite> getGraphite() {
+      return graphite;
+    }
+
+    /**
+     * Configure the Graphite metrics publisher.
+     *
+     * @param configure the configuration for the publisher
+     * @return this
+     */
+    public Config graphite(Action<? super Graphite> configure) {
+      try {
+        configure.execute(graphite.orElseGet(() -> {
+          graphite = Optional.of(new Graphite());
+          return graphite.get();
         }));
         return this;
       } catch (Exception e) {
@@ -918,6 +946,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     bind(ConsoleReporter.class).toProvider(ConsoleReporterProvider.class).in(SINGLETON);
     bind(Slf4jReporter.class).toProvider(Slf4jReporterProvider.class).in(SINGLETON);
     bind(CsvReporter.class).toProvider(CsvReporterProvider.class).in(SINGLETON);
+    bind(GraphiteReporter.class).toProvider(GraphiteReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
 
@@ -964,6 +993,12 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       config.getCsv().ifPresent(csv -> {
         if (csv.isEnabled()) {
           injector.getInstance(CsvReporter.class).start(csv.getReporterInterval().getSeconds(), SECONDS);
+        }
+      });
+
+      config.getGraphite().ifPresent(graphite -> {
+        if (graphite.isEnabled()) {
+          injector.getInstance(GraphiteReporter.class).start(graphite.getReporterInterval().getSeconds(), SECONDS);
         }
       });
 

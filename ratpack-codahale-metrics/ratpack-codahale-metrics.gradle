@@ -27,6 +27,7 @@ dependencies {
   compile "io.dropwizard.metrics:metrics-healthchecks:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.codahaleMetrics}"
   compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.codahaleMetrics}"
+  compile "io.dropwizard.metrics:metrics-graphite:${commonVersions.codahaleMetrics}"
 
   testCompile project(":ratpack-jackson-guice")
 }
