@@ -22,7 +22,7 @@ import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.server.ServerConfig.Builder.DEFAULT_ENV_PREFIX
+import static ratpack.config.ConfigDataSpec.DEFAULT_ENV_PREFIX
 
 class EnvironmentConfigSourceSpec extends Specification {
   private static final SAMPLE_ENV_VARS = [USER: "jdoe", SHELL: "/bin/bash", LANG: "en_US.UTF-8"]

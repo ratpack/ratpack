@@ -21,7 +21,7 @@ import java.util.List;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.handling.Chain;
-import ratpack.server.ServerConfig.Builder;
+import ratpack.server.ServerConfigBuilder;
 
 public interface RatpackServerCustomizer {
 
@@ -29,6 +29,6 @@ public interface RatpackServerCustomizer {
 
   Action<BindingsSpec> getBindings();
 
-  Action<Builder> getServerConfig();
+  Action<ServerConfigBuilder> getServerConfig();
 
 }

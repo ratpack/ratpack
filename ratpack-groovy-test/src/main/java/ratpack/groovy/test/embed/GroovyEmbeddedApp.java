@@ -25,6 +25,7 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.server.GroovyRatpackServerSpec;
 import ratpack.groovy.test.embed.internal.DefaultGroovyEmbeddedApp;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.http.TestHttpClient;
 
@@ -74,7 +75,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     return from(EmbeddedApp.of(baseDir, s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
   }
 
-  static GroovyEmbeddedApp fromServer(ServerConfig.Builder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {
+  static GroovyEmbeddedApp fromServer(ServerConfigBuilder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {
     return from(EmbeddedApp.fromServer(serverConfig.build(), s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
   }
 

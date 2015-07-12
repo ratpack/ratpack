@@ -26,7 +26,7 @@ import java.nio.file.Paths
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
-  ServerConfig.Builder builder
+  ServerConfigBuilder builder
   def properties
 
   def setup() {

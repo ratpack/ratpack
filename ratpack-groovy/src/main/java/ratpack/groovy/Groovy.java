@@ -49,6 +49,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.FileBackedReloadInformant;
 import ratpack.util.internal.IoUtils;
@@ -138,9 +139,9 @@ public abstract class Groovy {
     /**
      * Registers the closure used to build the configuration of the server.
      *
-     * @param configurer The configuration closure, delegating to {@link ratpack.server.ServerConfig.Builder}
+     * @param configurer The configuration closure, delegating to {@link ServerConfigBuilder}
      */
-    void serverConfig(@DelegatesTo(value = ServerConfig.Builder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
   }
 
@@ -208,8 +209,8 @@ public abstract class Groovy {
       });
     }
 
-    private static ServerConfig.Builder loadPropsIfPresent(ServerConfig.Builder serverConfigBuilder, Path baseDir) {
-      Path propsFile = baseDir.resolve(ServerConfig.Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
+    private static ServerConfigBuilder loadPropsIfPresent(ServerConfigBuilder serverConfigBuilder, Path baseDir) {
+      Path propsFile = baseDir.resolve(ServerConfigBuilder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
       if (Files.exists(propsFile)) {
         serverConfigBuilder.props(propsFile);
       }

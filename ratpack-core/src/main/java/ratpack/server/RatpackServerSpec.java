@@ -80,12 +80,12 @@ public interface RatpackServerSpec {
   RatpackServerSpec registry(Function<? super Registry, ? extends Registry> function);
 
   /**
-   * Convenience function that {@link ratpack.server.ServerConfig.Builder#build() builds} the config from the given builder and delegates to {@link #serverConfig(ServerConfig)}.
+   * Convenience function that {@link ServerConfigBuilder#build() builds} the config from the given builder and delegates to {@link #serverConfig(ServerConfig)}.
    *
    * @param builder the server configuration (as a builder)
    * @return {@code this}
    */
-  default RatpackServerSpec serverConfig(ServerConfig.Builder builder) {
+  default RatpackServerSpec serverConfig(ServerConfigBuilder builder) {
     return serverConfig(builder.build());
   }
 

@@ -36,7 +36,6 @@ import ratpack.config.internal.module.ConfigModule;
 import ratpack.config.internal.source.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.server.ServerConfig;
 import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.Paths2;
@@ -154,7 +153,7 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
 
   @Override
   public ConfigDataSpec sysProps() {
-    return sysProps(ServerConfig.Builder.DEFAULT_PROP_PREFIX);
+    return sysProps(DEFAULT_PROP_PREFIX);
   }
 
   @Override

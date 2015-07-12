@@ -23,7 +23,7 @@ import javax.net.ssl.SSLContext
 
 class ServerConfigBuilderSpec extends Specification {
 
-  ServerConfig.Builder builder
+  ServerConfigBuilder builder
 
   def setup() {
     builder = ServerConfig.noBaseDir()

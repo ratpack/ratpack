@@ -29,6 +29,7 @@ import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.DefaultConfigDataSpec;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -40,7 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
-public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements ServerConfig.Builder {
+public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements ServerConfigBuilder {
 
   private final ObjectNode serverConfigData;
   private final Map<String, Class<?>> required = Maps.newHashMap();
@@ -54,25 +55,25 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
-  public ServerConfig.Builder port(int port) {
+  public ServerConfigBuilder port(int port) {
     serverConfigData.put("port", port);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder address(InetAddress address) {
+  public ServerConfigBuilder address(InetAddress address) {
     serverConfigData.putPOJO("address", address);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder development(boolean development) {
+  public ServerConfigBuilder development(boolean development) {
     serverConfigData.put("development", development);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder threads(int threads) {
+  public ServerConfigBuilder threads(int threads) {
     if (threads < 1) {
       throw new IllegalArgumentException("'threads' must be > 0");
     }
@@ -81,169 +82,169 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
-  public ServerConfig.Builder publicAddress(URI publicAddress) {
+  public ServerConfigBuilder publicAddress(URI publicAddress) {
     serverConfigData.putPOJO("publicAddress", publicAddress);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder maxContentLength(int maxContentLength) {
+  public ServerConfigBuilder maxContentLength(int maxContentLength) {
     serverConfigData.put("maxContentLength", maxContentLength);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder connectTimeoutMillis(int connectTimeoutMillis) {
+  public ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis) {
     serverConfigData.put("connectTimeoutMillis", connectTimeoutMillis);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder maxMessagesPerRead(int maxMessagesPerRead) {
+  public ServerConfigBuilder maxMessagesPerRead(int maxMessagesPerRead) {
     serverConfigData.put("maxMessagesPerRead", maxMessagesPerRead);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder receiveBufferSize(int receiveBufferSize) {
+  public ServerConfigBuilder receiveBufferSize(int receiveBufferSize) {
     serverConfigData.put("receiveBufferSize", receiveBufferSize);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder writeSpinCount(int writeSpinCount) {
+  public ServerConfigBuilder writeSpinCount(int writeSpinCount) {
     serverConfigData.put("writeSpinCount", writeSpinCount);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder ssl(SSLContext sslContext) {
+  public ServerConfigBuilder ssl(SSLContext sslContext) {
     serverConfigData.putPOJO("ssl", sslContext);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder requireClientSslAuth(boolean requireClientSslAuth) {
+  public ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth) {
     serverConfigData.put("requireClientSslAuth", requireClientSslAuth);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder configureObjectMapper(Action<ObjectMapper> action) {
+  public ServerConfigBuilder configureObjectMapper(Action<ObjectMapper> action) {
     super.configureObjectMapper(action);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder add(ConfigSource configSource) {
+  public ServerConfigBuilder add(ConfigSource configSource) {
     super.add(configSource);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder env(String prefix, ratpack.func.Function<String, String> mapFunc) {
+  public ServerConfigBuilder env(String prefix, ratpack.func.Function<String, String> mapFunc) {
     super.env(prefix, mapFunc);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder env(EnvironmentParser environmentParser) {
+  public ServerConfigBuilder env(EnvironmentParser environmentParser) {
     super.env(environmentParser);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder env() {
+  public ServerConfigBuilder env() {
     super.env();
     return this;
   }
 
   @Override
-  public ServerConfig.Builder env(String prefix) {
+  public ServerConfigBuilder env(String prefix) {
     super.env(prefix);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder json(ByteSource byteSource) {
+  public ServerConfigBuilder json(ByteSource byteSource) {
     super.json(byteSource);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder json(Path path) {
+  public ServerConfigBuilder json(Path path) {
     super.json(path);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder json(URL url) {
+  public ServerConfigBuilder json(URL url) {
     super.json(url);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder props(ByteSource byteSource) {
+  public ServerConfigBuilder props(ByteSource byteSource) {
     super.props(byteSource);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder props(Path path) {
+  public ServerConfigBuilder props(Path path) {
     super.props(path);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder props(Properties properties) {
+  public ServerConfigBuilder props(Properties properties) {
     super.props(properties);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder props(URL url) {
+  public ServerConfigBuilder props(URL url) {
     super.props(url);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder props(Map<String, String> map) {
+  public ServerConfigBuilder props(Map<String, String> map) {
     super.props(map);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder sysProps() {
+  public ServerConfigBuilder sysProps() {
     super.sysProps();
     return this;
   }
 
   @Override
-  public ServerConfig.Builder sysProps(String prefix) {
+  public ServerConfigBuilder sysProps(String prefix) {
     super.sysProps(prefix);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder yaml(ByteSource byteSource) {
+  public ServerConfigBuilder yaml(ByteSource byteSource) {
     super.yaml(byteSource);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder yaml(Path path) {
+  public ServerConfigBuilder yaml(Path path) {
     super.yaml(path);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder yaml(URL url) {
+  public ServerConfigBuilder yaml(URL url) {
     super.yaml(url);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder require(String pointer, Class<?> type) {
+  public ServerConfigBuilder require(String pointer, Class<?> type) {
     Class<?> previous = required.put(
       Objects.requireNonNull(pointer, "pointer cannot be null"),
       Objects.requireNonNull(type, "type cannot be null")
@@ -255,25 +256,25 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   }
 
   @Override
-  public ServerConfig.Builder onError(Action<? super Throwable> errorHandler) {
+  public ServerConfigBuilder onError(Action<? super Throwable> errorHandler) {
     super.onError(errorHandler);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder json(String path) {
+  public ServerConfigBuilder json(String path) {
     super.json(path);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder props(String path) {
+  public ServerConfigBuilder props(String path) {
     super.props(path);
     return this;
   }
 
   @Override
-  public ServerConfig.Builder yaml(String path) {
+  public ServerConfigBuilder yaml(String path) {
     super.yaml(path);
     return this;
   }
@@ -315,15 +316,15 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
     }
   }
 
-  public static ServerConfig.Builder noBaseDir(ServerEnvironment serverEnvironment) {
+  public static ServerConfigBuilder noBaseDir(ServerEnvironment serverEnvironment) {
     return new DefaultServerConfigBuilder(serverEnvironment, Optional.empty(), Optional.empty());
   }
 
-  public static ServerConfig.Builder baseDir(ServerEnvironment serverEnvironment, Path baseDir) {
+  public static ServerConfigBuilder baseDir(ServerEnvironment serverEnvironment, Path baseDir) {
     return new DefaultServerConfigBuilder(serverEnvironment, Optional.of(baseDir.toAbsolutePath().normalize()), Optional.empty());
   }
 
-  public static ServerConfig.Builder findBaseDir(ServerEnvironment serverEnvironment, String markerFilePath) {
+  public static ServerConfigBuilder findBaseDir(ServerEnvironment serverEnvironment, String markerFilePath) {
     return BaseDirFinder.find(Thread.currentThread().getContextClassLoader(), markerFilePath)
       .map(b -> baseDir(serverEnvironment, b.getBaseDir()))
       .orElseThrow(() -> new IllegalStateException("Could not find marker file '" + markerFilePath + "' via context class loader"));

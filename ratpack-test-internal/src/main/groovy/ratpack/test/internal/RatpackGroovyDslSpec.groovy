@@ -25,6 +25,7 @@ import ratpack.guice.BindingsSpec
 import ratpack.guice.Guice
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
+import ratpack.server.ServerConfigBuilder
 import ratpack.test.embed.EmbeddedApp
 
 abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
@@ -54,7 +55,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     }
   }
 
-  protected ServerConfig.Builder serverConfigBuilder() {
+  protected ServerConfigBuilder serverConfigBuilder() {
     def serverConfig = this.baseDir ? ServerConfig.baseDir(this.baseDir.build()) : ServerConfig.noBaseDir()
     serverConfig.port(0)
     serverConfig.with(_serverConfig)
@@ -69,7 +70,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     _bindings = configurer
   }
 
-  void serverConfig(@DelegatesTo(value = ServerConfig.Builder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void serverConfig(@DelegatesTo(value = ServerConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     _serverConfig = configurer
   }
 

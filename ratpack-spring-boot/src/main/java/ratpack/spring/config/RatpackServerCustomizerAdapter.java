@@ -22,7 +22,7 @@ import java.util.List;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.handling.Chain;
-import ratpack.server.ServerConfig.Builder;
+import ratpack.server.ServerConfigBuilder;
 
 public class RatpackServerCustomizerAdapter implements RatpackServerCustomizer {
 
@@ -38,7 +38,7 @@ public class RatpackServerCustomizerAdapter implements RatpackServerCustomizer {
   }
 
   @Override
-  public Action<Builder> getServerConfig() {
+  public Action<ServerConfigBuilder> getServerConfig() {
     return server -> {
     };
   }

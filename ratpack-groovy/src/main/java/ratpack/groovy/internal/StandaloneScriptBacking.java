@@ -24,6 +24,7 @@ import ratpack.guice.Guice;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.util.Exceptions;
 
 import java.nio.file.Path;
@@ -79,7 +80,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     @Override
     public void serverConfig(Closure<?> configurer) {
-      ServerConfig.Builder builder = ServerConfig.noBaseDir().development(true);
+      ServerConfigBuilder builder = ServerConfig.noBaseDir().development(true);
       ClosureUtil.configureDelegateFirst(builder, configurer);
       server.serverConfig(builder);
     }

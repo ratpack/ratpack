@@ -26,7 +26,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   @Rule
   TemporaryFolder tempFolder
 
-  ServerConfig.Builder builder
+  ServerConfigBuilder builder
 
   def setup() {
     builder = ServerConfig.noBaseDir()

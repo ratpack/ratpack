@@ -20,7 +20,7 @@ import ratpack.config.internal.DefaultConfigDataSpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.server.ServerConfig.Builder.DEFAULT_PROP_PREFIX
+import static ratpack.config.ConfigDataSpec.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]

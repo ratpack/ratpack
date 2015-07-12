@@ -43,6 +43,7 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.server.internal.ServerRegistry;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
@@ -76,7 +77,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private RegistryBuilder registryBuilder = Registry.builder();
 
-  private ServerConfig.Builder serverConfigBuilder = ServerConfig.noBaseDir();
+  private ServerConfigBuilder serverConfigBuilder = ServerConfig.noBaseDir();
   private DefaultPathBinding pathBinding;
 
   @Override
@@ -149,14 +150,14 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture serverConfig(Action<? super ServerConfig.Builder> action) throws Exception {
+  public RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
     serverConfigBuilder = ServerConfig.noBaseDir();
     action.execute(serverConfigBuilder);
     return this;
   }
 
   @Override
-  public RequestFixture serverConfig(Path baseDir, Action<? super ServerConfig.Builder> action) throws Exception {
+  public RequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception {
     serverConfigBuilder = ServerConfig.baseDir(baseDir);
     action.execute(serverConfigBuilder);
     return this;

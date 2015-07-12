@@ -16,18 +16,11 @@
 
 package ratpack.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.ByteSource;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
-import ratpack.config.ConfigDataSpec;
-import ratpack.config.ConfigSource;
-import ratpack.config.EnvironmentParser;
 import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Action;
-import ratpack.func.Function;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
 
@@ -35,11 +28,8 @@ import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 
 /**
  * The configuration of the server.
@@ -49,7 +39,7 @@ import java.util.Properties;
  * (see also: {@link #getRequiredConfig()}).
  * A server config object is-a {@link ConfigData} object.
  * <p>
- * Server config objects are programmatically built via a {@link ratpack.server.ServerConfig.Builder}, which can be obtained via
+ * Server config objects are programmatically built via a {@link ServerConfigBuilder}, which can be obtained via
  * static methods of this type such as {@link #findBaseDir()}, {@link #noBaseDir()}, {@link #embedded()} etc.
  */
 public interface ServerConfig extends ConfigData {
@@ -76,7 +66,7 @@ public interface ServerConfig extends ConfigData {
    *
    * @return a server config builder
    */
-  static Builder embedded() {
+  static ServerConfigBuilder embedded() {
     return noBaseDir().development(true).port(0);
   }
 
@@ -86,7 +76,7 @@ public interface ServerConfig extends ConfigData {
    * @param baseDir the server base dir
    * @return a server config builder
    */
-  static Builder embedded(Path baseDir) {
+  static ServerConfigBuilder embedded(Path baseDir) {
     return baseDir(baseDir).development(true).port(0);
   }
 
@@ -95,7 +85,7 @@ public interface ServerConfig extends ConfigData {
    *
    * @return a server config builder
    */
-  static Builder noBaseDir() {
+  static ServerConfigBuilder noBaseDir() {
     return DefaultServerConfigBuilder.noBaseDir(ServerEnvironment.env());
   }
 
@@ -107,8 +97,8 @@ public interface ServerConfig extends ConfigData {
    * @return a server config builder
    * @see #findBaseDir(String)
    */
-  static Builder findBaseDir() {
-    return findBaseDir(Builder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
+  static ServerConfigBuilder findBaseDir() {
+    return findBaseDir(ServerConfigBuilder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
   }
 
   /**
@@ -124,7 +114,7 @@ public interface ServerConfig extends ConfigData {
    * @param markerFilePath the path to the marker file on the classpath
    * @return a server config builder
    */
-  static Builder findBaseDir(String markerFilePath) {
+  static ServerConfigBuilder findBaseDir(String markerFilePath) {
     return DefaultServerConfigBuilder.findBaseDir(ServerEnvironment.env(), markerFilePath);
   }
 
@@ -134,7 +124,7 @@ public interface ServerConfig extends ConfigData {
    * @param baseDir The base dir of the launch config
    * @return A new server config builder
    */
-  static Builder baseDir(Path baseDir) {
+  static ServerConfigBuilder baseDir(Path baseDir) {
     return DefaultServerConfigBuilder.baseDir(ServerEnvironment.env(), baseDir);
   }
 
@@ -144,7 +134,7 @@ public interface ServerConfig extends ConfigData {
    * @param baseDir The base dir of the launch config
    * @return A new server config builder
    */
-  static Builder baseDir(File baseDir) {
+  static ServerConfigBuilder baseDir(File baseDir) {
     return baseDir(baseDir.toPath());
   }
 
@@ -170,13 +160,13 @@ public interface ServerConfig extends ConfigData {
   /**
    * The config objects that were declared as required when this server config was built.
    * <p>
-   * Required config is declared via the {@link ServerConfig.Builder#require(String, Class)} when building.
+   * Required config is declared via the {@link ServerConfigBuilder#require(String, Class)} when building.
    * All required config is made part of the base registry (which the server registry joins with),
    * which automatically makes the config objects available to the server registry.
    *
    *
    * @return the declared required config
-   * @see ServerConfig.Builder#require(String, Class)
+   * @see ServerConfigBuilder#require(String, Class)
    */
   ImmutableSet<ConfigObject<?>> getRequiredConfig();
 
@@ -283,326 +273,4 @@ public interface ServerConfig extends ConfigData {
    */
   FileSystemBinding getBaseDir() throws NoBaseDirException;
 
-  interface Builder extends ConfigDataSpec {
-
-    String DEFAULT_ENV_PREFIX = "RATPACK_";
-    String DEFAULT_PROP_PREFIX = "ratpack.";
-
-    /**
-     * The default name for the base dir sentinel properties file.
-     * <p>
-     * Value: {@value}
-     *
-     * @see #findBaseDir()
-     */
-    String DEFAULT_BASE_DIR_MARKER_FILE_PATH = ".ratpack";
-
-    /**
-     * Sets the port to listen for requests on.
-     * <p>
-     * Defaults to {@value ratpack.server.ServerConfig#DEFAULT_PORT}.
-     *
-     * @param port the port to listen for requests on
-     * @return {@code this}
-     * @see ServerConfig#getPort()
-     */
-    Builder port(int port);
-
-    /**
-     * Sets the address to bind to.
-     * <p>
-     * Default value is {@code null}.
-     *
-     * @param address The address to bind to
-     * @return {@code this}
-     * @see ServerConfig#getAddress()
-     */
-    Builder address(InetAddress address);
-
-    /**
-     * Whether or not the application is "development".
-     * <p>
-     * Default value is {@code false}.
-     *
-     * @param development Whether or not the application is "development".
-     * @return {@code this}
-     * @see ServerConfig#isDevelopment()
-     */
-    Builder development(boolean development);
-
-    /**
-     * The number of threads to use.
-     * <p>
-     * Defaults to {@link ServerConfig#DEFAULT_THREADS}
-     *
-     * @param threads the size of the event loop thread pool
-     * @return {@code this}
-     * @see ServerConfig#getThreads()
-     */
-    Builder threads(int threads);
-
-    /**
-     * The public address of the application.
-     * <p>
-     * Default value is {@code null}.
-     *
-     * @param publicAddress the public address of the application
-     * @return {@code this}
-     * @see ServerConfig#getPublicAddress()
-     */
-    Builder publicAddress(URI publicAddress);
-
-    /**
-     * The max number of bytes a request body can be.
-     *
-     * Default value is {@code 1048576} (1 megabyte).
-     *
-     * @param maxContentLength the max content length to accept
-     * @return {@code this}
-     * @see ServerConfig#getMaxContentLength()
-     */
-    Builder maxContentLength(int maxContentLength);
-
-    /**
-     * The connect timeout of the channel.
-     *
-     * @param connectTimeoutMillis the connect timeout in milliseconds
-     * @return {@code this}
-     * @see ServerConfig#getConnectTimeoutMillis()
-     */
-    Builder connectTimeoutMillis(int connectTimeoutMillis);
-
-    /**
-     * The maximum number of messages to read per read loop.
-     *
-     * @param maxMessagesPerRead the max messages per read
-     * @return {@code this}
-     * @see ServerConfig#getMaxMessagesPerRead()
-     */
-    Builder maxMessagesPerRead(int maxMessagesPerRead);
-
-    /**
-     * The <a href="http://docs.oracle.com/javase/7/docs/api/java/net/StandardSocketOptions.html?is-external=true#SO_RCVBUF" target="_blank">StandardSocketOptions.SO_RCVBUF</a> option.
-     *
-     * @param receiveBufferSize the recieve buffer size
-     * @return {@code this}
-     * @see ServerConfig#getReceiveBufferSize()
-     */
-    Builder receiveBufferSize(int receiveBufferSize);
-
-    /**
-     * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.
-     *
-     * @param writeSpinCount the write spin count
-     * @return {@code this}
-     * @see ServerConfig#getWriteSpinCount()
-     */
-    Builder writeSpinCount(int writeSpinCount);
-
-    /**
-     * The SSL context to use if the application serves content over HTTPS.
-     *
-     * @param sslContext the SSL context
-     * @return {@code this}
-     * @see ratpack.ssl.SSLContexts
-     * @see ServerConfig#getSSLContext()
-     */
-    Builder ssl(SSLContext sslContext);
-
-    /**
-     * The server needs client SSL authentication.
-     *
-     * @param requireClientSslAuth whether or not server needs client SSL authentication
-     * @return {@code this}
-     */
-    Builder requireClientSslAuth(boolean requireClientSslAuth);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder env();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder env(String prefix);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder props(ByteSource byteSource);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder props(String path);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder props(Path path);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder props(Properties properties);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder props(Map<String, String> map);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder props(URL url);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder sysProps();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder sysProps(String prefix);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder onError(Action<? super Throwable> errorHandler);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder configureObjectMapper(Action<ObjectMapper> action);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder add(ConfigSource configSource);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder env(String prefix, Function<String, String> mapFunc);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder env(EnvironmentParser environmentParser);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder json(ByteSource byteSource);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder json(Path path);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder json(String path);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder json(URL url);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder yaml(ByteSource byteSource);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder yaml(Path path);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder yaml(String path);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Builder yaml(URL url);
-
-    /**
-     * Declares that it is required that the server config provide an object of the given type at the given path.
-     * <p>
-     * The {@link #build()} method will fail if the config is not able to provide the requested object.
-     * <p>
-     * All objects declared using this method will also automatically be implicitly added to the base registry.
-     * <p>
-     * The {@code pointer} argument is of the same format given to the {@link ConfigData#get(String, Class)} method.
-     * <pre class="java">{@code
-     * import junit.framework.Assert;
-     * import ratpack.server.ServerConfig;
-     * import ratpack.test.embed.EmbeddedApp;
-     *
-     * import java.util.Collections;
-     *
-     * public class Example {
-     *   static class MyConfig {
-     *     public String value;
-     *   }
-     *
-     *   public static void main(String... args) throws Exception {
-     *     EmbeddedApp.of(a -> a
-     *         .serverConfig(ServerConfig.embedded()
-     *             .props(Collections.singletonMap("config.value", "foo"))
-     *             .require("/config", MyConfig.class)
-     *         )
-     *         .handlers(c -> c
-     *             .get(ctx -> ctx.render(ctx.get(MyConfig.class).value))
-     *         )
-     *     ).test(httpClient ->
-     *       Assert.assertEquals("foo", httpClient.getText())
-     *     );
-     *   }
-     * }
-     * }</pre>
-     *
-     * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
-     * @param type the class of the type to bind to
-     * @return {@code this}
-     */
-    Builder require(String pointer, Class<?> type);
-
-    /**
-     * Builds the server config.
-     *
-     * @return a server config
-     */
-    @Override
-    ServerConfig build();
-  }
 }

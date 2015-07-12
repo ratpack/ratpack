@@ -82,6 +82,10 @@ import java.util.Properties;
  * }</pre>
  */
 public interface ConfigDataSpec {
+
+  String DEFAULT_ENV_PREFIX = "RATPACK_";
+  String DEFAULT_PROP_PREFIX = "ratpack.";
+
   /**
    * Configures the object mapper used for binding configuration data to arbitrary objects.
    *
@@ -106,8 +110,8 @@ public interface ConfigDataSpec {
   ConfigData build();
 
   /**
-   * Adds a configuration source for environment variables starting with the prefix
-   * {@value ratpack.server.ServerConfig.Builder#DEFAULT_ENV_PREFIX}.
+   * Adds a configuration source for environment variables starting with the prefix {@value #DEFAULT_ENV_PREFIX}.
+   * <p>
    * The prefix will be removed before loading the data.
    * The environment variable name is split into per-object segments using double underscore as an object boundary.
    * Segments are transformed into camel-case field names using a single underscore as a word boundary.
@@ -252,7 +256,7 @@ public interface ConfigDataSpec {
   ConfigDataSpec props(URL url);
 
   /**
-   * Adds a configuration source for system properties starting with the prefix {@value ratpack.server.ServerConfig.Builder#DEFAULT_PROP_PREFIX}.
+   * Adds a configuration source for system properties starting with the prefix {@value #DEFAULT_PROP_PREFIX}.
    *
    * @return {@code this}
    */

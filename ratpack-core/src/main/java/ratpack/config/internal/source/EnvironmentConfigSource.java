@@ -23,12 +23,12 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import ratpack.config.ConfigDataSpec;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.func.Predicate;
-import ratpack.server.ServerConfig;
 import ratpack.server.internal.ServerEnvironment;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public class EnvironmentConfigSource implements ConfigSource {
   private final EnvironmentParser parser;
 
   public EnvironmentConfigSource(ServerEnvironment serverEnvironment) {
-    this(serverEnvironment, ServerConfig.Builder.DEFAULT_ENV_PREFIX);
+    this(serverEnvironment, ConfigDataSpec.DEFAULT_ENV_PREFIX);
   }
 
   public EnvironmentConfigSource(ServerEnvironment serverEnvironment, String prefix) {

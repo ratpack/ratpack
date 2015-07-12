@@ -37,6 +37,7 @@ import ratpack.guice.Guice;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.spring.Spring;
 import ratpack.spring.config.internal.ChainConfigurers;
 
@@ -70,7 +71,7 @@ public class RatpackConfiguration implements CommandLineRunner {
     @Bean
     @ConditionalOnMissingBean
     public ServerConfig ratpackServerConfig() throws Exception {
-      ServerConfig.Builder serverConfigBuilder = ServerConfig.baseDir(ratpack.getBasepath())
+      ServerConfigBuilder serverConfigBuilder = ServerConfig.baseDir(ratpack.getBasepath())
           .address(ratpack.getAddress()).threads(ratpack.getMaxThreads());
 
       if (ratpack.getPort() != null) {

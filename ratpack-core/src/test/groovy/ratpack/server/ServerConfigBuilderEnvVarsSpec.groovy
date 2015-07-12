@@ -26,7 +26,7 @@ import java.nio.file.Paths
 
 class ServerConfigBuilderEnvVarsSpec extends Specification {
 
-  ServerConfig.Builder builder
+  ServerConfigBuilder builder
   Map<String, String> source
 
   def setup() {

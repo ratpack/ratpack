@@ -27,6 +27,7 @@ import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.test.CloseableApplicationUnderTest;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
 
@@ -49,7 +50,7 @@ import static ratpack.util.Exceptions.uncheck;
  *
  * @see ratpack.test.embed.internal.EmbeddedAppSupport
  */
-public interface EmbeddedApp extends CloseableApplicationUnderTest {
+public interface  EmbeddedApp extends CloseableApplicationUnderTest {
 
   /**
    * Creates an embedded application for the given server.
@@ -99,7 +100,7 @@ public interface EmbeddedApp extends CloseableApplicationUnderTest {
    * @param definition a function to create the server to embed
    * @return a newly created embedded application
    */
-  static EmbeddedApp fromServer(ServerConfig.Builder serverConfig, Action<? super RatpackServerSpec> definition) {
+  static EmbeddedApp fromServer(ServerConfigBuilder serverConfig, Action<? super RatpackServerSpec> definition) {
     return fromServer(serverConfig.build(), definition);
   }
 
