@@ -22,7 +22,6 @@ import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
-import ratpack.http.internal.HttpHeaderConstants
 import ratpack.stream.Streams
 
 import java.time.Duration
@@ -56,114 +55,6 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     then:
     text == "bar"
   }
-
-  def "can follow simple redirect get request"() {
-    given:
-    otherApp {
-      get("foo2") {
-        redirect(302, otherAppUrl("foo").toString())
-      }
-
-      get("foo") {
-        render "bar"
-      }
-    }
-
-    when:
-    handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
-
-    then:
-    text == "bar"
-  }
-
-  def "can follow a relative redirect get request"() {
-    given:
-    otherApp {
-      get("foo") {
-        response.with {
-          status(301)
-          headers.set(HttpHeaderConstants.LOCATION, "/tar")
-          send()
-        }
-      }
-      get("tar") { render "tar" }
-    }
-
-    when:
-    handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
-
-    then:
-    text == "tar"
-  }
-
-
-  def "Do not follow simple redirect if redirects set to 0"() {
-    given:
-    otherApp {
-      get("foo2") {
-        redirect(302, otherAppUrl("foo").toString())
-      }
-
-      get("foo") {
-        render "bar"
-      }
-    }
-
-    when:
-    handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
-          it.redirects(0)
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
-
-    then:
-    text == ""
-  }
-
-  def "Stop redirects in loop"() {
-    given:
-    otherApp {
-      get("foo2") {
-        redirect(302, otherAppUrl("foo").toString())
-      }
-
-      get("foo") {
-        redirect(302, otherAppUrl("foo2").toString())
-      }
-    }
-
-    when:
-    handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
-        } then { ReceivedResponse response ->
-          render "Status: " + response.statusCode
-        }
-      }
-    }
-
-    then:
-    text == "Status: 302"
-  }
-
 
   def "can make post request"() {
     given:
