@@ -455,7 +455,7 @@ public interface GroovyChain extends Chain {
    */
   @Override
   default GroovyChain post(Class<? extends Handler> handler) {
-    return patch(getRegistry().get(handler));
+    return post(getRegistry().get(handler));
   }
 
   /**
