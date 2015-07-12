@@ -1,0 +1,130 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.http.client
+
+import ratpack.http.internal.HttpHeaderConstants
+
+class HttpClientRedirectionSpec extends HttpClientSpec {
+
+  def "can follow simple redirect get request"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        render "bar"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+  }
+
+  def "can follow a relative redirect get request"() {
+    given:
+    otherApp {
+      get("foo") {
+        response.with {
+          status(301)
+          headers.set(HttpHeaderConstants.LOCATION, "/tar")
+          send()
+        }
+      }
+      get("tar") { render "tar" }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "tar"
+  }
+
+
+  def "Do not follow simple redirect if redirects set to 0"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        render "bar"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {
+          it.redirects(0)
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == ""
+  }
+
+  def "Stop redirects in loop"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        redirect(302, otherAppUrl("foo2").toString())
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {
+        } then { ReceivedResponse response ->
+          render "Status: " + response.statusCode
+        }
+      }
+    }
+
+    then:
+    text == "Status: 302"
+  }
+
+}
