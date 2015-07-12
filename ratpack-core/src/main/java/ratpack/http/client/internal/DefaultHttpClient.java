@@ -66,7 +66,7 @@ public class DefaultHttpClient implements HttpClient {
     final Execution execution = execControl.getExecution();
 
     try {
-      ContentAggregatingRequestAction requestAction = new ContentAggregatingRequestAction(requestConfigurer, uri, execution, byteBufAllocator, maxContentLengthBytes);
+      ContentAggregatingRequestAction requestAction = new ContentAggregatingRequestAction(requestConfigurer, uri, execution, byteBufAllocator, maxContentLengthBytes, 0);
       return execController.getControl().promise(requestAction);
     } catch (Exception e) {
       throw uncheck(e);
@@ -79,7 +79,7 @@ public class DefaultHttpClient implements HttpClient {
     final Execution execution = execControl.getExecution();
 
     try {
-      ContentStreamingRequestAction requestAction = new ContentStreamingRequestAction(requestConfigurer, uri, execution, byteBufAllocator);
+      ContentStreamingRequestAction requestAction = new ContentStreamingRequestAction(requestConfigurer, uri, execution, byteBufAllocator, 0);
       return execController.getControl().promise(requestAction);
     } catch (Exception e) {
       throw uncheck(e);

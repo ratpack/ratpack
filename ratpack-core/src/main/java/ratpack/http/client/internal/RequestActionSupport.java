@@ -18,6 +18,7 @@ package ratpack.http.client.internal;
 
 import com.google.common.net.HostAndPort;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
@@ -28,14 +29,13 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import ratpack.exec.Execution;
 import ratpack.exec.Fulfiller;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
+import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.http.internal.DefaultStatus;
-import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.http.internal.NettyHeadersBackedHeaders;
-import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.http.internal.*;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
@@ -58,17 +58,19 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
   private final MutableHeaders headers;
   private final RequestSpecBacking requestSpecBacking;
   private final URI uri;
+  private final int redirectCounter;
   private final RequestParams requestParams;
   private final AtomicBoolean fired = new AtomicBoolean();
 
   protected final Execution execution;
   protected final ByteBufAllocator byteBufAllocator;
 
-  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator) {
+  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int redirectCounter) {
     this.execution = execution;
     this.requestConfigurer = requestConfigurer;
     this.byteBufAllocator = byteBufAllocator;
     this.uri = uri;
+    this.redirectCounter = redirectCounter;
     this.requestParams = new RequestParams();
     this.headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
     this.requestSpecBacking = new RequestSpecBacking(headers, uri, byteBufAllocator, requestParams);
@@ -92,9 +94,12 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     this.port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
   }
 
-  public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-    final AtomicBoolean redirecting = new AtomicBoolean();
+  private static ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
+    execution.onCleanup(responseBuffer::release);
+    return responseBuffer;
+  }
 
+  public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
     final Bootstrap b = new Bootstrap();
     b.group(this.execution.getEventLoop())
       .channel(ChannelImplDetector.getSocketChannelImpl())
@@ -104,7 +109,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
           ChannelPipeline p = ch.pipeline();
 
           if (finalUseSsl) {
-            SSLEngine sslEngine = null;
+            SSLEngine sslEngine;
             if (requestSpecBacking.getSslContext() != null) {
               sslEngine = requestSpecBacking.getSslContext().createSSLEngine();
             } else {
@@ -119,6 +124,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
 
           p.addLast("redirectHandler", new SimpleChannelInboundHandler<HttpObject>(false) {
             boolean readComplete;
+            boolean redirected;
 
             @Override
             public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -138,44 +144,48 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
               if (msg instanceof HttpResponse) {
                 readComplete = true;
                 final HttpResponse response = (HttpResponse) msg;
-                final Headers headers = new NettyHeadersBackedHeaders(response.headers());
-                final Status status = new DefaultStatus(response.status());
                 int maxRedirects = requestSpecBacking.getMaxRedirects();
-                String locationValue = headers.get(HttpHeaderConstants.LOCATION);
+                int status = response.status().code();
+                String locationValue = response.headers().get(HttpHeaderConstants.LOCATION);
 
-                //Check for redirect and location header if it is follow redirect if we have request forwarding left
-                if (shouldRedirect(status) && maxRedirects > 0 && locationValue != null) {
-                  redirecting.compareAndSet(false, true);
-
-                  Action<? super RequestSpec> redirectRequestConfig = Action.join(requestConfigurer, s -> {
-                    if (status.getCode() == 301 || status.getCode() == 302) {
-                      s.method("GET");
+                Action<? super RequestSpec> redirectConfigurer = RequestActionSupport.this.requestConfigurer;
+                if (isRedirect(status) && redirectCounter < maxRedirects && locationValue != null) {
+                  final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect = requestSpecBacking.getOnRedirect();
+                  if (onRedirect != null) {
+                    final Action<? super RequestSpec> onRedirectResult = onRedirect.apply(toReceivedResponse(response));
+                    if (onRedirectResult == null) {
+                      redirectConfigurer = null;
+                    } else {
+                      redirectConfigurer = Action.join(redirectConfigurer, onRedirectResult);
                     }
-
-                    HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
-                    s.getHeaders().set(HttpHeaderConstants.HOST, hostAndPort.toString());
-
-                    s.redirects(maxRedirects - 1);
-                  });
-
-                  URI locationUrl;
-                  if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
-                    locationUrl = new URI(locationValue);
-                  } else {
-                    locationUrl = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), locationValue, null, null);
                   }
 
-                  buildRedirectRequestAction(redirectRequestConfig, locationUrl).execute(fulfiller);
-                } else {
-                  p.remove(this);
+                  if (redirectConfigurer != null) {
+                    Action<? super RequestSpec> redirectRequestConfig = Action.join(s -> {
+                      if (status == 301 || status == 302) {
+                        s.method("GET");
+                      }
+                    }, redirectConfigurer);
+
+                    URI locationUrl;
+                    if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
+                      locationUrl = new URI(locationValue);
+                    } else {
+                      locationUrl = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), locationValue, null, null);
+                    }
+
+                    buildRedirectRequestAction(redirectRequestConfig, locationUrl, redirectCounter + 1).execute(fulfiller);
+                    redirected = true;
+                  }
                 }
               }
 
-              if (!redirecting.get()) {
+              if (!redirected) {
                 ctx.fireChannelRead(msg);
               }
             }
           });
+
           if (requestSpecBacking.isDecompressResponse()) {
             p.addLast(new HttpContentDecompressor());
           }
@@ -201,7 +211,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
         int contentLength = request.content().readableBytes();
         if (contentLength > 0) {
-          headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength, 10));
+          headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
         }
 
         HttpHeaders requestHeaders = request.headers();
@@ -224,7 +234,23 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     });
   }
 
-  protected abstract RequestAction<T> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl);
+  protected ReceivedResponse toReceivedResponse(FullHttpResponse msg) {
+    return toReceivedResponse(msg, initBufferReleaseOnExecutionClose(msg.content(), execution));
+  }
+
+  protected ReceivedResponse toReceivedResponse(HttpResponse msg) {
+    return toReceivedResponse(msg, byteBufAllocator.buffer(0, 0));
+  }
+
+  private ReceivedResponse toReceivedResponse(HttpResponse msg, ByteBuf responseBuffer) {
+    final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
+    String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE.toString());
+    final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
+    final Status status = new DefaultStatus(msg.status());
+    return new DefaultReceivedResponse(status, headers, typedData);
+  }
+
+  protected abstract RequestAction<T> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount);
 
   protected abstract void addResponseHandlers(ChannelPipeline p, Fulfiller<? super T> fulfiller);
 
@@ -240,8 +266,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     }
   }
 
-  private static boolean shouldRedirect(Status status) {
-    int code = status.getCode();
+  private static boolean isRedirect(int code) {
     return code == 301 || code == 302 || code == 303 || code == 307;
   }
 

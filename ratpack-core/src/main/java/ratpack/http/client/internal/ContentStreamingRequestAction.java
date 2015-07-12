@@ -50,13 +50,13 @@ import static ratpack.util.Exceptions.uncheck;
 class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
   private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
-  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator) {
-    super(requestConfigurer, uri, execution, byteBufAllocator);
+  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int redirectCount) {
+    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount);
   }
 
   @Override
-  protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl) {
-    return new ContentStreamingRequestAction(redirectRequestConfig, locationUrl, execution, byteBufAllocator);
+  protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
+    return new ContentStreamingRequestAction(redirectRequestConfig, locationUrl, execution, byteBufAllocator, redirectCount);
   }
 
   @Override

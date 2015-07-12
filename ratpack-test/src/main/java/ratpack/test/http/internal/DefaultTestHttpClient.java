@@ -21,28 +21,26 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.http.HttpUrlBuilder;
-import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
+import ratpack.http.client.internal.DelegatingRequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
 
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -55,8 +53,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   private Action<? super RequestSpec> request = Action.noop();
   private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
-
-  private RequestSpecCapturingDelegate requestSpecCapturingDelegate;
 
   private ReceivedResponse response;
 
@@ -72,87 +68,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public TestHttpClient requestSpec(Action<? super RequestSpec> requestAction) {
-    request = (requestSpec) -> {
-      requestSpecCapturingDelegate = new RequestSpecCapturingDelegate(requestSpec);
-      requestAction.execute(requestSpecCapturingDelegate);
-    };
+    request = requestAction;
     return this;
-  }
-
-  class RequestSpecCapturingDelegate implements RequestSpec {
-
-    final RequestSpec requestSpec;
-
-    public RequestSpecCapturingDelegate(RequestSpec requestSpec) {
-      this.requestSpec = requestSpec;
-    }
-
-    String method = "GET";
-    int maxRedirects = 10;
-    boolean decompressResponse;
-
-    @Override
-    public RequestSpec redirects(int maxRedirects) {
-      this.maxRedirects = maxRedirects;
-      return requestSpec.redirects(maxRedirects);
-    }
-
-    @Override
-    public RequestSpec sslContext(SSLContext sslContext) {
-      return requestSpec.sslContext(sslContext);
-    }
-
-    @Override
-    public MutableHeaders getHeaders() {
-      return requestSpec.getHeaders();
-    }
-
-    @Override
-    public RequestSpec headers(Action<? super MutableHeaders> action) throws Exception {
-      return requestSpec.headers(action);
-    }
-
-    @Override
-    public RequestSpec method(String method) {
-      this.method = method;
-      return requestSpec.method(method);
-    }
-
-    @Override
-    public RequestSpec decompressResponse(boolean shouldDecompress) {
-      this.decompressResponse = shouldDecompress;
-      return requestSpec.decompressResponse(shouldDecompress);
-    }
-
-    @Override
-    public URI getUrl() {
-      return requestSpec.getUrl();
-    }
-
-    @Override
-    public RequestSpec readTimeoutSeconds(int seconds) {
-      return requestSpec.readTimeoutSeconds(seconds);
-    }
-
-    @Override
-    public RequestSpec readTimeout(Duration duration) {
-      return requestSpec.readTimeout(duration);
-    }
-
-    @Override
-    public Body getBody() {
-      return requestSpec.getBody();
-    }
-
-    @Override
-    public RequestSpec body(Action<? super Body> action) throws Exception {
-      return requestSpec.body(action);
-    }
-
-    @Override
-    public RequestSpec basicAuth(String username, String password) {
-      return requestSpec.basicAuth(username, password);
-    }
   }
 
   @Override
@@ -164,7 +81,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public void resetRequest() {
     request = Action.noop();
-    requestSpecCapturingDelegate = null;
     cookies.clear();
   }
 
@@ -296,33 +212,32 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   private ReceivedResponse sendRequest(final String method, String path) {
-    AtomicInteger maxRedirects = new AtomicInteger();
-
     try {
       URI uri = builder(path).params(params).build();
 
-      response = client.request(uri, Duration.ofMinutes(60), Action.join(defaultRequestConfig, request, requestSpec -> {
+      response = client.request(uri, Duration.ofMinutes(60), requestSpec -> {
+        final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
+        defaultRequestConfig.execute(decorated);
+        request.execute(decorated);
         requestSpec.method(method);
-
-        if (requestSpecCapturingDelegate != null) {
-          maxRedirects.set(requestSpecCapturingDelegate.maxRedirects);
-        }
-
-        requestSpec.redirects(0); // we will take care of redirect here to handle cookies
-
-        List<Cookie> requestCookies = getCookies(path);
-
-        String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
-
-        requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
-
         int port = uri.getPort() > 0 ? uri.getPort() : 80;
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
-      }));
+      });
     } catch (Throwable throwable) {
       throw uncheck(throwable);
     }
 
+    extractCookies(response);
+    return response;
+  }
+
+  private void applyCookies(RequestSpec requestSpec) {
+    List<Cookie> requestCookies = getCookies(requestSpec.getUrl().getPath());
+    String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
+    requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
+  }
+
+  private void extractCookies(ReceivedResponse response) {
     List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
     for (String cookieHeader : cookieHeaders) {
       Cookie decodedCookie = ClientCookieDecoder.STRICT.decode(cookieHeader);
@@ -330,7 +245,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext(); ) {
+            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }
@@ -351,33 +266,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
         }
       }
     }
-
-    int redirects = maxRedirects.get();
-    boolean isRedirect = redirects > 0 && isRedirect(response.getStatusCode());
-    if (isRedirect) {
-      String redirectPath = response.getHeaders().get(HttpHeaderConstants.LOCATION);
-      String redirectMethod = getRedirectMethod(method, response.getStatusCode());
-      if (redirectPath != null) {
-        response = sendRequest(redirectMethod, redirectPath);
-      }
-    }
-
-    return response;
-  }
-
-  private String getRedirectMethod(String method, int statusCode) {
-    switch (statusCode) {
-      case 301:
-      case 302:
-      case 303:
-        return HttpMethod.GET.name();
-      default:
-        return method;
-    }
-  }
-
-  private boolean isRedirect(int code) {
-    return code == 301 || code == 302 || code == 303 || code == 307;
   }
 
   private HttpUrlBuilder builder(String path) {
@@ -414,5 +302,29 @@ public class DefaultTestHttpClient implements TestHttpClient {
       });
     }
     return clonedList;
+  }
+
+  private class CookieHandlingRequestSpec extends DelegatingRequestSpec {
+    public CookieHandlingRequestSpec(RequestSpec delegate) {
+      super(delegate);
+      onRedirect(Function.constant(Action.noop()));
+      applyCookies(this);
+    }
+
+    @Override
+    public RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function) {
+      return super.onRedirect(resp -> {
+        extractCookies(resp);
+        final Action<? super RequestSpec> userFunc = function.apply(response);
+        if (userFunc == null) {
+          return null;
+        } else {
+          return spec -> {
+            final RequestSpec decorated = new CookieHandlingRequestSpec(spec);
+            userFunc.execute(decorated);
+          };
+        }
+      });
+    }
   }
 }

@@ -16,6 +16,7 @@
 
 package ratpack.http.client
 
+import ratpack.func.Action
 import ratpack.http.internal.HttpHeaderConstants
 
 class HttpClientRedirectionSpec extends HttpClientSpec {
@@ -125,6 +126,38 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "Status: 302"
+  }
+
+  def "can use redirect strategy"() {
+    when:
+    otherApp {
+      get {
+        def count = request.headers.get("count").toInteger()
+        if (count < 5) {
+          response.headers.set("count", count.toString())
+          redirect "/"
+        } else {
+          render count.toString()
+        }
+      }
+    }
+
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl()) { RequestSpec r ->
+          r.headers.set("count", "0")
+          r.onRedirect { ReceivedResponse res ->
+            def count = res.headers.get("count").toInteger()
+            return { it.headers.set("count", count + 1) } as Action
+          }
+        }.then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == "5"
   }
 
 }

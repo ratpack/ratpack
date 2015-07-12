@@ -24,7 +24,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.http.MutableHeaders;
+import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 
@@ -45,8 +47,9 @@ class RequestSpecBacking {
   private ByteBuf bodyByteBuf;
 
   private String method = "GET";
-  private int maxRedirects = 10;
+  private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
   private SSLContext sslContext;
+  private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
 
   public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
     this.headers = headers;
@@ -55,6 +58,10 @@ class RequestSpecBacking {
     this.requestParams = requestParams;
     this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
     this.decompressResponse = true;
+  }
+
+  public Function<? super ReceivedResponse, Action<? super RequestSpec>> getOnRedirect() {
+    return onRedirect;
   }
 
   public String getMethod() {
@@ -86,6 +93,12 @@ class RequestSpecBacking {
   private class Spec implements RequestSpec {
 
     private BodyImpl body = new BodyImpl();
+
+    @Override
+    public RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function) {
+      RequestSpecBacking.this.onRedirect = function;
+      return this;
+    }
 
     @Override
     public RequestSpec redirects(int maxRedirects) {
