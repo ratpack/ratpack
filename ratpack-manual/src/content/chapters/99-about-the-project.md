@@ -67,6 +67,7 @@ The following people have provided significant contributions.
 * [Dave Syer](https://github.com/dsyer)
 * [João Cabrita](https://github.com/kewne)
 * [Matt Yott](https://github.com/myott)
+* [Daniel Lopes](https://github.com/djjorjinho)
 
 ### Past project members
 

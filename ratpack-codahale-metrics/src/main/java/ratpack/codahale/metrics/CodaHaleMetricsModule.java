@@ -17,6 +17,7 @@
 package ratpack.codahale.metrics;
 
 import com.codahale.metrics.*;
+import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -31,6 +32,8 @@ import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.server.Service;
 import ratpack.server.StartEvent;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -38,6 +41,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.inject.Scopes.SINGLETON;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -153,6 +157,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     private Optional<Console> console = Optional.empty();
     private Optional<WebSocket> webSocket = Optional.empty();
     private Optional<Csv> csv = Optional.empty();
+    private Optional<Slf4j> slf4j = Optional.empty();
 
     /**
      * The state of jvm metrics collection.
@@ -262,6 +267,40 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
         configure.execute(console.orElseGet(() -> {
           console = Optional.of(new Console());
           return console.get();
+        }));
+        return this;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+    /**
+     * Get the settings for the Slf4j Logger metrics publisher.
+     * @return the slf4j publisher settings
+     */
+    public Optional<Slf4j> getSlf4j() {
+      return slf4j;
+    }
+
+    /**
+     * @see #slf4j(ratpack.func.Action)
+     * @return this
+     */
+    public Config slf4j() {
+      return slf4j(Action.noop());
+    }
+
+    /**
+     * Configure the Slf4j logger metrics publisher.
+     *
+     * @param configure the configuration for the publisher
+     * @return this
+     */
+    public Config slf4j(Action<? super Slf4j> configure) {
+      try {
+        configure.execute(slf4j.orElseGet(() -> {
+          slf4j = Optional.of(new Slf4j());
+          return slf4j.get();
         }));
         return this;
       } catch (Exception e) {
@@ -479,6 +518,217 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       }
     }
 
+    public static class Slf4j {
+      private Duration reporterInterval = DEFAULT_INTERVAL;
+      private boolean enabled = true;
+      private String includeFilter;
+      private String excludeFilter;
+
+      private Marker marker;
+      private String prefix;
+      private TimeUnit durationUnit;
+      private TimeUnit rateUnit;
+      private LoggingLevel logLevel;
+      private Logger logger;
+
+      /**
+       * The state of the marker.
+       *
+       * @return the marker instance
+       */
+      public Marker getMarker() {
+        return marker;
+      }
+
+      /**
+       * Mark all logged metrics with the given marker.
+       *
+       * @param marker an SLF4J {@link Marker}
+       * @return {@code this}
+       */
+      public Slf4j marker(Marker marker) {
+        this.marker = marker;
+        return this;
+      }
+
+      /**
+       * The logger prefix.
+       *
+       * @return the prefix text
+       */
+      public String getPrefix() {
+        return prefix;
+      }
+
+      /**
+       * Prefix all metric names with the given string.
+       *
+       * @param prefix the prefix for all metric names
+       * @return {@code this}
+       */
+      public Slf4j prefix(String prefix) {
+        this.prefix = prefix;
+        return this;
+      }
+
+      /**
+       * The state of the duration time unit.
+       *
+       * @return the duration unit instance
+       */
+      public TimeUnit getDurationUnit() {
+        return durationUnit;
+      }
+      /**
+       * Convert durations to the given time unit.
+       *
+       * @param durationUnit a unit of time
+       * @return {@code this}
+       */
+      public Slf4j durationUnit(TimeUnit durationUnit) {
+        this.durationUnit = durationUnit;
+        return this;
+      }
+
+      /**
+       * The state of the rate time unit.
+       *
+       * @return the rate unit instance
+       */
+      public TimeUnit getRateUnit() {
+        return rateUnit;
+      }
+      /**
+       * Convert rates to the given time unit.
+       *
+       * @param rateUnit a unit of time
+       * @return {@code this}
+       */
+      public Slf4j rateUnit(TimeUnit rateUnit) {
+        this.rateUnit = rateUnit;
+        return this;
+      }
+
+      /**
+       * The state of the logging level.
+       *
+       * @return the log level instance
+       */
+      public LoggingLevel getLogLevel() {
+        return logLevel;
+      }
+
+      /**
+       * Use Logging Level when reporting.
+       *
+       * @param logLevel a (@link LoggingLevel}
+       * @return {@code this}
+       */
+      public Slf4j logLevel(LoggingLevel logLevel) {
+        this.logLevel = logLevel;
+        return this;
+      }
+
+      /**
+       * The state of the logger.
+       *
+       * @return the logger instance
+       */
+      public Logger getLogger() {
+        return logger;
+      }
+
+      /**
+       * Log metrics to the given logger.
+       *
+       * @param logger an SLF4J {@link Logger}
+       * @return {@code this}
+       */
+      public Slf4j logger(Logger logger) {
+        this.logger = logger;
+        return this;
+      }
+
+      /**
+       * The state of the Slf4j publisher.
+       *
+       * @return the state of the Console publisher
+       */
+      public boolean isEnabled() {
+        return enabled;
+      }
+
+      /**
+       * Set the state of the Slf4j publisher.
+       *
+       * @param enabled True if metrics are published to the logger. False otherwise
+       * @return {@code this}
+       */
+      public Slf4j enable(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+      }
+
+      /**
+       * The include metric filter expression of the reporter.
+       *
+       * @return the include filter
+       */
+      public String getIncludeFilter() {
+        return includeFilter;
+      }
+
+      /**
+       * Set the include metric filter of the reporter.
+       *
+       * @param includeFilter the regular expression to match on.
+       * @return {@code this}
+       */
+      public Slf4j includeFilter(String includeFilter) {
+        this.includeFilter = includeFilter;
+        return this;
+      }
+
+      /**
+       * The exclude metric filter expression of the reporter.
+       *
+       * @return the exclude filter
+       */
+      public String getExcludeFilter() {
+        return excludeFilter;
+      }
+
+      /**
+       * Set the exclude metric filter expression of the reporter.
+       *
+       * @param excludeFilter the regular expression to match on.
+       * @return {@code this}
+       */
+      public Slf4j excludeFilter(String excludeFilter) {
+        this.excludeFilter = excludeFilter;
+        return this;
+      }
+
+      /**
+       * The interval between metrics reports.
+       * @return the interval between metrics reports
+       */
+      public Duration getReporterInterval() {
+        return reporterInterval;
+      }
+
+      /**
+       * Configure the interval between metrics reports.
+       *
+       * @param reporterInterval the report interval
+       * @return this
+       */
+      public Slf4j reporterInterval(Duration reporterInterval) {
+        this.reporterInterval = reporterInterval;
+        return this;
+      }
+    }
+
     public static class WebSocket {
       private Duration reporterInterval = DEFAULT_INTERVAL;
       private String includeFilter;
@@ -665,6 +915,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
 
     bind(JmxReporter.class).toProvider(JmxReporterProvider.class).in(SINGLETON);
     bind(ConsoleReporter.class).toProvider(ConsoleReporterProvider.class).in(SINGLETON);
+    bind(Slf4jReporter.class).toProvider(Slf4jReporterProvider.class).in(SINGLETON);
     bind(CsvReporter.class).toProvider(CsvReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
@@ -700,6 +951,12 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       config.getConsole().ifPresent(console -> {
         if (console.isEnabled()) {
           injector.getInstance(ConsoleReporter.class).start(console.getReporterInterval().getSeconds(), SECONDS);
+        }
+      });
+
+      config.getSlf4j().ifPresent(slf4j -> {
+        if (slf4j.isEnabled()) {
+          injector.getInstance(Slf4jReporter.class).start(slf4j.getReporterInterval().getSeconds(), SECONDS);
         }
       });
 
