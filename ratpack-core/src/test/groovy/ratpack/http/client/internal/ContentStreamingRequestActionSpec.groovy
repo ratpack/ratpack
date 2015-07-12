@@ -61,7 +61,7 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     private Channel channel
 
     ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator) {
-      super(requestConfigurer, uri, execution, byteBufAllocator)
+      super(requestConfigurer, uri, execution, byteBufAllocator, 0)
     }
 
     @Override

@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
 import ratpack.func.Factory;
+import ratpack.func.Function;
 import ratpack.http.MutableHeaders;
 
 import javax.net.ssl.SSLContext;
@@ -35,11 +36,37 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public interface RequestSpec {
 
   /**
+   * The default number of redirects to follow automatically.
    *
-   * @param maxRedirects Sets the maximum number of redirects to follow
+   * @see #redirects(int)
+   */
+  int DEFAULT_MAX_REDIRECTS = 10;
+
+  /**
+   * The maximum number of redirects to automatically follow, before simply returning the redirect response.
+   * <p>
+   * The default value is {@value #DEFAULT_MAX_REDIRECTS}.
+   * <p>
+   * The given value must be &gt;= 0.
+   *
+   * @param maxRedirects the maximum number of redirects to follow
    * @return The RequestSpec
    */
   RequestSpec redirects(int maxRedirects);
+
+  /**
+   * Specifies a function to invoke when a redirectable response is received.
+   * <p>
+   * If the function returns null, the redirect will not be followed.
+   * If it returns an action, it will be followed and the action will be invoked to further configure the request spec.
+   * To simply follow the redirect, return {@link Action#noop()}.
+   * <p>
+   * The function will never be invoked if {@link #redirects(int)} is set to 0.
+   *
+   * @param function the redirection handling strategy
+   * @return {@code this}
+   */
+  RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function);
 
   /**
    * Sets the {@link SSLContext} used for client and server SSL authentication.
