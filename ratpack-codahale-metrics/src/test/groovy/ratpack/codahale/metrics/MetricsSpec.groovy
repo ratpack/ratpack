@@ -25,6 +25,7 @@ import com.codahale.metrics.annotation.Timed
 import groovy.json.JsonSlurper
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.slf4j.Logger
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
@@ -67,12 +68,19 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def origOut = System.out
     System.out = new PrintStream(output, true)
 
+    def log = Mock(Logger) {
+      info(_,_,_) >> { args ->
+        println args
+      }
+    }
+
     and:
     bindings {
       module new CodaHaleMetricsModule(), { it
         .jmx()
         .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
         .console { it.reporterInterval(Duration.ofSeconds(1)) }
+        .slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test") }
       }
     }
     handlers { MetricRegistry metrics ->
@@ -92,7 +100,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       reportDirectory.root.listFiles().length > 0
     }
     polling.within(2) {
-      output.toString().contains("root.get-requests")
+      output.toString().contains("root.get-requests") &&
+      output.toString().contains("test.root.get-requests")
     }
 
     cleanup:
@@ -472,10 +481,17 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def origOut = System.out
     System.out = new PrintStream(output, true)
 
+    def log = Mock(Logger) {
+      info(_,_,_) >> { args ->
+        println args
+      }
+    }
+
     and:
     bindings {
       module new CodaHaleMetricsModule(), {
         it.console { it.reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*") }
+        it.slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test").includeFilter(".*ar.*").excludeFilter(".*bar.*") }
         it.jmx { it.includeFilter(".*ar.*") }
         it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
       }
@@ -492,12 +508,15 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     polling.within(2) {
-      output.toString().contains("tar.get-requests")
+      output.toString().contains("tar.get-requests") &&
+      output.toString().contains("test.tar.get-requests")
     }
 
     and:
     !output.toString().contains("foo.get-requests")
     !output.toString().contains("bar.get-requests")
+    !output.toString().contains("test.foo.get-requests")
+    !output.toString().contains("test.bar.get-requests")
 
     and:
     reportDirectory.root.listFiles().length == 1

@@ -47,6 +47,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     !metricsConfig.csv.isPresent()
     !metricsConfig.console.isPresent()
     !metricsConfig.webSocket.isPresent()
+    !metricsConfig.slf4j.isPresent()
   }
 
   def "can explicitly enable a reporter"() {
@@ -66,6 +67,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     metricsConfig.console.isPresent()
     metricsConfig.console.get().enabled
     !metricsConfig.webSocket.isPresent()
+    !metricsConfig.slf4j.isPresent()
   }
 
   def "can implicitly enable a reporter by setting other config options"() {
