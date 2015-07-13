@@ -46,7 +46,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "requesting checksum service in development mode"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig)
@@ -58,7 +58,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "requesting checksum service in production mode"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(false).build()
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig)
@@ -70,7 +70,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "calculate checksum for the file"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.file("test.js", "function(){}")
 
     when:
@@ -84,7 +84,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "exception when non existing file"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig)
@@ -96,7 +96,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "noop checksummer returns empty string"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.file("test.js", "function(){}")
 
     when:
@@ -109,7 +109,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "custom checksummer function"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.file("test.js", "function(){}")
 
     when:
@@ -122,7 +122,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "calculate checksum with Adler32 method"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.file("test.js", "function(){}")
     baseDir.dir("js")
     baseDir.file("js/test2.js", "function(){}")
@@ -151,7 +151,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "calculate checksum with MD5 method"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.file("test.js", "function(){}")
     baseDir.dir("js")
     baseDir.file("js/test2.js", "function(){}")
@@ -182,10 +182,10 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "calculate checksum for file in path relative to server's base dir"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.dir("js")
     baseDir.file("js/test.js", "function(){}")
-    
+
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "js")
     String checksum = service.checksum("test.js")
@@ -197,7 +197,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "return null checksum if file path is not provided"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"})
@@ -209,7 +209,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "throw exception when additional path cannot be resolved"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
 
     when:
     FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css\0")
@@ -220,7 +220,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "throw exception when additional path is not a folder"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
 
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "test.js")
@@ -232,10 +232,10 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "throw exception when file does not exist in additional path"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.dir("css")
     baseDir.file("test.js", "function(){}")
-  
+
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css")
     service.checksum("test.js")
@@ -246,10 +246,10 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "throw exception when file does not exist in cache for additional path"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(false).build()
     baseDir.dir("css")
     baseDir.file("test.js", "function(){}")
-  
+
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, "css")
     service.checksum("test.js")
@@ -260,7 +260,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "calculate checksum for file with given extension"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.dir("css")
     baseDir.file("test.js", "function(){}")
     baseDir.file("css/test.css", ".blue{}")
@@ -283,7 +283,7 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "calculate checksum for file with given extension in production mode"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(false).build()
     baseDir.dir("css")
     baseDir.file("test.js", "function(){}")
     baseDir.file("css/test.css", ".blue{}")
@@ -306,9 +306,9 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "throw exception when file no match list of file extenstions"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(true).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(true).build()
     baseDir.file("test.js", "function(){}")
-  
+
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, null, "css", "html")
     service.checksum("test.js")
@@ -319,9 +319,9 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   def "throw exception when file no match list of file extenstions in production mode"() {
     given:
-    ServerConfig serverConfig = ServerConfig.baseDir(this.baseDir.build()).development(false).build()
+    ServerConfig serverConfig = ServerConfig.builder().baseDir(this.baseDir.build()).development(false).build()
     baseDir.file("test.js", "function(){}")
-  
+
     when:
     def service = FileSystemChecksumServices.service(serverConfig, {is -> return "A123B"}, null, "css", "html")
     service.checksum("test.js")

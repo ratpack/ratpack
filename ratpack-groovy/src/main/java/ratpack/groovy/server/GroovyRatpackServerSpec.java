@@ -18,6 +18,7 @@ package ratpack.groovy.server;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
@@ -29,6 +30,7 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 
 public interface GroovyRatpackServerSpec extends RatpackServerSpec {
 
@@ -48,6 +50,13 @@ public interface GroovyRatpackServerSpec extends RatpackServerSpec {
 
   @Override
   GroovyRatpackServerSpec serverConfig(ServerConfig serverConfig);
+
+  @Override
+  GroovyRatpackServerSpec serverConfig(Action<? super ServerConfigBuilder> action) throws Exception;
+
+  default GroovyRatpackServerSpec serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception {
+    return from(RatpackServerSpec.super.serverConfig(ClosureUtil.delegatingAction(ServerConfigBuilder.class, action)));
+  }
 
   default GroovyRatpackServerSpec registryOf(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception {
     return from(RatpackServerSpec.super.registryOf(ClosureUtil.delegatingAction(RegistrySpec.class, action)));

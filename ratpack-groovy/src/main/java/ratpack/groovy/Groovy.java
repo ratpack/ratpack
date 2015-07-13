@@ -47,6 +47,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
+import ratpack.server.BaseDir;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -195,7 +196,7 @@ public abstract class Groovy {
       String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
 
       RatpackDslClosures closures = new RatpackDslScriptCapture(staticCompile, RatpackDslBacking::new).apply(scriptFile, script);
-      definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.baseDir(baseDir), baseDir), closures.getServerConfig()));
+      definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.builder().baseDir(baseDir), baseDir), closures.getServerConfig()));
 
       definition.registry(r -> {
         return Guice.registry(bindingsSpec -> {
@@ -210,7 +211,7 @@ public abstract class Groovy {
     }
 
     private static ServerConfigBuilder loadPropsIfPresent(ServerConfigBuilder serverConfigBuilder, Path baseDir) {
-      Path propsFile = baseDir.resolve(ServerConfigBuilder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
+      Path propsFile = baseDir.resolve(BaseDir.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
       if (Files.exists(propsFile)) {
         serverConfigBuilder.props(propsFile);
       }

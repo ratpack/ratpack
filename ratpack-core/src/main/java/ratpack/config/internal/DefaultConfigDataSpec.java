@@ -57,12 +57,8 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
   }
 
   public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, Module... modules) {
-    this(serverEnvironment, newDefaultObjectMapper(serverEnvironment).registerModules(modules));
-  }
-
-  public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, Optional<ObjectMapper> objectMapper) {
-    this.serverEnvironment = serverEnvironment;
-    this.objectMapper = objectMapper.orElse(newDefaultObjectMapper(serverEnvironment));
+    this(serverEnvironment);
+    objectMapper.registerModules(modules);
   }
 
   public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {

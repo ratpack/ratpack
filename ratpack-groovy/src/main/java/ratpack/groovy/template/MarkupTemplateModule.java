@@ -63,7 +63,8 @@ import java.nio.file.Path;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("templates/myTemplate.gtpl", "html { body { p(value) } }")
  *     );
- *     EmbeddedApp.of(baseDir, s -> s
+ *     EmbeddedApp.of(s -> s
+ *       .serverConfig(c -> c.baseDir(baseDir))
  *       .registry(Guice.registry(b -> b.module(MarkupTemplateModule.class)))
  *       .handlers(chain -> chain
  *         .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))

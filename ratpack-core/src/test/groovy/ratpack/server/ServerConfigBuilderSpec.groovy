@@ -26,7 +26,7 @@ class ServerConfigBuilderSpec extends Specification {
   ServerConfigBuilder builder
 
   def setup() {
-    builder = ServerConfig.noBaseDir()
+    builder = ServerConfig.builder()
   }
 
   def "no base dir"() {

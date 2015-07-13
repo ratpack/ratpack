@@ -26,6 +26,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 
 import javax.net.ssl.SSLContext;
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
@@ -35,14 +36,11 @@ import java.util.Properties;
 
 public interface ServerConfigBuilder extends ConfigDataSpec {
 
-  /**
-   * The default name for the base dir sentinel properties file.
-   * <p>
-   * Value: {@value}
-   *
-   * @see ServerConfig#findBaseDir()
-   */
-  String DEFAULT_BASE_DIR_MARKER_FILE_PATH = ".ratpack";
+  ServerConfigBuilder baseDir(Path baseDir);
+
+  default ServerConfigBuilder baseDir(File file) {
+    return baseDir(file.toPath());
+  }
 
   /**
    * Sets the port to listen for requests on.

@@ -34,12 +34,12 @@ class DefaultRatpackServiceSpec extends Specification {
   // Windows allows multiple binds (implicit SO_REUSEPORT)
   def "throws exception if can't bind to port"() {
     given:
-    def config1 = ServerConfig.baseDir(temporaryFolder.root).port(0).build()
+    def config1 = ServerConfig.builder().baseDir(temporaryFolder.root).port(0).build()
     def server1 = RatpackServer.of { it.serverConfig(config1).handler {} }
     server1.start()
 
     when:
-    def config2 = ServerConfig.baseDir(temporaryFolder.root).port(server1.bindPort).build()
+    def config2 = ServerConfig.builder().baseDir(temporaryFolder.root).port(server1.bindPort).build()
     def server2 = RatpackServer.of { it.serverConfig(config2).handler {} }
     server2.start()
 

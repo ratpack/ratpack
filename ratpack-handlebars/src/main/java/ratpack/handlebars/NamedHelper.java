@@ -51,7 +51,8 @@ import com.github.jknack.handlebars.Helper;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("handlebars/myTemplate.html.hbs", "{{hello \"ratpack\"}}")
  *     );
- *     EmbeddedApp.of(baseDir, s -> s
+ *     EmbeddedApp.of(s -> s
+ *       .serverConfig(c -> c.baseDir(baseDir))
  *       .registry(Guice.registry(b -> b
  *         .module(new HandlebarsModule())
  *         .bind(HelloHelper.class)

@@ -28,11 +28,11 @@ import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
+import ratpack.server.internal.EmbeddedRatpackServerSpec;
 import ratpack.test.CloseableApplicationUnderTest;
 import ratpack.test.embed.internal.EmbeddedAppSupport;
 
 import java.net.URI;
-import java.nio.file.Path;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -50,7 +50,7 @@ import static ratpack.util.Exceptions.uncheck;
  *
  * @see ratpack.test.embed.internal.EmbeddedAppSupport
  */
-public interface  EmbeddedApp extends CloseableApplicationUnderTest {
+public interface EmbeddedApp extends CloseableApplicationUnderTest {
 
   /**
    * Creates an embedded application for the given server.
@@ -71,11 +71,7 @@ public interface  EmbeddedApp extends CloseableApplicationUnderTest {
    * @see ratpack.server.RatpackServer#of(Action)
    */
   static EmbeddedApp of(Action<? super RatpackServerSpec> definition) throws Exception {
-    return fromServer(RatpackServer.of(d -> definition.execute(d.serverConfig(ServerConfig.embedded()))));
-  }
-
-  static EmbeddedApp of(Path baseDir, Action<? super RatpackServerSpec> definition) throws Exception {
-    return fromServer(RatpackServer.of(d -> definition.execute(d.serverConfig(ServerConfig.embedded(baseDir)))));
+    return fromServer(RatpackServer.of(d -> definition.execute(new EmbeddedRatpackServerSpec(d))));
   }
 
   /**
@@ -128,19 +124,6 @@ public interface  EmbeddedApp extends CloseableApplicationUnderTest {
   }
 
   /**
-   * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
-   * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
-   *
-   * @param baseDir the base dir for the embedded app
-   * @param handlerFactory a handler factory
-   * @return a newly created embedded application
-   */
-  static EmbeddedApp fromHandlerFactory(Path baseDir, Function<? super Registry, ? extends Handler> handlerFactory) {
-    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.handler(handlerFactory));
-  }
-
-  /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
    * <p>
    * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
@@ -153,19 +136,6 @@ public interface  EmbeddedApp extends CloseableApplicationUnderTest {
   }
 
   /**
-   * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
-   * <p>
-   * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
-   *
-   * @param baseDir the base dir for the embedded app
-   * @param handler the application handler
-   * @return a newly created embedded application
-   */
-  static EmbeddedApp fromHandler(Path baseDir, Handler handler) {
-    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.handler(r -> handler));
-  }
-
-  /**
    * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler chain.
    * <p>
    * If you need to tweak the server config, use {@link #fromServer(ServerConfig, Action)}.
@@ -175,10 +145,6 @@ public interface  EmbeddedApp extends CloseableApplicationUnderTest {
    */
   static EmbeddedApp fromHandlers(Action<? super Chain> action) {
     return fromServer(ServerConfig.embedded().build(), b -> b.handler(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
-  }
-
-  static EmbeddedApp fromHandlers(Path baseDir, Action<? super Chain> action) {
-    return fromServer(ServerConfig.embedded(baseDir).build(), b -> b.handler(r -> Handlers.chain(r.get(ServerConfig.class), r, action)));
   }
 
   /**

@@ -16,11 +16,7 @@
 
 package ratpack.spring.config;
 
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.PreDestroy;
-
+import com.google.inject.Module;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -29,9 +25,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import com.google.inject.Module;
-
 import ratpack.func.Function;
 import ratpack.guice.Guice;
 import ratpack.registry.Registry;
@@ -40,6 +33,10 @@ import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.spring.Spring;
 import ratpack.spring.config.internal.ChainConfigurers;
+
+import javax.annotation.PreDestroy;
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @Import(ChainConfigurers.class)
@@ -71,8 +68,10 @@ public class RatpackConfiguration implements CommandLineRunner {
     @Bean
     @ConditionalOnMissingBean
     public ServerConfig ratpackServerConfig() throws Exception {
-      ServerConfigBuilder serverConfigBuilder = ServerConfig.baseDir(ratpack.getBasepath())
-          .address(ratpack.getAddress()).threads(ratpack.getMaxThreads());
+      ServerConfigBuilder serverConfigBuilder = ServerConfig.builder()
+        .baseDir(ratpack.getBasepath())
+        .address(ratpack.getAddress())
+        .threads(ratpack.getMaxThreads());
 
       if (ratpack.getPort() != null) {
         serverConfigBuilder.port(ratpack.getPort());
@@ -102,7 +101,7 @@ public class RatpackConfiguration implements CommandLineRunner {
     @Bean
     public RatpackServer ratpackServer(ApplicationContext context) throws Exception {
       return RatpackServer.of(ratpackServerSpec -> ratpackServerSpec.serverConfig(serverConfig)
-          .registry(joinedRegistry(context)).handlers(chainConfigurers));
+        .registry(joinedRegistry(context)).handlers(chainConfigurers));
     }
 
     private Function<Registry, Registry> joinedRegistry(ApplicationContext context) throws Exception {

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.groovy
+package ratpack.server.internal;
 
-import groovy.transform.CompileStatic
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
+import ratpack.func.Action;
+import ratpack.server.RatpackServerSpec;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 
-@CompileStatic
-class TestCompileStaticApp {
-  static void main(String[] args) {
-    RatpackServer.start {
-      it
-        .serverConfig(ServerConfig.builder().port(0))
-        .handlers(Groovy.chain {
-        get { render "Used @CompileStatic!" }
-      })
-    }
+public class EmbeddedRatpackServerSpec extends DelegatingRatpackServerSpec {
+  public EmbeddedRatpackServerSpec(RatpackServerSpec delegate) {
+    super(delegate);
+    delegate.serverConfig(ServerConfig.embedded());
+  }
+
+  @Override
+  public RatpackServerSpec serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
+    return super.serverConfig(action.with(ServerConfig.embedded()));
   }
 }

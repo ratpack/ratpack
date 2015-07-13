@@ -50,7 +50,7 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     when:
     def ratpackServer = Mock(RatpackServer)
     def execController = new DefaultExecController(4)
-    def serverConfig = ServerConfig.noBaseDir().build()
+    def serverConfig = ServerConfig.builder().build()
     def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, execController, serverConfig, Guice.registry {})
     def injector = baseRegistry.get(Injector)
 

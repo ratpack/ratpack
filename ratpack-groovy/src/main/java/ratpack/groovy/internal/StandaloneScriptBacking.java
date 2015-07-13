@@ -80,7 +80,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     @Override
     public void serverConfig(Closure<?> configurer) {
-      ServerConfigBuilder builder = ServerConfig.noBaseDir().development(true);
+      ServerConfigBuilder builder = ServerConfig.builder().development(true);
       ClosureUtil.configureDelegateFirst(builder, configurer);
       server.serverConfig(builder);
     }

@@ -55,7 +55,7 @@ public final class RatpackServerDefinition {
   }
 
   private static class SpecImpl implements RatpackServerSpec {
-    private ServerConfig serverConfig = ServerConfig.noBaseDir().build();
+    private ServerConfig serverConfig = ServerConfig.builder().build();
     private Function<? super Registry, ? extends Registry> registry = (r) -> Registry.empty();
     private Function<? super Registry, ? extends Handler> handler = (r) -> Handlers.notFound();
 

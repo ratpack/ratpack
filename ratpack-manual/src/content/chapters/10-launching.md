@@ -46,21 +46,20 @@ An important aspect of the server config is the [base dir](api/ratpack/server/Se
 The base dir is effectively the root of the file system for the application, providing a portable file system.
 All relative paths to be resolved to files during runtime will be resolved relative to the base dir.
 Static assets (e.g. images, scripts) are typically served via the base dir using relative paths.
-The base dir is specified when creating the server config from one of the `ServerConfig.Builder` static factory methods.
  
-The [baseDir(Path)](api/ratpack/server/ServerConfig.html#baseDir-java.nio.file.Path-) method allows setting the base dir to some known location.
+The [baseDir(Path)](api/ratpack/server/ServerConfigBuilder.html#baseDir-java.nio.file.Path-) method allows setting the base dir to some known location.
 In order to achieve portability across environments, if necessary, the code that calls this is responsible for determining what the base dir should be for a given runtime.
 
-It is more common to use [findBaseDir()](api/ratpack/server/ServerConfig.html#findBaseDir--) that supports finding the base dir on the classpath, providing better portability across environments.
+It is more common to use [BaseDir.find()](api/ratpack/server/BaseDir.html#find--) that supports finding the base dir on the classpath, providing better portability across environments.
 This method searches for a resource on the classpath at the path `"/.ratpack"`. 
 
-> To use a different path than the `/.ratpack` default, use the [findBaseDir(String)](api/ratpack/server/ServerConfig.html#findBaseDir-java.lang.String-) method.
+> To use a different path than the `/.ratpack` default, use the [BaseDir.find(String)](api/ratpack/server/BaseDir.html#find-java.lang.String-) method.
 
 The contents of the marker file are entirely ignored.
 It is just used to find the enclosing directory, which will be used as the base dir.
 The file may within a JAR that is on the classpath, or within a directory that is on the classpath.
 
-The following example demonstrates using `findBaseDir()` to discover the base dir from the classpath.
+The following example demonstrates using `BaseDir.find()` to discover the base dir from the classpath.
 
 ```language-java
 import ratpack.server.ServerConfig;
@@ -83,8 +82,9 @@ public class Example {
       ClassLoader classLoader = new URLClassLoader(new URL[]{mydir.toUri().toURL()});
       Thread.currentThread().setContextClassLoader(classLoader);
 
-      EmbeddedApp.fromServer(ServerConfig.findBaseDir(), serverSpec ->
-        serverSpec.handlers(chain ->
+      EmbeddedApp.of(serverSpec -> serverSpec
+        .serverConfig(c -> c.baseDir(mydir))
+        .handlers(chain ->
           chain.files(f -> f.dir("assets"))
         )
       ).test(httpClient -> {
@@ -97,7 +97,7 @@ public class Example {
 ```
 
 The use of [`BaseDirBuilder`](api/ratpack/test/embed/BaseDirBuilder.html) and the construction of a new context class loader are in the example above are purely to make the example self contained.
-A real main method would simply call `findBaseDir()`, relying on whatever launched the Ratpack application JVM to have launched with the appropriate classpath.
+A real main method would simply call `BaseDir.find()`, relying on whatever launched the Ratpack application JVM to have launched with the appropriate classpath.
 
 Ratpack accesses the base dir via the Java 7 [Path](http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) API,
 allowing transparent use of JAR contents as the file system.

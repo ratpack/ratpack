@@ -136,7 +136,7 @@ class ServerDefinitionErrorSpec extends Specification {
     implicitlyDevelopment(false)
     def error
     server = RatpackServer.of {
-      it.serverConfig(ServerConfig.noBaseDir().development(true))
+      it.serverConfig(ServerConfig.builder().development(true))
       it.registry {
         if (error) {
           throw new IllegalStateException(error)
@@ -198,7 +198,7 @@ class ServerDefinitionErrorSpec extends Specification {
     implicitlyDevelopment(false)
     def error
     server = RatpackServer.of {
-      it.serverConfig(ServerConfig.noBaseDir().development(true))
+      it.serverConfig(ServerConfig.builder().development(true))
       it.handler {
         if (error) {
           throw new IllegalStateException(error)

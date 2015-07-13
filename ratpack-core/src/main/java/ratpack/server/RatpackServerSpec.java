@@ -92,14 +92,16 @@ public interface RatpackServerSpec {
   /**
    * Sets the server configuration for the application.
    * <p>
-   * Server configs can be created by static methods on the {@link ServerConfig} interface, such as {@link ServerConfig#baseDir(java.nio.file.Path)}.
-   * <p>
-   * If a server config is not set, the server config returned by {@link ServerConfig#noBaseDir()} will be used.
+   * Server configs can be created via {@link ServerConfig#builder()}.
    *
    * @param serverConfig the server configuration
    * @return {@code this}
    */
   RatpackServerSpec serverConfig(ServerConfig serverConfig);
+
+  default RatpackServerSpec serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
+    return serverConfig(ServerConfig.of(action));
+  }
 
   /**
    * Sets the root handler by getting a handler of the given type from the server registry.

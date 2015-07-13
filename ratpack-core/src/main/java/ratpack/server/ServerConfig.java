@@ -21,14 +21,13 @@ import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
+import ratpack.func.Action;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -39,8 +38,7 @@ import java.util.Optional;
  * (see also: {@link #getRequiredConfig()}).
  * A server config object is-a {@link ConfigData} object.
  * <p>
- * Server config objects are programmatically built via a {@link ServerConfigBuilder}, which can be obtained via
- * static methods of this type such as {@link #findBaseDir()}, {@link #noBaseDir()}, {@link #embedded()} etc.
+ * Server config objects are programmatically built via a {@link ServerConfigBuilder}, which can be obtained via the static methods {@link #builder()}} and {@link #embedded()}.
  */
 public interface ServerConfig extends ConfigData {
 
@@ -62,80 +60,20 @@ public interface ServerConfig extends ConfigData {
   int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
-   * Creates a builder configured to use no base dir, development mode and an ephemeral port.
+   * Creates a builder configured for development mode and an ephemeral port.
    *
    * @return a server config builder
    */
   static ServerConfigBuilder embedded() {
-    return noBaseDir().development(true).port(0);
+    return builder().development(true).port(0);
   }
 
-  /**
-   * Creates a builder configured to use the given base dir, development mode and an ephemeral port.
-   *
-   * @param baseDir the server base dir
-   * @return a server config builder
-   */
-  static ServerConfigBuilder embedded(Path baseDir) {
-    return baseDir(baseDir).development(true).port(0);
+  static ServerConfigBuilder builder() {
+    return new DefaultServerConfigBuilder(ServerEnvironment.env());
   }
 
-  /**
-   * Creates a builder configured to use no base dir.
-   *
-   * @return a server config builder
-   */
-  static ServerConfigBuilder noBaseDir() {
-    return DefaultServerConfigBuilder.noBaseDir(ServerEnvironment.env());
-  }
-
-  /**
-   * Creates a server config builder with the {@link ServerConfig#getBaseDir() base dir} as the “directory” on the classpath that contains a file called {@code .ratpack}.
-   * <p>
-   * Calling this method is equivalent to calling {@link #findBaseDir(String) findBaseDir(".ratpack")}.
-   *
-   * @return a server config builder
-   * @see #findBaseDir(String)
-   */
-  static ServerConfigBuilder findBaseDir() {
-    return findBaseDir(ServerConfigBuilder.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
-  }
-
-  /**
-   * Creates a server config builder with the {@link ServerConfig#getBaseDir() base dir} as the “directory” on the classpath that contains the marker file at the given path.
-   * <p>
-   * The classpath search is performed using {@link ClassLoader#getResource(String)} using the current thread's {@link Thread#getContextClassLoader() context class loader}.
-   * <p>
-   * If the resource is not found, an {@link IllegalStateException} will be thrown.
-   * <p>
-   * If the resource is found, the enclosing directory of the resource will be converted to a {@link Path} and set as the base dir.
-   * This allows a directory within side a JAR (that is on the classpath) to be used as the base dir potentially.
-   *
-   * @param markerFilePath the path to the marker file on the classpath
-   * @return a server config builder
-   */
-  static ServerConfigBuilder findBaseDir(String markerFilePath) {
-    return DefaultServerConfigBuilder.findBaseDir(ServerEnvironment.env(), markerFilePath);
-  }
-
-  /**
-   * Create a new builder, using the given file as the base dir.
-   *
-   * @param baseDir The base dir of the launch config
-   * @return A new server config builder
-   */
-  static ServerConfigBuilder baseDir(Path baseDir) {
-    return DefaultServerConfigBuilder.baseDir(ServerEnvironment.env(), baseDir);
-  }
-
-  /**
-   * Create a new builder, using the given file as the base dir.
-   *
-   * @param baseDir The base dir of the launch config
-   * @return A new server config builder
-   */
-  static ServerConfigBuilder baseDir(File baseDir) {
-    return baseDir(baseDir.toPath());
+  static ServerConfig of(Action<? super ServerConfigBuilder> action) throws Exception {
+    return action.with(builder()).build();
   }
 
   /**

@@ -33,7 +33,7 @@ import java.util.List;
 public class Example {
   public static void main(String... args) throws Exception {
     List<Handler> handlers = Lists.newLinkedList();
-    ServerConfig serverConfig = ServerConfig.noBaseDir().development(false).build();
+    ServerConfig serverConfig = ServerConfig.embedded().development(false).build();
     Chain chain = new DefaultChain(handlers, serverConfig, null);
 """
   }

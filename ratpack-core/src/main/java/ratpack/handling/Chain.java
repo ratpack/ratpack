@@ -281,8 +281,11 @@ public interface Chain {
    *         b.file("public/index.html", "bar");
    *       },
    *       baseDir ->
-   *         EmbeddedApp.fromHandlers(baseDir, c -> c
+   *         EmbeddedApp.of(s -> s
+   *           .serverConfig(c -> c.baseDir(baseDir))
+   *           .handlers(c -> c
    *             .files(f -> f.dir("public").indexFiles("index.html"))
+   *           )
    *         ).test(httpClient -> {
    *           assertEquals("foo", httpClient.getText("some.text"));
    *           assertEquals("bar", httpClient.getText());

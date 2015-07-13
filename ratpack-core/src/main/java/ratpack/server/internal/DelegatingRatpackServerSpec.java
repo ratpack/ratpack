@@ -14,45 +14,36 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.server.internal;
+package ratpack.server.internal;
 
-import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.groovy.server.GroovyRatpackServerSpec;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 
-public class DefaultGroovyRatpackServerSpec implements GroovyRatpackServerSpec {
+public class DelegatingRatpackServerSpec implements RatpackServerSpec {
 
   private final RatpackServerSpec delegate;
 
-  public DefaultGroovyRatpackServerSpec(RatpackServerSpec delegate) {
+  public DelegatingRatpackServerSpec(RatpackServerSpec delegate) {
     this.delegate = delegate;
   }
 
   @Override
-  public GroovyRatpackServerSpec registry(Function<? super Registry, ? extends Registry> function) {
+  public RatpackServerSpec registry(Function<? super Registry, ? extends Registry> function) {
     delegate.registry(function);
     return this;
   }
 
   @Override
-  public GroovyRatpackServerSpec serverConfig(ServerConfig serverConfig) {
+  public RatpackServerSpec serverConfig(ServerConfig serverConfig) {
     delegate.serverConfig(serverConfig);
     return this;
   }
 
   @Override
-  public GroovyRatpackServerSpec serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
-    delegate.serverConfig(action);
-    return this;
-  }
-
-  @Override
-  public GroovyRatpackServerSpec handler(Function<? super Registry, ? extends Handler> handlerFactory) {
+  public RatpackServerSpec handler(Function<? super Registry, ? extends Handler> handlerFactory) {
     delegate.handler(handlerFactory);
     return this;
   }

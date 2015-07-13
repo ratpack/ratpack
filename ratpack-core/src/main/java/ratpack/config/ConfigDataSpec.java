@@ -223,7 +223,7 @@ public interface ConfigDataSpec {
    * public class Example {
    *   public static void main(String[] args) throws Exception {
    *     ServerConfig serverConfig = ServerConfig
-   *       .noBaseDir()
+   *       .builder()
    *       .props(ImmutableMap.of("server.port", "5060"))
    *       .sysProps()
    *       .build();

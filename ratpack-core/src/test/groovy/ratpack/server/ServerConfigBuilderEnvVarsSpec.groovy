@@ -31,7 +31,7 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
 
   def setup() {
     source = [:]
-    builder = DefaultServerConfigBuilder.noBaseDir(new ServerEnvironment(source, new Properties()))
+    builder = new DefaultServerConfigBuilder(new ServerEnvironment(source, new Properties()))
   }
 
   def "set port"() {

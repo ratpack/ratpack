@@ -51,7 +51,6 @@ import ratpack.test.handling.RequestFixture;
 import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 
@@ -77,7 +76,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private RegistryBuilder registryBuilder = Registry.builder();
 
-  private ServerConfigBuilder serverConfigBuilder = ServerConfig.noBaseDir();
+  private ServerConfigBuilder serverConfigBuilder = ServerConfig.builder();
   private DefaultPathBinding pathBinding;
 
   @Override
@@ -151,14 +150,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
-    serverConfigBuilder = ServerConfig.noBaseDir();
-    action.execute(serverConfigBuilder);
-    return this;
-  }
-
-  @Override
-  public RequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception {
-    serverConfigBuilder = ServerConfig.baseDir(baseDir);
+    serverConfigBuilder = ServerConfig.builder();
     action.execute(serverConfigBuilder);
     return this;
   }

@@ -29,8 +29,6 @@ import ratpack.server.ServerConfigBuilder;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.http.TestHttpClient;
 
-import java.nio.file.Path;
-
 /**
  * A highly configurable {@link ratpack.test.embed.EmbeddedApp} implementation that allows the application to be defined in code at runtime.
  * <p>
@@ -40,11 +38,12 @@ import java.nio.file.Path;
  * import ratpack.test.embed.BaseDirBuilder
  * import ratpack.groovy.test.embed.GroovyEmbeddedApp
  *
- * def baseDir = BaseDirBuilder.tmpDir().build {
- *   it.file "public/foo.txt", "bar"
- * }
- *
- * GroovyEmbeddedApp.of(baseDir) {
+ * GroovyEmbeddedApp.of {
+ *   serverConfig {
+ *     baseDir BaseDirBuilder.tmpDir().build {
+ *       it.file "public/foo.txt", "bar"
+ *     }
+ *   }
  *   // Use the GroovyChain DSL for defining the application handlers
  *   handlers {
  *     get {
@@ -71,10 +70,6 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     return from(EmbeddedApp.of(s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
   }
 
-  static GroovyEmbeddedApp of(Path baseDir, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) throws Exception {
-    return from(EmbeddedApp.of(baseDir, s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
-  }
-
   static GroovyEmbeddedApp fromServer(ServerConfigBuilder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {
     return from(EmbeddedApp.fromServer(serverConfig.build(), s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
   }
@@ -87,16 +82,8 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     return from(EmbeddedApp.fromHandler(Groovy.groovyHandler(handler)));
   }
 
-  static GroovyEmbeddedApp fromHandler(Path baseDir, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return from(EmbeddedApp.fromHandler(baseDir, Groovy.groovyHandler(handler)));
-  }
-
   static GroovyEmbeddedApp fromHandlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
     return from(EmbeddedApp.fromHandlers(Groovy.chainAction(handlers)));
-  }
-
-  static GroovyEmbeddedApp fromHandlers(Path baseDir, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    return from(EmbeddedApp.fromHandlers(baseDir, Groovy.chainAction(handlers)));
   }
 
   default void test(@DelegatesTo(value = TestHttpClient.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test) throws Exception {

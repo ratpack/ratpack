@@ -31,7 +31,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def setup() {
     properties = new Properties()
-    builder = DefaultServerConfigBuilder.noBaseDir(new ServerEnvironment([:], properties))
+    builder = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties))
   }
 
   def "set port"() {

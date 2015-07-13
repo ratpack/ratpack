@@ -56,7 +56,10 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
   }
 
   protected ServerConfigBuilder serverConfigBuilder() {
-    def serverConfig = this.baseDir ? ServerConfig.baseDir(this.baseDir.build()) : ServerConfig.noBaseDir()
+    def serverConfig = ServerConfig.builder()
+    if (this.baseDir) {
+      serverConfig.baseDir(this.baseDir.build())
+    }
     serverConfig.port(0)
     serverConfig.with(_serverConfig)
     serverConfig

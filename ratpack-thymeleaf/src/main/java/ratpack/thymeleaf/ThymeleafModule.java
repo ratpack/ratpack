@@ -67,7 +67,8 @@ import java.util.Set;
  *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
  *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
  *     );
- *     EmbeddedApp.of(baseDir, s -> s
+ *     EmbeddedApp.of(s -> s
+ *       .serverConfig(c -> c.baseDir(baseDir))
  *       .registry(Guice.registry(b -> b.module(ThymeleafModule.class)))
  *       .handlers(chain -> chain
  *         .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))

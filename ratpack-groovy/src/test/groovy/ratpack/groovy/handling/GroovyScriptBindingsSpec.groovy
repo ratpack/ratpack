@@ -35,7 +35,7 @@ class GroovyScriptBindingsSpec extends RatpackGroovyScriptAppSpec {
       protected RatpackServer createServer() {
         RatpackServer.of { spec ->
           spec
-            .serverConfig(ServerConfig.baseDir(temporaryFolder.root.canonicalFile).port(0).development(development))
+            .serverConfig(ServerConfig.builder().baseDir(temporaryFolder.root.canonicalFile).port(0).development(development))
             .registry(Groovy.Script.bindings(compileStatic, ratpackFile.name))
             .handlers { it.get { it.render(it.get(String)) } }
         }

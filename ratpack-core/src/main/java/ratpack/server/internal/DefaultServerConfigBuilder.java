@@ -38,7 +38,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 
 public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements ServerConfigBuilder {
@@ -46,12 +45,15 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
   private final ObjectNode serverConfigData;
   private final Map<String, Class<?>> required = Maps.newHashMap();
 
-  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Optional<Path> baseDir, Optional<ObjectMapper> objectMapper) {
-    super(serverEnvironment, objectMapper);
+  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
+    super(serverEnvironment);
     this.serverConfigData = getObjectMapper().createObjectNode();
-    if (baseDir.isPresent()) {
-      serverConfigData.putPOJO("baseDir", baseDir.get());
-    }
+  }
+
+  @Override
+  public ServerConfigBuilder baseDir(Path baseDir) {
+    serverConfigData.putPOJO("baseDir", baseDir);
+    return this;
   }
 
   @Override
@@ -314,20 +316,6 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
     } else {
       return config.build();
     }
-  }
-
-  public static ServerConfigBuilder noBaseDir(ServerEnvironment serverEnvironment) {
-    return new DefaultServerConfigBuilder(serverEnvironment, Optional.empty(), Optional.empty());
-  }
-
-  public static ServerConfigBuilder baseDir(ServerEnvironment serverEnvironment, Path baseDir) {
-    return new DefaultServerConfigBuilder(serverEnvironment, Optional.of(baseDir.toAbsolutePath().normalize()), Optional.empty());
-  }
-
-  public static ServerConfigBuilder findBaseDir(ServerEnvironment serverEnvironment, String markerFilePath) {
-    return BaseDirFinder.find(Thread.currentThread().getContextClassLoader(), markerFilePath)
-      .map(b -> baseDir(serverEnvironment, b.getBaseDir()))
-      .orElseThrow(() -> new IllegalStateException("Could not find marker file '" + markerFilePath + "' via context class loader"));
   }
 
 }

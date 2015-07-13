@@ -44,12 +44,15 @@ public interface FileHandlerSpec {
    *     BaseDirBuilder.tmpDir().build(
    *       b -> b.file("a.txt", "a"),
    *       b ->
-   *         EmbeddedApp.fromHandlers(b, c -> c
+   *         EmbeddedApp.of(s -> s
+   *           .serverConfig(c -> c.baseDir(b))
+   *           .handlers(c -> c
    *             .files(f -> f.path("files"))
    *             .prefix("prefix", p -> p
    *                 .files()
    *                 .files(f -> f.path("files"))
    *             )
+   *           )
    *         ).test(httpClient -> {
    *           assertEquals("a", httpClient.getText("files/a.txt"));
    *           assertEquals("a", httpClient.getText("prefix/a.txt"));
@@ -82,14 +85,17 @@ public interface FileHandlerSpec {
    *     BaseDirBuilder.tmpDir().build(
    *       b -> b.file("dir/a.txt", "a"),
    *       b ->
-   *         EmbeddedApp.fromHandlers(b, c -> c
+   *         EmbeddedApp.of(s -> s
+   *           .serverConfig(c -> c.baseDir(b))
+   *           .handlers(c -> c
    *             .files(f -> f.path("nopath"))
    *             .files(f -> f.path("pathed").dir("dir"))
    *             .prefix("under-binding", p -> p
-   *                 .fileSystem("dir", f -> f
-   *                     .files()
-   *                 )
+   *               .fileSystem("dir", f -> f
+   *                   .files()
+   *               )
    *             )
+   *           )
    *         ).test(httpClient -> {
    *           assertEquals("a", httpClient.getText("nopath/dir/a.txt"));
    *           assertEquals("a", httpClient.getText("pathed/a.txt"));
@@ -122,10 +128,13 @@ public interface FileHandlerSpec {
    *     BaseDirBuilder.tmpDir().build(
    *       b -> b.file("dir/a.txt", "a"),
    *       b ->
-   *         EmbeddedApp.fromHandlers(b, c -> c
+   *         EmbeddedApp.of(s -> s
+   *           .serverConfig(c -> c.baseDir(b))
+   *           .handlers(c -> c
    *             .files(f ->
    *                 f.files("dir") // same as f.path("dir").dir("dir")
    *             )
+   *           )
    *         ).test(httpClient ->
    *           assertEquals("a", httpClient.getText("/dir/a.txt"))
    *         )
@@ -162,9 +171,12 @@ public interface FileHandlerSpec {
    *         b.file("dir1/b.txt", "b1");
    *         b.file("dir2/b.txt", "b2");
    *       }, b ->
-   *         EmbeddedApp.fromHandlers(b, c -> c
+   *         EmbeddedApp.of(s -> s
+   *           .serverConfig(c -> c.baseDir(b))
+   *           .handlers(c -> c
    *             .files(f -> f.path("noIndex"))
    *             .files(f -> f.path("indexes").indexFiles("a.txt", "b.txt"))
+   *           )
    *         ).test(httpClient -> {
    *           httpClient.requestSpec(r -> r.redirects(1));
    *           assertEquals(404, httpClient.get("noIndex/dir1").getStatusCode());

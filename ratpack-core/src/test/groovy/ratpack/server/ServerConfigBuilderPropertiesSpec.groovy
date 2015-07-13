@@ -29,7 +29,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
   ServerConfigBuilder builder
 
   def setup() {
-    builder = ServerConfig.noBaseDir()
+    builder = ServerConfig.builder()
   }
 
   def "load from properties object"() {

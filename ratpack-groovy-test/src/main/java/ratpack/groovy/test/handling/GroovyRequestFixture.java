@@ -30,7 +30,6 @@ import ratpack.server.ServerConfigBuilder;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 
-import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -209,12 +208,6 @@ public interface GroovyRequestFixture extends RequestFixture {
    */
   @Override
   GroovyRequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyRequestFixture serverConfig(Path baseDir, Action<? super ServerConfigBuilder> action) throws Exception;
 
   /**
    * {@inheritDoc}
