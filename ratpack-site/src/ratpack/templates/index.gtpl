@@ -71,8 +71,17 @@ section(id: "main") {
     }
     p {
       strong('Have a question or problem?')
-      yield ' Let us know about it via the '
-      a(href: "http://forum.ratpack.io", 'forum')
+      yield ' Discuss it now via the '
+      a(href: "http://slack.ratpack.io", 'Ratpack Community Channel')
+      yield ' (powered by  '
+      a(href: 'http://slack.com', "Slack")
+      yield '). '
+      a(href: "http://slack-signup.ratpack.io", "Sign up")
+      yield " is required (one time)."
+    }
+    p {
+      yield "If realtime chat isn't your thing, you can use the "
+      a(href: "http://forum.ratpack.io", 'Ratpack Forum')
       yield '.'
     }
     p {
