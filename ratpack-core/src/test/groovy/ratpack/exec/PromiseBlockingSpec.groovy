@@ -35,8 +35,8 @@ class PromiseBlockingSpec extends Specification {
   def "can block promise"() {
     when:
     def r = exec.yield {
-      it.blocking {
-        async(Result.success(2)).block()
+      Blocking.get {
+        Blocking.on(async(Result.success(2)))
       }
     }
 
@@ -47,8 +47,8 @@ class PromiseBlockingSpec extends Specification {
   def "can block non async promise"() {
     when:
     def r = exec.yield {
-      it.blocking {
-        exec.promiseOf(2).block()
+      Blocking.get {
+        Blocking.on(Promise.value(2))
       }
     }
 
@@ -59,8 +59,8 @@ class PromiseBlockingSpec extends Specification {
   def "can block failed promise"() {
     when:
     def r = exec.yield {
-      it.blocking {
-        async(Result.error(new RuntimeException("!"))).block()
+      Blocking.get {
+        Blocking.on(async(Result.error(new RuntimeException("!"))))
       }
     }.throwable
 
@@ -72,12 +72,14 @@ class PromiseBlockingSpec extends Specification {
   def "can nest blocks"() {
     when:
     def r = exec.yield { e ->
-      exec.blocking {
-        exec.blocking {
-          async(Result.success(2)).map { it * 2 }.block()
-        }.map {
-          it * 2
-        }.block()
+      Blocking.get {
+        Blocking.on(
+          Blocking.get {
+            Blocking.on(async(Result.success(2)).map { it * 2 })
+          }.map {
+            it * 2
+          }
+        )
       }
     }.valueOrThrow
 
@@ -88,7 +90,7 @@ class PromiseBlockingSpec extends Specification {
   def "cannot use block when not blocking"() {
     when:
     exec.yield {
-      async(Result.success(2)).block()
+      Blocking.on(async(Result.success(2)))
     }.valueOrThrow
 
     then:
@@ -99,10 +101,12 @@ class PromiseBlockingSpec extends Specification {
   def "cannot use block when in block"() {
     when:
     exec.yield {
-      exec.blocking {
-        exec.promise {
-          exec.promiseOf(2).block()
-        }.block()
+      Blocking.get {
+        Blocking.on(
+          Promise.of {
+            Blocking.on(Promise.value(2))
+          }
+        )
       }
     }.valueOrThrow
 
@@ -127,8 +131,8 @@ class PromiseBlockingSpec extends Specification {
     }
 
     exec.yield({ it.add(interceptor) }, {
-      exec.blocking {
-        async(Result.success(2)).block()
+      Blocking.get {
+        Blocking.on(async(Result.success(2)))
       }
     }).valueOrThrow
 

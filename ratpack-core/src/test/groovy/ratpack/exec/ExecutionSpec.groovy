@@ -55,7 +55,7 @@ class ExecutionSpec extends Specification {
   def "exception thrown after promise prevents promise from running"() {
     when:
     exec({ e ->
-      e.promise { f ->
+      Promise.value { f ->
         events << "action"
         e.fork().start {
           f.success(1)
@@ -79,7 +79,7 @@ class ExecutionSpec extends Specification {
       throw new RuntimeException("!")
     }, {
       try {
-        harness.blocking { 2 } then { events << "error" }
+        Blocking.get { 2 } then { events << "error" }
 
       } catch (e) {
         e.printStackTrace()
@@ -95,10 +95,10 @@ class ExecutionSpec extends Specification {
     exec({
       throw new RuntimeException("!")
     }, {
-      harness.blocking {
+      Blocking.get {
         2
       } then {
-        harness.blocking {
+        Blocking.get {
           5
         } then {
           events << "error"
@@ -130,7 +130,7 @@ class ExecutionSpec extends Specification {
 
     when:
     exec { e1 ->
-      e1.promise { f ->
+      Promise.of { f ->
         Thread.start {
           sleep 100
           f.success "1"
@@ -138,7 +138,7 @@ class ExecutionSpec extends Specification {
       } then {
         events << it
       }
-      e1.promise { f ->
+      Promise.of { f ->
         Thread.start {
           f.success "2"
         }
@@ -158,7 +158,7 @@ class ExecutionSpec extends Specification {
     def innerLatch = new CountDownLatch(1)
 
     exec { control ->
-      def p = control.promise { f ->
+      def p = Promise.value { f ->
         control.fork().start {
           f.success(2)
         }
@@ -269,7 +269,7 @@ class ExecutionSpec extends Specification {
   def "can subscribe to promise more than once"() {
     when:
     exec({
-      def p = it.blocking { 2 }
+      def p = Blocking.get { 2 }
       code(p).then { events << it }
       code(p).then { events << it }
     }) {
@@ -281,7 +281,7 @@ class ExecutionSpec extends Specification {
 
     where:
     code << [
-      { it.flatMap { ExecControl.current().blocking { 2 } } },
+      { it.flatMap { Blocking.get { 2 } } },
       { it },
       { it.map { 2 } },
       { it.blockingMap { 2 } },
@@ -294,7 +294,7 @@ class ExecutionSpec extends Specification {
   def "can subscribe to success promise more than once"() {
     when:
     exec({
-      def p = it.blocking { 2 }.onError { throw new UnsupportedOperationException() }
+      def p = Blocking.get { 2 }.onError { throw new UnsupportedOperationException() }
       code(p).then { events << it }
       code(p).then { events << it }
     }) {
@@ -306,7 +306,7 @@ class ExecutionSpec extends Specification {
 
     where:
     code << [
-      { it.flatMap { ExecControl.current().blocking { 2 } } },
+      { it.flatMap { Blocking.get { 2 } } },
       { it },
       { it.map { 2 } },
       { it.blockingMap { 2 } },
@@ -318,7 +318,7 @@ class ExecutionSpec extends Specification {
   def "can complete future"() {
     when:
     exec({ ExecControl c ->
-      c.promise { Fulfiller<String> f ->
+      Promise.of { Fulfiller<String> f ->
         f.accept(CompletableFuture.supplyAsync({ "foo" }, c.controller.executor))
       } then {
         events << it
@@ -332,7 +332,7 @@ class ExecutionSpec extends Specification {
   def "can complete ListenableFuture"() {
     when:
     exec({ ExecControl c ->
-      c.promise { Fulfiller<String> f ->
+      Promise.of { Fulfiller<String> f ->
         f.accept(Futures.immediateFuture("foo"))
       } then {
         events << it
@@ -346,7 +346,7 @@ class ExecutionSpec extends Specification {
   def "can error from ListenableFuture"() {
     when:
     exec({ ExecControl c ->
-      c.promise { Fulfiller<String> f ->
+      Promise.of { Fulfiller<String> f ->
         f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
       } onError {
         events << "error"
@@ -363,8 +363,8 @@ class ExecutionSpec extends Specification {
   def "can nest promises"() {
     when:
     exec({ e ->
-      e.promise { f1 ->
-        e.promise { f -> f.success("foo") }.result { r -> f1.accept(r) }
+      Promise.of { f1 ->
+        Promise.of { f -> f.success("foo") }.result { r -> f1.accept(r) }
       } then {
         events << it
       }
@@ -379,7 +379,7 @@ class ExecutionSpec extends Specification {
   def "can have multiple on error"() {
     when:
     exec {
-      it.failedPromise(new Exception("!")).onError { events << "1" }.onError { events << "2" }.then { events << "3" }
+      Promise.error(new Exception("!")).onError { events << "1" }.onError { events << "2" }.then { events << "3" }
     }
 
     then:

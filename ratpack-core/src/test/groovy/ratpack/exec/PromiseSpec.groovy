@@ -26,8 +26,8 @@ class PromiseSpec extends Specification {
   def "cannot subscribe to promise when blocking"() {
     when:
     exec.yield {
-      exec.blocking {
-        exec.promiseOf(1).then { it }
+      Blocking.get {
+        Promise.value(1).then { it }
       }
     }.valueOrThrow
 

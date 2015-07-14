@@ -16,9 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.exec.internal.CachingUpstream;
-import ratpack.exec.internal.DefaultOperation;
-import ratpack.exec.internal.ExecutionBacking;
+import ratpack.exec.internal.*;
 import ratpack.func.*;
 
 import java.util.Objects;
@@ -51,6 +49,62 @@ import static ratpack.func.Action.ignoreArg;
  */
 @SuppressWarnings("JavadocReference")
 public interface Promise<T> {
+
+  /**
+   * Creates a promise for an asynchronously created value.
+   * <p>
+   * This method can be used to integrate with APIs that produce values asynchronously.
+   * The asynchronous API should be invoked during the execute method of the action given to this method.
+   * The result of the asynchronous call is then given to the {@link Fulfiller} that the action is given.
+   *
+   * @param action an action that invokes an asynchronous API, forwarding the result to the given fulfiller
+   * @param <T> the type of promised value
+   * @return a promise for the asynchronously created value
+   * @see Fulfiller
+   */
+  static <T> Promise<T> of(Action<? super Fulfiller<T>> action) {
+    return new DefaultPromise<>(DefaultExecControl.upstream(action));
+  }
+
+  /**
+   * Creates a promise for the given value.
+   * <p>
+   * This method can be used when a promise is called for, but the value is immediately available.
+   *
+   * @param t the promised value
+   * @param <T> the type of promised value
+   * @return a promise for the given item
+   */
+  static <T> Promise<T> value(T t) {
+    return of(f -> f.success(t));
+  }
+
+  /**
+   * Creates a promise for value produced by the given factory.
+   * <p>
+   * This method can be used when a promise is called for, and the value is available synchronously as the result of a function.
+
+   *
+   * @param factory the producer of the value
+   * @param <T> the type of promised value
+   * @return a promise for the result of the factory
+   */
+  static <T> Promise<T> ofLazy(Factory<T> factory) {
+    return of(f -> f.success(factory.create()));
+  }
+
+  /**
+   * Creates a failed promise with the given error.
+   * <p>
+   * This method can be used when a promise is called for, but the failure is immediately available.
+   *
+   * @param t the error
+   * @param <T> the type of promised value
+   * @return a failed promise
+   */
+  static <T> Promise<T> error(Throwable t) {
+    return of(f -> f.error(t));
+  }
 
   /**
    * Specifies what should be done with the promised object when it becomes available.
