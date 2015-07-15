@@ -49,7 +49,7 @@ public interface ServerConfigBuilder extends ConfigDataSpec {
    *
    * @param port the port to listen for requests on
    * @return {@code this}
-   * @see ServerConfig#getPort()
+   * @see ratpack.server.ServerConfig#getPort()
    */
   ServerConfigBuilder port(int port);
 

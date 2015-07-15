@@ -130,7 +130,7 @@ public interface Request extends MutableRegistry {
    * If no {@code "content-type"} header is specified, an empty {@link MediaType} is returned.
    *
    * @return The type of the data.
-   * @see {@link MediaType#isEmpty()}
+   * @see ratpack.http.MediaType#isEmpty()
    */
   MediaType getContentType();
 
