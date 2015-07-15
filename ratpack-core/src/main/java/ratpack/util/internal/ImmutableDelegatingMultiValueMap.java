@@ -16,6 +16,7 @@
 
 package ratpack.util.internal;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.*;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
@@ -40,7 +41,7 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
 
   @SuppressWarnings("unchecked")
   public List<V> getAll(K key) {
-    return delegate.get(key);
+    return MoreObjects.firstNonNull(delegate.get(key), Collections.<V>emptyList());
   }
 
   @SuppressWarnings("unchecked")
