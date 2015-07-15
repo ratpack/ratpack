@@ -649,12 +649,14 @@ public interface Context extends ExecControl, Registry {
   <T, O> Promise<T> parse(Parse<T, O> parse);
 
   /**
-   * TODO
+   * Parses the provided request body into an object.
+   *
    * @param body The request body
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> The type of the parse options object
    * @return The parsed object
+   * @see #parse(Parse)
    */
   <T, O> T parse(TypedData body, Parse<T, O> parse);
 

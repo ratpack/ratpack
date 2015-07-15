@@ -125,9 +125,12 @@ public interface Request extends MutableRegistry {
   Headers getHeaders();
 
   /**
-   * The type of the data.
+   * The type of the data as specified in the {@code "content-type"} header.
+   * <p>
+   * If no {@code "content-type"} header is specified, an empty {@link MediaType} is returned.
    *
    * @return The type of the data.
+   * @see {@link MediaType#isEmpty()}
    */
   MediaType getContentType();
 
