@@ -17,7 +17,6 @@
 package ratpack.parse;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 
@@ -44,14 +43,12 @@ import ratpack.http.TypedData;
  *       super("text/plain");
  *     }
  *
- *     public <T> Promise<T> parse(Context context, Promise<TypedData> body, TypeToken<T> type) {
- *       return body.map(b -> {
- *         if (type.getRawType().equals(Integer.class)) {
- *           return Types.cast(Integer.valueOf(b.getText()));
- *         } else {
- *           return null;
- *         }
- *       });
+ *     public <T> T parse(Context context, TypedData body, TypeToken<T> type) {
+ *       if (type.getRawType().equals(Integer.class)) {
+ *         return Types.cast(Integer.valueOf(body.getText()));
+ *       } else {
+ *         return null;
+ *       }
  *     }
  *   }
  *
@@ -86,17 +83,17 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
   }
 
   /**
-   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.exec.Promise, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
+   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
    *
    * @param context The context to deserialize
    * @param requestBody The request body to deserialize
    * @param parse The description of how to parse the request body
    * @param <T> the type of object to construct from the request body
-   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.exec.Promise, TypeToken)}
-   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.exec.Promise, TypeToken)}
+   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
+   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
    */
   @Override
-  public final <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, Parse<T, NullParseOpts> parse) throws Exception {
+  public final <T> T parse(Context context, TypedData requestBody, Parse<T, NullParseOpts> parse) throws Exception {
     return parse(context, requestBody, parse.getType());
   }
 
@@ -110,6 +107,6 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
    * @return an instance of {@code T} if this parser can construct this type, otherwise {@code null}
    * @throws Exception any exception thrown while parsing
    */
-  abstract protected <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, TypeToken<T> type) throws Exception;
+  abstract protected <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception;
 
 }

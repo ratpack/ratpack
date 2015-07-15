@@ -36,6 +36,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.TypedData;
 import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -304,22 +305,27 @@ public class DefaultContext implements Context {
 
   @Override
   public <T, O> Promise<T> parse(Parse<T, O> parse) {
-    return requestConstants.request.getBody().flatMap(b -> {
-      String requestContentType = b.getContentType().getType();
-      if (requestContentType == null) {
-        requestContentType = "text/plain";
-      }
-      final String finalRequestContentType = requestContentType;
+    return getRequest().getBody().map(b -> parse(b, parse));
+  }
 
+  @Override
+  public <T, O> T parse(TypedData body, Parse<T, O> parse) {
+    String requestContentType = body.getContentType().getType();
+    if (requestContentType == null) {
+      requestContentType = "text/plain";
+    }
+    final String finalRequestContentType = requestContentType;
+
+    return Exceptions.uncheck(() -> {
       return joinedRegistry
         .first(PARSER_TYPE_TOKEN, parser -> {
           if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
             Parser<O> cast = Types.cast(parser);
-            return cast.parse(DefaultContext.this, getRequest().getBody(), parse);
+            return cast.parse(DefaultContext.this, body, parse);
           }
           return null;
-        }).orElse(ExecControl.current().promise(f -> f.error(new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType))));
-    });
+        });
+    }).orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType));
   }
 
   @Override

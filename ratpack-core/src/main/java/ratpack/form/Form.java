@@ -32,7 +32,7 @@ import java.util.List;
  * All instances of this type are <b>immutable</b>.
  * Calling any mutative method of {@link ratpack.util.MultiValueMap} will result in an {@link UnsupportedOperationException}.
  * <h3>Example usage:</h3>
- * <pre class="java">
+ * <pre class="java">{@code
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.form.Form;
@@ -43,16 +43,16 @@ import java.util.List;
  * public class Example {
  *   public static class FormHandler implements Handler {
  *     public void handle(Context context) throws Exception {
- *       context.parse(Form.class).then(form -&gt; {
+ *       context.parse(Form.class).then(form -> {
  *         UploadedFile file = form.file("someFile.txt");
  *         String param = form.get("param");
- *         List&lt;String&gt; multi = form.getAll("multi");
+ *         List<String> multi = form.getAll("multi");
  *         context.render("form uploaded!");
  *       });
  *     }
  *   }
  * }
- * </pre>
+ * }</pre>
  *
  * <p>
  * To include the query parameters from the request in the parsed form, use {@link Form#form(boolean)}.

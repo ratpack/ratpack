@@ -98,13 +98,13 @@ public class Example {
       .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asNode", ctx -> {
-          ctx.parse(jsonNode()).then(node -> ctx.render(node.get("name").asText()));
+          ctx.render(ctx.parse(jsonNode()).map(n -> n.get("name").asText()));
         })
         .post("asPerson", ctx -> {
-          ctx.parse(fromJson(Person.class)).then(person -> ctx.render(person.getName()));
+          ctx.render(ctx.parse(fromJson(Person.class)).map(p -> p.getName()));
         })
         .post("asPersonList", ctx -> {
-          ctx.parse(fromJson(listOf(Person.class))).then(person -> ctx.render(person.get(0).getName()));
+          ctx.render(ctx.parse(fromJson(listOf(Person.class))).map(p -> p.get(0).getName()));
         })
       )
     ).test(httpClient -> {

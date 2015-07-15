@@ -21,7 +21,7 @@ import com.google.common.reflect.TypeToken;
 /**
  * A convenience superclass for {@link Parser} implementations.
  * <p>
- * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.exec.Promise, Parse)} method.
+ * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
  * <pre class="java">{@code
  * import ratpack.exec.Promise;
  * import ratpack.handling.Handler;
@@ -60,19 +60,17 @@ import com.google.common.reflect.TypeToken;
  *       super("text/plain");
  *     }
  *
- *     public <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
- *       return requestBody.map(b -> {
- *         if (!parse.getType().getRawType().equals(String.class)) {
- *           return null;
- *         }
+ *     public <T> T parse(Context context, TypedData body, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
+ *       if (!parse.getType().getRawType().equals(String.class)) {
+ *         return null;
+ *       }
  *
- *         String rawString = b.getText();
- *         if (rawString.length() < parse.getOpts().getMaxLength()) {
- *           return Types.cast(rawString);
- *         } else {
- *           return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
- *         }
- *       });
+ *       String rawString = body.getText();
+ *       if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *         return Types.cast(rawString);
+ *       } else {
+ *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
+ *       }
  *     }
  *   }
  *

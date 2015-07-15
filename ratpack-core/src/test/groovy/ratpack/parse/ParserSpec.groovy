@@ -17,7 +17,6 @@
 package ratpack.parse
 
 import com.google.common.reflect.TypeToken
-import ratpack.exec.Promise
 import ratpack.handling.Context
 import ratpack.http.TypedData
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -30,13 +29,11 @@ class ParserSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    <T> Promise<T> parse(Context context, Promise<TypedData> requestBody, TypeToken<T> type) throws Exception {
-      context.request.body.map { TypedData body ->
-        if (type.rawType == Integer) {
-          body.text.toInteger()
-        } else {
-          return null
-        }
+    <T> T parse(Context context, TypedData body, TypeToken<T> type) throws Exception {
+      if (type.rawType == Integer) {
+        body.text.toInteger()
+      } else {
+        return null
       }
     }
   }

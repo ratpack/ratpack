@@ -31,6 +31,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.TypedData;
 import ratpack.parse.Parse;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
@@ -233,6 +234,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <T, O> Promise<T> parse(Parse<T, O> parse) {
     return delegate.parse(parse);
+  }
+
+  @Override
+  public <T, O> T parse(TypedData body, Parse<T, O> parse) {
+    return delegate.parse(body, parse);
   }
 
   @Override

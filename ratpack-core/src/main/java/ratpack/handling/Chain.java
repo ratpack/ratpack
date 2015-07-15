@@ -515,9 +515,9 @@ public interface Chain {
   /**
    * Adds a handler to the chain that delegates to the given handler chain if the request has a {@code Host} header that matches the given value exactly.
    *
-   * <pre class="java-chain-dsl">
+   * <pre class="java-chain-dsl">{@code
    *  chain.
-   *    host("foo.com", new Action&lt;Chain&gt;() {
+   *    host("foo.com", new Action<Chain>() {
    *      public void execute(Chain hostChain) {
    *        hostChain.all(new Handler() {
    *          public void handle(Context context) {
@@ -526,7 +526,7 @@ public interface Chain {
    *        });
    *      }
    *    });
-   * </pre>
+   * }</pre>
    *
    * @param hostName the name of the HTTP Header to match on
    * @param action the handler chain to delegate to if the host matches
@@ -652,9 +652,9 @@ public interface Chain {
    * relative path starts with the given {@code prefix}.
    * <p>
    * All path based handlers become relative to the given {@code prefix}.
-   * <pre class="java-chain-dsl">
+   * <pre class="java-chain-dsl">{@code
    *   chain
-   *     .prefix("person/:id", new Action&lt;Chain&gt;() {
+   *     .prefix("person/:id", new Action<Chain>() {
    *       public void execute(Chain personChain) throws Exception {
    *         personChain
    *           .get("info", new Handler() {
@@ -667,7 +667,7 @@ public interface Chain {
    *               // e.g. /person/2/save
    *             }
    *           })
-   *           .prefix("child/:childId", new Action&lt;Chain&gt;() {
+   *           .prefix("child/:childId", new Action<Chain>() {
    *             public void execute(Chain childChain) {
    *               childChain
    *                 .get("info", new Handler() {
@@ -679,7 +679,7 @@ public interface Chain {
    *           });
    *       }
    *     });
-   * </pre>
+   * }</pre>
    * <p>
    * See {@link ratpack.handling.Handlers#prefix(String, Handler)}
    * for format details on the {@code prefix} string.

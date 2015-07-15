@@ -116,7 +116,7 @@ import static ratpack.util.Exceptions.uncheck;
  * <p>
  * Example custom metrics: (Groovy DSL)
  * </p>
- * <pre class="groovy-ratpack-dsl">
+ * <pre class="groovy-ratpack-dsl">{@code
  * import ratpack.codahale.metrics.CodaHaleMetricsModule
  * import com.codahale.metrics.MetricRegistry
  * import static ratpack.groovy.Groovy.ratpack
@@ -126,14 +126,14 @@ import static ratpack.util.Exceptions.uncheck;
  *     module new CodaHaleMetricsModule(), { it.jmx() }
  *   }
  *
- *   handlers { MetricRegistry metricRegistry -&gt;
+ *   handlers { MetricRegistry metricRegistry ->
  *     all {
  *       metricRegistry.meter("my custom meter").mark()
  *       render ""
  *     }
  *   }
  * }
- * </pre>
+ * }</pre>
  * <p>
  * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge})
  * to any Guice injected classes.
