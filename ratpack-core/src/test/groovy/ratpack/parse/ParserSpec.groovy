@@ -46,8 +46,8 @@ class ParserSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def i = parse Integer
-        i.then { type ->
-          response.send(type.getClass().toString())
+        i.then { integer ->
+          response.send(integer.getClass().toString())
         }
       }
     }
