@@ -37,7 +37,9 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def node = parse Jackson.jsonNode()
-        response.send node.get("value").toString()
+        node.then {
+          response.send it.get("value").toString()
+        }
       }
     }
 
@@ -64,7 +66,9 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def node = parse jsonNode()
-        response.send node.get("value").toString()
+        node.then {
+          response.send it.get("value").toString()
+        }
       }
     }
 
@@ -96,8 +100,10 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def object = parse classType
-        returnedType = object.getClass()
-        render "${object.value}:${object.foo?.value}"
+        object.then {
+          returnedType = it.getClass()
+          render "${it.value}:${it.foo?.value}"
+        }
       }
     }
 
@@ -120,7 +126,9 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def body = parse(new TypeToken<List<Integer>>() {})
-        render body.collect { it.getClass().name }.toString()
+        body.then { b ->
+          render b.collect { it.getClass().name }.toString()
+        }
       }
     }
 

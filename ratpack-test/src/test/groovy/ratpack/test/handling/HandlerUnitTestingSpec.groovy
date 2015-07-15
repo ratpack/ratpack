@@ -259,7 +259,9 @@ class HandlerUnitTestingSpec extends Specification {
     handle {
       response.headers.set "X-Request-Content-Length", request.headers.get("Content-Length")
       response.headers.set "X-Request-Content-Type", request.headers.get("Content-Type")
-      response.send request.body.bytes
+      request.body.then {
+        response.send it.bytes
+      }
     }
 
     then:

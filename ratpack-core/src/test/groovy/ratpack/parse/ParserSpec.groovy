@@ -29,9 +29,9 @@ class ParserSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
+    <T> T parse(Context context, TypedData body, TypeToken<T> type) throws Exception {
       if (type.rawType == Integer) {
-        context.request.body.text.toInteger()
+        body.text.toInteger()
       } else {
         return null
       }
@@ -46,7 +46,9 @@ class ParserSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def i = parse Integer
-        response.send(i.getClass().toString())
+        i.then { integer ->
+          response.send(integer.getClass().toString())
+        }
       }
     }
 

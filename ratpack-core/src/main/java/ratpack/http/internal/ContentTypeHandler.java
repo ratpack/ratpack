@@ -31,7 +31,7 @@ public class ContentTypeHandler implements Handler {
   @Override
   public void handle(Context context) throws Exception {
     boolean accepted = false;
-    String requestType = context.getRequest().getBody().getContentType().getType();
+    String requestType = context.getRequest().getContentType().getType();
     if (requestType != null) {
       for (String contentType : contentTypes) {
         if (requestType.equals(contentType)) {

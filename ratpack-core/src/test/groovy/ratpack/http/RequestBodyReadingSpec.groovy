@@ -25,7 +25,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send new String(request.body.bytes, "utf8")
+        request.body.then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
       }
     }
 
@@ -38,7 +40,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send new String(request.body.inputStream.bytes, "utf8")
+        request.body.then { body ->
+          response.send new String(body.inputStream.bytes, "utf8")
+        }
       }
     }
 
@@ -54,7 +58,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send new String(request.body.bytes, "utf8")
+        request.body.then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
       }
     }
 
@@ -69,7 +75,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        response.send request.body.bytes.length.toString()
+        request.body.then { body ->
+          response.send body.bytes.length.toString()
+        }
       }
     }
 

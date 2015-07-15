@@ -201,7 +201,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       all {
         blocking {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
-          request.body.text
+          request.body.block().text
         } then {
           render it.toString()
         }

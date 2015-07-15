@@ -25,11 +25,10 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import ratpack.exec.ExecControl;
+import ratpack.exec.Promise;
 import ratpack.func.Function;
-import ratpack.http.Headers;
-import ratpack.http.HttpMethod;
-import ratpack.http.Request;
-import ratpack.http.TypedData;
+import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.util.MultiValueMap;
@@ -54,7 +53,7 @@ public class DefaultRequest implements Request {
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
 
-  private TypedData body;
+  private Promise<TypedData> body;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -202,9 +201,9 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public TypedData getBody() {
+  public Promise<TypedData> getBody() {
     if (body == null) {
-      body = new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE)));
+      body = ExecControl.execControl().promise(f -> f.success(new ByteBufBackedTypedData(content, getContentType())));
     }
     return body;
   }
@@ -212,6 +211,11 @@ public class DefaultRequest implements Request {
   @Override
   public Headers getHeaders() {
     return headers;
+  }
+
+  @Override
+  public MediaType getContentType() {
+    return DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE));
   }
 
   @Override

@@ -21,8 +21,9 @@ import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.parse.NoOptParserSupport;
+import ratpack.util.Types;
 
-import static ratpack.util.internal.ImmutableDelegatingMultiValueMap.empty;
+import static ratpack.util.MultiValueMap.empty;
 
 public class FormNoOptParser extends NoOptParserSupport {
 
@@ -36,7 +37,7 @@ public class FormNoOptParser extends NoOptParserSupport {
   @Override
   public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
     if (type.equals(FORM_TYPE)) {
-      return (T) FormDecoder.parseForm(context, requestBody, empty());
+      return Types.cast(FormDecoder.parseForm(context, requestBody, empty()));
     } else {
       return null;
     }

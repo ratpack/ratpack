@@ -32,7 +32,7 @@ This can be used for reading POST'd (or PUT'd etc. for that matter) forms, both 
 
 Here's an example of using this from Java…
 
-```language-groovy tested
+```language-java tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 import ratpack.form.Form;
@@ -40,18 +40,20 @@ import ratpack.form.UploadedFile;
 
 public class MyHandler implements Handler {
   public void handle(Context context) {
-    Form form = context.parse(Form.class);
+    Promise<Form> form = context.parse(Form.class);
 
-    // Get the first attribute sent with name “foo”
-    String foo = form.get("foo");
-
-    // Get all attributes sent with name “bar”
-    List<String> bar = form.getAll("bar");
-
-    // Get the file uploaded with name “myFile”
-    UploadedFile myFile = form.file("myFile");
-
-    // Send back a response …
+    form.then(f -> {
+      // Get the first attribute sent with name “foo”
+      String foo = form.get("foo");
+  
+      // Get all attributes sent with name “bar”
+      List<String> bar = form.getAll("bar");
+  
+      // Get the file uploaded with name “myFile”
+      UploadedFile myFile = form.file("myFile");
+  
+      // Send back a response …
+    });
   }
 }
 ```

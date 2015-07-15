@@ -36,6 +36,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.TypedData;
 import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -303,39 +304,45 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T, O> T parse(Parse<T, O> parse) throws Exception {
-    String requestContentType = requestConstants.request.getBody().getContentType().getType();
+  public <T, O> Promise<T> parse(Parse<T, O> parse) {
+    return getRequest().getBody().map(b -> parse(b, parse));
+  }
+
+  @Override
+  public <T, O> T parse(TypedData body, Parse<T, O> parse) {
+    String requestContentType = body.getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
     final String finalRequestContentType = requestContentType;
 
-    return joinedRegistry
-      .first(PARSER_TYPE_TOKEN, parser -> {
-        if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
-          Parser<O> cast = Types.cast(parser);
-          return cast.parse(DefaultContext.this, getRequest().getBody(), parse);
-        }
-        return null;
-      })
-      .orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType));
+    return Exceptions.uncheck(() -> {
+      return joinedRegistry
+        .first(PARSER_TYPE_TOKEN, parser -> {
+          if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
+            Parser<O> cast = Types.cast(parser);
+            return cast.parse(DefaultContext.this, body, parse);
+          }
+          return null;
+        });
+    }).orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType));
   }
 
   @Override
-  public <T> T parse(Class<T> type) throws Exception {
+  public <T> Promise<T> parse(Class<T> type) {
     return parse(Parse.of(type));
   }
 
   @Override
-  public <T> T parse(TypeToken<T> type) throws Exception {
+  public <T> Promise<T> parse(TypeToken<T> type) {
     return parse(Parse.of(type));
   }
 
-  public <T, O> T parse(Class<T> type, O opts) throws Exception {
+  public <T, O> Promise<T> parse(Class<T> type, O opts) {
     return parse(Parse.of(type, opts));
   }
 
-  public <T, O> T parse(TypeToken<T> type, O opts) throws Exception {
+  public <T, O> Promise<T> parse(TypeToken<T> type, O opts) {
     return parse(Parse.of(type, opts));
   }
 

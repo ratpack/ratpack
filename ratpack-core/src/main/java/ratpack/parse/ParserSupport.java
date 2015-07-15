@@ -23,6 +23,7 @@ import com.google.common.reflect.TypeToken;
  * <p>
  * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
  * <pre class="java">{@code
+ * import ratpack.exec.Promise;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
@@ -59,12 +60,12 @@ import com.google.common.reflect.TypeToken;
  *       super("text/plain");
  *     }
  *
- *     public <T> T parse(Context context, TypedData requestBody, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
+ *     public <T> T parse(Context context, TypedData body, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
  *       if (!parse.getType().getRawType().equals(String.class)) {
  *         return null;
  *       }
  *
- *       String rawString = requestBody.getText();
+ *       String rawString = body.getText();
  *       if (rawString.length() < parse.getOpts().getMaxLength()) {
  *         return Types.cast(rawString);
  *       } else {
@@ -75,8 +76,7 @@ import com.google.common.reflect.TypeToken;
  *
  *   public static class ToUpperCaseHandler implements Handler {
  *     public void handle(Context context) throws Exception {
- *       String string = context.parse(String.class, new StringParseOpts(5));
- *       context.render(string);
+ *       context.parse(String.class, new StringParseOpts(5)).then(string -> context.render(string));
  *     }
  *   }
  *

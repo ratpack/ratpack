@@ -47,7 +47,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse Form
-        render form.toString()
+        form.then {
+          render it.toString()
+        }
       }
     }
 
@@ -81,7 +83,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse Form
-        render form.toString()
+        form.then {
+          render it.toString()
+        }
       }
     }
 
@@ -117,7 +121,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse Form
-        render "File content: " + form.file("theFile").text
+        form.then {
+          render "File content: " + it.file("theFile").text
+        }
       }
     }
 
@@ -149,7 +155,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse Form
-        render "File type: " + form.file("theFile").contentType
+        form.then {
+          render "File type: " + it.file("theFile").contentType
+        }
       }
     }
 
@@ -181,7 +189,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse Form
-        render "File type: " + form.file("theFile").contentType
+        form.then {
+          render "File type: " + it.file("theFile").contentType
+        }
       }
     }
 
@@ -229,29 +239,37 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
                             new Handler() {
                               void handle(Context context) throws Exception {
                                 def form = context.parse Form
-                                form.put("bad", "idea")
-                                context.render "I changed things I shoudn't"
+                                form.then {
+                                  it.put("bad", "idea")
+                                  context.render "I changed things I shouldn't"
+                                }
                               }
                             }],
                            ["PutAll on Parsed Form", new Handler() {
                              void handle(Context context) throws Exception {
                                def form = context.parse Form
-                               form.putAll([bad: "idea"])
-                               context.render "I changed things I shoudn't"
+                               form.then {
+                                 it.putAll([bad: "idea"])
+                                 context.render "I changed things I shouldn't"
+                               }
                              }
                            }],
                            ["Remove on Parsed Form", new Handler() {
                              void handle(Context context) throws Exception {
                                def form = context.parse Form
-                               form.remove("Bad")
-                               context.render "I changed things I shoudn't"
+                               form.then {
+                                 it.remove("Bad")
+                                 context.render "I changed things I shouldn't"
+                               }
                              }
                            }],
                            ["Clear on Parsed Form", new Handler() {
                              void handle(Context context) throws Exception {
                                def form = context.parse Form
-                               form.clear()
-                               context.render "I changed things I shoudn't"
+                               form.then {
+                                 it.clear()
+                                 context.render "I changed things I shouldn't"
+                               }
                              }
                            }]]
   }
@@ -261,7 +279,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse form(true)
-        render form.toString()
+        form.then {
+          render it.toString()
+        }
       }
     }
 
@@ -292,7 +312,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def form = parse form(true)
-        render form.toString()
+        form.then {
+          render it.toString()
+        }
       }
     }
 

@@ -20,6 +20,7 @@ import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
+import ratpack.exec.Promise;
 import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;
 
@@ -114,7 +115,7 @@ public interface Request extends MutableRegistry {
    *
    * @return the body of the request
    */
-  TypedData getBody();
+  Promise<TypedData> getBody();
 
   /**
    * The request headers.
@@ -122,6 +123,16 @@ public interface Request extends MutableRegistry {
    * @return The request headers.
    */
   Headers getHeaders();
+
+  /**
+   * The type of the data as specified in the {@code "content-type"} header.
+   * <p>
+   * If no {@code "content-type"} header is specified, an empty {@link MediaType} is returned.
+   *
+   * @return The type of the data.
+   * @see ratpack.http.MediaType#isEmpty()
+   */
+  MediaType getContentType();
 
   /**
    * The address of the client that initiated the request.

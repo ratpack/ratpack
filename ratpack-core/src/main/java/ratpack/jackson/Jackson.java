@@ -189,16 +189,13 @@ import java.io.OutputStream;
  *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .post("asNode", ctx -> {
- *           JsonNode node = ctx.parse(jsonNode());
- *           ctx.render(node.get("name").asText());
+ *           ctx.render(ctx.parse(jsonNode()).map(n -> n.get("name").asText()));
  *         })
  *         .post("asPerson", ctx -> {
- *           Person person = ctx.parse(fromJson(Person.class));
- *           ctx.render(person.getName());
+ *           ctx.render(ctx.parse(fromJson(Person.class)).map(p -> p.getName()));
  *         })
  *         .post("asPersonList", ctx -> {
- *           List<Person> person = ctx.parse(fromJson(listOf(Person.class)));
- *           ctx.render(person.get(0).getName());
+ *           ctx.render(ctx.parse(fromJson(listOf(Person.class))).map(p -> p.get(0).getName()));
  *         })
  *       )
  *     ).test(httpClient -> {
@@ -254,12 +251,10 @@ import java.io.OutputStream;
  *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .post("asPerson", ctx -> {
- *           Person person = ctx.parse(Person.class);
- *           ctx.render(person.getName());
+ *           ctx.parse(Person.class).then(person -> ctx.render(person.getName()));
  *         })
  *         .post("asPersonList", ctx -> {
- *           List<Person> person = ctx.parse(listOf(Person.class));
- *           ctx.render(person.get(0).getName());
+ *           ctx.parse(listOf(Person.class)).then(person -> ctx.render(person.get(0).getName()));
  *         })
  *       )
  *     ).test(httpClient -> {

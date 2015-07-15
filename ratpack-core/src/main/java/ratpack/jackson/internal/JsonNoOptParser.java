@@ -30,7 +30,7 @@ public class JsonNoOptParser extends NoOptParserSupport {
 
   @Override
   public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
-    return context.parse(Jackson.fromJson(type));
+    return context.parse(requestBody, Jackson.fromJson(type));
   }
 
 }

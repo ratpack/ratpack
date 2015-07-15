@@ -26,6 +26,7 @@ import ratpack.http.TypedData;
  * The following is an example of an implementation that parses to an {@code Integer}.
  * <pre class="java">{@code
  * import com.google.common.reflect.TypeToken;
+ * import ratpack.exec.Promise;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
  * import ratpack.http.TypedData;
@@ -53,8 +54,7 @@ import ratpack.http.TypedData;
  *
  *   public static class ExampleHandler implements Handler {
  *     public void handle(Context context) throws Exception {
- *       Integer integer = context.parse(Integer.class);
- *       context.render(integer.toString());
+ *       context.parse(Integer.class).then(integer -> context.render(integer.toString()));
  *     }
  *   }
  *

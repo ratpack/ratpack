@@ -24,8 +24,9 @@ import ratpack.http.TypedData;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserSupport;
 import ratpack.util.MultiValueMap;
+import ratpack.util.Types;
 
-import static ratpack.util.internal.ImmutableDelegatingMultiValueMap.empty;
+import static ratpack.util.MultiValueMap.empty;
 
 public class FormParser extends ParserSupport<FormParseOpts> {
 
@@ -39,9 +40,10 @@ public class FormParser extends ParserSupport<FormParseOpts> {
   @Override
   public <T> T parse(Context context, TypedData requestBody, Parse<T, FormParseOpts> parse) throws Exception {
     if (parse.getType().equals(FORM_TYPE)) {
-      MultiValueMap<String, String> base =
-        parse.getOpts().isIncludeQueryParams() ? context.getRequest().getQueryParams() : empty();
-      return (T) FormDecoder.parseForm(context, requestBody, base);
+      MultiValueMap<String, String> base = parse.getOpts().isIncludeQueryParams()
+        ? context.getRequest().getQueryParams()
+        : empty();
+      return Types.cast(FormDecoder.parseForm(context, requestBody, base));
     } else {
       return null;
     }

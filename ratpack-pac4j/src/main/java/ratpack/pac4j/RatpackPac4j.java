@@ -38,7 +38,7 @@ import ratpack.pac4j.internal.RatpackWebContext;
 import ratpack.path.PathBinding;
 import ratpack.registry.Registry;
 import ratpack.session.Session;
-import ratpack.session.SessionData;
+import ratpack.util.Types;
 
 import java.util.Optional;
 
@@ -393,11 +393,13 @@ public class RatpackPac4j {
    * @return a Pac4j web context
    */
   public static Promise<WebContext> webContext(Context ctx) {
-    return ctx.get(Session.class).getData().map(session -> webContext(ctx, session));
+    return internalWebContext(ctx).map(Types::<WebContext>cast);
   }
 
-  private static RatpackWebContext webContext(Context ctx, SessionData sessionData) {
-    return new RatpackWebContext(ctx, sessionData);
+  private static Promise<RatpackWebContext> internalWebContext(Context ctx) {
+    return ctx.getRequest().getBody()
+      .right(ctx.get(Session.class).getData())
+      .map(p -> new RatpackWebContext(ctx, p.getLeft(), p.getRight()));
   }
 
   private static <T extends UserProfile> void toProfile(Class<T> type, Fulfiller<Optional<T>> fulfiller, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
@@ -418,10 +420,8 @@ public class RatpackPac4j {
     Clients clients = ctx.get(Clients.class);
     Client<?, ?> client = clients.findClient(clientType);
 
-    ctx.get(Session.class).getData().then(session -> {
-      RatpackWebContext webContext = webContext(ctx, session);
-      session.set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
-
+    internalWebContext(ctx).then(webContext -> {
+      webContext.getSession().set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
       try {
         client.redirect(webContext, true, request.isAjaxRequest());
       } catch (Exception e) {

@@ -26,6 +26,7 @@ import ratpack.func.Block;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.TypedData;
 import ratpack.parse.Parse;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
@@ -520,33 +521,31 @@ public interface Context extends ExecControl, Registry {
    * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
    * <p>
    * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant…
-   * <pre class="tested">
+   * <pre class="java">{@code
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.form.Form;
    *
    * public class FormHandler implements Handler {
    *   public void handle(Context context) {
-   *     Form form = context.parse(Form.class);
-   *     context.render(form.get("someFormParam"));
+   *     context.parse(Form.class).then(form -> context.render(form.get("someFormParam")));
    *   }
    * }
-   * </pre>
+   * }</pre>
    * <p>
    * That is, it is a convenient form of {@code parse(Parse.of(T))}.
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
    * @return The parsed object
-   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T> T parse(Class<T> type) throws Exception;
+  <T> Promise<T> parse(Class<T> type);
 
   /**
    * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
    * <p>
    * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant&hellip;
-   * <pre class="tested">
+   * <pre class="java">{@code
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.form.Form;
@@ -554,20 +553,18 @@ public interface Context extends ExecControl, Registry {
    *
    * public class FormHandler implements Handler {
    *   public void handle(Context context) {
-   *     Form form = context.parse(new TypeToken&lt;Form&gt;() {});
-   *     context.render(form.get("someFormParam"));
+   *     context.parse(new TypeToken<Form>() {}).then(form -> context.render(form.get("someFormParam")));
    *   }
    * }
-   * </pre>
+   * }</pre>
    * <p>
    * That is, it is a convenient form of {@code parse(Parse.of(T))}.
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
    * @return The parsed object
-   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T> T parse(TypeToken<T> type) throws Exception;
+  <T> Promise<T> parse(TypeToken<T> type);
 
   /**
    * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
@@ -577,9 +574,8 @@ public interface Context extends ExecControl, Registry {
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
    * @return The parsed object
-   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T, O> T parse(Class<T> type, O options) throws Exception;
+  <T, O> Promise<T> parse(Class<T> type, O options);
 
   /**
    * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
@@ -589,9 +585,8 @@ public interface Context extends ExecControl, Registry {
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
    * @return The parsed object
-   * @throws Exception any thrown by the eventual parser implementation
    */
-  <T, O> T parse(TypeToken<T> type, O options) throws Exception;
+  <T, O> Promise<T> parse(TypeToken<T> type, O options);
 
   /**
    * Parses the request body into an object.
@@ -630,7 +625,7 @@ public interface Context extends ExecControl, Registry {
    * </li>
    * </ul>
    * <h3>Example Usage</h3>
-   * <pre class="tested">
+   * <pre class="java">{@code
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.form.Form;
@@ -639,21 +634,31 @@ public interface Context extends ExecControl, Registry {
    *
    * public class FormHandler implements Handler {
    *   public void handle(Context context) {
-   *     Form form = context.parse(Parse.of(Form.class));
-   *     context.render(form.get("someFormParam"));
+   *     context.parse(Parse.of(Form.class)).then(form -> context.render(form.get("someFormParam")));
    *   }
    * }
-   * </pre>
+   * }</pre>
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> the type of the parse options object
    * @return The parsed object
-   * @throws Exception any thrown by the eventual parser implementation
    * @see #parse(Class)
    * @see #parse(Class, Object)
    * @see ratpack.parse.Parser
    */
-  <T, O> T parse(Parse<T, O> parse) throws Exception;
+  <T, O> Promise<T> parse(Parse<T, O> parse);
+
+  /**
+   * Parses the provided request body into an object.
+   *
+   * @param body The request body
+   * @param parse The specification of how to parse the request
+   * @param <T> The type of object the request is parsed into
+   * @param <O> The type of the parse options object
+   * @return The parsed object
+   * @see #parse(Parse)
+   */
+  <T, O> T parse(TypedData body, Parse<T, O> parse);
 
   /**
    * Provides direct access to the backing Netty channel.

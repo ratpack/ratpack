@@ -73,7 +73,7 @@ import java.net.URI;
  *             context.render("httpClientGet");
  *           })
  *           .post("httpClientPost", context -> {
- *             context.render(context.getRequest().getBody().getText().toUpperCase());
+ *             context.render(context.getRequest().getBody().map(b -> b.getText().toUpperCase()));
  *           });
  *       }
  *     ).test(testHttpClient -> {

@@ -28,7 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * <p>
  * This type is used to integrate with asynchronous APIs, via the {@link ExecControl#promise(ratpack.func.Action)} method.
  * The following example shows usage during request processing.
- * <pre class="tested">
+ * <pre class="tested">{@code
  * import ratpack.handling.InjectionHandler;
  * import ratpack.handling.Context;
  * import ratpack.exec.Promise;
@@ -47,8 +47,8 @@ import com.google.common.util.concurrent.ListenableFuture;
  *
  * public class AsyncApiUsingHandler extends InjectionHandler {
  *   void handle(final Context context, final SomeAsyncApi asyncApi) {
- *     Promise&lt;String&gt; promise = context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
- *       public void execute(final Fulfiller&lt;String&gt; fulfiller) {
+ *     Promise<String> promise = context.promise(new Action<Fulfiller<String>>() {
+ *       public void execute(final Fulfiller<String> fulfiller) {
  *         asyncApi.doSomeAsyncOperation(new SomeAsyncApi.AsyncCallback() {
  *           public void onSuccess(String result) {
  *             fulfiller.success(result);
@@ -60,14 +60,14 @@ import com.google.common.util.concurrent.ListenableFuture;
  *       }
  *     });
  *
- *     promise.then(new Action&lt;String&gt;() {
+ *     promise.then(new Action<String>() {
  *       public void execute(String string) {
  *         context.render(string);
  *       }
  *     });
  *   }
  * }
- * </pre>
+ * }</pre>
  * <p>
  * The methods of this method may be executed asynchronously.
  * That is, the promise subscription my be invoked in a separate thread.
