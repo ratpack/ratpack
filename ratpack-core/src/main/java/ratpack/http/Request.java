@@ -125,6 +125,13 @@ public interface Request extends MutableRegistry {
   Headers getHeaders();
 
   /**
+   * The type of the data.
+   *
+   * @return The type of the data.
+   */
+  MediaType getContentType();
+
+  /**
    * The address of the client that initiated the request.
    *
    * @return the address of the client that initiated the request

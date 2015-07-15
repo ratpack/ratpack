@@ -28,10 +28,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
-import ratpack.http.Headers;
-import ratpack.http.HttpMethod;
-import ratpack.http.Request;
-import ratpack.http.TypedData;
+import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.util.MultiValueMap;
@@ -214,6 +211,11 @@ public class DefaultRequest implements Request {
   @Override
   public Headers getHeaders() {
     return headers;
+  }
+
+  @Override
+  public MediaType getContentType() {
+    return DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE));
   }
 
   @Override

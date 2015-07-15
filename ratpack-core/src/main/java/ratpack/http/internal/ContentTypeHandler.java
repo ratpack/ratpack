@@ -30,23 +30,21 @@ public class ContentTypeHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {
-    context.getRequest().getBody().then(body -> {
-      boolean accepted = false;
-      String requestType = body.getContentType().getType();
-      if (requestType != null) {
-        for (String contentType : contentTypes) {
-          if (requestType.equals(contentType)) {
-            accepted = true;
-            break;
-          }
+    boolean accepted = false;
+    String requestType = context.getRequest().getContentType().getType();
+    if (requestType != null) {
+      for (String contentType : contentTypes) {
+        if (requestType.equals(contentType)) {
+          accepted = true;
+          break;
         }
       }
+    }
 
-      if (accepted) {
-        context.next();
-      } else {
-        context.clientError(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.code());
-      }
-    });
+    if (accepted) {
+      context.next();
+    } else {
+      context.clientError(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.code());
+    }
   }
 }
