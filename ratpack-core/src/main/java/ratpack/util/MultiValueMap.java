@@ -18,6 +18,7 @@ package ratpack.util;
 
 import com.google.common.collect.ListMultimap;
 import ratpack.api.Nullable;
+import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,10 @@ import java.util.Map;
  * @param <V> The type of value objects
  */
 public interface MultiValueMap<K, V> extends Map<K, V> {
+
+  static <K, V> MultiValueMap<K, V> empty() {
+    return ImmutableDelegatingMultiValueMap.empty();
+  }
 
   /**
    * All of the values for the given key. An empty list if there are no values for the key.
