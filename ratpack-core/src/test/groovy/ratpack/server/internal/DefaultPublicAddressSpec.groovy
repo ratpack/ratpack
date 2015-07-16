@@ -20,6 +20,7 @@ import com.google.common.net.HostAndPort
 import io.netty.handler.codec.http.DefaultHttpHeaders
 import ratpack.handling.Context
 import ratpack.http.Headers
+import ratpack.http.MutableHeaders
 import ratpack.http.Request
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders
 import spock.lang.Specification
@@ -216,7 +217,7 @@ class DefaultPublicAddressSpec extends Specification {
     "/user/12345"                                | null                    || "https://bind.example.com:8081"
   }
 
-  private static NettyHeadersBackedMutableHeaders mockHeaders(Map<CharSequence, String> entries) {
+  private static MutableHeaders mockHeaders(Map<CharSequence, String> entries) {
     def headers = new DefaultHttpHeaders()
     entries.each {
       if (it.value) {
