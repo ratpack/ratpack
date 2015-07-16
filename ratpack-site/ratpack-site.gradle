@@ -99,7 +99,7 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.8'
+  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.10'
   providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"
