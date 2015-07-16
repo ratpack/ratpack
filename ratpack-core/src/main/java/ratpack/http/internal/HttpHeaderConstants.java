@@ -48,6 +48,7 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence ALLOW = HttpHeaderNames.ALLOW;
   public static final CharSequence LOCATION = HttpHeaderNames.LOCATION;
 
+  public static final CharSequence X_FORWARDED_FOR = new AsciiString("X-Forwarded-For");
   public static final CharSequence X_FORWARDED_HOST = new AsciiString("X-Forwarded-Host");
   public static final CharSequence X_FORWARDED_PROTO = new AsciiString("X-Forwarded-Proto");
   public static final CharSequence X_FORWARDED_SSL = new AsciiString("X-Forwarded-Ssl");

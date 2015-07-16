@@ -116,7 +116,33 @@ class DefaultPublicAddressSpec extends Specification {
   }
 
   @Unroll
-  def "X-Forwarded-Host header is supported: #uri, #fhost, #host -> #expectedUri"() {
+  def "X-Forwarded-For header is supported: #ff, #host -> #expectedUri"() {
+    def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
+    def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
+    def headers = mockHeaders([(X_FORWARDED_FOR):ff])
+
+    when: "The request includes a X-Forwarded-For header and no public URL is defined"
+    def context = mockContext(mockRequest("/user/12345", headers, bindAddress))
+    def address = publicAddress.getAddress(context)
+
+    then: "The forwarded-for is used in place of Host header"
+    address.toString() == expectedUri
+
+    when: "The request includes multiple X-Forwarded-For headers"
+    headers.add(X_FORWARDED_FOR, "ff2.example.com")
+    address = publicAddress.getAddress(context)
+
+    then: "Only the first value is used"
+    address.toString() == expectedUri
+
+    where:
+    ff                    || expectedUri
+    "ff.example.com"      || "http://ff.example.com"
+    "ff.example.com:8082" || "http://ff.example.com:8082"
+  }
+
+  @Unroll
+  def "X-Forwarded-Host header is supported: #fhost, #host -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
@@ -125,13 +151,13 @@ class DefaultPublicAddressSpec extends Specification {
     def context = mockContext(mockRequest("/user/12345", mockHeaders([(X_FORWARDED_HOST):fhost, (HOST):host]), bindAddress))
     def address = publicAddress.getAddress(context)
 
-    then: "The forwarded host is used in place of the absolute request URI and Host header"
+    then: "The forwarded host is used in place of the Host header"
     address.toString() == expectedUri
 
     where:
-    uri                               | fhost                    | host                    || expectedUri
-    "http://request.example.com"      | "fhost.example.com"      | null                    || "http://fhost.example.com"
-    "http://request.example.com:8081" | "fhost.example.com:8082" | "host.example.com:8083" || "http://fhost.example.com:8082"
+    fhost                    | host                    || expectedUri
+    "fhost.example.com"      | null                    || "http://fhost.example.com"
+    "fhost.example.com:8082" | "host.example.com:8083" || "http://fhost.example.com:8082"
   }
 
   def "X-Forwarded-Host header supports proxy chains"() {
@@ -190,7 +216,7 @@ class DefaultPublicAddressSpec extends Specification {
     "/user/12345"                                | null                    || "https://bind.example.com:8081"
   }
 
-  private static Headers mockHeaders(Map<CharSequence, String> entries) {
+  private static NettyHeadersBackedMutableHeaders mockHeaders(Map<CharSequence, String> entries) {
     def headers = new DefaultHttpHeaders()
     entries.each {
       if (it.value) {
