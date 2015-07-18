@@ -120,7 +120,7 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
   }
 }
 
@@ -265,7 +265,7 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.1"
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.2"
   }
 }
 
@@ -370,4 +370,3 @@ Once the project is opened, you will see a “Run Configuration” named “Ratp
 If you have configured your build to use SpringLoaded, it will also be used by IDEA.
 However, IDEA will not automatically recompile code while there is an active run configuration.
 This means that after making a code change (to anything other than `<ratpackBaseDir>/Ratpack.groovy`) you need to click “Make Project” in the “Build” menu (or use the corresponding key shortcut).
-

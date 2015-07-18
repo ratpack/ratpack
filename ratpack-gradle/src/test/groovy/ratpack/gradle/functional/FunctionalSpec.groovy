@@ -186,7 +186,7 @@ abstract class FunctionalSpec extends Specification {
     buildFile << """
       buildscript {
         repositories { jcenter() }
-        dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1' }
+        dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2' }
       }
 
       ext.RatpackGroovyPlugin = project.class.classLoader.loadClass('${RatpackGroovyPlugin.name}')
@@ -255,4 +255,3 @@ abstract class FunctionalSpec extends Specification {
     port
   }
 }
-
