@@ -50,9 +50,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     when:
     serverConfig {
       it.props(props)
-    }
-    bindings {
-      bindInstance(MyAppConfig, serverConfig.get("/app", MyAppConfig))
+      require("/app", MyAppConfig)
     }
     handlers {
       all {
@@ -90,7 +88,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
       threads 4
     }
     bindings {
-      def configData = ConfigData.of().props(propsFile).build()
+      def configData = ConfigData.of { it.props(propsFile) }
       bindInstance(listener)
       bindInstance(configData.get(MyAppConfig))
       bindInstance(configData)
@@ -131,7 +129,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     when:
-    def configData = ConfigData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def configData = ConfigData.of { it.yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))) }
     def config = configData.get(MyAppConfig)
 
     then:
@@ -146,7 +144,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     when:
-    def configData = ConfigData.of().yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))).build()
+    def configData = ConfigData.of { it.yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))) }
     def appConfig = configData.get(MyAppConfig)
     def serverConfig = configData.get(ServerConfigData)
     def serviceConfig = configData.get(ServiceConfig)
@@ -161,7 +159,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     def yamlFile = temporaryFolder.newFolder().toPath().resolve("config.yaml")
 
     when:
-    ConfigData.of().yaml(yamlFile).props([port: "8080"]) build()
+    ConfigData.of { it.yaml(yamlFile).props([port: "8080"]) }
 
     then:
     def ex = thrown(UncheckedIOException)
@@ -174,7 +172,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    def configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]).build()
+    def configData = ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]) }
     def serverConfig = configData.get(ServerConfigData)
 
     then:
@@ -188,7 +186,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
 
     then:
     def ex = thrown(UncheckedIOException)
@@ -196,7 +194,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
 
     when:
     jsonFile.text = '{"threads":7}'
-    def configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    def configData = ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
     def serverConfig = configData.get(ServerConfigData)
 
     then:
@@ -206,7 +204,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
 
     when:
     yamlFile.text = 'publicAddress: http://example.com'
-    configData = ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    configData = ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
     serverConfig = configData.get(ServerConfigData)
 
     then:
@@ -217,7 +215,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
 
     when:
     Files.delete(jsonFile)
-    ConfigData.of().onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]).build()
+    ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
 
     then:
     ex = thrown(UncheckedIOException)

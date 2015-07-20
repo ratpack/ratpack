@@ -24,11 +24,11 @@ import static com.google.common.base.Charsets.UTF_8
 
 abstract class ConfigUsageSpec extends Specification {
   protected static ConfigData noData() {
-    ConfigData.of().build()
+    ConfigData.of {}
   }
 
   protected static ConfigData yamlConfig(String data) {
-    ConfigData.of().yaml(toByteSource(data)).build()
+    ConfigData.of { it.yaml(toByteSource(data)) }
   }
 
   protected static ByteSource toByteSource(String data) {

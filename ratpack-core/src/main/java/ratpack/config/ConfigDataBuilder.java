@@ -16,6 +16,7 @@
 
 package ratpack.config;
 
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
@@ -80,11 +81,20 @@ import java.util.Properties;
  *   }
  * }
  * }</pre>
+ *
+ * @see ConfigData#builder()
  */
-public interface ConfigDataSpec {
+public interface ConfigDataBuilder {
 
   String DEFAULT_ENV_PREFIX = "RATPACK_";
   String DEFAULT_PROP_PREFIX = "ratpack.";
+
+  /**
+   * Creates the config data, based on the state of this builder.
+   *
+   * @return a new config data
+   */
+  ConfigData build();
 
   /**
    * Configures the object mapper used for binding configuration data to arbitrary objects.
@@ -92,7 +102,7 @@ public interface ConfigDataSpec {
    * @param action an action to perform upon the object mapper
    * @return {@code this}
    */
-  ConfigDataSpec configureObjectMapper(Action<ObjectMapper> action);
+  ConfigDataBuilder configureObjectMapper(Action<ObjectMapper> action);
 
   /**
    * Adds a configuration source.
@@ -100,14 +110,7 @@ public interface ConfigDataSpec {
    * @param configSource the configuration source to add
    * @return {@code this}
    */
-  ConfigDataSpec add(ConfigSource configSource);
-
-  /**
-   * Builds the configuration data from this specification.
-   *
-   * @return the newly build configuration data
-   */
-  ConfigData build();
+  ConfigDataBuilder add(ConfigSource configSource);
 
   /**
    * Adds a configuration source for environment variables starting with the prefix {@value #DEFAULT_ENV_PREFIX}.
@@ -118,7 +121,7 @@ public interface ConfigDataSpec {
    *
    * @return this
    */
-  ConfigDataSpec env();
+  ConfigDataBuilder env();
 
   /**
    * Adds a configuration source for environment variables starting with the specified prefix.
@@ -129,7 +132,7 @@ public interface ConfigDataSpec {
    * @param prefix the prefix which should be used to identify relevant environment variables
    * @return this
    */
-  ConfigDataSpec env(String prefix);
+  ConfigDataBuilder env(String prefix);
 
   /**
    * Adds a configuration source for environment variables starting with the specified prefix.
@@ -141,7 +144,7 @@ public interface ConfigDataSpec {
    * @param mapFunc the function to transform segments into field names
    * @return this
    */
-  ConfigDataSpec env(String prefix, Function<String, String> mapFunc);
+  ConfigDataBuilder env(String prefix, Function<String, String> mapFunc);
 
   /**
    * Adds a configuration source for environment variables using custom parsing logic.
@@ -149,7 +152,7 @@ public interface ConfigDataSpec {
    * @param environmentParser the parser to use to interpret environment variables
    * @return {@code this}
    */
-  ConfigDataSpec env(EnvironmentParser environmentParser);
+  ConfigDataBuilder env(EnvironmentParser environmentParser);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -157,7 +160,7 @@ public interface ConfigDataSpec {
    * @param byteSource the source of the JSON data
    * @return {@code this}
    */
-  ConfigDataSpec json(ByteSource byteSource);
+  ConfigDataBuilder json(ByteSource byteSource);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -165,7 +168,7 @@ public interface ConfigDataSpec {
    * @param path the source of the JSON data
    * @return {@code this}
    */
-  ConfigDataSpec json(Path path);
+  ConfigDataBuilder json(Path path);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -173,7 +176,7 @@ public interface ConfigDataSpec {
    * @param path the path to the source of the JSON data
    * @return {@code this}
    */
-  default ConfigDataSpec json(String path) {
+  default ConfigDataBuilder json(String path) {
     return json(Paths.get(path));
   }
 
@@ -183,7 +186,7 @@ public interface ConfigDataSpec {
    * @param url the source of the JSON data
    * @return {@code this}
    */
-  ConfigDataSpec json(URL url);
+  ConfigDataBuilder json(URL url);
 
   /**
    * Adds a configuration source for a properties file.
@@ -191,7 +194,7 @@ public interface ConfigDataSpec {
    * @param byteSource the source of the properties data
    * @return {@code this}
    */
-  ConfigDataSpec props(ByteSource byteSource);
+  ConfigDataBuilder props(ByteSource byteSource);
 
   /**
    * Adds a configuration source for a properties file.
@@ -199,7 +202,7 @@ public interface ConfigDataSpec {
    * @param path the source of the properties data
    * @return {@code this}
    */
-  ConfigDataSpec props(Path path);
+  ConfigDataBuilder props(Path path);
 
   /**
    * Adds a configuration source for a properties object.
@@ -207,7 +210,7 @@ public interface ConfigDataSpec {
    * @param properties the properties object
    * @return {@code this}
    */
-  ConfigDataSpec props(Properties properties);
+  ConfigDataBuilder props(Properties properties);
 
   /**
    * Adds a configuration source for a Map (flat key-value pairs).
@@ -235,7 +238,7 @@ public interface ConfigDataSpec {
    * @param map the map
    * @return {@code this}
    */
-  ConfigDataSpec props(Map<String, String> map);
+  ConfigDataBuilder props(Map<String, String> map);
 
   /**
    * Adds a configuration source for a properties file.
@@ -243,7 +246,7 @@ public interface ConfigDataSpec {
    * @param path the path to the source of the properties data
    * @return {@code this}
    */
-  default ConfigDataSpec props(String path) {
+  default ConfigDataBuilder props(String path) {
     return props(Paths.get(path));
   }
 
@@ -253,14 +256,14 @@ public interface ConfigDataSpec {
    * @param url the source of the properties data
    * @return {@code this}
    */
-  ConfigDataSpec props(URL url);
+  ConfigDataBuilder props(URL url);
 
   /**
    * Adds a configuration source for system properties starting with the prefix {@value #DEFAULT_PROP_PREFIX}.
    *
    * @return {@code this}
    */
-  ConfigDataSpec sysProps();
+  ConfigDataBuilder sysProps();
 
   /**
    * Adds a configuration source for system properties starting with the specified prefix.
@@ -269,7 +272,7 @@ public interface ConfigDataSpec {
    * the prefix will be removed before loading the data
    * @return {@code this}
    */
-  ConfigDataSpec sysProps(String prefix);
+  ConfigDataBuilder sysProps(String prefix);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -277,7 +280,7 @@ public interface ConfigDataSpec {
    * @param byteSource the source of the YAML data
    * @return {@code this}
    */
-  ConfigDataSpec yaml(ByteSource byteSource);
+  ConfigDataBuilder yaml(ByteSource byteSource);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -285,7 +288,7 @@ public interface ConfigDataSpec {
    * @param path the source of the YAML data
    * @return {@code this}
    */
-  ConfigDataSpec yaml(Path path);
+  ConfigDataBuilder yaml(Path path);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -293,7 +296,7 @@ public interface ConfigDataSpec {
    * @param path the path to the source of the YAML data
    * @return {@code this}
    */
-  default ConfigDataSpec yaml(String path) {
+  default ConfigDataBuilder yaml(String path) {
     return yaml(Paths.get(path));
   }
 
@@ -303,7 +306,7 @@ public interface ConfigDataSpec {
    * @param url the source of the YAML data
    * @return {@code this}
    */
-  ConfigDataSpec yaml(URL url);
+  ConfigDataBuilder yaml(URL url);
 
   /**
    * Sets the error all that will be used for added configuration sources.
@@ -314,7 +317,7 @@ public interface ConfigDataSpec {
    * @see ratpack.func.Action#noop()
    * @see ratpack.func.Action#throwException()
    */
-  ConfigDataSpec onError(Action<? super Throwable> errorHandler);
+  ConfigDataBuilder onError(Action<? super Throwable> errorHandler);
 
   /**
    * Returns the object mapper used for configuration binding.
@@ -324,7 +327,21 @@ public interface ConfigDataSpec {
   ObjectMapper getObjectMapper();
 
   /**
+   * Adds {@link Module Jackson modules} to the object mapper.
+   *
+   * @param modules the modules to add
+   * @return this
+   * @see ObjectMapper#registerModule(Module)
+   */
+  default ConfigDataBuilder jacksonModules(Module... modules) {
+    getObjectMapper().registerModules(modules);
+    return this;
+  }
+
+  /**
    * Returns the config sources used for configuration binding.
+   * <p>
+   * Add sources via {@link #add(ConfigSource)}.
    *
    * @return the config sources
    */

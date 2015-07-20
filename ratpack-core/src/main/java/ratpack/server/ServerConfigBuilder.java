@@ -19,7 +19,7 @@ package ratpack.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
 import ratpack.config.ConfigData;
-import ratpack.config.ConfigDataSpec;
+import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
@@ -34,7 +34,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 
-public interface ServerConfigBuilder extends ConfigDataSpec {
+public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   ServerConfigBuilder baseDir(Path baseDir);
 

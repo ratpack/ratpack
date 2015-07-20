@@ -28,6 +28,7 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
 import ratpack.parse.Parse;
+import ratpack.parse.Parser;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -650,6 +651,11 @@ public interface Context extends ExecControl, Registry {
 
   /**
    * Parses the provided request body into an object.
+   * <p>
+   * This variant can be used when a reference to the request body has already been obtained.
+   * For example, this can be used during the implementation of a {@link Parser} that needs to delegate to another parser.
+   * <p>
+   * From within a handler, it is more common to use {@link #parse(Parse)} or similar.
    *
    * @param body The request body
    * @param parse The specification of how to parse the request

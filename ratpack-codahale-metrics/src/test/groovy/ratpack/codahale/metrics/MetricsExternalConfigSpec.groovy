@@ -16,7 +16,6 @@
 
 package ratpack.codahale.metrics
 
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.config.ConfigData
@@ -57,7 +56,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     |metrics.console.enabled=true
     |""".stripMargin()
 
-    def config = ConfigData.of { c-> c.props(propsFile) }
+    def config = ConfigData.of { c -> c.props(propsFile) }
     def metricsConfig = config.get("/metrics", CodaHaleMetricsModule.Config)
 
     expect:
@@ -77,7 +76,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     |metrics.csv.reporterInterval=PT15M
     |""".stripMargin()
 
-    def config = ConfigData.of([new JSR310Module()]) {c -> c.props(propsFile)}
+    def config = ConfigData.of { c -> c.props(propsFile) }
     def metricsConfig = config.get("/metrics", CodaHaleMetricsModule.Config)
 
     expect:

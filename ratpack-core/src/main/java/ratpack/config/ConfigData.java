@@ -16,15 +16,13 @@
 
 package ratpack.config;
 
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ratpack.config.internal.DefaultConfigDataSpec;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.func.Action;
 import ratpack.server.ReloadInformant;
 import ratpack.server.Service;
 import ratpack.server.internal.ServerEnvironment;
-
-import java.util.List;
 
 /**
  * Configuration data for the application, potentially built from many sources.
@@ -34,9 +32,7 @@ import java.util.List;
  * The static methods of this interface can be used to build a configuration data object.
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
- * import ratpack.server.RatpackServer;
- * import ratpack.server.ServerConfig;
- * import ratpack.test.http.TestHttpClient;
+ * import ratpack.test.embed.EmbeddedApp;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -49,28 +45,18 @@ import java.util.List;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     RatpackServer server = RatpackServer.of(spec -> {
- *       ServerConfig serverConfig = ServerConfig.embedded()
- *        .props(ImmutableMap.of("server.publicAddress", "http://app.example.com", "app.name", "Ratpack"))
- *        .sysProps()
- *         .build();
- *       spec
- *         .serverConfig(serverConfig)
- *         .registryOf(r -> r
- *           .add(serverConfig.get("/app", MyAppConfig.class))
- *         )
- *         .handler(registry ->
- *           ctx -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName() + " at " + ctx.getServerConfig().getPublicAddress())
- *         );
- *     });
- *     server.start();
- *
- *     assertTrue(server.isRunning());
- *
- *     TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
- *     assertEquals("Hi, my name is Ratpack at http://app.example.com", httpClient.getText());
- *
- *     server.stop();
+ *     EmbeddedApp.of(s -> s
+ *       .serverConfig(c -> c
+ *         .props(ImmutableMap.of("server.publicAddress", "http://app.example.com", "app.name", "Ratpack"))
+ *         .sysProps()
+ *         .require("/app", MyAppConfig.class)
+ *       )
+ *       .handler(registry ->
+ *         ctx -> ctx.render("Hi, my name is " + ctx.get(MyAppConfig.class).getName() + " at " + ctx.getServerConfig().getPublicAddress())
+ *       )
+ *     ).test(httpClient ->
+ *       assertEquals("Hi, my name is Ratpack at http://app.example.com", httpClient.getText())
+ *     );
  *   }
  * }
  * }</pre>
@@ -79,77 +65,58 @@ import java.util.List;
  * The created configuration data instance should be added to the server registry (as in the above example).
  * This enables automatically reloading the configuration when it changes.
  *
- * @see ConfigDataSpec
+ * @see ConfigDataBuilder
  */
 public interface ConfigData extends ReloadInformant, Service {
 
   /**
-   * Begins building a new application configuration using a default object mapper.
-   *
-   * @return the new configuration data spec
-   */
-  static ConfigDataSpec of() {
-    return new DefaultConfigDataSpec(ServerEnvironment.env());
-  }
-
-  /**
-   * Begins building a new application configuration using a default object mapper, from the given definition.
+   * Builds a new config data with the default object mapper, from the given definition.
    * <p>
-   * The action argument effectively serves as the definition of the config data.
-   * It receives a mutable config data builder style object, a {@link ConfigDataSpec}.
+   * The default object mapper is constructed without argument.
+   * It then has the following Jackson modules applied implicitly:
+   * <ul>
+   *     <li>{@link com.fasterxml.jackson.datatype.jdk7.Jdk7Module}</li>
+   *     <li>{@link com.fasterxml.jackson.datatype.jdk8.Jdk8Module}</li>
+   *     <li>{@link com.fasterxml.jackson.datatype.guava.GuavaModule}</li>
+   *     <li>{@link com.fasterxml.jackson.datatype.jsr310.JSR310Module}</li>
+   * </ul>
+   * <p>
+   * The {@link com.fasterxml.jackson.databind.DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES} feature is disabled.
+   * <p>
+   * The following features of the JSON factory are enabled:
+   * <ul>
+   *     <li>{@link com.fasterxml.jackson.core.JsonParser.Feature#ALLOW_UNQUOTED_FIELD_NAMES}</li>
+   *     <li>{@link com.fasterxml.jackson.core.JsonParser.Feature#ALLOW_SINGLE_QUOTES}</li>
+   * </ul>
    *
    * @param definition the config data definition
    * @return a config data
    * @throws Exception any thrown by building the config data
-   * @see ConfigDataSpec
    */
-  static ConfigData of(Action<? super ConfigDataSpec> definition) throws Exception {
-    return definition.with(of()).build();
+  static ConfigData of(Action<? super ConfigDataBuilder> definition) throws Exception {
+    return definition.with(builder()).build();
   }
 
   /**
-   * Begins building a new application configuration using a default object mapper with the supplied modules registered.
-   *
-   * @param modules the Jackson modules to register with a default object mapper
-   * @return the new configuration data spec
-   */
-  static ConfigDataSpec of(Module... modules) {
-    return new DefaultConfigDataSpec(ServerEnvironment.env(), modules);
-  }
-
-  /**
-   * Begins building a new application configuration using a default object mapper with the supplied modules registered, from the given definition.
-   *
-   * @param modules the Jackson modules to register with a default object mapper
-   * @param definition the config data definition
-   * @return a config data
-   * @throws Exception any thrown by building the config data
-   * @see ConfigDataSpec
-   */
-  static ConfigData of(List<Module> modules, Action<? super ConfigDataSpec> definition) throws Exception {
-    return definition.with(of(modules.toArray(new Module[modules.size()]))).build();
-  }
-
-  /**
-   * Begins building a new application configuration using a specified object mapper.
-   *
-   * @param objectMapper the object mapper to use for configuration purposes
-   * @return the new configuration data spec
-   */
-  static ConfigDataSpec of(ObjectMapper objectMapper) {
-    return new DefaultConfigDataSpec(ServerEnvironment.env(), objectMapper);
-  }
-
-  /**
-   * Begins building a new application configuration using a specified object mapper, from the given definition.
+   * Builds a new config data with the specified object mapper, from the given definition.
+   * <p>
+   * The {@link #of(Action)} method should be favoured, as it applies useful default configuration to the object mapper used.
    *
    * @param objectMapper the object mapper to use for configuration purposes
    * @param definition the config data definition
    * @return a config data
    * @throws Exception any thrown by building the config data
    */
-  static ConfigData of(ObjectMapper objectMapper, Action<? super ConfigDataSpec> definition) throws Exception {
-    return definition.with(of(objectMapper)).build();
+  static ConfigData of(ObjectMapper objectMapper, Action<? super ConfigDataBuilder> definition) throws Exception {
+    return definition.with(builder(objectMapper)).build();
+  }
+
+  static ConfigDataBuilder builder() {
+    return new DefaultConfigDataBuilder(ServerEnvironment.env());
+  }
+
+  static ConfigDataBuilder builder(ObjectMapper objectMapper) {
+    return new DefaultConfigDataBuilder(ServerEnvironment.env(), objectMapper);
   }
 
   /**
@@ -163,6 +130,8 @@ public interface ConfigData extends ReloadInformant, Service {
   default <O> O get(String pointer, Class<O> type) {
     return getAsConfigObject(pointer, type).getObject();
   }
+
+  ObjectNode getRootNode();
 
   /**
    * Binds a segment of the configuration data to the specified type.

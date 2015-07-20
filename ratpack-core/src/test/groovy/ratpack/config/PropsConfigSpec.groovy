@@ -16,7 +16,7 @@
 
 package ratpack.config
 
-import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 
@@ -43,7 +43,7 @@ class PropsConfigSpec extends BaseConfigSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigData.of().props(configFile).build().get(ServerConfigData)
+    def serverConfig = ConfigData.of { it.props(configFile) }.get(ServerConfigData)
 
     then:
     serverConfig.baseDir == baseDir
@@ -78,7 +78,7 @@ class PropsConfigSpec extends BaseConfigSpec {
     }
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfigData)
+    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfigData)
 
     then:
     serverConfig.baseDir == baseDir

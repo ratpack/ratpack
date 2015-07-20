@@ -25,7 +25,6 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
 import ratpack.http.*;
@@ -45,15 +44,13 @@ public class DefaultRequest implements Request {
   private MutableRegistry registry;
 
   private final Headers headers;
-  private final ByteBuf content;
   private final String rawUri;
   private final HttpMethod method;
   private final String protocol;
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
-
-  private Promise<TypedData> body;
+  private final Promise<TypedData> body;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -63,13 +60,13 @@ public class DefaultRequest implements Request {
 
   public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
     this.headers = headers;
-    this.content = content;
     this.method = DefaultHttpMethod.valueOf(method);
     this.protocol = protocol.toString();
     this.rawUri = rawUri;
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
+    this.body = Promise.value(new ByteBufBackedTypedData(content, getContentType()));
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -202,9 +199,6 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    if (body == null) {
-      body = ExecControl.execControl().promise(f -> f.success(new ByteBufBackedTypedData(content, getContentType())));
-    }
     return body;
   }
 

@@ -17,6 +17,7 @@
 package ratpack.server
 
 import com.google.common.io.Resources
+import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
@@ -31,7 +32,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def setup() {
     properties = new Properties()
-    builder = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties))
+    builder = new DefaultServerConfigBuilder(new DefaultConfigDataBuilder(new ServerEnvironment([:], properties)))
   }
 
   def "set port"() {

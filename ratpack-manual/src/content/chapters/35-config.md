@@ -16,11 +16,11 @@ To get started:
 
 ## Config Sources
 
-[`ConfigDataSpec`](api/ratpack/config/ConfigDataSpec.html) provides methods to easily load data from the most common sources.
+[`ConfigDataBuilder`](api/ratpack/config/ConfigDataBuilder.html) provides methods to easily load data from the most common sources.
 
-Commonly used file formats can be used via the [`yaml`](api/ratpack/config/ConfigDataSpec.html#yaml-java.lang.String-), [`json`](api/ratpack/config/ConfigDataSpec.html#json-java.lang.String-) and [`props`](api/ratpack/config/ConfigDataSpec.html#props-java.lang.String-) methods.
+Commonly used file formats can be used via the [`yaml`](api/ratpack/config/ConfigDataBuilder.html#yaml-java.lang.String-), [`json`](api/ratpack/config/ConfigDataBuilder.html#json-java.lang.String-) and [`props`](api/ratpack/config/ConfigDataBuilder.html#props-java.lang.String-) methods.
 The provided signatures can be used to load data from local files (`String` or `Path`), over the network (`URL`), from the classpath (use [`Resources.getResource(String)`](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/io/Resources.html) to get a `URL`), or anywhere else you can treat as a [`ByteSource`](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/io/ByteSource.html).
-Additionally, you can load data from non-file sources such as `Map`s/`Properties` objects (particularly useful for default values; see [example](api/ratpack/config/ConfigDataSpec.html#props-java.util.Map-)), system properties, and environment variables.
+Additionally, you can load data from non-file sources such as `Map`s/`Properties` objects (particularly useful for default values; see [example](api/ratpack/config/ConfigDataBuilder.html#props-java.util.Map-)), system properties, and environment variables.
 If additional flexibility is needed, you can provide your own [`ConfigSource`](api/ratpack/config/ConfigSource.html) implementation.
 
 ### Flat Config Sources
@@ -50,10 +50,10 @@ The default `Properties`/`Map` config source uses the following rules:
 ### Ordering
 If you have multiple config sources, add them to the builder from least important to most important.
 For example, if you had a configuration file that you wanted to be able to override via system properties, you would first add the configuration file source, followed by the system properties source.
-Likewise, if you have default settings that you wanted to be able to override via environment variables, you would first add the default settings source (perhaps via [`props`](api/ratpack/config/ConfigDataSpec.html#props-java.util.Map-)), followed by the environment variables source.
+Likewise, if you have default settings that you wanted to be able to override via environment variables, you would first add the default settings source (perhaps via [`props`](api/ratpack/config/ConfigDataBuilder.html#props-java.util.Map-)), followed by the environment variables source.
 
 ### Error Handling
-As shown in the [ConfigDataSpec docs](api/ratpack/config/ConfigDataSpec.html), [`onError`](api/ratpack/config/ConfigDataSpec.html#onError-ratpack.func.Action-) can be used to customize the behavior when an error is encountered while loading data from a config source.
+As shown in the [ConfigDataBuilder docs](api/ratpack/config/ConfigDataBuilder.html), [`onError`](api/ratpack/config/ConfigDataBuilder.html#onError-ratpack.func.Action-) can be used to customize the behavior when an error is encountered while loading data from a config source.
 Most commonly, this is used to make configuration sources optional by ignoring load exceptions.
 
 ### Reloading
@@ -67,7 +67,7 @@ Ratpack uses Jackson for config object binding.
 The default `ObjectMapper` used is configured with commonly used Jackson modules pre-loaded, and set to allow unquoted field names, allow single quotes, and ignore unknown field names.
 This is intended to make it easy to use, out-of-the-box.
 However, there will sometimes be cases where you may want to change a Jackson configuration setting or add additional Jackson modules.
-If so, this can be accomplished via various signatures of `ConfigData.of(...)` or via `ConfigDataSpec.configureObjectMapper(...)`.
+If so, this can be accomplished via various signatures of `ConfigData.of(...)` or via `ConfigDataBuilder.configureObjectMapper(...)`.
 
 ### Binding
 Once you've built your [`ConfigData`](api/ratpack/config/ConfigData.html) instance, you can bind the data to configuration objects.

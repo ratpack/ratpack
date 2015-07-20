@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import ratpack.config.ConfigData;
-import ratpack.config.ConfigDataSpec;
 import ratpack.config.ConfigObject;
+import ratpack.config.ConfigSource;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.server.StartEvent;
@@ -38,12 +38,17 @@ public class DefaultConfigData implements ConfigData {
   private final ConfigDataReloadInformant reloadInformant;
   private final ObjectNode emptyNode;
 
-  public DefaultConfigData(ConfigDataSpec configDataSpec) {
-    this.objectMapper = configDataSpec.getObjectMapper();
-    ConfigDataLoader loader = new ConfigDataLoader(objectMapper, configDataSpec.getConfigSources());
+  public DefaultConfigData(ObjectMapper objectMapper, Iterable<ConfigSource> configSources) {
+    this.objectMapper = objectMapper;
+    ConfigDataLoader loader = new ConfigDataLoader(this.objectMapper, configSources);
     this.rootNode = loader.load();
     this.reloadInformant = new ConfigDataReloadInformant(rootNode, loader);
-    this.emptyNode = objectMapper.getNodeFactory().objectNode();
+    this.emptyNode = this.objectMapper.getNodeFactory().objectNode();
+  }
+
+  @Override
+  public ObjectNode getRootNode() {
+    return this.rootNode;
   }
 
   @Override

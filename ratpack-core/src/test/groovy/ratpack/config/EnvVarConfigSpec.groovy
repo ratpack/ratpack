@@ -16,7 +16,7 @@
 
 package ratpack.config
 
-import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Unroll
@@ -26,7 +26,7 @@ class EnvVarConfigSpec extends BaseConfigSpec {
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
+    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
 
     then:
     serverConfig.port == expectedPort
@@ -57,7 +57,7 @@ class EnvVarConfigSpec extends BaseConfigSpec {
     ]
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
+    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
 
     then:
     serverConfig.baseDir == baseDir

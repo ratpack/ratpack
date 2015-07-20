@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Allows providing custom sources of configuration data.
  *
- * @see ConfigDataSpec#add(ConfigSource)
+ * @see ConfigDataBuilder#add(ConfigSource)
  */
 public interface ConfigSource {
   /**

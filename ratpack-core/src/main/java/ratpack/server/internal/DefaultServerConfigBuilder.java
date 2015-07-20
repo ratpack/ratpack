@@ -20,13 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
-import ratpack.config.ConfigData;
-import ratpack.config.ConfigObject;
-import ratpack.config.ConfigSource;
-import ratpack.config.EnvironmentParser;
-import ratpack.config.internal.DefaultConfigDataSpec;
+import ratpack.config.*;
+import ratpack.config.internal.DefaultConfigData;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -36,18 +34,25 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements ServerConfigBuilder {
+public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
+  private final ConfigDataBuilder configDataBuilder;
   private final ObjectNode serverConfigData;
   private final Map<String, Class<?>> required = Maps.newHashMap();
 
-  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
-    super(serverEnvironment);
+  public DefaultServerConfigBuilder(ConfigDataBuilder configDataBuilder) {
+    this.configDataBuilder = configDataBuilder;
     this.serverConfigData = getObjectMapper().createObjectNode();
+  }
+
+  @Override
+  public ObjectMapper getObjectMapper() {
+    return configDataBuilder.getObjectMapper();
   }
 
   @Override
@@ -133,115 +138,115 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
 
   @Override
   public ServerConfigBuilder configureObjectMapper(Action<ObjectMapper> action) {
-    super.configureObjectMapper(action);
+    configDataBuilder.configureObjectMapper(action);
     return this;
   }
 
   @Override
   public ServerConfigBuilder add(ConfigSource configSource) {
-    super.add(configSource);
+    configDataBuilder.add(configSource);
     return this;
   }
 
   @Override
   public ServerConfigBuilder env(String prefix, ratpack.func.Function<String, String> mapFunc) {
-    super.env(prefix, mapFunc);
+    configDataBuilder.env(prefix, mapFunc);
     return this;
   }
 
   @Override
   public ServerConfigBuilder env(EnvironmentParser environmentParser) {
-    super.env(environmentParser);
+    configDataBuilder.env(environmentParser);
     return this;
   }
 
   @Override
   public ServerConfigBuilder env() {
-    super.env();
+    configDataBuilder.env();
     return this;
   }
 
   @Override
   public ServerConfigBuilder env(String prefix) {
-    super.env(prefix);
+    configDataBuilder.env(prefix);
     return this;
   }
 
   @Override
   public ServerConfigBuilder json(ByteSource byteSource) {
-    super.json(byteSource);
+    configDataBuilder.json(byteSource);
     return this;
   }
 
   @Override
   public ServerConfigBuilder json(Path path) {
-    super.json(path);
+    configDataBuilder.json(path);
     return this;
   }
 
   @Override
   public ServerConfigBuilder json(URL url) {
-    super.json(url);
+    configDataBuilder.json(url);
     return this;
   }
 
   @Override
   public ServerConfigBuilder props(ByteSource byteSource) {
-    super.props(byteSource);
+    configDataBuilder.props(byteSource);
     return this;
   }
 
   @Override
   public ServerConfigBuilder props(Path path) {
-    super.props(path);
+    configDataBuilder.props(path);
     return this;
   }
 
   @Override
   public ServerConfigBuilder props(Properties properties) {
-    super.props(properties);
+    configDataBuilder.props(properties);
     return this;
   }
 
   @Override
   public ServerConfigBuilder props(URL url) {
-    super.props(url);
+    configDataBuilder.props(url);
     return this;
   }
 
   @Override
   public ServerConfigBuilder props(Map<String, String> map) {
-    super.props(map);
+    configDataBuilder.props(map);
     return this;
   }
 
   @Override
   public ServerConfigBuilder sysProps() {
-    super.sysProps();
+    configDataBuilder.sysProps();
     return this;
   }
 
   @Override
   public ServerConfigBuilder sysProps(String prefix) {
-    super.sysProps(prefix);
+    configDataBuilder.sysProps(prefix);
     return this;
   }
 
   @Override
   public ServerConfigBuilder yaml(ByteSource byteSource) {
-    super.yaml(byteSource);
+    configDataBuilder.yaml(byteSource);
     return this;
   }
 
   @Override
   public ServerConfigBuilder yaml(Path path) {
-    super.yaml(path);
+    configDataBuilder.yaml(path);
     return this;
   }
 
   @Override
   public ServerConfigBuilder yaml(URL url) {
-    super.yaml(url);
+    configDataBuilder.yaml(url);
     return this;
   }
 
@@ -259,41 +264,41 @@ public class DefaultServerConfigBuilder extends DefaultConfigDataSpec implements
 
   @Override
   public ServerConfigBuilder onError(Action<? super Throwable> errorHandler) {
-    super.onError(errorHandler);
+    configDataBuilder.onError(errorHandler);
     return this;
   }
 
   @Override
   public ServerConfigBuilder json(String path) {
-    super.json(path);
+    configDataBuilder.json(path);
     return this;
   }
 
   @Override
   public ServerConfigBuilder props(String path) {
-    super.props(path);
+    configDataBuilder.props(path);
     return this;
   }
 
   @Override
   public ServerConfigBuilder yaml(String path) {
-    super.yaml(path);
+    configDataBuilder.yaml(path);
     return this;
   }
 
   @Override
   public ImmutableList<ConfigSource> getConfigSources() {
-    ConfigSource internalConfigSource = objectMapper -> {
-      ObjectNode node = objectMapper.createObjectNode();
-      node.putObject("server").setAll(serverConfigData);
-      return node;
-    };
-    return ImmutableList.<ConfigSource>builder().addAll(super.getConfigSources()).add(internalConfigSource).build();
+    return configDataBuilder.getConfigSources();
   }
 
   @Override
   public ServerConfig build() {
-    ConfigData configData = super.build();
+    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), Iterables.concat(getConfigSources(), Collections.<ConfigSource>singleton(mapper -> {
+      ObjectNode node = mapper.createObjectNode();
+      node.putObject("server").setAll(serverConfigData);
+      return node;
+    })));
+
     ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
     return new DefaultServerConfig(configData, requiredConfig);
   }

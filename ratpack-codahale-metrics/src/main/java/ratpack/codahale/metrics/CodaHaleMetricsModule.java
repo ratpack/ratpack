@@ -92,13 +92,14 @@ import static ratpack.util.Exceptions.uncheck;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   bindings {
- *     ConfigData configData = ConfigData.of()
- *       .props(ImmutableMap.of("metrics.jmx.enabled", "true")) // for demo purposes we are using a map to easily see the properties being set
- *       .sysProps()
- *       .build()
+ *   serverConfig {
+ *     props(ImmutableMap.of("metrics.jmx.enabled", "true")) // for demo purposes we are using a map to easily see the properties being set
+ *     sysProps()
+ *     require("/metrics", CodaHaleMetricsModule.Config)
+ *   }
  *
- *     moduleConfig(new CodaHaleMetricsModule(), configData.get("/metrics", CodaHaleMetricsModule.Config))
+ *   bindings {
+ *     module CodaHaleMetricsModule
  *   }
  * }
  * </pre>

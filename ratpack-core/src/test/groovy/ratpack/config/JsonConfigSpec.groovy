@@ -19,14 +19,14 @@ package ratpack.config
 import ratpack.server.internal.ServerConfigData
 
 class JsonConfigSpec extends BaseConfigSpec {
-    def "supports json"() {
-        def baseDir = tempFolder.newFolder("baseDir").toPath()
-        def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-        def keyStorePassword = "changeit"
-        createKeystore(keyStoreFile, keyStorePassword)
-        def configFile = tempFolder.newFile("file.json").toPath()
-        configFile.text =
-"""
+  def "supports json"() {
+    def baseDir = tempFolder.newFolder("baseDir").toPath()
+    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
+    def keyStorePassword = "changeit"
+    createKeystore(keyStoreFile, keyStorePassword)
+    def configFile = tempFolder.newFile("file.json").toPath()
+    configFile.text =
+      """
 {
     "baseDir": "${baseDir.toString().replaceAll("\\\\", "/")}",
     "port": 8080,
@@ -44,17 +44,17 @@ class JsonConfigSpec extends BaseConfigSpec {
 }
 """
 
-        when:
-        def serverConfig = ConfigData.of().json(configFile).build().get(ServerConfigData)
+    when:
+    def serverConfig = ConfigData.of { it.json(configFile) }.get(ServerConfigData)
 
-        then:
-        serverConfig.baseDir == baseDir
-        serverConfig.port == 8080
-        serverConfig.address == InetAddress.getByName("localhost")
-        serverConfig.development
-        serverConfig.threads == 3
-        serverConfig.publicAddress == URI.create("http://localhost:8080")
-        serverConfig.maxContentLength == 50000
-        serverConfig.sslContext
-    }
+    then:
+    serverConfig.baseDir == baseDir
+    serverConfig.port == 8080
+    serverConfig.address == InetAddress.getByName("localhost")
+    serverConfig.development
+    serverConfig.threads == 3
+    serverConfig.publicAddress == URI.create("http://localhost:8080")
+    serverConfig.maxContentLength == 50000
+    serverConfig.sslContext
+  }
 }

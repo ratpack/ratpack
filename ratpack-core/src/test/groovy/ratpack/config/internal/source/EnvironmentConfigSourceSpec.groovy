@@ -17,12 +17,12 @@
 package ratpack.config.internal.source
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.config.ConfigDataSpec.DEFAULT_ENV_PREFIX
+import static ratpack.config.ConfigDataBuilder.DEFAULT_ENV_PREFIX
 
 class EnvironmentConfigSourceSpec extends Specification {
   private static final SAMPLE_ENV_VARS = [USER: "jdoe", SHELL: "/bin/bash", LANG: "en_US.UTF-8"]
@@ -70,7 +70,7 @@ class EnvironmentConfigSourceSpec extends Specification {
 
   private static ObjectNode loadConfig(Map<String, String> input, String prefix = DEFAULT_ENV_PREFIX) {
     def environment = new ServerEnvironment(input, new Properties())
-    def mapper = DefaultConfigDataSpec.newDefaultObjectMapper()
+    def mapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
     def source = new EnvironmentConfigSource(environment, prefix)
     source.loadConfigData(mapper)
   }

@@ -19,7 +19,6 @@ package ratpack.config.internal;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableList;
 import ratpack.config.ConfigSource;
 import ratpack.util.Exceptions;
 
@@ -27,9 +26,9 @@ import java.util.Iterator;
 
 public class ConfigDataLoader {
   private final ObjectMapper objectMapper;
-  private final ImmutableList<ConfigSource> configSources;
+  private final Iterable<ConfigSource> configSources;
 
-  public ConfigDataLoader(ObjectMapper objectMapper, ImmutableList<ConfigSource> configSources) {
+  public ConfigDataLoader(ObjectMapper objectMapper, Iterable<ConfigSource> configSources) {
     this.objectMapper = objectMapper;
     this.configSources = configSources;
   }

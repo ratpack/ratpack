@@ -17,7 +17,7 @@
 package ratpack.config
 
 import com.fasterxml.jackson.databind.JsonNode
-import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.ServerEnvironment
 
 class ConfigDataUsageSpec extends BaseConfigSpec {
@@ -33,7 +33,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     def envData = [RATPACK_ADDRESS: "localhost"]
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(TestServerConfig)
+    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(TestServerConfig)
 
     then:
     serverConfig.port == 8080
@@ -52,7 +52,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     |    jdbcUrl: "jdbc:h2:mem:"
     |""".stripMargin()
     when:
-    def config = ConfigData.of().yaml(yamlFile).build()
+    def config = ConfigData.of { it.yaml(yamlFile) }
     def serverConfig = config.get("/server", TestServerConfig)
     def dbConfig = config.get("/db", TestDatabaseConfig)
 
@@ -73,7 +73,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     def envData = [RATPACK_PORT: "456"]
 
     when:
-    def serverConfig = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(TestServerConfig)
+    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment(envData, properties)).json(jsonFile).yaml(yamlFile).props(propsFile).env().sysProps().build().get(TestServerConfig)
 
     then:
     serverConfig.port == 567
@@ -91,7 +91,7 @@ class ConfigDataUsageSpec extends BaseConfigSpec {
     |    jdbcUrl: "jdbc:h2:mem:"
     |""".stripMargin()
     when:
-    def config = new DefaultConfigDataSpec(new ServerEnvironment(envData, properties)).yaml(yamlFile).sysProps().build()
+    def config = new DefaultConfigDataBuilder(new ServerEnvironment(envData, properties)).yaml(yamlFile).sysProps().build()
     def node = config.get(JsonNode)
 
     then:

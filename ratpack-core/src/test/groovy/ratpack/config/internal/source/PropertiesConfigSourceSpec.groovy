@@ -16,15 +16,15 @@
 
 package ratpack.config.internal.source
 
-import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.config.internal.DefaultConfigDataBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.config.ConfigDataSpec.DEFAULT_PROP_PREFIX
+import static ratpack.config.ConfigDataBuilder.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
-  def mapper = DefaultConfigDataSpec.newDefaultObjectMapper()
+  def mapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
 
   @Unroll
   def "supports no prefix (#prefix)"() {

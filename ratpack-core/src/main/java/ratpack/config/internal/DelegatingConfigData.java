@@ -16,6 +16,7 @@
 
 package ratpack.config.internal;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.registry.Registry;
@@ -27,6 +28,11 @@ public class DelegatingConfigData implements ConfigData {
 
   public DelegatingConfigData(ConfigData delegate) {
     this.delegate = delegate;
+  }
+
+  @Override
+  public ObjectNode getRootNode() {
+    return delegate.getRootNode();
   }
 
   @Override

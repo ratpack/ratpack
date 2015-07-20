@@ -17,7 +17,7 @@
 package ratpack.config.internal.module
 
 import com.fasterxml.jackson.databind.JsonNode
-import ratpack.config.internal.DefaultConfigDataSpec
+import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 import ratpack.test.embed.BaseDirBuilder
@@ -31,7 +31,7 @@ class ServerConfigDataDeserializerSpec extends Specification {
   def classLoader = new GroovyClassLoader()
   def serverEnvironment = new ServerEnvironment([:], new Properties())
   def deserializer = new ServerConfigDataDeserializer(serverEnvironment)
-  def objectMapper = DefaultConfigDataSpec.newDefaultObjectMapper(serverEnvironment)
+  def objectMapper = DefaultConfigDataBuilder.newDefaultObjectMapper(serverEnvironment)
 
   def setup() {
     originalClassLoader = Thread.currentThread().contextClassLoader

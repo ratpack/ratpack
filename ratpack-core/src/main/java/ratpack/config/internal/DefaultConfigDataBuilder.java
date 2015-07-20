@@ -19,7 +19,6 @@ package ratpack.config.internal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
@@ -29,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigData;
-import ratpack.config.ConfigDataSpec;
+import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.config.internal.module.ConfigModule;
@@ -46,39 +45,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-public class DefaultConfigDataSpec implements ConfigDataSpec {
+public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   private final ImmutableList.Builder<ConfigSource> sources = ImmutableList.builder();
   private final ServerEnvironment serverEnvironment;
   private final ObjectMapper objectMapper;
   private Action<? super Throwable> errorHandler = Action.throwException();
 
-  public DefaultConfigDataSpec(ServerEnvironment serverEnvironment) {
+  public DefaultConfigDataBuilder(ServerEnvironment serverEnvironment) {
     this(serverEnvironment, newDefaultObjectMapper(serverEnvironment));
   }
 
-  public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, Module... modules) {
-    this(serverEnvironment);
-    objectMapper.registerModules(modules);
-  }
-
-  public DefaultConfigDataSpec(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {
+  public DefaultConfigDataBuilder(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {
     this.serverEnvironment = serverEnvironment;
     this.objectMapper = objectMapper;
   }
 
   @Override
-  public ConfigDataSpec add(ConfigSource configSource) {
+  public ConfigDataBuilder add(ConfigSource configSource) {
     sources.add(new ErrorHandlingConfigSource(configSource, errorHandler));
     return this;
   }
 
   @Override
-  public ConfigData build() {
-    return new DefaultConfigData(this);
-  }
-
-  @Override
-  public ConfigDataSpec configureObjectMapper(Action<ObjectMapper> action) {
+  public ConfigDataBuilder configureObjectMapper(Action<ObjectMapper> action) {
     try {
       action.execute(objectMapper);
     } catch (Exception ex) {
@@ -88,92 +77,92 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
   }
 
   @Override
-  public ConfigDataSpec env() {
+  public ConfigDataBuilder env() {
     return add(new EnvironmentConfigSource(serverEnvironment));
   }
 
   @Override
-  public ConfigDataSpec env(String prefix) {
+  public ConfigDataBuilder env(String prefix) {
     return add(new EnvironmentConfigSource(serverEnvironment, prefix));
   }
 
   @Override
-  public ConfigDataSpec env(String prefix, Function<String, String> mapFunc) {
+  public ConfigDataBuilder env(String prefix, Function<String, String> mapFunc) {
     return add(new EnvironmentConfigSource(serverEnvironment, prefix, mapFunc));
   }
 
   @Override
-  public ConfigDataSpec env(EnvironmentParser environmentParser) {
+  public ConfigDataBuilder env(EnvironmentParser environmentParser) {
     return add(new EnvironmentConfigSource(serverEnvironment, environmentParser));
   }
 
   @Override
-  public ConfigDataSpec json(ByteSource byteSource) {
+  public ConfigDataBuilder json(ByteSource byteSource) {
     return add(new JsonConfigSource(byteSource));
   }
 
   @Override
-  public ConfigDataSpec json(Path path) {
+  public ConfigDataBuilder json(Path path) {
     return add(new JsonConfigSource(path));
   }
 
   @Override
-  public ConfigDataSpec json(URL url) {
+  public ConfigDataBuilder json(URL url) {
     return add(new JsonConfigSource(url));
   }
 
   @Override
-  public ConfigDataSpec props(ByteSource byteSource) {
+  public ConfigDataBuilder props(ByteSource byteSource) {
     return add(new ByteSourcePropertiesConfigSource(Optional.empty(), byteSource));
   }
 
   @Override
-  public ConfigDataSpec props(Path path) {
+  public ConfigDataBuilder props(Path path) {
     return add(new ByteSourcePropertiesConfigSource(Optional.empty(), Paths2.asByteSource(path)));
   }
 
   @Override
-  public ConfigDataSpec props(Properties properties) {
+  public ConfigDataBuilder props(Properties properties) {
     return add(new PropertiesConfigSource(Optional.empty(), properties));
   }
 
   @Override
-  public ConfigDataSpec props(URL url) {
+  public ConfigDataBuilder props(URL url) {
     return add(new ByteSourcePropertiesConfigSource(Optional.empty(), Resources.asByteSource(url)));
   }
 
   @Override
-  public ConfigDataSpec props(Map<String, String> map) {
+  public ConfigDataBuilder props(Map<String, String> map) {
     return add(new MapConfigSource(Optional.empty(), map));
   }
 
   @Override
-  public ConfigDataSpec sysProps() {
+  public ConfigDataBuilder sysProps() {
     return sysProps(DEFAULT_PROP_PREFIX);
   }
 
   @Override
-  public ConfigDataSpec sysProps(String prefix) {
+  public ConfigDataBuilder sysProps(String prefix) {
     return add(new PropertiesConfigSource(Optional.of(prefix), serverEnvironment.getProperties()));
   }
 
   @Override
-  public ConfigDataSpec yaml(ByteSource byteSource) {
+  public ConfigDataBuilder yaml(ByteSource byteSource) {
     return add(new YamlConfigSource(byteSource));
   }
 
   @Override
-  public ConfigDataSpec yaml(Path path) {
+  public ConfigDataBuilder yaml(Path path) {
     return add(new YamlConfigSource(path));
   }
 
   @Override
-  public ConfigDataSpec yaml(URL url) {
+  public ConfigDataBuilder yaml(URL url) {
     return add(new YamlConfigSource(url));
   }
 
   @Override
-  public ConfigDataSpec onError(Action<? super Throwable> errorHandler) {
+  public ConfigDataBuilder onError(Action<? super Throwable> errorHandler) {
     this.errorHandler = errorHandler;
     return this;
   }
@@ -200,5 +189,10 @@ public class DefaultConfigDataSpec implements ConfigDataSpec {
   @Override
   public ImmutableList<ConfigSource> getConfigSources() {
     return sources.build();
+  }
+
+  @Override
+  public ConfigData build() {
+    return new DefaultConfigData(getObjectMapper(), getConfigSources());
   }
 }

@@ -23,7 +23,6 @@ import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.server.internal.DefaultServerConfigBuilder;
-import ratpack.server.internal.ServerEnvironment;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -69,7 +68,7 @@ public interface ServerConfig extends ConfigData {
   }
 
   static ServerConfigBuilder builder() {
-    return new DefaultServerConfigBuilder(ServerEnvironment.env());
+    return new DefaultServerConfigBuilder(ConfigData.builder());
   }
 
   static ServerConfig of(Action<? super ServerConfigBuilder> action) throws Exception {
