@@ -814,4 +814,22 @@ public interface Chain {
   default Chain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
     return all(Handlers.when(test, chain(action)));
   }
+
+  /**
+   * Invokes the given handler only if the predicate passes.
+   * <p>
+   * This method differs from {@link #when when()} in that it does not insert the handler;
+   * but directly calls its {@link Handler#handle(Context)} method.
+   *
+   * @param test the predicate
+   * @param handler the handler
+   * @return {@code this}
+   */
+  default Chain onlyIf(Predicate<? super Context> test, Handler handler) {
+    return all(Handlers.onlyIf(test, handler));
+  }
+
+  default Chain onlyIf(Predicate<? super Context> test, Class<? extends Handler> handler) {
+    return all(Handlers.onlyIf(test, getRegistry().get(handler)));
+  }
 }

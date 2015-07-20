@@ -682,5 +682,44 @@ public interface GroovyChain extends Chain {
     );
   }
 
+  @Override
+  default GroovyChain onlyIf(Predicate<? super Context> test, Handler handler) {
+    return from(Chain.super.onlyIf(test, handler));
+  }
+
+  @Override
+  default GroovyChain onlyIf(Predicate<? super Context> test, Class<? extends Handler> handler) {
+    return from(Chain.super.onlyIf(test, handler));
+  }
+
+  default GroovyChain onlyIf(
+    Predicate<? super Context> test,
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler
+  ) {
+    return onlyIf(test, groovyHandler(handler));
+  }
+
+  default GroovyChain onlyIf(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler
+  ) {
+    return onlyIf(test, groovyHandler(handler));
+  }
+
+  default GroovyChain onlyIf(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Handler handler
+  ) {
+    return onlyIf(
+      ctx -> {
+        final GroovyContext groovyContext = GroovyContext.from(ctx);
+        return DefaultGroovyMethods.asBoolean(
+          ClosureUtil.cloneAndSetDelegate(groovyContext, test, Closure.DELEGATE_FIRST).isCase(groovyContext)
+        );
+      },
+      handler
+    );
+  }
+
 
 }

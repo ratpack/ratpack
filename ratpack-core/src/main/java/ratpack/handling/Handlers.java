@@ -321,4 +321,20 @@ public abstract class Handlers {
   public static Handler when(Predicate<? super Context> test, Handler handler) {
     return new WhenHandler(test, handler);
   }
+
+  /**
+   * Creates a handler that delegates to the given handler if the predicate applies to the context.
+   * <p>
+   * If the predicate does not apply, calls {@link Context#next()}.
+   * <p>
+   * This method does not {@link Context#insert(Handler...) insert} the handler as {@link #when(Predicate, Handler)} does;
+   * it calls its {@link Handler#handle(Context)} method directly
+   *
+   * @param test the test whether to when to the given handler
+   * @param handler the handler to call if the predicate applies
+   * @return a handler
+   */
+  public static Handler onlyIf(Predicate<? super Context> test, Handler handler) {
+    return new OnlyIfHandler(test, handler);
+  }
 }
