@@ -16,9 +16,7 @@
 
 package ratpack.server.internal;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import ratpack.handling.Context;
 import ratpack.http.Headers;
@@ -26,8 +24,11 @@ import ratpack.server.PublicAddress;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.ProtocolUtil;
 
-import java.net.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static ratpack.http.internal.HttpHeaderConstants.*;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
@@ -49,8 +50,6 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
  * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.2">Request: The Resource Identified by a Request</a>
  */
 public class DefaultPublicAddress implements PublicAddress {
-
-  private static final Splitter FORWARDED_HOST_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
   private final Optional<URI> publicAddress;
   private final String scheme;
@@ -107,21 +106,22 @@ public class DefaultPublicAddress implements PublicAddress {
 
   private HostAndPort getForwardedHostData(Context context) {
     Headers headers = context.getRequest().getHeaders();
-    String forwardedHostHeader = Strings.emptyToNull(headers.get(X_FORWARDED_HOST.toString()));
-    String hostPortString = forwardedHostHeader != null ? Iterables.getFirst(FORWARDED_HOST_SPLITTER.split(forwardedHostHeader), null) : null;
-    return hostPortString != null ? HostAndPort.fromString(hostPortString) : null;
+    Optional<String> forwardedHost = Optional.ofNullable(headers.get(X_FORWARDED_HOST))
+      .flatMap(headerVal -> Stream.of(headerVal).map(s -> s.split(",")).flatMap(Arrays::stream).findFirst());
+    Optional<String> forwardedFor = Optional.ofNullable(headers.get(X_FORWARDED_FOR));
+    return Stream.of(forwardedHost, forwardedFor).filter(Optional::isPresent).map(Optional::get).findFirst().map(HostAndPort::fromString).orElse(null);
   }
 
   private HostAndPort getHostData(Context context) {
     Headers headers = context.getRequest().getHeaders();
-    String hostPortString = Strings.emptyToNull(headers.get(HOST.toString()));
+    String hostPortString = Strings.emptyToNull(headers.get(HOST));
     return hostPortString != null ? HostAndPort.fromString(hostPortString) : null;
   }
 
   private String determineScheme(Context context, String defaultScheme) {
     Headers headers = context.getRequest().getHeaders();
-    String forwardedSsl = headers.get(X_FORWARDED_SSL.toString());
-    String forwardedProto = headers.get(X_FORWARDED_PROTO.toString());
+    String forwardedSsl = headers.get(X_FORWARDED_SSL);
+    String forwardedProto = headers.get(X_FORWARDED_PROTO);
     if (ON.toString().equalsIgnoreCase(forwardedSsl)) {
       return HTTPS_SCHEME;
     }
