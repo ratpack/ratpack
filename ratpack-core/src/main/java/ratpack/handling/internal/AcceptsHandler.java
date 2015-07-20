@@ -14,37 +14,37 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.handling.internal;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.internal.MimeParse;
 
-public class ContentTypeHandler implements Handler {
+import java.util.Arrays;
+import java.util.List;
 
-  private final String[] contentTypes;
+public class AcceptsHandler implements Handler {
 
-  public ContentTypeHandler(String... contentTypes) {
-    this.contentTypes = contentTypes;
+  private final List<String> contentTypes;
+
+  public AcceptsHandler(String... contentTypes) {
+    this.contentTypes = Arrays.asList(contentTypes);
   }
 
   @Override
   public void handle(Context context) throws Exception {
-    boolean accepted = false;
-    String requestType = context.getRequest().getContentType().getType();
-    if (requestType != null) {
-      for (String contentType : contentTypes) {
-        if (requestType.equals(contentType)) {
-          accepted = true;
-          break;
-        }
-      }
-    }
+    String acceptHeader = context.getRequest().getHeaders().get(HttpHeaderNames.ACCEPT);
 
-    if (accepted) {
-      context.next();
+    if (acceptHeader == null || acceptHeader.isEmpty()) {
+      context.clientError(406);
     } else {
-      context.clientError(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE.code());
+      String winner = MimeParse.bestMatch(contentTypes, acceptHeader);
+      if (winner == null || winner.isEmpty()) {
+        context.clientError(406);
+      } else {
+        context.next();
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.handling.internal;
 
-import ratpack.func.Predicate;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-public class WhenHandler implements Handler {
+public class RedirectionHandler implements Handler {
 
-  private final Predicate<? super Context> test;
-  private final Handler handler;
+  private final String location;
+  private final int code;
 
-  public WhenHandler(Predicate<? super Context> test, Handler handler) {
-    this.test = test;
-    this.handler = handler;
+  public RedirectionHandler(String location, int code) {
+    this.location = location;
+    if (code < 300 || code >= 400) {
+      throw new IllegalArgumentException("redirect code must be 3xx, value is " + code);
+    }
+    this.code = code;
   }
 
-  @Override
-  public void handle(Context ctx) throws Exception {
-    if (test.apply(ctx)) {
-      ctx.insert(handler);
-    } else {
-      ctx.next();
-    }
+  public void handle(Context context) {
+    context.redirect(code, location);
   }
 }

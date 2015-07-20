@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.handling.internal;
 
 import com.google.common.base.Joiner;
 import ratpack.func.Block;
@@ -22,6 +22,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.HttpMethod;
+import ratpack.http.internal.HttpHeaderConstants;
 
 import java.util.Map;
 

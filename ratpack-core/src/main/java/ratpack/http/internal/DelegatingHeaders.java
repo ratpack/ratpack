@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.http.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.api.Nullable;

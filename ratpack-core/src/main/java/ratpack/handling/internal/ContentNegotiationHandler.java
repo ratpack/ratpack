@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.handling.internal;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -22,6 +22,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.internal.MimeParse;
 
 import java.util.Collections;
 import java.util.List;

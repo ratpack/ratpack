@@ -23,7 +23,6 @@ import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
 import ratpack.func.Predicate;
 import ratpack.handling.internal.*;
-import ratpack.http.internal.*;
 import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.registry.Registry;

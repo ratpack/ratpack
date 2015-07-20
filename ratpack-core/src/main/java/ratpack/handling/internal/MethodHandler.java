@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.handling.internal;
 
 import io.netty.handler.codec.http.HttpMethod;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Response;
+import ratpack.http.internal.DefaultHttpMethod;
+import ratpack.http.internal.HttpHeaderConstants;
 
 public class MethodHandler implements Handler {
 
