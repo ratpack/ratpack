@@ -16,7 +16,6 @@
 
 package ratpack.site.github
 
-import ratpack.exec.ExecControl
 import ratpack.exec.Promise
 
 class MockGithubData implements GitHubData {
@@ -26,17 +25,21 @@ class MockGithubData implements GitHubData {
 
   @Override
   Promise<List<RatpackVersion>> getReleasedVersions() {
-    ExecControl.current().promiseOf(released)
+    Promise.value(released)
   }
 
   @Override
   Promise<List<RatpackVersion>> getUnreleasedVersions() {
-    ExecControl.current().promiseOf(unreleased)
+    Promise.value(unreleased)
   }
 
   @Override
   Promise<IssueSet> closed(RatpackVersion version) {
-    ExecControl.current().promiseOf(new IssueSet([], []))
+    Promise.value(new IssueSet([], []))
   }
 
+  @Override
+  void forceRefresh() {
+
+  }
 }

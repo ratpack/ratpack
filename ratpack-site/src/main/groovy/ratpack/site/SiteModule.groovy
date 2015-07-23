@@ -13,6 +13,7 @@ import ratpack.site.github.*
 
 import javax.inject.Provider
 import javax.inject.Singleton
+import java.time.Duration
 
 @Slf4j
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
@@ -21,7 +22,8 @@ class SiteModule extends ConfigurableModule<GitHubConfig> {
   static class GitHubConfig {
     boolean enabled = true
     String auth
-    Integer ttl = 5
+    Duration ttl = Duration.ofMinutes(5)
+    Duration errorTimeout = Duration.ofMinutes(1)
     String url = "https://api.github.com/"
   }
 
@@ -38,15 +40,14 @@ class SiteModule extends ConfigurableModule<GitHubConfig> {
     if (authToken == null) {
       log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth property)"
     }
-    def ttlMinsInt = config.ttl
     String url = config.url
-    new GitHubApi(url, authToken, ttlMinsInt, reader, httpClient)
+    new GitHubApi(url, authToken, reader, httpClient)
   }
 
   @Provides
   @Singleton
   GitHubData gitHubData(GitHubConfig config, Provider<GitHubApi> apiProvider) {
-    config.enabled ? new ApiBackedGitHubData(apiProvider.get()) : new NullGitHubData()
+    config.enabled ? new GitHubDataCache(config.ttl, config.errorTimeout, new ApiBackedGitHubData(apiProvider.get())) : new NullGitHubData()
   }
 
   @Provides

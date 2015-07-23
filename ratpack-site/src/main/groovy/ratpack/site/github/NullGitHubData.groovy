@@ -17,22 +17,26 @@
 package ratpack.site.github
 
 import com.google.common.collect.ImmutableList
-import ratpack.exec.ExecControl
 import ratpack.exec.Promise
 
 class NullGitHubData implements GitHubData {
   @Override
   Promise<List<RatpackVersion>> getReleasedVersions() {
-    return ExecControl.current().promise { ImmutableList.of() }
+    Promise.value { ImmutableList.of() }
   }
 
   @Override
   Promise<List<RatpackVersion>> getUnreleasedVersions() {
-    return ExecControl.current().promise { ImmutableList.of() }
+    Promise.value { ImmutableList.of() }
   }
 
   @Override
   Promise<IssueSet> closed(RatpackVersion version) {
-    return ExecControl.current().promise { new IssueSet(ImmutableList.of(), ImmutableList.of()) }
+    Promise.value { new IssueSet(ImmutableList.of(), ImmutableList.of()) }
+  }
+
+  @Override
+  void forceRefresh() {
+
   }
 }

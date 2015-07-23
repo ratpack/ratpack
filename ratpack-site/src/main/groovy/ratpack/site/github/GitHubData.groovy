@@ -26,4 +26,6 @@ interface GitHubData {
 
   Promise<IssueSet> closed(RatpackVersion version)
 
+  void forceRefresh()
+
 }

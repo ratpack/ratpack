@@ -31,7 +31,6 @@ import ratpack.registry.Registry;
 import ratpack.rx.RxRatpack;
 import ratpack.server.BaseDir;
 import ratpack.server.RatpackServer;
-import ratpack.site.github.GitHubApi;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
@@ -102,19 +101,18 @@ public class SiteMain {
 
             .get(ctx -> ctx.render(groovyMarkupTemplate("index.gtpl")))
 
-            .path("reset", ctx -> {
-              GitHubApi gitHubApi = ctx.get(GitHubApi.class);
-              ctx.byMethod(methods -> {
-                Block impl = () -> {
-                  gitHubApi.invalidateCache();
-                  ctx.render("ok");
-                };
-                if (ctx.getServerConfig().isDevelopment()) {
-                  methods.get(impl);
-                }
-                methods.post(impl);
-              });
-            })
+            .path("reset", ctx ->
+                ctx.byMethod(methods -> {
+                  Block impl = () -> {
+                    ctx.get(GitHubData.class).forceRefresh();
+                    ctx.render("ok");
+                  };
+                  if (ctx.getServerConfig().isDevelopment()) {
+                    methods.get(impl);
+                  }
+                  methods.post(impl);
+                })
+            )
 
             .prefix("versions", v -> v
                 .get(ctx ->
