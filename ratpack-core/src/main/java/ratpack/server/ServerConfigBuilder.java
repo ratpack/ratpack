@@ -310,7 +310,6 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * The {@code pointer} argument is of the same format given to the {@link ConfigData#get(String, Class)} method.
    * <pre class="java">{@code
    * import junit.framework.Assert;
-   * import ratpack.server.ServerConfig;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Collections;
@@ -322,7 +321,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(a -> a
-   *         .serverConfig(ServerConfig.embedded()
+   *         .serverConfig(s -> s
    *             .props(Collections.singletonMap("config.value", "foo"))
    *             .require("/config", MyConfig.class)
    *         )
