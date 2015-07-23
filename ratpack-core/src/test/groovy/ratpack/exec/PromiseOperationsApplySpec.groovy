@@ -31,15 +31,15 @@ class PromiseOperationsApplySpec extends Specification {
   List events = []
   def latch = new CountDownLatch(1)
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness
-      .fork()
+      .controller.exec()
       .onError(onError)
       .onComplete {
       events << "complete"
       latch.countDown()
     }.start {
-      action.execute(it.control)
+      action.execute(it)
     }
 
     latch.await()
@@ -48,7 +48,7 @@ class PromiseOperationsApplySpec extends Specification {
   def "can apply operation"() {
     when:
     exec {
-      it.blocking { 1 }
+      Blocking.get { 1 }
         .apply { it.map { it * 2 } }
         .then { events << it }
     }
@@ -60,7 +60,7 @@ class PromiseOperationsApplySpec extends Specification {
   def "can apply failing operation"() {
     when:
     exec({
-      it.blocking { 1 }
+      Blocking.get { 1 }
         .apply { throw new Exception("!@") }
         .then { events << it }
     }, {
@@ -74,7 +74,7 @@ class PromiseOperationsApplySpec extends Specification {
   def "can catch apply failing operation"() {
     when:
     exec({
-      it.blocking { 1 }
+      Blocking.get { 1 }
         .apply { throw new Exception("!@") }
         .onError { events << it.message }
         .then { events << it }
@@ -87,7 +87,7 @@ class PromiseOperationsApplySpec extends Specification {
   def "can apply function to failed promise"() {
     when:
     exec({
-      it.blocking { throw new Exception("!@") }
+      Blocking.get { throw new Exception("!@") }
         .apply {
         events << "in apply"
         it.map { events << "in apply map"; it }
@@ -103,7 +103,7 @@ class PromiseOperationsApplySpec extends Specification {
   def "can catch error in apply"() {
     when:
     exec({
-      it.blocking { throw new Exception("!@") }
+      Blocking.get { throw new Exception("!@") }
         .apply {
         events << "in apply"
         it.onError { events << "in apply onError" }
@@ -119,7 +119,7 @@ class PromiseOperationsApplySpec extends Specification {
   def "can apply unneeded error strategy"() {
     when:
     exec({
-      it.blocking { 1 }
+      Blocking.get { 1 }
         .apply {
         events << "in apply"; it.onError { events << "in apply onError" }
       }

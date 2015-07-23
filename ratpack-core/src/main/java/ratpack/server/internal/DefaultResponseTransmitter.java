@@ -26,7 +26,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
-import ratpack.exec.ExecControl;
+import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.handling.DoubleTransmissionException;
 import ratpack.handling.RequestOutcome;
@@ -48,7 +48,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   };
 
   private final AtomicBoolean transmitted;
-  private final ExecControl execControl;
   private final Channel channel;
   private final FullHttpRequest nettyRequest;
   private final Request ratpackRequest;
@@ -61,9 +60,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, ExecControl execControl, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
     this.transmitted = transmitted;
-    this.execControl = execControl;
     this.channel = channel;
     this.nettyRequest = nettyRequest.retain();
     this.ratpackRequest = ratpackRequest;
@@ -128,12 +126,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, size);
 
     if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
-      execControl.blocking(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
+      Blocking.get(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
         FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
         transmit(status, defaultFileRegion, true);
       });
     } else {
-      execControl.blocking(() ->
+      Blocking.get(() ->
           Files.newByteChannel(file)
       ).then(fileChannel ->
           transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)

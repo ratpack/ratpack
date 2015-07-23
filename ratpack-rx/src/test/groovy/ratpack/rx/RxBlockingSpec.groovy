@@ -17,6 +17,7 @@
 package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 import rx.functions.Action0
@@ -34,7 +35,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        observe(blocking {
+        observe(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -57,7 +58,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        observe(blocking {
+        observe(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -80,7 +81,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
       get(":value") {
         def returnString = ""
 
-        observeEach(blocking {
+        observeEach(Blocking.get {
           pathTokens.value.split(",") as List
         })
           .take(2)

@@ -19,7 +19,9 @@ package ratpack.config.internal;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.ExecControl;
+import ratpack.exec.Blocking;
+import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.registry.Registry;
 import ratpack.server.ReloadInformant;
 import ratpack.server.Service;
@@ -51,27 +53,28 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
     return changeDetected;
   }
 
-  private void schedulePoll(ExecControl execControl) {
-    if (shouldStop(execControl)) {
+  private void schedulePoll() {
+    if (shouldStop()) {
       return;
     }
 
-    ScheduledExecutorService scheduledExecutorService = execControl.getController().getExecutor();
+    final ExecController controller = Execution.current().getController();
+    ScheduledExecutorService scheduledExecutorService = controller.getExecutor();
 
     Runnable poll = () ->
-      execControl.fork().start(e -> {
-          if (shouldStop(e)) {
+      controller.exec().start(e -> {
+          if (shouldStop()) {
             return;
           }
-          e.blocking(loader::load)
+          Blocking.get(loader::load)
             .onError(error -> {
               LOGGER.warn("failed to load config in order to check for changes", error);
-              schedulePoll(execControl);
+              schedulePoll();
             })
             .then(newNode -> {
               if (currentNode.equals(newNode)) {
                 LOGGER.debug("No difference in configuration data");
-                schedulePoll(execControl);
+                schedulePoll();
               } else {
                 LOGGER.info("Configuration data difference detected; next request should reload");
                 changeDetected = true;
@@ -83,8 +86,8 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
     scheduledExecutorService.schedule(poll, INTERVAL.getSeconds(), TimeUnit.SECONDS);
   }
 
-  private boolean shouldStop(ExecControl execControl) {
-    return stopped || execControl.getController().getEventLoopGroup().isShuttingDown();
+  private boolean shouldStop() {
+    return stopped || Execution.current().getController().getEventLoopGroup().isShuttingDown();
   }
 
   @Override
@@ -94,7 +97,7 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    schedulePoll(event.getRegistry().get(ExecControl.class));
+    schedulePoll();
   }
 
   @Override

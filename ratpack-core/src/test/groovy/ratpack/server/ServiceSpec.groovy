@@ -16,6 +16,7 @@
 
 package ratpack.server
 
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ServiceSpec extends RatpackGroovyDslSpec {
@@ -28,12 +29,12 @@ class ServiceSpec extends RatpackGroovyDslSpec {
 
     @Override
     void onStart(StartEvent event) throws Exception {
-      event.execControl.blocking { "${prefix}start".toString() }.then { events << it }
+      Blocking.get { "${prefix}start".toString() }.then { events << it }
     }
 
     @Override
     void onStop(StopEvent event) throws Exception {
-      event.execControl.blocking { "${prefix}stop".toString() }.then { events << it }
+      Blocking.get { "${prefix}stop".toString() }.then { events << it }
     }
   }
 
@@ -115,7 +116,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
       bindInstance(new Service() {
         @Override
         void onStart(StartEvent event) throws Exception {
-          event.execControl.blocking { throw new Exception("!") }.then {}
+          Blocking.get { throw new Exception("!") }.then {}
         }
 
         @Override

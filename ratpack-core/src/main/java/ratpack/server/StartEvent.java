@@ -16,7 +16,6 @@
 
 package ratpack.server;
 
-import ratpack.exec.ExecControl;
 import ratpack.registry.Registry;
 
 /**
@@ -32,13 +31,6 @@ public interface StartEvent {
    * @return the server registry
    */
   Registry getRegistry();
-
-  /**
-   * An execution control.
-   *
-   * @return an execution control
-   */
-  ExecControl getExecControl();
 
   /**
    * If the server is starting in response to a reload (during development), as opposed to for the first time.

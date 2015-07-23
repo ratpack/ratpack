@@ -22,6 +22,7 @@ package ratpack.func;
  * This can sometimes be useful when collecting facts about something as part of a data stream without using mutable data structures.
  * <pre class="java">{@code
  * import ratpack.func.Pair;
+ * import ratpack.exec.Promise;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import static org.junit.Assert.assertEquals;
@@ -34,10 +35,9 @@ package ratpack.func;
  *       int age = 21;
  *       String name = "John";
  *
- *       ctx
- *         .blocking(() -> id)
+ *       Promise.value(id)
  *         .map(idValue -> Pair.of(idValue, age))
- *         .flatMap(pair -> ctx.blocking(() -> name).map(pair::nestRight))
+ *         .flatMap(pair -> Promise.value(name).map(pair::nestRight))
  *         .then(pair -> {
  *           int receivedId = pair.left;
  *           int receivedAge = pair.right.right;

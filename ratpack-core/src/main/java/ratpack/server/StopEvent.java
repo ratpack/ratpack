@@ -16,7 +16,6 @@
 
 package ratpack.server;
 
-import ratpack.exec.ExecControl;
 import ratpack.registry.Registry;
 
 /**
@@ -34,17 +33,10 @@ public interface StopEvent {
   Registry getRegistry();
 
   /**
-   * An execution control.
-   *
-   * @return an execution control
-   */
-  ExecControl getExecControl();
-
-  /**
    * If the server is stopping in response to a reload (during development), as opposed to for the first time.
    *
    * @return if the server is stopping in response to a reload
    */
-  public boolean isReload();
+  boolean isReload();
 
 }

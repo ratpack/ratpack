@@ -19,7 +19,7 @@ package ratpack.rx
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.exec.ExecControl
+import ratpack.exec.Blocking
 import ratpack.test.exec.ExecHarness
 import rx.Observable
 import spock.lang.AutoCleanup
@@ -30,17 +30,15 @@ class RxPublisherSpec extends Specification {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()
-  AsyncService service = new AsyncService(execControl: harness)
+  AsyncService service = new AsyncService()
 
   static class AsyncService {
-    ExecControl execControl
-
     public Observable<Void> fail() {
-      RxRatpack.observe(execControl.blocking { throw new RuntimeException("!!!") })
+      RxRatpack.observe(Blocking.get { throw new RuntimeException("!!!") })
     }
 
     public <T> Observable<T> observe(T value) {
-      RxRatpack.observe(execControl.blocking { value })
+      RxRatpack.observe(Blocking.get { value })
     }
   }
 

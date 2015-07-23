@@ -34,28 +34,24 @@ class PromiseOperationsSpec extends Specification {
   def latch = new CountDownLatch(1)
 
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness
-      .fork()
+      .controller.exec()
       .onError(onError)
       .onComplete {
       events << "complete"
       latch.countDown()
     }.start {
-      action.execute(it.control)
+      action.execute(it)
     }
 
     latch.await()
   }
 
-  ExecControl getControl() {
-    execHarness
-  }
-
   def "can map promise"() {
     when:
     exec {
-      it.blocking { "foo" }
+      Blocking.get { "foo" }
         .map { it + "-bar" }
         .map { it.toUpperCase() }
         .then { events << it }
@@ -68,8 +64,8 @@ class PromiseOperationsSpec extends Specification {
   def "can flat map promise"() {
     when:
     exec({ e ->
-      e.blocking { "foo" }
-        .flatMap { s -> e.blocking { s + "-bar" } }
+      Blocking.get { "foo" }
+        .flatMap { s -> Blocking.get { s + "-bar" } }
         .map { it.toUpperCase() }
         .then { events << it }
     })
@@ -84,7 +80,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      e.promise { it.error(ex) }
+      Promise.of { it.error(ex) }
         .map {}
         .map {}
         .onError { events << it }
@@ -101,9 +97,9 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      e.promise { it.error(ex) }
+      Promise.of { it.error(ex) }
         .map {}
-        .flatMap { e.blocking { "foo" } }
+        .flatMap { Blocking.get { "foo" } }
         .onError { events << it }
         .then { throw new IllegalStateException("cant get here") }
     }
@@ -118,7 +114,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      e.promise { it.error(ex) }
+      Promise.of { it.error(ex) }
         .map {}
         .onError { events << it }
         .map {}
@@ -136,7 +132,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      e.blocking { "foo" }
+      Blocking.get { "foo" }
         .map { it }
         .onError { events << "shouldn't get this" }
         .map { throw ex }
@@ -154,7 +150,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      e.promise { it.error(ex) }
+      Promise.of { it.error(ex) }
         .map {}
         .onError { throw new RuntimeException(it.message + "-changed") }
         .map {}
@@ -169,7 +165,7 @@ class PromiseOperationsSpec extends Specification {
   def "can route mapped promised value"() {
     when:
     exec {
-      it.blocking { "foo" }
+      Blocking.get { "foo" }
         .route({ it == "bar" }, { events << "received bar" })
         .map { it.toUpperCase() }
         .route({ it == "FOO" }, { events << it })
@@ -184,7 +180,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     def ex = new Exception("!")
     exec { e ->
-      e.blocking { "foo" }
+      Blocking.get { "foo" }
         .route({ it == "foo" }, { throw ex })
         .onError { events << it }
         .then(throwException(new RuntimeException("then-at-end")))
@@ -197,7 +193,7 @@ class PromiseOperationsSpec extends Specification {
   def "can terminate null"() {
     when:
     exec { e ->
-      e.blocking { (String) null }
+      Blocking.get { (String) null }
         .onNull { events << "null" }
         .map { it.toUpperCase() }
         .route({ it == "foo" }, { throw ex })
@@ -211,7 +207,7 @@ class PromiseOperationsSpec extends Specification {
   def "can perform blocking map"() {
     when:
     exec { e ->
-      e.blocking { "foo" }
+      Blocking.get { "foo" }
         .blockingMap { it + "-bar" }
         .map { it.toUpperCase() }
         .then { events << it }
@@ -224,10 +220,10 @@ class PromiseOperationsSpec extends Specification {
   def "can use other promise with flatMap"() {
     when:
     exec { e ->
-      e.blocking {
+      Blocking.get {
         "foo"
       } flatMap {
-        e.promise { f -> Thread.start { f.success("foo") } }
+        Promise.of { f -> Thread.start { f.success("foo") } }
       } then {
         events << it
       }
@@ -240,8 +236,8 @@ class PromiseOperationsSpec extends Specification {
   def "can defer promise"() {
     when:
     def runner = new BlockingVariable<Runnable>()
-    execHarness.fork().onComplete { latch.countDown() }.start {
-      it.control.promise { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
+    execHarness.controller.exec().onComplete { latch.countDown() }.start {
+      Promise.of { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
         events << it
       }
     }
@@ -260,7 +256,7 @@ class PromiseOperationsSpec extends Specification {
   def "can be notified on promise starting"() {
     when:
     exec { e ->
-      e.blocking {
+      Blocking.get {
         events << "blocking"
         "foo"
       } onYield {

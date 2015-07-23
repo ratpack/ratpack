@@ -19,7 +19,7 @@ package ratpack.health;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.ExecControl;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.handling.Context;
@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The handler obtains health checks via the context's registry.
  * Typically, health checks are added to the server registry.
  * <pre class="java">{@code
- * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
  * import ratpack.registry.Registry;
  * import ratpack.health.HealthCheck;
@@ -54,8 +53,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *       return "example"; // must be unique within the application
  *     }
  *
- *     public Promise<HealthCheck.Result> check(ExecControl execControl, Registry registry) throws Exception {
- *       return execControl.promiseOf(HealthCheck.Result.healthy());
+ *     public Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+ *       return Promise.value(HealthCheck.Result.healthy());
  *     }
  *   }
  *
@@ -63,8 +62,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     EmbeddedApp.of(s -> s
  *       .registryOf(r -> r
  *         .add(new ExampleHealthCheck())
- *         .add(HealthCheck.of("inline", (execControl, registry) -> // alternative way to implement health checks
- *           execControl.promiseOf(HealthCheck.Result.unhealthy("FAILED"))
+ *         .add(HealthCheck.of("inline", registry -> // alternative way to implement health checks
+ *           Promise.value(HealthCheck.Result.unhealthy("FAILED"))
  *         ))
  *       )
  *       .handlers(c -> c
@@ -208,36 +207,36 @@ public class HealthCheckHandler implements Handler {
       if (checkName != null) {
         Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
         if (first.isPresent()) {
-          ctx.render(execute(ctx, ctx, Collections.singleton(first.get())));
+          ctx.render(execute(ctx, Collections.singleton(first.get())));
         } else {
           ctx.clientError(404);
         }
       } else {
-        ctx.render(execute(ctx, ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
+        ctx.render(execute(ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
       }
     } catch (Exception e) {
       ctx.error(e);
     }
   }
 
-  private Promise<HealthCheck.Result> execute(ExecControl execControl, Registry registry, HealthCheck healthCheck) {
-    return execControl.wrap(() -> healthCheck.check(execControl, registry)).mapError(HealthCheck.Result::unhealthy);
+  private Promise<HealthCheck.Result> execute(Registry registry, HealthCheck healthCheck) {
+    return Promise.wrap(() -> healthCheck.check(registry)).mapError(HealthCheck.Result::unhealthy);
   }
 
-  private Promise<HealthCheckResults> execute(ExecControl execControl, Registry registry, Iterable<? extends HealthCheck> healthChecks) {
+  private Promise<HealthCheckResults> execute(Registry registry, Iterable<? extends HealthCheck> healthChecks) {
     Iterator<? extends HealthCheck> iterator = healthChecks.iterator();
     if (!iterator.hasNext()) {
-      return execControl.promiseOf(new HealthCheckResults(ImmutableSortedMap.of()));
+      return Promise.value(new HealthCheckResults(ImmutableSortedMap.of()));
     }
 
-    return execControl.<Map<String, HealthCheck.Result>>promise(f -> {
+    return Promise.<Map<String, HealthCheck.Result>>of(f -> {
       AtomicInteger counter = new AtomicInteger();
       Map<String, HealthCheck.Result> results = Maps.newConcurrentMap();
       while (iterator.hasNext()) {
         counter.incrementAndGet();
         HealthCheck healthCheck = iterator.next();
-        execControl.fork().start(e ->
-            execute(e, registry, healthCheck)
+        Execution.fork().start(e ->
+            execute(registry, healthCheck)
               .throttled(throttle)
               .then(r -> {
                 results.put(healthCheck.getName(), r);

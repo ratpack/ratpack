@@ -40,7 +40,7 @@ class ReactorSpec extends RatpackGroovyDslSpec {
         def deferred = defer(env)
 
         // Bridge the reactor deferred so that the value is consumed in the Ratpack event loop and execution is rejoined
-        RatpackReactor.consume(context, deferred) then {
+        RatpackReactor.consume(deferred) then {
           render it
         }
 

@@ -18,7 +18,6 @@ package ratpack.hystrix.internal;
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariable;
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariableLifecycle;
-import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 
 class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<T> {
@@ -51,7 +50,7 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
   }
 
   private Execution getExecution() {
-    return ExecController.require().getControl().getExecution();
+    return Execution.current();
   }
 
   @Override

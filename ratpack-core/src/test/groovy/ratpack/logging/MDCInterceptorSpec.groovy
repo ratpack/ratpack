@@ -18,6 +18,9 @@ package ratpack.logging
 
 import org.slf4j.MDC
 import org.slf4j.helpers.BasicMDCAdapter
+import ratpack.exec.Blocking
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class MDCInterceptorSpec extends RatpackGroovyDslSpec {
@@ -73,7 +76,7 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
       get {
         MDC.put("value", "1")
         values << MDC.get("value")
-        blocking {
+        Blocking.get {
           values << MDC.get("value")
           MDC.put("value", "2")
           values << MDC.get("value")
@@ -99,14 +102,14 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
       get {
         MDC.put("value", "1")
         values << MDC.get("value")
-        blocking {
+        Blocking.get {
           values << MDC.get("value")
           MDC.clear()
         }.then {
           values << MDC.get("value")
           MDC.put("value", "3")
           values << MDC.get("value")
-          blocking {
+          Blocking.get {
             values << MDC.get("value")
           }.then {
             values << MDC.get("value")
@@ -132,8 +135,8 @@ class MDCInterceptorSpec extends RatpackGroovyDslSpec {
       get {
         MDC.put("value", "1")
         values << MDC.get("value")
-        promise { f ->
-          fork().start {
+        Promise.of { f ->
+          Execution.fork().start {
             MDC.put("value", "2")
             values << MDC.get("value")
             f.success("foo1")

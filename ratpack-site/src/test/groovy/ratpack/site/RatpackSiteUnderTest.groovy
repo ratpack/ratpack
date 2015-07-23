@@ -17,7 +17,6 @@
 package ratpack.site
 
 import groovy.transform.CompileStatic
-import ratpack.exec.ExecControl
 import ratpack.registry.Registry
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
@@ -46,7 +45,7 @@ class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
       data.unreleased.add(new RatpackVersion(config.currentVersion - "-SNAPSHOT", config.manualVersions.size() + 1, "foo", new Date(), false))
 
       it.add(GitHubData, data)
-      it.add(new RatpackVersions(data, serverRegistry.get(ExecControl)))
+      it.add(new RatpackVersions(data))
     }
   }
 }

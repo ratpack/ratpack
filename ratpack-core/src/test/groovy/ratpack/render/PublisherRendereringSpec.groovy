@@ -39,7 +39,7 @@ class PublisherRendereringSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        context.render(stream(Streams.publish(["foo"])))
+        context.render(Streams.publish(["foo"]))
       }
     }
 

@@ -18,6 +18,7 @@ package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
+import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
@@ -63,7 +64,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
+        observe(Promise.of({
           it.error(error)
         })) subscribe {
           render "got to end"
@@ -80,7 +81,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Error("Error")
     handlers {
       get {
-        observe(promise({
+        observe(Promise.of({
           it.error(e)
         })) subscribe {
           render "got to end"
@@ -96,7 +97,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
+        observe(Promise.of({
           it.success("")
         })) subscribe {
           throw error
@@ -112,10 +113,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
+        observe(Promise.of({
           it.success("")
         })) subscribe {
-          observe(promise({
+          observe(Promise.of({
             it.error(error)
           })) subscribe {
             render "got to end"
@@ -132,10 +133,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
+        observe(Promise.of({
           it.success("")
         })) subscribe {
-          observe(promise({
+          observe(Promise.of({
             it.success("")
           })) subscribe {
             throw error
@@ -153,7 +154,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def otherError = new RuntimeException("other")
     handlers {
       get {
-        observe(promise({
+        observe(Promise.of({
           it.error(error)
         })) subscribe({
           render "success"
@@ -307,7 +308,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { ExecController execController ->
-        promise { f ->
+        Promise.of { f ->
           execController.executor.execute {
             Observable.error(error).subscribe(new Subscriber() {
               @Override

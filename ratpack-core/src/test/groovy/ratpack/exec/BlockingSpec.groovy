@@ -19,7 +19,6 @@ package ratpack.exec
 import ratpack.error.ServerErrorHandler
 import ratpack.func.Block
 import ratpack.http.client.RequestSpec
-import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
@@ -33,7 +32,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         steps << "start"
-        blocking {
+        Blocking.get {
           sleep 300
           steps << "operation"
           2
@@ -57,7 +56,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        blocking {
+        Blocking.get {
           sleep 300
           throw new Exception("!")
         } then {
@@ -75,7 +74,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        blocking {
+        Blocking.get {
           sleep 300
           throw new Exception("!")
         } onError {
@@ -98,7 +97,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        blocking {
+        Blocking.get {
           throw new Exception("!")
         } onError { Throwable t ->
           throw new Exception("!!", t)
@@ -120,7 +119,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        blocking {
+        Blocking.get {
           1
         } onError {
           throw new Exception("!")
@@ -143,7 +142,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         //noinspection GroovyAssignabilityCheck
-        blocking {
+        Blocking.get {
           1
         } then { List<String> result ->
           response.send("unexpected")
@@ -164,7 +163,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         //noinspection GroovyAssignabilityCheck
-        blocking {
+        Blocking.get {
           throw new Exception("!")
         } onError { String string ->
           response.send("unexpected")
@@ -183,7 +182,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        blocking {
+        Blocking.get {
           [foo: "bar"]
         } then {
           response.send it.toString()
@@ -199,7 +198,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        blocking {
+        Blocking.get {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
           request.body.block().text
         } then {
@@ -228,10 +227,10 @@ class BlockingSpec extends RatpackGroovyDslSpec {
         events << "compute"
       }
       all {
-        blocking {
+        Blocking.get {
           events << "blocking"
         } then {
-          blocking {
+          Blocking.get {
             events << "inner blocking"
           } then {
             render "ok"
@@ -252,7 +251,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
   def "should throw UnmanagedThreadException when trying to use blocking outside of Execution"() {
     given:
-    def promise = ExecHarness.harness().blocking { }
+    def promise = Blocking.get {}
 
     when:
     uncheck({ promise.then {} } as Block)

@@ -25,7 +25,7 @@ class PromiseBlockingSpec extends Specification {
   def exec = ExecHarness.harness()
 
   private <T> Promise<T> async(Result<T> t) {
-    exec.promise { f ->
+    Promise.of { f ->
       Thread.start {
         f.accept(t)
       }
@@ -140,10 +140,10 @@ class PromiseBlockingSpec extends Specification {
     events == [
       "COMPUTE-start",
       "COMPUTE-stop",
-        "BLOCKING-start",
-          "COMPUTE-start",
-          "COMPUTE-stop",
-        "BLOCKING-stop",
+      "BLOCKING-start",
+      "COMPUTE-start",
+      "COMPUTE-stop",
+      "BLOCKING-stop",
       "COMPUTE-start",
       "COMPUTE-stop"
     ]

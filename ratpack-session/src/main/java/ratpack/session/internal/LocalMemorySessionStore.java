@@ -20,7 +20,6 @@ import com.google.common.cache.Cache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.AsciiString;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.server.StopEvent;
@@ -30,18 +29,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class LocalMemorySessionStore implements SessionStore {
 
-  private final ExecControl execControl;
   private final Cache<AsciiString, ByteBuf> cache;
   private final AtomicLong lastCleanup = new AtomicLong(System.currentTimeMillis());
 
-  public LocalMemorySessionStore(Cache<AsciiString, ByteBuf> cache, ExecControl execControl) {
+  public LocalMemorySessionStore(Cache<AsciiString, ByteBuf> cache) {
     this.cache = cache;
-    this.execControl = execControl;
   }
 
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
-    return execControl.operation(() -> {
+    return Operation.of(() -> {
       maybeCleanup();
       ByteBuf retained = Unpooled.unmodifiableBuffer(sessionData);
       cache.put(sessionId, retained);
@@ -50,7 +47,7 @@ public class LocalMemorySessionStore implements SessionStore {
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return execControl.promiseFrom(() -> {
+    return Promise.ofLazy(() -> {
       maybeCleanup();
       ByteBuf value = cache.getIfPresent(sessionId);
       if (value != null) {
@@ -63,12 +60,12 @@ public class LocalMemorySessionStore implements SessionStore {
 
   @Override
   public Promise<Long> size() {
-    return execControl.promiseFrom(cache::size);
+    return Promise.ofLazy(cache::size);
   }
 
   @Override
   public Operation remove(AsciiString sessionId) {
-    return execControl.operation(() -> {
+    return Operation.of(() -> {
       maybeCleanup();
       cache.invalidate(sessionId);
     });

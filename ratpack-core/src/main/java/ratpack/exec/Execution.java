@@ -18,6 +18,8 @@ package ratpack.exec;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
+import ratpack.exec.internal.ExecutionBacking;
+import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 
 import java.util.function.Supplier;
@@ -43,28 +45,32 @@ import java.util.function.Supplier;
  * <p>
  * <b>The execution object underpins an entire logical operation, even when that operation may be performed by multiple threads.</b>
  * <p>
- * Importantly, it also <em>serializes</em> execution segments by way of the {@link ratpack.exec.ExecControl#promise(ratpack.func.Action)} method.
+ * Importantly, it also <em>serializes</em> execution segments by way of the {@link Promise#of(ratpack.func.Action)} method.
  * These methods are fundamentally asynchronous in that they facilitate performing operations where the result will arrive later without waiting for the result,
  * but are synchronous in the operations the perform are serialized and not executed concurrently or in parallel.
  * <em>Crucially</em>, this means that state that is local to an execution does not need to be thread safe.
  * <h3>Executions and request handling</h3>
  * <p>
  * The execution object actually underpins the {@link ratpack.handling.Context} objects that are used when handling requests.
- * It is rarely used directly when request handling, except when concurrency or parallelism is required to process data via the {@link ratpack.handling.Context#fork()} method.
+ * It is rarely used directly when request handling, except when concurrency or parallelism is required to process data via the {@link Execution#fork()} method.
  * Moreover, it provides its own error handling and completion mechanisms.
  * </p>
  */
-public interface Execution extends MutableRegistry, ExecControl {
+public interface Execution extends MutableRegistry {
 
   /**
    * Provides the currently execution execution.
    * <p>
    * This method will fail when called outside of a Ratpack compute thread as it relies on {@link ExecController#require()}.
    *
-   * @return the currently execution execution
+   * @return the currently executing execution
    */
-  static Execution execution() throws UnmanagedThreadException {
-    return ExecControl.current().getExecution();
+  static Execution current() throws UnmanagedThreadException {
+    return ExecutionBacking.require().getExecution();
+  }
+
+  static ExecBuilder fork() throws UnmanagedThreadException {
+    return current().getController().exec();
   }
 
   /**
@@ -73,8 +79,6 @@ public interface Execution extends MutableRegistry, ExecControl {
    * @return the execution controller that this execution is associated with
    */
   ExecController getController();
-
-  ExecControl getControl();
 
   EventLoop getEventLoop();
 
@@ -122,5 +126,21 @@ public interface Execution extends MutableRegistry, ExecControl {
    */
   @Override
   <O> Execution addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
+
+  /**
+   * Adds an interceptor that wraps the rest of the current execution segment and all future segments of this execution.
+   * <p>
+   * The given action is executed immediately (i.e. as opposed to being queued to be executed as the next execution segment).
+   * Any code executed after a call to this method in the same execution segment <b>WILL NOT</b> be intercepted.
+   * Therefore, it is advisable to not execute any code after calling this method in a given execution segment.
+   * <p>
+   * See {@link ExecInterceptor} for example use of an interceptor.
+   *
+   * @param execInterceptor the execution interceptor to add
+   * @param continuation the rest of the code to be executed
+   * @throws Exception any thrown by {@code continuation}
+   * @see ExecInterceptor
+   */
+  void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception;
 
 }

@@ -21,13 +21,14 @@ import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
-import ratpack.exec.*;
+import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
+import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Block;
@@ -52,14 +53,12 @@ import ratpack.registry.internal.DelegatingRegistry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
-import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
@@ -74,14 +73,14 @@ public class DefaultContext implements Context {
 
   public static class ApplicationConstants {
     private final RenderController renderController;
+    private final ExecController execController;
     private final ServerConfig serverConfig;
-    private final ExecControl execControl;
     private final Handler end;
 
-    public ApplicationConstants(Registry registry, RenderController renderController, Handler end) {
+    public ApplicationConstants(Registry registry, RenderController renderController, ExecController execController, Handler end) {
       this.renderController = renderController;
+      this.execController = execController;
       this.serverConfig = registry.get(ServerConfig.class);
-      this.execControl = registry.get(ExecController.class).getControl();
       this.end = end;
     }
   }
@@ -93,6 +92,7 @@ public class DefaultContext implements Context {
 
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
+    private Execution execution;
 
     private final Deque<ChainIndex> indexes = Lists.newLinkedList();
 
@@ -136,7 +136,7 @@ public class DefaultContext implements Context {
   private final RequestConstants requestConstants;
   private final Registry joinedRegistry;
 
-  public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
+  public static void start(EventLoop eventLoop, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     PathBinding initialPathBinding = new RootPathBinding(requestConstants.request.getPath());
     Registry pathBindingRegistry = Registry.single(PathBinding.class, initialPathBinding);
     ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
@@ -145,7 +145,7 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    execControl.fork()
+    requestConstants.applicationConstants.execController.exec()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s
@@ -155,7 +155,10 @@ public class DefaultContext implements Context {
       )
       .eventLoop(eventLoop)
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
-      .start(e -> context.next());
+      .start(e -> {
+        requestConstants.execution = e;
+        context.next();
+      });
   }
 
 
@@ -174,38 +177,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public ExecController getController() {
-    return requestConstants.applicationConstants.execControl.getController();
-  }
-
-  @Override
   public Execution getExecution() {
-    return requestConstants.applicationConstants.execControl.getExecution();
-  }
-
-  @Override
-  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
-    return requestConstants.applicationConstants.execControl.blocking(blockingOperation);
-  }
-
-  @Override
-  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return requestConstants.applicationConstants.execControl.promise(action);
-  }
-
-  @Override
-  public ExecBuilder fork() {
-    return requestConstants.applicationConstants.execControl.fork();
-  }
-
-  @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
-    requestConstants.applicationConstants.execControl.addInterceptor(execInterceptor, continuation);
-  }
-
-  @Override
-  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return requestConstants.applicationConstants.execControl.stream(publisher);
+    return requestConstants.execution;
   }
 
   @Override

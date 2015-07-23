@@ -76,6 +76,7 @@ Another key testing utility that is used in many examples is [`ExecHarness`](api
 ```language-java
 import com.google.common.io.Files;
 import ratpack.test.exec.ExecHarness;
+import ratpack.exec.Blocking;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -89,7 +90,7 @@ public class Example {
     tmpFile.deleteOnExit();
 
     String content = ExecHarness.yieldSingle(e ->
-        e.blocking(() -> Files.toString(tmpFile, StandardCharsets.UTF_8))
+        Blocking.get(() -> Files.toString(tmpFile, StandardCharsets.UTF_8))
     ).getValueOrThrow();
 
     assertEquals("Hello World!", content);

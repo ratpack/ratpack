@@ -19,6 +19,8 @@ package ratpack.handling
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
 import ratpack.server.ServerConfig
@@ -60,8 +62,8 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { ExecController execController ->
-        promise { f ->
-          execController.control.fork().start {
+        Promise.of { f ->
+          Execution.fork().start {
             f.success("ok")
           }
         } then {

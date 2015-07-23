@@ -17,7 +17,6 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -104,16 +103,6 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)}.
-   *
-   * @param execControl the exec control to create the promise from
-   * @return a promise for this publisher's single item
-   */
-  default Promise<T> toPromise(ExecControl execControl) {
-    return Streams.toPromise(execControl, this);
-  }
-
-  /**
    * Consumes the given publisher's items to a list.
    * <p>
    * This method can be useful when testing, but should be uses with care in production code as it will exhaust memory if the stream is very large.
@@ -168,16 +157,6 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    */
   default Promise<List<T>> toList() {
     return Streams.toList(this);
-  }
-
-  /**
-   * See {@link #toList()}.
-   *
-   * @param execControl the exec control to create the promise from
-   * @return a promise for all of this stream's contents as a list
-   */
-  default Promise<List<T>> toList(ExecControl execControl) {
-    return Streams.toList(execControl, this);
   }
 
   /**

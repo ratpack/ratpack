@@ -1,8 +1,6 @@
 package ratpack.site.github;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -20,17 +18,15 @@ import static com.google.common.collect.Iterables.*;
 public class RatpackVersions {
 
   private final GitHubData gitHubData;
-  private final ExecControl execControl;
 
   @Inject
-  public RatpackVersions(GitHubData gitHubData, ExecControl execControl) {
-    this.execControl = execControl;
+  public RatpackVersions(GitHubData gitHubData) {
     this.gitHubData = gitHubData;
   }
 
   public Promise<All> getAll() {
     // TODO need better support in Ratpack for this kind of thing
-    return execControl.promise(f -> {
+    return Promise.of(f -> {
       AtomicInteger counter = new AtomicInteger(2);
       Object[] versions = new Object[2];
 
@@ -49,12 +45,12 @@ public class RatpackVersions {
         }
       };
 
-      execControl.fork()
+      Execution.fork()
         .onError(onError)
         .onComplete(onComplete)
         .start(e -> gitHubData.getReleasedVersions().then(l -> versions[0] = l));
 
-      execControl.fork()
+      Execution.fork()
         .onError(onError)
         .onComplete(onComplete)
         .start(e -> gitHubData.getUnreleasedVersions().then(l -> versions[1] = l));

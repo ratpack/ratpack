@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
@@ -27,9 +30,12 @@ import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ExecutionBacking {
 
@@ -66,7 +72,7 @@ public class ExecutionBacking {
     this.eventLoop = eventLoop;
     this.onError = onError;
     this.onComplete = onComplete;
-    this.execution = new DefaultExecution(eventLoop, controller, closeables);
+    this.execution = new DefaultExecution(this, eventLoop, controller, closeables);
 
     registry.execute(execution);
     onStart.execute(execution);
@@ -97,6 +103,69 @@ public class ExecutionBacking {
     } else {
       return executionBacking;
     }
+  }
+
+  public static <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
+    return Streams.transformable(subscriber -> require().streamSubscribe((handle) ->
+        publisher.subscribe(new Subscriber<T>() {
+          @Override
+          public void onSubscribe(final Subscription subscription) {
+            handle.event(() ->
+                subscriber.onSubscribe(subscription)
+            );
+          }
+
+          @Override
+          public void onNext(final T element) {
+            handle.event(() -> subscriber.onNext(element));
+          }
+
+          @Override
+          public void onComplete() {
+            handle.complete(subscriber::onComplete);
+          }
+
+          @Override
+          public void onError(final Throwable cause) {
+            handle.complete(() -> subscriber.onError(cause));
+          }
+        })
+    ));
+  }
+
+  public static <T> Upstream<T> upstream(Action<? super Fulfiller<T>> action) {
+    return downstream -> require().streamSubscribe((streamHandle) -> {
+      final AtomicBoolean fulfilled = new AtomicBoolean();
+      try {
+        action.execute(new Fulfiller<T>() {
+          @Override
+          public void error(Throwable throwable) {
+            if (!fulfilled.compareAndSet(false, true)) {
+              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
+              return;
+            }
+
+            streamHandle.complete(() -> downstream.error(throwable));
+          }
+
+          @Override
+          public void success(T value) {
+            if (!fulfilled.compareAndSet(false, true)) {
+              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+              return;
+            }
+
+            streamHandle.complete(() -> downstream.success(value));
+          }
+        });
+      } catch (Throwable throwable) {
+        if (!fulfilled.compareAndSet(false, true)) {
+          LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
+        } else {
+          streamHandle.complete(() -> downstream.error(throwable));
+        }
+      }
+    });
   }
 
 

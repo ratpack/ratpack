@@ -17,6 +17,7 @@
 package ratpack.exec
 
 import ratpack.http.ResponseChunks
+import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -32,9 +33,9 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     serverConfig { development(true) }
     handlers {
       get { ctx ->
-        def s = stream(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
+        def s = Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
-          promise { f ->
+          Promise.of { f ->
             ctx.get(ExecController).executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
           }
         }
@@ -55,14 +56,14 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     serverConfig { development(true) }
     handlers {
       get { ctx ->
-        def s = stream(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
+        def s = Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
-          promise { f ->
+          Promise.of { f ->
             def c = new CollectingSubscriber({
               f.success(it.value.get(0))
             }, { it.request(10) })
 
-            stream(periodically(ctx, Duration.ofMillis(100)) {
+            Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) {
               it < 1 ? n : null
             }).subscribe(c)
           }

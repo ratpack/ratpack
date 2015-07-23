@@ -38,6 +38,8 @@ import ratpack.func.Factory;
  * The caller of the method is then expected to use the {@link #then(Block)} method to specify what should happen after the operation
  * that the method represents finishes.
  * <pre class="java">{@code
+ * import ratpack.exec.Blocking;
+ * import ratpack.exec.Operation;
  * import com.google.common.collect.Lists;
  * import ratpack.test.exec.ExecHarness;
  *
@@ -50,8 +52,8 @@ import ratpack.func.Factory;
  *   public static void main(String... args) throws Exception {
  *     List<String> events = Lists.newArrayList();
  *     ExecHarness.runSingle(e ->
- *       e.operation(() ->
- *         e.blocking(() -> events.add("1"))
+ *       Operation.of(() ->
+ *         Blocking.get(() -> events.add("1"))
  *           .then(b -> events.add("2"))
  *       )
  *       .then(() -> events.add("3"))
@@ -64,7 +66,10 @@ import ratpack.func.Factory;
 public interface Operation {
 
   static Operation of(Block block) {
-    return ExecControl.execControl().operation(block);
+    return new DefaultOperation(Promise.<Void>of(f -> {
+      block.execute();
+      f.success(null);
+    }));
   }
 
   Operation onError(Action<? super Throwable> onError);
@@ -96,7 +101,7 @@ public interface Operation {
   }
 
   default Operation next(Block operation) {
-    return next(ExecControl.execControl().operation(operation));
+    return next(Operation.of(operation));
   }
 
   static Operation noop() {

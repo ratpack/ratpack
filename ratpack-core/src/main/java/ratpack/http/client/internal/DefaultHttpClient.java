@@ -17,8 +17,6 @@
 package ratpack.http.client.internal;
 
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecControl;
-import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -29,16 +27,12 @@ import ratpack.http.client.StreamedResponse;
 
 import java.net.URI;
 
-import static ratpack.util.Exceptions.uncheck;
-
 public class DefaultHttpClient implements HttpClient {
 
-  private final ExecController execController;
   private final ByteBufAllocator byteBufAllocator;
   private final int maxContentLengthBytes;
 
-  public DefaultHttpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
-    this.execController = execController;
+  public DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLengthBytes = maxContentLengthBytes;
   }
@@ -62,28 +56,12 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    final ExecControl execControl = execController.getControl();
-    final Execution execution = execControl.getExecution();
-
-    try {
-      ContentAggregatingRequestAction requestAction = new ContentAggregatingRequestAction(requestConfigurer, uri, execution, byteBufAllocator, maxContentLengthBytes, 0);
-      return execController.getControl().promise(requestAction);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
+    return Promise.of(f -> new ContentAggregatingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, maxContentLengthBytes, 0).execute(f));
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    final ExecControl execControl = execController.getControl();
-    final Execution execution = execControl.getExecution();
-
-    try {
-      ContentStreamingRequestAction requestAction = new ContentStreamingRequestAction(requestConfigurer, uri, execution, byteBufAllocator, 0);
-      return execController.getControl().promise(requestAction);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
+    return Promise.of(f -> new ContentStreamingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, 0).execute(f));
   }
 
 }

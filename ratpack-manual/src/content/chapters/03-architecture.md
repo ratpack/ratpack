@@ -86,10 +86,3 @@ There are two main patterns for access services from handlers:
 
 1. Provide the service to the handler when it is constructed
 2. Retrieve the service from the context registry
-
-> TODO - add chapter that elaborates on when to use which one of these approaches
-
-### Asynchronous APIs in services
-
-One aspect of Ratpack that is relevant to non request handling code is the use of the [`ExecControl`](api/ratpack/exec/ExecControl.html) for performing asynchronous operations.
-This allows services to perform async operations, using Ratpack's event loop, and use Ratpack's [`Promise`](api/ratpack/exec/Promise.html) API.

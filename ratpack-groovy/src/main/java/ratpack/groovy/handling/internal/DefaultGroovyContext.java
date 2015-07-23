@@ -18,12 +18,11 @@ package ratpack.groovy.handling.internal;
 
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
-import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.*;
+import ratpack.exec.Execution;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
@@ -37,12 +36,10 @@ import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
-import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public class DefaultGroovyContext implements GroovyContext {
 
@@ -58,11 +55,6 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public ExecController getController() {
-    return delegate.getController();
-  }
-
-  @Override
   public Execution getExecution() {
     return delegate.getExecution();
   }
@@ -75,12 +67,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public DirectChannelAccess getDirectChannelAccess() {
     return delegate.getDirectChannelAccess();
-  }
-
-
-  @Override
-  public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
-    delegate.addInterceptor(execInterceptor, continuation);
   }
 
   @Override
@@ -173,26 +159,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @NonBlocking
   public void render(Object object) {
     delegate.render(object);
-  }
-
-  @Override
-  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
-    return delegate.blocking(blockingOperation);
-  }
-
-  @Override
-  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return delegate.promise(action);
-  }
-
-  @Override
-  public ExecBuilder fork() {
-    return delegate.fork();
-  }
-
-  @Override
-  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return delegate.stream(publisher);
   }
 
   @Override

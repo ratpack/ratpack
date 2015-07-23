@@ -95,7 +95,7 @@ public interface HttpClient {
    * @return An instance of a HttpClient
    */
   static HttpClient httpClient(ServerConfig serverConfig, Registry registry) {
-    return new DefaultHttpClient(registry.get(ExecController.class), registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength());
+    return new DefaultHttpClient(registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength());
   }
 
   /**
@@ -107,7 +107,7 @@ public interface HttpClient {
    * @return An instance of a HttpClient
    */
   static HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
-    return new DefaultHttpClient(execController, byteBufAllocator, maxContentLengthBytes);
+    return new DefaultHttpClient(byteBufAllocator, maxContentLengthBytes);
   }
 
   /**

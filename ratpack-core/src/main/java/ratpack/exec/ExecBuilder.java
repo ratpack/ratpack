@@ -25,8 +25,7 @@ import ratpack.registry.RegistrySpec;
 /**
  * Builds, and initiates, a new {@link Execution execution}.
  *
- * @see Execution
- * @see ExecControl#fork()
+ * @see Execution#fork()
  */
 public interface ExecBuilder {
 

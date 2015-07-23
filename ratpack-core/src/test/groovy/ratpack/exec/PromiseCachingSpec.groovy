@@ -31,26 +31,22 @@ class PromiseCachingSpec extends Specification {
   Queue<?> events = new ConcurrentLinkedQueue<>()
   def latch = new CountDownLatch(1)
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    execHarness.fork()
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
+    execHarness.controller.exec()
       .onError(onError)
       .onComplete({
       events << "complete"
       latch.countDown()
     })
-      .start { action.execute(it.control) }
+      .start { action.execute(it) }
     latch.await()
-  }
-
-  ExecControl getControl() {
-    execHarness
   }
 
   def "can cache promise"() {
     when:
     exec { e ->
       def i = 0
-      def cached = e.blocking { "foo-${i++}" }.cache()
+      def cached = Blocking.get { "foo-${i++}" }.cache()
       cached.then { events << it }
       cached.map { it + "-bar" }.then { events << it }
     }
@@ -64,21 +60,21 @@ class PromiseCachingSpec extends Specification {
     def innerLatch = new CountDownLatch(1)
     def innerEvents = []
     exec { e ->
-      def cached = e.blocking { "foo" }.cache()
+      def cached = Blocking.get { "foo" }.cache()
       cached.then { events << it }
-      e.fork().onComplete {
+      Execution.fork().onComplete {
         innerEvents << "complete"
         innerLatch.countDown()
       } start { forkedExecution ->
         cached.map { it + "-bar" }
           .then {
-          assert e.execution.is(forkedExecution)
+          assert Execution.current().is(forkedExecution)
 
           innerEvents << it
         }
 
-        e.blocking { "next" }.cache().then {
-          assert e.execution.is(forkedExecution)
+        Blocking.get { "next" }.cache().then {
+          assert Execution.current().is(forkedExecution)
           innerEvents << "next"
         }
       }
@@ -94,7 +90,7 @@ class PromiseCachingSpec extends Specification {
     when:
     def e = new RuntimeException("!")
     exec {
-      def cached = it.promise { it.error(e) }.cache()
+      def cached = Promise.error(e).cache()
       cached.onError { events << it }.then { throw new Error() }
       cached.onError { events << it }.then { throw new Error() }
     }
@@ -107,7 +103,7 @@ class PromiseCachingSpec extends Specification {
     when:
     def e = new RuntimeException("!")
     exec {
-      def cached = it.promise { it.error(e) }.cache()
+      def cached = Promise.error(e).cache()
       cached.map { throw new Error() }.onError { events << it }.then { throw new Error() }
     }
 
@@ -119,12 +115,15 @@ class PromiseCachingSpec extends Specification {
     when:
     def num = 10000
     def latch = new CountDownLatch(num)
-      def cached = execHarness.promiseOf("foo").cache()
+    def cached = Promise.value("foo").cache()
     exec { e ->
       num.times {
-        e.fork().start({ cached.then {
-          events << it
-          latch.countDown() } })
+        Execution.fork().start({
+          cached.then {
+            events << it
+            latch.countDown()
+          }
+        })
       }
     }
 
@@ -137,7 +136,7 @@ class PromiseCachingSpec extends Specification {
     when:
     def e = new RuntimeException("!")
     exec {
-      it.blocking {
+      Blocking.get {
         throw e
       }.onError {
         events << it

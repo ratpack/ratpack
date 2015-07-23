@@ -66,7 +66,6 @@ public class TextTemplateModule extends ConfigurableModule<TextTemplateModule.Co
     }
 
     return new TextTemplateRenderingEngine(
-      execController.getControl(),
       bufferAllocator,
       templateDir,
       serverConfig.isDevelopment(),

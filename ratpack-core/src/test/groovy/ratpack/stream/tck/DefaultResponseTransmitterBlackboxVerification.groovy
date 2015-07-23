@@ -61,7 +61,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     when(eventController.hasListeners).thenReturn(false)
 
     new DefaultResponseTransmitter(
-      new AtomicBoolean(), null, channel, nettyRequest, null, responseHeaders, eventController
+      new AtomicBoolean(), channel, nettyRequest, null, responseHeaders, eventController
     ).transmitter(HttpResponseStatus.OK)
   }
 

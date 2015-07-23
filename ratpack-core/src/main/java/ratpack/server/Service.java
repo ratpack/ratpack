@@ -17,6 +17,7 @@
 package ratpack.server;
 
 import ratpack.api.NonBlocking;
+import ratpack.exec.Blocking;
 
 /**
  * A service participates in the application lifecycle.
@@ -78,13 +79,14 @@ import ratpack.api.NonBlocking;
  * <h3>Async services</h3>
  * <p>
  * The {@link #onStart} and {@link #onStop} methods are always executed within a distinct {@link ratpack.exec.Execution}, for each service.
- * This means that implementations of these methods are free to perform async ops (e.g. use the {@link ratpack.http.client.HttpClient}, or {@link ratpack.exec.ExecControl#blocking block}).
+ * This means that implementations of these methods are free to perform async ops (e.g. use the {@link ratpack.http.client.HttpClient HTTP client}, or {@link Blocking block}).
  * <pre class="java">{@code
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
  * import ratpack.server.Service;
  * import ratpack.server.StartEvent;
  * import ratpack.server.StopEvent;
+ * import ratpack.exec.Promise;
  *
  * import java.util.List;
  * import java.util.LinkedList;
@@ -96,11 +98,11 @@ import ratpack.api.NonBlocking;
  *     public final List<String> events = new LinkedList<>();
  *
  *     public void onStart(StartEvent event) {
- *       event.getExecControl().promiseOf("start").map(String::toUpperCase).then(events::add);
+ *       Promise.value("start").map(String::toUpperCase).then(events::add);
  *     }
  *
  *     public void onStop(StopEvent event) {
- *       event.getExecControl().promiseOf("stop").map(String::toUpperCase).then(events::add);
+ *       Promise.value("stop").map(String::toUpperCase).then(events::add);
  *     }
  *   }
  *

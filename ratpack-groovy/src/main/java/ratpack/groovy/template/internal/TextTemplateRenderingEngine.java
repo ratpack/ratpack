@@ -21,7 +21,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.groovy.script.internal.ScriptEngine;
@@ -39,11 +38,9 @@ public class TextTemplateRenderingEngine {
   private final ByteBufAllocator byteBufAllocator;
   private final boolean reloadable;
   private final FileSystemBinding templateDir;
-  private final ExecControl execControl;
 
   @Inject
-  public TextTemplateRenderingEngine(ExecControl execControl, ByteBufAllocator byteBufAllocator, FileSystemBinding templateDir, boolean reloadable, boolean staticCompile) {
-    this.execControl = execControl;
+  public TextTemplateRenderingEngine(ByteBufAllocator byteBufAllocator, FileSystemBinding templateDir, boolean reloadable, boolean staticCompile) {
     this.byteBufAllocator = byteBufAllocator;
     this.reloadable = reloadable;
     this.templateDir = templateDir;
@@ -76,7 +73,7 @@ public class TextTemplateRenderingEngine {
   }
 
   private Promise<ByteBuf> render(final TextTemplateSource templateSource, Map<String, ?> model) throws Exception {
-    return Render.render(execControl, byteBufAllocator, compiledTemplateCache, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
+    return Render.render(byteBufAllocator, compiledTemplateCache, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
   }
 
   private Path getTemplateFile(String templateName) {

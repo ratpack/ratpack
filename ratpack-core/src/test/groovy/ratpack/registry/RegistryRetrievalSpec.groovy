@@ -54,7 +54,7 @@ class RegistryRetrievalSpec extends RatpackGroovyDslSpec {
         next()
       }
       all {
-        render Execution.execution().getAll(String).join(', ')
+        render Execution.current().getAll(String).join(', ')
       }
     }
 

@@ -48,7 +48,7 @@ public class DefaultRenderController implements RenderController {
 
     Iterator<? extends RenderableDecorator<?>> decorators = Iterables.filter(context.getAll(RENDERABLE_DECORATOR_TYPE), d -> d.getType().isAssignableFrom(type)).iterator();
     if (decorators.hasNext()) {
-      Promise<T> promise = context.promiseOf(toRender);
+      Promise<T> promise = Promise.value(toRender);
       while (decorators.hasNext()) {
         RenderableDecorator<T> cast = Types.cast(decorators.next());
         promise = promise.flatMap(r -> cast.decorate(context, r));

@@ -17,6 +17,7 @@
 package ratpack.http.internal
 
 import io.netty.buffer.Unpooled
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
@@ -270,10 +271,10 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         response.beforeSend {
-          blocking { 1 }.then { response.headers.set("foo", 1) }
+          Blocking.get { 1 }.then { response.headers.set("foo", 1) }
         }
         response.beforeSend {
-          blocking { 2 }.then { response.headers.set("foo", response.headers.get("foo") + ":" + it) }
+          Blocking.get { 2 }.then { response.headers.set("foo", response.headers.get("foo") + ":" + it) }
         }
         response.beforeSend {
           response.headers.set("foo", response.headers.get("foo") + ":3")

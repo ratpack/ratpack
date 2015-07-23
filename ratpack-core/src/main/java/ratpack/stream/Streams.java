@@ -17,9 +17,9 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
+import ratpack.exec.internal.ExecutionBacking;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.Predicate;
@@ -138,6 +138,7 @@ public class Streams {
    * If the promise producing function throws an exception, the stream is terminated and the error is sent downstream.
    * <pre class="java">{@code
    * import ratpack.stream.Streams;
+   * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.Arrays;
@@ -149,9 +150,9 @@ public class Streams {
    *     List<String> strings = ExecHarness.yieldSingle(execControl ->
    *       Streams.flatYield(r -> {
    *         if (r.getRequestNum() < 2) {
-   *           return execControl.promiseOf(Long.toString(r.getRequestNum()));
+   *           return Promise.value(Long.toString(r.getRequestNum()));
    *         } else {
-   *           return execControl.promiseOf(null);
+   *           return Promise.value(null);
    *         }
    *       }).toList()
    *     ).getValue();
@@ -505,17 +506,6 @@ public class Streams {
   }
 
   /**
-   * Calls {@link #toPromise(ExecControl, Publisher)} with {@link ExecControl#current()} and the given publisher.
-   *
-   * @param publisher the publiser the convert to a promise
-   * @param <T> the type of promised value
-   * @return a promise for the publisher's single item
-   */
-  public static <T> Promise<T> toPromise(Publisher<T> publisher) {
-    return toPromise(ExecControl.current(), publisher);
-  }
-
-  /**
    * Creates a promise for the given publisher's single item.
    * <p>
    * The given publisher is expected to produce zero or one items.
@@ -529,37 +519,26 @@ public class Streams {
    * If the stream errors before sending a second item, the promise will fail with that error.
    * If it fails after sending a second item, that error will be ignored.
    *
-   * @param execControl the exec control to create the promise from
-   * @param publisher the publisher to extract the promised item from
+   * @param publisher the publiser the convert to a promise
    * @param <T> the type of promised value
    * @return a promise for the publisher's single item
-   * @see #toPromise(Publisher)
    */
-  public static <T> Promise<T> toPromise(ExecControl execControl, Publisher<T> publisher) {
-    return execControl.promise(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
+  public static <T> Promise<T> toPromise(Publisher<T> publisher) {
+    return Promise.of(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
   }
 
   /**
-   * Delegates to {@link #toList(ExecControl, Publisher)}, using {@link ExecControl#current()} as the exec control.
+   * Creates a promise for the given publisher's items as a List.
    *
    * @param publisher the stream to collect to a list
    * @param <T> the type of item in the stream
    * @return a promise for the streams contents as a list
    */
   public static <T> Promise<List<T>> toList(Publisher<T> publisher) {
-    return toList(ExecControl.current(), publisher);
+    return Promise.of(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
   }
 
-  /**
-   * Creates a promise for the given publisher's items as a List.
-   *
-   * @param execControl the exec control to create the promise from
-   * @param publisher the stream to collect to a list
-   * @param <T> the type of item in the stream
-   * @return a promise for the streams contents as a list
-   */
-  public static <T> Promise<List<T>> toList(ExecControl execControl, Publisher<T> publisher) {
-    return execControl.promise(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
+  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
+    return ExecutionBacking.stream(publisher);
   }
-
 }

@@ -16,6 +16,7 @@
 
 package ratpack.handling
 
+import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
@@ -35,7 +36,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: closure at line 32 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: closure at line 33 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -44,12 +45,12 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         // Missing .then() to actually subscribe to the promise
-        promise { it.success("foo") }
+        Promise.of { it.success("foo") }
       }
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: closure at line 47 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: closure at line 48 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -83,7 +84,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: anonymous class ratpack.handling.NoResponseSentDetectionSpec\$1 at approximately line 80 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: anonymous class ratpack.handling.NoResponseSentDetectionSpec\$1 at approximately line 81 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 

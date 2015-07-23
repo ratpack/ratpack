@@ -24,7 +24,6 @@ import com.google.inject.name.Names;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.AsciiString;
-import ratpack.exec.ExecControl;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
@@ -190,8 +189,8 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
 
   @Provides
   @Singleton
-  SessionStore sessionStoreAdapter(@Named(LOCAL_MEMORY_SESSION_CACHE_BINDING_NAME) Cache<AsciiString, ByteBuf> cache, ExecControl execControl) {
-    return new LocalMemorySessionStore(cache, execControl);
+  SessionStore sessionStoreAdapter(@Named(LOCAL_MEMORY_SESSION_CACHE_BINDING_NAME) Cache<AsciiString, ByteBuf> cache) {
+    return new LocalMemorySessionStore(cache);
   }
 
   @Provides

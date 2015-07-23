@@ -29,7 +29,7 @@ class OperationSpec extends Specification {
   def "can use operation"() {
     when:
     exec.execute {
-      exec.operation {
+      Operation.of {
         async(1).wiretap { events << 1 }.then {}
       }.next {
         events << 2
@@ -46,7 +46,7 @@ class OperationSpec extends Specification {
   }
 
   private <T> Promise<T> async(T t) {
-    exec.promise { f -> Thread.start { f.success(t) } }
+    Promise.of { f -> Thread.start { f.success(t) } }
   }
 
 }

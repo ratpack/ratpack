@@ -225,7 +225,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        def executor = context.controller.executor
+        def executor = context.execution.controller.executor
         websocketBroadcast(context, new Publisher<String>() {
           @Override
           void subscribe(Subscriber<? super String> s) {

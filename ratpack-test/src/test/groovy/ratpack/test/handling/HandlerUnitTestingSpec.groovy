@@ -19,6 +19,7 @@ package ratpack.test.handling
 import com.google.common.net.HostAndPort
 import io.netty.util.CharsetUtil
 import ratpack.error.ServerErrorHandler
+import ratpack.exec.Blocking
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.handling.GroovyRequestFixture
@@ -270,9 +271,9 @@ class HandlerUnitTestingSpec extends Specification {
     headers.get("X-Request-Content-Length") == "$responseBytes.length"
 
     where:
-    arguments                             | responseContentType        | responseBytes
-    [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
-    ["foo", "text/plain"]                 | "text/plain" | "foo".bytes
+    arguments                             | responseContentType | responseBytes
+    [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"         | [0, 1, 2, 4] as byte[]
+    ["foo", "text/plain"]                 | "text/plain"        | "foo".bytes
   }
 
   def "captures errors"() {
@@ -354,7 +355,7 @@ class HandlerUnitTestingSpec extends Specification {
     when:
     handle {
       insert(Registry.single("foo"), groovyHandler {
-        blocking {
+        Blocking.get {
 
         } then {
           context.insert(Registry.single("bar"), groovyHandler {
@@ -430,9 +431,9 @@ class HandlerUnitTestingSpec extends Specification {
     result.bodyText == "${host}:${port}"
 
     where:
-    host          | port
-    'localhost'   | 8080
-    'ratpack.io'  | 45678
+    host         | port
+    'localhost'  | 8080
+    'ratpack.io' | 45678
   }
 
 }

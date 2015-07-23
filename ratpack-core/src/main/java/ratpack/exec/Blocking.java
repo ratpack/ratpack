@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.internal.ExecutionBacking;
+import ratpack.func.Block;
 import ratpack.func.Factory;
 
 import java.util.concurrent.CompletableFuture;
@@ -69,6 +70,13 @@ public abstract class Blocking {
   // nb. would replace promise.block();
   public static <T> T on(Promise<T> promise) throws Exception {
     return promise.block();
+  }
+
+  public static Operation op(Block block) {
+    return Blocking.<Void>get(() -> {
+      block.execute();
+      return null;
+    }).operation();
   }
 
 }

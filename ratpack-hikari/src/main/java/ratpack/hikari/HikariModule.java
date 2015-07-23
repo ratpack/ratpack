@@ -33,6 +33,7 @@ import javax.sql.DataSource;
  * <pre class="java">{@code
  * import ratpack.server.Service;
  * import ratpack.server.StartEvent;
+ * import ratpack.exec.Blocking;
  * import ratpack.guice.Guice;
  * import ratpack.hikari.HikariModule;
  * import ratpack.test.embed.EmbeddedApp;
@@ -65,7 +66,7 @@ import javax.sql.DataSource;
  *       ))
  *       .handlers(chain -> chain
  *         .post("set/:val", ctx ->
- *             ctx.blocking(() -> {
+ *             Blocking.get(() -> {
  *               try (Connection connection = ctx.get(DataSource.class).getConnection()) {
  *                 PreparedStatement statement = connection.prepareStatement("merge into val (id, val) key(id) values (?, ?)");
  *                 statement.setInt(1, 1);
@@ -77,7 +78,7 @@ import javax.sql.DataSource;
  *             )
  *         )
  *         .get("get", ctx ->
- *             ctx.blocking(() -> {
+ *             Blocking.get(() -> {
  *               try (Connection connection = ctx.get(DataSource.class).getConnection()) {
  *                 PreparedStatement statement = connection.prepareStatement("select val from val where id = ?");
  *                 statement.setInt(1, 1);

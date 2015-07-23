@@ -37,11 +37,16 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
+  public ExecController getController() {
+    return controller;
+  }
+
+  @Override
   public <T> ExecResult<T> yield(Action<? super RegistrySpec> registry, final Function<? super Execution, ? extends Promise<T>> func) throws Exception {
     final AtomicReference<ExecResult<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    controller.getControl().fork()
+    controller.exec()
       .register(registry)
       .onError((exec, throwable) -> {
         reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), exec));
@@ -70,19 +75,17 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
-  public void run(Action<? super RegistrySpec> registry, Action<? super ExecControl> action) throws Exception {
+  public void run(Action<? super RegistrySpec> registry, Action<? super Execution> action) throws Exception {
     final AtomicReference<Throwable> thrown = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    controller.getControl().fork()
+    controller.exec()
       .onError(thrown::set)
       .register(registry)
       .onComplete(e ->
           latch.countDown()
       )
-      .start(e ->
-          action.execute(e.getControl())
-      );
+      .start(action::execute);
 
     latch.await();
 
@@ -90,11 +93,6 @@ public class DefaultExecHarness implements ExecHarness {
     if (throwable != null) {
       throw Exceptions.toException(throwable);
     }
-  }
-
-  @Override
-  public ExecControl getControl() {
-    return controller.getControl();
   }
 
   @Override

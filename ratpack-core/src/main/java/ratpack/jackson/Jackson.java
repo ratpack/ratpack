@@ -529,6 +529,7 @@ public abstract class Jackson {
    * An {@link ObjectWriter} instance is obtained from the given registry eagerly.
    * The returned function uses the {@link ObjectWriter#writeValueAsString(Object)} method to convert the input object to JSON.
    * <pre class="java">{@code
+   * import ratpack.exec.Promise;
    * import ratpack.test.embed.EmbeddedApp;
    * import ratpack.jackson.Jackson;
    * import ratpack.http.client.ReceivedResponse;
@@ -546,10 +547,10 @@ public abstract class Jackson {
    *     EmbeddedApp.of(s -> s
    *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
    *       .handlers(chain -> chain
-   *         .get(ctx -> ctx
-   *           .blocking(() -> singletonMap("foo", "bar"))
-   *           .map(toJson(ctx))
-   *           .then(ctx::render)
+   *         .get(ctx ->
+   *           Promise.value(singletonMap("foo", "bar"))
+   *             .map(toJson(ctx))
+   *             .then(ctx::render)
    *         )
    *       )
    *     ).test(httpClient -> {

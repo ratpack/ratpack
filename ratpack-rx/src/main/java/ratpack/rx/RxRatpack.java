@@ -17,8 +17,8 @@
 package ratpack.rx;
 
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.exec.UnmanagedThreadException;
 import ratpack.func.Action;
@@ -27,7 +27,10 @@ import ratpack.rx.internal.ExecControllerBackedScheduler;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
-import rx.*;
+import rx.Observable;
+import rx.RxReactiveStreams;
+import rx.Scheduler;
+import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
@@ -118,6 +121,7 @@ public abstract class RxRatpack {
    * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
    * import static org.junit.Assert.assertEquals;
@@ -126,7 +130,7 @@ public abstract class RxRatpack {
    *   public static String value;
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(e ->
-   *       e.promiseOf("hello world")
+   *       Promise.value("hello world")
    *         .to(RxRatpack::observe)
    *         .map(String::toUpperCase)
    *         .subscribe(s -> value = s)
@@ -157,6 +161,7 @@ public abstract class RxRatpack {
    *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.Arrays;
@@ -169,7 +174,7 @@ public abstract class RxRatpack {
    *   public static void main(String... args) throws Exception {
    *   final List<String> items = new LinkedList<>();
    *     ExecHarness.runSingle(e ->
-   *         e.promiseOf(Arrays.asList("foo", "bar"))
+   *         Promise.value(Arrays.asList("foo", "bar"))
    *           .to(RxRatpack::observeEach)
    *           .subscribe(items::add)
    *     );
@@ -239,7 +244,7 @@ public abstract class RxRatpack {
    * @throws UnmanagedThreadException if called outside of an execution
    */
   public static <T> Promise<List<T>> promise(Observable<T> observable) throws UnmanagedThreadException {
-    return ExecControl.current().promise(f -> observable.toList().subscribe(f::success, f::error));
+    return Promise.of(f -> observable.toList().subscribe(f::success, f::error));
   }
 
   /**
@@ -305,7 +310,7 @@ public abstract class RxRatpack {
    * @see #promise(Observable)
    */
   public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
-    return ExecControl.current().promise(f -> observable.single().subscribe(f::success, f::error));
+    return Promise.of(f -> observable.single().subscribe(f::success, f::error));
   }
 
   /**
@@ -441,7 +446,6 @@ public abstract class RxRatpack {
    * @return an observable
    */
   public static <T> Observable<T> forkEach(Observable<T> observable) {
-    ExecControl current = ExecControl.current();
     return observable.<T>lift(downstream -> new Subscriber<T>(downstream) {
 
       private final AtomicInteger wip = new AtomicInteger(1);
@@ -477,7 +481,7 @@ public abstract class RxRatpack {
         }
 
         wip.incrementAndGet();
-        current.fork()
+        Execution.fork()
           .onComplete(e -> this.maybeDone())
           .onError(this::onError)
           .start(e -> {
@@ -490,7 +494,7 @@ public abstract class RxRatpack {
   }
 
   /**
-   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#fork()}).
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#exec()}).
    *
    * @param execController the execution controller to back the scheduler
    * @return a scheduler
@@ -509,17 +513,15 @@ public abstract class RxRatpack {
     }
 
     private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe, final ExecController e) {
-      return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(e.getControl(), subscriber));
+      return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
     }
   }
 
   private static class ExecutionBackedSubscriber<T> extends Subscriber<T> {
     private final Subscriber<? super T> subscriber;
-    private final ExecControl execControl;
 
-    public ExecutionBackedSubscriber(ExecControl execControl, Subscriber<? super T> subscriber) {
+    public ExecutionBackedSubscriber(Subscriber<? super T> subscriber) {
       super(subscriber);
-      this.execControl = execControl;
       this.subscriber = subscriber;
     }
 
@@ -528,7 +530,7 @@ public abstract class RxRatpack {
       try {
         subscriber.onCompleted();
       } catch (final OnErrorNotImplementedException e) {
-        execControl.promise(f -> f.error(e.getCause())).then(Action.noop());
+        Promise.error(e.getCause()).then(Action.noop());
       }
     }
 
@@ -537,7 +539,7 @@ public abstract class RxRatpack {
       try {
         subscriber.onError(e);
       } catch (final OnErrorNotImplementedException e2) {
-        execControl.promise(f -> f.error(e2.getCause())).then(Action.noop());
+        Promise.error(e2.getCause()).then(Action.noop());
       }
     }
 
@@ -545,7 +547,7 @@ public abstract class RxRatpack {
       try {
         subscriber.onNext(t);
       } catch (final OnErrorNotImplementedException e) {
-        execControl.promise(fulfiller -> fulfiller.error(e.getCause())).then(Action.noop());
+        Promise.error(e.getCause()).then(Action.noop());
       }
     }
   }

@@ -19,10 +19,10 @@ package ratpack.handling;
 import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
-import ratpack.exec.*;
+import ratpack.exec.Execution;
+import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
-import ratpack.func.Block;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -34,11 +34,9 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.ServerConfig;
-import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -72,7 +70,7 @@ import java.util.concurrent.Callable;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends ExecControl, Registry {
+public interface Context extends Registry {
 
   /**
    * Returns this.
@@ -279,175 +277,6 @@ public interface Context extends ExecControl, Registry {
   void error(Throwable throwable);
 
   /**
-   * Executes a blocking operation, returning a promise for its result.
-   * <p>
-   * This method executes asynchronously, in that it does not invoke the {@code operation} before returning the promise.
-   * When the returned promise is subscribed to (i.e. its {@link ratpack.exec.Promise#then(Action)} method is called),
-   * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
-   * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
-   * <p>
-   * The promise returned by this method, has the same default error handling strategy as those returned by {@link ratpack.exec.ExecControl#promise(ratpack.func.Action)}.
-   *
-   * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedApp;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.fromHandler(ctx ->
-   *         ctx.blocking(() ->
-   *             // ok to perform blocking operations in here
-   *             "hello world"
-   *         ).then(ctx::render)
-   *     ).test(httpClient -> {
-   *       assertEquals("hello world", httpClient.getText());
-   *     });
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param blockingOperation The operation to perform
-   * @param <T> The type of result object that the operation produces
-   * @return a promise for the return value of the callable.
-   */
-  @Override
-  <T> Promise<T> blocking(Callable<T> blockingOperation);
-
-  /**
-   * Creates a promise of a value that will made available asynchronously.
-   * <p>
-   * The {@code action} given to this method receives a {@link Fulfiller}, which can be used to fulfill the promise at any time in the future.
-   * The {@code action} is not required to fulfill the promise during the execution of the {@code execute()} method (i.e. it can be asynchronous).
-   * The {@code action} MUST call one of the fulfillment methods.
-   * Otherwise, the promise will go unfulfilled.
-   * There is no time limit or timeout on fulfillment.
-   * <p>
-   * The promise returned has a default error handling strategy of forwarding exceptions to {@link #error(Throwable)} of this context.
-   * To use a different error strategy, supply it to the {@link ratpack.exec.Promise#onError(Action)} method.
-   * <p>
-   * The promise will always be fulfilled on a thread managed by Ratpack.
-   * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedApp;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.fromHandler(ctx ->
-   *         ctx.promise((f) ->
-   *             new Thread(() -> f.success("hello world")).start()
-   *         ).then(ctx::render)
-   *     ).test(httpClient -> {
-   *       assertEquals("hello world", httpClient.getText());
-   *     });
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param action the initiation of the asynchronous action
-   */
-  @Override
-  <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
-
-  /**
-   * Forks a new execution, detached from the current.
-   * <p>
-   * This can be used to launch a one time background job during request processing.
-   * The forked execution does not inherit anything from the current execution.
-   * <p>
-   * Forked executions MUST NOT write to the response or participate in the handler pipeline at all.
-   * That is, they should not call methods like {@link #next()} or {@link #insert(Handler...)}.
-   * <p>
-   * When using forking to process work in parallel, use {@link ExecControl#promise(ratpack.func.Action)} to continue request handling when the parallel work is done.
-   *
-   * <pre class="java">{@code
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Context;
-   * import ratpack.func.Action;
-   * import ratpack.exec.Fulfiller;
-   *
-   * import java.util.Collections;
-   * import java.util.concurrent.atomic.AtomicInteger;
-   * import java.util.concurrent.atomic.AtomicReference;
-   *
-   * import ratpack.test.handling.HandlingResult;
-   * import ratpack.test.handling.RequestFixture;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static class ForkingHandler implements Handler {
-   *     public void handle(Context context) {
-   *       final int numJobs = 3;
-   *       final Integer failOnIteration = context.getPathTokens().asInt("failOn");
-   *       context.promise(new Action<Fulfiller<Integer>>() {
-   *         private final AtomicInteger counter = new AtomicInteger();
-   *         private final AtomicReference<Throwable> error = new AtomicReference<>();
-   *
-   *         private void completeJob(Fulfiller<Integer> fulfiller) {
-   *           if (counter.incrementAndGet() == numJobs) {
-   *             Throwable throwable = error.get();
-   *             if (throwable == null) {
-   *               fulfiller.success(numJobs);
-   *             } else {
-   *               fulfiller.error(throwable);
-   *             }
-   *           }
-   *         }
-   *
-   *         public void execute(Fulfiller<Integer> fulfiller) {
-   *           for (int i = 0; i < numJobs; ++i) {
-   *             final int iteration = i;
-   *
-   *             context.fork()
-   *               .onError(throwable -> {
-   *                 error.compareAndSet(null, throwable); // just take the first error
-   *                 completeJob(fulfiller);
-   *               })
-   *               .start(execution -> {
-   *                 if (failOnIteration != null && failOnIteration == iteration) {
-   *                   throw new Exception("bang!");
-   *                 } else {
-   *                   completeJob(fulfiller);
-   *                 }
-   *               });
-   *           }
-   *         }
-   *       })
-   *       .then(i -> context.render(i.toString()));
-   *     }
-   *   }
-   *
-   *   public static void main(String[] args) throws Exception {
-   *     HandlingResult result = RequestFixture.handle(new ForkingHandler(), Action.noop());
-   *     assertEquals("3", result.rendered(String.class));
-   *
-   *     result = RequestFixture.handle(new ForkingHandler(), new Action<RequestFixture>() {
-   *       public void execute(RequestFixture fixture) {
-   *         fixture.pathBinding(Collections.singletonMap("failOn", "2"));
-   *       }
-   *     });
-   *
-   *     assertEquals("bang!", result.exception(Exception.class).getMessage());
-   *   }
-   * }
-   * }</pre>
-   *
-   * @return an execution starter
-   */
-  @Override
-  ExecBuilder fork();
-
-  @Override
-  ExecController getController();
-
-  @Override
-  void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception;
-
-  <T> TransformablePublisher<T> stream(Publisher<T> publisher);
-
-  /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
    *
    * The default configuration of Ratpack includes a {@link ratpack.error.ClientErrorHandler} in all contexts.
@@ -474,7 +303,7 @@ public interface Context extends ExecControl, Registry {
    * <li>{@link java.nio.file.Path}</li>
    * <li>{@link java.lang.CharSequence}</li>
    * <li>{@link Promise} (renders the promised value, using this {@code render()} method)</li>
-   * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)} and renders it)</li>
+   * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(Publisher)} and renders it)</li>
    * </ul>
    * <p>
    * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.

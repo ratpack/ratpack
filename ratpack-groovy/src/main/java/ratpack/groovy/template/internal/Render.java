@@ -20,7 +20,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
 
@@ -33,15 +32,13 @@ import static ratpack.util.Exceptions.uncheck;
 
 public class Render {
 
-  private final ExecControl execControl;
   private final ByteBufAllocator bufferAllocator;
   private final LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache;
   private final TextTemplateSource templateSource;
   private final Map<String, ?> model;
   private final Function<String, TextTemplateSource> includeTransformer;
 
-  private Render(ExecControl execControl, ByteBufAllocator bufferAllocator, LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, final Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) {
-    this.execControl = execControl;
+  private Render(ByteBufAllocator bufferAllocator, LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, final Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) {
     this.bufferAllocator = bufferAllocator;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateSource = templateSource;
@@ -50,7 +47,7 @@ public class Render {
   }
 
   private Promise<ByteBuf> invoke() {
-    return execControl.promise(f -> {
+    return Promise.of(f -> {
         ByteBuf byteBuf = bufferAllocator.ioBuffer();
         try {
           CompiledTextTemplate fromCache = getFromCache(compiledTemplateCache, templateSource);
@@ -86,7 +83,7 @@ public class Render {
     });
   }
 
-  public static Promise<ByteBuf> render(ExecControl execControl, ByteBufAllocator bufferAllocator, LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) throws Exception {
-    return new Render(execControl, bufferAllocator, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
+  public static Promise<ByteBuf> render(ByteBufAllocator bufferAllocator, LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) throws Exception {
+    return new Render(bufferAllocator, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
   }
 }

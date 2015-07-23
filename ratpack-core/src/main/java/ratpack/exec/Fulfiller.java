@@ -16,64 +16,21 @@
 
 package ratpack.exec;
 
-import ratpack.api.NonBlocking;
-
-import java.util.concurrent.CompletableFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import ratpack.api.NonBlocking;
+import ratpack.func.Action;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A fulfiller of an asynchronous promise.
  * <p>
- * This type is used to integrate with asynchronous APIs, via the {@link ExecControl#promise(ratpack.func.Action)} method.
- * The following example shows usage during request processing.
- * <pre class="tested">{@code
- * import ratpack.handling.InjectionHandler;
- * import ratpack.handling.Context;
- * import ratpack.exec.Promise;
- * import ratpack.exec.Fulfiller;
- * import ratpack.func.Action;
- *
- * // Some 3rd party asynchronous API
- * public interface SomeAsyncApi {
- *   interface AsyncCallback {
- *     void onSuccess(String result);
- *     void onError(IOException e);
- *   }
- *
- *   void doSomeAsyncOperation(AsyncCallback callback);
- * }
- *
- * public class AsyncApiUsingHandler extends InjectionHandler {
- *   void handle(final Context context, final SomeAsyncApi asyncApi) {
- *     Promise<String> promise = context.promise(new Action<Fulfiller<String>>() {
- *       public void execute(final Fulfiller<String> fulfiller) {
- *         asyncApi.doSomeAsyncOperation(new SomeAsyncApi.AsyncCallback() {
- *           public void onSuccess(String result) {
- *             fulfiller.success(result);
- *           }
- *           public void onError(IOException e) {
- *             fulfiller.error(e);
- *           }
- *         });
- *       }
- *     });
- *
- *     promise.then(new Action<String>() {
- *       public void execute(String string) {
- *         context.render(string);
- *       }
- *     });
- *   }
- * }
- * }</pre>
- * <p>
- * The methods of this method may be executed asynchronously.
- * That is, the promise subscription my be invoked in a separate thread.
+ * This type is used to integrate with asynchronous APIs, via the {@link Promise#of(Action)} method.
  *
  * @param <T> the type of value that was promised.
- * @see ExecControl#promise(ratpack.func.Action)
+ * @see Promise#of(Action)
  * @see Promise
  */
 public interface Fulfiller<T> {

@@ -26,7 +26,6 @@ import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
@@ -107,11 +106,6 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   }
 
   @Provides
-  ExecControl execControl(ExecController execController) {
-    return execController.getControl();
-  }
-
-  @Provides
   HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, ServerConfig serverConfig) {
     return HttpClient.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength());
   }
@@ -124,7 +118,7 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   @Provides
   @ExecutionScoped
   Execution execution() {
-    return Execution.execution();
+    return Execution.current();
   }
 
   @Provides

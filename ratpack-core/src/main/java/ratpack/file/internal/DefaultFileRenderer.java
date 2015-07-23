@@ -17,7 +17,7 @@
 package ratpack.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import ratpack.exec.ExecControl;
+import ratpack.exec.Blocking;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -37,7 +37,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
 
   @Override
   public void render(Context context, Path targetFile) throws Exception {
-    readAttributes(context, targetFile, attributes -> {
+    readAttributes(targetFile, attributes -> {
       if (attributes == null || !attributes.isRegularFile()) {
         context.clientError(404);
       } else {
@@ -72,8 +72,8 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
     });
   }
 
-  public static void readAttributes(ExecControl execContext, Path file, Action<? super BasicFileAttributes> then) throws Exception {
-    execContext.blocking(() -> {
+  public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
+    Blocking.get(() -> {
       if (Files.exists(file)) {
         return Files.readAttributes(file, BasicFileAttributes.class);
       } else {

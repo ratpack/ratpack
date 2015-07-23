@@ -22,6 +22,7 @@ import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
+import ratpack.exec.Blocking
 import ratpack.stream.Streams
 
 import java.time.Duration
@@ -99,7 +100,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
         } then {
           def buffer = it.body.buffer
           assert buffer.refCnt() == 1
-          blocking { 2 } then {
+          Blocking.get { 2 } then {
             assert buffer.refCnt() == 1
             render "bar"
           }

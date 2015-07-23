@@ -44,9 +44,9 @@ import ratpack.server.Service;
  * import io.netty.buffer.ByteBufInputStream;
  * import io.netty.buffer.ByteBufOutputStream;
  * import io.netty.util.AsciiString;
- * import ratpack.exec.ExecControl;
  * import ratpack.exec.Operation;
  * import ratpack.exec.Promise;
+ * import ratpack.exec.Blocking;
  * import ratpack.guice.ConfigurableModule;
  * import ratpack.guice.Guice;
  * import ratpack.server.StartEvent;
@@ -69,33 +69,31 @@ import ratpack.server.Service;
  *   static class FileSessionStore implements SessionStore {
  *     private final ByteBufAllocator bufferAllocator;
  *     private final File dir;
- *     private final ExecControl execControl;
  *
  *     {@literal @}Inject
- *     public FileSessionStore(ByteBufAllocator bufferAllocator, FileSessionModule.Config config, ExecControl execControl) {
+ *     public FileSessionStore(ByteBufAllocator bufferAllocator, FileSessionModule.Config config) {
  *       this.bufferAllocator = bufferAllocator;
  *       this.dir = config.dir;
- *       this.execControl = execControl;
  *     }
  *
  *     {@literal @}Override
  *     public void onStart(StartEvent event) throws Exception {
- *       execControl.blocking(dir::mkdirs).then(created -> {
- *         assert created || dir.exists();
- *       });
+ *       Blocking.op(() -> {
+ *         assert dir.mkdirs() || dir.exists();
+ *       }).then();
  *     }
  *
  *     {@literal @}Override
  *     public void onStop(StopEvent event) throws Exception {
- *       execControl.blocking(() -> {
+ *       Blocking.op(() -> {
  *         Arrays.asList(dir.listFiles()).forEach(File::delete);
- *         return dir.delete();
- *       }).operation().then();
+ *         dir.delete();
+ *       }).then();
  *     }
  *
  *     {@literal @}Override
  *     public Operation store(AsciiString sessionId, ByteBuf sessionData) {
- *       return execControl.blockingOperation(() ->
+ *       return Blocking.op(() ->
  *           Files.asByteSink(file(sessionId)).writeFrom(new ByteBufInputStream(sessionData))
  *       );
  *     }
@@ -103,7 +101,7 @@ import ratpack.server.Service;
  *     {@literal @}Override
  *     public Promise<ByteBuf> load(AsciiString sessionId) {
  *       File sessionFile = file(sessionId);
- *       return execControl.blocking(() -> {
+ *       return Blocking.get(() -> {
  *         if (sessionFile.exists()) {
  *           ByteBuf buffer = bufferAllocator.buffer((int) sessionFile.length());
  *           try {
@@ -125,12 +123,12 @@ import ratpack.server.Service;
  *
  *     {@literal @}Override
  *     public Operation remove(AsciiString sessionId) {
- *       return execControl.blockingOperation(() -> file(sessionId).delete());
+ *       return Blocking.op(() -> file(sessionId).delete());
  *     }
  *
  *     {@literal @}Override
  *     public Promise<Long> size() {
- *       return execControl.blocking(() -> (long) dir.listFiles(File::isFile).length);
+ *       return Blocking.get(() -> (long) dir.listFiles(File::isFile).length);
  *     }
  *   }
  *

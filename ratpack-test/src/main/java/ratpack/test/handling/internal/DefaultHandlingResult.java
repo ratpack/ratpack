@@ -24,7 +24,6 @@ import org.reactivestreams.Subscriber;
 import ratpack.api.Nullable;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
@@ -116,15 +115,14 @@ public class DefaultHandlingResult implements HandlingResult {
     };
 
     ExecController execController = registry.get(ExecController.class);
-    ExecControl execControl = execController.getControl();
     Registry effectiveRegistry = Registry.single(Stopper.class, stopper).join(registry);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, next);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, execController, next);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, request, null, eventController.getRegistry()
     );
     Response response = new DefaultResponse(responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
     requestConstants.response = response;
-    DefaultContext.start(execController.getEventLoopGroup().next(), execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
+    DefaultContext.start(execController.getEventLoopGroup().next(), requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

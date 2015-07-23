@@ -19,6 +19,8 @@ package ratpack.stream
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.exec.Blocking
+import ratpack.exec.Promise
 import ratpack.func.Function
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
@@ -192,7 +194,7 @@ class StreamsSpec extends Specification {
   def "flat yielding publisher"() {
     when:
     def p = ({ r ->
-      harness.blocking {
+      Blocking.get {
         r.requestNum < 4 ? r.requestNum.toString() + "-" + r.subscriberNum.toString() : null
       }
     } as Function).flatYield()
@@ -223,7 +225,7 @@ class StreamsSpec extends Specification {
   def "failed promise stops flat yield"() {
     given:
     def p = ({ r ->
-      harness.blocking {
+      Blocking.get {
         r.requestNum < 4 ? r.requestNum.toString() + "-" + r.subscriberNum.toString() : { throw new Exception("!") }.run()
       }
     } as Function).flatYield()
@@ -604,11 +606,21 @@ class StreamsSpec extends Specification {
   def "flatmap"() {
     when:
     def result = harness.yield { c ->
-      Streams.publish(["a", "b", "c"]).flatMap { c.promiseOf(it) }.toList()
+      Streams.publish(["a", "b", "c"]).flatMap { Promise.value(it) }.toList()
     }
 
     then:
     result.valueOrThrow == ["a", "b", "c"]
+  }
+
+  def "flatmap error"() {
+    when:
+    def result = harness.yield { c ->
+      Streams.publish(["a", "b", "c"]).flatMap { Promise.error(new IllegalStateException("!")) }.toList()
+    }
+
+    then:
+    result.throwable.message == "!"
   }
 
   def "can filter stream elements"() {

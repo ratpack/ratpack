@@ -16,10 +16,9 @@
 
 package ratpack.handling
 
+import ratpack.exec.Execution
 import ratpack.http.Request
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.exec.Execution.execution
 
 class RequestInExecutionRegistrySpec extends RatpackGroovyDslSpec {
 
@@ -27,7 +26,7 @@ class RequestInExecutionRegistrySpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        render execution().get(Request).getPath()
+        render Execution.current().get(Request).getPath()
       }
     }
 

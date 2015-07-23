@@ -16,7 +16,7 @@
 
 package ratpack.test.exec
 
-import ratpack.exec.ExecControl
+
 import ratpack.exec.ExecutionException
 import ratpack.exec.Promise
 import ratpack.func.Action
@@ -27,7 +27,7 @@ class ExecHarnessSpec extends Specification {
 
   @AutoCleanup
   def harness = ExecHarness.harness()
-  private AsyncService service = new AsyncService(harness.control, new AsyncApi())
+  private AsyncService service = new AsyncService(new AsyncApi())
 
   static class AsyncApi {
     public <T> void returnAsync(T thing, Action<? super T> callback) {
@@ -39,20 +39,18 @@ class ExecHarnessSpec extends Specification {
 
   static class AsyncService {
 
-    private final ExecControl execControl
     private final AsyncApi api
 
-    AsyncService(ExecControl execControl, AsyncApi api) {
-      this.execControl = execControl
+    AsyncService(AsyncApi api) {
       this.api = api
     }
 
     public Promise<Void> fail() {
-      execControl.promise { it.error(new RuntimeException("!!!")) }
+      Promise.of { it.error(new RuntimeException("!!!")) }
     }
 
     public <T> Promise<T> promise(T value) {
-      execControl.promise { f ->
+      Promise.of { f ->
         api.returnAsync(value) {
           f.success(it)
         }

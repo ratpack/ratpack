@@ -26,10 +26,9 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
-import ratpack.exec.internal.DefaultExecController;
+import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
@@ -57,12 +56,12 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
-  public static Registry serverRegistry(RatpackServer ratpackServer, DefaultExecController execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+  public static Registry serverRegistry(RatpackServer ratpackServer, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
 
     ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class));
-    execController.getControl().setDefaultInterceptors(interceptors);
+    execController.setDefaultInterceptors(interceptors);
 
     return baseRegistry.join(userRegistry);
   }
@@ -87,7 +86,6 @@ public abstract class ServerRegistry {
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
-        .add(ExecControl.class, execController.getControl())
         .add(MimeTypes.class, new ActivationBackedMimeTypes())
         .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
         .add(Redirector.class, new DefaultRedirector())

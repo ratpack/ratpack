@@ -34,8 +34,6 @@ import ratpack.util.Types;
 import java.io.*;
 import java.util.*;
 
-import static ratpack.exec.ExecControl.execControl;
-
 public class DefaultSession implements Session {
 
   private final Map<SessionKey<?>, byte[]> entries = Maps.newHashMap();
@@ -92,7 +90,7 @@ public class DefaultSession implements Session {
         return data;
       });
     } else {
-      return execControl().promiseOf(data);
+      return Promise.value(data);
     }
   }
 

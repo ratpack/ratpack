@@ -26,6 +26,7 @@ import groovy.json.JsonSlurper
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
@@ -48,7 +49,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can register metrics module"() {
     when:
     bindings {
-      module new CodaHaleMetricsModule(), { }
+      module new CodaHaleMetricsModule(), {}
     }
     handlers { MetricRegistry metrics ->
       all {
@@ -69,18 +70,19 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     System.out = new PrintStream(output, true)
 
     def log = Mock(Logger) {
-      info(_,_,_) >> { args ->
+      info(_, _, _) >> { args ->
         println args
       }
     }
 
     and:
     bindings {
-      module new CodaHaleMetricsModule(), { it
-        .jmx()
-        .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
-        .console { it.reporterInterval(Duration.ofSeconds(1)) }
-        .slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test") }
+      module new CodaHaleMetricsModule(), {
+        it
+          .jmx()
+          .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
+          .console { it.reporterInterval(Duration.ofSeconds(1)) }
+          .slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test") }
       }
     }
     handlers { MetricRegistry metrics ->
@@ -101,7 +103,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
     polling.within(2) {
       output.toString().contains("root.get-requests") &&
-      output.toString().contains("test.root.get-requests")
+        output.toString().contains("test.root.get-requests")
     }
 
     cleanup:
@@ -452,11 +454,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       module new CodaHaleMetricsModule(), {}
     }
 
-    handlers {MetricRegistry metrics ->
+    handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
 
       path("foo") {
-        blocking {
+        Blocking.get {
           2
         } then {
           render ""
@@ -482,7 +484,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     System.out = new PrintStream(output, true)
 
     def log = Mock(Logger) {
-      info(_,_,_) >> { args ->
+      info(_, _, _) >> { args ->
         println args
       }
     }
@@ -509,7 +511,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     polling.within(2) {
       output.toString().contains("tar.get-requests") &&
-      output.toString().contains("test.tar.get-requests")
+        output.toString().contains("test.tar.get-requests")
     }
 
     and:
@@ -532,7 +534,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       module new CodaHaleMetricsModule(), {
-        it.requestMetricGroups(["bar":"bar/.*", "foo":"foo/.*", "f":"f.*"])
+        it.requestMetricGroups(["bar": "bar/.*", "foo": "foo/.*", "f": "f.*"])
       }
     }
 

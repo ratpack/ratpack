@@ -44,14 +44,14 @@ public class BlockingHttpClient {
     try (ExecController execController = new DefaultExecController(2)) {
       final RequestAction requestAction = new RequestAction(uri, execController, action);
 
-      execController.getControl().fork()
+      execController.exec()
         .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>error(throwable)))
         .start(requestAction::execute);
 
       try {
         if (!requestAction.latch.await(duration.toNanos(), TimeUnit.NANOSECONDS)) {
           TemporalUnit unit = duration.getUnits().get(0);
-          throw new IllegalStateException("Request to " + uri + " took more than " + duration.get(unit) + " "+ unit.toString() +" to complete");
+          throw new IllegalStateException("Request to " + uri + " took more than " + duration.get(unit) + " " + unit.toString() + " to complete");
         }
       } catch (InterruptedException e) {
         throw Exceptions.uncheck(e);

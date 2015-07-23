@@ -31,7 +31,7 @@ public class PublisherRenderer extends RendererSupport<Publisher<?>> {
 
   @Override
   public void render(Context context, Publisher<?> publisher) throws Exception {
-    Streams.toPromise(context, publisher).then(context::render);
+    Streams.toPromise(publisher).then(context::render);
   }
 
 }

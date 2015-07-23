@@ -48,14 +48,14 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     handlers {
       all {
-        addInterceptor(interceptor1) {
-          addInterceptor(interceptor2) {
+        execution.addInterceptor(interceptor1) {
+          execution.addInterceptor(interceptor2) {
             next()
           }
         }
       }
       get(":path") {
-        blocking {
+        Blocking.get {
           2
         } then {
           render pathTokens.path
@@ -95,14 +95,14 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
         add(new SimpleErrorHandler())
       }
       all {
-        addInterceptor(interceptor1) {
-          addInterceptor(interceptor2) {
+        execution.addInterceptor(interceptor1) {
+          execution.addInterceptor(interceptor2) {
             next()
           }
         }
       }
       get(":path") {
-        blocking {
+        Blocking.get {
           2
         } then {
           render pathTokens.path

@@ -68,6 +68,7 @@ Instead, we need to use the “blocking” API…
 ```language-java
 import ratpack.handling.InjectionHandler;
 import ratpack.handling.Context;
+import ratpack.exec.Blocking;
 
 import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
@@ -88,8 +89,7 @@ public class Example {
   public static class DeletingHandler extends InjectionHandler {
     void handle(final Context context, final Datastore datastore) {
       final int days = context.getPathTokens().asInt("days");
-      context
-        .blocking(() -> datastore.deleteOlderThan(days))
+      Blocking.get(() -> datastore.deleteOlderThan(days))
         .then(i -> context.render(i + " records deleted"));
     }
   }
@@ -106,25 +106,26 @@ public class Example {
 }
 ```
 
-The `Callable` submitted as the blocking operation is executed asynchronously (i.e. the `blocking()` method returns instantly), in a separate thread pool.
+The function submitted as the blocking operation is executed asynchronously (i.e. the `Blocking.get()` method returns a promise instantly), in a separate thread pool.
 The result that it returns will processed back on a request processing (i.e. compute) thread.
 
-See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking-java.util.concurrent.Callable-) method for more details.
+See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.func.Factory-) method for more details.
 
 ## Performing async operations
 
-The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise-ratpack.func.Action-) for integrating with async APIs.
+The [Promise#of(Action<Fulfiller\<T>>)](api/ratpack/exec/Promise.html#of-ratpack.func.Action-) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
+import ratpack.exec.Promise;
 
 import static org.junit.Assert.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandler(ctx ->
-        ctx.promise((f) ->
+        Promise.of((f) ->
             new Thread(() -> f.success("hello world")).start()
         ).then(ctx::render)
     ).test(httpClient -> {

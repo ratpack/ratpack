@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline
 import ratpack.exec.ExecController
 import ratpack.exec.Execution
 import ratpack.exec.Fulfiller
+import ratpack.exec.Promise
 import ratpack.func.Action
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.RequestSpec
@@ -42,7 +43,7 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     handlers {
       get { ExecController execController, ByteBufAllocator byteBufAllocator ->
         requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), execution, byteBufAllocator)
-        execController.control.promise(requestAction).then {
+        Promise.of(requestAction).then {
           execution.onCleanup {
             latch.countDown()
           }

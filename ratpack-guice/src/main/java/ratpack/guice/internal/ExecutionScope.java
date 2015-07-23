@@ -51,7 +51,7 @@ public class ExecutionScope implements Scope {
 
   private <T> Map<Key<?>, Object> getScopedObjectMap(Key<T> key) {
     try {
-      Execution execution = Execution.execution();
+      Execution execution = Execution.current();
       return execution.maybeGet(Store.class).orElseGet(() -> {
         Store store = new Store();
         execution.add(Store.class, store);

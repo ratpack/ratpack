@@ -35,7 +35,7 @@ class ThrottleSpec extends Specification {
   def "can use unlimited throttle"() {
     def t = Throttle.unlimited()
     def v = execHarness.yield {
-      execHarness.control.promise { it.success("foo") }.throttled(t)
+      Promise.of { it.success("foo") }.throttled(t)
     }
 
     expect:
@@ -46,7 +46,7 @@ class ThrottleSpec extends Specification {
   def "can use throttle"() {
     def t = Throttle.ofSize(1)
     def v = execHarness.yield {
-      execHarness.control.promise { it.success("foo") }.throttled(t)
+      Promise.of { it.success("foo") }.throttled(t)
     }
 
     expect:
@@ -64,10 +64,10 @@ class ThrottleSpec extends Specification {
 
     when:
     jobs.times {
-      execHarness.fork().onComplete { latch.countDown() }.start {
+      execHarness.exec().onComplete { latch.countDown() }.start {
         def exec = it
-        it.control.promise { q << it }.throttled(t).result {
-          assert execHarness.control.execution.is(exec)
+        Promise.of { q << it }.throttled(t).result {
+          assert Execution.current().is(exec)
           e << it
         }
       }
@@ -80,7 +80,7 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size
     }
 
-    execHarness.fork().start { it.control.blocking { q.take().success(1) } then {} }
+    execHarness.exec().start { Blocking.get { q.take().success(1) } then {} }
 
     polling.eventually {
       q.size() == t.size
@@ -88,10 +88,10 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size - 1
     }
 
-    execHarness.fork().start { e2 ->
+    execHarness.exec().start { e2 ->
       def n = jobs - 2 - throttleSize
       n.times {
-        e2.control.blocking { q.take() } then {
+        Blocking.get { q.take() } then {
           it.success(1)
         }
       }

@@ -21,7 +21,7 @@ import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixObservableCommand
 import ratpack.error.ServerErrorHandler
-import ratpack.exec.ExecController
+import ratpack.exec.Blocking
 import ratpack.handling.Context
 import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
@@ -83,11 +83,11 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     handlers { CommandFactory factory ->
       path("blocking") {
         def firstCall = factory.hystrixCommand("1").queue()
-        blocking {
+        Blocking.get {
           firstCall.get()
         } then {
           def secondCall = factory.hystrixCommand("2").queue()
-          blocking {
+          Blocking.get {
             secondCall.get()
           } then {
             render it
@@ -181,7 +181,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         @Override
         protected Observable<String> construct() {
           assert Thread.currentThread().name.startsWith("ratpack-compute-")
-          return RxRatpack.observe(ExecController.require().control.blocking {
+          return RxRatpack.observe(Blocking.get {
             assert Thread.currentThread().name.startsWith("ratpack-blocking-")
             return requestNumber
           })

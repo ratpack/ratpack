@@ -61,7 +61,7 @@ public class FileHandler implements Handler {
   }
 
   private void servePath(final Context context, final Path file) throws Exception {
-    readAttributes(context, file, attributes -> {
+    readAttributes(file, attributes -> {
       if (attributes == null) {
         context.next();
       } else if (attributes.isRegularFile()) {
@@ -80,7 +80,7 @@ public class FileHandler implements Handler {
     } else {
       String name = indexFiles.get(i);
       final Path indexFile = file.resolve(name);
-      readAttributes(context, indexFile, attributes -> {
+      readAttributes(indexFile, attributes -> {
         if (attributes != null && attributes.isRegularFile()) {
           String path = context.getRequest().getPath();
           if (path.endsWith("/") || path.isEmpty()) {

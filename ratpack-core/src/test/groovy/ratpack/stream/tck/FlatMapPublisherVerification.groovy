@@ -21,6 +21,7 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 import org.testng.annotations.AfterClass
+import ratpack.exec.Blocking
 import ratpack.stream.Streams
 import ratpack.test.exec.ExecHarness
 
@@ -41,13 +42,13 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
           throw null
         }
 
-        execHarness.fork().start {
+        execHarness.exec().start {
           def stream = Streams.yield {
             it.requestNum < elements ? elements : null
           }
 
-          execHarness.stream(stream).flatMap { n ->
-            execHarness.blocking { n * 2 }
+          Streams.bindExec(stream).flatMap { n ->
+            Blocking.get { n * 2 }
           }.subscribe(s)
         }
       }

@@ -44,6 +44,7 @@ import java.util.Map;
  * import java.util.List;
  * import java.util.ArrayList;
  * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.exec.Blocking;
  * import org.slf4j.MDC;
  * import org.slf4j.Logger;
  * import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ import java.util.Map;
  *           MDC.put("clientIp", ctx.getRequest().getRemoteAddress().getHostText());
  *           // The logging implementation/configuration may inject values from the MDC into log statements
  *           LOGGER.info("about to block");
- *           ctx.blocking(() -> {
+ *           Blocking.get(() -> {
  *             // The MDC is carried across asynchronous boundaries by the interceptor
  *             LOGGER.info("blocking");
  *             return "something";
@@ -91,7 +92,7 @@ import java.util.Map;
  * The client IP address will be appended to all log messages made while processing requests.
  * <h3>Inheritance</h3>
  * <p>
- * The MDC is not inherited by forked executions (e.g. {@link ratpack.handling.Context#fork()}).
+ * The MDC is not inherited by forked executions (e.g. {@link Execution#fork()}).
  * If you wish context to be inherited, you must do so explicitly by capturing the variables you wish to be inherited
  * (i.e. via {@link MDC#get(String)}) as local variables and then add them to the MDC (i.e. via {@link MDC#put(String, String)}) in the forked execution.
  *

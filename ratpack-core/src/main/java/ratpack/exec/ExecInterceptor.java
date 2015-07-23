@@ -24,10 +24,11 @@ import ratpack.func.Block;
  * The interception methods <i>wrap</i> the rest of the execution.
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
  * <p>
- * Request handling execution can be intercepted by the {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Block)} method.
+ * Request handling execution can be intercepted by the {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)} method.
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.exec.Execution;
+ * import ratpack.exec.Blocking;
  * import ratpack.exec.ExecResult;
  * import ratpack.func.Block;
  * import ratpack.test.exec.ExecHarness;
@@ -90,7 +91,7 @@ import ratpack.func.Block;
  *       r -> r.add(new ProcessingTimingInterceptor()), // add the interceptor to the registry
  *       e -> {
  *         Thread.sleep(100);
- *         return e.blocking(() -> {
+ *         return Blocking.get(() -> {
  *           Thread.sleep(100);
  *           return "foo";
  *         })
@@ -109,10 +110,9 @@ import ratpack.func.Block;
  *   }
  * }
  * }</pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Block)}.
+ * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)}.
  *
- * @see Execution
- * @see ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Block)
+ * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)
  */
 public interface ExecInterceptor {
 

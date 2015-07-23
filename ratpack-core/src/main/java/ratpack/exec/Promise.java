@@ -16,13 +16,14 @@
 
 package ratpack.exec;
 
-import ratpack.exec.internal.*;
+import ratpack.exec.internal.CachingUpstream;
+import ratpack.exec.internal.DefaultOperation;
+import ratpack.exec.internal.DefaultPromise;
+import ratpack.exec.internal.ExecutionBacking;
 import ratpack.func.*;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
-import static ratpack.exec.ExecControl.execControl;
 import static ratpack.func.Action.ignoreArg;
 
 /**
@@ -34,7 +35,7 @@ import static ratpack.func.Action.ignoreArg;
  * Such operations are implemented via the {@link #transform(Function)} method.
  * Each operation returns a new promise object, not the original promise object.
  * <p>
- * To create a promise, use the {@link ExecControl#promise(Action)} method (or one of the variants such as {@link ExecControl#blocking(Callable)}.
+ * To create a promise, use the {@link Promise#of(Action)} method (or one of the variants such as {@link Promise#ofLazy(Factory)}.
  * To test code that uses promises, use the {@link ratpack.test.exec.ExecHarness}.
  * <p>
  * The promise is not “activated” until the {@link #then(Action)} method is called.
@@ -63,7 +64,7 @@ public interface Promise<T> {
    * @see Fulfiller
    */
   static <T> Promise<T> of(Action<? super Fulfiller<T>> action) {
-    return new DefaultPromise<>(DefaultExecControl.upstream(action));
+    return new DefaultPromise<>(ExecutionBacking.upstream(action));
   }
 
   /**
@@ -83,7 +84,6 @@ public interface Promise<T> {
    * Creates a promise for value produced by the given factory.
    * <p>
    * This method can be used when a promise is called for, and the value is available synchronously as the result of a function.
-
    *
    * @param factory the producer of the value
    * @param <T> the type of promised value
@@ -125,13 +125,14 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *       c.promiseOf("foo")
+   *       Promise.value("foo")
    *         .transform(up -> down ->
    *           up.connect(down.<String>onSuccess(value -> {
    *             try {
@@ -170,6 +171,8 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Blocking;
+   * import ratpack.exec.Promise;
    * import ratpack.func.Factory;
    *
    * import static org.junit.Assert.assertEquals;
@@ -181,9 +184,9 @@ public interface Promise<T> {
    *
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(e ->
-   *       e.blocking(() ->
+   *       Blocking.get(() ->
    *         produceSync(() ->
-   *           e.promiseOf("foo").block() // block and wait for the promised value
+   *           Promise.value("foo").block() // block and wait for the promised value
    *         )
    *       )
    *     );
@@ -194,7 +197,7 @@ public interface Promise<T> {
    * }</pre>
    *
    * <p>
-   * <b>Important:</b> this method can only be used inside a {@link ExecControl#blocking(Callable)} or {@link #blockingMap(Function)} function.
+   * <b>Important:</b> this method can only be used inside a {@link Blocking} function.
    * That is, it can only be used from a Ratpack managed blocking thread.
    * If it is called on a non Ratpack managed blocking thread it will immediately throw an {@link ExecutionException}.
    * <p>
@@ -205,6 +208,8 @@ public interface Promise<T> {
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.Blocking;
+   * import ratpack.exec.Promise;
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.ExecInterceptor;
    *
@@ -227,7 +232,7 @@ public interface Promise<T> {
    *           events.add(execType + "-stop");
    *         }
    *       }),
-   *       e -> e.blocking(() -> e.promiseOf("foo").block())
+   *       e -> Blocking.get(() -> Promise.value("foo").block())
    *     );
    *
    *     List<String> actualEvents = Arrays.asList(
@@ -289,13 +294,14 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *         c.blocking(() -> "foo")
+   *         Promise.value("foo")
    *           .map(String::toUpperCase)
    *           .map(s -> s + "-BAR")
    *     );
@@ -355,12 +361,13 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *         c.<String>failedPromise(new Exception("!"))
+   *         Promise.<String>error(new Exception("!"))
    *           .mapError(e -> "value")
    *     );
    *
@@ -373,12 +380,13 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *         c.<String>failedPromise(new Exception("!"))
+   *         Promise.<String>error(new Exception("!"))
    *           .mapError(e -> { throw new RuntimeException("mapped", e); })
    *     );
    *
@@ -419,7 +427,7 @@ public interface Promise<T> {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     Integer value = ExecHarness.yieldSingle(e ->
-   *         e.blocking(() -> 1)
+   *         Promise.value(1)
    *           .apply(Example::dubble)
    *           .apply(Example::triple)
    *     ).getValue();
@@ -447,7 +455,7 @@ public interface Promise<T> {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     Throwable error = ExecHarness.yieldSingle(e ->
-   *         e.blocking(() -> 1)
+   *         Promise.value(1)
    *           .apply(Example::explode)
    *     ).getThrowable();
    *
@@ -470,7 +478,7 @@ public interface Promise<T> {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     Throwable error = ExecHarness.yieldSingle(e ->
-   *         e.<Integer>blocking(() -> { throw new Exception("bang!"); })
+   *         Promise.<Integer>error(new Exception("bang!"))
    *           .apply(Example::dubble)
    *     ).getThrowable();
    *
@@ -491,7 +499,7 @@ public interface Promise<T> {
     try {
       return function.apply(this);
     } catch (Throwable e) {
-      return ExecControl.current().failedPromise(e);
+      return Promise.error(e);
     }
   }
 
@@ -502,6 +510,7 @@ public interface Promise<T> {
    * For example, this can be used when integrating with RxJava.
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.Arrays;
@@ -515,7 +524,7 @@ public interface Promise<T> {
    *
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(e ->
-   *         e.blocking(() -> "foo")
+   *         Promise.value("foo")
    *           .to(RxRatpack::observe)
    *           .doOnNext(i -> LOG.add("doOnNext"))
    *           .subscribe(LOG::add)
@@ -543,14 +552,14 @@ public interface Promise<T> {
   /**
    * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
    * <p>
-   * This is simply a more convenient form of using {@link ExecControl#blocking(java.util.concurrent.Callable)} and {@link #flatMap(Function)}.
+   * This is simply a more convenient form of using {@link Blocking#get(Factory)} and {@link #flatMap(Function)}.
    *
    * @param transformer the transformation to apply to the promised value, on a blocking thread
    * @param <O> the type of the transformed object
    * @return a promise for the transformed value
    */
   default <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer) {
-    return flatMap(t -> execControl().blocking(() -> transformer.apply(t)));
+    return flatMap(t -> Blocking.get(() -> transformer.apply(t)));
   }
 
   /**
@@ -560,14 +569,16 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Blocking;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
-   *         c.blocking(() -> "foo")
-   *           .flatMap(s -> c.blocking(s::toUpperCase))
+   *         Promise.value("foo")
+   *           .flatMap(s -> Blocking.get(s::toUpperCase))
    *           .map(s -> s + "-BAR")
    *     );
    *
@@ -604,6 +615,7 @@ public interface Promise<T> {
    * import com.google.common.collect.Lists;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
    *
    * import java.util.List;
    *
@@ -612,7 +624,7 @@ public interface Promise<T> {
    * public class Example {
    *   public static ExecResult<Integer> yield(int i, List<Integer> collector) throws Exception {
    *     return ExecHarness.yieldSingle(c ->
-   *         c.<Integer>promise(f -> f.success(i))
+   *         Promise.value(i)
    *           .route(v -> v > 5, collector::add)
    *     );
    *   }
@@ -646,8 +658,7 @@ public interface Promise<T> {
    *
    * public class Example {
    *   public static Promise<Integer> getAge(Context ctx) {
-   *     return ctx
-   *       .blocking(() -> 10) // e.g. fetch value from DB
+   *     return Promise.value(10)
    *       .route(
    *         i -> i < 21,
    *         i -> ctx.render(i + " is too young to be here!")
@@ -721,7 +732,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       AtomicLong counter = new AtomicLong();
-   *       Promise<Long> uncached = c.promise(f -> f.success(counter.getAndIncrement()));
+   *       Promise<Long> uncached = Promise.of(f -> f.success(counter.getAndIncrement()));
    *
    *       uncached.then(i -> assertEquals(0l, i.longValue()));
    *       uncached.then(i -> assertEquals(1l, i.longValue()));
@@ -750,7 +761,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       Throwable error = new Exception("bang!");
-   *       Promise<Object> cached = c.promise(f -> f.error(error)).cache();
+   *       Promise<Object> cached = Promise.of(f -> f.error(error)).cache();
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
@@ -795,6 +806,7 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import com.google.common.collect.Lists;
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.Promise;
    *
    * import java.util.Arrays;
    * import java.util.List;
@@ -805,7 +817,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *         c.<String>promise(f -> {
+   *         Promise.<String>of(f -> {
    *           events.add("promise");
    *           f.success("foo");
    *         })
@@ -837,6 +849,7 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import com.google.common.collect.Lists;
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.Promise;
    *
    * import java.util.Arrays;
    * import java.util.List;
@@ -847,7 +860,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *         c.<String>promise(f -> {
+   *         Promise.<String>of(f -> {
    *           events.add("promise");
    *           f.success("foo");
    *         })
@@ -887,6 +900,8 @@ public interface Promise<T> {
    * Note that the {@link Throttle} instance given defines the actual throttling semantics.
    * <pre class="java">{@code
    * import ratpack.exec.Throttle;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Execution;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
    *
@@ -907,10 +922,10 @@ public interface Promise<T> {
    *       Throttle throttle = Throttle.ofSize(maxAtOnce);
    *
    *       // Launch numJobs forked executions, and return the maximum number that were executing at any given time
-   *       return exec.promise(outerFulfiller -> {
+   *       return Promise.of(outerFulfiller -> {
    *         for (int i = 0; i < numJobs; i++) {
-   *           exec.fork().start(forkedExec ->
-   *             forkedExec.<Integer>promise(innerFulfiller -> {
+   *           Execution.fork().start(forkedExec ->
+   *             Promise.<Integer>of(innerFulfiller -> {
    *               int activeNow = active.incrementAndGet();
    *               int maxConcurrentVal = maxConcurrent.updateAndGet(m -> Math.max(m, activeNow));
    *               active.decrementAndGet();
@@ -939,4 +954,11 @@ public interface Promise<T> {
     return throttle.throttle(this);
   }
 
+  static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
+    try {
+      return factory.create();
+    } catch (Exception e) {
+      return Promise.error(e);
+    }
+  }
 }

@@ -19,7 +19,7 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.exec.ExecControl;
+import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
 import ratpack.stream.TransformablePublisher;
@@ -53,7 +53,6 @@ public class FlatMapPublisher<O, I> implements TransformablePublisher<O> {
 
           @Override
           public void cancel() {
-            done.set(true);
             subscription.cancel();
           }
         };
@@ -70,13 +69,13 @@ public class FlatMapPublisher<O, I> implements TransformablePublisher<O> {
           out = function.apply(in);
         } catch (Throwable throwable) {
           subscription.cancel();
-          onError(throwable);
+          innerOnError(throwable);
           return;
         }
 
         out.onError(e -> {
           subscription.cancel();
-          onError(e);
+          innerOnError(e);
         }).then(v -> {
           if (!done.get()) {
             outSubscriber.onNext(v);
@@ -86,16 +85,18 @@ public class FlatMapPublisher<O, I> implements TransformablePublisher<O> {
 
       @Override
       public void onError(Throwable t) {
-        ExecControl.current().promiseOf(t).then(e -> {
-          if (done.compareAndSet(false, true)) {
-            outSubscriber.onError(t);
-          }
-        });
+        Promise.value(t).then(this::innerOnError);
+      }
+
+      public void innerOnError(Throwable t) {
+        if (done.compareAndSet(false, true)) {
+          outSubscriber.onError(t);
+        }
       }
 
       @Override
       public void onComplete() {
-        ExecControl.current().promiseOf(true).then(e -> {
+        Operation.noop().then(() -> {
           if (done.compareAndSet(false, true)) {
             outSubscriber.onComplete();
           }

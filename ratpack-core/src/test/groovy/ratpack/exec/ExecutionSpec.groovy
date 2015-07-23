@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
+import ratpack.stream.Streams
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -38,16 +39,16 @@ class ExecutionSpec extends Specification {
   def latch = new CountDownLatch(1)
 
 
-  def exec(Action<? super ExecControl> action) {
+  def exec(Action<? super Execution> action) {
     exec(action, Action.noop())
   }
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError) {
-    harness.fork().onError(onError).onComplete {
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError) {
+    harness.controller.exec().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
     } start {
-      action.execute(it.control)
+      action.execute(it)
     }
     latch.await()
   }
@@ -157,17 +158,17 @@ class ExecutionSpec extends Specification {
     when:
     def innerLatch = new CountDownLatch(1)
 
-    exec { control ->
+    exec { outerExec ->
       def p = Promise.value { f ->
-        control.fork().start {
+        Execution.fork().start {
           f.success(2)
         }
       }
 
-      control.execution.onCleanup {
-        control.fork().start { e2 ->
+      outerExec.onCleanup {
+        Execution.fork().start { e2 ->
           p.then {
-            assert control.execution == e2
+            assert Execution.current() == e2
             events << "then"
             innerLatch.countDown()
           }
@@ -183,7 +184,7 @@ class ExecutionSpec extends Specification {
   def "subscriber callbacks are bound to execution"() {
     when:
     exec { e1 ->
-      e1.stream(new Publisher<String>() {
+      Streams.bindExec(new Publisher<String>() {
         @Override
         void subscribe(Subscriber subscriber) {
           events << 'publisher-subscribe'
@@ -317,9 +318,9 @@ class ExecutionSpec extends Specification {
 
   def "can complete future"() {
     when:
-    exec({ ExecControl c ->
+    exec({ e ->
       Promise.of { Fulfiller<String> f ->
-        f.accept(CompletableFuture.supplyAsync({ "foo" }, c.controller.executor))
+        f.accept(CompletableFuture.supplyAsync({ "foo" }, e.controller.executor))
       } then {
         events << it
       }
@@ -331,7 +332,7 @@ class ExecutionSpec extends Specification {
 
   def "can complete ListenableFuture"() {
     when:
-    exec({ ExecControl c ->
+    exec({ c ->
       Promise.of { Fulfiller<String> f ->
         f.accept(Futures.immediateFuture("foo"))
       } then {
@@ -345,7 +346,7 @@ class ExecutionSpec extends Specification {
 
   def "can error from ListenableFuture"() {
     when:
-    exec({ ExecControl c ->
+    exec({ c ->
       Promise.of { Fulfiller<String> f ->
         f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
       } onError {

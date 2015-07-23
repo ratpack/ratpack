@@ -16,6 +16,7 @@
 
 package ratpack.render
 
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RenderableDecorationSpec extends RatpackGroovyDslSpec {
@@ -42,8 +43,8 @@ class RenderableDecorationSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       register {
-        with(RenderableDecorator.ofAsync(String) { c, i -> c.blocking { i + "1" } }.register())
-        with(RenderableDecorator.ofAsync(String) { c, i -> c.blocking { i + "2" } }.register())
+        with(RenderableDecorator.ofAsync(String) { c, i -> Blocking.get { i + "1" } }.register())
+        with(RenderableDecorator.ofAsync(String) { c, i -> Blocking.get { i + "2" } }.register())
       }
       get { render("a") }
     }

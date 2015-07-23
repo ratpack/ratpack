@@ -26,7 +26,6 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
-import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
@@ -62,20 +61,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final Handler[] handlers;
 
   private final DefaultContext.ApplicationConstants applicationConstants;
-  private final ExecController execController;
 
   private final Registry serverRegistry;
   private final boolean development;
-  private final ExecControl execControl;
 
   public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
     super(false);
-
     this.handlers = ChainHandler.unpack(handler);
     this.serverRegistry = serverRegistry;
-    this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), Handlers.notFound());
-    this.execController = serverRegistry.get(ExecController.class);
-    this.execControl = execController.getControl();
+    this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
     this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
   }
 
@@ -116,7 +110,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController);
 
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 
@@ -134,7 +128,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
     requestConstants.response = response;
 
-    DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, serverRegistry, handlers, execution -> {
+    DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();

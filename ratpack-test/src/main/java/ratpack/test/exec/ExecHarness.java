@@ -16,17 +16,12 @@
 
 package ratpack.test.exec;
 
-import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
-import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.registry.RegistrySpec;
-import ratpack.stream.TransformablePublisher;
 import ratpack.test.exec.internal.DefaultExecHarness;
-
-import java.util.concurrent.Callable;
 
 /**
  * A utility for testing asynchronous support/service code.
@@ -40,13 +35,12 @@ import java.util.concurrent.Callable;
  * @see #run(Action)
  * @see #runSingle(Action)
  */
-public interface ExecHarness extends ExecControl, AutoCloseable {
+public interface ExecHarness extends AutoCloseable {
 
   /**
    * Creates a new execution harness.
    *
    * <pre class="java">{@code
-   * import ratpack.exec.ExecControl;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
@@ -70,16 +64,11 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    *   // Our service class that wraps the raw async API
    *   // In the real app this is created by the DI container (e.g. Guice)
    *   static class AsyncService {
-   *     private final ExecControl execControl;
    *     private final AsyncApi asyncApi = new AsyncApi();
-   *
-   *     public AsyncService(ExecControl execControl) {
-   *       this.execControl = execControl;
-   *     }
    *
    *     // Our method under test
    *     public <T> Promise<T> promise(final T value) {
-   *       return execControl.promise(fulfiller -> asyncApi.returnAsync(value, fulfiller::success));
+   *       return Promise.of(fulfiller -> asyncApi.returnAsync(value, fulfiller::success));
    *     }
    *   }
    *
@@ -87,8 +76,8 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    *     // the harness must be close()'d when finished with to free resources
    *     try (ExecHarness harness = ExecHarness.harness()) {
    *
-   *       // set up the code under test using the exec control from the harness
-   *       final AsyncService service = new AsyncService(harness.getControl());
+   *       // set up the code under test
+   *       final AsyncService service = new AsyncService();
    *
    *       // exercise the async code using the harness, blocking until the promised value is available
    *       ExecResult<String> result = harness.yield(execution -> service.promise("foo"));
@@ -111,6 +100,12 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
   static ExecHarness harness(int numThreads) {
     return new DefaultExecHarness(new DefaultExecController(numThreads));
   }
+
+  default ExecBuilder exec() {
+    return getController().exec();
+  }
+
+  ExecController getController();
 
   /**
    * Synchronously returns a promised value.
@@ -182,7 +177,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @see #runSingle(Action)
    * @see #yield(Function)
    */
-  default void run(Action<? super ExecControl> action) throws Exception {
+  default void run(Action<? super Execution> action) throws Exception {
     run(Action.noop(), action);
   }
 
@@ -199,7 +194,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @see #runSingle(Action)
    * @see #yield(Function)
    */
-  void run(Action<? super RegistrySpec> registry, Action<? super ExecControl> action) throws Exception;
+  void run(Action<? super RegistrySpec> registry, Action<? super Execution> action) throws Exception;
 
   /**
    * Convenient form of {@link #run(Action)} that creates and closes a harness for the run.
@@ -209,7 +204,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @see #run(Action)
    * @see #yield(Function)
    */
-  static void runSingle(Action<? super ExecControl> action) throws Exception {
+  static void runSingle(Action<? super Execution> action) throws Exception {
     try (ExecHarness harness = harness()) {
       harness.run(action);
     }
@@ -224,13 +219,13 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * @see #run(Action)
    * @see #yield(Function)
    */
-  static void runSingle(Action<? super RegistrySpec> registry, Action<? super ExecControl> action) throws Exception {
+  static void runSingle(Action<? super RegistrySpec> registry, Action<? super Execution> action) throws Exception {
     try (ExecHarness harness = harness()) {
       harness.run(registry, action);
     }
   }
 
-  default void execute(Function<? super ExecControl, ? extends Operation> function) throws Exception {
+  default void execute(Function<? super Execution, ? extends Operation> function) throws Exception {
     yield(e -> function.apply(e).promise()).getValueOrThrow();
   }
 
@@ -238,7 +233,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
     execute(e -> operation);
   }
 
-  static void executeSingle(Function<? super ExecControl, ? extends Operation> function) throws Exception {
+  static void executeSingle(Function<? super Execution, ? extends Operation> function) throws Exception {
     try (ExecHarness harness = harness()) {
       harness.execute(function);
     }
@@ -251,73 +246,9 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
   }
 
   /**
-   * The execution control for the harness.
-   * <p>
-   * Note that the execution harness implements {@link ExecControl} itself, simply delegating calls this the return of this method.
-   *
-   * @return an execution control
-   */
-  ExecControl getControl();
-
-  /**
    * Shuts down the thread pool backing this harness.
    */
   @Override
   void close();
-
-  /**
-   * {@inheritDoc}
-   */
-  default ExecBuilder fork() {
-    return getControl().fork();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  default Execution getExecution() {
-    return getControl().getExecution();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  default ExecController getController() {
-    return getControl().getController();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  default void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
-    getControl().addInterceptor(execInterceptor, continuation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  default <T> Promise<T> blocking(Callable<T> blockingOperation) {
-    return getControl().blocking(blockingOperation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  default <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return getControl().promise(action);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  default <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return getControl().stream(publisher);
-  }
 
 }

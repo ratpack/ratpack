@@ -20,6 +20,7 @@ For example, blocking operations can be easily observed.
 
 ```language-java
 import ratpack.exec.Promise;
+import ratpack.exec.Blocking;
 import ratpack.test.handling.HandlingResult;
 
 import static org.junit.Assert.assertEquals;
@@ -29,7 +30,7 @@ import static ratpack.test.handling.RequestFixture.requestFixture;
 public class Example {
   public static void main(String... args) throws Exception {
     HandlingResult result = requestFixture().handle(context -> {
-      Promise<String> promise = context.blocking(() -> "hello world");
+      Promise<String> promise = Blocking.get(() -> "hello world");
       observe(promise).map(String::toUpperCase).subscribe(context::render);
     });
 

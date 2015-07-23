@@ -32,7 +32,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecControl;
+import ratpack.exec.Operation;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.http.*;
@@ -319,10 +319,7 @@ public class DefaultResponse implements Response {
 
   private void finalizeResponse(Iterator<Action<? super ResponseMetaData>> finalizers, Runnable then) {
     if (finalizers.hasNext()) {
-      ExecControl.current().nest(
-        () -> finalizers.next().execute(this),
-        () -> finalizeResponse(finalizers, then)
-      );
+      Operation.of(() -> finalizers.next().execute(this)).then(() -> finalizeResponse(finalizers, then));
     } else {
       List<Action<? super ResponseMetaData>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
       responseFinalizers.clear();

@@ -17,6 +17,7 @@
 package ratpack.render
 
 import ratpack.error.ServerErrorHandler
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class PromiseRendereringSpec extends RatpackGroovyDslSpec {
@@ -25,7 +26,7 @@ class PromiseRendereringSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        context.render(blocking { "foo" })
+        context.render(Blocking.get { "foo" })
       }
     }
 
@@ -37,7 +38,7 @@ class PromiseRendereringSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        context.render(blocking { "foo" }.onError { throw new Error() })
+        context.render(Blocking.get { "foo" }.onError { throw new Error() })
       }
     }
 
@@ -52,7 +53,7 @@ class PromiseRendereringSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        context.render(blocking { throw new Exception("foo") })
+        context.render(Blocking.get { throw new Exception("foo") })
       }
     }
 
@@ -64,7 +65,7 @@ class PromiseRendereringSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        context.render(blocking { throw new Exception("foo") }.onError { render it.message })
+        context.render(Blocking.get { throw new Exception("foo") }.onError { render it.message })
       }
     }
 

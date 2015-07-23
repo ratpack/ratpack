@@ -68,7 +68,7 @@ public abstract class WebSockets {
   /**
    * Sets up a websocket that sends the published Strings to a client.
    * <p>
-   * This takes the place of a {@link Context#stream(Publisher)} call.
+   * This takes the place of a {@link Streams#bindExec(Publisher)} call.
    *
    * @param context the request handling context
    * @param broadcaster a {@link Publisher} of Strings to send to the websocket client
@@ -83,7 +83,7 @@ public abstract class WebSockets {
   /**
    * Sets up a websocket that sends the published byte buffers to a client.
    * <p>
-   * This takes the place of a {@link Context#stream(Publisher)} call.
+   * This takes the place of a {@link Streams#bindExec(Publisher)} call.
    *
    * @param context the request handling context
    * @param broadcaster a {@link Publisher} of {@link ByteBuf}s to send to the websocket client
@@ -93,7 +93,7 @@ public abstract class WebSockets {
       @Override
       public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
         WebsocketBroadcastSubscriber subscriber = new WebsocketBroadcastSubscriber(webSocket);
-        context.stream(broadcaster).subscribe(subscriber);
+        Streams.bindExec(broadcaster).subscribe(subscriber);
         return subscriber;
       }
     });

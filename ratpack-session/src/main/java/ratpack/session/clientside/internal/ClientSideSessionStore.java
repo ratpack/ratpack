@@ -26,7 +26,6 @@ import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
-import ratpack.exec.ExecControl;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.http.Request;
@@ -45,7 +44,6 @@ public class ClientSideSessionStore implements SessionStore {
 
   private static final String SESSION_SEPARATOR = ":";
 
-  private final ExecControl execControl;
   private final Provider<Request> request;
   private final Provider<Response> response;
   private final Signer signer;
@@ -55,8 +53,7 @@ public class ClientSideSessionStore implements SessionStore {
   private final ClientSideSessionConfig config;
 
   @Inject
-  public ClientSideSessionStore(ExecControl execControl, Provider<Request> request, Provider<Response> response, Signer signer, Crypto crypto, ByteBufAllocator bufferAllocator, SessionCookieConfig cookieConfig, ClientSideSessionConfig config) {
-    this.execControl = execControl;
+  public ClientSideSessionStore(Provider<Request> request, Provider<Response> response, Signer signer, Crypto crypto, ByteBufAllocator bufferAllocator, SessionCookieConfig cookieConfig, ClientSideSessionConfig config) {
     this.request = request;
     this.response = response;
     this.signer = signer;
@@ -68,7 +65,7 @@ public class ClientSideSessionStore implements SessionStore {
 
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
-    return execControl.operation(() -> {
+    return Operation.of(() -> {
       int oldSessionCookiesCount = getCookies(config.getSessionCookieName()).length;
       String[] sessionCookiePartitions = serialize(sessionData);
       for (int i = 0; i < sessionCookiePartitions.length; i++) {
@@ -83,7 +80,7 @@ public class ClientSideSessionStore implements SessionStore {
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return execControl.promiseFrom(() -> {
+    return Promise.ofLazy(() -> {
       if (!isValid()) {
         invalidateCookies(getCookies(config.getSessionCookieName()));
         return Unpooled.buffer(0, 0);
@@ -95,7 +92,7 @@ public class ClientSideSessionStore implements SessionStore {
 
   @Override
   public Operation remove(AsciiString sessionId) {
-    return execControl.operation(() -> {
+    return Operation.of(() -> {
       int oldSessionCookiesCount = getCookies(config.getSessionCookieName()).length;
       for (int i = 0; i < oldSessionCookiesCount; i++) {
         invalidateCookie(config.getSessionCookieName() + "_" + i);
@@ -105,7 +102,7 @@ public class ClientSideSessionStore implements SessionStore {
 
   @Override
   public Promise<Long> size() {
-    return execControl.promiseOf(-1l);
+    return Promise.value(-1l);
   }
 
   private boolean isValid() {

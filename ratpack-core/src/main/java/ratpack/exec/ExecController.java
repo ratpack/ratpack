@@ -53,6 +53,8 @@ public interface ExecController extends AutoCloseable {
     return current().orElseThrow(UnmanagedThreadException::new);
   }
 
+  ExecBuilder exec();
+
   /**
    * Indicates whether the current thread is managed by <b>this</b> execution controller.
    * <p>
@@ -64,23 +66,11 @@ public interface ExecController extends AutoCloseable {
   boolean isManagedThread();
 
   /**
-   * A <strong>singleton</strong> that can be used from any managed thread to perform asynchronous or blocking operations.
-   * <p>
-   * The control is typically used by services that are not inherently tied to any specific execution to perform execution operations
-   * such as blocking and forking.
-   * <p>
-   * If you are using the Guice integration, an instance of this type can be injected.
-   *
-   * @return the execution control
-   */
-  ExecControl getControl();
-
-  /**
    * The event loop (i.e. computation) executor.
    * <p>
    * This executor wraps Netty's event loop executor to provide callback features by way of Guava's executor extensions.
    * <p>
-   * It is generally preferable to use {@link ratpack.exec.ExecControl#fork()} to submit computation work rather than this method,
+   * It is generally preferable to use {@link #exec()} to submit computation work rather than this method,
    * which properly initialises Ratpack's execution infrastructure.
    *
    * @return the executor that performs computation

@@ -16,10 +16,8 @@
 
 package ratpack.reactor;
 
-import ratpack.exec.ExecControl;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
 import reactor.core.composable.Deferred;
 
 public abstract class RatpackReactor {
@@ -28,17 +26,12 @@ public abstract class RatpackReactor {
     return reactorPromise.onSuccess(fulfiller::success).onError(fulfiller::error);
   }
 
-  public static <T> Promise<T> consume(ExecControl execControl, final Deferred<T, ? extends reactor.core.composable.Promise<T>> deferred) {
-    return consume(execControl, deferred.compose());
+  public static <T> Promise<T> consume(final Deferred<T, ? extends reactor.core.composable.Promise<T>> deferred) {
+    return consume(deferred.compose());
   }
 
-  public static <T> Promise<T> consume(ExecControl execControl, final reactor.core.composable.Promise<T> reactorPromise) {
-    return execControl.promise(new Action<Fulfiller<? super T>>() {
-      @Override
-      public void execute(Fulfiller<? super T> fulfiller) throws Exception {
-        consume(fulfiller, reactorPromise);
-      }
-    });
+  public static <T> Promise<T> consume(final reactor.core.composable.Promise<T> reactorPromise) {
+    return Promise.of(fulfiller -> consume(fulfiller, reactorPromise));
   }
 
 }

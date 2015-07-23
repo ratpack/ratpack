@@ -118,7 +118,7 @@ public interface RenderableDecorator<T> {
 
       @Override
       public Promise<T> decorate(Context context, T object) {
-        return context.promise(f -> f.success(impl.apply(context, object)));
+        return Promise.ofLazy(() -> impl.apply(context, object));
       }
     };
   }

@@ -18,24 +18,25 @@ package ratpack.exec.internal;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
-import org.reactivestreams.Publisher;
-import ratpack.exec.*;
-import ratpack.func.Action;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
 import ratpack.func.Block;
 import ratpack.registry.internal.SimpleMutableRegistry;
-import ratpack.stream.TransformablePublisher;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public class DefaultExecution extends SimpleMutableRegistry implements Execution {
 
+  private final ExecutionBacking executionBacking;
   private final EventLoop eventLoop;
   private final ExecController controller;
   private final List<AutoCloseable> closeables;
 
-  public DefaultExecution(EventLoop eventLoop, ExecController controller, List<AutoCloseable> closeables) {
+  public DefaultExecution(ExecutionBacking executionBacking, EventLoop eventLoop, ExecController controller, List<AutoCloseable> closeables) {
+    this.executionBacking = executionBacking;
     this.eventLoop = eventLoop;
     this.controller = controller;
     this.closeables = closeables;
@@ -44,20 +45,6 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   @Override
   public ExecController getController() {
     return controller;
-  }
-
-  @Override
-  public Execution getExecution() {
-    return getControl().getExecution();
-  }
-
-  public static ExecControl current() {
-    return ExecControl.current();
-  }
-
-  @Override
-  public ExecControl getControl() {
-    return controller.getControl();
   }
 
   @Override
@@ -83,33 +70,9 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   }
 
   @Override
-  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return getControl().stream(publisher);
-  }
-
-  @Override
-  public ExecBuilder fork() {
-    return getControl().fork();
-  }
-
-  @Override
-  public <T> Promise<T> promiseOf(T item) {
-    return getControl().promiseOf(item);
-  }
-
-  @Override
-  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return getControl().promise(action);
-  }
-
-  @Override
-  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
-    return getControl().blocking(blockingOperation);
-  }
-
-  @Override
   public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
-    getControl().addInterceptor(execInterceptor, continuation);
+    executionBacking.addInterceptor(execInterceptor);
+    executionBacking.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor).iterator(), continuation);
   }
 
 }

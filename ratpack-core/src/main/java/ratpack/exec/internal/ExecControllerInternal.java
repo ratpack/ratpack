@@ -17,10 +17,10 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
-import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
 
-public interface ExecControlInternal extends ExecControl {
+public interface ExecControllerInternal extends ExecController {
 
   void setDefaultInterceptors(ImmutableList<? extends ExecInterceptor> interceptors);
 
