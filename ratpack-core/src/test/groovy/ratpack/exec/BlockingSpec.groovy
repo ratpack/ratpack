@@ -200,7 +200,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       all {
         Blocking.get {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
-          request.body.block().text
+          Blocking.on(request.body).text
         } then {
           render it.toString()
         }
@@ -208,8 +208,9 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    requestSpec { RequestSpec request ->
-      request.body.type("text/plain").stream { it << "foo" }
+    requestSpec {
+      RequestSpec request ->
+        request.body.type("text/plain").stream { it << "foo" }
     }
 
     then:
@@ -265,4 +266,5 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     then:
     thrown(UnmanagedThreadException)
   }
+
 }

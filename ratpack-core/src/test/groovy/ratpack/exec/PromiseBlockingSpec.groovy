@@ -95,7 +95,7 @@ class PromiseBlockingSpec extends Specification {
 
     then:
     def e = thrown ExecutionException
-    e.message.startsWith("Promise.block() can only be used while blocking")
+    e.message.startsWith("Blocking.on() can only be used while blocking")
   }
 
   def "cannot use block when in block"() {
@@ -112,7 +112,7 @@ class PromiseBlockingSpec extends Specification {
 
     then:
     def e = thrown ExecutionException
-    e.message.startsWith("Promise.block() can only be used while blocking")
+    e.message.startsWith("Blocking.on() can only be used while blocking")
   }
 
   def "can intercept when using block"() {

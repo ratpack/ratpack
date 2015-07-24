@@ -285,7 +285,7 @@ class ExecutionSpec extends Specification {
       { it.flatMap { Blocking.get { 2 } } },
       { it },
       { it.map { 2 } },
-      { it.blockingMap { 2 } },
+      { it.flatMap { Blocking.get { 2 } } },
       { it.onNull { 2 } },
       { it.route({ it == 4 }) { throw new UnsupportedOperationException() } },
     ]
@@ -310,7 +310,7 @@ class ExecutionSpec extends Specification {
       { it.flatMap { Blocking.get { 2 } } },
       { it },
       { it.map { 2 } },
-      { it.blockingMap { 2 } },
+      { it.flatMap { Blocking.get { 2 } } },
       { it.onNull { 2 } },
       { it.route({ it == 4 }) { throw new UnsupportedOperationException() } },
     ]

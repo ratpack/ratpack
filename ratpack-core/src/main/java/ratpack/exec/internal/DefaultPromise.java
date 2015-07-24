@@ -16,14 +16,13 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.*;
+import ratpack.exec.Downstream;
+import ratpack.exec.ExecutionException;
+import ratpack.exec.Promise;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.util.Exceptions;
-import ratpack.util.internal.InternalRatpackError;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultPromise<T> implements Promise<T> {
 
@@ -35,30 +34,40 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public void then(final Action<? super T> then) {
-    ThreadBinding.requireComputeThread("Promise.then() can only be called on a compute thread (use Promise.block() to use a promise on a blocking thread)");
+    ThreadBinding.requireComputeThread("Promise.then() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
+    doConnect(new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        try {
+          then.execute(value);
+        } catch (Throwable e) {
+          throwError(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        throwError(throwable);
+      }
+
+      @Override
+      public void complete() {}
+    });
+  }
+
+  @Override
+  public void connect(Downstream<T> downstream) {
+    ThreadBinding.requireComputeThread("Promise.connect() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
+    doConnect(downstream);
+  }
+
+  public void doConnect(Downstream<T> downstream) {
     try {
-      upstream.connect(new Downstream<T>() {
-        @Override
-        public void success(T value) {
-          try {
-            then.execute(value);
-          } catch (Throwable e) {
-            throwError(e);
-          }
-        }
-
-        @Override
-        public void error(Throwable throwable) {
-          throwError(throwable);
-        }
-
-        @Override
-        public void complete() {}
-      });
+      upstream.connect(downstream);
     } catch (ExecutionException e) {
       throw e;
     } catch (Exception e) {
-      throw new InternalRatpackError("failed to add promise resume action", e);
+      throwError(e);
     }
   }
 
@@ -77,43 +86,6 @@ public class DefaultPromise<T> implements Promise<T> {
     } catch (Exception e) {
       throw Exceptions.uncheck(e);
     }
-  }
-
-  @Override
-  public T block() throws Exception {
-    ThreadBinding.requireBlockingThread("Promise.block() can only be used while blocking (i.e. use Promise.blocking() first)");
-    ExecutionBacking backing = ExecutionBacking.require();
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Result<T>> resultReference = new AtomicReference<>();
-    backing.streamSubscribe(handle ->
-        upstream.connect(
-          new Downstream<T>() {
-            @Override
-            public void success(T value) {
-              unlatch(Result.success(value));
-            }
-
-            @Override
-            public void error(Throwable throwable) {
-              unlatch(Result.error(throwable));
-            }
-
-            @Override
-            public void complete() {
-              unlatch(Result.success(null));
-            }
-
-            private void unlatch(Result<T> result) {
-              resultReference.set(result);
-              handle.complete();
-              latch.countDown();
-            }
-          }
-        )
-    );
-    backing.eventLoopDrain();
-    latch.await();
-    return resultReference.get().getValueOrThrow();
   }
 
 }

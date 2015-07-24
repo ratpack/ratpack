@@ -118,6 +118,15 @@ public interface Promise<T> {
   void then(Action<? super T> then);
 
   /**
+   * A low level hook for consuming the promised value.
+   * <p>
+   * It is generally preferable to use {@link #then(Action)} over this method.
+   *
+   * @param downstream the downstream consumer
+   */
+  void connect(Downstream<T> downstream);
+
+  /**
    * Apply a custom transform to this promise.
    * <p>
    * This method is the basis for the standard operations of this interface, such as {@link #map(Function)}.
@@ -159,103 +168,6 @@ public interface Promise<T> {
    * @return a new promise
    */
   <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer);
-
-  /**
-   * Blocks execution waiting for this promise to complete and returns the promised value.
-   * <p>
-   * This method allows the use of asynchronous API, by synchronous API.
-   * This may occur when integrating with other libraries that are not asynchronous.
-   * The following example simulates using a library that takes a callback that is expected to produce a value synchronously,
-   * but where the production of the value is actually asynchronous.
-   *
-   * <pre class="java">{@code
-   * import ratpack.test.exec.ExecHarness;
-   * import ratpack.exec.ExecResult;
-   * import ratpack.exec.Blocking;
-   * import ratpack.exec.Promise;
-   * import ratpack.func.Factory;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   static <T> T produceSync(Factory<? extends T> factory) throws Exception {
-   *     return factory.create();
-   *   }
-   *
-   *   public static void main(String... args) throws Exception {
-   *     ExecResult<String> result = ExecHarness.yieldSingle(e ->
-   *       Blocking.get(() ->
-   *         produceSync(() ->
-   *           Promise.value("foo").block() // block and wait for the promised value
-   *         )
-   *       )
-   *     );
-   *
-   *     assertEquals("foo", result.getValue());
-   *   }
-   * }
-   * }</pre>
-   *
-   * <p>
-   * <b>Important:</b> this method can only be used inside a {@link Blocking} function.
-   * That is, it can only be used from a Ratpack managed blocking thread.
-   * If it is called on a non Ratpack managed blocking thread it will immediately throw an {@link ExecutionException}.
-   * <p>
-   * When this method is called, the promise will be subscribed to on a compute thread while the blocking thread waits.
-   * When the promised value has been produced, and the compute thread segment has completed, the value will be returned
-   * allowing execution to continue on the blocking thread.
-   * The following example visualises this flow by capturing the sequence of events via an {@link ExecInterceptor}.
-   *
-   * <pre class="java">{@code
-   * import ratpack.test.exec.ExecHarness;
-   * import ratpack.exec.Blocking;
-   * import ratpack.exec.Promise;
-   * import ratpack.exec.ExecResult;
-   * import ratpack.exec.ExecInterceptor;
-   *
-   * import java.util.List;
-   * import java.util.ArrayList;
-   * import java.util.Arrays;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     List<String> events = new ArrayList<>();
-   *
-   *     ExecHarness.yieldSingle(
-   *       r -> r.add(ExecInterceptor.class, (execution, execType, continuation) -> {
-   *         events.add(execType + "-start");
-   *         try {
-   *           continuation.execute();
-   *         } finally {
-   *           events.add(execType + "-stop");
-   *         }
-   *       }),
-   *       e -> Blocking.get(() -> Promise.value("foo").block())
-   *     );
-   *
-   *     List<String> actualEvents = Arrays.asList(
-   *       "COMPUTE-start",
-   *       "COMPUTE-stop",
-   *         "BLOCKING-start",
-   *           "COMPUTE-start",
-   *           "COMPUTE-stop",
-   *         "BLOCKING-stop",
-   *       "COMPUTE-start",
-   *       "COMPUTE-stop"
-   *     );
-   *
-   *     assertEquals(actualEvents, events);
-   *   }
-   * }
-   * }</pre>
-   *
-   * @return the promised value
-   * @throws ExecutionException if not called on a Ratpack managed blocking thread
-   * @throws Exception any thrown while producing the value
-   */
-  T block() throws Exception;
 
   /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.
@@ -550,19 +462,6 @@ public interface Promise<T> {
   }
 
   /**
-   * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
-   * <p>
-   * This is simply a more convenient form of using {@link Blocking#get(Factory)} and {@link #flatMap(Function)}.
-   *
-   * @param transformer the transformation to apply to the promised value, on a blocking thread
-   * @param <O> the type of the transformed object
-   * @return a promise for the transformed value
-   */
-  default <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer) {
-    return flatMap(t -> Blocking.get(() -> transformer.apply(t)));
-  }
-
-  /**
    * Transforms the promised value by applying the given function to it that returns a promise for the transformed value.
    * <p>
    * This is useful when the transformation involves an asynchronous operation.
@@ -587,12 +486,9 @@ public interface Promise<T> {
    * }
    * }</pre>
    * <p>
-   * In the above example, {@code flatMap()} is being used because the transformation requires a blocking operation (it doesn't really in this case, but that's what the example is showing).
-   * In this case, it would be more convenient to use {@link #blockingMap(Function)}.
    *
    * @param transformer the transformation to apply to the promised value
    * @param <O> the type of the transformed object
-   * @see #blockingMap(Function)
    * @return a promise for the transformed value
    */
   default <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {

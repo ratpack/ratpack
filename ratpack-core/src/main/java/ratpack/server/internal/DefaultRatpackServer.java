@@ -31,7 +31,10 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.*;
+import ratpack.exec.Blocking;
+import ratpack.exec.ExecController;
+import ratpack.exec.Promise;
+import ratpack.exec.Throttle;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
@@ -448,11 +451,7 @@ public class DefaultRatpackServer implements RatpackServer {
             }
           })
             .throttled(reloadThrottle)
-            .blockingMap(adapter -> {
-              delegate(ctx, adapter, msg);
-              return true;
-            })
-            .then(Action.noop())
+            .then(adapter -> Blocking.exec(() -> delegate(ctx, adapter, msg)))
       );
     }
 

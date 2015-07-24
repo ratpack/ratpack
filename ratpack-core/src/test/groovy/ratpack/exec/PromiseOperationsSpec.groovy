@@ -204,19 +204,6 @@ class PromiseOperationsSpec extends Specification {
     events == ["null", "complete"]
   }
 
-  def "can perform blocking map"() {
-    when:
-    exec { e ->
-      Blocking.get { "foo" }
-        .blockingMap { it + "-bar" }
-        .map { it.toUpperCase() }
-        .then { events << it }
-    }
-
-    then:
-    events == ["FOO-BAR", "complete"]
-  }
-
   def "can use other promise with flatMap"() {
     when:
     exec { e ->
