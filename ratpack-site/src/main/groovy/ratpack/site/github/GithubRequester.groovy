@@ -18,6 +18,7 @@ package ratpack.site.github
 
 import com.fasterxml.jackson.databind.ObjectReader
 import com.fasterxml.jackson.databind.node.ArrayNode
+import groovy.transform.CompileStatic
 import ratpack.exec.Promise
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
@@ -27,6 +28,7 @@ import rx.Subscriber
 
 import static ratpack.rx.RxRatpack.observe
 
+@CompileStatic
 class GithubRequester {
 
   private final ObjectReader objectReader
@@ -62,7 +64,7 @@ class GithubRequester {
           pagingSubscription.onCompleted()
         }
       } else {
-        throw new RuntimeException("Not an array response from $url")
+        pagingSubscription.onError(new RuntimeException("Not an array response from $url (was ${node.getClass()}): \n$response.body.text}"))
       }
     }
   }
