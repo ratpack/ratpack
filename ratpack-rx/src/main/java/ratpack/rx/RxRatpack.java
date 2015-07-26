@@ -503,6 +503,17 @@ public abstract class RxRatpack {
     return new ExecControllerBackedScheduler(execController);
   }
 
+  /**
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#exec()}).
+   * <p>
+   * That same as {@link #scheduler(ExecController)}, but obtains the exec controller via {@link ExecController#require()}.
+   *
+   * @return a scheduler
+   */
+  public static Scheduler scheduler() {
+    return scheduler(ExecController.require());
+  }
+
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
     @Override
