@@ -16,8 +16,13 @@
 
 package ratpack.exec;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import ratpack.func.Action;
 import ratpack.func.Block;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A consumer of a single asynchronous value.
@@ -174,5 +179,42 @@ public interface Downstream<T> {
       success(result.getValue());
     }
   }
+
+  /**
+   * Sends the result of the future downstream.
+   *
+   * @param future the future to consume the value of
+   */
+  default void accept(CompletableFuture<? extends T> future) {
+    future.handle((value, failure) -> {
+      if (failure == null) {
+        success(value);
+      } else {
+        error(failure);
+      }
+
+      return null;
+    });
+  }
+
+  /**
+   * Sends the result of the future downstream.
+   *
+   * @param future the future to consume the value of
+   */
+  default void accept(ListenableFuture<? extends T> future) {
+    Futures.addCallback(future, new FutureCallback<T>() {
+      @Override
+      public void onSuccess(T result) {
+        success(result);
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        error(t);
+      }
+    });
+  }
+
 
 }

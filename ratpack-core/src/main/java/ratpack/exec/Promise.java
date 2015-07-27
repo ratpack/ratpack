@@ -52,19 +52,18 @@ import static ratpack.func.Action.ignoreArg;
 public interface Promise<T> {
 
   /**
-   * Creates a promise for an asynchronously created value.
+   * Creates a promise for value that will be available later.
    * <p>
    * This method can be used to integrate with APIs that produce values asynchronously.
-   * The asynchronous API should be invoked during the execute method of the action given to this method.
-   * The result of the asynchronous call is then given to the {@link Fulfiller} that the action is given.
+   * The {@link Upstream#connect(Downstream)} method will be invoked every time the value is requested.
+   * This method should propagate the value (or error) to the given downstream object when it is available.
    *
-   * @param action an action that invokes an asynchronous API, forwarding the result to the given fulfiller
+   * @param upstream the producer of the value
    * @param <T> the type of promised value
    * @return a promise for the asynchronously created value
-   * @see Fulfiller
    */
-  static <T> Promise<T> of(Action<? super Fulfiller<T>> action) {
-    return new DefaultPromise<>(ExecutionBacking.upstream(action));
+  static <T> Promise<T> of(Upstream<T> upstream) {
+    return new DefaultPromise<>(ExecutionBacking.upstream(upstream));
   }
 
   /**

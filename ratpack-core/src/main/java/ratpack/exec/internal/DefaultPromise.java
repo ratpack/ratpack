@@ -40,7 +40,7 @@ public class DefaultPromise<T> implements Promise<T> {
       public void success(T value) {
         try {
           then.execute(value);
-        } catch (Throwable e) {
+        } catch (Exception e) {
           throwError(e);
         }
       }
@@ -51,7 +51,9 @@ public class DefaultPromise<T> implements Promise<T> {
       }
 
       @Override
-      public void complete() {}
+      public void complete() {
+
+      }
     });
   }
 

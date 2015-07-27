@@ -16,8 +16,7 @@
 
 package ratpack.http.client.internal;
 
-import ratpack.exec.Fulfiller;
-import ratpack.func.Action;
+import ratpack.exec.Upstream;
 
-interface RequestAction<T> extends Action<Fulfiller<? super T>> {
+interface RequestAction<T> extends Upstream<T> {
 }

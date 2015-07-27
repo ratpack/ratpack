@@ -54,7 +54,7 @@ class ThrottleSpec extends Specification {
   }
 
   def "can throttle operations"() {
-    def q = new LinkedBlockingQueue<Fulfiller<Integer>>()
+    def q = new LinkedBlockingQueue<Upstream<Integer>>()
 
     def throttleSize = 5
     def jobs = 1000

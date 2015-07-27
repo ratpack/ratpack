@@ -274,7 +274,11 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
           Blocking.get { 1 }.then { response.headers.set("foo", 1) }
         }
         response.beforeSend {
-          Blocking.get { 2 }.then { response.headers.set("foo", response.headers.get("foo") + ":" + it) }
+          Blocking.get {
+            2
+          } then {
+            response.headers.set("foo", response.headers.get("foo") + ":" + it)
+          }
         }
         response.beforeSend {
           response.headers.set("foo", response.headers.get("foo") + ":3")

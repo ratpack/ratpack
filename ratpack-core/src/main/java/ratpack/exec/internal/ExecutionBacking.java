@@ -32,10 +32,12 @@ import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.util.Types;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ExecutionBacking {
 
@@ -49,7 +51,7 @@ public class ExecutionBacking {
 
   // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
   // All other collections do not need to be concurrent safe because they are only accessed on the event loop
-  Queue<Deque<Block>> stream = new ConcurrentLinkedQueue<>();
+  StreamHandle streamHandle;
 
   private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newArrayList();
@@ -80,16 +82,19 @@ public class ExecutionBacking {
     this.registryInterceptors = ImmutableList.copyOf(execution.getAll(ExecInterceptor.class));
     this.globalInterceptors = globalInterceptors;
 
+    streamHandle = new InitialStreamHandle();
     Deque<Block> event = new ArrayDeque<>();
     //noinspection RedundantCast
     event.add((UserCode) () -> action.execute(execution));
-    stream.add(event);
-
-    Deque<Block> doneEvent = new ArrayDeque<>(1);
-    doneEvent.add(() -> done = true);
-    stream.add(doneEvent);
+    streamHandle.stream.add(event);
 
     drain();
+  }
+
+  private class InitialStreamHandle extends StreamHandle {
+    public InitialStreamHandle() {
+      super(null);
+    }
   }
 
   public static ExecutionBacking get() throws UnmanagedThreadException {
@@ -133,41 +138,144 @@ public class ExecutionBacking {
     ));
   }
 
-  public static <T> Upstream<T> upstream(Action<? super Fulfiller<T>> action) {
-    return downstream -> require().streamSubscribe((streamHandle) -> {
-      final AtomicBoolean fulfilled = new AtomicBoolean();
-      try {
-        action.execute(new Fulfiller<T>() {
+  private static class Complete {}
+
+  private static final Object COMPLETE = new Complete();
+
+  private static class Pending {}
+
+  private static final Object PENDING = new Pending();
+
+  private static class Initial {}
+
+  private static final Object INITIAL = new Initial();
+
+  private static class ErrorWrapper {
+    Throwable error;
+
+    public ErrorWrapper(Throwable error) {
+      this.error = error;
+    }
+  }
+
+  public static <T> Upstream<T> upstream(Upstream<T> upstream) {
+    return downstream -> {
+      final ExecutionBacking backing = require();
+      if (backing.streamHandle.stream.peek().isEmpty()) {
+        connectInlineIfPossible(upstream, downstream, backing);
+      } else {
+        connectInNewSegment(upstream, downstream, backing);
+      }
+    };
+  }
+
+  private static <T> void connectInNewSegment(Upstream<T> upstream, Downstream<? super T> downstream, ExecutionBacking backing) {
+    final AtomicBoolean fired = new AtomicBoolean();
+    backing.streamSubscribe(handle ->
+        upstream.connect(new Downstream<T>() {
           @Override
           public void error(Throwable throwable) {
-            if (!fulfilled.compareAndSet(false, true)) {
+            if (!fired.compareAndSet(false, true)) {
               LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
               return;
             }
-
-            streamHandle.complete(() -> downstream.error(throwable));
+            handle.complete(() -> downstream.error(throwable));
           }
 
           @Override
           public void success(T value) {
-            if (!fulfilled.compareAndSet(false, true)) {
+            if (!fired.compareAndSet(false, true)) {
               LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
               return;
             }
-
-            streamHandle.complete(() -> downstream.success(value));
+            handle.complete(() -> downstream.success(value));
           }
-        });
-      } catch (Throwable throwable) {
-        if (!fulfilled.compareAndSet(false, true)) {
-          LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
-        } else {
-          streamHandle.complete(() -> downstream.error(throwable));
-        }
-      }
-    });
+
+          @Override
+          public void complete() {
+            if (!fired.compareAndSet(false, true)) {
+              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+              return;
+            }
+            handle.complete(downstream::complete);
+          }
+        })
+    );
   }
 
+  public static <T> void connectInlineIfPossible(Upstream<T> upstream, final Downstream<? super T> downstream, final ExecutionBacking backing) {
+    final AtomicReference<Object> ref = new AtomicReference<>(INITIAL);
+    final AtomicBoolean fired = new AtomicBoolean();
+
+    final Downstream<T> downstreamWrapper = new Downstream<T>() {
+      @Override
+      public void error(Throwable throwable) {
+        if (!fired.compareAndSet(false, true)) {
+          LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
+          return;
+        }
+
+        final Object state = ref.getAndSet(new ErrorWrapper(throwable));
+        if (state == INITIAL) {
+          downstream.error(throwable);
+        } else if (state instanceof StreamHandle) {
+          ((StreamHandle) state).complete(() -> downstream.error(throwable));
+        }
+      }
+
+      @Override
+      public void success(T value) {
+        if (!fired.compareAndSet(false, true)) {
+          LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+          return;
+        }
+
+        final Object state = ref.getAndSet(value);
+        if (state == INITIAL) {
+          downstream.success(value);
+        } else if (state instanceof StreamHandle) {
+          ((StreamHandle) state).complete(() -> downstream.success(value));
+        }
+      }
+
+      @Override
+      public void complete() {
+        if (!fired.compareAndSet(false, true)) {
+          LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+          return;
+        }
+
+        final Object state = ref.getAndSet(COMPLETE);
+        if (state == INITIAL) {
+          downstream.complete();
+        } else if (state instanceof StreamHandle) {
+          ((StreamHandle) state).complete(downstream::complete);
+        }
+      }
+    };
+
+    try {
+      upstream.connect(downstreamWrapper);
+    } catch (Throwable throwable) {
+      downstreamWrapper.error(throwable);
+    }
+
+    final Object state = ref.getAndSet(PENDING);
+    if (state == INITIAL) {
+      backing.streamSubscribe(handle -> {
+        final Object state2 = ref.getAndSet(handle);
+        if (state2 == null) {
+          handle.complete(() -> downstream.success(null));
+        } else if (state2.getClass().equals(ErrorWrapper.class)) {
+          handle.complete(() -> downstream.error(((ErrorWrapper) state2).error));
+        } else if (state2 == COMPLETE) {
+          handle.complete(downstream::complete);
+        } else if (state2 != PENDING) {
+          handle.complete(() -> downstream.success(Types.<T>cast(state2)));
+        }
+      });
+    }
+  }
 
   // Marker interface used to detect user code vs infrastructure code, for error handling and interception
   public interface UserCode extends Block {
@@ -189,12 +297,12 @@ public class ExecutionBacking {
   }
 
   public class StreamHandle {
-    final Queue<Deque<Block>> parent;
-    final Queue<Deque<Block>> stream;
+    final StreamHandle parent;
+    final Queue<Deque<Block>> stream = new ConcurrentLinkedQueue<>();
 
-    private StreamHandle(Queue<Deque<Block>> parent, Queue<Deque<Block>> stream) {
+    private StreamHandle(StreamHandle parent) {
       this.parent = parent;
-      this.stream = stream;
+      stream.add(new ArrayDeque<>());
     }
 
     public void event(UserCode action) {
@@ -204,13 +312,13 @@ public class ExecutionBacking {
     public void complete(UserCode action) {
       //noinspection RedundantCast
       streamEvent((UserCode) () -> {
-        ExecutionBacking.this.stream = this.parent;
+        streamHandle = parent;
         action.execute();
       });
     }
 
     public void complete() {
-      streamEvent(() -> ExecutionBacking.this.stream = this.parent);
+      streamEvent(() -> streamHandle = parent);
     }
 
     private void streamEvent(Block s) {
@@ -226,16 +334,14 @@ public class ExecutionBacking {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
 
-    if (stream.isEmpty()) {
-      stream.add(new ArrayDeque<>());
+    if (streamHandle.stream.isEmpty()) {
+      streamHandle.stream.add(new ArrayDeque<>());
     }
 
-    stream.element().add(() -> {
-      Queue<Deque<Block>> parent = stream;
-      stream = new ConcurrentLinkedQueue<>();
-      stream.add(new ArrayDeque<>());
-      StreamHandle handle = new StreamHandle(parent, stream);
-      consumer.execute(handle);
+    streamHandle.stream.element().add(() -> {
+      StreamHandle parent = this.streamHandle;
+      this.streamHandle = new StreamHandle(parent);
+      consumer.execute(this.streamHandle);
     });
 
     drain();
@@ -265,15 +371,15 @@ public class ExecutionBacking {
     try {
       THREAD_BINDING.set(this);
       while (true) {
-        if (stream.isEmpty()) {
+        if (streamHandle.stream.isEmpty()) {
           return;
         }
 
-        Block segment = stream.element().poll();
+        Block segment = streamHandle.stream.element().poll();
         if (segment == null) {
-          stream.remove();
-          if (stream.isEmpty()) {
-            if (done) {
+          streamHandle.stream.remove();
+          if (streamHandle.stream.isEmpty()) {
+            if (streamHandle.getClass().equals(InitialStreamHandle.class)) {
               done();
               return;
             } else {
@@ -285,14 +391,14 @@ public class ExecutionBacking {
             try {
               intercept(ExecInterceptor.ExecType.COMPUTE, segment);
             } catch (final Throwable e) {
-              Deque<Block> event = stream.element();
+              Deque<Block> event = streamHandle.stream.element();
               event.clear();
               event.addFirst(() -> {
                 try {
                   onError.execute(execution, e);
                 } catch (final Throwable errorHandlerException) {
                   //noinspection RedundantCast
-                  stream.element().addFirst((UserCode) () -> {
+                  streamHandle.stream.element().addFirst((UserCode) () -> {
                     throw errorHandlerException;
                   });
                 }
@@ -328,6 +434,7 @@ public class ExecutionBacking {
   }
 
   private void done() {
+    done = true;
     try {
       onComplete.execute(getExecution());
     } catch (Throwable e) {

@@ -78,7 +78,6 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     @Override
     void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) {
-      println "$type:$id"
       super.intercept(execution, type, continuation)
       throw new RuntimeException("$type:$id")
     }

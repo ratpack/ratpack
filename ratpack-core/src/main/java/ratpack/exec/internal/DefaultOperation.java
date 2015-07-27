@@ -41,7 +41,9 @@ public class DefaultOperation implements Operation {
 
   @Override
   public void then(Block block) {
-    promise.then(v -> block.execute());
+    promise.then(v ->
+      block.execute()
+    );
   }
 
 }

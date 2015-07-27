@@ -19,9 +19,9 @@ package ratpack.http.client.internal
 import io.netty.buffer.ByteBufAllocator
 import io.netty.channel.Channel
 import io.netty.channel.ChannelPipeline
+import ratpack.exec.Downstream
 import ratpack.exec.ExecController
 import ratpack.exec.Execution
-import ratpack.exec.Fulfiller
 import ratpack.exec.Promise
 import ratpack.func.Action
 import ratpack.http.client.HttpClientSpec
@@ -66,9 +66,9 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     }
 
     @Override
-    protected void addResponseHandlers(ChannelPipeline p, Fulfiller<? super StreamedResponse> fulfiller) {
+    protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
       channel = p.channel()
-      super.addResponseHandlers(p, fulfiller)
+      super.addResponseHandlers(p, downstream)
     }
   }
 }

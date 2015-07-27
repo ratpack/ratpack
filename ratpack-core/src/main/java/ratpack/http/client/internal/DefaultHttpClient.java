@@ -56,12 +56,12 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.of(f -> new ContentAggregatingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, maxContentLengthBytes, 0).execute(f));
+    return Promise.of(f -> new ContentAggregatingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, maxContentLengthBytes, 0).connect(f));
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.of(f -> new ContentStreamingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, 0).execute(f));
+    return Promise.of(f -> new ContentStreamingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, 0).connect(f));
   }
 
 }

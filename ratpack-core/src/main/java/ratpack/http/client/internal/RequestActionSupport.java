@@ -26,8 +26,8 @@ import io.netty.handler.codec.PrematureChannelClosureException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
-import ratpack.exec.Fulfiller;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.Headers;
@@ -99,7 +99,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     return responseBuffer;
   }
 
-  public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
+  public void connect(final Downstream<? super T> downstream) throws Exception {
     final Bootstrap b = new Bootstrap();
     b.group(this.execution.getEventLoop())
       .channel(ChannelImplDetector.getSocketChannelImpl())
@@ -129,7 +129,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
             @Override
             public void channelInactive(ChannelHandlerContext ctx) throws Exception {
               if (!readComplete) {
-                error(fulfiller, new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
+                error(downstream, new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
               }
               super.channelReadComplete(ctx);
             }
@@ -174,7 +174,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                       locationUrl = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), locationValue, null, null);
                     }
 
-                    buildRedirectRequestAction(redirectRequestConfig, locationUrl, redirectCounter + 1).execute(fulfiller);
+                    buildRedirectRequestAction(redirectRequestConfig, locationUrl, redirectCounter + 1).connect(downstream);
                     redirected = true;
                   }
                 }
@@ -189,13 +189,13 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
           if (requestSpecBacking.isDecompressResponse()) {
             p.addLast(new HttpContentDecompressor());
           }
-          addResponseHandlers(p, fulfiller);
+          addResponseHandlers(p, downstream);
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
           ctx.close();
-          error(fulfiller, cause);
+          error(downstream, cause);
         }
       });
 
@@ -224,12 +224,12 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         writeFuture.addListener(f2 -> {
           if (!writeFuture.isSuccess()) {
             writeFuture.channel().close();
-            error(fulfiller, writeFuture.cause());
+            error(downstream, writeFuture.cause());
           }
         });
       } else {
         connectFuture.channel().close();
-        error(fulfiller, connectFuture.cause());
+        error(downstream, connectFuture.cause());
       }
     });
   }
@@ -252,17 +252,17 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
 
   protected abstract RequestAction<T> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount);
 
-  protected abstract void addResponseHandlers(ChannelPipeline p, Fulfiller<? super T> fulfiller);
+  protected abstract void addResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream);
 
-  protected void success(Fulfiller<? super T> fulfiller, T value) {
+  protected void success(Downstream<? super T> downstream, T value) {
     if (fired.compareAndSet(false, true)) {
-      fulfiller.success(value);
+      downstream.success(value);
     }
   }
 
-  protected void error(Fulfiller<?> fulfiller, Throwable error) {
+  protected void error(Downstream<?> downstream, Throwable error) {
     if (fired.compareAndSet(false, true)) {
-      fulfiller.error(error);
+      downstream.error(error);
     }
   }
 

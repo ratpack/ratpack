@@ -24,7 +24,7 @@ import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.auth.UserIdentifier;
-import ratpack.exec.Fulfiller;
+import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
@@ -320,7 +320,7 @@ public class RatpackPac4j {
               .get(Pac4jSessionKeys.USER_PROFILE)
               .then(p -> {
                 ctx.getRequest().add(UserIdentifier.class, () -> p.isPresent() ? p.get().getId() : null);
-                toProfile(type, f, p, () -> f.success(Optional.empty()));
+                toProfile(type, f, p, () -> f.success(Optional.<T>empty()));
               })
         )
     );
@@ -402,13 +402,13 @@ public class RatpackPac4j {
       .map(p -> new RatpackWebContext(ctx, p.getLeft(), p.getRight()));
   }
 
-  private static <T extends UserProfile> void toProfile(Class<T> type, Fulfiller<Optional<T>> fulfiller, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
+  private static <T extends UserProfile> void toProfile(Class<T> type, Downstream<? super Optional<T>> downstream, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
     if (userProfileOptional.isPresent()) {
       final UserProfile userProfile = userProfileOptional.get();
       if (type.isInstance(userProfile)) {
-        fulfiller.success(Optional.of(type.cast(userProfile)));
+        downstream.success(Optional.of(type.cast(userProfile)));
       } else {
-        fulfiller.error(new ClassCastException("UserProfile is of type " + userProfile.getClass() + ", and is not compatible with " + type));
+        downstream.error(new ClassCastException("UserProfile is of type " + userProfile.getClass() + ", and is not compatible with " + type));
       }
     } else {
       onEmpty.execute();

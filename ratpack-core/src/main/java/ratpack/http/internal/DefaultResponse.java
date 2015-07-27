@@ -319,7 +319,11 @@ public class DefaultResponse implements Response {
 
   private void finalizeResponse(Iterator<Action<? super ResponseMetaData>> finalizers, Runnable then) {
     if (finalizers.hasNext()) {
-      Operation.of(() -> finalizers.next().execute(this)).then(() -> finalizeResponse(finalizers, then));
+      Operation.of(() ->
+        finalizers.next().execute(this)
+      ).then(() ->
+        finalizeResponse(finalizers, then)
+      );
     } else {
       List<Action<? super ResponseMetaData>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
       responseFinalizers.clear();

@@ -16,14 +16,14 @@
 
 package ratpack.reactor;
 
-import ratpack.exec.Fulfiller;
+import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import reactor.core.composable.Deferred;
 
 public abstract class RatpackReactor {
 
-  public static <T> reactor.core.composable.Promise<T> consume(final Fulfiller<? super T> fulfiller, reactor.core.composable.Promise<T> reactorPromise) {
-    return reactorPromise.onSuccess(fulfiller::success).onError(fulfiller::error);
+  public static <T> reactor.core.composable.Promise<T> consume(final Downstream<? super T> downstream, reactor.core.composable.Promise<T> reactorPromise) {
+    return reactorPromise.onSuccess(downstream::success).onError(downstream::error);
   }
 
   public static <T> Promise<T> consume(final Deferred<T, ? extends reactor.core.composable.Promise<T>> deferred) {
@@ -31,7 +31,7 @@ public abstract class RatpackReactor {
   }
 
   public static <T> Promise<T> consume(final reactor.core.composable.Promise<T> reactorPromise) {
-    return Promise.of(fulfiller -> consume(fulfiller, reactorPromise));
+    return Promise.of(downstream -> consume(downstream, reactorPromise));
   }
 
 }

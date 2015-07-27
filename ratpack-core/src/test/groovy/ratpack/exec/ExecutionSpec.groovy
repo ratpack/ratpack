@@ -56,7 +56,7 @@ class ExecutionSpec extends Specification {
   def "exception thrown after promise prevents promise from running"() {
     when:
     exec({ e ->
-      Promise.value { f ->
+      Promise.of { f ->
         events << "action"
         e.fork().start {
           f.success(1)
@@ -71,7 +71,7 @@ class ExecutionSpec extends Specification {
     })
 
     then:
-    events == ["error", "complete"]
+    events == ["action", "error", "complete"]
   }
 
   def "error handler can perform blocking ops"() {
@@ -319,8 +319,8 @@ class ExecutionSpec extends Specification {
   def "can complete future"() {
     when:
     exec({ e ->
-      Promise.of { Fulfiller<String> f ->
-        f.accept(CompletableFuture.supplyAsync({ "foo" }, e.controller.executor))
+      Promise.of {
+        it.accept(CompletableFuture.supplyAsync({ "foo" }, e.controller.executor))
       } then {
         events << it
       }
@@ -333,8 +333,8 @@ class ExecutionSpec extends Specification {
   def "can complete ListenableFuture"() {
     when:
     exec({ c ->
-      Promise.of { Fulfiller<String> f ->
-        f.accept(Futures.immediateFuture("foo"))
+      Promise.of {
+        it.accept(Futures.immediateFuture("foo"))
       } then {
         events << it
       }
@@ -347,7 +347,7 @@ class ExecutionSpec extends Specification {
   def "can error from ListenableFuture"() {
     when:
     exec({ c ->
-      Promise.of { Fulfiller<String> f ->
+      Promise.<String>of {  f ->
         f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
       } onError {
         events << "error"

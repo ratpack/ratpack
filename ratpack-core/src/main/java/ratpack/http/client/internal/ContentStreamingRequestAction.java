@@ -27,8 +27,8 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
-import ratpack.exec.Fulfiller;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
@@ -60,7 +60,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
   }
 
   @Override
-  protected void addResponseHandlers(ChannelPipeline p, Fulfiller<? super StreamedResponse> fulfiller) {
+  protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
     p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
       @Override
       public void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
@@ -75,13 +75,13 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
         final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
         final Status status = new DefaultStatus(msg.status());
 
-        success(fulfiller, new DefaultStreamedResponse(p, status, headers));
+        success(downstream, new DefaultStreamedResponse(p, status, headers));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
-        error(fulfiller, cause);
+        error(downstream, cause);
       }
     });
   }
