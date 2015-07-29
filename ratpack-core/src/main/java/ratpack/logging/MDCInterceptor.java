@@ -106,10 +106,6 @@ public class MDCInterceptor implements ExecInterceptor {
 
   }
 
-  public MDCInterceptor() {
-
-  }
-
   public static MDCInterceptor instance() {
     return INSTANCE;
   }
