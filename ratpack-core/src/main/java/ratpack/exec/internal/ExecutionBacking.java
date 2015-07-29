@@ -32,12 +32,10 @@ import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
-import ratpack.util.Types;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ExecutionBacking {
 
@@ -138,143 +136,50 @@ public class ExecutionBacking {
     ));
   }
 
-  private static class Complete {}
-
-  private static final Object COMPLETE = new Complete();
-
-  private static class Pending {}
-
-  private static final Object PENDING = new Pending();
-
-  private static class Initial {}
-
-  private static final Object INITIAL = new Initial();
-
-  private static class ErrorWrapper {
-    Throwable error;
-
-    public ErrorWrapper(Throwable error) {
-      this.error = error;
-    }
-  }
-
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
     return downstream -> {
-      final ExecutionBacking backing = require();
-      if (backing.streamHandle.stream.peek().isEmpty()) {
-        connectInlineIfPossible(upstream, downstream, backing);
-      } else {
-        connectInNewSegment(upstream, downstream, backing);
-      }
-    };
-  }
+      final AtomicBoolean fired = new AtomicBoolean();
+      require().streamSubscribe(handle -> {
+          try {
+            upstream.connect(new Downstream<T>() {
+              @Override
+              public void error(Throwable throwable) {
+                if (!fired.compareAndSet(false, true)) {
+                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
+                  return;
+                }
+                handle.complete(() -> downstream.error(throwable));
+              }
 
-  private static <T> void connectInNewSegment(Upstream<T> upstream, Downstream<? super T> downstream, ExecutionBacking backing) {
-    final AtomicBoolean fired = new AtomicBoolean();
-    backing.streamSubscribe(handle ->
-        upstream.connect(new Downstream<T>() {
-          @Override
-          public void error(Throwable throwable) {
+              @Override
+              public void success(T value) {
+                if (!fired.compareAndSet(false, true)) {
+                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+                  return;
+                }
+                handle.complete(() -> downstream.success(value));
+              }
+
+              @Override
+              public void complete() {
+                if (!fired.compareAndSet(false, true)) {
+                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+                  return;
+                }
+                handle.complete(downstream::complete);
+              }
+            });
+          } catch (Throwable throwable) {
             if (!fired.compareAndSet(false, true)) {
               LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
               return;
             }
             handle.complete(() -> downstream.error(throwable));
+
           }
-
-          @Override
-          public void success(T value) {
-            if (!fired.compareAndSet(false, true)) {
-              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-              return;
-            }
-            handle.complete(() -> downstream.success(value));
-          }
-
-          @Override
-          public void complete() {
-            if (!fired.compareAndSet(false, true)) {
-              LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-              return;
-            }
-            handle.complete(downstream::complete);
-          }
-        })
-    );
-  }
-
-  public static <T> void connectInlineIfPossible(Upstream<T> upstream, final Downstream<? super T> downstream, final ExecutionBacking backing) {
-    final AtomicReference<Object> ref = new AtomicReference<>(INITIAL);
-    final AtomicBoolean fired = new AtomicBoolean();
-
-    final Downstream<T> downstreamWrapper = new Downstream<T>() {
-      @Override
-      public void error(Throwable throwable) {
-        if (!fired.compareAndSet(false, true)) {
-          LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-          return;
         }
-
-        final Object state = ref.getAndSet(new ErrorWrapper(throwable));
-        if (state == INITIAL) {
-          downstream.error(throwable);
-        } else if (state instanceof StreamHandle) {
-          ((StreamHandle) state).complete(() -> downstream.error(throwable));
-        }
-      }
-
-      @Override
-      public void success(T value) {
-        if (!fired.compareAndSet(false, true)) {
-          LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-          return;
-        }
-
-        final Object state = ref.getAndSet(value);
-        if (state == INITIAL) {
-          downstream.success(value);
-        } else if (state instanceof StreamHandle) {
-          ((StreamHandle) state).complete(() -> downstream.success(value));
-        }
-      }
-
-      @Override
-      public void complete() {
-        if (!fired.compareAndSet(false, true)) {
-          LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-          return;
-        }
-
-        final Object state = ref.getAndSet(COMPLETE);
-        if (state == INITIAL) {
-          downstream.complete();
-        } else if (state instanceof StreamHandle) {
-          ((StreamHandle) state).complete(downstream::complete);
-        }
-      }
+      );
     };
-
-    try {
-      upstream.connect(downstreamWrapper);
-    } catch (Throwable throwable) {
-      downstreamWrapper.error(throwable);
-    }
-
-    final Object state = ref.getAndSet(PENDING);
-    if (state == INITIAL) {
-      backing.streamSubscribe(handle -> {
-        final Object state2 = ref.getAndSet(handle);
-        if (state2 == null) {
-          handle.complete(() -> downstream.success(null));
-        } else if (state2.getClass().equals(ErrorWrapper.class)) {
-          handle.complete(() -> downstream.error(((ErrorWrapper) state2).error));
-        } else if (state2 == COMPLETE) {
-          handle.complete(downstream::complete);
-        } else if (state2 != PENDING) {
-          handle.complete(() -> downstream.success(Types.<T>cast(state2)));
-        }
-      });
-    }
   }
 
   // Marker interface used to detect user code vs infrastructure code, for error handling and interception

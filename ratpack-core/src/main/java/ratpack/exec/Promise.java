@@ -35,7 +35,7 @@ import static ratpack.func.Action.ignoreArg;
  * Such operations are implemented via the {@link #transform(Function)} method.
  * Each operation returns a new promise object, not the original promise object.
  * <p>
- * To create a promise, use the {@link Promise#of(Action)} method (or one of the variants such as {@link Promise#ofLazy(Factory)}.
+ * To create a promise, use the {@link Promise#of(Upstream)} method (or one of the variants such as {@link Promise#ofLazy(Factory)}.
  * To test code that uses promises, use the {@link ratpack.test.exec.ExecHarness}.
  * <p>
  * The promise is not “activated” until the {@link #then(Action)} method is called.

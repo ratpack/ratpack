@@ -71,7 +71,7 @@ class ExecutionSpec extends Specification {
     })
 
     then:
-    events == ["action", "error", "complete"]
+    events == ["error", "complete"]
   }
 
   def "error handler can perform blocking ops"() {
