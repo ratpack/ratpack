@@ -156,16 +156,17 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                     if (onRedirectResult == null) {
                       redirectConfigurer = null;
                     } else {
-                      redirectConfigurer = Action.join(redirectConfigurer, onRedirectResult);
+                      redirectConfigurer = redirectConfigurer.append(onRedirectResult);
                     }
                   }
 
                   if (redirectConfigurer != null) {
-                    Action<? super RequestSpec> redirectRequestConfig = Action.join(s -> {
+                    Action<? super RequestSpec> redirectRequestConfig = s -> {
                       if (status == 301 || status == 302) {
                         s.method("GET");
                       }
-                    }, redirectConfigurer);
+                    };
+                    redirectRequestConfig = redirectRequestConfig.append(redirectConfigurer);
 
                     URI locationUrl;
                     if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {

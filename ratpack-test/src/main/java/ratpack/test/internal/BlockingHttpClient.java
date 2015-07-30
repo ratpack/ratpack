@@ -83,7 +83,7 @@ public class BlockingHttpClient {
     @Override
     public void execute(Execution execution) throws Exception {
       HttpClient.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
-        .request(uri, Action.join(s -> s.readTimeout(Duration.ofHours(1)), action))
+        .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
         .then(response -> {
           TypedData responseBody = response.getBody();
           ByteBuf responseBodyBuffer = responseBody.getBuffer();

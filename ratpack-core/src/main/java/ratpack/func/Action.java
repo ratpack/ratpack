@@ -74,14 +74,37 @@ public interface Action<T> {
    */
   @SafeVarargs
   static <T> Action<T> join(final Action<? super T>... actions) {
-    return new Action<T>() {
-      @Override
-      public void execute(T thing) throws Exception {
-        for (Action<? super T> action : actions) {
-          action.execute(thing);
-        }
+    return thing -> {
+      for (Action<? super T> action : actions) {
+        action.execute(thing);
       }
     };
+  }
+
+  /**
+   * Returns a new action that executes this action and then the given action.
+   *
+   * @param action the action to execute after this action
+   * @param <O> the type of object the action accepts
+   * @return the newly created aggregate action
+   */
+  default <O extends T> Action<O> append(Action<? super O> action) {
+    Action<T> self = this;
+    return thing -> {
+      self.execute(thing);
+      action.execute(thing);
+    };
+  }
+
+  /**
+   * Returns a new action that executes the given action and then this action.
+   *
+   * @param action the action to execute before this action
+   * @param <O> the type of object the action accepts
+   * @return the newly created aggregate action
+   */
+  default <O extends T> Action<O> prepend(Action<? super O> action) {
+    return action.append(this);
   }
 
   /**
