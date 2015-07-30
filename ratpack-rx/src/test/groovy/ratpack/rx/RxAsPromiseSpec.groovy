@@ -17,6 +17,7 @@
 package ratpack.rx
 
 import ratpack.exec.Blocking
+import ratpack.exec.Operation
 import ratpack.test.exec.ExecHarness
 import rx.Observable
 import spock.lang.AutoCleanup
@@ -29,12 +30,18 @@ class RxAsPromiseSpec extends Specification {
   AsyncService service = new AsyncService()
 
   static class AsyncService {
+    int counter = 0
+
     public Observable<Void> fail() {
       RxRatpack.observe(Blocking.get { throw new RuntimeException("!!!") })
     }
 
     public <T> Observable<T> observe(T value) {
       RxRatpack.observe(Blocking.get { value })
+    }
+
+    public Observable<Void> increment() {
+      RxRatpack.observe(Operation.of { counter++ })
     }
   }
 
@@ -65,6 +72,24 @@ class RxAsPromiseSpec extends Specification {
 
     then:
     result.valueOrThrow == "foo"
+  }
+
+  def "can observe operation"() {
+    given:
+    def nexted = false
+
+    when:
+    harness.run {
+      service.increment().subscribe {
+        nexted = true
+      }
+    }
+
+    then:
+    noExceptionThrown()
+    service.counter == 1
+    !nexted
+
   }
 
 }

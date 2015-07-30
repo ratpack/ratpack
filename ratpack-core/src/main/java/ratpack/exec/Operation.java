@@ -21,6 +21,7 @@ import ratpack.exec.internal.DefaultOperation;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Factory;
+import ratpack.func.Function;
 
 /**
  * A logical operation.
@@ -102,6 +103,10 @@ public interface Operation {
 
   default Operation next(Block operation) {
     return next(Operation.of(operation));
+  }
+
+  default <O> O to(Function<? super Operation, ? extends O> function) throws Exception {
+    return function.apply(this);
   }
 
   static Operation noop() {
