@@ -17,6 +17,8 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -246,9 +248,9 @@ public class DefaultRatpackServer implements RatpackServer {
     Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    Iterator<? extends Service> services = serverRegistry.getAll(Service.class).iterator();
+    Iterable<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
     try {
-      executeEvents(services, new DefaultEvent(serverRegistry, reloading), Service::onStart, (service, error) -> {
+      executeEvents(services.iterator(), new DefaultEvent(serverRegistry, reloading), Service::onStart, (service, error) -> {
         throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
       });
     } catch (StartupFailureException e) {
@@ -304,7 +306,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   private void shutdownServices() throws Exception {
     if (serverRegistry != null) {
-      Iterable<? extends Service> services = serverRegistry.getAll(Service.class);
+      Iterable<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
       Iterator<Service> reverseServices = ImmutableList.copyOf(services).reverse().iterator();
       executeEvents(reverseServices, new DefaultEvent(serverRegistry, reloading), Service::onStop, (service, error) ->
           LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
