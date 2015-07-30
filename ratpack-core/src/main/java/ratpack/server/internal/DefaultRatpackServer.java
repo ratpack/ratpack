@@ -17,7 +17,6 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
