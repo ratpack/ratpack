@@ -175,6 +175,7 @@ public abstract class Blocking {
    * }</pre>
    *
    * @param promise the promise to block on
+   * @param <T> the type of value returned by the promise
    * @return the promised value
    * @throws ExecutionException if not called on a Ratpack managed blocking thread
    * @throws Exception any thrown while producing the value
