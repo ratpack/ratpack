@@ -22,6 +22,7 @@ import com.codahale.metrics.SharedMetricRegistries
 import com.codahale.metrics.annotation.Gauge
 import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
+import com.codahale.metrics.graphite.GraphiteSender
 import groovy.json.JsonSlurper
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -74,6 +75,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         println args
       }
     }
+    def graphite = Mock(GraphiteSender) {
+      send(_,_,_) >> {args -> println(args)}
+      isConnected() >> true
+      getFailures() >> 0
+    }
 
     and:
     bindings {
@@ -83,6 +89,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
           .csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)) }
           .console { it.reporterInterval(Duration.ofSeconds(1)) }
           .slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test") }
+          .graphite { it.sender(graphite).prefix("graphite").reporterInterval(Duration.ofSeconds(1)) }
       }
     }
     handlers { MetricRegistry metrics ->
@@ -103,7 +110,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
     polling.within(2) {
       output.toString().contains("root.get-requests") &&
-        output.toString().contains("test.root.get-requests")
+        output.toString().contains("test.root.get-requests") &&
+        output.toString().contains("graphite.root.get-requests")
     }
 
     cleanup:
@@ -489,6 +497,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    def graphite = Mock(GraphiteSender) {
+      send(_,_,_) >> {args -> println(args)}
+      isConnected() >> true
+      getFailures() >> 0
+    }
+
     and:
     bindings {
       module new CodaHaleMetricsModule(), {
@@ -496,6 +510,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         it.slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test").includeFilter(".*ar.*").excludeFilter(".*bar.*") }
         it.jmx { it.includeFilter(".*ar.*") }
         it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
+        it.graphite {it.sender(graphite).prefix("graphite").reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*")}
       }
     }
 
@@ -511,7 +526,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     polling.within(2) {
       output.toString().contains("tar.get-requests") &&
-        output.toString().contains("test.tar.get-requests")
+        output.toString().contains("test.tar.get-requests") &&
+        output.toString().contains("graphite.tar.get-requests")
     }
 
     and:
@@ -519,6 +535,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     !output.toString().contains("bar.get-requests")
     !output.toString().contains("test.foo.get-requests")
     !output.toString().contains("test.bar.get-requests")
+    !output.toString().contains("graphite.foo.get-requests")
+    !output.toString().contains("graphite.bar.get-requests")
 
     and:
     reportDirectory.root.listFiles().length == 1
