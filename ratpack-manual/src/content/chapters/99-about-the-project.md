@@ -68,6 +68,7 @@ The following people have provided significant contributions.
 * [João Cabrita](https://github.com/kewne)
 * [Matt Yott](https://github.com/myott)
 * [Daniel Lopes](https://github.com/djjorjinho)
+* [Daniel Raniz](https://github.com/Raniz85)
 
 ### Past project members
 
