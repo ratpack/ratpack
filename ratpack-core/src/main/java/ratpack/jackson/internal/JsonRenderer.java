@@ -42,6 +42,10 @@ public class JsonRenderer extends RendererSupport<JsonRender> {
     if (writer == null) {
       writer = defaultObjectWriter;
     }
+    Class<?> viewClass = object.getViewClass();
+    if(viewClass != null) {
+      writer = writer.withView(viewClass);
+    }
 
     ByteBuf buffer = context.get(ByteBufAllocator.class).buffer();
     OutputStream outputStream = new ByteBufOutputStream(buffer);

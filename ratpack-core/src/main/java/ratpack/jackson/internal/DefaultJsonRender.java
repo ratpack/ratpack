@@ -24,10 +24,20 @@ public class DefaultJsonRender implements JsonRender {
 
   private final Object object;
   private final ObjectWriter objectWriter;
+  private final Class<?> viewClass;
 
   public DefaultJsonRender(Object object, @Nullable ObjectWriter objectWriter) {
+    this(object, objectWriter, null);
+  }
+
+  public DefaultJsonRender(Object object, @Nullable Class<?> viewClass) {
+    this(object, null, viewClass);
+  }
+
+  public DefaultJsonRender(Object object, @Nullable ObjectWriter objectWriter, @Nullable Class<?> viewClass) {
     this.object = object;
     this.objectWriter = objectWriter;
+    this.viewClass = viewClass;
   }
 
   public Object getObject() {
@@ -36,5 +46,9 @@ public class DefaultJsonRender implements JsonRender {
 
   public ObjectWriter getObjectWriter() {
     return objectWriter;
+  }
+
+  public Class<?> getViewClass() {
+    return viewClass;
   }
 }

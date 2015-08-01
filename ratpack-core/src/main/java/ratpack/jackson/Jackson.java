@@ -288,7 +288,7 @@ public abstract class Jackson {
    * @return a renderable wrapper for the given object
    */
   public static JsonRender json(Object object) {
-    return new DefaultJsonRender(object, null);
+    return new DefaultJsonRender(object, null, null);
   }
 
   /**
@@ -305,6 +305,42 @@ public abstract class Jackson {
    */
   public static JsonRender json(Object object, @Nullable ObjectWriter objectWriter) {
     return new DefaultJsonRender(object, objectWriter);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render renderable object} to render the given object as JSON.
+   * <p>
+   * The given object will be converted to JSON using an {@link ObjectWriter} obtained from the context registry
+   * with the specified view {@code Class} used to determine which fields are included.
+   * If it is null the default view rendering of the {@link ObjectWriter} will be used.
+   * <p>
+   * See the <a href="#rendering">rendering</a> section for usage examples.
+   *
+   * @param object the object to render as JSON
+   * @param viewClass the view to use when rendering
+   * @return a renderable wrapper for the given object
+   */
+  public static JsonRender json(Object object, @Nullable Class<?> viewClass) {
+    return new DefaultJsonRender(object, viewClass);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render renderable object} to render the given object as JSON.
+   * <p>
+   * The given object will be converted to JSON using the given {@link ObjectWriter}
+   * with the specified view {@code Class} used to determine which fields are included.
+   * If the {@link ObjectWriter} is {@code null}, an {@code ObjectWriter} will be obtained from the context registry.
+   * If the view {@code Class} is null the default view rendering of the {@link ObjectWriter} will be used.
+   * <p>
+   * See the <a href="#rendering">rendering</a> section for usage examples.
+   *
+   * @param object the object to render as JSON
+   * @param objectWriter the object writer to use to serialize the object to JSON
+   * @param viewClass the view to use when rendering
+   * @return a renderable wrapper for the given object
+   */
+  public static JsonRender json(Object object, @Nullable ObjectWriter objectWriter, @Nullable Class<?> viewClass) {
+    return new DefaultJsonRender(object, objectWriter, viewClass);
   }
 
   /**

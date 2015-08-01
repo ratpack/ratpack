@@ -43,4 +43,14 @@ public interface JsonRender {
   @Nullable
   public ObjectWriter getObjectWriter();
 
+  /**
+   * The view class to use when rendering the object.
+   * <p>
+   * If null, no specific view will be used.
+   *
+   * @return The view class to be used.
+   */
+  @Nullable
+  public Class<?> getViewClass();
+
 }
