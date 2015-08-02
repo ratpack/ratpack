@@ -17,11 +17,13 @@
 package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.cookie.Cookie;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -29,14 +31,71 @@ import java.util.function.Supplier;
  * <p>
  * The headers and status are configured, before committing the response with one of the {@link #send} methods.
  */
-public interface Response extends ResponseMetaData {
+public interface Response {
 
-  @Override
+  /**
+   * Creates a new cookie with the given name and value.
+   * <p>
+   * The cookie will have no expiry. Use the returned cookie object to fine tune the cookie.
+   *
+   * @param name The name of the cookie
+   * @param value The value of the cookie
+   * @return The cookie that will be sent
+   */
+  Cookie cookie(String name, String value);
+
+  /**
+   * Adds a cookie to the response with a 0 max-age, forcing the client to expire it.
+   *
+   * @param name The name of the cookie to expire.
+   * @return The created cookie
+   */
+  Cookie expireCookie(String name);
+
+  /**
+   * The cookies that are to be part of the response.
+   * <p>
+   * The cookies are mutable.
+   *
+   * @return The cookies that are to be part of the response.
+   */
+  Set<Cookie> getCookies();
+
+  /**
+   * The response headers.
+   *
+   * @return The response headers.
+   */
+  MutableHeaders getHeaders();
+
+  /**
+   * The status that will be part of the response when sent.
+   * <p>
+   * By default, this will return a {@code "200 OK"} response.
+   *
+   * @return The status that will be part of the response when sent
+   * @see #status
+   */
+  Status getStatus();
+
+  /**
+   * Sets the status line of the response.
+   * <p>
+   * The message used will be the standard for the code.
+   *
+   * @param code The status code of the response to use when it is sent.
+   * @return This
+   */
   default Response status(int code) {
     return status(Status.of(code));
   }
 
-  @Override
+  /**
+   * Sets the status line of the response.
+   *
+   * @param status The status of the response to use when it is sent.
+   * @return This
+   */
   Response status(Status status);
 
   /**
@@ -105,10 +164,20 @@ public interface Response extends ResponseMetaData {
   @NonBlocking
   void send(CharSequence contentType, ByteBuf buffer);
 
-  @Override
+  /**
+   * Sets the response {@code Content-Type} header.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @return This
+   */
   Response contentType(CharSequence contentType);
 
-  @Override
+  /**
+   * Sets the response {@code Content-Type} header, if it has not already been set.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @return This
+   */
   default Response contentTypeIfNotSet(CharSequence contentType) {
     return contentTypeIfNotSet(() -> contentType);
   }
@@ -165,13 +234,12 @@ public interface Response extends ResponseMetaData {
    * @param responseFinalizer The action to execute on this response.
    * @return This
    */
-  Response beforeSend(Action<? super ResponseMetaData> responseFinalizer);
+  Response beforeSend(Action<? super Response> responseFinalizer);
 
   /**
    * Prevents the response from being compressed.
    *
    * @return {@code this}
    */
-  @Override
   Response noCompress();
 }

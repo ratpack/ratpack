@@ -54,7 +54,7 @@ public class DefaultResponse implements Response {
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
-  private List<Action<? super ResponseMetaData>> responseFinalizers;
+  private List<Action<? super Response>> responseFinalizers;
 
   public DefaultResponse(MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
     this.byteBufAllocator = byteBufAllocator;
@@ -277,7 +277,7 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public Response beforeSend(Action<? super ResponseMetaData> responseFinalizer) {
+  public Response beforeSend(Action<? super Response> responseFinalizer) {
     responseFinalizers.add(responseFinalizer);
     return this;
   }
@@ -317,7 +317,7 @@ public class DefaultResponse implements Response {
     });
   }
 
-  private void finalizeResponse(Iterator<Action<? super ResponseMetaData>> finalizers, Runnable then) {
+  private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then) {
     if (finalizers.hasNext()) {
       Operation.of(() ->
         finalizers.next().execute(this)
@@ -325,7 +325,7 @@ public class DefaultResponse implements Response {
         finalizeResponse(finalizers, then)
       );
     } else {
-      List<Action<? super ResponseMetaData>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
+      List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
       responseFinalizers.clear();
       if (finalizersCopy.isEmpty()) {
         then.run();

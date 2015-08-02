@@ -24,6 +24,9 @@ import ratpack.http.internal.DefaultStatus;
  */
 public interface Status {
 
+  /**
+   * The 200 status code.
+   */
   Status OK = Status.of(200);
 
   /**

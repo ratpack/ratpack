@@ -16,7 +16,6 @@
 
 package ratpack.http
 
-import ratpack.func.Action
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.HandlerDecorator
@@ -92,12 +91,7 @@ class CookiesSpec extends RatpackGroovyDslSpec {
   class CookieHandler implements Handler {
     @Override
     void handle(Context context) throws Exception {
-      context.getResponse().beforeSend(new Action<ResponseMetaData>() {
-        @Override
-        void execute(ResponseMetaData responseMetaData) throws Exception {
-          responseMetaData.cookie('id', 'id')
-        }
-      })
+      context.response.beforeSend { it.cookie('id', 'id') }
       context.next()
     }
   }
