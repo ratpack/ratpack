@@ -28,7 +28,7 @@ class FileCompressionSpec extends RatpackGroovyDslSpec {
   def bytes = content.getBytes(StandardCharsets.US_ASCII)
 
   def setup() {
-    file("public/file.txt") << bytes
+    path("public/file.txt") << bytes
   }
 
   void requestCompression(boolean flag) {

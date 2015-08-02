@@ -58,8 +58,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "requesting directory with no index file "() {
     given:
-    file "public/static.text", "hello!"
-    file "public/foo/static.text", "hello!"
+    write "public/static.text", "hello!"
+    write "public/foo/static.text", "hello!"
 
     when:
     handlers {
@@ -76,7 +76,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "can serve static file"() {
     given:
-    def file = file "public/static.text", "hello!"
+    def file = write "public/static.text", "hello!"
 
     when:
     handlers {
@@ -95,8 +95,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   }
 
   def "can serve index files"() {
-    file "public/index.html", "foo"
-    file "public/dir/index.xhtml", "bar"
+    write "public/index.html", "foo"
+    write "public/dir/index.xhtml", "bar"
 
     given:
     requestSpec { r -> r.redirects 1 }
@@ -114,7 +114,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "static files call onClose"() {
     given:
-    file "public/index.html", "foo"
+    write "public/index.html", "foo"
     def onCloseCalled = false
     def onCloseCalledWrapper = new BlockingVariable<Boolean>(1)
 
@@ -135,7 +135,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "ensure that onClose is called after file is rendered"() {
     given:
-    file "public/index.html", "foo"
+    write "public/index.html", "foo"
 
     when:
     handlers {
@@ -163,7 +163,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   @Unroll
   "index files are always served from a path with a trailing slash"() {
     given:
-    file "public/dir/index.html", "bar"
+    write "public/dir/index.html", "bar"
 
     when:
     handlers {
@@ -196,7 +196,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "can serve files with query strings"() {
     given:
-    file "public/index.html", "foo"
+    write "public/index.html", "foo"
 
     when:
     handlers {
@@ -210,8 +210,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "can map to multiple dirs"() {
     given:
-    file "d1/f1.txt", "1"
-    file "d2/f2.txt", "2"
+    write "d1/f1.txt", "1"
+    write "d2/f2.txt", "2"
 
     when:
     handlers {
@@ -230,9 +230,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "decodes URL paths correctly"() {
     given:
-    file "d1/some other.txt", "1"
-    file "d1/some+more.txt", "2"
-    file "d1/path to/some+where/test.txt", "3"
+    write "d1/some other.txt", "1"
+    write "d1/some+more.txt", "2"
+    write "d1/path to/some+where/test.txt", "3"
 
     when:
     handlers {
@@ -249,7 +249,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "can nest file system binding handlers"() {
     given:
-    file "d1/d2/d3/dir/index.html", "3"
+    write "d1/d2/d3/dir/index.html", "3"
 
     when:
     handlers {
@@ -266,7 +266,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "can bind to subpath"() {
     given:
-    file("foo/file.txt", "file")
+    write("foo/file.txt", "file")
 
     when:
     handlers {
@@ -282,7 +282,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "files report a last modified time"() {
     given:
-    def file = file("public/file.txt", "hello!")
+    def file = write("public/file.txt", "hello!")
 
     and:
     handlers {
@@ -298,7 +298,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "404 when posting to a non existent asset"() {
     given:
-    file "public/file.txt", "a"
+    write "public/file.txt", "a"
 
     when:
     handlers {
@@ -315,7 +315,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "asset handler returns a #statusCode if file is #state the request's if-modified-since header"() {
     given:
-    def file = file("public/file.txt", "hello!")
+    def file = write("public/file.txt", "hello!")
 
     and:
     handlers {
@@ -346,7 +346,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "asset handler respect if-modified-since header when serving index files"() {
     given:
-    def file = file("public/index.txt", "hello!")
+    def file = write("public/index.txt", "hello!")
 
     and:
     handlers {
@@ -368,7 +368,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "can serve large static file"() {
     given:
-    def file = file("public/static.text", RandomStringUtils.randomAscii(fileSize))
+    def file = write("public/static.text", RandomStringUtils.randomAscii(fileSize))
 
     when:
     handlers {
@@ -392,7 +392,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "asset handler passes through on not found"() {
     given:
-    file "public/foo.txt", "bar"
+    write "public/foo.txt", "bar"
 
     when:
     handlers {
@@ -408,7 +408,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "only serve files from within the binding root"() {
     setup:
-    file("public/foo.txt", "bar")
+    write("public/foo.txt", "bar")
     handlers {
       files { dir "public" }
     }

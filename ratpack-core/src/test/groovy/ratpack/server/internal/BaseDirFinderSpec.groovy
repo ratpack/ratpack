@@ -16,14 +16,14 @@
 
 package ratpack.server.internal
 
-import ratpack.test.embed.BaseDirBuilder
+import ratpack.test.embed.EmbeddedBaseDir
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class BaseDirFinderSpec extends Specification {
 
   @AutoCleanup
-  BaseDirBuilder b1 = BaseDirBuilder.tmpDir()
+  EmbeddedBaseDir b1 = EmbeddedBaseDir.tmpDir()
 
   def classLoader = new GroovyClassLoader()
 
@@ -34,12 +34,12 @@ class BaseDirFinderSpec extends Specification {
 
   def "returns when found in classloader dir"() {
     when:
-    def dir = b1.build { it.file("foo") << "bar" }
-    classLoader.addURL(dir.toUri().toURL())
+    b1.path("foo") << "bar"
+    classLoader.addURL(b1.root.toUri().toURL())
     def r = BaseDirFinder.find(classLoader, "foo").get()
 
     then:
-    r.baseDir == dir
+    r.baseDir == b1.root
     r.resource.text == "bar"
   }
 
@@ -48,14 +48,15 @@ class BaseDirFinderSpec extends Specification {
     def f = File.createTempFile("ratpack", "test")
     f.delete()
     f.deleteOnExit()
-    def dir = BaseDirBuilder.jar(f).build { it.file("foo") << "bar" }
-    dir.getFileSystem().close()
+    def dir = EmbeddedBaseDir.jar(f)
+      dir.path("foo") << "bar"
+    dir.root.getFileSystem().close()
     classLoader.addURL(f.toURI().toURL())
 
     def r = BaseDirFinder.find(classLoader, "foo").get()
 
     then:
-    r.baseDir == dir
+    r.baseDir == dir.root
     r.resource.text == "bar"
   }
 

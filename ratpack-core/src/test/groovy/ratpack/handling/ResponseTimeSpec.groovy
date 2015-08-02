@@ -72,7 +72,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
   def "static files have no response time when not enabled"() {
     given:
-    file("files/foo.txt", "foo")
+    write("files/foo.txt", "foo")
 
     when:
     handlers {
@@ -93,7 +93,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    file("files/foo.txt", "foo")
+    write("files/foo.txt", "foo")
 
     when:
     handlers {

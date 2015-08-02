@@ -27,38 +27,28 @@ import ratpack.groovy.test.embed.internal.DefaultGroovyEmbeddedApp;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.test.embed.EmbeddedApp;
+import ratpack.test.embed.EmbeddedBaseDir;
 import ratpack.test.http.TestHttpClient;
 
 /**
- * A highly configurable {@link ratpack.test.embed.EmbeddedApp} implementation that allows the application to be defined in code at runtime.
- * <p>
- * This implementation is usually sufficient for testing Ratpack modules or extensions.
+ * A more Groovy version of {@link EmbeddedApp}.
  *
  * <pre class="tested">
- * import ratpack.test.embed.BaseDirBuilder
  * import ratpack.groovy.test.embed.GroovyEmbeddedApp
  *
  * GroovyEmbeddedApp.of {
- *   serverConfig {
- *     baseDir BaseDirBuilder.tmpDir().build {
- *       it.file "public/foo.txt", "bar"
- *     }
- *   }
- *   // Use the GroovyChain DSL for defining the application handlers
  *   handlers {
  *     get {
  *       render "root"
  *     }
- *     files { dir "public" }
  *   }
  * } test {
  *   assert getText() == "root"
- *   assert getText("foo.txt") == "bar"
  * }
  * </pre>
  *
- * @see ratpack.test.embed.BaseDirBuilder
- * @see ratpack.test.embed.EmbeddedApp
+ * @see EmbeddedBaseDir
+ * @see EmbeddedApp
  */
 public interface GroovyEmbeddedApp extends EmbeddedApp {
 

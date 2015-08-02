@@ -24,7 +24,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
 
   def "can have global services"() {
     when:
-    file "templates/foo.html", "bar"
+    write "templates/foo.html", "bar"
 
     bindings {
       bindInstance new Thing()

@@ -44,7 +44,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    def staticFile = file "public/static.text", "trust no file"
+    def staticFile = write "public/static.text", "trust no file"
 
     and:
     handlers {

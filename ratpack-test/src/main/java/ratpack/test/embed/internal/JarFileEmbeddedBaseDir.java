@@ -29,15 +29,15 @@ import java.util.Map;
 
 import static ratpack.util.Exceptions.uncheck;
 
-public class JarFileBaseDirBuilder extends PathBaseDirBuilder {
+public class JarFileEmbeddedBaseDir extends PathEmbeddedBaseDir {
 
-  public JarFileBaseDirBuilder(File jar) {
+  public JarFileEmbeddedBaseDir(File jar) {
     super(getJarPath(jar), jar.toPath());
   }
 
   @Override
-  public Path file(String path, String content) {
-    Path file = super.file(path, content);
+  public Path write(String path, String content) {
+    Path file = super.write(path, content);
     FileSystem fileSystem = file.getFileSystem();
 
     // We have to force the write to disk.

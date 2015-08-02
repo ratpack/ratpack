@@ -56,7 +56,7 @@ import ratpack.server.ServerConfig;
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
  * import ratpack.handlebars.HandlebarsModule;
- * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  * import java.nio.file.Path;
  *
@@ -64,19 +64,18 @@ import ratpack.server.ServerConfig;
  * import static org.junit.Assert.*;
  *
  * public class Example {
- *
  *   public static void main(String... args) throws Exception {
- *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
- *         builder.file("handlebars/myTemplate.html.hbs", "Hello {{name}}!")
- *     );
- *     EmbeddedApp.of(s -> s
- *       .serverConfig(c -> c.baseDir(baseDir))
- *       .registry(Guice.registry(b -> b.module(HandlebarsModule.class)))
- *       .handlers(chain -> chain
- *         .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
- *       )
- *     ).test(httpClient -> {
- *       assertEquals("Hello Ratpack!", httpClient.getText());
+ *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *       baseDir.write("handlebars/myTemplate.html.hbs", "Hello {{name}}!");
+ *       EmbeddedApp.of(s -> s
+ *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
+ *         .registry(Guice.registry(b -> b.module(HandlebarsModule.class)))
+ *         .handlers(chain -> chain
+ *           .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
+ *         )
+ *       ).test(httpClient -> {
+ *         assertEquals("Hello Ratpack!", httpClient.getText());
+ *       });
  *     });
  *   }
  * }

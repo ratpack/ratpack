@@ -117,7 +117,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can handle file uploads"() {
     given:
-    def fooFile = file "foo.txt", "bar"
+    def fooFile = write "foo.txt", "bar"
     handlers {
       post {
         def form = parse Form
@@ -151,7 +151,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "default encoding is utf-8"() {
     given:
-    def fooFile = file "foo.txt", "bar"
+    def fooFile = write "foo.txt", "bar"
     handlers {
       post {
         def form = parse Form
@@ -185,7 +185,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "respects custom encoding"() {
     given:
-    def fooFile = file "foo.txt", "bar"
+    def fooFile = write "foo.txt", "bar"
     handlers {
       post {
         def form = parse Form

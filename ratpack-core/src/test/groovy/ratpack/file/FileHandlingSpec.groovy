@@ -25,7 +25,7 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
     given:
-    def fileInsideBaseDir = file("foo")
+    def fileInsideBaseDir = path("foo")
 
     when:
     handlers {
@@ -48,7 +48,7 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     given:
     def path = "../../some-file.txt" // outside the base dir
 
-    file path, "foo"
+    write path, "foo"
 
     when:
     handlers {

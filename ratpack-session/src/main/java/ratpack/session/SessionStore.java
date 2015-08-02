@@ -54,7 +54,7 @@ import ratpack.server.Service;
  * import ratpack.session.Session;
  * import ratpack.session.SessionModule;
  * import ratpack.session.SessionStore;
- * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import javax.inject.Inject;
@@ -144,26 +144,27 @@ import ratpack.server.Service;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     File sessionsDir = BaseDirBuilder.tmpDir().build().toFile();
- *     EmbeddedApp.of(s -> s
- *         .registry(Guice.registry(b -> b
- *             .module(SessionModule.class)
- *             .module(FileSessionModule.class, c -> c.dir = sessionsDir)
- *         ))
- *         .handlers(c -> c
- *             .get("set/:name/:value", ctx ->
- *                 ctx.get(Session.class).getData().then(sessionData -> {
- *                   sessionData.set(ctx.getPathTokens().get("name"), ctx.getPathTokens().get("value"));
- *                   ctx.render("ok");
- *                 })
- *             )
- *             .get("get/:name", ctx ->
- *                 ctx.render(ctx.get(Session.class).getData().map(sessionData -> sessionData.require(ctx.getPathTokens().get("name"))))
- *             )
- *         )
- *     ).test(httpClient -> {
- *       assertEquals("ok", httpClient.getText("set/foo/bar"));
- *       assertEquals("bar", httpClient.getText("get/foo"));
+ *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *       EmbeddedApp.of(s -> s
+ *           .registry(Guice.registry(b -> b
+ *               .module(SessionModule.class)
+ *               .module(FileSessionModule.class, c -> c.dir = baseDir.getRoot().toFile())
+ *           ))
+ *           .handlers(c -> c
+ *               .get("set/:name/:value", ctx ->
+ *                   ctx.get(Session.class).getData().then(sessionData -> {
+ *                     sessionData.set(ctx.getPathTokens().get("name"), ctx.getPathTokens().get("value"));
+ *                     ctx.render("ok");
+ *                   })
+ *               )
+ *               .get("get/:name", ctx ->
+ *                   ctx.render(ctx.get(Session.class).getData().map(sessionData -> sessionData.require(ctx.getPathTokens().get("name"))))
+ *               )
+ *           )
+ *       ).test(httpClient -> {
+ *         assertEquals("ok", httpClient.getText("set/foo/bar"));
+ *         assertEquals("bar", httpClient.getText("get/foo"));
+ *       });
  *     });
  *   }
  * }

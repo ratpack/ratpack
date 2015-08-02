@@ -16,7 +16,7 @@
 
 package ratpack.groovy.template
 
-import ratpack.test.embed.internal.JarFileBaseDirBuilder
+import ratpack.test.embed.internal.JarFileEmbeddedBaseDir
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
@@ -26,7 +26,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "can render template"() {
     given:
-    file "templates/foo.gtpl", "yield 'a '; yield value; yield ' b '; 3.times {  yield ' a ' }"
+    write "templates/foo.gtpl", "yield 'a '; yield value; yield ' b '; 3.times {  yield ' a ' }"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -44,7 +44,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "can render template with builder syntax"() {
     given:
-    file "templates/foo.gtpl", "div { p(value) }"
+    write "templates/foo.gtpl", "div { p(value) }"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -62,7 +62,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "templates are auto-escaped by default"() {
     given:
-    file "templates/foo.gtpl", "div(value)"
+    write "templates/foo.gtpl", "div(value)"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -80,7 +80,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "auto-escape can be configured via templateconfiguration from guice"() {
     given:
-    file "templates/foo.gtpl", "div(value)"
+    write "templates/foo.gtpl", "div(value)"
     bindings {
       module(MarkupTemplateModule) { it.autoEscape = false }
     }
@@ -98,7 +98,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "auto expanding empty elements is off by default"() {
     given:
-    file "templates/foo.gtpl", "div()"
+    write "templates/foo.gtpl", "div()"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -116,7 +116,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "empty elements can be configured to be auto expanded"() {
     given:
-    file "templates/foo.gtpl", "div()"
+    write "templates/foo.gtpl", "div()"
     bindings {
       module(MarkupTemplateModule) { it.expandEmptyElements = true }
     }
@@ -133,8 +133,8 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "can include another template"() {
     given:
-    file "templates/foo.gtpl", "div { include template:'bar.gtpl' }"
-    file "templates/bar.gtpl", "p(value)"
+    write "templates/foo.gtpl", "div { include template:'bar.gtpl' }"
+    write "templates/bar.gtpl", "p(value)"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -152,8 +152,8 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "can render inner template"() {
     given:
-    file "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
-    file "templates/inner.gtpl", 'yield "inner: $value"'
+    write "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
+    write "templates/inner.gtpl", 'yield "inner: $value"'
     bindings {
       module(MarkupTemplateModule)
     }
@@ -171,9 +171,9 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "inner templates are rendered in order"() {
     given:
-    file "templates/head.gtpl", "yield 'head'"
-    file "templates/middle.gtpl", 'include template:"head.gtpl"; yield "-middle-"; include template:"footer.gtpl"'
-    file "templates/footer.gtpl", "yield 'footer'"
+    write "templates/head.gtpl", "yield 'head'"
+    write "templates/middle.gtpl", 'include template:"head.gtpl"; yield "-middle-"; include template:"footer.gtpl"'
+    write "templates/footer.gtpl", "yield 'footer'"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -189,9 +189,9 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "can render inner, inner template"() {
     given:
-    file "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
-    file "templates/inner.gtpl", 'yield "inner: $value, "; layout "innerInner.gtpl", value: 1; yield ", "; layout "innerInner.gtpl", value: 2; yield ", "; layout "innerInner.gtpl", value: 1'
-    file "templates/innerInner.gtpl", 'yield "innerInner: $value"'
+    write "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
+    write "templates/inner.gtpl", 'yield "inner: $value, "; layout "innerInner.gtpl", value: 1; yield ", "; layout "innerInner.gtpl", value: 2; yield ", "; layout "innerInner.gtpl", value: 1'
+    write "templates/innerInner.gtpl", 'yield "innerInner: $value"'
     bindings {
       module(MarkupTemplateModule)
     }
@@ -210,9 +210,9 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "nested templates can inherit the outer model"() {
     given:
-    file "templates/outer.gtpl", 'yield "outer: $a$b, "; layout (*:model, b: "B", "inner.gtpl")'
-    file "templates/inner.gtpl", 'yield "inner: $a$b, "; layout (*:model, a: "A", "innerInner.gtpl")'
-    file "templates/innerInner.gtpl", 'yield "innerInner: $a$b"'
+    write "templates/outer.gtpl", 'yield "outer: $a$b, "; layout (*:model, b: "B", "inner.gtpl")'
+    write "templates/inner.gtpl", 'yield "inner: $a$b, "; layout (*:model, a: "A", "innerInner.gtpl")'
+    write "templates/innerInner.gtpl", 'yield "innerInner: $a$b"'
     bindings {
       module(MarkupTemplateModule)
     }
@@ -230,9 +230,9 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
   def "can use layout for template composition"() {
     given:
-    file "templates/layout.gtpl", """html { head { title(pageTitle) } body { pageBody() }}"""
-    file 'templates/body.gtpl', "p('This is the body')"
-    file 'templates/main.gtpl', '''
+    write "templates/layout.gtpl", """html { head { title(pageTitle) } body { pageBody() }}"""
+    write 'templates/body.gtpl', "p('This is the body')"
+    write 'templates/main.gtpl', '''
       layout "layout.gtpl",
         pageTitle: "My Page",
         pageBody: contents { include template: "body.gtpl" }
@@ -255,7 +255,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
   def "templates are reloadable in development mode"() {
     given:
     serverConfig { development(true) }
-    file "templates/t.gtpl", "yield 1"
+    write "templates/t.gtpl", "yield 1"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -270,7 +270,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file "templates/t.gtpl", "yield 2"
+    write "templates/t.gtpl", "yield 2"
 
     then:
     text == "2"
@@ -279,7 +279,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
   def "templates are not reloadable in development false mode"() {
     given:
     serverConfig { development(false) }
-    file "templates/t.gtpl", "yield 1"
+    write "templates/t.gtpl", "yield 1"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -293,20 +293,20 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     text == "1"
 
     when:
-    file "templates/t.gtpl", "yield 2"
+    write "templates/t.gtpl", "yield 2"
 
     then:
     text == "1"
   }
 
   def "templates are reloadable if reloading is forced"() {
-    if (baseDir instanceof JarFileBaseDirBuilder) {
+    if (baseDir instanceof JarFileEmbeddedBaseDir) {
       // https://jira.codehaus.org/browse/GROOVY-7002
       return
     }
 
     given:
-    file "templates/t.gtpl", "yield 1"
+    write "templates/t.gtpl", "yield 1"
     bindings {
       module(MarkupTemplateModule)
     }
@@ -324,7 +324,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file "templates/t.gtpl", "yield 2"
+    write "templates/t.gtpl", "yield 2"
 
     then:
     text == "2"
@@ -335,10 +335,10 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     bindings {
       module(MarkupTemplateModule)
     }
-    file "templates/t.gtpl", "1"
-    file "templates/t.xml", "1"
-    file "templates/dir/t.gtpl", "1"
-    file "templates/dir/t.xml", "1"
+    write "templates/t.gtpl", "1"
+    write "templates/t.xml", "1"
+    write "templates/dir/t.gtpl", "1"
+    write "templates/dir/t.xml", "1"
 
     handlers {
       all {

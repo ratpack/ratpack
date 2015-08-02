@@ -29,7 +29,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a handlebars template from #scenario'() {
     given:
-    file filePath, '{{key}}'
+    write filePath, '{{key}}'
 
     when:
     bindings {
@@ -57,7 +57,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can configure loader suffix via #scenario'() {
     given:
-    file('handlebars/simple.hbs', '{{this}}')
+    write('handlebars/simple.hbs', '{{this}}')
 
     when:
     bindings {
@@ -83,7 +83,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'missing templates are handled'() {
     given:
-    dir('handlebars')
+    mkdir('handlebars')
 
     bindings {
       module new HandlebarsModule()
@@ -103,7 +103,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'helpers can be registered'() {
     given:
-    file 'handlebars/helper.hbs', '{{test}}'
+    write 'handlebars/helper.hbs', '{{test}}'
 
     when:
     bindings {
@@ -122,9 +122,9 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'content types are based on file type but can be overriden'() {
     given:
-    file 'handlebars/simple.hbs', '{{this}}'
-    file 'handlebars/simple.json.hbs', '{{this}}'
-    file 'handlebars/simple.html.hbs', '{{this}}'
+    write 'handlebars/simple.hbs', '{{this}}'
+    write 'handlebars/simple.json.hbs', '{{this}}'
+    write 'handlebars/simple.html.hbs', '{{this}}'
 
     when:
     bindings {
@@ -145,7 +145,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void "templates are reloadable when reloading is enabled"() {
     given:
-    file 'handlebars/simple.hbs', 'A'
+    write 'handlebars/simple.hbs', 'A'
 
     when:
     bindings {
@@ -162,7 +162,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000 // make sure last modified times are different
-    file 'handlebars/simple.hbs', 'B'
+    write 'handlebars/simple.hbs', 'B'
 
     then:
     text == 'B'
@@ -170,7 +170,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void "templates are not reloadable when reloading is disabled"() {
     given:
-    file 'handlebars/simple.hbs', 'A'
+    write 'handlebars/simple.hbs', 'A'
 
     when:
     bindings {
@@ -187,7 +187,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000 // make sure last modified times are different
-    file 'handlebars/simple.hbs', 'B'
+    write 'handlebars/simple.hbs', 'B'
 
     then:
     text == 'A'
@@ -195,8 +195,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void "template cache allows templates with the same filename with different paths"() {
     given:
-    file 'handlebars/foo/simple.hbs', 'A'
-    file 'handlebars/bar/simple.hbs', 'B'
+    write 'handlebars/foo/simple.hbs', 'A'
+    write 'handlebars/bar/simple.hbs', 'B'
 
     when:
     bindings {

@@ -63,7 +63,7 @@ The following example demonstrates using `BaseDir.find()` to discover the base d
 
 ```language-java
 import ratpack.server.ServerConfig;
-import ratpack.test.embed.BaseDirBuilder;
+import ratpack.test.embed.EmbeddedBaseDir;
 import ratpack.test.embed.EmbeddedApp;
 
 import java.net.URL;
@@ -74,10 +74,10 @@ import static org.junit.Assert.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
-    try (BaseDirBuilder baseDirBuilder = BaseDirBuilder.tmpDir()) {
-      baseDirBuilder.file("mydir/.ratpack", "");
-      baseDirBuilder.file("mydir/assets/message.txt", "Hello Ratpack!");
-      Path mydir = baseDirBuilder.build().resolve("mydir");
+    EmbeddedBaseDir.tmpDir().use(baseDir -> {
+      baseDir.write("mydir/.ratpack", "");
+      baseDir.write("mydir/assets/message.txt", "Hello Ratpack!");
+      Path mydir = baseDir.getRoot().resolve("mydir");
 
       ClassLoader classLoader = new URLClassLoader(new URL[]{mydir.toUri().toURL()});
       Thread.currentThread().setContextClassLoader(classLoader);
@@ -91,12 +91,12 @@ public class Example {
         String message = httpClient.getText("message.txt");
         assertEquals("Hello Ratpack!", message);
       });
-    }
+    });
   }
 }
 ```
 
-The use of [`BaseDirBuilder`](api/ratpack/test/embed/BaseDirBuilder.html) and the construction of a new context class loader are in the example above are purely to make the example self contained.
+The use of [`EmbeddedBaseDir`](api/ratpack/test/embed/EmbeddedBaseDir.html) and the construction of a new context class loader are in the example above are purely to make the example self contained.
 A real main method would simply call `BaseDir.find()`, relying on whatever launched the Ratpack application JVM to have launched with the appropriate classpath.
 
 Ratpack accesses the base dir via the Java 7 [Path](http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) API,

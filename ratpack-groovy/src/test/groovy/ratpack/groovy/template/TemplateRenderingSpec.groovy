@@ -29,7 +29,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "can render template"() {
     given:
     bindings { module(TextTemplateModule) }
-    file "templates/foo.html", "a \${model.value} b <% 3.times {  %> a <% } %>"
+    write "templates/foo.html", "a \${model.value} b <% 3.times {  %> a <% } %>"
 
     when:
     handlers {
@@ -45,8 +45,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "can render inner template"() {
     given:
     bindings { module(TextTemplateModule) }
-    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file "templates/inner.html", "inner: \${model.value}"
+    write "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    write "templates/inner.html", "inner: \${model.value}"
 
     when:
     handlers {
@@ -62,9 +62,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "inner templates are rendered in order"() {
     given:
     bindings { module(TextTemplateModule) }
-    file "templates/head.html", "head"
-    file "templates/middle.html", '<% render "head.html" %>-middle-<% render "footer.html" %>'
-    file "templates/footer.html", "footer"
+    write "templates/head.html", "head"
+    write "templates/middle.html", '<% render "head.html" %>-middle-<% render "footer.html" %>'
+    write "templates/footer.html", "footer"
 
     when:
     handlers {
@@ -78,9 +78,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "can render inner, inner template"() {
     given:
     bindings { module(TextTemplateModule) }
-    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file "templates/inner.html", "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
-    file "templates/innerInner.html", "innerInner: \${model.value}"
+    write "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    write "templates/inner.html", "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
+    write "templates/innerInner.html", "innerInner: \${model.value}"
 
     when:
     handlers {
@@ -95,9 +95,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "inner template exceptions"() {
     given:
-    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file "templates/inner.html", "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
-    file "templates/innerInner.html", "\${throw new Exception(model.value.toString())}"
+    write "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    write "templates/inner.html", "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
+    write "templates/innerInner.html", "\${throw new Exception(model.value.toString())}"
 
     when:
     bindings {
@@ -117,9 +117,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "nested templates inherit the outer model"() {
     given:
     bindings { module(TextTemplateModule) }
-    file "templates/outer.html", "outer: \${model.a}\${model.b}, <% render 'inner.html', b: 'B' %>"
-    file "templates/inner.html", "inner: \${model.a}\${model.b}, <% render 'innerInner.html', a: 'A' %>"
-    file "templates/innerInner.html", "innerInner: \${model.a}\${model.b}"
+    write "templates/outer.html", "outer: \${model.a}\${model.b}, <% render 'inner.html', b: 'B' %>"
+    write "templates/inner.html", "inner: \${model.a}\${model.b}, <% render 'innerInner.html', a: 'A' %>"
+    write "templates/innerInner.html", "innerInner: \${model.a}\${model.b}"
 
     when:
     handlers {
@@ -135,8 +135,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   "can use render in output section - #template"() {
     given:
-    file "templates/outer.html", template
-    file "templates/foo.html", "foo"
+    write "templates/outer.html", template
+    write "templates/foo.html", "foo"
     bindings { module(TextTemplateModule) }
 
     when:
@@ -157,9 +157,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   "can use render in output section in nested - #template"() {
     given:
     bindings { module(TextTemplateModule) }
-    file "templates/outer.html", "<% render 'inner.html' %>"
-    file "templates/inner.html", template
-    file "templates/foo.html", "foo"
+    write "templates/outer.html", "<% render 'inner.html' %>"
+    write "templates/inner.html", template
+    write "templates/foo.html", "foo"
 
     when:
     handlers {
@@ -177,8 +177,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "compile error in inner template"() {
     given:
-    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file "templates/inner.html", "inner: \${model.value.toInteger()}"
+    write "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    write "templates/inner.html", "inner: \${model.value.toInteger()}"
 
     when:
     bindings {
@@ -198,7 +198,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can get model object via type"() {
     given:
-    file "templates/template.html", "value: \${model.get('value', String).toInteger()}"
+    write "templates/template.html", "value: \${model.get('value', String).toInteger()}"
 
     when:
     bindings {
@@ -217,7 +217,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can get model object via generic type"() {
     given:
-    file "templates/template.html", "value: \${model.get('value', new com.google.common.reflect.TypeToken<List<Integer>>() {})}"
+    write "templates/template.html", "value: \${model.get('value', new com.google.common.reflect.TypeToken<List<Integer>>() {})}"
 
     when:
     bindings {
@@ -234,7 +234,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text.contains "value: [1, 2]"
 
     when:
-    file "templates/template.html", "value: \${model.get('value', new com.google.common.reflect.TypeToken<List<Thread>>() {})}"
+    write "templates/template.html", "value: \${model.get('value', new com.google.common.reflect.TypeToken<List<Thread>>() {})}"
 
     then:
     text.contains "value: [1, 2]" // thank you erasure
@@ -244,7 +244,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     bindings { module(TextTemplateModule) }
     serverConfig { development(true) }
-    file "templates/t", "1"
+    write "templates/t", "1"
 
     when:
     handlers {
@@ -256,7 +256,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file "templates/t", "2"
+    write "templates/t", "2"
 
     then:
     text == "2"
@@ -266,7 +266,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     bindings { module(TextTemplateModule) }
     serverConfig { development(false) }
-    file "templates/t", "1"
+    write "templates/t", "1"
 
     when:
     handlers {
@@ -277,7 +277,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "1"
 
     when:
-    file "templates/t", "2"
+    write "templates/t", "2"
 
     then:
     text == "1"
@@ -286,11 +286,11 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "content type by template extension"() {
     when:
     bindings { module(TextTemplateModule) }
-    file "templates/t.html", "1"
-    file "templates/t.xml", "1"
-    file "templates/dir/t.html", "1"
-    file "templates/dir/t.xml", "1"
-    file "templates/dir/t", "1"
+    write "templates/t.html", "1"
+    write "templates/t.xml", "1"
+    write "templates/dir/t.html", "1"
+    write "templates/dir/t.xml", "1"
+    write "templates/dir/t", "1"
 
     handlers {
       all {
@@ -311,7 +311,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can escape in template"() {
     given:
-    file "templates/tpl.html", "\${html '<>'} \${urlPathSegment 'a/b'} \${urlParam 'a b'}"
+    write "templates/tpl.html", "\${html '<>'} \${urlPathSegment 'a/b'} \${urlParam 'a b'}"
     bindings { module(TextTemplateModule) }
 
     when:

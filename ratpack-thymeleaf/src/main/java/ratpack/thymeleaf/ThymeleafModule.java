@@ -52,7 +52,7 @@ import java.util.Set;
  * not specified will default to {@code text/html}.
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
- * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.thymeleaf.ThymeleafModule;
  *
@@ -64,17 +64,17 @@ import java.util.Set;
  * public class Example {
  *
  *   public static void main(String... args) throws Exception {
- *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
- *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
- *     );
- *     EmbeddedApp.of(s -> s
- *       .serverConfig(c -> c.baseDir(baseDir))
- *       .registry(Guice.registry(b -> b.module(ThymeleafModule.class)))
- *       .handlers(chain -> chain
- *         .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
- *       )
- *     ).test(httpClient -> {
- *       assertEquals("<span>Hello Ratpack!</span>", httpClient.getText());
+ *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *       baseDir.write("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>");
+ *       EmbeddedApp.of(s -> s
+ *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
+ *         .registry(Guice.registry(b -> b.module(ThymeleafModule.class)))
+ *         .handlers(chain -> chain
+ *           .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
+ *         )
+ *       ).test(httpClient -> {
+ *         assertEquals("<span>Hello Ratpack!</span>", httpClient.getText());
+ *       });
  *     });
  *   }
  * }

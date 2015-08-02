@@ -20,13 +20,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
-import ratpack.test.embed.BaseDirBuilder
+import ratpack.test.embed.EmbeddedBaseDir
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class ServerConfigDataDeserializerSpec extends Specification {
   @AutoCleanup
-  def b1 = BaseDirBuilder.tmpDir()
+  def b1 = EmbeddedBaseDir.tmpDir()
   def originalClassLoader
   def classLoader = new GroovyClassLoader()
   def serverEnvironment = new ServerEnvironment([:], new Properties())
@@ -43,7 +43,7 @@ class ServerConfigDataDeserializerSpec extends Specification {
   }
 
   def "can specify baseDir"() {
-    def dir = b1.dir("p1")
+    def dir = b1.mkdir("p1")
 
     when:
     def serverConfig = deserialize(objectMapper.createObjectNode().put("baseDir", dir.toString()))
