@@ -49,6 +49,9 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   private final ImmutableList.Builder<ConfigSource> sources = ImmutableList.builder();
   private final ServerEnvironment serverEnvironment;
   private final ObjectMapper objectMapper;
+
+  private Path baseDir;
+
   private Action<? super Throwable> errorHandler = Action.throwException();
 
   public DefaultConfigDataBuilder(ServerEnvironment serverEnvironment) {
@@ -192,7 +195,17 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   }
 
   @Override
+  public Path getBaseDir() {
+    return baseDir;
+  }
+
+  public ConfigDataBuilder baseDir(Path baseDir) {
+    this.baseDir = baseDir;
+    return this;
+  }
+
+  @Override
   public ConfigData build() {
-    return new DefaultConfigData(getObjectMapper(), getConfigSources());
+    return new DefaultConfigData(this);
   }
 }
