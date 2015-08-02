@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.handling.internal;
 
 public class DoubleTransmissionException extends RuntimeException {
 

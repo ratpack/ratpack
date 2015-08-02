@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.handling.DoubleTransmissionException;
+import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.http.Request;
