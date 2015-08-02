@@ -22,7 +22,6 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
 import ratpack.file.FileSystemBinding;
-import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.ServerConfig;
 
@@ -41,7 +40,7 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
     super(configData);
     this.requiredConfig = requiredConfig;
     this.serverConfigData = get("/server", ServerConfigData.class);
-    baseDir = Optional.ofNullable(serverConfigData.getBaseDir()).map(DefaultFileSystemBinding::new);
+    this.baseDir = Optional.ofNullable(serverConfigData.getBaseDir());
   }
 
   @Override
@@ -77,7 +76,7 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
 
   @Nullable
   @Override
-  public SSLContext getSSLContext() {
+  public SSLContext getSslContext() {
     return serverConfigData.getSslContext();
   }
 

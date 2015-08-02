@@ -16,8 +16,8 @@
 
 package ratpack.config
 
-import ratpack.config.internal.DefaultConfigDataBuilder
-import ratpack.server.internal.ServerConfigData
+import ratpack.server.ServerConfig
+import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 
 class PropsConfigSpec extends BaseConfigSpec {
@@ -29,24 +29,23 @@ class PropsConfigSpec extends BaseConfigSpec {
     def configFile = tempFolder.newFile("file.properties").toPath()
     configFile.text = """
     |# This is a comment
-    |baseDir: ${baseDir.toString().replaceAll("\\\\", "/")}
-    |port: 8080
-    |address: localhost
-    |development: true
-    |threads: 3
-    |publicAddress: http://localhost:8080
-    |maxContentLength: 50000
-    |indexFiles[0]: index.html
-    |indexFiles[1]: index.htm
-    |ssl.keystoreFile: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
-    |ssl.keystorePassword: ${keyStorePassword}
+    |server.port: 8080
+    |server.address: localhost
+    |server.development: true
+    |server.threads: 3
+    |server.publicAddress: http://localhost:8080
+    |server.maxContentLength: 50000
+    |server.indexFiles[0]: index.html
+    |server.indexFiles[1]: index.htm
+    |server.ssl.keystoreFile: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
+    |server.ssl.keystorePassword: ${keyStorePassword}
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigData.of { it.props(configFile) }.get(ServerConfigData)
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).props(configFile) }
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
@@ -64,24 +63,23 @@ class PropsConfigSpec extends BaseConfigSpec {
     createKeystore(keyStoreFile, keyStorePassword)
     def properties = new Properties()
     properties.with {
-      setProperty("ratpack.baseDir", baseDir.toString())
       setProperty("ratpack.port", "8080")
-      setProperty("ratpack.address", "localhost")
-      setProperty("ratpack.development", "true")
-      setProperty("ratpack.threads", "3")
-      setProperty("ratpack.publicAddress", "http://localhost:8080")
-      setProperty("ratpack.maxContentLength", "50000")
-      setProperty("ratpack.indexFiles[0]", "index.html")
-      setProperty("ratpack.indexFiles[1]", "index.htm")
-      setProperty("ratpack.ssl.keystoreFile", keyStoreFile.toString())
-      setProperty("ratpack.ssl.keystorePassword", keyStorePassword)
+      setProperty("ratpack.server.address", "localhost")
+      setProperty("ratpack.server.development", "true")
+      setProperty("ratpack.server.threads", "3")
+      setProperty("ratpack.server.publicAddress", "http://localhost:8080")
+      setProperty("ratpack.server.maxContentLength", "50000")
+      setProperty("ratpack.server.indexFiles[0]", "index.html")
+      setProperty("ratpack.server.indexFiles[1]", "index.htm")
+      setProperty("ratpack.server.ssl.keystoreFile", keyStoreFile.toString())
+      setProperty("ratpack.server.ssl.keystorePassword", keyStorePassword)
     }
 
     when:
-    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment([:], properties)).sysProps().build().get(ServerConfigData)
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties)).sysProps().baseDir(baseDir).build()
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development

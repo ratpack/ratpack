@@ -25,7 +25,6 @@ import ratpack.func.Function;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
 
@@ -171,14 +170,15 @@ public interface ConfigDataBuilder {
   ConfigDataBuilder json(Path path);
 
   /**
-   * Adds a configuration source for a JSON file.
+   * Adds the JSON file at the given path as a configuration source.
+   * <p>
+   * The default implementation of {@link ConfigDataBuilder} will resolve the given path relative to the actual file system root.
+   * Alternative implementations, such as {@link ratpack.server.ServerConfigBuilder#json(String)} may resolve the file location differently.
    *
    * @param path the path to the source of the JSON data
    * @return {@code this}
    */
-  default ConfigDataBuilder json(String path) {
-    return json(Paths.get(path));
-  }
+  ConfigDataBuilder json(String path);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -241,14 +241,15 @@ public interface ConfigDataBuilder {
   ConfigDataBuilder props(Map<String, String> map);
 
   /**
-   * Adds a configuration source for a properties file.
+   * Adds the properties file at the given path as a configuration source.
+   * <p>
+   * The default implementation of {@link ConfigDataBuilder} will resolve the given path relative to the actual file system root.
+   * Alternative implementations, such as {@link ratpack.server.ServerConfigBuilder#props(String)} may resolve the file location differently.
    *
    * @param path the path to the source of the properties data
    * @return {@code this}
    */
-  default ConfigDataBuilder props(String path) {
-    return props(Paths.get(path));
-  }
+  ConfigDataBuilder props(String path);
 
   /**
    * Adds a configuration source for a properties file.
@@ -291,14 +292,15 @@ public interface ConfigDataBuilder {
   ConfigDataBuilder yaml(Path path);
 
   /**
-   * Adds a configuration source for a YAML file.
+   * Adds the YAML file at the given path as a configuration source.
+   * <p>
+   * The default implementation of {@link ConfigDataBuilder} will resolve the given path relative to the actual file system root.
+   * Alternative implementations, such as {@link ratpack.server.ServerConfigBuilder#yaml(String)} may resolve the file location differently.
    *
    * @param path the path to the source of the YAML data
    * @return {@code this}
    */
-  default ConfigDataBuilder yaml(String path) {
-    return yaml(Paths.get(path));
-  }
+  ConfigDataBuilder yaml(String path);
 
   /**
    * Adds a configuration source for a YAML file.

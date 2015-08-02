@@ -17,7 +17,6 @@
 package ratpack.server
 
 import com.google.common.io.Resources
-import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
@@ -32,7 +31,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def setup() {
     properties = new Properties()
-    builder = new DefaultServerConfigBuilder(new DefaultConfigDataBuilder(new ServerEnvironment([:], properties)))
+    builder = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties))
   }
 
   def "set port"() {
@@ -193,7 +192,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     properties.setProperty('ratpack.server.ssl.keystorePassword', keystorePassword)
 
     when:
-    SSLContext sslContext = builder.sysProps().build().SSLContext
+    SSLContext sslContext = builder.sysProps().build().sslContext
 
     then:
     sslContext

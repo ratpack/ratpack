@@ -18,9 +18,12 @@ package ratpack.config.internal.source
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import ratpack.config.internal.DefaultConfigDataBuilder
+import ratpack.file.FileSystemBinding
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.nio.file.Paths
 
 import static ratpack.config.ConfigDataBuilder.DEFAULT_ENV_PREFIX
 
@@ -72,6 +75,6 @@ class EnvironmentConfigSourceSpec extends Specification {
     def environment = new ServerEnvironment(input, new Properties())
     def mapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
     def source = new EnvironmentConfigSource(environment, prefix)
-    source.loadConfigData(mapper)
+    source.loadConfigData(mapper, FileSystemBinding.of(Paths.get("/")))
   }
 }

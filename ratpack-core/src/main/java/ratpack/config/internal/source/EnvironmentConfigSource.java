@@ -26,6 +26,7 @@ import com.google.common.base.Strings;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.func.Predicate;
@@ -64,7 +65,7 @@ public class EnvironmentConfigSource implements ConfigSource {
   }
 
   @Override
-  public ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception {
+  public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
     ObjectNode rootNode = objectMapper.createObjectNode();
     serverEnvironment.getenv().entrySet().stream().map(toPair()).flatMap(getFilterFunc()).map(getPairTokenizerFunc()).forEach(entry -> {
         populate(rootNode, mapPathSegments(entry), 0, entry.getRight());

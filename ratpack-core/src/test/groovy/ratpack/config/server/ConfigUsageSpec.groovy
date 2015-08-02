@@ -18,7 +18,10 @@ package ratpack.config.server
 
 import com.google.common.io.ByteSource
 import ratpack.config.ConfigData
+import ratpack.server.ServerConfig
 import spock.lang.Specification
+
+import java.nio.file.Path
 
 import static com.google.common.base.Charsets.UTF_8
 
@@ -27,8 +30,8 @@ abstract class ConfigUsageSpec extends Specification {
     ConfigData.of {}
   }
 
-  protected static ConfigData yamlConfig(String data) {
-    ConfigData.of { it.yaml(toByteSource(data)) }
+  protected static ServerConfig yamlConfig(Path baseDir, String data) {
+    ServerConfig.of { it.baseDir(baseDir).yaml(toByteSource(data)) }
   }
 
   protected static ByteSource toByteSource(String data) {

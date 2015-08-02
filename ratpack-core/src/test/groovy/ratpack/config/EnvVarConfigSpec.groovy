@@ -16,8 +16,7 @@
 
 package ratpack.config
 
-import ratpack.config.internal.DefaultConfigDataBuilder
-import ratpack.server.internal.ServerConfigData
+import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Unroll
 
@@ -26,7 +25,7 @@ class EnvVarConfigSpec extends BaseConfigSpec {
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties())).env().build()
 
     then:
     serverConfig.port == expectedPort
@@ -44,23 +43,22 @@ class EnvVarConfigSpec extends BaseConfigSpec {
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
     def envData = [
-      RATPACK_BASE_DIR: baseDir.toString(),
-      RATPACK_PORT: "8080",
-      RATPACK_ADDRESS: "localhost",
-      RATPACK_DEVELOPMENT: "true",
-      RATPACK_THREADS: "3",
-      RATPACK_PUBLIC_ADDRESS: "http://localhost:8080",
-      RATPACK_MAX_CONTENT_LENGTH: "50000",
-      RATPACK_TIME_RESPONSES: "true",
-      RATPACK_SSL__KEYSTORE_FILE: keyStoreFile.toString(),
-      RATPACK_SSL__KEYSTORE_PASSWORD: keyStorePassword,
+      RATPACK_SERVER__PORT                  : "8080",
+      RATPACK_SERVER__ADDRESS               : "localhost",
+      RATPACK_SERVER__DEVELOPMENT           : "true",
+      RATPACK_SERVER__THREADS               : "3",
+      RATPACK_SERVER__PUBLIC_ADDRESS        : "http://localhost:8080",
+      RATPACK_SERVER__MAX_CONTENT_LENGTH    : "50000",
+      RATPACK_SERVER__TIME_RESPONSES        : "true",
+      RATPACK_SERVER__SSL__KEYSTORE_FILE    : keyStoreFile.toString(),
+      RATPACK_SERVER__SSL__KEYSTORE_PASSWORD: keyStorePassword,
     ]
 
     when:
-    def serverConfig = new DefaultConfigDataBuilder(new ServerEnvironment(envData, new Properties())).env().build().get(ServerConfigData)
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties())).env().baseDir(baseDir).build()
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
