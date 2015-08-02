@@ -47,6 +47,7 @@ import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.UnexpectedHandlerException;
 
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -97,14 +98,14 @@ public class DefaultHandlingResult implements HandlingResult {
         body = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(body);
         byteBuf.release();
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, new DefaultStatus(status)), System.currentTimeMillis()));
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, new DefaultStatus(status)), Instant.now()));
         latch.countDown();
       }
 
       @Override
       public void transmit(HttpResponseStatus status, Path file) {
         sentFile = file;
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, DefaultHandlingResult.this.status), System.currentTimeMillis()));
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, DefaultHandlingResult.this.status), Instant.now()));
         latch.countDown();
       }
 

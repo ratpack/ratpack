@@ -20,16 +20,18 @@ import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 
+import java.time.Instant;
+
 public class DefaultRequestOutcome implements RequestOutcome {
 
   private final Request request;
   private final SentResponse response;
-  private final long closedAt;
+  private final Instant sentAt;
 
-  public DefaultRequestOutcome(Request request, SentResponse response, long closedAt) {
+  public DefaultRequestOutcome(Request request, SentResponse response, Instant sentAt) {
     this.request = request;
     this.response = response;
-    this.closedAt = closedAt;
+    this.sentAt = sentAt;
   }
 
   @Override
@@ -43,7 +45,7 @@ public class DefaultRequestOutcome implements RequestOutcome {
   }
 
   @Override
-  public long getClosedAt() {
-    return closedAt;
+  public Instant getSentAt() {
+    return sentAt;
   }
 }

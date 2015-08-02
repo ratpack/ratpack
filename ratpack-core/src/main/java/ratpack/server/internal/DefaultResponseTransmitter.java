@@ -39,6 +39,7 @@ import java.io.FileInputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
@@ -56,7 +57,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final boolean isKeepAlive;
   private final boolean isSsl;
 
-  private long stopTime;
+  private Instant stopTime;
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
@@ -73,7 +74,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private ChannelFuture pre(HttpResponseStatus responseStatus) {
     if (transmitted.compareAndSet(false, true)) {
-      stopTime = System.nanoTime();
+      stopTime = Instant.now();
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
       nettyRequest.release();
