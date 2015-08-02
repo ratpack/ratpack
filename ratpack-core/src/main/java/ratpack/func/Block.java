@@ -16,6 +16,7 @@
 
 package ratpack.func;
 
+import ratpack.exec.Operation;
 import ratpack.util.Exceptions;
 
 /**
@@ -63,4 +64,13 @@ public interface Block {
     return () -> Exceptions.uncheck(this);
   }
 
+  /**
+   * Creates an {@link Operation} from this block.
+   *
+   * @return an operation
+   * @see Operation#of(Block)
+   */
+  default Operation operation() {
+    return Operation.of(this);
+  }
 }

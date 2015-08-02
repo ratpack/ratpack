@@ -32,10 +32,12 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
-import ratpack.exec.Operation;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
-import ratpack.http.*;
+import ratpack.http.Headers;
+import ratpack.http.MutableHeaders;
+import ratpack.http.Response;
+import ratpack.http.Status;
 import ratpack.util.MultiValueMap;
 
 import java.nio.CharBuffer;
@@ -319,11 +321,13 @@ public class DefaultResponse implements Response {
 
   private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then) {
     if (finalizers.hasNext()) {
-      Operation.of(() ->
-        finalizers.next().execute(this)
-      ).then(() ->
-        finalizeResponse(finalizers, then)
-      );
+      finalizers
+        .next()
+        .curry(this)
+        .operation()
+        .then(() ->
+            finalizeResponse(finalizers, then)
+        );
     } else {
       List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
       responseFinalizers.clear();

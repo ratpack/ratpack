@@ -229,10 +229,15 @@ public interface Response {
   void sendStream(Publisher<? extends ByteBuf> stream);
 
   /**
-   * Register an action to execute upon the response immediately before sending it to the client.
+   * Register a callback to execute with the response immediately before sending it to the client.
+   * <p>
+   * This method is often used to add response headers “at the last second”.
+   * <p>
+   * The callbacks are executed after one of the {@code send*} methods.
+   * As such, those methods cannot be called during an action given to this method.
    *
-   * @param responseFinalizer The action to execute on this response.
-   * @return This
+   * @param responseFinalizer the action to execute on the response.
+   * @return {@code this}
    */
   Response beforeSend(Action<? super Response> responseFinalizer);
 
