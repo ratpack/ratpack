@@ -92,14 +92,6 @@ public interface RegistrySpec {
    */
   <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
 
-  default <O> RegistrySpec addLazyAsync(Class<O> type, Supplier<? extends Promise<? extends O>> supplier) {
-    return addLazy(Types.promiseOf(type), Types.cast(supplier));
-  }
-
-  default <O> RegistrySpec addLazyAsync(TypeToken<O> type, Supplier<? extends Promise<? extends O>> supplier) {
-    return addLazy(Types.promiseOf(type), Types.cast(supplier));
-  }
-
   /**
    * Executes the given action with {@code this}.
    *
