@@ -86,6 +86,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
+    ctx.channel().config().setAutoRead(false);
+
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       //TODO?
@@ -125,6 +127,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
           ctx.pipeline().addLast(ratpackHandler);
         });
         ctx.channel().pipeline().fireChannelRead(oldDecoder.content().copy());
+        ctx.channel().config().setAutoRead(true);
 
       });
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
