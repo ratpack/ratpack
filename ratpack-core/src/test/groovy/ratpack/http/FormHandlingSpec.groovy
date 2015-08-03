@@ -29,6 +29,7 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static ratpack.form.Form.form

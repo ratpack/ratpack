@@ -20,14 +20,14 @@ import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import ratpack.exec.Promise;
+import ratpack.exec.Upstream;
 import ratpack.func.Function;
 import ratpack.http.*;
+import ratpack.http.HttpMethod;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.util.MultiValueMap;
@@ -50,7 +50,7 @@ public class DefaultRequest implements Request {
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
-  private final Promise<TypedData> body;
+  private final Upstream<ByteBuf> bodyFactory;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -58,7 +58,8 @@ public class DefaultRequest implements Request {
   private String path;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
+  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
+                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, Upstream<ByteBuf> bodyFactory) {
     this.headers = headers;
     this.method = DefaultHttpMethod.valueOf(method);
     this.protocol = protocol.toString();
@@ -66,7 +67,7 @@ public class DefaultRequest implements Request {
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
-    this.body = Promise.value(new ByteBufBackedTypedData(content, getContentType()));
+    this.bodyFactory = bodyFactory;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -199,7 +200,7 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    return body;
+    return Promise.of(bodyFactory).cache().map(buf -> new ByteBufBackedTypedData(buf, getContentType()));
   }
 
   @Override
