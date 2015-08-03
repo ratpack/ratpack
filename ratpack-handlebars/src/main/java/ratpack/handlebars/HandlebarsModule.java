@@ -47,6 +47,9 @@ import ratpack.server.ServerConfig;
  * This can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#templatesPath(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#templatesSuffix(String)}.
  * </p>
  * <p>
+ * The default template delimiters are {@code {{ }}} but can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#startDelimiter(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#endDelimiter(String)}.
+ * </p>
+ * <p>
  * Response content type can be manually specified, i.e. {@code handlebarsTemplate("template", model, "text/html")} or can
  * be detected based on the template extension. Mapping between file extensions and content types is performed using
  * {@link ratpack.file.MimeTypes} contextual object so content type for {@code handlebarsTemplate("template.html")}
@@ -93,6 +96,10 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
 
     private String templatesSuffix = ".hbs";
 
+    private String startDelimiter = "{{";
+
+    private String endDelimiter = "}}";
+
     private int cacheSize = 100;
 
     private Boolean reloadable;
@@ -113,6 +120,24 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
     public Config templatesSuffix(String templatesSuffix) {
       this.templatesSuffix = templatesSuffix;
       return this;
+    }
+
+    public Config startDelimiter(String startDelimiter) {
+      this.startDelimiter = startDelimiter;
+      return this;
+    }
+
+    public String getStartDelimiter() {
+      return startDelimiter;
+    }
+
+    public Config endDelimiter(String endDelimiter) {
+      this.endDelimiter = endDelimiter;
+      return this;
+    }
+
+    public String getEndDelimiter() {
+      return endDelimiter;
     }
 
     public int getCacheSize() {
@@ -157,10 +182,13 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+  Handlebars provideHandlebars(Config config, Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+    final Handlebars handlebars = new Handlebars()
+      .with(templateLoader)
+      .with(templateCache)
+      .startDelimiter(config.startDelimiter)
+      .endDelimiter(config.endDelimiter);
 
-    final Handlebars handlebars = new Handlebars().with(templateLoader);
-    handlebars.with(templateCache);
     GuiceUtil.eachOfType(injector, NAMED_HELPER_TYPE, helper -> handlebars.registerHelper(helper.getName(), helper));
 
     return handlebars;
