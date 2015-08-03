@@ -215,6 +215,24 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     get('foo').body.text == 'A'
     get('bar').body.text == 'B'
   }
+
+  void 'can configure start and end delimiters'() {
+    given:
+    file 'handlebars/simple.hbs', '<%key%>'
+
+    when:
+    bindings {
+      module new HandlebarsModule(), { it.startDelimiter('<%').endDelimiter('%>') }
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple', key: 'it works!')
+      }
+    }
+
+    then:
+    text == 'it works!'
+  }
 }
 
 class TestHelper implements NamedHelper {
