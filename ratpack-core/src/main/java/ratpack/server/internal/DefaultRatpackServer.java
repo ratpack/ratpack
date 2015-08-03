@@ -24,7 +24,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
@@ -228,9 +227,10 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
+          HttpRequestDecoder decoder = new HttpRequestHolderDecoder(4096, 8192, 8192, false);
+          decoder.setSingleDecode(true);
+          pipeline.addLast("decoder", decoder);
           pipeline.addLast("encoder", new HttpResponseEncoder());
-          pipeline.addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxContentLength()));
           pipeline.addLast("deflater", new SmartHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);

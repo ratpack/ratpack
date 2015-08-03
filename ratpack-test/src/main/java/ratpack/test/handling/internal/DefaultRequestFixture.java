@@ -116,7 +116,7 @@ public class DefaultRequestFixture implements RequestFixture {
     DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
-      requestBody);
+      downstream -> downstream.success(requestBody));
 
     if (pathBinding != null) {
       handler = Handlers.chain(

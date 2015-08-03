@@ -51,7 +51,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final AtomicBoolean transmitted;
   private final Channel channel;
-  private final FullHttpRequest nettyRequest;
+  private final HttpRequest nettyRequest;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
   private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
@@ -62,7 +62,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
     this.transmitted = transmitted;
     this.channel = channel;
     this.nettyRequest = nettyRequest;
@@ -78,7 +78,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       stopTime = Instant.now();
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-      nettyRequest.release();
+//      nettyRequest.release(); //TODO
 
       if (isKeepAlive) {
         headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);

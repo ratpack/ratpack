@@ -51,7 +51,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
-public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest> {
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
@@ -75,7 +75,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   @Override
   public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
-    if (!(msg instanceof FullHttpRequest)) {
+    if (!(msg instanceof HttpRequest)) {
       Action<Object> subscriber = channelHandlerContext.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber != null) {
         subscriber.execute(msg);
@@ -85,10 +85,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     super.channelRead(channelHandlerContext, msg);
   }
 
-  public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
+  public void channelRead0(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
-      nettyRequest.release();
+      //TODO?
+//      nettyRequest.release();
       return;
     }
 
@@ -104,7 +105,28 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       nettyRequest.uri(),
       remoteAddress,
       socketAddress,
-      nettyRequest.content());
+      downstream -> {
+        ChannelHandler ratpackHandler = ctx.pipeline().remove("adapter");
+        HttpRequestHolderDecoder oldDecoder = (HttpRequestHolderDecoder) ctx.pipeline().replace("decoder", "fullDecoder", new HttpRequestHolderDecoder(4096, 8192, 8192, false));
+        ctx.pipeline().addLast("aggregator", new HttpObjectAggregator(serverRegistry.get(ServerConfig.class).getMaxContentLength()));
+        ctx.pipeline().addLast("bodyHandler", new SimpleChannelInboundHandler<FullHttpMessage>() {
+
+          @Override
+          protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage msg) throws Exception {
+            msg.retain();
+            downstream.success(msg.content());
+          }
+        });
+
+        downstream.onComplete(() -> {
+          ctx.pipeline().remove("aggregator");
+          ctx.pipeline().remove("bodyHandler");
+          ctx.pipeline().replace("fullDecoder", "decoder", oldDecoder);
+          ctx.pipeline().addLast(ratpackHandler);
+        });
+        ctx.channel().pipeline().fireChannelRead(oldDecoder.content().copy());
+
+      });
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
