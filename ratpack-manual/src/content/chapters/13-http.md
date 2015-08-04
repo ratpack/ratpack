@@ -258,7 +258,7 @@ TODO introduce assets method
 
 ### Before send
 
-TODO introduce beforeSend method and the ResponseMetaData interface.
+TODO introduce beforeSend method and the Response interface.
 
 ## Headers
 
@@ -297,7 +297,7 @@ public class Example {
 
 ### Response headers
 
-The [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) provides functionality that enables you to manipulate response headers via the response object [`ResponseMetaData#getHeaders()`](api/ratpack/http/ResponseMetaData.html#getHeaders--).
+The [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) provides functionality that enables you to manipulate response headers via the response object [`Response#getHeaders()`](api/ratpack/http/Response.html#getHeaders--).
 
 ```language-java
 import ratpack.http.MutableHeaders;
@@ -394,8 +394,8 @@ public class Example {
 
 ### Setting cookies for an outbound response
 
-You can set cookies to be sent with the response [`ResponseMetaData#cookie(String, String)`](api/ratpack/http/ResponseMetaData.html#cookie-java.lang.String-java.lang.String-).
-To retrieve the set of cookies to be set with the response you may use [`ResponseMetaData#getCookies()`](api/ratpack/http/ResponseMetaData.html#getCookies--).
+You can set cookies to be sent with the response [`Response#cookie(String, String)`](api/ratpack/http/Response.html#cookie-java.lang.String-java.lang.String-).
+To retrieve the set of cookies to be set with the response you may use [`Response#getCookies()`](api/ratpack/http/Response.html#getCookies--).
 
 ```language-java
 import ratpack.http.client.ReceivedResponse;
@@ -419,7 +419,7 @@ public class Example {
 }
 ```
 
-If you want to expire a cookie, you can do so with [`ResponseMetaData#expireCooke()`](api/ratpack/http/ResponseMetaData.html#expireCookie-java.lang.String-). 
+If you want to expire a cookie, you can do so with [`Response#expireCooke()`](api/ratpack/http/Response.html#expireCookie-java.lang.String-). 
 
 ```language-java
 import ratpack.http.client.ReceivedResponse;
