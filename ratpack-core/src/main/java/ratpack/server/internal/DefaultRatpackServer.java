@@ -23,7 +23,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
@@ -429,7 +429,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   @ChannelHandler.Sharable
-  private class ReloadHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private class ReloadHandler extends SimpleChannelInboundHandler<HttpRequest> {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
@@ -449,7 +449,7 @@ public class DefaultRatpackServer implements RatpackServer {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
       execController.fork().start(e ->
           Promise.<ChannelHandler>of(f -> {
             boolean rebuild = false;
@@ -494,7 +494,7 @@ public class DefaultRatpackServer implements RatpackServer {
       }
     }
 
-    private void delegate(ChannelHandlerContext ctx, ChannelHandler delegate, FullHttpRequest msg) {
+    private void delegate(ChannelHandlerContext ctx, ChannelHandler delegate, HttpRequest msg) {
       try {
         ctx.pipeline().remove("inner");
       } catch (Exception ignore) {

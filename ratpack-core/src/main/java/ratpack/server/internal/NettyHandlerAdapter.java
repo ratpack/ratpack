@@ -108,11 +108,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
       remoteAddress,
       socketAddress,
       downstream -> {
-        ChannelHandler ratpackHandler = ctx.pipeline().remove("adapter");
-        HttpRequestHolderDecoder decoder = (HttpRequestHolderDecoder) ctx.pipeline().get("decoder");
+        ChannelPipeline pipeline = ctx.pipeline();
+        ChannelHandler ratpackHandler = pipeline.remove("adapter");
+        HttpRequestHolderDecoder decoder = (HttpRequestHolderDecoder) pipeline.get("decoder");
         decoder.setSingleDecode(false);
-        ctx.pipeline().addLast("aggregator", new HttpObjectAggregator(serverRegistry.get(ServerConfig.class).getMaxContentLength()));
-        ctx.pipeline().addLast("bodyHandler", new SimpleChannelInboundHandler<FullHttpMessage>() {
+        pipeline.addLast("aggregator", new HttpObjectAggregator(serverRegistry.get(ServerConfig.class).getMaxContentLength()));
+        pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<FullHttpMessage>() {
 
           @Override
           protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage msg) throws Exception {
@@ -122,14 +123,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
         });
 
         downstream.onComplete(() -> {
-          ctx.pipeline().remove("aggregator");
-          ctx.pipeline().remove("bodyHandler");
+          pipeline.remove("aggregator");
+          pipeline.remove("bodyHandler");
           decoder.setSingleDecode(true);
-          ctx.pipeline().addLast(ratpackHandler);
+          pipeline.addLast("adapter", ratpackHandler);
         });
-        ctx.channel().pipeline().fireChannelRead(nettyRequest);
-        ctx.channel().config().setAutoRead(true);
-
+        pipeline.fireChannelRead(nettyRequest);
+        channel.config().setAutoRead(true);
       });
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
@@ -188,6 +188,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
         response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
         responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body);
+      }
+      if (!channel.config().isAutoRead()) {
+        channel.config().setAutoRead(true);
       }
     });
   }
