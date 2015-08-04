@@ -37,9 +37,9 @@ import ratpack.form.internal.FormNoOptParser;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
-import ratpack.handling.RequestLog;
+import ratpack.handling.RequestId;
 import ratpack.handling.internal.DefaultRedirector;
-import ratpack.handling.internal.DefaultRequestLog;
+import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
 import ratpack.registry.Registry;
@@ -91,7 +91,6 @@ public abstract class ServerRegistry {
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
-        .add(RequestLog.class, new DefaultRequestLog())
         .with(new DefaultFileRenderer().register())
         .with(new PromiseRenderer().register())
         .with(new PublisherRenderer().register())
@@ -109,7 +108,8 @@ public abstract class ServerRegistry {
         }))
         .add(HttpClient.class, HttpClient.httpClient(execController, PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(execController, PooledByteBufAllocator.DEFAULT))
-        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer());
+        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
+        .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());
 
       addConfigObjects(serverConfig, baseRegistryBuilder);
     } catch (Exception e) {

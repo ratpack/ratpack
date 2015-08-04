@@ -17,27 +17,43 @@
 package ratpack.handling.internal;
 
 import com.google.common.net.HostAndPort;
-import ratpack.auth.UserIdentifier;
-import ratpack.handling.Context;
+import org.slf4j.Logger;
 import ratpack.handling.RequestId;
-import ratpack.handling.RequestLog;
+import ratpack.handling.RequestLogger;
 import ratpack.handling.RequestOutcome;
-import ratpack.http.*;
+import ratpack.handling.UserId;
+import ratpack.http.HttpMethod;
+import ratpack.http.Request;
+import ratpack.http.SentResponse;
+import ratpack.http.Status;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.util.Types;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-public class DefaultRequestLog implements RequestLog {
+public class NcsaRequestLogger implements RequestLogger {
 
-  private static final String DEFAULT_FORMAT = "dd/MMM/yyyy:HH:mm:ss Z";
-  //TODO is systemDefault here correct or should we allow specifying the zoneId for the log?
-  private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DEFAULT_FORMAT).withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter
+    .ofPattern("dd/MMM/yyyy:HH:mm:ss Z")
+    .withZone(ZoneId.systemDefault());
+
+  private final Logger logger;
+
+  public NcsaRequestLogger(Logger logger) {
+    this.logger = logger;
+  }
 
   @Override
-  public String format(Context ctx, RequestOutcome outcome) {
+  public void log(RequestOutcome outcome) {
+    if (!logger.isInfoEnabled()) {
+      return;
+    }
+
+    // TODO - use one string builder here and remove use of String.format()
+
     Request request = outcome.getRequest();
     SentResponse response = outcome.getResponse();
     String responseSize = "-";
@@ -51,7 +67,7 @@ public class DefaultRequestLog implements RequestLog {
         ncsaLogFormat(
           request.getRemoteAddress(),
           "-",
-          request.maybeGet(UserIdentifier.class),
+          request.maybeGet(UserId.class).map(Types::cast),
           request.getTimestamp(),
           request.getMethod(),
           "/" + request.getPath(),
@@ -61,17 +77,18 @@ public class DefaultRequestLog implements RequestLog {
 
     request.maybeGet(RequestId.class).ifPresent(id1 -> {
       logLine.append(" id=");
-      logLine.append(id1.getId());
+      logLine.append(id1);
     });
-    return logLine.toString();
+
+    logger.info(logLine.toString());
   }
 
-  String ncsaLogFormat(HostAndPort client, String rfc1413Ident, Optional<UserIdentifier> userId, Instant timestamp, HttpMethod method, String uri, String httpProtocol, Status status, String responseSize) {
+  String ncsaLogFormat(HostAndPort client, String rfc1413Ident, Optional<CharSequence> userId, Instant timestamp, HttpMethod method, String uri, String httpProtocol, Status status, String responseSize) {
     return String.format("%s %s %s [%s] \"%s %s %s\" %d %s",
       client.getHostText(),
       rfc1413Ident,
-      userId.isPresent() ? userId.get().getUserIdentifier() : "-",
-      formatter.format(timestamp),
+      userId.orElse("-"),
+      FORMATTER.format(timestamp),
       method.getName(),
       uri,
       httpProtocol,

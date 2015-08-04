@@ -51,36 +51,34 @@ class LogExample {
 
 ## Request Logging
 
-Ratpack ships with an implementation of the [NCSA Common Log Format](http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common) for logging requests.
-The request logs are output using the same SLF4J API and logging library as described above.
-Specifically, the request log is always written to the [`RequestLog`](api/ratpack/handling/RequestLog.html) logger.
-
-Request logging is enabled by adding the `RequestLog` handler to the application.
-
+Ratpack provides a mechanism for logging information about each request, [`RequestLogger`](api/ratpack/handling/RequestLogger.html).
+The request logger is a handler.
+Each request that flows through it will be logged, when the request completes.
+Typically, it is placed early in the handler chain and added with the `Chain.all(Handler)` method so that all requests are logged.
+ 
+Ratpack provides the [`RequestLogger.ncsa()`](api/ratpack/handling/RequestLogger.html#ncsa--) method, that logs in the [NCSA Common Log Format](http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common).
+This implementation logs to an slf4j logger named `ratpack.requests` 
+(the [`RequestLogger.ncsa(Logger)`](api/ratpack/handling/RequestLogger.html#ncsa-org.slf4j.Logger-) method allows an alternative logger to be specified).  
 
 ```language-java
-import ratpack.handling.RequestLog;
+import ratpack.handling.RequestLogger;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 import static org.junit.Assert.*;
 
 public class Example {
   public static void main(String... args) throws Exception {
-    EmbeddedApp.fromHandlers(chain -> chain
-      .all(RequestLog.log())
-      .all(ctx -> {
-        ctx.render("ok");
-      })
+    EmbeddedApp.fromHandlers(c -> c
+      .all(RequestLogger.ncsa())
+      .all(ctx -> ctx.render("ok"))
     ).test(httpClient -> {
       ReceivedResponse response = httpClient.get();
       assertEquals("ok", response.getBody().getText());
 
-      // Check log output: [ratpack-compute-213-4] INFO ratpack.handling.RequestLog - 127.0.0.1 - - [30/Jun/2015:11:01:18 -0500] "GET / HTTP/1.1" 200 2
+      // Check log output: [ratpack-compute-1-1] INFO ratpack.requests - 127.0.0.1 - - [30/Jun/2015:11:01:18 -0500] "GET / HTTP/1.1" 200 2
     });
   }
 }
 ```
 
-The request log format follows the NCSA Common Log Format.
-A custom request log format can be supplied by adding an implementation of the [`RequestLog`](api/ratpack/handling/RequestLog.html) interface to the application's registry.
-
+See the documentation of [`RequestLogger`](api/ratpack/handling/RequestLogger.html) for information on creating a logger with an alternative format.

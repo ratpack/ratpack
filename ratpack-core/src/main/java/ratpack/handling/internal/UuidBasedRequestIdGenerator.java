@@ -16,8 +16,9 @@
 
 package ratpack.handling.internal;
 
-import ratpack.handling.Context;
+import io.netty.util.AsciiString;
 import ratpack.handling.RequestId;
+import ratpack.http.Request;
 
 import java.util.Random;
 import java.util.UUID;
@@ -25,11 +26,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class UuidBasedRequestIdGenerator implements RequestId.Generator {
 
-  public static final RequestId.Generator INSTANCE = new UuidBasedRequestIdGenerator();
-
   @Override
-  public RequestId generate(Context context) {
+  public RequestId generate(Request request) {
     Random random = ThreadLocalRandom.current();
-    return new DefaultRequestId(new UUID(random.nextLong(), random.nextLong()).toString());
+    return RequestId.of(new AsciiString(new UUID(random.nextLong(), random.nextLong()).toString()));
   }
 }

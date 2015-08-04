@@ -23,7 +23,7 @@ import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.http.profile.UsernameProfileCreator
 import org.slf4j.LoggerFactory
 import ratpack.handling.RequestId
-import ratpack.handling.RequestLog
+import ratpack.handling.RequestLogger
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -131,7 +131,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
 
   def "log user id in request log"() {
     def loggerOutput = new ByteArrayOutputStream()
-    def logger = LoggerFactory.getLogger(RequestId)
+    def logger = LoggerFactory.getLogger("requests")
     def originalStream = logger.TARGET_STREAM
     def latch = new CountDownLatch(1)
     logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
@@ -140,9 +140,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
       void println(String s) {
         super.println(s)
         originalStream.println(s)
-        if (s.contains(RequestLog.simpleName)) {
-          latch.countDown()
-        }
+        latch.countDown()
       }
     }
 
@@ -151,17 +149,17 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
       module SessionModule
     }
     handlers {
-      all RequestId.bindAndLog()
+      all RequestLogger.ncsa(logger)
       all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()))
       prefix("foo") {
         all(RatpackPac4j.requireAuth(FormClient))
         get {
-          render request.get(RequestId).id
+          render get(RequestId)
         }
       }
       get("login") {
         def userProfile = maybeGet(UserProfile).orElse(null)
-        response.send "login:" + userProfile?.attributes?.username
+        render "login:" + userProfile?.attributes?.username
       }
     }
 
@@ -198,6 +196,6 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     then: 'the request is logged with the user id'
     latch.await(5, TimeUnit.SECONDS)
     String output = loggerOutput.toString()
-    output ==~ /(?s).*INFO ratpack\.handling\.RequestLog - 127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/
+    output ==~ /(?s).*INFO requests - 127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/
   }
 }

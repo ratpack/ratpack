@@ -152,6 +152,7 @@ public class DefaultContext implements Context {
           .add(Context.class, context)
           .add(Request.class, requestConstants.request)
           .add(Response.class, requestConstants.response)
+          .addLazy(RequestId.class, () -> registry.get(RequestId.Generator.class).generate(requestConstants.request))
       )
       .eventLoop(eventLoop)
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))

@@ -29,9 +29,8 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   def "add request id"() {
     given:
     handlers {
-      all RequestId.bind()
       all {
-        render request.get(RequestId).id
+        render get(RequestId)
       }
     }
 
@@ -45,14 +44,11 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   def "use custom request id generator"() {
     given:
     bindings {
-      bindInstance RequestId.Generator, { ctx ->
-          return { 'foo' } as RequestId
-      } as RequestId.Generator
+      bindInstance RequestId.Generator, { RequestId.of('foo') } as RequestId.Generator
     }
     handlers {
-      all RequestId.bind()
       all {
-        render request.get(RequestId).id
+        render get(RequestId)
       }
     }
 
@@ -74,34 +70,22 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
       void println(String s) {
         super.println(s)
         originalStream.println(s)
-        if (s.contains(RequestLog.simpleName)) {
-          latch.countDown()
-        }
+        latch.countDown()
       }
     }
 
     given:
     int count = 0
     bindings {
-      bindInstance RequestId.Generator, { ctx ->
-        return new RequestId() {
-
-          private final String id = "request-${count++}"
-
-          @Override
-          String getId() {
-            return id
-          }
-        }
-      } as RequestId.Generator
+      bindInstance RequestId.Generator, { RequestId.of("request-${count++}") } as RequestId.Generator
     }
     handlers {
-      all RequestId.bindAndLog()
+      all RequestLogger.ncsa(logger)
       path("foo") {
-        render request.get(RequestId).id
+        render get(RequestId)
       }
       path("bar") {
-        render request.get(RequestId).id
+        render get(RequestId)
       }
     }
 

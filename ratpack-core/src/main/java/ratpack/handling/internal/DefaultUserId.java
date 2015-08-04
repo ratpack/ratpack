@@ -16,39 +16,14 @@
 
 package ratpack.handling.internal;
 
-import ratpack.handling.RequestId;
+import ratpack.handling.UserId;
 
-public class DefaultRequestId implements RequestId {
+public class DefaultUserId implements UserId {
 
-  private final CharSequence id;
+  private final String id;
 
-  public DefaultRequestId(CharSequence id) {
+  public DefaultUserId(String id) {
     this.id = id;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    DefaultRequestId that = (DefaultRequestId) o;
-
-    return (id != null && id.equals(that.id)) || (id == null && that.id == null);
-  }
-
-  @Override
-  public int hashCode() {
-    return id != null ? id.hashCode() : 0;
-  }
-
-  @SuppressWarnings("NullableProblems")
-  @Override
-  public String toString() {
-    return id.toString();
   }
 
   @Override
@@ -64,5 +39,29 @@ public class DefaultRequestId implements RequestId {
   @Override
   public CharSequence subSequence(int start, int end) {
     return id.subSequence(start, end);
+  }
+
+  @SuppressWarnings("NullableProblems")
+  @Override
+  public String toString() {
+    return id;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultUserId that = (DefaultUserId) o;
+    return id.equals(that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return id.hashCode();
   }
 }

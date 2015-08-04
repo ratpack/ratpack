@@ -28,7 +28,7 @@ class RequestLogSpec extends RatpackGroovyDslSpec {
 
   def "add request logging"() {
     def loggerOutput = new ByteArrayOutputStream()
-    def logger = LoggerFactory.getLogger(RequestLog)
+    def logger = LoggerFactory.getLogger(RequestLogger)
     def originalStream = logger.TARGET_STREAM
     def latch = new CountDownLatch(2)
     logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
@@ -37,7 +37,7 @@ class RequestLogSpec extends RatpackGroovyDslSpec {
       void println(String s) {
         super.println(s)
         originalStream.println(s)
-        if (s.contains(RequestLog.simpleName)) {
+        if (s.contains(RequestLogger.simpleName)) {
           latch.countDown()
         }
       }
@@ -45,7 +45,7 @@ class RequestLogSpec extends RatpackGroovyDslSpec {
 
     given:
     handlers {
-      all RequestLog.log()
+      all RequestLogger.ncsa(logger)
       path("foo") {
         render "ok"
       }

@@ -16,6 +16,8 @@
 
 package ratpack.handling.internal
 
+import io.netty.util.AsciiString
+import ratpack.handling.RequestId
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,14 +26,11 @@ class DefaultRequestIdSpec extends Specification {
   @Unroll
   def "equals based on id"() {
     expect:
-    new DefaultRequestId(id).equals(new DefaultRequestId(thatId)) == equals
+    RequestId.of(AsciiString.of(id)).equals(RequestId.of(AsciiString.of(thatId))) == equals
 
     where:
-    id   | thatId || equals
-    "1"  | "1"    || true
-    "1"  | "2"    || false
-    null | "1"    || false
-    "1"  | null   || false
-    null | null   || true
+    id  | thatId || equals
+    "1" | "1"    || true
+    "1" | "2"    || false
   }
 }

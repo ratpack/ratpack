@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package ratpack.auth;
+package ratpack.handling;
+
+import ratpack.handling.internal.DefaultUserId;
 
 /**
- * Interface for retrieving potential user identification data without being tied to the authentication system.
+ * An opaque identifier for the “user” that initiated the request.
+ * <p>
+ * This type is typically used in logging, notably by {@link RequestLogger}.
+ * Authentication systems should add a user identifier to the request registry.
  */
-public interface UserIdentifier {
+public interface UserId extends CharSequence {
 
   /**
-   * The unique user identifier.
-   * @return the unique user identifier.
+   * Creates new user identifier of the given string.
+   *
+   * @param userIdentifier the user identifier
+   * @return a user identifier object
    */
-  String getUserIdentifier();
+  static UserId of(String userIdentifier) {
+    return new DefaultUserId(userIdentifier);
+  }
+
 }

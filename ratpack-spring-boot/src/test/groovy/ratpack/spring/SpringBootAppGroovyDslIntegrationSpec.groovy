@@ -23,24 +23,16 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class SpringBootAppGroovyDslIntegrationSpec extends RatpackGroovyDslSpec {
   def "Spring beans should be available for DI in Ratpack handlers"() {
-    given:
+    when:
     handlers {
       register Spring.spring(SampleSpringBootApp)
-
       path("foo") { String msg ->
         render msg
       }
-
-      path("bar") { CharSequence msg ->
-        render msg
-      }
     }
-    when:
-    def foomsg = getText("foo")
-    def barmsg = getText("bar")
+
     then:
-    foomsg == "hello"
-    barmsg == "hello"
+    getText("foo") == "hello"
   }
 }
 

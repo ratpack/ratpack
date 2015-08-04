@@ -17,9 +17,7 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.util.Types;
 
 import java.util.function.Supplier;
 
