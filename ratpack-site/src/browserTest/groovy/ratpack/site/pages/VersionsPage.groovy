@@ -20,6 +20,6 @@ import geb.Page
 
 class VersionsPage extends Page {
   static at = {
-    $("h2")*.text().any { it.equalsIgnoreCase("Released Versions") }
+    waitFor { $("h2")*.text().any { it.equalsIgnoreCase("Released Versions") } }
   }
 }
