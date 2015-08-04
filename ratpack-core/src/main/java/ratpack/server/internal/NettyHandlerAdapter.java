@@ -94,6 +94,20 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
 //      nettyRequest.release();
       return;
     }
+    if (HttpHeaderUtil.is100ContinueExpected(nettyRequest)) {
+      FullHttpResponse continueResponse = new DefaultFullHttpResponse(
+      HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
+      ChannelFutureListener listener = new ChannelFutureListener() {
+        @Override
+        public void operationComplete(ChannelFuture future) throws Exception {
+          if (!future.isSuccess()) {
+            ctx.fireExceptionCaught(future.cause());
+          }
+        }
+      };
+      ctx.writeAndFlush(continueResponse).addListener(listener);
+      return;
+    }
 
     final Channel channel = ctx.channel();
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
