@@ -51,7 +51,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
-public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest> {
+public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");

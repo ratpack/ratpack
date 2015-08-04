@@ -399,7 +399,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   @ChannelHandler.Sharable
-  private class ReloadHandler extends SimpleChannelInboundHandler<HttpRequest> {
+  private class ReloadHandler extends RatpackSimpleChannelInboundHandler {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
