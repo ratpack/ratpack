@@ -17,15 +17,16 @@
 package ratpack.server.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufHolder;
-import io.netty.buffer.DefaultByteBufHolder;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.util.internal.RecyclableArrayList;
 
 import java.util.List;
 
-public class HttpRequestHolderDecoder extends HttpRequestDecoder implements ByteBufHolder {
-  private ByteBufHolder holder;
+public class HttpRequestHolderDecoder extends HttpRequestDecoder {
+  private volatile HttpRequest firstMessage;
+  private ByteBuf byteBuf;
 
   public HttpRequestHolderDecoder() {
   }
@@ -39,60 +40,35 @@ public class HttpRequestHolderDecoder extends HttpRequestDecoder implements Byte
   }
 
   @Override
-  public ByteBuf content() {
-    return holder.content();
-  }
-
-  @Override
-  public ByteBufHolder copy() {
-    return holder.copy();
-  }
-
-  @Override
-  public ByteBufHolder duplicate() {
-    return holder.duplicate();
-  }
-
-  @Override
-  public int refCnt() {
-    return holder.refCnt();
-  }
-
-  @Override
-  public ByteBufHolder retain() {
-    return holder.retain();
-  }
-
-  @Override
-  public ByteBufHolder retain(int increment) {
-    return holder.retain(increment);
-  }
-
-  @Override
-  public ByteBufHolder touch() {
-    return holder.touch();
-  }
-
-  @Override
-  public ByteBufHolder touch(Object hint) {
-    return holder.touch(hint);
-  }
-
-  @Override
-  public boolean release() {
-    return holder.release();
-  }
-
-  @Override
-  public boolean release(int decrement) {
-    return holder.release(decrement);
-  }
-
-  @Override
-  protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
-    if (holder == null || buffer.compareTo(holder.content()) != 0) {
-      holder = new DefaultByteBufHolder(buffer.copy());
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    if (msg instanceof ByteBuf && byteBuf == null) {
+      byteBuf = ((ByteBuf) msg).retain();
+      super.channelRead(ctx, msg);
+    } else if (msg instanceof HttpRequest) {
+      firstMessage = (HttpRequest) msg;
+//      byteBuf.release();
+      super.channelRead(ctx, byteBuf);
+      byteBuf = null;
+    } else {
+      super.channelRead(ctx, msg);
     }
-    super.decode(ctx, buffer, out);
+  }
+
+  @Override
+  protected void callDecode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+    if (firstMessage != null && out.isEmpty()) {
+      try {
+        if (out instanceof RecyclableArrayList) {
+          ((RecyclableArrayList) out).recycle();
+        }
+        RecyclableArrayList out2 = RecyclableArrayList.newInstance();
+        out2.add(firstMessage);
+        super.callDecode(ctx, in, out2);
+      } finally {
+        firstMessage = null;
+      }
+    } else {
+      super.callDecode(ctx, in, out);
+    }
   }
 }
