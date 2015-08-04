@@ -50,13 +50,14 @@ public class DefaultRequest implements Request {
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
-  private final Upstream<ByteBuf> bodyFactory;
+  private final Promise<TypedData> body;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
   private String path;
   private Set<Cookie> cookies;
+
 
   public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
                         InetSocketAddress remoteSocket, InetSocketAddress localSocket, Upstream<ByteBuf> bodyFactory) {
@@ -67,7 +68,7 @@ public class DefaultRequest implements Request {
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
-    this.bodyFactory = bodyFactory;
+    this.body = Promise.of(bodyFactory).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType())).cache();
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -200,7 +201,7 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    return Promise.of(bodyFactory).cache().map(buf -> new ByteBufBackedTypedData(buf, getContentType()));
+    return body;
   }
 
   @Override
