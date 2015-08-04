@@ -96,9 +96,9 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
 
     private String templatesSuffix = ".hbs";
 
-    private String startDelimiter = "{{";
+    private String startDelimiter = Handlebars.DELIM_START;
 
-    private String endDelimiter = "}}";
+    private String endDelimiter = Handlebars.DELIM_END;
 
     private int cacheSize = 100;
 
