@@ -68,6 +68,9 @@ public class WebSocketEngine {
 
     final DirectChannelAccess directChannelAccess = context.getDirectChannelAccess();
     final Channel channel = directChannelAccess.getChannel();
+    if (!channel.config().isAutoRead()) {
+      channel.config().setAutoRead(true);
+    }
 
     handshaker.handshake(channel, nettyRequest).addListener(new HandshakeFutureListener<>(context, handshaker, handler));
   }
