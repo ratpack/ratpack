@@ -223,7 +223,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     otherApp {
       post {
         request.body.then { body ->
-          assert body.contentType.toString() == "text/plain;charset=UTF-8"
+          assert body.contentType.toString() == "text/plain; charset=utf-8"
           render body.text
         }
       }
