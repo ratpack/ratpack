@@ -1,20 +1,12 @@
 # Jackson
 
 Integration with the [Jackson JSON marshalling library](https://github.com/FasterXML/jackson-databind) provides the ability to work with JSON.
+This is provided as part of `ratpack-core`.
  
-The `ratpack-jackson` JAR is released as part of Ratpack's core distribution and is versioned with it.
 As of Ratpack @ratpack-version@ is built against (and depends on) Jackson Core @versions-jackson@.
 
-The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides most of the Jackson related functions. 
+The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides most of the Jackson related functionality. 
  
-## Initialisation
-
-The Jackson can be used with the [Guice integration](guice.html).
-The [`JacksonModule`](api/ratpack/jackson/guice/JacksonModule.html) is a Guice module that enables the integration.
-
-If not using Guice, you can use the [`Jackson.Init.register()`](api/ratpack/jackson/Jackson.Init.html#register-ratpack.registry.RegistrySpec-com.fasterxml.jackson.databind.ObjectMapper-com.fasterxml.jackson.databind.ObjectWriter-)
-method to add the necessary objects to the context registry.
-
 ## Writing JSON responses
 
 The Jackson integration adds a [Renderer](api/ratpack/render/Renderer.html) for rendering objects as JSON.
@@ -22,9 +14,7 @@ The Jackson integration adds a [Renderer](api/ratpack/render/Renderer.html) for 
 The [`Jackson.json()`](api/ratpack/jackson/Jackson.html#json-java.lang.Object-) method can be used to wrap any object (serializable by Jackson) for use with the [`Context.render()`](api/ratpack/handling/Context.html#render-java.lang.Object-) method. 
 
 ```language-java
-import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 
 import static ratpack.jackson.Jackson.json;
@@ -44,7 +34,6 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain ->
         chain.get(ctx -> ctx.render(json(new Person("John"))))
       )
@@ -68,7 +57,6 @@ The [`Jackson.jsonNode()`](api/ratpack/jackson/Jackson.html#Jackson.html#jsonNod
 ```language-java
 import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -95,7 +83,6 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asNode", ctx -> {
           ctx.render(ctx.parse(jsonNode()).map(n -> n.get("name").asText()));
@@ -130,9 +117,7 @@ public class Example {
 The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/handling/Context.html#parse-java.lang.Class-) and [`Context.parse(TypeToken)`](api/ratpack/handling/Context.html#parse-com.google.common.reflect.TypeToken-) methods.
 
 ```language-java
-import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.reflect.TypeToken;
@@ -156,7 +141,6 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b.module(JacksonModule.class, c -> c.prettyPrint(false))))
       .handlers(chain -> chain
         .post("asPerson", ctx -> {
           ctx.parse(Person.class).then(person -> ctx.render(person.getName()));
@@ -185,13 +169,12 @@ public class Example {
 Jackson [feature modules](http://wiki.fasterxml.com/JacksonFeatureModules) allow Jackson to be extended to support extra data types and capabilities.
 For example the [JDK8 module](https://github.com/FasterXML/jackson-datatype-jdk8) adds support for JDK8 types like [Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html).
 
-If using Guice, such modules can easily be registered via the module's config.
+To use such modules, simply add an appropriately configured [`ObjectMapper`](http://fasterxml.github.io/jackson-databind/javadoc/2.5/com/fasterxml/jackson/databind/ObjectMapper.html) to the registry.
 
 ```language-java
-import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.http.client.ReceivedResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import java.util.Optional;
@@ -213,12 +196,9 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
-      .registry(Guice.registry(b -> b
-        .module(JacksonModule.class, c -> c 
-          .modules(new Jdk8Module()) // register the Jackson module
-          .prettyPrint(false)
-        )
-      ))
+      .registryOf(r -> r
+        .add(ObjectMapper.class, new ObjectMapper().registerModule(new Jdk8Module())) 
+      )
       .handlers(chain ->
         chain.get(ctx -> {
           Optional<Person> personOptional = Optional.of(new Person("John"));

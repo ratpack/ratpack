@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.jackson.guice
+package ratpack.jackson
 
+import com.fasterxml.jackson.annotation.JsonView
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.base.StandardSystemProperty
-import ratpack.jackson.Jackson
+import groovy.transform.Canonical
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -35,12 +37,9 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render custom objects as json"() {
     when:
-    bindings {
-      module JacksonModule, { it.prettyPrint(false) }
-    }
     handlers {
       get {
-        render Jackson.json(new User(username: "foo", password: "bar"))
+        render json(new User(username: "foo", password: "bar"))
       }
     }
 
@@ -50,9 +49,6 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render standard objects as json"() {
     when:
-    bindings {
-      module JacksonModule, { it.prettyPrint(false) }
-    }
     handlers {
       get {
         render json(username: "foo", numbers: [1, 2, 3])
@@ -73,7 +69,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module JacksonModule
+      add(new ObjectMapper().writerWithDefaultPrettyPrinter())
     }
     handlers {
       get {
@@ -87,9 +83,6 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can stream list"() {
     when:
-    bindings {
-      module JacksonModule
-    }
     handlers {
       get {
         render chunkedJsonList(context, Streams.publish([1, 2, [foo: "bar"], 4]))
@@ -102,9 +95,6 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can periodically stream list"() {
     when:
-    bindings {
-      module JacksonModule
-    }
     handlers {
       get { ctx ->
         def data = [1, 2, [foo: "bar"], 4]
@@ -122,9 +112,6 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
     List<String> data = ["a" * 5000] * 100
 
     when:
-    bindings {
-      module JacksonModule
-    }
     handlers {
       get {
         render chunkedJsonList(context, Streams.publish(data))
@@ -133,6 +120,56 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "[" + data.collect { "\"$it\"" }.join(",") + "]"
+  }
+
+  static class Views {
+    static class Public {}
+
+    static class Secret extends Public {}
+  }
+
+  @Canonical
+  static class Model {
+    @JsonView(Views.Public)
+    String open
+    @JsonView(Views.Secret)
+    String secret
+  }
+
+  def "no view renders all fields"() {
+    when:
+    handlers {
+      get {
+        render json(new Model("foo", "bar"))
+      }
+    }
+
+    then:
+    text == '{"open":"foo","secret":"bar"}'
+  }
+
+  def "secret view renders all fields"() {
+    when:
+    handlers {
+      get {
+        render json(new Model("foo", "bar"), Views.Secret)
+      }
+    }
+
+    then:
+    text == '{"open":"foo","secret":"bar"}'
+  }
+
+  def "public view renders only public field"() {
+    when:
+    handlers {
+      get {
+        render json(new Model("foo", "bar"), Views.Public)
+      }
+    }
+
+    then:
+    text == '{"open":"foo"}'
   }
 
 }

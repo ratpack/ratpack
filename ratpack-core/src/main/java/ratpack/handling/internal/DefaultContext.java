@@ -281,23 +281,25 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T, O> T parse(TypedData body, Parse<T, O> parse) {
-    String requestContentType = body.getContentType().getType();
-    if (requestContentType == null) {
-      requestContentType = "text/plain";
-    }
-    final String finalRequestContentType = requestContentType;
+  public <T, O> T parse(TypedData body, Parse<T, O> parse) throws Exception {
+    Function<Parser<?>, T> parserPredicate = parse.getOpts().isPresent()
+      ?
+      parser -> {
+        if (parser.getOptsType().isInstance(parse.getOpts().get())) {
+          Parser<O> cast = Types.cast(parser);
+          return cast.parse(DefaultContext.this, body, parse);
+        }
+        return null;
+      }
+      :
+      parser -> {
+        Parser<O> cast = Types.cast(parser);
+        return cast.parse(DefaultContext.this, body, parse);
+      };
 
-    return Exceptions.uncheck(() -> {
-      return joinedRegistry
-        .first(PARSER_TYPE_TOKEN, parser -> {
-          if (parser.getContentType().equalsIgnoreCase(finalRequestContentType) && parser.getOptsType().isInstance(parse.getOpts())) {
-            Parser<O> cast = Types.cast(parser);
-            return cast.parse(DefaultContext.this, body, parse);
-          }
-          return null;
-        });
-    }).orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType));
+    return joinedRegistry
+      .first(PARSER_TYPE_TOKEN, parserPredicate)
+      .orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts().orElse(null), body.getContentType().getType()));
   }
 
   @Override

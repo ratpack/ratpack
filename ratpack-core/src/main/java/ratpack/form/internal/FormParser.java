@@ -32,29 +32,17 @@ public class FormParser extends ParserSupport<FormParseOpts> {
 
   private static final TypeToken<Form> FORM_TYPE = TypeToken.of(Form.class);
 
-  private FormParser(String contentType) {
-    super(contentType);
-  }
-
   @SuppressWarnings("unchecked")
   @Override
   public <T> T parse(Context context, TypedData requestBody, Parse<T, FormParseOpts> parse) throws Exception {
     if (parse.getType().equals(FORM_TYPE)) {
-      MultiValueMap<String, String> base = parse.getOpts().isIncludeQueryParams()
+      MultiValueMap<String, String> base = parse.getOpts().map(FormParseOpts::isIncludeQueryParams).orElse(false)
         ? context.getRequest().getQueryParams()
         : empty();
       return Types.cast(FormDecoder.parseForm(context, requestBody, base));
     } else {
       return null;
     }
-  }
-
-  public static FormParser multiPart() {
-    return new FormParser("multipart/form-data");
-  }
-
-  public static FormParser urlEncoded() {
-    return new FormParser("application/x-www-form-urlencoded");
   }
 
 }

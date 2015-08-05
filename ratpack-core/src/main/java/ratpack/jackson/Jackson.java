@@ -27,13 +27,10 @@ import ratpack.api.Nullable;
 import ratpack.func.Function;
 import ratpack.http.ResponseChunks;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.jackson.internal.*;
-import ratpack.parse.NullParseOpts;
+import ratpack.jackson.internal.DefaultJsonParseOpts;
+import ratpack.jackson.internal.DefaultJsonRender;
 import ratpack.parse.Parse;
-import ratpack.parse.Parser;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
-import ratpack.render.Renderer;
 import ratpack.stream.Streams;
 import ratpack.stream.WriteStream;
 
@@ -42,8 +39,6 @@ import java.io.OutputStream;
 
 /**
  * Provides key integration points with the Jackson support for dealing with JSON.
- * <p>
- * The {@link Jackson.Init} object provides methods for initializing the necessary infrastructure to use these function.
  *
  * <h3><a name="rendering">Rendering as JSON</a></h3>
  * <p>
@@ -70,9 +65,7 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain ->
  *         chain.get(ctx -> ctx.render(json(new Person("John"))))
  *       )
@@ -120,9 +113,7 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .get("stream", ctx -> {
  *           Publisher<Person> people = Streams.publish(Arrays.asList(
@@ -184,9 +175,7 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .post("asNode", ctx -> {
  *           ctx.render(ctx.parse(jsonNode()).map(n -> n.get("name").asText()));
@@ -246,9 +235,7 @@ import java.io.OutputStream;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     ObjectMapper objectMapper = new ObjectMapper();
  *     EmbeddedApp.of(s -> s
- *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
  *       .handlers(chain -> chain
  *         .post("asPerson", ctx -> {
  *           ctx.parse(Person.class).then(person -> ctx.render(person.getName()));
@@ -471,9 +458,7 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     ObjectMapper objectMapper = new ObjectMapper();
    *     EmbeddedApp.of(s -> s
-   *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
    *       .handlers(chain ->
    *         chain.get(ctx -> {
    *           Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
@@ -500,7 +485,12 @@ public abstract class Jackson {
    * @see Streams#streamMap(Publisher, ratpack.func.Function)
    */
   public static <T> ResponseChunks chunkedJsonList(Registry registry, Publisher<T> stream) {
-    return chunkedJsonList(registry.get(ObjectWriter.class), stream);
+    return chunkedJsonList(getObjectWriter(registry), stream);
+  }
+
+  public static ObjectWriter getObjectWriter(Registry registry) {
+    return registry.maybeGet(ObjectWriter.class)
+      .orElseGet(() -> registry.get(ObjectMapper.class).writer());
   }
 
   /**
@@ -579,9 +569,7 @@ public abstract class Jackson {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     ObjectMapper objectMapper = new ObjectMapper();
    *     EmbeddedApp.of(s -> s
-   *       .registryOf(r -> Jackson.Init.register(r, objectMapper, objectMapper.writer()))
    *       .handlers(chain -> chain
    *         .get(ctx ->
    *           Promise.value(singletonMap("foo", "bar"))
@@ -605,59 +593,7 @@ public abstract class Jackson {
    * @return a function that converts objects to their JSON string representation
    */
   public static <T> Function<T, String> toJson(Registry registry) {
-    return registry.get(ObjectWriter.class)::writeValueAsString;
-  }
-
-  /**
-   * Factories for Ratpack specific integration types.
-   */
-  public static abstract class Init {
-
-    /**
-     * The renderer.
-     *
-     * @param objectWriter the object writer to use to render object
-     * @return a JSON renderer
-     */
-    public static Renderer<JsonRender> renderer(ObjectWriter objectWriter) {
-      return new JsonRenderer(objectWriter);
-    }
-
-    /**
-     * The no-opts parser.
-     *
-     * @return a JSON parser
-     */
-    public static Parser<NullParseOpts> noOptParser() {
-      return new JsonNoOptParser();
-    }
-
-    /**
-     * The parser.
-     *
-     * @param objectMapper the object mapper to use for parsing
-     * @return a JSON parser
-     */
-    public static Parser<JsonParseOpts> parser(ObjectMapper objectMapper) {
-      return new JsonParser(objectMapper);
-    }
-
-    /**
-     * Registers the renderer and parsers with the given registry.
-     *
-     * @param registrySpec the registry to register with
-     * @param objectMapper the object mapper for parsing requests
-     * @param objectWriter the object writer for rendering to responses
-     * @return the given registry spec
-     */
-    public static RegistrySpec register(RegistrySpec registrySpec, ObjectMapper objectMapper, ObjectWriter objectWriter) {
-      return registrySpec
-        .add(new TypeToken<ObjectWriter>() {}, objectWriter)
-        .add(new TypeToken<Renderer<JsonRender>>() {}, renderer(objectWriter))
-        .add(new TypeToken<Parser<NullParseOpts>>() {}, noOptParser())
-        .add(new TypeToken<Parser<JsonParseOpts>>() {}, parser(objectMapper));
-    }
-
+    return getObjectWriter(registry)::writeValueAsString;
   }
 
 }

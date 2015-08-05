@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.jackson.guice
+package ratpack.jackson
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.reflect.TypeToken
 import ratpack.http.client.RequestSpec
-import ratpack.jackson.Jackson
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Jackson.jsonNode
 
 class JacksonParsingSpec extends RatpackGroovyDslSpec {
-
-  def setup() {
-    modules << new JacksonModule()
-  }
 
   def "can parse json node"() {
     when:
@@ -56,10 +52,8 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "can parse #requestBody with #jsonParserFeature enabled"() {
     given:
-    modules.first().configure { config ->
-      config.withMapper { objectMapper ->
-        objectMapper.configure(jsonParserFeature, true)
-      }
+    bindings {
+      bindInstance(new ObjectMapper().configure(jsonParserFeature, true))
     }
 
     and:

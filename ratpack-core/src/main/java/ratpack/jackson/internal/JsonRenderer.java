@@ -17,6 +17,7 @@
 package ratpack.jackson.internal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -30,20 +31,15 @@ import java.io.OutputStream;
 
 public class JsonRenderer extends RendererSupport<JsonRender> {
 
-  private final ObjectWriter defaultObjectWriter;
-
-  public JsonRenderer(ObjectWriter defaultObjectWriter) {
-    this.defaultObjectWriter = defaultObjectWriter;
-  }
-
   @Override
   public void render(Context context, JsonRender object) throws Exception {
     ObjectWriter writer = object.getObjectWriter();
     if (writer == null) {
-      writer = defaultObjectWriter;
+      writer = context.maybeGet(ObjectWriter.class)
+        .orElseGet(() -> context.get(ObjectMapper.class).writer());
     }
     Class<?> viewClass = object.getViewClass();
-    if(viewClass != null) {
+    if (viewClass != null) {
       writer = writer.withView(viewClass);
     }
 

@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
@@ -33,7 +34,6 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
 import ratpack.file.internal.DefaultFileRenderer;
-import ratpack.form.internal.FormNoOptParser;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
@@ -42,6 +42,8 @@ import ratpack.handling.internal.DefaultRedirector;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
+import ratpack.jackson.internal.JsonParser;
+import ratpack.jackson.internal.JsonRenderer;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.CharSequenceRenderer;
@@ -96,11 +98,11 @@ public abstract class ServerRegistry {
         .with(new PublisherRenderer().register())
         .with(new RenderableRenderer().register())
         .with(new CharSequenceRenderer().register())
-        .add(FormParser.class, FormParser.multiPart())
-        .add(FormParser.class, FormParser.urlEncoded())
-        .add(FormNoOptParser.class, FormNoOptParser.multiPart())
-        .add(FormNoOptParser.class, FormNoOptParser.urlEncoded())
+        .with(new JsonRenderer().register())
+        .add(FormParser.class, new FormParser())
+        .add(JsonParser.class, new JsonParser())
         .add(RatpackServer.class, ratpackServer)
+        .add(ObjectMapper.class, new ObjectMapper())
           // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {
           ratpackServer.stop();

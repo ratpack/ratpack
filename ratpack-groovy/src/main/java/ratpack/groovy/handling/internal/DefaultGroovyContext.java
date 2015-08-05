@@ -203,7 +203,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T, O> T parse(TypedData body, Parse<T, O> parse) {
+  public <T, O> T parse(TypedData body, Parse<T, O> parse) throws Exception {
     return delegate.parse(body, parse);
   }
 

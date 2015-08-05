@@ -39,10 +39,6 @@ import ratpack.http.TypedData;
  *
  * public class Example {
  *   public static class IntParser extends NoOptParserSupport {
- *     public IntParser() {
- *       super("text/plain");
- *     }
- *
  *     public <T> T parse(Context context, TypedData body, TypeToken<T> type) {
  *       if (type.getRawType().equals(Integer.class)) {
  *         return Types.cast(Integer.valueOf(body.getText()));
@@ -71,16 +67,7 @@ import ratpack.http.TypedData;
  * }
  * }</pre>
  */
-public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
-
-  /**
-   * Constructor.
-   *
-   * @param contentType the type of request this parser can handle
-   */
-  protected NoOptParserSupport(String contentType) {
-    super(contentType);
-  }
+public abstract class NoOptParserSupport extends ParserSupport<Void> {
 
   /**
    * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
@@ -93,7 +80,7 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
    * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
    */
   @Override
-  public final <T> T parse(Context context, TypedData requestBody, Parse<T, NullParseOpts> parse) throws Exception {
+  public final <T> T parse(Context context, TypedData requestBody, Parse<T, Void> parse) throws Exception {
     return parse(context, requestBody, parse.getType());
   }
 

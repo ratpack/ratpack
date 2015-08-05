@@ -56,20 +56,17 @@ import com.google.common.reflect.TypeToken;
  *
  *   // A parser for this type
  *   public static class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
- *     public MaxLengthStringParser() {
- *       super("text/plain");
- *     }
- *
  *     public <T> T parse(Context context, TypedData body, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
  *       if (!parse.getType().getRawType().equals(String.class)) {
  *         return null;
  *       }
  *
  *       String rawString = body.getText();
- *       if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *       StringParseOpts opts = parse.getOpts().orElse(new StringParseOpts(rawString.length()));
+ *       if (rawString.length() < opts.getMaxLength()) {
  *         return Types.cast(rawString);
  *       } else {
- *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
+ *         return Types.cast(rawString.substring(0, opts.getMaxLength()));
  *       }
  *     }
  *   }
@@ -99,16 +96,11 @@ import com.google.common.reflect.TypeToken;
 abstract public class ParserSupport<O> implements Parser<O> {
 
   private final Class<O> optsType;
-  private final String contentType;
 
   /**
    * Constructor.
-   *
-   * @param contentType the type of request this parser can handle
    */
-  protected ParserSupport(String contentType) {
-    this.contentType = contentType;
-
+  protected ParserSupport() {
     TypeToken<O> typeToken = new TypeToken<O>(getClass()) {
     };
 
@@ -118,14 +110,6 @@ abstract public class ParserSupport<O> implements Parser<O> {
     } else {
       throw new IllegalArgumentException("Type parameter O of ParserSupport must be a Class");
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final String getContentType() {
-    return contentType;
   }
 
   /**

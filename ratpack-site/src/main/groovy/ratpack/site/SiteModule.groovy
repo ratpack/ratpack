@@ -1,6 +1,6 @@
 package ratpack.site
 
-import com.fasterxml.jackson.databind.ObjectReader
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Provides
 import groovy.util.logging.Slf4j
 import ratpack.file.FileSystemChecksumServices
@@ -35,13 +35,13 @@ class SiteModule extends ConfigurableModule<GitHubConfig> {
 
   @Provides
   @Singleton
-  GitHubApi gitHubApi(GitHubConfig config, ObjectReader reader, HttpClient httpClient) {
+  GitHubApi gitHubApi(GitHubConfig config, ObjectMapper mapper, HttpClient httpClient) {
     String authToken = config.auth
     if (authToken == null) {
       log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth property)"
     }
     String url = config.url
-    new GitHubApi(url, authToken, reader, httpClient)
+    new GitHubApi(url, authToken, mapper.reader(), httpClient)
   }
 
   @Provides

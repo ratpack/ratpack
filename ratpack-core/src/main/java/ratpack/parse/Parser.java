@@ -25,9 +25,6 @@ import ratpack.http.TypedData;
  * <p>
  * Parsers power the {@link Context#parse(Parse)} mechanism.
  * <p>
- * An individual parser parses requests of a certain content type (as advertised by {@link #getContentType()})
- * and with a particular type of object that provides any parsing options (as advertised by {@link #getOptsType()}).
- * <p>
  * The {@link ParserSupport} class is a convenient base; the documentation of which contains implementation examples.
  *
  * @param <O> the type of option object this parser accepts
@@ -39,17 +36,10 @@ import ratpack.http.TypedData;
 public interface Parser<O> {
 
   /**
-   * The content type that this parser knows how to deserialize.
-   *
-   * @return The content type that this parser knows how to deserialize.
-   */
-  String getContentType();
-
-  /**
    * The type of option object that this parser accepts.
    *
    * @see ParserSupport
-   * @return The type of option object that this parser accepts
+   * @return the type of option object that this parser accepts
    */
   Class<O> getOptsType();
 
