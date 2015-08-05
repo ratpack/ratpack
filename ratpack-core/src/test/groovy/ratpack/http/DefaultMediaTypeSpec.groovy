@@ -26,7 +26,6 @@ class DefaultMediaTypeSpec extends Specification {
 
   def "parsing"() {
     expect:
-    println "1:" + ct(" application/json ").type
     ct(" application/json ").type == "application/json"
     ct(" application/json ").params.isEmpty()
     ct(null).type == null
