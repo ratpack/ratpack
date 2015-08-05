@@ -47,8 +47,9 @@ public class HttpRequestHolderDecoder extends HttpRequestDecoder {
     } else if (msg instanceof HttpRequest) {
       firstMessage = (HttpRequest) msg;
 //      byteBuf.release();
-      super.channelRead(ctx, byteBuf);
+      ByteBuf buf2 = byteBuf;
       byteBuf = null;
+      super.channelRead(ctx, buf2);
     } else {
       super.channelRead(ctx, msg);
     }
@@ -57,16 +58,13 @@ public class HttpRequestHolderDecoder extends HttpRequestDecoder {
   @Override
   protected void callDecode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
     if (firstMessage != null && out.isEmpty()) {
-      try {
-        if (out instanceof RecyclableArrayList) {
-          ((RecyclableArrayList) out).recycle();
-        }
-        RecyclableArrayList out2 = RecyclableArrayList.newInstance();
-        out2.add(firstMessage);
-        super.callDecode(ctx, in, out2);
-      } finally {
-        firstMessage = null;
+      if (out instanceof RecyclableArrayList) {
+        ((RecyclableArrayList) out).recycle();
       }
+      RecyclableArrayList out2 = RecyclableArrayList.newInstance();
+      out2.add(firstMessage);
+      firstMessage = null;
+      super.callDecode(ctx, in, out2);
     } else {
       super.callDecode(ctx, in, out);
     }
