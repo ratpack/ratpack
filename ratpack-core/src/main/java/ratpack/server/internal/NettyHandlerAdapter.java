@@ -121,7 +121,7 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
       downstream -> {
         ChannelPipeline pipeline = ctx.pipeline();
         ChannelHandler ratpackHandler = pipeline.remove("adapter");
-        HttpRequestHolderDecoder decoder = (HttpRequestHolderDecoder) pipeline.get("decoder");
+        ResumableHttpRequestDecoder decoder = (ResumableHttpRequestDecoder) pipeline.get("decoder");
         decoder.setSingleDecode(false);
         pipeline.addLast("aggregator", new HttpObjectAggregator(serverRegistry.get(ServerConfig.class).getMaxContentLength()));
         pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<FullHttpMessage>() {

@@ -24,18 +24,18 @@ import io.netty.util.internal.RecyclableArrayList;
 
 import java.util.List;
 
-public class HttpRequestHolderDecoder extends HttpRequestDecoder {
+public class ResumableHttpRequestDecoder extends HttpRequestDecoder {
   private volatile HttpRequest firstMessage;
   private ByteBuf byteBuf;
 
-  public HttpRequestHolderDecoder() {
+  public ResumableHttpRequestDecoder() {
   }
 
-  public HttpRequestHolderDecoder(int maxInitialLineLength, int maxHeaderSize, int maxChunkSize) {
+  public ResumableHttpRequestDecoder(int maxInitialLineLength, int maxHeaderSize, int maxChunkSize) {
     super(maxInitialLineLength, maxHeaderSize, maxChunkSize);
   }
 
-  public HttpRequestHolderDecoder(int maxInitialLineLength, int maxHeaderSize, int maxChunkSize, boolean validateHeaders) {
+  public ResumableHttpRequestDecoder(int maxInitialLineLength, int maxHeaderSize, int maxChunkSize, boolean validateHeaders) {
     super(maxInitialLineLength, maxHeaderSize, maxChunkSize, validateHeaders);
   }
 

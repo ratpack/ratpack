@@ -227,7 +227,7 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          HttpRequestDecoder decoder = new HttpRequestHolderDecoder(4096, 8192, 8192, false);
+          HttpRequestDecoder decoder = new ResumableHttpRequestDecoder(4096, 8192, 8192, false);
           decoder.setSingleDecode(true);
           pipeline.addLast("decoder", decoder);
           pipeline.addLast("encoder", new HttpResponseEncoder());
