@@ -47,7 +47,7 @@ import ratpack.server.ServerConfig;
  * This can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#templatesPath(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#templatesSuffix(String)}.
  * </p>
  * <p>
- * The default template delimiters are {@code {{ }}} but can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#startDelimiter(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#endDelimiter(String)}.
+ * The default template delimiters are {@code {{ }}} but can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#delimiters(String, String)}.
  * </p>
  * <p>
  * Response content type can be manually specified, i.e. {@code handlebarsTemplate("template", model, "text/html")} or can
@@ -92,6 +92,9 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
   private static final TypeToken<NamedHelper<?>> NAMED_HELPER_TYPE = new TypeToken<NamedHelper<?>>() {
   };
 
+  /**
+   * The configuration object for {@link HandlebarsModule}.
+   */
   public static class Config {
     private String templatesPath = "handlebars";
 
@@ -123,22 +126,18 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
       return this;
     }
 
-    public Config startDelimiter(String startDelimiter) {
-      this.startDelimiter = startDelimiter;
-      return this;
-    }
-
     public String getStartDelimiter() {
       return startDelimiter;
     }
 
-    public Config endDelimiter(String endDelimiter) {
-      this.endDelimiter = endDelimiter;
-      return this;
-    }
-
     public String getEndDelimiter() {
       return endDelimiter;
+    }
+
+    public Config delimiters(String startDelimiter, String endDelimiter) {
+      this.startDelimiter = startDelimiter;
+      this.endDelimiter = endDelimiter;
+      return this;
     }
 
     public int getCacheSize() {
@@ -187,8 +186,8 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
     final Handlebars handlebars = new Handlebars()
       .with(templateLoader)
       .with(templateCache)
-      .startDelimiter(config.startDelimiter)
-      .endDelimiter(config.endDelimiter);
+      .startDelimiter(config.getStartDelimiter())
+      .endDelimiter(config.getEndDelimiter());
 
     GuiceUtil.eachOfType(injector, NAMED_HELPER_TYPE, helper -> handlebars.registerHelper(helper.getName(), helper));
 

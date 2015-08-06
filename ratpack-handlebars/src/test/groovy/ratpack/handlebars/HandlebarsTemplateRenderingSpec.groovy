@@ -216,13 +216,13 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     get('bar').body.text == 'B'
   }
 
-  void 'can configure start and end delimiters'() {
+  void 'can configure delimiters'() {
     given:
     file 'handlebars/simple.hbs', '<%key%>'
 
     when:
     bindings {
-      module new HandlebarsModule(), { it.startDelimiter('<%').endDelimiter('%>') }
+      module new HandlebarsModule(), { it.delimiters('<%', '%>') }
     }
     handlers {
       get {
