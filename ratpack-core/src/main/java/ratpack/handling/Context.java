@@ -422,52 +422,44 @@ public interface Context extends Registry {
    * Parses the request body into an object.
    * <p>
    * How to parse the request is determined by the given {@link Parse} object.
+   *
    * <h3>Parser Resolution</h3>
    * <p>
    * Parser resolution happens as follows:
    * <ol>
    * <li>All {@link ratpack.parse.Parser parsers} are retrieved from the context registry (i.e. {@link #getAll(Class) getAll(Parser.class)});</li>
-   * <li>Found parsers are checked (in order returned by {@code getAll()}) for compatibility with the current request content type and options type;</li>
+   * <li>Found parsers are checked (in order returned by {@code getAll()}) for compatibility with the options type;</li>
    * <li>If a parser is found that is compatible, its {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method is called;</li>
    * <li>If the parser returns {@code null} the next parser will be tried, if it returns a value it will be returned by this method;</li>
    * <li>If no compatible parser could be found, a {@link ratpack.parse.NoSuchParserException} will be thrown.</li>
    * </ol>
+   *
    * <h3>Parser Compatibility</h3>
    * <p>
    * A parser is compatible if all of the following hold true:
    * <ul>
-   * <li>Its {@link ratpack.parse.Parser#getContentType()} is exactly equal to {@link ratpack.http.MediaType#getType() getRequest().getBody().getContentType().getType()}</li>
-   * <li>The opts of the given {@code parse} object is an {@code instanceof} its {@link ratpack.parse.Parser#getOptsType()} ()}</li>
+   * <li>The opts of the given {@code parse} object is an {@code instanceof} its {@link ratpack.parse.Parser#getOptsType()}, or the opts are {@code null}.</li>
    * <li>The {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method returns a non null value.</li>
    * </ul>
-   * <p>
-   * If the request has no declared content type, {@code text/plain} will be assumed.
+   *
    * <h3>Core Parsers</h3>
    * <p>
-   * Ratpack core provides implicit {@link ratpack.parse.NoOptParserSupport no opt parsers} for the following types and content types:
-   * <ul>
-   * <li>{@link ratpack.form.Form}</li>
-   * <li>
-   *   <ul>
-   *     <li>multipart/form-data</li>
-   *     <li>application/x-www-form-urlencoded</li>
-   *   </ul>
-   * </li>
-   * </ul>
+   * Ratpack core provides parsers for {@link ratpack.form.Form}, and JSON (see {@link ratpack.jackson.Jackson}).
+   *
    * <h3>Example Usage</h3>
    * <pre class="java">{@code
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.form.Form;
-   * import ratpack.parse.Parse;
    * import ratpack.parse.NullParseOpts;
    *
    * public class FormHandler implements Handler {
    *   public void handle(Context context) {
-   *     context.parse(Parse.of(Form.class)).then(form -> context.render(form.get("someFormParam")));
+   *     context.parse(Form.class).then(form -> context.render(form.get("someFormParam")));
    *   }
    * }
    * }</pre>
+   *
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> the type of the parse options object
@@ -492,8 +484,9 @@ public interface Context extends Registry {
    * @param <O> The type of the parse options object
    * @return The parsed object
    * @see #parse(Parse)
+   * @throws Exception any thrown by the parser
    */
-  <T, O> T parse(TypedData body, Parse<T, O> parse);
+  <T, O> T parse(TypedData body, Parse<T, O> parse) throws Exception;
 
   /**
    * Provides direct access to the backing Netty channel.

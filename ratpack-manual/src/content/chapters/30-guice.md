@@ -28,36 +28,6 @@ to construct dependency injected handler instances.
 
 See the documentation of the [Guice](api/ratpack/guice/Guice.html) class for example code.
 
-## Modules as plugins
-
-Ratpack does not have a formal plugin system. However, reusable functionality can be packaged as Guice modules.
-
-For example, that `ratpack-jackson-guice` library provides the [`JacksonModule`](api/ratpack/jackson/guice/JacksonModule.html) class which is a Guice module.
-To integrate Jackson into your Guice backed Ratpack application (e.g. for serializing objects as JSON), you simply use this module.
-
-In Groovy script application this is as easy as:
-
-```language-groovy groovy-ratpack
-import ratpack.jackson.guice.JacksonModule
-import static ratpack.jackson.Jackson.json
-import static ratpack.groovy.Groovy.ratpack
-
-ratpack {
-  bindings {
-    add new JacksonModule()
-  }
-  handlers {
-    get("some-json") {
-      render json(user: 1)  // will render '{user: 1}'
-    }
-  }
-}
-```
-
-See the [Guice package API documentation](api/ratpack/guice/package-summary.html) for more info on registering modules.
-
-See the [Jackson package API documentation](api/ratpack/jackson/package-summary.html) for more info on using the Jackson integration.
-
 ## Guice and the context registry
 
 TODO guice backed registry impl

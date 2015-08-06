@@ -15,16 +15,6 @@
  */
 package ratpack.spring;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static ratpack.jackson.Jackson.fromJson;
-import static ratpack.jackson.Jackson.json;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,20 +25,22 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.server.RatpackServer;
 import ratpack.spring.JsonTests.Application;
 import ratpack.spring.config.EnableRatpack;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static ratpack.jackson.Jackson.fromJson;
+import static ratpack.jackson.Jackson.json;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
@@ -72,9 +64,9 @@ public class JsonTests {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<Map<String, String>> entity = new HttpEntity<Map<String, String>>(Collections.singletonMap("foo", "bar"),
-        headers);
+      headers);
     ResponseEntity<String> result = restTemplate.postForEntity("http://localhost:" + server.getBindPort(), entity,
-        String.class);
+      String.class);
     assertEquals(HttpStatus.OK, result.getStatusCode());
     String body = restTemplate.getForObject("http://localhost:" + server.getBindPort(), String.class);
     assertTrue("Wrong body" + body, body.contains("foo"));
@@ -103,11 +95,6 @@ public class JsonTests {
         });
       }));
       // @formatter:on
-    }
-
-    @Bean
-    public JacksonModule jacksonGuiceModule() {
-      return new JacksonModule();
     }
 
     public static void main(String[] args) throws Exception {

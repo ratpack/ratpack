@@ -28,7 +28,6 @@ include \
     "ratpack-handlebars",
     "ratpack-remote",
     "ratpack-remote-test",
-    "ratpack-jackson-guice",
     "ratpack-reactor",
     "ratpack-rx",
     "ratpack-codahale-metrics",

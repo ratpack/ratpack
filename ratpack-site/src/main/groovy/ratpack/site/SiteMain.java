@@ -25,7 +25,6 @@ import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
 import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
-import ratpack.jackson.guice.JacksonModule;
 import ratpack.newrelic.NewRelicModule;
 import ratpack.registry.Registry;
 import ratpack.rx.RxRatpack;
@@ -48,7 +47,6 @@ public class SiteMain {
         )
         .registry(
           Guice.registry(s -> s
-              .module(JacksonModule.class)
               .module(NewRelicModule.class)
               .module(new AssetPipelineModule())
               .module(new CodaHaleMetricsModule(), c ->

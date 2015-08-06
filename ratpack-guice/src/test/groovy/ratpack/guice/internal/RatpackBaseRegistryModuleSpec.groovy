@@ -23,7 +23,6 @@ import io.netty.buffer.ByteBufAllocator
 import org.reactivestreams.Publisher
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
-
 import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.exec.internal.DefaultExecController
@@ -45,6 +44,7 @@ import spock.lang.Subject
 import java.nio.file.Path
 
 @Subject(RatpackBaseRegistryModule)
+@SuppressWarnings("UnnecessaryObjectReferences")
 class RatpackBaseRegistryModuleSpec extends Specification {
   def "injector contains bindings based on base registry"() {
     when:
@@ -69,7 +69,7 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Publisher>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Renderable>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<CharSequence>>() {}))
-    injector.getInstance(Key.get(new TypeLiteral<Set<FormParser>>() {})).collect { it.contentType }.sort() == ["application/x-www-form-urlencoded", "multipart/form-data"]
+    injector.getInstance(Key.get(FormParser))
     !injector.getExistingBinding(Key.get(FileSystemBinding))
     injector.getInstance(HttpClient)
   }

@@ -35,19 +35,16 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
 
   private static final TypeToken<JsonNode> JSON_NODE_TYPE = TypeToken.of(JsonNode.class);
 
-  private final ObjectMapper objectMapper;
-
-  public JsonParser(ObjectMapper objectMapper) {
-    super("application/json");
-    this.objectMapper = objectMapper;
-  }
-
   @Override
   public <T> T parse(Context context, TypedData body, Parse<T, JsonParseOpts> parse) throws IOException {
-    JsonParseOpts opts = parse.getOpts();
+    if (!body.getContentType().isJson()) {
+      return null;
+    }
+
+    JsonParseOpts opts = parse.getOpts().orElse(DefaultJsonParseOpts.INSTANCE);
     TypeToken<T> type = parse.getType();
 
-    ObjectMapper objectMapper = getObjectMapper(opts);
+    ObjectMapper objectMapper = opts.getObjectMapper().orElseGet(() -> context.get(ObjectMapper.class));
     InputStream inputStream = body.getInputStream();
     if (type.equals(JSON_NODE_TYPE)) {
       return cast(objectMapper.readTree(inputStream));
@@ -58,10 +55,6 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
 
   private <T> JavaType toJavaType(TypeToken<T> type, ObjectMapper objectMapper) {
     return objectMapper.getTypeFactory().constructType(type.getType());
-  }
-
-  private ObjectMapper getObjectMapper(JsonParseOpts opts) {
-    return opts.getObjectMapper() == null ? objectMapper : opts.getObjectMapper();
   }
 
 }

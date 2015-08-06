@@ -17,11 +17,11 @@
 package ratpack.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ratpack.api.Nullable;
+
+import java.util.Optional;
 
 public interface JsonParseOpts {
 
-  @Nullable
-  ObjectMapper getObjectMapper();
+  Optional<ObjectMapper> getObjectMapper();
 
 }

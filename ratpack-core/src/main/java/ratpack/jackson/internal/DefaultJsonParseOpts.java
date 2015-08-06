@@ -19,16 +19,20 @@ package ratpack.jackson.internal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.jackson.JsonParseOpts;
 
+import java.util.Optional;
+
 public class DefaultJsonParseOpts implements JsonParseOpts {
 
-  private final ObjectMapper objectMapper;
+  public static final JsonParseOpts INSTANCE = new DefaultJsonParseOpts(null);
+
+  private final Optional<ObjectMapper> objectMapper;
 
   public DefaultJsonParseOpts(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+    this.objectMapper = Optional.ofNullable(objectMapper);
   }
 
   @Override
-  public ObjectMapper getObjectMapper() {
+  public Optional<ObjectMapper> getObjectMapper() {
     return objectMapper;
   }
 }
