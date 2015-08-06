@@ -106,13 +106,13 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   }
 
   @Provides
-  HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, ServerConfig serverConfig) {
-    return HttpClient.httpClient(execController, byteBufAllocator, serverConfig.getMaxContentLength());
+  HttpClient httpClient(ByteBufAllocator byteBufAllocator, ServerConfig serverConfig) {
+    return HttpClient.httpClient(byteBufAllocator, serverConfig.getMaxContentLength());
   }
 
   @Provides
-  ServerSentEventStreamClient sseClient(ExecController execController, ByteBufAllocator byteBufAllocator) {
-    return ServerSentEventStreamClient.sseStreamClient(execController, byteBufAllocator);
+  ServerSentEventStreamClient sseClient(ByteBufAllocator byteBufAllocator) {
+    return ServerSentEventStreamClient.sseStreamClient(byteBufAllocator);
   }
 
   @Provides

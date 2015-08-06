@@ -17,7 +17,6 @@
 package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
@@ -33,8 +32,8 @@ public class DefaultServerSentEventStreamClient implements ServerSentEventStream
   private final HttpClient httpClient;
   private final ByteBufAllocator byteBufAllocator;
 
-  public DefaultServerSentEventStreamClient(ExecController execController, ByteBufAllocator byteBufAllocator) {
-    this.httpClient = HttpClient.httpClient(execController, byteBufAllocator, Integer.MAX_VALUE);
+  public DefaultServerSentEventStreamClient(ByteBufAllocator byteBufAllocator) {
+    this.httpClient = HttpClient.httpClient(byteBufAllocator, Integer.MAX_VALUE);
     this.byteBufAllocator = byteBufAllocator;
   }
 

@@ -42,7 +42,7 @@ public class BlockingHttpClient {
 
   public ReceivedResponse request(URI uri, Duration duration, Action<? super RequestSpec> action) throws Throwable {
     try (ExecController execController = new DefaultExecController(2)) {
-      final RequestAction requestAction = new RequestAction(uri, execController, action);
+      final RequestAction requestAction = new RequestAction(uri, action);
 
       execController.exec()
         .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>error(throwable)))
@@ -63,15 +63,13 @@ public class BlockingHttpClient {
 
   private static class RequestAction implements Action<Execution> {
     private final URI uri;
-    private final ExecController execController;
     private final Action<? super RequestSpec> action;
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private Result<ReceivedResponse> result;
 
-    private RequestAction(URI uri, ExecController execController, Action<? super RequestSpec> action) {
+    private RequestAction(URI uri, Action<? super RequestSpec> action) {
       this.uri = uri;
-      this.execController = execController;
       this.action = action;
     }
 
@@ -82,7 +80,7 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClient.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
+      HttpClient.httpClient(UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
         .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
         .then(response -> {
           TypedData responseBody = response.getBody();

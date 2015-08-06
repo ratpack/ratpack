@@ -17,7 +17,6 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.internal.DefaultHttpClient;
@@ -101,12 +100,11 @@ public interface HttpClient {
   /**
    * A method to create an instance of the default implementation of HttpClient.
    *
-   * @param execController The ExecController used while making the requests.
    * @param byteBufAllocator What ByteBufAllocator to use with the underlying Netty request.
    * @param maxContentLengthBytes The max content length of a response to support.
    * @return An instance of a HttpClient
    */
-  static HttpClient httpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
+  static HttpClient httpClient(ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
     return new DefaultHttpClient(byteBufAllocator, maxContentLengthBytes);
   }
 
