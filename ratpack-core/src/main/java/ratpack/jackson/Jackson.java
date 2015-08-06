@@ -258,6 +258,54 @@ import java.io.OutputStream;
  *   }
  * }
  * }</pre>
+ *
+ * <h3 id="configuring-jackson">Configuring Jackson</h3>
+ * <p>
+ * The Jackson API is based around the {@link ObjectMapper}.
+ * Ratpack adds a default instance to the base registry automatically.
+ * To configure Jackson behaviour, override this instance.
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.http.client.ReceivedResponse;
+ * import com.fasterxml.jackson.databind.ObjectMapper;
+ * import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+ *
+ * import java.util.Optional;
+ *
+ * import static ratpack.jackson.Jackson.json;
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *
+ *   public static class Person {
+ *     private final String name;
+ *     public Person(String name) {
+ *       this.name = name;
+ *     }
+ *     public String getName() {
+ *       return name;
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.of(s -> s
+ *       .registryOf(r -> r
+ *         .add(new ObjectMapper().registerModule(new Jdk8Module()))
+ *       )
+ *       .handlers(chain ->
+ *         chain.get(ctx -> {
+ *           Optional<Person> personOptional = Optional.of(new Person("John"));
+ *           ctx.render(json(personOptional));
+ *         })
+ *       )
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.get();
+ *       assertEquals("{\"name\":\"John\"}", response.getBody().getText());
+ *       assertEquals("application/json", response.getBody().getContentType().getType());
+ *     });
+ *   }
+ * }
+ * }</pre>
  */
 public abstract class Jackson {
 

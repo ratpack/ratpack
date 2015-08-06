@@ -164,12 +164,16 @@ public class Example {
 }
 ```
 
-## Using Jackson feature modules
+## Configuring Jackson
+
+The Jackson API is based around the [`ObjectMapper`](http://fasterxml.github.io/jackson-databind/javadoc/2.5/com/fasterxml/jackson/databind/ObjectMapper.html).
+Ratpack adds a default instance to the base registry automatically.
+To configure Jackson behaviour, override this instance.
 
 Jackson [feature modules](http://wiki.fasterxml.com/JacksonFeatureModules) allow Jackson to be extended to support extra data types and capabilities.
 For example the [JDK8 module](https://github.com/FasterXML/jackson-datatype-jdk8) adds support for JDK8 types like [Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html).
 
-To use such modules, simply add an appropriately configured [`ObjectMapper`](http://fasterxml.github.io/jackson-databind/javadoc/2.5/com/fasterxml/jackson/databind/ObjectMapper.html) to the registry.
+To use such modules, simply add an appropriately configured `ObjectMapper` to the registry.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
