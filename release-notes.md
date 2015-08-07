@@ -14,3 +14,6 @@ The [`Parser`](http://ratpack.io/manual/1.0.0/api/ratpack/parse/Parser.html) API
 For parse operations with no options, the parse objects now returns no options instead of a `NullParseOpts` marker.
 Also, parsers are no longer restricted to a content type.
 An implementation can now potentially parse multiple content types.
+
+[`RemoteControl`](http://ratpack.io/manual/1.0.0/api/ratpack/test/remote/RemoteControl.html) now accepts `UnserializableResultStrategy`.
+The default value is `io.remotecontrol.client.UnserializableResultStrategy.throw`.

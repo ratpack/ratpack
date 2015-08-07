@@ -59,12 +59,20 @@ public class RemoteControl {
     }
   }
 
+  public RemoteControl(ApplicationUnderTest application, String path, UnserializableResultStrategy unserializableResultStrategy) {
+    support = new RemoteControlSupport<>(new DelegatingTransport(application, path), unserializableResultStrategy, getClass().getClassLoader());
+  }
+
   public RemoteControl(ApplicationUnderTest application, String path) {
-    support = new RemoteControlSupport<>(new DelegatingTransport(application, path), UnserializableResultStrategy.THROW, getClass().getClassLoader());
+    this(application, path, UnserializableResultStrategy.THROW);
+  }
+
+  public RemoteControl(ApplicationUnderTest application, UnserializableResultStrategy unserializableResultStrategy) {
+    this(application, DEFAULT_REMOTE_CONTROL_PATH, unserializableResultStrategy);
   }
 
   public RemoteControl(ApplicationUnderTest application) {
-    this(application, DEFAULT_REMOTE_CONTROL_PATH);
+    this(application, DEFAULT_REMOTE_CONTROL_PATH, UnserializableResultStrategy.THROW);
   }
 
   public Object exec(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure<?>... commands) throws IOException {

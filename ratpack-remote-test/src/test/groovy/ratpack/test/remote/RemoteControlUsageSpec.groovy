@@ -16,6 +16,7 @@
 
 package ratpack.test.remote
 
+import io.remotecontrol.client.UnserializableResultStrategy
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.test.remote.RemoteControl.command
@@ -79,6 +80,20 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "overridden:command:initial"
+  }
+
+  def "can customize UnserializableResultStrategy"() {
+    given:
+    def customRemoteControl = new RemoteControl(applicationUnderTest, strategy)
+
+    when:
+    customRemoteControl.exec command { new ValueHolder(value: "unserializable") }
+
+    then:
+    text == "initial"
+
+    where:
+    strategy << [UnserializableResultStrategy.NULL, UnserializableResultStrategy.STRING]
   }
 
 }
