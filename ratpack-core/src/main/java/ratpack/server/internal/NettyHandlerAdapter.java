@@ -120,7 +120,12 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
       socketAddress,
       downstream -> {
         ChannelPipeline pipeline = ctx.pipeline();
-        ChannelHandler ratpackHandler = pipeline.remove("adapter");
+        ChannelHandler adapter = pipeline.remove("adapter");
+        ChannelHandler innerHandler = null;
+        if (pipeline.names().contains("inner")) {
+          innerHandler = pipeline.remove("inner");
+        }
+        ChannelHandler inner = innerHandler;
         ResumableHttpRequestDecoder decoder = (ResumableHttpRequestDecoder) pipeline.get("decoder");
         decoder.setSingleDecode(false);
         pipeline.addLast("aggregator", new HttpObjectAggregator(serverRegistry.get(ServerConfig.class).getMaxContentLength()));
@@ -137,7 +142,10 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
           pipeline.remove("aggregator");
           pipeline.remove("bodyHandler");
           decoder.setSingleDecode(true);
-          pipeline.addLast("adapter", ratpackHandler);
+          pipeline.addLast("adapter", adapter);
+          if (inner != null) {
+            pipeline.addLast("inner", inner);
+          }
         });
         pipeline.fireChannelRead(nettyRequest);
         channel.config().setAutoRead(true);
