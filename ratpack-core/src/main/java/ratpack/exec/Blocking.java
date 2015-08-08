@@ -66,7 +66,7 @@ public abstract class Blocking {
                     result = Result.success(value);
                   });
                   return result;
-                } catch (Exception e) {
+                } catch (Throwable e) {
                   return Result.<T>error(e);
                 } finally {
                   ExecutionBacking.THREAD_BINDING.remove();

@@ -240,6 +240,32 @@ public interface Promise<T> {
     );
   }
 
+  /**
+   * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
+   * <p>
+   * This is simply a more convenient form of using {@link Blocking#get(Factory)} and {@link #flatMap(Function)}.
+   *
+   * @param transformer the transformation to apply to the promised value, on a blocking thread
+   * @param <O> the type of the transformed object
+   * @return a promise for the transformed value
+   */
+  default <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer) {
+    return flatMap(t -> Blocking.get(() -> transformer.apply(t)));
+  }
+
+  /**
+   * Executes the given action with the promise value, on a blocking thread.
+   * <p>
+   * Similar to {@link #blockingMap(Function)}, but does not provide a new value.
+   * This can be used to do something with the value, without terminating the promise.
+   *
+   * @param action the action to to perform with the value, on a blocking thread
+   * @return a promise for the same value given to the action
+   */
+  default Promise<T> blockingOp(Action<? super T> action) {
+    return flatMap(t -> Blocking.op(action.curry(t)).map(() -> t));
+  }
+
   default <O> Promise<O> next(Promise<O> next) {
     return flatMap(in -> next);
   }

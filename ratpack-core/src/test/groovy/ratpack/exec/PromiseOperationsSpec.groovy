@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import ratpack.exec.internal.ThreadBinding
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -257,6 +258,67 @@ class PromiseOperationsSpec extends Specification {
 
     then:
     events == ["yield", "blocking", "wiretap", "foo", "complete"]
+  }
+
+  def "can use blocking map"() {
+    when:
+    exec {
+      Promise.value("foo").blockingMap {
+        events << ThreadBinding.get().get().isCompute()
+        "bar"
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == [false, "bar", "complete"]
+  }
+
+  def "can error in blocking map"() {
+    when:
+    exec {
+      Promise.value("foo").blockingMap {
+        throw new Error("!")
+      } onError {
+        events << it.message
+      } then {
+        events << "bar"
+      }
+    }
+
+    then:
+    events == ["!", "complete"]
+  }
+
+  def "can use blocking op"() {
+    when:
+    exec {
+      Promise.value("foo").blockingOp {
+        events << ThreadBinding.get().get().isCompute()
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == [false, "foo", "complete"]
+  }
+
+  def "can error in blocking op"() {
+    when:
+    exec {
+      Promise.value("foo").blockingOp {
+        throw new Error("!")
+      } onError {
+        events << it.message
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["!", "complete"]
   }
 
 }
