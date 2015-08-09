@@ -69,6 +69,7 @@ The following people have provided significant contributions.
 * [Matt Yott](https://github.com/myott)
 * [Daniel Lopes](https://github.com/djjorjinho)
 * [Daniel Raniz](https://github.com/Raniz85)
+* [Martin Lundvall](https://github.com/lundvall)
 
 ### Past project members
 

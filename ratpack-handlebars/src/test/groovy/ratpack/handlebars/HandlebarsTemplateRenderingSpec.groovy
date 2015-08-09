@@ -215,6 +215,24 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     get('foo').body.text == 'A'
     get('bar').body.text == 'B'
   }
+
+  void 'can configure delimiters'() {
+    given:
+    write('handlebars/simple.hbs', '<%key%>')
+
+    when:
+    bindings {
+      module new HandlebarsModule(), { it.delimiters('<%', '%>') }
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple', key: 'it works!')
+      }
+    }
+
+    then:
+    text == 'it works!'
+  }
 }
 
 class TestHelper implements NamedHelper {

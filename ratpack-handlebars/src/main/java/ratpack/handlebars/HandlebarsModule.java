@@ -47,6 +47,9 @@ import ratpack.server.ServerConfig;
  * This can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#templatesPath(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#templatesSuffix(String)}.
  * </p>
  * <p>
+ * The default template delimiters are {@code {{ }}} but can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#delimiters(String, String)}.
+ * </p>
+ * <p>
  * Response content type can be manually specified, i.e. {@code handlebarsTemplate("template", model, "text/html")} or can
  * be detected based on the template extension. Mapping between file extensions and content types is performed using
  * {@link ratpack.file.MimeTypes} contextual object so content type for {@code handlebarsTemplate("template.html")}
@@ -88,10 +91,17 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
   private static final TypeToken<NamedHelper<?>> NAMED_HELPER_TYPE = new TypeToken<NamedHelper<?>>() {
   };
 
+  /**
+   * The configuration object for {@link HandlebarsModule}.
+   */
   public static class Config {
     private String templatesPath = "handlebars";
 
     private String templatesSuffix = ".hbs";
+
+    private String startDelimiter = Handlebars.DELIM_START;
+
+    private String endDelimiter = Handlebars.DELIM_END;
 
     private int cacheSize = 100;
 
@@ -112,6 +122,20 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
 
     public Config templatesSuffix(String templatesSuffix) {
       this.templatesSuffix = templatesSuffix;
+      return this;
+    }
+
+    public String getStartDelimiter() {
+      return startDelimiter;
+    }
+
+    public String getEndDelimiter() {
+      return endDelimiter;
+    }
+
+    public Config delimiters(String startDelimiter, String endDelimiter) {
+      this.startDelimiter = startDelimiter;
+      this.endDelimiter = endDelimiter;
       return this;
     }
 
@@ -157,10 +181,13 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+  Handlebars provideHandlebars(Config config, Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+    final Handlebars handlebars = new Handlebars()
+      .with(templateLoader)
+      .with(templateCache)
+      .startDelimiter(config.getStartDelimiter())
+      .endDelimiter(config.getEndDelimiter());
 
-    final Handlebars handlebars = new Handlebars().with(templateLoader);
-    handlebars.with(templateCache);
     GuiceUtil.eachOfType(injector, NAMED_HELPER_TYPE, helper -> handlebars.registerHelper(helper.getName(), helper));
 
     return handlebars;
