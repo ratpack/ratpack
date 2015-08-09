@@ -245,6 +245,7 @@ subprojects {
     doFirst {
       if (isCloudCi) {
         maxParallelForks 1
+        systemProperty "cloudCi", "true"
       }
     }
   }

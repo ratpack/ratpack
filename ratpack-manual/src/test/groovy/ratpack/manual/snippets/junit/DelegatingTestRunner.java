@@ -33,7 +33,7 @@ public class DelegatingTestRunner extends Suite {
 
         setScheduler(new RunnerScheduler() {
 
-            private final ExecutorService service = Executors.newFixedThreadPool(4);
+            private final ExecutorService service = Executors.newFixedThreadPool(Boolean.getBoolean("cloudCi") ? 1 : 2);
 
             public void schedule(Runnable childStatement) {
                 service.submit(childStatement);
