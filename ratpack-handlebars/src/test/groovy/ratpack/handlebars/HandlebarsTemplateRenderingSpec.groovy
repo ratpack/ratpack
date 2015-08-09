@@ -218,7 +218,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'can configure delimiters'() {
     given:
-    file 'handlebars/simple.hbs', '<%key%>'
+    write('handlebars/simple.hbs', '<%key%>')
 
     when:
     bindings {
