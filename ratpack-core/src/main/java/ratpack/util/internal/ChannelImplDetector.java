@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadFactory;
 
 public abstract class ChannelImplDetector {
 
-  private static final boolean EPOLL = Epoll.isAvailable();
+  private static final boolean EPOLL = !Boolean.getBoolean("ratpack.epoll.disable") && Epoll.isAvailable();
 
   public static Class<? extends ServerSocketChannel> getServerSocketChannelImpl() {
     return EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
