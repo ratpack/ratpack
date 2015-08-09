@@ -18,12 +18,12 @@ package ratpack.http.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.http.MediaType;
 
-import java.util.Collections;
-import java.util.Map;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 
 import static ratpack.util.Exceptions.toException;
@@ -34,7 +34,7 @@ public class DefaultMediaType implements MediaType {
   public static final String CHARSET_KEY = "charset";
 
   private final String type;
-  protected final Map<String, String> params;
+  private final ImmutableListMultimap<String, String> params;
   private final String string;
 
   private static final int CACHE_SIZE = 200;
@@ -58,53 +58,50 @@ public class DefaultMediaType implements MediaType {
   }
 
   public DefaultMediaType(String value) {
-    ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
-    if (value == null) {
+    if (value == null || value.trim().length() == 0) {
       type = null;
+      params = ImmutableListMultimap.of();
+      string = "";
     } else {
-      value = value.trim();
-      if (value.length() == 0) {
-        type = null;
-      } else {
-        String[] parts = value.split(";");
-        type = parts[0].toLowerCase();
-        if (parts.length > 1) {
-          for (int i = 1; i < parts.length; ++i) {
-            String part = parts[i].trim();
-            String keyPart;
-            String valuePart;
-            if (part.contains("=")) {
-              String[] valueSplit = part.split("=", 2);
-              keyPart = valueSplit[0].toLowerCase();
-              valuePart = valueSplit[1];
-            } else {
-              keyPart = part.toLowerCase();
-              valuePart = "";
-            }
-            paramsBuilder.put(keyPart, valuePart);
-          }
+      com.google.common.net.MediaType mediaType = com.google.common.net.MediaType.parse(value.trim());
+      if (mediaType != null && mediaType.type() != null) {
+        if (mediaType.subtype() != null) {
+          type = mediaType.type() + "/" + mediaType.subtype();
+        } else {
+          type = mediaType.type();
         }
+        params = mediaType.parameters();
+        string = mediaType.toString();
+      } else {
+        type = null;
+        params = ImmutableListMultimap.of();
+        string ="";
       }
     }
-
-    params = paramsBuilder.build();
-    string = generateString();
   }
 
   public String getType() {
     return type;
   }
 
-  public Map<String, String> getParams() {
-    return Collections.unmodifiableMap(params);
+  public ImmutableListMultimap<String, String> getParams() {
+    return params;
   }
 
   public String getCharset() {
-    return params.get(CHARSET_KEY);
+    return getCharset(null);
   }
 
   public String getCharset(String defaultCharset) {
-    return params.containsKey(CHARSET_KEY) ? params.get(CHARSET_KEY) : defaultCharset;
+    ImmutableList<String> charsetValues = params.get(CHARSET_KEY);
+    switch (charsetValues.size()) {
+      case 0:
+        return defaultCharset;
+      case 1:
+        return Charset.forName(charsetValues.get(0)).toString();
+      default:
+        throw new IllegalStateException("Multiple charset values defined: " + charsetValues);
+    }
   }
 
   public boolean isText() {
@@ -131,20 +128,5 @@ public class DefaultMediaType implements MediaType {
   @Override
   public String toString() {
     return string;
-  }
-
-  private String generateString() {
-    if (isEmpty()) {
-      return "";
-    } else {
-      StringBuilder s = new StringBuilder(getType());
-      for (Map.Entry<String, String> param : getParams().entrySet()) {
-        s.append(";").append(param.getKey());
-        if (!param.getValue().isEmpty()) {
-          s.append("=").append(param.getValue());
-        }
-      }
-      return s.toString();
-    }
   }
 }

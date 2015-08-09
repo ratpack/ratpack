@@ -18,6 +18,9 @@ package ratpack.http
 
 import ratpack.http.internal.DefaultMediaType
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import java.nio.charset.Charset
 
 class DefaultMediaTypeSpec extends Specification {
 
@@ -29,18 +32,50 @@ class DefaultMediaTypeSpec extends Specification {
     ct(null).params.isEmpty()
     ct(" ").type == null
     ct(" ").params.isEmpty()
-    ct(" application/json;charset=foo ").params.charset == "foo"
-    ct(" application/json;charset ;foo=bar ").params == [charset: "", foo: "bar"]
+    ct(" application/json;charset=foo ").params.get("charset") == ["foo"]
+    with(ct(" application/json;charset=foo; bar=baz ").params) {
+      get("charset") == ["foo"]
+      get("bar") == ["baz"]
+    }
+    ct(" application/json;foo=bar; foo=baz ").params.get("foo") == ["bar", "baz"]
+  }
 
+  def "parsing illegal content type throws exception"() {
+    when:
+    ct(" application/json;charset ;foo=bar ")
+
+    then:
+    thrown IllegalArgumentException
+
+    when:
+    ct(" application/json;charset=foo ; bar=baz ")
+
+    then:
+    thrown IllegalArgumentException
   }
 
   def "to string"() {
     expect:
     cts("") == ""
     cts("  application/json   ") == "application/json"
-    cts("application/json;foo=bar") == "application/json;foo=bar"
-    cts("application/json;foo") == "application/json;foo"
-    cts("application/json;a=1 ; b=2") == "application/json;a=1;b=2"
+    cts("application/json;foo=bar") == "application/json; foo=bar"
+    cts("application/json;a=1; b=2") == "application/json; a=1; b=2"
+  }
+
+  @Unroll
+  def "charset #charset parses without errors"() {
+    when:
+    MediaType mt = ct("application/json;charset=${charset}")
+
+    then:
+    mt.getCharset() == expectedCharset
+    Charset.checkName(mt.getCharset())
+
+    where:
+    charset       | expectedCharset
+    "utf-8"       | "UTF-8"
+    "UTF-8"       | "UTF-8"
+    "\"utf-8\""   | "UTF-8"
   }
 
   private MediaType ct(s) {

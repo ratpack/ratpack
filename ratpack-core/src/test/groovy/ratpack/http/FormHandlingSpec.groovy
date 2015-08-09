@@ -180,7 +180,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
     then:
-    postText() == "File type: text/plain;charset=UTF-8"
+    postText() == "File type: text/plain; charset=utf-8"
   }
 
   def "respects custom encoding"() {
@@ -214,7 +214,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
     then:
-    postText() == "File type: text/plain;charset=US-ASCII"
+    postText() == "File type: text/plain; charset=us-ascii"
   }
 
   @Unroll

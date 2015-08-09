@@ -16,9 +16,8 @@
 
 package ratpack.http;
 
+import com.google.common.collect.ImmutableListMultimap;
 import ratpack.api.Nullable;
-
-import java.util.Map;
 
 /**
  * A structured value for a Content-Type header value.
@@ -61,16 +60,16 @@ public interface MediaType {
   String getType();
 
   /**
-   * The parameters of the mime type.
+   * The multimap containing parameters of the mime type.
    * <p>
-   * Given a mime type of "application/json;charset=utf-8", returns {@code [charset: "utf-8"]}".
+   * Given a mime type of "application/json;charset=utf-8", the {@code get("charset")} returns {@code  ["utf-8"]}".
    * May be empty, never null.
    * <p>
-   * All param names have been lower cased.
+   * All param names have been lower cased. The {@code charset} parameter values has been lower cased too.
    *
-   * @return the media type params.
+   * @return the immutable multimap of the media type params.
    */
-  Map<String, String> getParams();
+  ImmutableListMultimap<String, String> getParams();
 
   /**
    * The value of the "charset" parameter.
