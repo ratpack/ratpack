@@ -170,6 +170,9 @@ public interface Promise<T> {
 
   /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.
+   * <p>
+   * If the given action throws an exception, the original exception will be rethrown with the exception thrown
+   * by the action added to the suppressed exceptions list.
    *
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
@@ -180,8 +183,10 @@ public interface Promise<T> {
           try {
             errorHandler.execute(throwable);
           } catch (Throwable e) {
-            e.addSuppressed(throwable);
-            down.error(e);
+            if (e != throwable) {
+              throwable.addSuppressed(e);
+            }
+            down.error(throwable);
             return;
           }
           down.complete();
