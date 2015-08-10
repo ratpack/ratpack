@@ -22,9 +22,9 @@ import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.http.profile.UsernameProfileCreator
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Timeout
+import spock.lang.Ignore
 
-@Timeout(5)
+@Ignore
 class AuthenticationSpec extends RatpackGroovyDslSpec {
 
   def "secure handlers"() {
@@ -38,9 +38,9 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     handlers {
       all RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()))
       prefix('require-auth') {
-        all RatpackPac4j.requireAuth(BasicAuthClient.class)
+        all RatpackPac4j.requireAuth(BasicAuthClient)
         get {
-          render "Hello " + get(UserProfile.class).getId()
+          render "Hello " + get(UserProfile).getId()
         }
       }
       get {
