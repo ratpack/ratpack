@@ -16,23 +16,11 @@
 
 package ratpack.server.internal;
 
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.buffer.ByteBuf;
+import ratpack.exec.Promise;
 
-public abstract class RatpackSimpleChannelInboundHandler extends SimpleChannelInboundHandler<HttpRequest> {
+public interface RequestBodyReader {
 
-  public RatpackSimpleChannelInboundHandler() {
-  }
+  Promise<ByteBuf> read();
 
-  public RatpackSimpleChannelInboundHandler(boolean autoRelease) {
-    super(autoRelease);
-  }
-
-  public RatpackSimpleChannelInboundHandler(Class<? extends HttpRequest> inboundMessageType) {
-    super(inboundMessageType);
-  }
-
-  public RatpackSimpleChannelInboundHandler(Class<? extends HttpRequest> inboundMessageType, boolean autoRelease) {
-    super(inboundMessageType, autoRelease);
-  }
 }

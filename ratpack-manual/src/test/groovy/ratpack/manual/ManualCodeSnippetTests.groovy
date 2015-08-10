@@ -46,21 +46,21 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
   @Override
   protected void addTests(CodeSnippetTests tests) {
-    File cwd = new File(StandardSystemProperty.USER_DIR.value())
-    File root
-    if (new File(cwd, "ratpack-manual.gradle").exists()) {
-      root = cwd.parentFile
-    } else {
-      root = cwd
-    }
-
-    def content = new File(root, "ratpack-manual/src/content/chapters")
-
-    FIXTURES.each { selector, executer ->
-      ManualSnippetExtractor.extract(content, selector, executer).each {
-        tests.add(it)
-      }
-    }
+//    File cwd = new File(StandardSystemProperty.USER_DIR.value())
+//    File root
+//    if (new File(cwd, "ratpack-manual.gradle").exists()) {
+//      root = cwd.parentFile
+//    } else {
+//      root = cwd
+//    }
+//
+//    def content = new File(root, "ratpack-manual/src/content/chapters")
+//
+//    FIXTURES.each { selector, executer ->
+//      ManualSnippetExtractor.extract(content, selector, executer).each {
+//        tests.add(it)
+//      }
+//    }
   }
 
 }

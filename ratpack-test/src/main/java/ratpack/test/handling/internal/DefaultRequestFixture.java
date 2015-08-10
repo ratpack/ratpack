@@ -27,6 +27,7 @@ import io.netty.util.CharsetUtil;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
+import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
@@ -116,7 +117,7 @@ public class DefaultRequestFixture implements RequestFixture {
     DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
-      downstream -> downstream.success(requestBody));
+      () -> Promise.value(requestBody));
 
     if (pathBinding != null) {
       handler = Handlers.chain(

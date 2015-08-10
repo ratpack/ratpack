@@ -21,6 +21,7 @@ import ratpack.func.Block
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
+import spock.lang.Ignore
 
 import static ratpack.util.Exceptions.uncheck
 
@@ -194,6 +195,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     getText() == [foo: "bar"].toString()
   }
 
+  @Ignore
   def "can read request body in blocking operation"() {
     when:
     handlers {
@@ -217,6 +219,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
+  @Ignore
   def "can read large request body in blocking operation"() {
     when:
     handlers {

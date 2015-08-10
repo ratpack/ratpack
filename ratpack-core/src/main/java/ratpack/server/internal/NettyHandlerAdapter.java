@@ -18,6 +18,7 @@ package ratpack.server.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecController;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -51,7 +53,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
-public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
+public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest> {
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
@@ -87,6 +89,7 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
 
   public void channelRead0(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
     ctx.channel().config().setAutoRead(false);
+    ctx.fireChannelReadComplete();
 
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
@@ -96,11 +99,11 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
     }
     if (HttpHeaderUtil.is100ContinueExpected(nettyRequest)) {
       FullHttpResponse continueResponse = new DefaultFullHttpResponse(
-      HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
+        HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
       ChannelFutureListener listener = future -> {
-          if (!future.isSuccess()) {
-            ctx.fireExceptionCaught(future.cause());
-          }
+        if (!future.isSuccess()) {
+          ctx.fireExceptionCaught(future.cause());
+        }
       };
       ctx.writeAndFlush(continueResponse).addListener(listener);
       return;
@@ -118,33 +121,29 @@ public class NettyHandlerAdapter extends RatpackSimpleChannelInboundHandler {
       nettyRequest.uri(),
       remoteAddress,
       socketAddress,
-      downstream -> {
+      () -> Promise.<ByteBuf>of(downstream -> {
         ChannelPipeline pipeline = ctx.pipeline();
-        ChannelHandler adapter = pipeline.remove("adapter");
-        if (adapter instanceof DefaultRatpackServer.ReloadHandler) {
-          pipeline.remove(((DefaultRatpackServer.ReloadHandler) adapter).getDelegate());
-        }
-        ResumableHttpRequestDecoder decoder = (ResumableHttpRequestDecoder) pipeline.get("decoder");
-        decoder.setSingleDecode(false);
-        pipeline.addLast("aggregator", new HttpObjectAggregator(serverRegistry.get(ServerConfig.class).getMaxContentLength()));
-        pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<FullHttpMessage>() {
+        pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<HttpContent>() {
+          private CompositeByteBuf body = ctx.alloc().compositeBuffer();
 
           @Override
-          protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage msg) throws Exception {
-            msg.retain();
-            downstream.success(msg.content());
+          protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
+            ctx.fireChannelReadComplete();
+            ByteBuf payload = msg.content().retain();
+            body.addComponent(payload);
+            body.writerIndex(body.writerIndex() + payload.readableBytes());
+            if (msg instanceof LastHttpContent) {
+              ctx.pipeline().remove(this);
+              channel.config().setAutoRead(true);
+              downstream.success(body);
+            } else {
+              ctx.read();
+            }
           }
         });
-
-        downstream.onComplete(() -> {
-          pipeline.remove("aggregator");
-          pipeline.remove("bodyHandler");
-          decoder.setSingleDecode(true);
-          pipeline.addLast("adapter", adapter);
-        });
-        pipeline.fireChannelRead(nettyRequest);
-        channel.config().setAutoRead(true);
-      });
+        ctx.read();
+      })
+    );
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();

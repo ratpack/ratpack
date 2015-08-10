@@ -55,6 +55,7 @@ import javax.net.ssl.SSLEngine;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -243,9 +244,7 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          HttpRequestDecoder decoder = new ResumableHttpRequestDecoder(4096, 8192, 8192, false);
-          decoder.setSingleDecode(true);
-          pipeline.addLast("decoder", decoder);
+          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
           pipeline.addLast("encoder", new HttpResponseEncoder());
           pipeline.addLast("deflater", new SmartHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
@@ -429,7 +428,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   @ChannelHandler.Sharable
-  class ReloadHandler extends RatpackSimpleChannelInboundHandler {
+  class ReloadHandler extends SimpleChannelInboundHandler<HttpRequest> {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
@@ -500,11 +499,10 @@ public class DefaultRatpackServer implements RatpackServer {
 
     private void delegate(ChannelHandlerContext ctx, ChannelHandler delegate, HttpRequest msg) {
       try {
-        ctx.pipeline().remove("inner");
-      } catch (Exception ignore) {
-        // ignore
+        ctx.pipeline().replace("inner", "inner", delegate);
+      } catch (NoSuchElementException ignore) {
+        ctx.pipeline().addAfter("adapter", "inner", delegate);
       }
-      ctx.pipeline().addLast("inner", delegate);
       ctx.fireChannelRead(msg);
     }
   }
