@@ -548,11 +548,11 @@ public abstract class RxRatpack {
     @Override
     public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, Observable.OnSubscribe<T> onSubscribe) {
       return ExecController.current()
-        .map(e -> executionBackedOnSubscribe(onSubscribe, e))
+        .map(e -> executionBackedOnSubscribe(onSubscribe))
         .orElse(onSubscribe);
     }
 
-    private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe, final ExecController e) {
+    private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe) {
       return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
     }
   }
@@ -578,7 +578,7 @@ public abstract class RxRatpack {
     public void onError(Throwable e) {
       try {
         subscriber.onError(e);
-      } catch (final OnErrorNotImplementedException e2) {
+      } catch (OnErrorNotImplementedException e2) {
         Promise.error(e2.getCause()).then(Action.noop());
       }
     }
@@ -586,7 +586,7 @@ public abstract class RxRatpack {
     public void onNext(T t) {
       try {
         subscriber.onNext(t);
-      } catch (final OnErrorNotImplementedException e) {
+      } catch (OnErrorNotImplementedException e) {
         Promise.error(e.getCause()).then(Action.noop());
       }
     }
