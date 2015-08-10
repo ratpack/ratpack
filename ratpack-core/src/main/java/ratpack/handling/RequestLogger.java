@@ -114,6 +114,7 @@ public interface RequestLogger extends Handler {
    * However, if the {@link RequestId} is additionally being added to requests, the value of the request Id will be appended to the end of the request log in the form: id=requestId
    * The resulting format is thus: "host rfc931 username date:time request statuscode bytes id=requestId"
    *
+   * @param logger the logger to log to, at INFO level
    * @return a new request logger
    * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">NCSA Common Log format documentation.</a>
    */
