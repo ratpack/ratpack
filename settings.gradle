@@ -24,6 +24,7 @@ include \
     "ratpack-groovy-test",
     "ratpack-guice",
     "ratpack-session",
+    "ratpack-session-redis",
     "ratpack-gradle",
     "ratpack-handlebars",
     "ratpack-remote",
@@ -56,4 +57,3 @@ setBuildFile(rootProject)
 rootProject.children.each {
   setBuildFile(it)
 }
-
