@@ -64,7 +64,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
     this.transmitted = transmitted;
     this.channel = channel;
-    this.nettyRequest = nettyRequest.retain();
+    this.nettyRequest = nettyRequest;
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
     this.requestOutcomeEventController = requestOutcomeEventController;
