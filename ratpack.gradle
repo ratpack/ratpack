@@ -137,6 +137,7 @@ subprojects {
   }
 
   tasks.withType(GroovyCompile) {
+    groovyOptions.fork = false
     allprojects {
       mustRunAfter tasks.withType(CodeNarc)
     }
