@@ -153,7 +153,7 @@ class PromiseOperationsSpec extends Specification {
     exec { e ->
       Promise.of { it.error(ex) }
         .map {}
-        .onError { throw new RuntimeException(it.message + "-changed") }
+        .mapError { throw new RuntimeException(it.message + "-changed") }
         .map {}
         .onError { events << it.message }
         .then { throw new IllegalStateException("cant get here") }

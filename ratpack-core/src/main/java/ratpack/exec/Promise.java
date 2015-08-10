@@ -184,9 +184,9 @@ public interface Promise<T> {
             errorHandler.execute(throwable);
           } catch (Throwable e) {
             if (e != throwable) {
-              throwable.addSuppressed(e);
+              e.addSuppressed(throwable);
             }
-            down.error(throwable);
+            down.error(e);
             return;
           }
           down.complete();
@@ -346,9 +346,9 @@ public interface Promise<T> {
     return transform(up -> down ->
         up.connect(down.onError(throwable -> {
           try {
-            down.success(transformer.apply(throwable));
+            T transformed = transformer.apply(throwable);
+            down.success(transformed);
           } catch (Throwable t) {
-            t.addSuppressed(throwable);
             down.error(t);
           }
         }))
