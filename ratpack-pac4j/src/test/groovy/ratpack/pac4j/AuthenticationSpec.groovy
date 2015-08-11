@@ -22,9 +22,7 @@ import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.http.profile.UsernameProfileCreator
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
-@Ignore
 class AuthenticationSpec extends RatpackGroovyDslSpec {
 
   def "secure handlers"() {

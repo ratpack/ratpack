@@ -16,11 +16,13 @@
 
 package ratpack.manual
 
+import com.google.common.base.StandardSystemProperty
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.executer.GroovySnippetExecuter
 import ratpack.manual.snippets.executer.JavaSnippetExecuter
 import ratpack.manual.snippets.executer.SnippetExecuter
+import ratpack.manual.snippets.extractor.JavadocSnippetExtractor
 import ratpack.manual.snippets.fixture.*
 
 class JavadocCodeSnippetTests extends CodeSnippetTestCase {
@@ -36,23 +38,23 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 
   @Override
   protected void addTests(CodeSnippetTests tests) {
-//    File cwd = new File(StandardSystemProperty.USER_DIR.value())
-//    File root
-//    if (new File(cwd, "ratpack-manual.gradle").exists()) {
-//      root = cwd.parentFile
-//    } else {
-//      root = cwd
-//    }
-//
-//    root.eachDirMatch(~/ratpack-.+/) {
-//      def mainSrc = new File(it, "src/main")
-//      if (mainSrc.exists()) {
-//        FIXTURES.each { selector, executer ->
-//          JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, executer).each {
-//            tests.add(it)
-//          }
-//        }
-//      }
-//    }
+    File cwd = new File(StandardSystemProperty.USER_DIR.value())
+    File root
+    if (new File(cwd, "ratpack-manual.gradle").exists()) {
+      root = cwd.parentFile
+    } else {
+      root = cwd
+    }
+
+    root.eachDirMatch(~/ratpack-.+/) {
+      def mainSrc = new File(it, "src/main")
+      if (mainSrc.exists()) {
+        FIXTURES.each { selector, executer ->
+          JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, executer).each {
+            tests.add(it)
+          }
+        }
+      }
+    }
   }
 }

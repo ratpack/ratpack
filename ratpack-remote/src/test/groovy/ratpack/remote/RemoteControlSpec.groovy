@@ -24,7 +24,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 import java.nio.file.Path
 
@@ -110,7 +109,6 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     remote.exec { get(Renderer.typeOf(Path)) != null }
   }
 
-  @Ignore
   void 'endpoint is also enabled if reloading is enabled'() {
     given:
     bindings {
