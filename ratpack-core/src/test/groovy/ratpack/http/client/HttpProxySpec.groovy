@@ -231,4 +231,40 @@ transfer-encoding: chunked
     response.headers.get(CONTENT_ENCODING) == "gzip"
     new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
   }
+
+
+  def "can proxy a post request"() {
+    given:
+    otherApp {
+      post("foo") {
+        request.body.then {
+          response.send it.text
+        }
+      }
+    }
+
+    and:
+    handlers {
+      post { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.method("POST")
+          rs.body { outgoingRequestBody ->
+            request.body.then { incomingRequestBody ->
+              outgoingRequestBody.buffer(incomingRequestBody.buffer)
+            }
+          }
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.send(response)
+        }
+      }
+    }
+
+    when:
+    def response = requestSpec { RequestSpec rs ->
+      rs.body.text("bar")
+    }.post()
+
+    then:
+    response.body.text == "bar"
+  }
 }
