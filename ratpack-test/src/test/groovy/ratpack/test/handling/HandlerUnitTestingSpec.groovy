@@ -307,6 +307,7 @@ class HandlerUnitTestingSpec extends Specification {
 
     then:
     clientError == 404
+    status.code == 404
   }
 
   def "rendered downstream objects are captured"() {

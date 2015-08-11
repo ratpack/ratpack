@@ -231,6 +231,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
     ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
       results.setClientError(statusCode);
+      context.getResponse().status(statusCode);
       results.getLatch().countDown();
     };
 
