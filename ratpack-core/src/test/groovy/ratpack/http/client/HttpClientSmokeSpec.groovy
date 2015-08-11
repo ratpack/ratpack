@@ -24,7 +24,6 @@ import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
-import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -34,7 +33,6 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
-@Ignore
 class HttpClientSmokeSpec extends HttpClientSpec {
 
   def "can make simple get request"() {

@@ -228,7 +228,11 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
+          HttpRequestDecoder handler = new HttpRequestDecoder(4096, 8192, 8192, false);
+          // We only want to decode the headers, and then decode the body later
+          handler.setSingleDecode(true);
+
+          pipeline.addLast("decoder", handler);
           pipeline.addLast("encoder", new HttpResponseEncoder());
           pipeline.addLast("deflater", new SmartHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
@@ -423,7 +427,8 @@ public class DefaultRatpackServer implements RatpackServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
-      execController.exec().start(e ->
+      ctx.channel().config().setAutoRead(false);
+      execController.exec().eventLoop(ctx.channel().eventLoop()).start(e ->
           Promise.<ChannelHandler>of(f -> {
             boolean rebuild = false;
 
@@ -455,7 +460,7 @@ public class DefaultRatpackServer implements RatpackServer {
             }
           })
             .throttled(reloadThrottle)
-            .then(adapter -> Blocking.exec(() -> delegate(ctx, adapter, msg)))
+            .then(adapter -> delegate(ctx, adapter, msg))
       );
     }
 

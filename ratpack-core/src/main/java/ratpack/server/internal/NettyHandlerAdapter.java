@@ -57,6 +57,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
+  private static final AttributeKey<Boolean> DONE = AttributeKey.valueOf("ratpack.done");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -76,25 +77,26 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
   }
 
   @Override
-  public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
-    if (!(msg instanceof HttpRequest)) {
-      Action<Object> subscriber = channelHandlerContext.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    if (msg instanceof HttpRequest) {
+      ctx.attr(DONE).set(Boolean.FALSE);
+      ctx.channel().config().setAutoRead(false);
+    } else if (msg == LastHttpContent.EMPTY_LAST_CONTENT) {
+      ctx.attr(DONE).set(Boolean.TRUE);
+    } else {
+      Action<Object> subscriber = ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber != null) {
         subscriber.execute(msg);
         return;
       }
     }
-    super.channelRead(channelHandlerContext, msg);
+
+    super.channelRead(ctx, msg);
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
-    ctx.channel().config().setAutoRead(false);
-    ctx.fireChannelReadComplete();
-
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
-      //TODO?
-//      nettyRequest.release();
       return;
     }
     if (HttpHeaderUtil.is100ContinueExpected(nettyRequest)) {
@@ -105,6 +107,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
           ctx.fireExceptionCaught(future.cause());
         }
       };
+      ctx.channel().config().setAutoRead(true);
       ctx.writeAndFlush(continueResponse).addListener(listener);
       return;
     }
@@ -122,13 +125,22 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
       remoteAddress,
       socketAddress,
       () -> Promise.<ByteBuf>of(downstream -> {
+        if (ctx.attr(DONE).get()) {
+          downstream.success(Unpooled.EMPTY_BUFFER);
+          return;
+        }
         ChannelPipeline pipeline = ctx.pipeline();
+        pipeline.get(HttpRequestDecoder.class).setSingleDecode(false);
         pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<HttpContent>() {
           private CompositeByteBuf body = ctx.alloc().compositeBuffer();
 
           @Override
+          public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+            pipeline.fireChannelRead(Unpooled.EMPTY_BUFFER);
+          }
+
+          @Override
           protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
-            ctx.fireChannelReadComplete();
             ByteBuf payload = msg.content().retain();
             body.addComponent(payload);
             body.writerIndex(body.writerIndex() + payload.readableBytes());
@@ -141,7 +153,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
             }
           }
         });
-        ctx.read();
       })
     );
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
