@@ -114,10 +114,13 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
+    ServerConfig serverConfig = registry.get(ServerConfig.class);
+
     DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
-      () -> Promise.value(requestBody));
+      serverConfig,
+      maxContentLength -> Promise.value(requestBody));
 
     if (pathBinding != null) {
       handler = Handlers.chain(
@@ -127,7 +130,6 @@ public class DefaultRequestFixture implements RequestFixture {
     }
 
     try {
-      ServerConfig serverConfig = registry.get(ServerConfig.class);
       return new DefaultHandlingResult(
         request,
         results,
