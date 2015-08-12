@@ -165,4 +165,25 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     putText() == "0"
   }
 
+  def "respect max content length"() {
+    when:
+    serverConfig {
+      maxContentLength 16
+    }
+    handlers {
+      post {
+        request.body.then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
+      }
+    }
+
+    then:
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "bar".multiply(16) }) }
+    def response = post()
+    response.statusCode == 413
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
+    postText() == "foo"
+  }
+
 }

@@ -141,15 +141,26 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
           @Override
           protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
+            int maxContentLength = serverRegistry.get(ServerConfig.class).getMaxContentLength();
+
             ByteBuf payload = msg.content().retain();
-            body.addComponent(payload);
-            body.writerIndex(body.writerIndex() + payload.readableBytes());
-            if (msg instanceof LastHttpContent) {
-              ctx.pipeline().remove(this);
-              channel.config().setAutoRead(true);
-              downstream.success(body);
+            if (body.capacity() + payload.readableBytes() > maxContentLength) {
+              try {
+                sendError(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+              } finally {
+                body.release();
+              }
             } else {
-              ctx.read();
+              body.addComponent(payload);
+              body.writerIndex(body.writerIndex() + payload.readableBytes());
+
+              if (msg instanceof LastHttpContent) {
+                ctx.pipeline().remove(this);
+                channel.config().setAutoRead(true);
+                downstream.success(body);
+              } else {
+                ctx.read();
+              }
             }
           }
         });
