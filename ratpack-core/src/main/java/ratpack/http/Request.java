@@ -18,10 +18,12 @@ package ratpack.http;
 
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.registry.MutableRegistry;
+import ratpack.server.ServerConfig;
 import ratpack.util.MultiValueMap;
 
 import java.time.Instant;
@@ -111,11 +113,25 @@ public interface Request extends MutableRegistry {
   /**
    * The body of the request.
    * <p>
-   * If this request does not have a body, an non null object is still returned but it effectively has no data.
+   * If this request does not have a body, a non null object is still returned but it effectively has no data.
+   * <p>
+   * The body content must be less than or equal to {@link ServerConfig#getMaxContentLength()} else a {@link HttpResponseStatus#REQUEST_ENTITY_TOO_LARGE} is sent.
    *
    * @return the body of the request
    */
   Promise<TypedData> getBody();
+
+  /**
+   * The body of the request allowing up to the provided size for the content.
+   * <p>
+   * If this request does not have a body, a non null object is still returned but it effectively has no data.
+   * <p>
+   * If the transmitted content is larger than provided maxContentLength, then a {@link HttpResponseStatus#REQUEST_ENTITY_TOO_LARGE} is sent.
+   *
+   * @param maxContentLength the maximum number of bytes allowed for the request.
+   * @return the body of the request.
+   */
+  Promise<TypedData> getBody(int maxContentLength);
 
   /**
    * The request headers.

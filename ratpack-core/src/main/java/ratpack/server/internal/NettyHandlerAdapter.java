@@ -124,7 +124,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
       nettyRequest.uri(),
       remoteAddress,
       socketAddress,
-      () -> Promise.<ByteBuf>of(downstream -> {
+      serverRegistry.get(ServerConfig.class),
+      maxContentLength -> Promise.<ByteBuf>of(downstream -> {
         if (ctx.attr(DONE).get()) {
           downstream.success(Unpooled.EMPTY_BUFFER);
           return;
@@ -141,8 +142,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
           @Override
           protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
-            int maxContentLength = serverRegistry.get(ServerConfig.class).getMaxContentLength();
-
             ByteBuf payload = msg.content().retain();
             if (body.capacity() + payload.readableBytes() > maxContentLength) {
               try {

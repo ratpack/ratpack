@@ -186,4 +186,30 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
+  def "override acceptable max content length per request"() {
+    when:
+    serverConfig {
+      maxContentLength 16
+    }
+    handlers {
+      post {
+        request.body.then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
+      }
+      post("allow") {
+        request.getBody(16*8).then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
+      }
+    }
+
+    then:
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "bar".multiply(16) }) }
+    def response = post()
+    response.statusCode == 413
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo".multiply(16) }) }
+    postText("allow") == "foo".multiply(16)
+  }
+
 }

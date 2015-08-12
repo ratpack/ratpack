@@ -29,6 +29,7 @@ import ratpack.func.Function;
 import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
+import ratpack.server.ServerConfig;
 import ratpack.server.internal.RequestBodyReader;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
@@ -51,6 +52,7 @@ public class DefaultRequest implements Request {
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
+  private final ServerConfig serverConfig;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -60,7 +62,7 @@ public class DefaultRequest implements Request {
 
 
   public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
-                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, RequestBodyReader bodyReader) {
+                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, RequestBodyReader bodyReader) {
     this.headers = headers;
     this.bodyReader = bodyReader;
     this.method = DefaultHttpMethod.valueOf(method);
@@ -69,6 +71,7 @@ public class DefaultRequest implements Request {
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
+    this.serverConfig = serverConfig;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -201,7 +204,12 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    return bodyReader.read().map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType())).cache();
+    return getBody(serverConfig.getMaxContentLength());
+  }
+
+  @Override
+  public Promise<TypedData> getBody(int maxContentLength) {
+    return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType())).cache();
   }
 
   @Override
