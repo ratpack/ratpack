@@ -18,6 +18,7 @@ package ratpack.http
 
 import ratpack.exec.Blocking
 import ratpack.http.client.RequestSpec
+import ratpack.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
@@ -210,6 +211,31 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     response.statusCode == 413
     requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo".multiply(16) }) }
     postText("allow") == "foo".multiply(16)
+  }
+
+  def "can read body only once"() {
+    when:
+    handlers {
+      all {
+        request.body.then { body ->
+          next(Registry.single(String, new String(body.bytes, "utf8")))
+        }
+      }
+      post {
+        response.send get(String)
+      }
+      post("again") {
+        request.body.then { body ->
+          response.send get(String) + new String(body.bytes, "utf8")
+        }
+      }
+    }
+
+    then:
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
+    postText() == "foo"
+    def response = post("again")
+    response.statusCode == 500
   }
 
 }
