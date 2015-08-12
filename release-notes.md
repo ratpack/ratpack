@@ -1,9 +1,9 @@
-<!-- 
+<!--
 This file contains the in progress release notes during the cycle.
-It should not be considered the final announcement for any release at any time. 
+It should not be considered the final announcement for any release at any time.
 -->
 
-The `ratpack-jackson-guice` library has been removed. 
+The `ratpack-jackson-guice` library has been removed.
 The functionality that it provided is now part of `ratpack-core`.
 That is, renderers and parsers for working with the types of [`Jackson`](http://ratpack.io/manual/1.0.0/api/ratpack/jackson/Jackson.html) are now available automatically.
 The `ratpack-core` library already depended on Jackson for the [config mechanism](http://ratpack.io/manual/1.0.0/config.html).
@@ -17,3 +17,5 @@ An implementation can now potentially parse multiple content types.
 
 [`RemoteControl`](http://ratpack.io/manual/1.0.0/api/ratpack/test/remote/RemoteControl.html) now accepts `UnserializableResultStrategy`.
 The default value is `io.remotecontrol.client.UnserializableResultStrategy.throw`.
+
+Redis session storage is now supported in the `ratpack-session-redis` library. See ["RedisSessionModule"](http://ratpack.io/manual/1.0.0/api/index.html?ratpack/session/store/RedisSessionModule.html) for details.
