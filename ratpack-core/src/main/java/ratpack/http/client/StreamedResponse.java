@@ -29,7 +29,7 @@ import ratpack.stream.TransformablePublisher;
  * <p>
  * The HTTP status and response headers are available immediately, the response content can be accessed by
  * subscribing to the {@link org.reactivestreams.Publisher} returned from {@link #getBody()} or can
- * be directly streamed as a server response using {@link #send(ratpack.http.Response, ratpack.func.Action)}.
+ * be directly streamed as a server response using {@link #forwardTo(ratpack.http.Response, ratpack.func.Action)}.
  */
 public interface StreamedResponse {
   /**
@@ -60,9 +60,9 @@ public interface StreamedResponse {
    * Stream this received response out to the given server response.
    *
    * @param response the server response to stream to
-   * @see #send(ratpack.http.Response, ratpack.func.Action)
+   * @see #forwardTo(ratpack.http.Response, ratpack.func.Action)
    */
-  void send(Response response);
+  void forwardTo(Response response);
 
   /**
    * Stream this received response out to the given server response.
@@ -78,5 +78,5 @@ public interface StreamedResponse {
    * @param response the server response to stream to
    * @param headerMutator an action that will act on the outgoing response headers
    */
-  void send(Response response, Action<? super MutableHeaders> headerMutator);
+  void forwardTo(Response response, Action<? super MutableHeaders> headerMutator);
 }

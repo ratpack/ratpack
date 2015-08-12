@@ -40,7 +40,7 @@ class HttpProxySpec extends HttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response)
+          responseStream.forwardTo(response)
         }
       }
     }
@@ -74,7 +74,7 @@ bar
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response)
+          responseStream.forwardTo(response)
         }
       }
     }
@@ -112,7 +112,7 @@ bar
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response) {MutableHeaders headers ->
+          responseStream.forwardTo(response) {MutableHeaders headers ->
             headers.remove("x-foo-header")
             headers.add("x-bar-header", "bar")
           }
@@ -151,7 +151,7 @@ bar
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response)
+          responseStream.forwardTo(response)
         }
       }
     }
@@ -183,7 +183,7 @@ Client error 404
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response)
+          responseStream.forwardTo(response)
         }
       }
     }
@@ -214,7 +214,7 @@ transfer-encoding: chunked
           rs.decompressResponse(false)
           rs.headers.copy(request.headers)
         } then { ReceivedResponse receivedResponse ->
-          receivedResponse.send(response)
+          receivedResponse.forwardTo(response)
         }
       }
     }
@@ -254,7 +254,7 @@ transfer-encoding: chunked
             }
           }
         } then { ReceivedResponse receivedResponse ->
-          receivedResponse.send(response)
+          receivedResponse.forwardTo(response)
         }
       }
     }

@@ -46,6 +46,6 @@ public interface ReceivedResponse {
    */
   TypedData getBody();
 
-  void send(Response response);
+  void forwardTo(Response response);
 
 }

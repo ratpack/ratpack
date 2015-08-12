@@ -144,7 +144,7 @@ public interface HttpClient {
    * the received response content will be streamed.
    * <p>
    * In order to access the response content stream either subscribe to the {@link org.reactivestreams.Publisher} returned from {@link StreamedResponse#getBody()}
-   * or use {@link ratpack.http.client.StreamedResponse#send(ratpack.http.Response, ratpack.func.Action)} to directly stream the content as a server response.
+   * or use {@link ratpack.http.client.StreamedResponse#forwardTo(ratpack.http.Response, ratpack.func.Action)} to directly stream the content as a server response.
    *
    * @param uri the request URL (as a URI), must be of the {@code http} or {@code https} protocol
    * @param requestConfigurer an action that will act on the {@link RequestSpec}

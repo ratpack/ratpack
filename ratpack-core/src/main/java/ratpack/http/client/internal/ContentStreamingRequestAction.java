@@ -118,12 +118,12 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
     }
 
     @Override
-    public void send(Response response) {
-      send(response, Action.noop());
+    public void forwardTo(Response response) {
+      forwardTo(response, Action.noop());
     }
 
     @Override
-    public void send(Response response, Action<? super MutableHeaders> headerMutator) {
+    public void forwardTo(Response response, Action<? super MutableHeaders> headerMutator) {
       response.getHeaders().copy(this.headers);
       response.getHeaders().remove(HttpHeaderConstants.CONTENT_LENGTH); // responses will always be chunked
       try {

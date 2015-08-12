@@ -208,7 +208,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
         } then {
-          it.send(response)
+          it.forwardTo(response)
         }
       }
     }
@@ -336,7 +336,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response)
+          responseStream.forwardTo(response)
         }
       }
     }
@@ -414,7 +414,7 @@ BAR
       get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo2")) {
         } then { StreamedResponse responseStream ->
-          responseStream.send(response)
+          responseStream.forwardTo(response)
         }
       }
     }
@@ -445,7 +445,7 @@ BAR
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
           rs.headers.set("accept-encoding", "compress, gzip")
         } then { ReceivedResponse receivedResponse ->
-          receivedResponse.send(response)
+          receivedResponse.forwardTo(response)
         }
       }
     }
@@ -481,7 +481,7 @@ BAR
           rs.headers.set("accept-encoding", "compress, gzip")
           rs.decompressResponse(false)
         } then { ReceivedResponse receivedResponse ->
-          receivedResponse.send(response)
+          receivedResponse.forwardTo(response)
         }
       }
     }

@@ -56,7 +56,7 @@ public class DefaultReceivedResponse implements ReceivedResponse {
   }
 
   @Override
-  public void send(Response response) {
+  public void forwardTo(Response response) {
     response.getHeaders().copy(headers);
     response.status(status).send(typedData.getBuffer().retain());
   }
