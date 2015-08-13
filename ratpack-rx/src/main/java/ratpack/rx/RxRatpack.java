@@ -227,6 +227,8 @@ public abstract class RxRatpack {
    * Converts an {@link Observable} into a {@link Promise}, for all of the observable's items.
    * <p>
    * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
+   * It is sometimes more convenient to use {@link #promise(Observable.OnSubscribe)} over this method.
+   *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
@@ -256,6 +258,7 @@ public abstract class RxRatpack {
    *   }
    * }
    * }</pre>
+   *
    * <p>
    * This method uses {@link Observable#toList()} to collect the observable's contents into a list.
    * It therefore should not be used with observables with many or infinite items.
@@ -277,9 +280,68 @@ public abstract class RxRatpack {
   }
 
   /**
+   * Converts an {@link Observable} into a {@link Promise}, for all of the observable's items.
+   * <p>
+   * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
+   * It is intended to be used in conjunction with the {@link Observable#x} method as a method reference.
+   *
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   * import rx.Observable;
+   * import java.util.List;
+   * import java.util.Arrays;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static class AsyncService {
+   *     public <T> Observable<T> observe(final T value) {
+   *       return Observable.create(subscriber ->
+   *         new Thread(() -> {
+   *           subscriber.onNext(value);
+   *           subscriber.onCompleted();
+   *         }).start()
+   *       );
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Throwable {
+   *     List<String> results = ExecHarness.yieldSingle(execution ->
+   *       new AsyncService().observe("foo").x(RxRatpack::promise)
+   *     ).getValue();
+   *
+   *     assertEquals(Arrays.asList("foo"), results);
+   *   }
+   * }
+   * }</pre>
+   *
+   * <p>
+   * This method uses {@link Observable#toList()} to collect the observable's contents into a list.
+   * It therefore should not be used with observables with many or infinite items.
+   * <p>
+   * If it is expected that the observable only emits one element, it is typically more convenient to use {@link #promiseSingle(rx.Observable)}.
+   * <p>
+   * If the observable emits an error, the returned promise will fail with that error.
+   * <p>
+   * This method must be called during an execution.
+   *
+   * @param onSubscribe the on subscribe function
+   * @param <T> the type of the value observed
+   * @return a promise that returns all values from the observable
+   * @see #promiseSingle(Observable)
+   * @see #promise(Observable)
+   * @throws UnmanagedThreadException if called outside of an execution
+   */
+  public static <T> Promise<List<T>> promise(Observable.OnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
+    return promise(Observable.create(onSubscribe));
+  }
+
+  /**
    * Converts an {@link Observable} into a {@link Promise}, for the observable's single item.
    * <p>
    * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
+   * It is sometimes more convenient to use {@link #promiseSingle(Observable.OnSubscribe)} over this method.
+   *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
@@ -307,9 +369,11 @@ public abstract class RxRatpack {
    *   }
    * }
    * }</pre>
+   *
    * <p>
    * This method uses {@link Observable#single()} to enforce that the observable only emits one item.
    * If the observable may be empty, then use {@link Observable#singleOrDefault(Object)} to provide a default value.
+   *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
@@ -325,6 +389,8 @@ public abstract class RxRatpack {
    *   }
    * }
    * }</pre>
+   *
+   * <p>
    * If it is expected that the observable may emit more than one element, use {@link #promise(rx.Observable)}.
    * <p>
    * If the observable emits an error, the returned promise will fail with that error.
@@ -337,15 +403,87 @@ public abstract class RxRatpack {
    * @param <T> the type of the value observed
    * @return a promise that returns the sole value from the observable
    * @see #promise(Observable)
+   * @see #promiseSingle(Observable.OnSubscribe)
    */
   public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
     return Promise.of(f -> observable.single().subscribe(f::success, f::error));
   }
 
   /**
+   * Converts an {@link Observable} into a {@link Promise}, for the observable's single item.
+   * <p>
+   * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
+   * It is intended to be used in conjunction with the {@link Observable#x} method as a method reference.
+   *
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   * import rx.Observable;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static class AsyncService {
+   *     public <T> Observable<T> observe(final T value) {
+   *       return Observable.create(subscriber ->
+   *         new Thread(() -> {
+   *           subscriber.onNext(value);
+   *           subscriber.onCompleted();
+   *         }).start()
+   *       );
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Throwable {
+   *     String result = ExecHarness.yieldSingle(execution ->
+   *       new AsyncService().observe("foo").x(RxRatpack::promiseSingle)
+   *     ).getValue();
+   *
+   *     assertEquals("foo", result);
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * This method uses {@link Observable#single()} to enforce that the observable only emits one item.
+   * If the observable may be empty, then use {@link Observable#singleOrDefault(Object)} to provide a default value.
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   * import rx.Observable;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Throwable {
+   *     String result = ExecHarness.yieldSingle(execution ->
+   *       Observable.<String>empty().singleOrDefault("foo").x(RxRatpack::promiseSingle)
+   *     ).getValue();
+   *     assertEquals("foo", result);
+   *   }
+   * }
+   * }</pre>
+   * If it is expected that the observable may emit more than one element, use {@link #promise(rx.Observable.OnSubscribe)}.
+   * <p>
+   * If the observable emits an error, the returned promise will fail with that error.
+   * If the observable emits no items, the returned promise will fail with a {@link java.util.NoSuchElementException}.
+   * If the observable emits more than one item, the returned promise will fail with an {@link IllegalStateException}.
+   * <p>
+   * This method must be called during an execution.
+   *
+   * @param onSubscribe the on subscribe function
+   * @param <T> the type of the value observed
+   * @return a promise that returns the sole value from the observable
+   * @see #promise(Observable.OnSubscribe)
+   * @see #promiseSingle(Observable)
+   */
+  public static <T> Promise<T> promiseSingle(Observable.OnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
+    return promiseSingle(Observable.create(onSubscribe));
+  }
+
+  /**
    * Converts an {@link Observable} into a {@link Publisher}, for all of the observable's items.
    * <p>
    * This method can be used to simply adapt an observable to a ReactiveStreams publisher.
+   * It is sometimes more convenient to use {@link #publisher(Observable.OnSubscribe)} over this method.
+   *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
    * import ratpack.stream.Streams;
@@ -380,6 +518,48 @@ public abstract class RxRatpack {
    */
   public static <T> TransformablePublisher<T> publisher(Observable<T> observable) {
     return Streams.transformable(RxReactiveStreams.toPublisher(observable));
+  }
+
+  /**
+   * Converts an {@link Observable} into a {@link Publisher}, for all of the observable's items.
+   * <p>
+   * This method can be used to simply adapt an observable to a ReactiveStreams publisher.
+   * It is intended to be used in conjunction with the {@link Observable#x} method as a method reference.
+   *
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   * import rx.Observable;
+   * import java.util.List;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static class AsyncService {
+   *     public <T> Observable<T> observe(final T value) {
+   *       return Observable.create(subscriber ->
+   *         new Thread(() -> {
+   *           subscriber.onNext(value);
+   *           subscriber.onCompleted();
+   *         }).start()
+   *       );
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Throwable {
+   *     List<String> result = ExecHarness.yieldSingle(execution ->
+   *       new AsyncService().observe("foo").x(RxRatpack::publisher).toList()
+   *     ).getValue();
+   *     assertEquals("foo", result.get(0));
+   *   }
+   * }
+   * }</pre>
+   * @param onSubscribe the on subscribe function
+   * @param <T> the type of the value observed
+   * @return a ReactiveStreams publisher containing each value of the observable
+   */
+  public static <T> TransformablePublisher<T> publisher(Observable.OnSubscribe<T> onSubscribe) {
+    return publisher(Observable.create(onSubscribe));
   }
 
   /**
