@@ -17,3 +17,5 @@ An implementation can now potentially parse multiple content types.
 
 [`RemoteControl`](http://ratpack.io/manual/1.0.0/api/ratpack/test/remote/RemoteControl.html) now accepts `UnserializableResultStrategy`.
 The default value is `io.remotecontrol.client.UnserializableResultStrategy.throw`.
+
+`ReceivedResponse#send` and `StreamedResponse#send` have been changed to `ReceivedResponse#forwardTo` and `StreamedResponse#forwardTo`
