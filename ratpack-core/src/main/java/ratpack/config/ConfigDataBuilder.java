@@ -347,4 +347,7 @@ public interface ConfigDataBuilder {
    */
   ImmutableList<ConfigSource> getConfigSources();
 
+  ConfigDataBuilder baseDir(Path baseDir);
+
+  Path getBaseDir();
 }

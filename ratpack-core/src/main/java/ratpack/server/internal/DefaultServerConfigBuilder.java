@@ -57,6 +57,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfigBuilder baseDir(Path baseDir) {
+    configDataBuilder.baseDir(baseDir);
     serverConfigData.putPOJO("baseDir", baseDir);
     return this;
   }
@@ -293,8 +294,8 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfig build() {
-    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), Iterables.concat(getConfigSources(), Collections.<ConfigSource>singleton(mapper -> {
-      ObjectNode node = mapper.createObjectNode();
+    ConfigData configData = new DefaultConfigData(configDataBuilder, Iterables.concat(getConfigSources(), Collections.<ConfigSource>singleton(configDataBuilder -> {
+      ObjectNode node = configDataBuilder.getObjectMapper().createObjectNode();
       node.putObject("server").setAll(serverConfigData);
       return node;
     })));
@@ -321,6 +322,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     } else {
       return config.build();
     }
+  }
+
+  @Override
+  public Path getBaseDir() {
+    return configDataBuilder.getBaseDir();
   }
 
 }

@@ -16,8 +16,8 @@
 
 package ratpack.config.internal.source;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.func.Action;
 
@@ -34,12 +34,12 @@ public class ErrorHandlingConfigSource implements ConfigSource {
   }
 
   @Override
-  public ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception {
+  public ObjectNode loadConfigData(ConfigDataBuilder configDataBuilder) throws Exception {
     try {
-      return delegate.loadConfigData(objectMapper);
+      return delegate.loadConfigData(configDataBuilder);
     } catch (Throwable ex) {
       errorHandler.execute(ex);
-      return objectMapper.createObjectNode(); // treat the source as if it had no data
+      return configDataBuilder.getObjectMapper().createObjectNode(); // treat the source as if it had no data
     }
   }
 }

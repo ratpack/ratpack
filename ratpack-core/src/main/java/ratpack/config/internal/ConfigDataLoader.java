@@ -19,6 +19,7 @@ package ratpack.config.internal;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.util.Exceptions;
 
@@ -28,16 +29,19 @@ public class ConfigDataLoader {
   private final ObjectMapper objectMapper;
   private final Iterable<ConfigSource> configSources;
 
-  public ConfigDataLoader(ObjectMapper objectMapper, Iterable<ConfigSource> configSources) {
+  private final ConfigDataBuilder configDataBuilder;
+
+  public ConfigDataLoader(ConfigDataBuilder configDataBuilder, ObjectMapper objectMapper, Iterable<ConfigSource> configSources) {
     this.objectMapper = objectMapper;
     this.configSources = configSources;
+    this.configDataBuilder = configDataBuilder;
   }
 
   public ObjectNode load() {
     ObjectNode node = objectMapper.createObjectNode();
     try {
       for (ConfigSource source : configSources) {
-        merge(source.loadConfigData(objectMapper), node);
+        merge(source.loadConfigData(configDataBuilder), node);
       }
     } catch (Exception ex) {
       throw Exceptions.uncheck(ex);

@@ -16,7 +16,6 @@
 
 package ratpack.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -32,5 +31,5 @@ public interface ConfigSource {
    * @return the root node of the configuration data loaded
    * @throws Exception any
    */
-  ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception;
+  ObjectNode loadConfigData(ConfigDataBuilder objectMapper) throws Exception;
 }
