@@ -6,7 +6,7 @@
   @head@
 </head>
 
-<body>
+<body class="single-toc">
 
 <header id="page-header">
   <div class="ratpack-logo">
@@ -17,7 +17,7 @@
 
 <p style="text-align: center">This manual is a work in progress and is currently incomplete.<br/>If you'd like to help improve it, and we hope you do, please see <a href="https://github.com/ratpack/ratpack/blob/master/ratpack-manual/README.md#the-ratpack-manual">the README</a>.</p>
 
-<nav class="toc all-toc single-page-toc">
+<nav class="toc">
   <header class="manual-links">
     <div class="content">
       <h2>Version: @ratpack-version@</h2>
@@ -26,8 +26,9 @@
       <a href="api/index.html" class="active">API Reference</a>
     </div>
   </header>
-  <%= toc %>
 </nav>
+
+<nav class="toc all-toc nav-toc"></nav>
 
 <article class="manual">
   <% chapters.each { chapter -> %>

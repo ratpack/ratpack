@@ -280,6 +280,8 @@ task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) 
     "${projectDir}/src/assets/js/modernizr.js",
     "${projectDir}/src/assets/js/prism.js",
     "${projectDir}/src/assets/js/jquery.js",
+    "${projectDir}/src/assets/js/contents.js",
+    "${projectDir}/src/assets/js/contentsInitializer.js",
     "${buildDir}/assets/js/all-dev.min.js"
   ]
   dest = file("${buildDir}/assets/js/all.min.js")

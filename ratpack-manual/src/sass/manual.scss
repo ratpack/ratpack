@@ -14,6 +14,12 @@
 
 $pagination-background: $purple;
 
+body.single-toc {
+  @media (min-width: $tablet-portrait) {
+    padding-left: 15em;
+  }
+}
+
 .pagination {
 	@include margin-leader(1);
 	@include margin-trailer(1);
@@ -87,6 +93,44 @@ $pagination-background: $purple;
 	}
 }
 
+nav.nav-toc {
+
+  @media (min-width: $tablet-portrait) {
+    font-size: .95em;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    overflow: auto;
+    width: 15em;
+    height: 100%;
+    background: $white;
+    z-index: 1000;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    > ol > li {
+      > ol {
+        display: none;
+      }
+    }
+
+    li.active-guide {
+      font-weight: bold;
+      li {
+        font-weight: normal;
+      }
+    }
+
+    li.active-chapter {
+      ol {
+        display: block;
+      }
+    }
+  }
+}
+
 .toc {
 	@include margin-leader(1);
 	@include margin-trailer(1);
@@ -156,6 +200,21 @@ $pagination-background: $purple;
 	}
 }
 
+.single-toc .toc .manual-links {
+  h2 {
+    display: block;
+    float: right;
+    margin: 0;
+    @include pull(1);
+  }
+  @media (max-width: $tablet-half) {
+    h2 {
+      display: none;
+    }
+  }
+}
+
+
 nav.all-toc > ul > li:first-child > {
 	a:first-of-type, span:first-of-type {
 		font-size: 120%;
@@ -167,6 +226,16 @@ nav.all-toc > ul > li:first-child > {
 .manual {
 	@include margin-leader(1);
 	@include margin-trailer(2);
+
+  @media (min-width: $tablet-portrait) {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: .9375em;
+    padding-right: .9375em;
+  }
 
 	.chapter {
 		@include content-width;

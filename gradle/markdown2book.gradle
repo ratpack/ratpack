@@ -195,9 +195,9 @@ class Generator {
         toc << [heading: heading, prefix: prefix, id: id, lastLevel: lastLevel]
 
         content << "#" * heading.level
-        content << "<span id='"
+        content << '<span id="'
         content << id
-        content << "'>"
+        content << '">'
         content << prefix
         content << "</span> "
         content << "[$heading.title](#$id)"
