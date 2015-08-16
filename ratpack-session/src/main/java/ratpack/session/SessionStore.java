@@ -177,7 +177,7 @@ public interface SessionStore extends Service {
   /**
    * Writes the session data for the given id.
    * <p>
-   * The given byte buffer will not be modified by the caller, and will be released by the caller.
+   * The given byte buffer will not be modified by the caller, and will be released by the caller after the returned operation has completed (with error or without).
    *
    * @param sessionId the identifier for the session
    * @param sessionData the session data

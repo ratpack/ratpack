@@ -23,6 +23,8 @@ import ratpack.func.Block;
 import ratpack.func.Factory;
 import ratpack.func.Function;
 
+import java.util.Optional;
+
 /**
  * A logical operation.
  * <p>
@@ -109,7 +111,19 @@ public interface Operation {
     return function.apply(this);
   }
 
+  default Operation wiretap(Action<? super Optional<? extends Throwable>> action) {
+    return promise().wiretap(r -> {
+        if (r.isError()) {
+          action.execute(Optional.of(r.getThrowable()));
+        } else {
+          action.execute(Optional.<Throwable>empty());
+        }
+      }
+    ).operation();
+  }
+
   static Operation noop() {
     return of(Block.noop());
   }
+
 }

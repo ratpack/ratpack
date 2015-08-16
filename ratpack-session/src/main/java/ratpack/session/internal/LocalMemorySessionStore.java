@@ -40,7 +40,7 @@ public class LocalMemorySessionStore implements SessionStore {
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
     return Operation.of(() -> {
       maybeCleanup();
-      ByteBuf retained = Unpooled.unmodifiableBuffer(sessionData);
+      ByteBuf retained = Unpooled.unmodifiableBuffer(sessionData.retain());
       cache.put(sessionId, retained);
     });
   }
@@ -53,7 +53,7 @@ public class LocalMemorySessionStore implements SessionStore {
       if (value != null) {
         return Unpooled.unreleasableBuffer(value.slice());
       } else {
-        return Unpooled.buffer(0, 0);
+        return Unpooled.EMPTY_BUFFER;
       }
     });
   }

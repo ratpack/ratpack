@@ -121,7 +121,7 @@ public class DefaultSession implements Session {
     return state == State.DIRTY;
   }
 
-  private ByteBuf serialize() {
+  private ByteBuf serialize() throws Exception {
     SerializedForm serializable = new SerializedForm(ImmutableMap.copyOf(this.entries));
     ByteBuf buffer = bufferAllocator.buffer();
     OutputStream outputStream = new ByteBufOutputStream(buffer);
@@ -131,18 +131,21 @@ public class DefaultSession implements Session {
       return buffer;
     } catch (Throwable e) {
       buffer.release();
-      throw Exceptions.uncheck(e);
+      throw e;
     }
   }
 
   @Override
   public Operation save() {
-    if (state == State.NOT_LOADED) {
-      return Operation.noop();
-    } else {
-      return storeAdapter.store(sessionId.getValue(), serialize())
-        .next(() -> state = State.CLEAN);
-    }
+    return Operation.of(() -> {
+      if (state != State.NOT_LOADED) {
+        ByteBuf serialized = serialize();
+        storeAdapter.store(sessionId.getValue(), serialized)
+          .wiretap(o -> serialized.release())
+          .next(() -> state = State.CLEAN)
+          .then();
+      }
+    });
   }
 
   @Override
