@@ -16,6 +16,7 @@
 
 package ratpack.config.internal.source;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.CaseFormat;
@@ -25,6 +26,7 @@ import com.google.common.base.Strings;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 import ratpack.func.Predicate;
@@ -63,8 +65,8 @@ public class EnvironmentConfigSource implements ConfigSource {
   }
 
   @Override
-  public ObjectNode loadConfigData(ConfigDataBuilder configDataBuilder) throws Exception {
-    ObjectNode rootNode = configDataBuilder.getObjectMapper().createObjectNode();
+  public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
+    ObjectNode rootNode = objectMapper.createObjectNode();
     serverEnvironment.getenv().entrySet().stream().map(toPair()).flatMap(getFilterFunc()).map(getPairTokenizerFunc()).forEach(entry -> {
         populate(rootNode, mapPathSegments(entry), 0, entry.getRight());
       }

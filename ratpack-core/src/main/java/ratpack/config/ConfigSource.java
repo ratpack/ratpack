@@ -16,7 +16,9 @@
 
 package ratpack.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import ratpack.file.FileSystemBinding;
 
 /**
  * Allows providing custom sources of configuration data.
@@ -27,9 +29,10 @@ public interface ConfigSource {
   /**
    * Loads the configuration data from this data source.
    *
-   * @param objectMapper the Jackson ObjectMapper to use to build objects.
+   * @param fileSystemBinding the file system view the config source must use to find files
+   * @param objectMapper the Jackson ObjectMapper to use to build objects
    * @return the root node of the configuration data loaded
    * @throws Exception any
    */
-  ObjectNode loadConfigData(ConfigDataBuilder objectMapper) throws Exception;
+  ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception;
 }

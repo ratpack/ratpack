@@ -18,6 +18,7 @@ package ratpack.config.server
 
 import com.google.common.io.ByteSource
 import ratpack.config.ConfigData
+import ratpack.server.ServerConfig
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -29,8 +30,8 @@ abstract class ConfigUsageSpec extends Specification {
     ConfigData.of {}
   }
 
-  protected static ConfigData yamlConfig(Path baseDir, String data) {
-    ConfigData.of { it.baseDir(baseDir).yaml(toByteSource(data)) }
+  protected static ServerConfig yamlConfig(Path baseDir, String data) {
+    ServerConfig.of { it.baseDir(baseDir).yaml(toByteSource(data)) }
   }
 
   protected static ByteSource toByteSource(String data) {

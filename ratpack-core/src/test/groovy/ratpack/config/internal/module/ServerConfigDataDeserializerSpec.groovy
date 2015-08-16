@@ -18,11 +18,14 @@ package ratpack.config.internal.module
 
 import com.fasterxml.jackson.databind.JsonNode
 import ratpack.config.internal.DefaultConfigDataBuilder
+import ratpack.file.FileSystemBinding
 import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 import ratpack.test.embed.BaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 class ServerConfigDataDeserializerSpec extends Specification {
   @AutoCleanup
@@ -30,8 +33,8 @@ class ServerConfigDataDeserializerSpec extends Specification {
   def originalClassLoader
   def classLoader = new GroovyClassLoader()
   def serverEnvironment = new ServerEnvironment([:], new Properties())
-  def deserializer = new ServerConfigDataDeserializer(serverEnvironment)
-  def objectMapper = DefaultConfigDataBuilder.newDefaultObjectMapper(serverEnvironment)
+  def deserializer = new ServerConfigDataDeserializer(serverEnvironment.port, serverEnvironment.development, serverEnvironment.publicAddress, { -> FileSystemBinding.of(b1.build()) } as Supplier)
+  def objectMapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
 
   def setup() {
     originalClassLoader = Thread.currentThread().contextClassLoader
@@ -42,22 +45,12 @@ class ServerConfigDataDeserializerSpec extends Specification {
     Thread.currentThread().contextClassLoader = originalClassLoader
   }
 
-  def "can specify baseDir"() {
-    def dir = b1.dir("p1")
-
-    when:
-    def serverConfig = deserialize(objectMapper.createObjectNode().put("baseDir", dir.toString()))
-
-    then:
-    serverConfig.baseDir == dir
-  }
-
   def "without baseDir results in no base dir"() {
     when:
     def serverConfig = deserialize(objectMapper.createObjectNode())
 
     then:
-    !serverConfig.baseDir
+    serverConfig.baseDir.file == b1.build()
   }
 
   def "without any config uses default from server config builder"() {

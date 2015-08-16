@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
-import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.util.internal.Paths2;
 
 import java.io.InputStream;
@@ -31,38 +31,27 @@ import java.net.URL;
 import java.nio.file.Path;
 
 public abstract class JacksonConfigSource implements ConfigSource {
-  private final DeferredByteSource deferredByteSource;
+  private final ByteSource byteSource;
 
   public JacksonConfigSource(Path path) {
-    this.deferredByteSource = builder -> {
-      Path baseDir = builder.getBaseDir();
-      Path resolvedPath = baseDir == null || path.isAbsolute() ? path : baseDir.resolve(path);
-      return Paths2.asByteSource(resolvedPath);
-    };
+    this(Paths2.asByteSource(path));
   }
 
   public JacksonConfigSource(URL url) {
-    this.deferredByteSource = builder -> Resources.asByteSource(url);
+    this(Resources.asByteSource(url));
   }
 
   public JacksonConfigSource(ByteSource byteSource) {
-    this.deferredByteSource = builder -> byteSource;
+    this.byteSource = byteSource;
   }
 
   @Override
-  public ObjectNode loadConfigData(ConfigDataBuilder configDataBuilder) throws Exception {
-    try (InputStream inputStream = deferredByteSource.resolve(configDataBuilder).openStream()) {
-      ObjectMapper objectMapper = configDataBuilder.getObjectMapper();
+  public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
+    try (InputStream inputStream = byteSource.openStream()) {
       JsonParser parser = getFactory(objectMapper).createParser(inputStream);
-      ObjectNode parsedNode = objectMapper.readTree(parser);
-      parsedNode.remove("baseDir");
-      return parsedNode;
+      return objectMapper.readTree(parser);
     }
   }
 
   protected abstract JsonFactory getFactory(ObjectMapper objectMapper);
-
-  private interface DeferredByteSource {
-    ByteSource resolve(ConfigDataBuilder builder);
-  }
 }

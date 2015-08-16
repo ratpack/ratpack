@@ -16,30 +16,26 @@
 
 package ratpack.config.internal.source
 
-import ratpack.config.ConfigDataBuilder
+import com.fasterxml.jackson.databind.ObjectMapper
 import ratpack.config.internal.DefaultConfigDataBuilder
-import ratpack.server.internal.ServerEnvironment
+import ratpack.file.FileSystemBinding
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.nio.file.Paths
 
 import static ratpack.config.ConfigDataBuilder.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigSourceSpec extends Specification {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
-  ConfigDataBuilder configBuilder
-
-  def setup() {
-    ServerEnvironment environment = new ServerEnvironment([:], new Properties())
-    configBuilder = new DefaultConfigDataBuilder(environment,
-      DefaultConfigDataBuilder.newDefaultObjectMapper(environment))
-  }
+  private ObjectMapper mapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
 
   @Unroll
   def "supports no prefix (#prefix)"() {
     def source = propsSource(prefix, port: "8080", threads: "10")
 
     when:
-    def rootNode = source.loadConfigData(configBuilder)
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.root())
 
     then:
     rootNode.path("port").asText() == "8080"
@@ -55,7 +51,7 @@ class PropertiesConfigSourceSpec extends Specification {
     def source = propsSource(input, prefix)
 
     when:
-    def rootNode = source.loadConfigData(configBuilder)
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.root())
 
     then:
     rootNode.path("port").asText() == "8080"
@@ -72,7 +68,7 @@ class PropertiesConfigSourceSpec extends Specification {
     def source = propsSource("server.port": "8080", "server.threads": "10", "db.jdbcUrl": "jdbc:h2:mem:")
 
     when:
-    def rootNode = source.loadConfigData(configBuilder)
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.root())
 
     then:
     rootNode.path("server").path("port").asText() == "8080"
@@ -89,7 +85,7 @@ class PropertiesConfigSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigData(configBuilder)
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.root())
 
     then:
     def users = rootNode.path("users")
@@ -108,7 +104,7 @@ class PropertiesConfigSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigData(configBuilder)
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.root())
 
     then:
     def dbConfigs = rootNode.path("dbs")
@@ -153,7 +149,7 @@ class PropertiesConfigSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigData(configBuilder)
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.of(Paths.get("/")))
 
     then:
     rootNode.path("nums").elements().collect { it.asText() } == (0..20).collect { it.toString() }

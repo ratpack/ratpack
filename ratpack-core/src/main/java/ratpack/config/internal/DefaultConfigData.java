@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import ratpack.config.ConfigData;
-import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigObject;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.server.StartEvent;
@@ -31,7 +31,6 @@ import ratpack.server.StopEvent;
 import ratpack.util.Exceptions;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 public class DefaultConfigData implements ConfigData {
 
@@ -40,19 +39,10 @@ public class DefaultConfigData implements ConfigData {
   private final ConfigDataReloadInformant reloadInformant;
   private final ObjectNode emptyNode;
 
-  public DefaultConfigData(ConfigDataBuilder configDataBuilder) {
-    this(configDataBuilder, configDataBuilder.getConfigSources());
-  }
-
-  public DefaultConfigData(ConfigDataBuilder configDataBuilder, Iterable<ConfigSource> configSources) {
-    this.objectMapper = configDataBuilder.getObjectMapper();
-    ConfigDataLoader loader = new ConfigDataLoader(configDataBuilder, objectMapper, configSources);
+  public DefaultConfigData(ObjectMapper objectMapper, Iterable<ConfigSource> configSources, FileSystemBinding fileSystemBinding) {
+    this.objectMapper = objectMapper;
+    ConfigDataLoader loader = new ConfigDataLoader(this.objectMapper, configSources, fileSystemBinding);
     this.rootNode = loader.load();
-    Path baseDir = configDataBuilder.getBaseDir();
-    if (baseDir != null) {
-      rootNode.putPOJO("baseDir", baseDir);
-    }
-
     this.reloadInformant = new ConfigDataReloadInformant(rootNode, loader);
     this.emptyNode = this.objectMapper.getNodeFactory().objectNode();
   }

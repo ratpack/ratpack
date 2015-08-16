@@ -16,9 +16,10 @@
 
 package ratpack.config.internal.source;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 
 /**
@@ -34,12 +35,12 @@ public class ErrorHandlingConfigSource implements ConfigSource {
   }
 
   @Override
-  public ObjectNode loadConfigData(ConfigDataBuilder configDataBuilder) throws Exception {
+  public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
     try {
-      return delegate.loadConfigData(configDataBuilder);
+      return delegate.loadConfigData(objectMapper, fileSystemBinding);
     } catch (Throwable ex) {
       errorHandler.execute(ex);
-      return configDataBuilder.getObjectMapper().createObjectNode(); // treat the source as if it had no data
+      return objectMapper.createObjectNode(); // treat the source as if it had no data
     }
   }
 }

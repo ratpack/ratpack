@@ -30,10 +30,10 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
 
   def "can get ServerConfig with defaults from no data"() {
     when:
-    def config = noData().get(ServerConfigData)
+    def config = ServerConfig.of {}
 
     then:
-    !config.baseDir
+    !config.hasBaseDir
     config.port == ServerConfig.DEFAULT_PORT
     !config.address
     !config.development
@@ -50,7 +50,6 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     def keyStoreFile = createKeystore(keyStorePassword)
     def data = """
     |---
-    |baseDir: ${baseDir.toString()}
     |port: 1234
     |address: 1.2.3.4
     |development: true
@@ -66,7 +65,7 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     def config = yamlConfig(baseDir, data).get(ServerConfigData)
 
     then:
-    config.baseDir == baseDir
+    config.baseDir.file == baseDir
     config.port == 1234
     config.address == InetAddress.getByAddress([1, 2, 3, 4] as byte[])
     config.development

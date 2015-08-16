@@ -16,11 +16,12 @@
 
 package ratpack.config.internal.source;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Function;
 import ratpack.func.Pair;
 
@@ -38,8 +39,8 @@ public abstract class AbstractPropertiesConfigSource implements ConfigSource {
   protected abstract Properties loadProperties() throws Exception;
 
   @Override
-  public ObjectNode loadConfigData(ConfigDataBuilder configDataBuilder) throws Exception {
-    ObjectNode rootNode = configDataBuilder.getObjectMapper().createObjectNode();
+  public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
+    ObjectNode rootNode = objectMapper.createObjectNode();
     Properties properties = loadProperties();
     Stream<Pair<String, String>> pairs = properties.stringPropertyNames().stream().map(key -> Pair.of(key, properties.getProperty(key)));
     if (prefix.isPresent()) {

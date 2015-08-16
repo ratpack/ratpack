@@ -17,7 +17,6 @@
 package ratpack.config
 
 import ratpack.server.ServerConfig
-import ratpack.server.internal.ServerConfigData
 
 class JsonConfigSpec extends BaseConfigSpec {
   def "supports json"() {
@@ -29,26 +28,28 @@ class JsonConfigSpec extends BaseConfigSpec {
     configFile.text =
       """
 {
-    "port": 8080,
-    "address": "localhost",
-    "development": true,
-    "threads": 3,
-    "publicAddress": "http://localhost:8080",
-    "maxContentLength": 50000,
-    "timeResponses": true,
-    "indexFiles": ["index.html", "index.htm"],
-    "ssl": {
-        "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-        "keystorePassword": "${keyStorePassword}"
+    "server": {
+      "port": 8080,
+      "address": "localhost",
+      "development": true,
+      "threads": 3,
+      "publicAddress": "http://localhost:8080",
+      "maxContentLength": 50000,
+      "timeResponses": true,
+      "indexFiles": ["index.html", "index.htm"],
+      "ssl": {
+          "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
+          "keystorePassword": "${keyStorePassword}"
+      }
     }
 }
 """
 
     when:
-    def serverConfig = ConfigData.of { it.baseDir(baseDir).json(configFile) }.get(ServerConfigData)
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).json(configFile) }
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
@@ -63,30 +64,32 @@ class JsonConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
-    def configFile = tempFolder.newFile("file.json").toPath()
+    def configFile = tempFolder.newFile("baseDir/file.json").toPath()
     configFile.text =
       """
 {
-    "port": 8080,
-    "address": "localhost",
-    "development": true,
-    "threads": 3,
-    "publicAddress": "http://localhost:8080",
-    "maxContentLength": 50000,
-    "timeResponses": true,
-    "indexFiles": ["index.html", "index.htm"],
-    "ssl": {
-        "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-        "keystorePassword": "${keyStorePassword}"
+    "server": {
+      "port": 8080,
+      "address": "localhost",
+      "development": true,
+      "threads": 3,
+      "publicAddress": "http://localhost:8080",
+      "maxContentLength": 50000,
+      "timeResponses": true,
+      "indexFiles": ["index.html", "index.htm"],
+      "ssl": {
+          "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
+          "keystorePassword": "${keyStorePassword}"
+      }
     }
 }
 """
 
     when:
-    def serverConfig = ServerConfig.of { it.baseDir(baseDir).json("../file.json") }.get(ServerConfigData)
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).json("file.json") }
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress
       .getByName("localhost")
@@ -98,14 +101,13 @@ class JsonConfigSpec extends BaseConfigSpec {
   }
 
   def "cannot set basedir from json config source"() {
-    def baseDir = tempFolder.newFolder("baseDir").toPath()
     def configFile = tempFolder.newFile("file.json").toPath()
-    configFile.text = '{"baseDir": "/tmp"}'
+    configFile.text = '{"server": {"baseDir": "/tmp"}}'
 
     when:
-    def serverConfig = ServerConfig.of { it.baseDir(baseDir).json(configFile) }.get(ServerConfigData)
+    ServerConfig.of { it.json(configFile) }
 
     then:
-    serverConfig.baseDir == baseDir
+    thrown IllegalStateException
   }
 }

@@ -25,7 +25,6 @@ import ratpack.func.Function;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
 
@@ -176,9 +175,7 @@ public interface ConfigDataBuilder {
    * @param path the path to the source of the JSON data
    * @return {@code this}
    */
-  default ConfigDataBuilder json(String path) {
-    return json(Paths.get(path));
-  }
+  ConfigDataBuilder json(String path);
 
   /**
    * Adds a configuration source for a JSON file.
@@ -246,9 +243,7 @@ public interface ConfigDataBuilder {
    * @param path the path to the source of the properties data
    * @return {@code this}
    */
-  default ConfigDataBuilder props(String path) {
-    return props(Paths.get(path));
-  }
+  ConfigDataBuilder props(String path);
 
   /**
    * Adds a configuration source for a properties file.
@@ -296,9 +291,7 @@ public interface ConfigDataBuilder {
    * @param path the path to the source of the YAML data
    * @return {@code this}
    */
-  default ConfigDataBuilder yaml(String path) {
-    return yaml(Paths.get(path));
-  }
+  ConfigDataBuilder yaml(String path);
 
   /**
    * Adds a configuration source for a YAML file.
@@ -347,7 +340,4 @@ public interface ConfigDataBuilder {
    */
   ImmutableList<ConfigSource> getConfigSources();
 
-  ConfigDataBuilder baseDir(Path baseDir);
-
-  Path getBaseDir();
 }

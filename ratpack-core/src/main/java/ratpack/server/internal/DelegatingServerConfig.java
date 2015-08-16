@@ -71,8 +71,8 @@ public class DelegatingServerConfig extends DelegatingConfigData implements Serv
 
   @Override
   @Nullable
-  public SSLContext getSSLContext() {
-    return delegate.getSSLContext();
+  public SSLContext getSslContext() {
+    return delegate.getSslContext();
   }
 
   @Override

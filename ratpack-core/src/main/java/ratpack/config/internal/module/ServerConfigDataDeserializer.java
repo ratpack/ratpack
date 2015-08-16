@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.ServerConfigData;
 import ratpack.server.internal.ServerEnvironment;
@@ -34,22 +35,29 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigData> {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigDataDeserializer.class);
-  private final ServerEnvironment serverEnvironment;
 
-  public ServerConfigDataDeserializer(ServerEnvironment serverEnvironment) {
-    this.serverEnvironment = serverEnvironment;
+  private final int port;
+  private final boolean development;
+  private final URI publicAddress;
+  private final Supplier<FileSystemBinding> baseDirSupplier;
+
+  public ServerConfigDataDeserializer(int port, boolean development, URI publicAddress, Supplier<FileSystemBinding> baseDirSupplier) {
+    this.port = port;
+    this.development = development;
+    this.publicAddress = publicAddress;
+    this.baseDirSupplier = baseDirSupplier;
   }
 
   @Override
   public ServerConfigData deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
-    ServerConfigData data = new ServerConfigData(serverEnvironment);
+    ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), port, development, publicAddress);
     if (serverNode.hasNonNull("port")) {
       data.setPort(parsePort(serverNode.get("port")));
     }
@@ -75,7 +83,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
       data.setRequireClientSslAuth(serverNode.get("requireClientSslAuth").asBoolean(false));
     }
     if (serverNode.hasNonNull("baseDir")) {
-      data.setBaseDir(toValue(codec, serverNode.get("baseDir"), Path.class));
+      throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");
     }
     if (serverNode.hasNonNull("connectTimeoutMillis")) {
       parseOptionalIntValue("connectTimeoutMillis", serverNode.get("connectTimeoutMillis")).ifPresent(data::setConnectTimeoutMillis);
@@ -94,7 +102,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
   }
 
   private int parsePort(JsonNode node) {
-    return node.isInt() ? node.asInt() : serverEnvironment.parsePortValue("config", node.asText());
+    return node.isInt() ? node.asInt() : ServerEnvironment.parsePortValue("config", node.asText());
   }
 
   private static <T> T toValue(ObjectCodec codec, JsonNode node, Class<T> valueType) throws JsonProcessingException {

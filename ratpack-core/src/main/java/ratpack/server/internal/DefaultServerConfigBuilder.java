@@ -17,7 +17,9 @@
 package ratpack.server.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -25,6 +27,10 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
+import ratpack.config.internal.DefaultConfigDataBuilder;
+import ratpack.config.internal.module.SSLContextDeserializer;
+import ratpack.config.internal.module.ServerConfigDataDeserializer;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -38,15 +44,18 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   private final ConfigDataBuilder configDataBuilder;
   private final ObjectNode serverConfigData;
   private final Map<String, Class<?>> required = Maps.newHashMap();
+  private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
 
-  public DefaultServerConfigBuilder(ConfigDataBuilder configDataBuilder) {
-    this.configDataBuilder = configDataBuilder;
+  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
+    configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
+    this.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
     this.serverConfigData = getObjectMapper().createObjectNode();
   }
 
@@ -57,8 +66,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfigBuilder baseDir(Path baseDir) {
-    configDataBuilder.baseDir(baseDir);
-    serverConfigData.putPOJO("baseDir", baseDir);
+    this.baseDirSupplier.baseDir = FileSystemBinding.of(baseDir);
     return this;
   }
 
@@ -294,12 +302,13 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfig build() {
-    ConfigData configData = new DefaultConfigData(configDataBuilder, Iterables.concat(getConfigSources(), Collections.<ConfigSource>singleton(configDataBuilder -> {
-      ObjectNode node = configDataBuilder.getObjectMapper().createObjectNode();
+    Iterable<ConfigSource> configSources = Iterables.concat(getConfigSources(), Collections.<ConfigSource>singleton((mapper, pathResolver) -> {
+      ObjectNode node = mapper.createObjectNode();
       node.putObject("server").setAll(serverConfigData);
       return node;
-    })));
+    }));
 
+    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), configSources, MoreObjects.firstNonNull(baseDirSupplier.baseDir, FileSystemBinding.root()));
     ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
     return new DefaultServerConfig(configData, requiredConfig);
   }
@@ -324,9 +333,25 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     }
   }
 
-  @Override
-  public Path getBaseDir() {
-    return configDataBuilder.getBaseDir();
+  public static class ConfigModule extends SimpleModule {
+    public ConfigModule(ServerEnvironment serverEnvironment, Supplier<FileSystemBinding> baseDirSupplier) {
+      super("ratpack");
+      addDeserializer(ServerConfigData.class, new ServerConfigDataDeserializer(
+        serverEnvironment.getPort(),
+        serverEnvironment.isDevelopment(),
+        serverEnvironment.getPublicAddress(),
+        baseDirSupplier
+      ));
+      addDeserializer(SSLContext.class, new SSLContextDeserializer());
+    }
   }
 
+  private static class BaseDirSupplier implements Supplier<FileSystemBinding> {
+    private FileSystemBinding baseDir;
+
+    @Override
+    public FileSystemBinding get() {
+      return baseDir;
+    }
+  }
 }

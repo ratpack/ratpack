@@ -25,30 +25,31 @@ class YamlConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
-    def configFile = tempFolder.newFile("file.yaml").toPath()
+    def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
     configFile.text = """
     |---
     |# This is a comment
-    |port: 8080
-    |address: localhost
-    |development: true
-    |threads: 3
-    |publicAddress: http://localhost:8080
-    |maxContentLength: 50000
-    |indexFiles:
-    |    - index.html
-    |    - index.htm
-    |ssl:
-    |    keystoreFile: ${keyStoreFile.toString()}
-    |    keystorePassword: ${keyStorePassword}
+    |server:
+    |  port: 8080
+    |  address: localhost
+    |  development: true
+    |  threads: 3
+    |  publicAddress: http://localhost:8080
+    |  maxContentLength: 50000
+    |  indexFiles:
+    |      - index.html
+    |      - index.htm
+    |  ssl:
+    |      keystoreFile: ${keyStoreFile.toString()}
+    |      keystorePassword: ${keyStorePassword}
     |...
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigData.of { it.baseDir(baseDir).yaml(configFile) }.get(ServerConfigData)
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).yaml(configFile) }
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
@@ -63,7 +64,7 @@ class YamlConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
-    def configFile = tempFolder.newFile("file.yaml").toPath()
+    def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
     configFile.text = """
     |---
     |# This is a comment
@@ -83,10 +84,10 @@ class YamlConfigSpec extends BaseConfigSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = ServerConfig.of { it.baseDir(baseDir).yaml("../file.yaml") }.get(ServerConfigData)
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).yaml("file.yaml") }.get(ServerConfigData)
 
     then:
-    serverConfig.baseDir == baseDir
+    serverConfig.baseDir.file == baseDir
     serverConfig.port == 8080
     serverConfig.address == InetAddress.getByName("localhost")
     serverConfig.development
@@ -98,13 +99,13 @@ class YamlConfigSpec extends BaseConfigSpec {
 
   def "cannot set basedir from yaml config source"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def configFile = tempFolder.newFile("file.yaml").toPath()
-    configFile.text = 'baseDir: /tmp'
+    def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
+    configFile.text = 'server:\n  baseDir: /tmp'
 
     when:
-    def serverConfig = ServerConfig.of { it.baseDir(baseDir).yaml(configFile) }.get(ServerConfigData)
+    ServerConfig.of { it.baseDir(baseDir).yaml(configFile) }
 
     then:
-    serverConfig.baseDir == baseDir
+    thrown IllegalStateException
   }
 }

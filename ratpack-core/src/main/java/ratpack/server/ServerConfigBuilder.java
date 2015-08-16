@@ -150,7 +150,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param sslContext the SSL context
    * @return {@code this}
    * @see ratpack.ssl.SSLContexts
-   * @see ServerConfig#getSSLContext()
+   * @see ServerConfig#getSslContext()
    */
   ServerConfigBuilder ssl(SSLContext sslContext);
 
