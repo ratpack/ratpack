@@ -179,7 +179,7 @@ public interface TestHttpClient {
   String postText();
 
   /**
-   * A convenience method for doing a GET request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a POST request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
    *
    * @param path What path the POST request will be made against.
    * @return A String that is the body of the response.
