@@ -16,6 +16,7 @@
 
 package ratpack.config
 
+import ratpack.server.ServerConfig
 import ratpack.server.internal.ServerConfigData
 
 class YamlConfigSpec extends BaseConfigSpec {
@@ -28,7 +29,6 @@ class YamlConfigSpec extends BaseConfigSpec {
     configFile.text = """
     |---
     |# This is a comment
-    |baseDir: ${baseDir.toString()}
     |port: 8080
     |address: localhost
     |development: true
@@ -45,7 +45,7 @@ class YamlConfigSpec extends BaseConfigSpec {
     |""".stripMargin()
 
     when:
-    def serverConfig = ConfigData.of { it.yaml(configFile) }.get(ServerConfigData)
+    def serverConfig = ConfigData.of { it.baseDir(baseDir).yaml(configFile) }.get(ServerConfigData)
 
     then:
     serverConfig.baseDir == baseDir
@@ -56,5 +56,55 @@ class YamlConfigSpec extends BaseConfigSpec {
     serverConfig.publicAddress == URI.create("http://localhost:8080")
     serverConfig.maxContentLength == 50000
     serverConfig.sslContext
+  }
+
+  def "supports relative path yaml"() {
+    def baseDir = tempFolder.newFolder("baseDir").toPath()
+    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
+    def keyStorePassword = "changeit"
+    createKeystore(keyStoreFile, keyStorePassword)
+    def configFile = tempFolder.newFile("file.yaml").toPath()
+    configFile.text = """
+    |---
+    |# This is a comment
+    |port: 8080
+    |address: localhost
+    |development: true
+    |threads: 3
+    |publicAddress: http://localhost:8080
+    |maxContentLength: 50000
+    |indexFiles:
+    |    - index.html
+    |    - index.htm
+    |ssl:
+    |    keystoreFile: ${keyStoreFile.toString()}
+    |    keystorePassword: ${keyStorePassword}
+    |...
+    |""".stripMargin()
+
+    when:
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).yaml("../file.yaml") }.get(ServerConfigData)
+
+    then:
+    serverConfig.baseDir == baseDir
+    serverConfig.port == 8080
+    serverConfig.address == InetAddress.getByName("localhost")
+    serverConfig.development
+    serverConfig.threads == 3
+    serverConfig.publicAddress == URI.create("http://localhost:8080")
+    serverConfig.maxContentLength == 50000
+    serverConfig.sslContext
+  }
+
+  def "cannot set basedir from yaml config source"() {
+    def baseDir = tempFolder.newFolder("baseDir").toPath()
+    def configFile = tempFolder.newFile("file.yaml").toPath()
+    configFile.text = 'baseDir: /tmp'
+
+    when:
+    def serverConfig = ServerConfig.of { it.baseDir(baseDir).yaml(configFile) }.get(ServerConfigData)
+
+    then:
+    serverConfig.baseDir == baseDir
   }
 }

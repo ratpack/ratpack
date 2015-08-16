@@ -63,7 +63,7 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     """.stripMargin()
 
     when:
-    def config = yamlConfig(data).get(ServerConfigData)
+    def config = yamlConfig(baseDir, data).get(ServerConfigData)
 
     then:
     config.baseDir == baseDir
