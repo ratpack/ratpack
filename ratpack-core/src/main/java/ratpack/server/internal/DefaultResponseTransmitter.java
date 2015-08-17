@@ -21,6 +21,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioStream;
+import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -103,6 +104,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
     ChannelFuture channelFuture = pre(responseStatus);
     if (channelFuture == null) {
+      ReferenceCountUtil.release(body);
       return;
     }
 
@@ -114,6 +116,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         } else {
           post(responseStatus, channel.writeAndFlush(body));
         }
+      } else {
+        ReferenceCountUtil.release(body);
       }
     });
   }
