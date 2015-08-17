@@ -56,7 +56,9 @@ class InstallDistSpec extends FunctionalSpec {
     }
 
     cleanup:
-    url(port, "stop")
+    if (port) {
+      url(port, "stop")
+    }
     process?.destroy()
     process?.waitFor()
   }

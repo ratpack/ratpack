@@ -21,14 +21,8 @@ import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
-import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.tasks.TaskState
 import org.gradle.cli.CommandLineParser
-import org.gradle.configuration.GradleLauncherMetaData
-import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.BuildClientMetaData
-import org.gradle.initialization.BuildEventConsumer
-import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
@@ -38,7 +32,6 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.Clock
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.gradle.RatpackGroovyPlugin
@@ -69,62 +62,8 @@ abstract class FunctionalSpec extends Specification {
     def commandLine = commandLineParser.parse(args)
     StartParameter startParameter = converter.convert(commandLine, new StartParameter())
     startParameter.setProjectDir(dir.root)
-    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter, new BuildRequestContext() {
-      @Override
-      BuildCancellationToken getCancellationToken() {
-        new BuildCancellationToken() {
-          @Override
-          boolean isCancellationRequested() {
-            return false
-          }
 
-          @Override
-          boolean addCallback(Runnable runnable) {
-            return false
-          }
-
-          @Override
-          void removeCallback(Runnable runnable) {
-
-          }
-
-          @Override
-          void cancel() {
-
-          }
-        }
-      }
-
-      @Override
-      BuildEventConsumer getEventConsumer() {
-        return new BuildEventConsumer() {
-          @Override
-          void dispatch(Object o) {
-
-          }
-        }
-      }
-
-      @Override
-      BuildClientMetaData getClient() {
-        return new GradleLauncherMetaData()
-      }
-
-      @Override
-      Clock getBuildTimeClock() {
-        return new Clock()
-      }
-
-      @Override
-      StandardOutputListener getOutputListener() {
-        return {} as StandardOutputListener
-      }
-
-      @Override
-      StandardOutputListener getErrorListener() {
-        return {} as StandardOutputListener
-      }
-    })
+    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter)
     executedTasks.clear()
     launcher.addListener(new TaskExecutionListener() {
       void beforeExecute(Task task) {
