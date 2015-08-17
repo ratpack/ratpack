@@ -31,7 +31,6 @@ import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
-import rx.plugins.RxJavaSchedulersHook;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -103,10 +102,13 @@ public abstract class RxRatpack {
       }
     }
 
-    System.setProperty("rxjava.plugin." + RxJavaSchedulersHook.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
-    rx.plugins.RxJavaSchedulersHook existingSchedulers = plugins.getSchedulersHook();
-    if (!(existingSchedulers instanceof DefaultSchedulers)) {
-      throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
+    try {
+      plugins.registerSchedulersHook(new DefaultSchedulers());
+    } catch (IllegalStateException e) {
+      rx.plugins.RxJavaSchedulersHook existingSchedulers = plugins.getSchedulersHook();
+      if (!(existingSchedulers instanceof DefaultSchedulers)) {
+        throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
+      }
     }
   }
 

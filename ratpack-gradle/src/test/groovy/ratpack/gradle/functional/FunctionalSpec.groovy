@@ -21,17 +21,18 @@ import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.tasks.TaskState
 import org.gradle.cli.CommandLineParser
-import org.gradle.initialization.DefaultCommandLineConverter
-import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Clock
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.gradle.RatpackGroovyPlugin
@@ -63,7 +64,52 @@ abstract class FunctionalSpec extends Specification {
     StartParameter startParameter = converter.convert(commandLine, new StartParameter())
     startParameter.setProjectDir(dir.root)
 
-    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter)
+    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter, new BuildRequestContext() {
+      @Override
+      BuildCancellationToken getCancellationToken() {
+        return new DefaultBuildCancellationToken()
+      }
+
+      @Override
+      BuildEventConsumer getEventConsumer() {
+        new BuildEventConsumer() {
+          @Override
+          void dispatch(Object o) {
+
+          }
+        }
+      }
+
+      @Override
+      StandardOutputListener getOutputListener() {
+        new StandardOutputListener() {
+          @Override
+          void onOutput(CharSequence charSequence) {
+
+          }
+        }
+      }
+
+      @Override
+      StandardOutputListener getErrorListener() {
+        new StandardOutputListener() {
+          @Override
+          void onOutput(CharSequence charSequence) {
+
+          }
+        }
+      }
+
+      @Override
+      BuildClientMetaData getClient() {
+        return null
+      }
+
+      @Override
+      Clock getBuildTimeClock() {
+        return new Clock()
+      }
+    }, new BuildSessionScopeServices(services))
     executedTasks.clear()
     launcher.addListener(new TaskExecutionListener() {
       void beforeExecute(Task task) {
@@ -131,7 +177,6 @@ abstract class FunctionalSpec extends Specification {
       ext.RatpackGroovyPlugin = project.class.classLoader.loadClass('${RatpackGroovyPlugin.name}')
       apply plugin: RatpackGroovyPlugin
       apply plugin: 'com.github.johnrengelman.shadow'
-      archivesBaseName = "functional-test"
       version = "1.0"
       repositories {
         maven { url "${localRepo.toURI()}" }
@@ -161,7 +206,7 @@ abstract class FunctionalSpec extends Specification {
   }
 
   File getShadowJar() {
-    def f = file("build/libs/functional-test-1.0-all.jar")
+    def f = file("build/libs/test-app-1.0-all.jar")
     assert f.exists()
     f
   }
@@ -177,6 +222,7 @@ abstract class FunctionalSpec extends Specification {
     def latch = new CountDownLatch(1)
     Thread.start {
       process.errorStream.eachLine { String line ->
+        System.err.println(line)
         if (latch.count) {
           if (line.contains("Ratpack started for http://localhost:")) {
             def matcher = (line =~ "http://localhost:(\\d+)")

@@ -18,10 +18,6 @@ repositories {
 }
 
 dependencies {
-  // SpringLoaded enables runtime hot reloading.
-  // It is not part of the app runtime and is not shipped in the distribution.
-  springloaded "org.springframework:springloaded:1.2.3.RELEASE"
-
   // Default SLF4J binding.  Note that this is a blocking implementation.
   // See here for a non blocking appender http://logging.apache.org/log4j/2.x/manual/async.html
   runtime 'org.slf4j:slf4j-simple:@slf4jVersion@'

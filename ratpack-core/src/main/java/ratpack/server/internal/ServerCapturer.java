@@ -16,12 +16,10 @@
 
 package ratpack.server.internal;
 
-import ratpack.func.Function;
 import ratpack.func.Block;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
-
-import java.util.Optional;
 
 public abstract class ServerCapturer {
 
@@ -64,11 +62,11 @@ public abstract class ServerCapturer {
     }
   }
 
-  public static Optional<RatpackServer> capture(Block bootstrap) throws Exception {
+  public static RatpackServer capture(Block bootstrap) throws Exception {
     return capture(new Overrides(), bootstrap);
   }
 
-  public static Optional<RatpackServer> capture(Overrides overrides, Block bootstrap) throws Exception {
+  public static RatpackServer capture(Overrides overrides, Block bootstrap) throws Exception {
     OVERRIDES_HOLDER.set(overrides);
     try {
       bootstrap.execute();
@@ -78,12 +76,17 @@ public abstract class ServerCapturer {
 
     RatpackServer ratpackServer = SERVER_HOLDER.get();
     SERVER_HOLDER.remove();
-    return Optional.ofNullable(ratpackServer);
+    return ratpackServer;
   }
 
   public static Overrides capture(RatpackServer server) throws Exception {
     SERVER_HOLDER.set(server);
     return OVERRIDES_HOLDER.get();
   }
+
+  public static RatpackServer get() {
+    return SERVER_HOLDER.get();
+  }
+
 
 }

@@ -110,8 +110,14 @@ public class HikariModule extends ConfigurableModule<HikariConfig> {
 
   @Provides
   @Singleton
-  public DataSource dataSource(HikariConfig config) {
-    return new HikariDataSource(config);
+  public HikariService hikariService(HikariConfig config) {
+    return new HikariService(new HikariDataSource(config));
+  }
+
+  @Provides
+  @Singleton
+  public DataSource dataSource(HikariService service) {
+    return service.getDataSource();
   }
 
 }

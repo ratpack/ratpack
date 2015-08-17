@@ -26,7 +26,7 @@ class ResourceReloadingSpec extends FunctionalSpec {
 
   def "edits to base dir contents are live"() {
     given:
-    def f = file("src/ratpack/public/foo.txt") << "original"
+    file("src/ratpack/public/foo.txt") << "original"
     file("src/ratpack/.ratpack") << ""
 
     file("src/ratpack/ratpack.groovy") << """
@@ -63,7 +63,7 @@ class ResourceReloadingSpec extends FunctionalSpec {
     urlText(port, "foo.txt") == "original"
 
     when:
-    f.text = "changed"
+    file("build/resources/main/public/foo.txt").text = "changed"
 
     then:
     urlText(port, "foo.txt") == "changed"

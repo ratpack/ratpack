@@ -31,11 +31,11 @@ class InstallDistSpec extends FunctionalSpec {
         serverConfig { port 0 }
         handlers {
           get {
-            get(Stopper).stop()
+            onClose { get(Stopper).stop() }
             render "foo"
           }
           get("stop") {
-            get(ratpack.server.Stopper).stop()
+            onClose { get(ratpack.server.Stopper).stop() }
           }
         }
       }
@@ -44,7 +44,10 @@ class InstallDistSpec extends FunctionalSpec {
     when:
     run "installDist"
 
-    def process = new ProcessBuilder().directory(file("build/install/test-app")).command(osSpecificCommand()).start()
+    def process = new ProcessBuilder()
+      .directory(file("build/install/test-app"))
+      .command(osSpecificCommand())
+      .start()
     def port = scrapePort(process)
 
     then:

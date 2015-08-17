@@ -38,7 +38,7 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
 
   @Override
   protected RatpackServer createServer() throws Exception {
-    return ServerCapturer.capture(new ServerCapturer.Overrides().port(0).development(true).registry(this::createOverrides), () -> {
+    RatpackServer ratpackServer = ServerCapturer.capture(new ServerCapturer.Overrides().port(0).development(true).registry(this::createOverrides), () -> {
       Method method;
       try {
         method = mainClass.getDeclaredMethod("main", String[].class);
@@ -56,6 +56,12 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
         throw new IllegalStateException("Could not invoke " + mainClass.getName() + ".main()", e);
       }
 
-    }).orElseThrow(() -> new IllegalStateException(mainClass.getName() + ".main() did not start a Ratpack server"));
+    });
+
+    if (ratpackServer == null) {
+      throw new IllegalStateException(mainClass.getName() + ".main() did not start a Ratpack server");
+    } else {
+      return ratpackServer;
+    }
   }
 }

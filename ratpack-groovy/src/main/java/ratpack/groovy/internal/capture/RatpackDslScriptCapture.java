@@ -35,7 +35,7 @@ public class RatpackDslScriptCapture implements BiFunction<Path, String, Ratpack
   }
 
   public RatpackDslClosures apply(Path file, String script) throws Exception {
-    ClassLoader classLoader = RatpackDslScriptCapture.class.getClassLoader();
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     ScriptEngine<Script> scriptEngine = new ScriptEngine<>(classLoader, compileStatic, Script.class);
     return RatpackDslClosures.capture(function, () -> scriptEngine.create(file.getFileName().toString(), file, script).run());
   }

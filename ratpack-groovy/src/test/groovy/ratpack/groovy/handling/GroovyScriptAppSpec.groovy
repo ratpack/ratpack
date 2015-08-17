@@ -35,7 +35,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       protected RatpackServer createServer() {
         ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
           RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalFile.toPath()))
-        }.get()
+        }
       }
     }
   }

@@ -18,4 +18,11 @@ An implementation can now potentially parse multiple content types.
 [`RemoteControl`](http://ratpack.io/manual/1.0.0/api/ratpack/test/remote/RemoteControl.html) now accepts `UnserializableResultStrategy`.
 The default value is `io.remotecontrol.client.UnserializableResultStrategy.throw`.
 
+Some substantial changes have been made to the Gradle integration, in order to leverage [Gradle's Continuous Build](https://docs.gradle.org/current/2.6/continuous_build.html) feature.
+The main new feature is the addition of the `devRun` task, which is intended to be used with `--continuous`.
+This runs the application in a continuous loop and reloads on changes to source or resources.
+This drastically simplifies the build and IDE configuration for Ratpack apps.
+Reloading during the `run` task and use of SpringLoaded has been removed in favour of this approach.
+Gradle version 2.6 is now required by the plugin.
+
 `ReceivedResponse#send` and `StreamedResponse#send` have been changed to `ReceivedResponse#forwardTo` and `StreamedResponse#forwardTo`

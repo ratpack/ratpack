@@ -33,5 +33,6 @@ dependencies {
   }
   compile "com.google.inject.extensions:guice-multibindings:$commonVersions.guice", {
     exclude group: "com.google.guava", module: "guava"
+    exclude group: "com.google.inject", module: "guice"
   }
 }

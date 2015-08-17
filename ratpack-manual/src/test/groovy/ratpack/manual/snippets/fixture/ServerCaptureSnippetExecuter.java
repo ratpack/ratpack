@@ -20,7 +20,6 @@ import ratpack.manual.snippets.TestCodeSnippet;
 import ratpack.manual.snippets.executer.SnippetExecuter;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
-import ratpack.util.Exceptions;
 
 public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
@@ -37,11 +36,7 @@ public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
   @Override
   public void execute(TestCodeSnippet snippet) throws Exception {
-    ServerCapturer.capture(() ->
-        executer.execute(snippet)
-    ).ifPresent(server ->
-        Exceptions.uncheck(() -> withServer(server))
-    );
+    withServer(ServerCapturer.capture(() -> executer.execute(snippet)));
   }
 
   protected abstract void withServer(RatpackServer server) throws Exception;

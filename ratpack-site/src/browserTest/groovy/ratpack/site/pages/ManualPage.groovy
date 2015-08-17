@@ -21,5 +21,5 @@ import geb.Page
 
 class ManualPage extends Page {
 
-  static at = { title.startsWith("Ratpack - Table of Contents") }
+  static at = { waitFor { title.startsWith("Ratpack - Table of Contents") } }
 }

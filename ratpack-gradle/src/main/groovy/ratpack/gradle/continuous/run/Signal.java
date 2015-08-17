@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.gradle
+package ratpack.gradle.continuous.run;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-class RatpackBasePlugin implements Plugin<Project> {
-
-  @Override
-  void apply(Project project) {
-      project.extensions.create("ratpack", RatpackExtension, project)
-  }
+public interface Signal {
+  void await();
+  void fire();
 }

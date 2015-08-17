@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.EventExecutor;
 import ratpack.exec.ExecBuilder;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
@@ -46,6 +47,7 @@ public class DefaultExecController implements ExecControllerInternal {
   private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
   private final int numThreads;
+  private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 
   private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
   private ImmutableList<? extends ExecInitializer> initializers = ImmutableList.of();
@@ -83,6 +85,21 @@ public class DefaultExecController implements ExecControllerInternal {
   public void close() {
     eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     blockingExecutor.shutdown();
+    try {
+      boolean inEventLoop = false;
+      for (EventExecutor eventExecutor : eventLoopGroup.children()) {
+        if (eventExecutor.inEventLoop()) {
+          inEventLoop = true;
+          break;
+        }
+      }
+      if (!inEventLoop) {
+        eventLoopGroup.awaitTermination(10, TimeUnit.MINUTES);
+      }
+      blockingExecutor.awaitTermination(10, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -112,6 +129,7 @@ public class DefaultExecController implements ExecControllerInternal {
     public Thread newThread(final Runnable r) {
       return super.newThread(() -> {
         ThreadBinding.bind(compute, DefaultExecController.this);
+        Thread.currentThread().setContextClassLoader(contextClassLoader);
         r.run();
       });
     }
