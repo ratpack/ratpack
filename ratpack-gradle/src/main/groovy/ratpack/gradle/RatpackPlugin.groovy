@@ -82,7 +82,7 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
-    appPluginConvention.applicationDistribution.from({ratpackExtension.baseDir}) {
+    appPluginConvention.applicationDistribution.from({ ratpackExtension.baseDir }) {
       into "app"
     }
 
