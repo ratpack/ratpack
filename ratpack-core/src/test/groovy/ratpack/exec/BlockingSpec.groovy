@@ -21,6 +21,7 @@ import ratpack.func.Block
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
+import spock.lang.Timeout
 
 import static ratpack.util.Exceptions.uncheck
 
@@ -217,6 +218,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
+  @Timeout(10)
   def "can read large request body in blocking operation"() {
     when:
     handlers {
@@ -233,11 +235,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     and:
     requestSpec {
       RequestSpec request ->
-        request.body.type("text/plain").stream { it << "foo".multiply(50000) }
+        request.body.type("text/plain").stream { it << "foo".multiply(2500) }
     }
 
     then:
-    postText() == "foo".multiply(50000)
+    postText() == "foo".multiply(2500)
   }
 
   def "blocking processing does not start until compute processing has unwound"() {
