@@ -78,11 +78,8 @@ class ThrottleSpec extends Specification {
       println q.size()
       println t.size
       q.size() == t.size
-      println "1"
       t.active == q.size()
-      println "2"
       t.waiting == jobs - t.size
-      println "3"
     }
 
     execHarness.exec().start { Blocking.get { q.take().success(1) } then {} }
