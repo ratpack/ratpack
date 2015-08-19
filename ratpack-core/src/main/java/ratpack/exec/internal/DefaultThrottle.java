@@ -40,10 +40,22 @@ public class DefaultThrottle implements Throttle {
 
   @Override
   public <T> Promise<T> throttle(Promise<T> promise) {
-    return promise.defer(r -> {
+    return promise.<T>transform(up -> down -> {
       waiting.incrementAndGet();
-      queue.add(r);
-      drain();
+      if (active.getAndIncrement() < size) {
+        waiting.decrementAndGet();
+        up.connect(down);
+      } else {
+        active.decrementAndGet();
+        ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+          queue.add(() -> {
+              streamHandle.event(() -> up.connect(down));
+              streamHandle.complete();
+            }
+          );
+          drain();
+        });
+      }
     }).wiretap(r -> {
       active.decrementAndGet();
       drain();
@@ -67,8 +79,7 @@ public class DefaultThrottle implements Throttle {
 
   private void drain() {
     if (!queue.isEmpty()) {
-      int i = active.getAndIncrement();
-      if (i < size) {
+      if (active.getAndIncrement() < size) {
         Runnable job = queue.poll();
         if (job == null) {
           active.decrementAndGet();
@@ -77,8 +88,7 @@ public class DefaultThrottle implements Throttle {
           job.run();
         }
       } else {
-        i = active.decrementAndGet();
-        if (i < size) {
+        if (active.decrementAndGet() < size) {
           drain();
         }
       }
