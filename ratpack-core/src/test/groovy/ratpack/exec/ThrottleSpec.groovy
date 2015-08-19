@@ -75,9 +75,14 @@ class ThrottleSpec extends Specification {
 
     then:
     polling.eventually {
+      println q.size()
+      println t.size
       q.size() == t.size
+      println "1"
       t.active == q.size()
+      println "2"
       t.waiting == jobs - t.size
+      println "3"
     }
 
     execHarness.exec().start { Blocking.get { q.take().success(1) } then {} }
@@ -113,6 +118,22 @@ class ThrottleSpec extends Specification {
       t.waiting == 0
     }
 
+  }
+
+  def "can throttle within same execution"() {
+    when:
+    def t = Throttle.ofSize(5)
+    def l = []
+    execHarness.run {
+      6.times { i ->
+        Promise.of { it.success(i) }.throttled(t).then {
+          l << it
+        }
+      }
+    }
+
+    then:
+    l == [0, 1, 2, 3, 4, 5]
   }
 
 }

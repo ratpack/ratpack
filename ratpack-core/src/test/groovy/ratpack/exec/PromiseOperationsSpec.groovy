@@ -241,6 +241,29 @@ class PromiseOperationsSpec extends Specification {
     events == ["foo"]
   }
 
+  def "deferred promise can use promises even when promises are queued"() {
+    when:
+    def runner = new BlockingVariable<Runnable>()
+    execHarness.controller.exec().onComplete { latch.countDown() }.start {
+      Promise.value("foo").defer { runner.set(it) }.then {
+        Promise.of { it.success("foo") }.then {
+          events << "inner"
+        }
+      }
+      Promise.value("outer").then { events << it }
+    }
+
+    then:
+    events == []
+
+    when:
+    runner.get().run()
+
+    then:
+    latch.await()
+    events == ["inner", "outer"]
+  }
+
   def "can be notified on promise starting"() {
     when:
     exec { e ->

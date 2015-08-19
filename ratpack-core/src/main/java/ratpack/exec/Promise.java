@@ -715,10 +715,12 @@ public interface Promise<T> {
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
     return transform(up -> down ->
-        ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+        ExecutionBacking.require().streamSubscribe(stream -> {
           try {
-            releaser.execute((Runnable) () ->
-                streamHandle.complete(() -> up.connect(down))
+            releaser.execute((Runnable) () -> {
+                stream.event(() -> up.connect(down));
+                stream.complete();
+              }
             );
           } catch (Throwable t) {
             down.error(t);
