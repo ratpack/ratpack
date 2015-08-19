@@ -16,10 +16,13 @@
 
 package ratpack.handling;
 
+import ratpack.http.Request;
 import ratpack.http.Response;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -70,26 +73,27 @@ public class ResponseTimer implements Handler {
   }
 
   /**
-   * Adds the number of milliseconds of elapsed time between the invocation of this method and when the response is ready to be sent.
+   * Adds the number of milliseconds of elapsed time between {@link Request#getTimestamp()} and when the response is ready to be sent.
    * <p>
    * The timer is stopped, and the header added, by {@link Response#beforeSend(ratpack.func.Action)}.
-   * This means that the time value is the elapsed time and not “wall” time.
+   * This means that the time value is the elapsed time, commonly referred to as wall clock time, and not CPU time.
    * Similarly, it does not include the time to actually start sending data out over the socket.
    * It effectively times the application processing.
-   *
+   * <p>
    * The value is in milliseconds, accurate to 5 decimal places.
    *
    * @param ctx the handling context.
    */
   @Override
   public void handle(Context ctx) {
-    long start = System.nanoTime();
     Response response = ctx.getResponse();
     response.beforeSend(m -> {
-      long stop = System.nanoTime();
-      BigDecimal diffNanos = new BigDecimal(stop - start);
-      BigDecimal diffMicros = diffNanos.divide(NANOS_IN_MILLIS, 5, RoundingMode.UP);
-      m.getHeaders().set(HEADER_NAME, diffMicros.toString());
+      Clock clock = ctx.get(Clock.class);
+      Instant start = ctx.getRequest().getTimestamp();
+      long nanos = start.until(Instant.now(clock), ChronoUnit.NANOS);
+      BigDecimal diffNanos = new BigDecimal(nanos);
+      BigDecimal diffMillis = diffNanos.divide(NANOS_IN_MILLIS, 5, RoundingMode.UP);
+      m.getHeaders().set(HEADER_NAME, diffMillis.toString());
     });
     ctx.next();
   }

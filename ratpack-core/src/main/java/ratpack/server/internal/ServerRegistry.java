@@ -53,6 +53,8 @@ import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
 
+import java.time.Clock;
+
 import static ratpack.util.Exceptions.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
@@ -100,6 +102,7 @@ public abstract class ServerRegistry {
         .with(new CharSequenceRenderer().register())
         .with(new JsonRenderer().register())
         .add(FormParser.class, new FormParser())
+        .add(Clock.class, Clock.systemDefaultZone())
         .add(JsonParser.class, new JsonParser())
         .add(RatpackServer.class, ratpackServer)
         .add(ObjectMapper.class, new ObjectMapper())

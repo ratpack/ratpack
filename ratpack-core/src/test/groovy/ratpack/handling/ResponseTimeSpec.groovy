@@ -16,6 +16,7 @@
 
 package ratpack.handling
 
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ResponseTimeSpec extends RatpackGroovyDslSpec {
@@ -60,7 +61,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        blocking { sleep 100 } then { response.send() }
+        Blocking.get { sleep 100 } then { response.send() }
       }
     }
 
