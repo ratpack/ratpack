@@ -18,6 +18,7 @@ package ratpack.groovy.handling
 
 import ratpack.groovy.Groovy
 import ratpack.server.RatpackServer
+import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -32,7 +33,9 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalFile.toPath()))
+        ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
+          RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalFile.toPath()))
+        }.get()
       }
     }
   }
@@ -69,6 +72,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
+        serverConfig { port 0 }
         handlers {
           get {
             render "foo"
