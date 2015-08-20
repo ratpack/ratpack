@@ -15,39 +15,42 @@
  */
 
 !(function($) {
-  $(function() {
-    var contents = gajus.Contents({
-      articles: $('.manual').find('h1, h2, h3, h4, h5, h6')
-    });
-    document.querySelector('.nav-toc').appendChild(contents.list());
-    var eventEmitter = contents.eventEmitter();
-    eventEmitter.on('change', function (data) {
+  if ($('.single-toc').length) {
+    $(function() {
+      var contents = gajus.Contents({
+        articles: $('.manual').find('h1, h2, h3, h4, h5, h6')
+      });
+      document.querySelector('.nav-toc').appendChild(contents.list());
+      var eventEmitter = contents.eventEmitter();
+      eventEmitter.on('change', function (data) {
 
-      $(data.current.article).addClass('active-article');
+        $(data.current.article).addClass('active-article');
 
-      var currentActiveGuide = $(data.current.guide);
-      var topLi = currentActiveGuide.parents('li').last();
-      if (!topLi.length) {
-        topLi = currentActiveGuide;
-      }
-      topLi.addClass('active-chapter');
-      currentActiveGuide.addClass('active-guide');
+        var currentActiveGuide = $(data.current.guide);
+        var topLi = currentActiveGuide.parents('li').last();
+        if (!topLi.length) {
+          topLi = currentActiveGuide;
+        }
+        topLi.addClass('active-chapter');
+        currentActiveGuide.addClass('active-guide');
 
-      if (data.previous) {
-        $(data.previous.article).removeClass('active-article');
-        var activeGuide = $(data.previous.guide);
-        var prevLi = activeGuide.parents('li').last();
-        if (!prevLi.length) {
-          prevLi = activeGuide;
+        if (data.previous) {
+          $(data.previous.article).removeClass('active-article');
+          var activeGuide = $(data.previous.guide);
+          var prevLi = activeGuide.parents('li').last();
+          if (!prevLi.length) {
+            prevLi = activeGuide;
+          }
+
+          if (!prevLi.is(topLi)) {
+            prevLi.removeClass('active-chapter')
+          }
+
+          activeGuide.removeClass('active-guide');
         }
 
-        if (!prevLi.is(topLi)) {
-          prevLi.removeClass('active-chapter')
-        }
-
-        activeGuide.removeClass('active-guide');
-      }
-
+      });
     });
-  });
+  }
 } (jQuery));
+
