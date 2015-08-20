@@ -126,7 +126,7 @@ import ratpack.exec.Blocking;
  * There is no need to catch promise errors.
  * An error handler for the execution is installed that effectively treats any exceptions as if they were thrown by the method.
  *
- * <h3>Relationship with “business-logic”</h3>
+ * <h3>Relationship with "business-logic"</h3>
  * <p>
  * This interface does need to be used for business-logic type services, unless such services need to participate in the application lifecycle.
  * Even in such a case, it is generally better to decouple the business-logic type service from Ratpack (i.e. this interface) and have a
@@ -193,10 +193,10 @@ import ratpack.exec.Blocking;
  *
  * <h3>Errors</h3>
  * <p>
- * If an {@code onStart} method errors, it will prevent the “application” from launching.
+ * If an {@code onStart} method errors, it will prevent the "application" from launching.
  * In {@link ratpack.server.ServerConfig#isDevelopment() development mode}, the application will start and display the error page for all requests with the error.
  * When not in development mode, the exception will be thrown from the {@link RatpackServer#start()} method.
- * If starting the app in a “main method”, this will prevent the JVM from starting.
+ * If starting the app in a "main method", this will prevent the JVM from starting.
  * <p>
  * If an {@code onStop} method errors, the error will be logged and then the next service invoked.
  * That is, a failed {@code onStop} method is not considered fatal.
