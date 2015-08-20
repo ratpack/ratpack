@@ -18,15 +18,14 @@ package ratpack.site
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import ratpack.error.ClientErrorHandler
-import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.ErrorHandler
 import ratpack.handling.Context
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate
 
 @Slf4j
 @CompileStatic
-class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
+class SiteErrorHandler implements ErrorHandler {
 
   @Override
   void error(Context context, int statusCode) {
