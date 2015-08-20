@@ -139,12 +139,12 @@ task api(type: Javadoc) {
     def replacementString = additionalAssets.replaceAll(java.util.regex.Pattern.quote("{@docRoot}/"), "") + "</html>"
     ["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
       def f = new File(destinationDir, it)
-      f.text = f.text.replace("</html>", replacementString)
+      f.text = f.getText('UTF-8').replace("</html>", replacementString)
     }
 
     fileTree(dir: destinationDir, include: '**/*.html').each { File f ->
       if (f.text.contains("{@literal @}")) {
-        f.text = f.text.replace("{@literal @}", "@")
+        f.text = f.getText('UTF-8').replace("{@literal @}", "@")
       }
     }
   }
