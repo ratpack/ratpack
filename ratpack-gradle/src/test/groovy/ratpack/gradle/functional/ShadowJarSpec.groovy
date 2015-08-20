@@ -32,6 +32,7 @@ class ShadowJarSpec extends FunctionalSpec {
       import ratpack.server.Stopper
 
       ratpack {
+        serverConfig { port 0 }
         handlers {
           files { dir "public" }
           get { Stopper stopper ->

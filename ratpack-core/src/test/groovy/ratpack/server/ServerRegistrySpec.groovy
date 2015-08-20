@@ -27,6 +27,7 @@ class ServerRegistrySpec extends Specification {
     when:
     def server = RatpackServer.of {
       it
+      .serverConfig { it.port(0) }
         .registry { Registry.single(it.get(ServerConfig)) }
         .handler {
         Groovy.groovyHandler {

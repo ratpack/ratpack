@@ -28,6 +28,7 @@ class InstallDistSpec extends FunctionalSpec {
       import ratpack.server.Stopper
 
       ratpack {
+        serverConfig { port 0 }
         handlers {
           get {
             get(Stopper).stop()
