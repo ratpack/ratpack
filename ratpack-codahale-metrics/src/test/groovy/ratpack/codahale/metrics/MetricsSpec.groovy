@@ -394,9 +394,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
-      timers.size() == 2
-      timers.containsKey("admin.metrics-report.get-requests")
-      timers["admin.metrics-report.get-requests"].count == 0
+      timers.size() == 1
       timers.containsKey("root.get-requests")
       timers["root.get-requests"].count == 2
 
@@ -422,9 +420,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     with(new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))) {
-      timers.size() == 2
-      timers.containsKey("admin.metrics-report.get-requests")
-      timers["admin.metrics-report.get-requests"].count == 0
+      timers.size() == 1
       timers.containsKey("root.get-requests")
       timers["root.get-requests"].count == 4
 

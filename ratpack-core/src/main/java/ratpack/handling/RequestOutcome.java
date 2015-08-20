@@ -19,6 +19,7 @@ package ratpack.handling;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 
+import java.time.Duration;
 import java.time.Instant;
 
 /**
@@ -47,10 +48,22 @@ public interface RequestOutcome {
    * The time at when this request was dealt with from the application's point of view.
    * <p>
    * After this instant, it may have taken further time to actually get the response bytes to the client.
-   * That is, this timestamp effectively enotes when application processing of the request finished.
+   * That is, this timestamp effectively denotes when application processing of the request finished.
    *
    * @return the instant at which the response was sent
    */
   Instant getSentAt();
+
+  /**
+   * The amount of elapsed time between {@link Request#getTimestamp()} and {@link #getSentAt()}.
+   * <p>
+   * This is the wall clock time, not the CPU time.
+   * It does not include the time taken to send the response bytes to the client.
+   *
+   * @return how long it took to process the request
+   */
+  default Duration getDuration() {
+    return Duration.between(getRequest().getTimestamp(), getSentAt());
+  }
 
 }

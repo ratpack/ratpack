@@ -25,6 +25,7 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
 import org.slf4j.Logger;
@@ -35,9 +36,9 @@ import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.server.Service;
 import ratpack.server.StartEvent;
+import ratpack.server.StopEvent;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
@@ -608,6 +609,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       public TimeUnit getDurationUnit() {
         return durationUnit;
       }
+
       /**
        * Convert durations to the given time unit.
        *
@@ -627,6 +629,7 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
       public TimeUnit getRateUnit() {
         return rateUnit;
       }
+
       /**
        * Convert rates to the given time unit.
        *
@@ -949,9 +952,13 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
     bind(GraphiteReporter.class).toProvider(GraphiteReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
-
     bind(Startup.class);
-    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(HandlerDecoratorProvider.class);
+
+    bind(RequestTimingHandler.class);
+    bind(BlockingExecTimingInterceptor.class);
+
+    Provider<RequestTimingHandler> handlerProvider = getProvider(RequestTimingHandler.class);
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
   }
 
   private <T> T injected(T instance) {
@@ -1009,19 +1016,15 @@ public class CodaHaleMetricsModule extends ConfigurableModule<CodaHaleMetricsMod
         metricRegistry.registerAll(new MemoryUsageGaugeSet());
       }
     }
-  }
-
-  private static class HandlerDecoratorProvider implements Provider<HandlerDecorator> {
-    private Config config;
-
-    @Inject
-    public HandlerDecoratorProvider(Config config) {
-      this.config = config;
-    }
 
     @Override
-    public HandlerDecorator get() {
-      return HandlerDecorator.prepend(new RequestTimingHandler(config));
+    public void onStop(StopEvent event) throws Exception {
+      Iterable<? extends ScheduledReporter> scheduledReporters = event.getRegistry().getAll(ScheduledReporter.class);
+      for (ScheduledReporter scheduledReporter : scheduledReporters) {
+        if (scheduledReporter != null) {
+          scheduledReporter.stop();
+        }
+      }
     }
   }
 

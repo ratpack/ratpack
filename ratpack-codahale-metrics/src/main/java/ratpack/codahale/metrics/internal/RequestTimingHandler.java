@@ -17,82 +17,36 @@
 package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import ratpack.codahale.metrics.CodaHaleMetricsModule;
-import ratpack.exec.Execution;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.http.Request;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-/**
- * A handler implementation that collects {@link Timer} metrics for a {@link Request}.
- * <p>
- * Metrics are grouped by default using {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
- * For example, the following requests...
- *
- * <pre>
- * /
- * /book
- * /author/1/books
- * </pre>
- *
- * will be reported as...
- *
- * <pre>
- * root.get-requests
- * book.get-requests
- * author.1.books.get-requests
- * </pre>
- *
- * However, custom groupings can be defined using {@link CodaHaleMetricsModule.Config#getRequestMetricGroups()}.
- * For example, applying the following config
- *
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.codahale.metrics.CodaHaleMetricsModule
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     module new CodaHaleMetricsModule(), { it.requestMetricGroups(['book':'.*book.*']) }
- *   }
- * }
- * </pre>
- *
- * will be reported as...
- *
- * <pre>
- * root.get-requests
- * book.get-requests
- * </pre>
- *
- */
+@Singleton
 public class RequestTimingHandler implements Handler {
 
+  private final MetricRegistry metricRegistry;
   private final CodaHaleMetricsModule.Config config;
 
-  public RequestTimingHandler(CodaHaleMetricsModule.Config config) {
+  @Inject
+  public RequestTimingHandler(MetricRegistry metricRegistry, CodaHaleMetricsModule.Config config) {
+    this.metricRegistry = metricRegistry;
     this.config = config;
   }
 
   @Override
   public void handle(final Context context) throws Exception {
-    final MetricRegistry metricRegistry = context.get(MetricRegistry.class);
-    final Request request = context.getRequest();
-    BlockingExecTimingInterceptor blockingExecTimingInterceptor = new BlockingExecTimingInterceptor(metricRegistry, request, config);
-
-    Execution.current().addInterceptor(blockingExecTimingInterceptor, () -> {
-      String tag = buildRequestTimerTag(request.getPath(), request.getMethod().getName());
-      final Timer.Context timer = metricRegistry.timer(tag).time();
-      context.onClose(requestOutcome -> {
-        metricRegistry.counter(
-          String.valueOf(requestOutcome.getResponse().getStatus().getCode()).substring(0, 1) + "xx-responses"
-        ).inc();
-        timer.stop();
-      });
-      context.next();
+    context.onClose(outcome -> {
+      String timerName = buildRequestTimerTag(outcome.getRequest().getPath(), outcome.getRequest().getMethod().getName());
+      String responseCodeCounter = String.valueOf(outcome.getResponse().getStatus().getCode()).substring(0, 1) + "xx-responses";
+      metricRegistry.timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS);
+      metricRegistry.counter(responseCodeCounter).inc();
     });
+    context.next();
   }
 
   private String buildRequestTimerTag(String requestPath, String requestMethod) {
