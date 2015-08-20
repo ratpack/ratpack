@@ -27,7 +27,6 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.InjectorRegistryBacking;
-import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
