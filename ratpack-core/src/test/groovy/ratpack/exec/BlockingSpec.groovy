@@ -18,6 +18,7 @@ package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
 import ratpack.func.Block
+import ratpack.http.TypedData
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
@@ -225,7 +226,13 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       all {
         Blocking.get {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
-          Blocking.on(request.body).text
+          println "*** starting blocking thread"
+          String text = Blocking.on(request.body.map { TypedData td ->
+            println "*** mapping body"
+            return td
+          }).text
+          println "*** after Blocking.on"
+          return text
         } then {
           render it.toString()
         }
@@ -235,11 +242,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     and:
     requestSpec {
       RequestSpec request ->
-        request.body.type("text/plain").stream { it << "foo".multiply(2500) }
+        request.body.type("text/plain").stream { it << "foo".multiply(50000) }
     }
 
     then:
-    postText() == "foo".multiply(2500)
+    postText() == "foo".multiply(50000)
   }
 
   def "blocking processing does not start until compute processing has unwound"() {
