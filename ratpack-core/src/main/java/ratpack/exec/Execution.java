@@ -47,7 +47,7 @@ import java.util.function.Supplier;
  * <p>
  * Importantly, it also <em>serializes</em> execution segments by way of the {@link Promise#of(Upstream)} method.
  * These methods are fundamentally asynchronous in that they facilitate performing operations where the result will arrive later without waiting for the result,
- * but are synchronous in the operations the perform are serialized and not executed concurrently or in parallel.
+ * but are synchronous in that the operations they perform are serialized and not executed concurrently or in parallel.
  * <em>Crucially</em>, this means that state that is local to an execution does not need to be thread safe.
  * <h3>Executions and request handling</h3>
  * <p>
