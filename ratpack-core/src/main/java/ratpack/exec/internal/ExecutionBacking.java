@@ -43,9 +43,8 @@ public class ExecutionBacking {
 
   public final static ThreadLocal<ExecutionBacking> THREAD_BINDING = new ThreadLocal<>();
 
-  private final ImmutableList<? extends ExecInterceptor> globalInterceptors;
-  private final ImmutableList<? extends ExecInterceptor> registryInterceptors;
-  private List<ExecInterceptor> adhocInterceptors;
+  private final List<ExecInterceptor> adhocInterceptors = new ArrayList<>(0);
+  private final Iterable<? extends ExecInterceptor> interceptors;
 
   // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
   // All other collections do not need to be concurrent safe because they are only accessed on the event loop
@@ -77,14 +76,17 @@ public class ExecutionBacking {
     registry.execute(execution);
     onStart.execute(execution);
 
-    this.registryInterceptors = ImmutableList.copyOf(execution.getAll(ExecInterceptor.class));
-    this.globalInterceptors = globalInterceptors;
-
     streamHandle = new InitialStreamHandle();
     Deque<Block> event = new ArrayDeque<>();
     //noinspection RedundantCast
     event.add((UserCode) () -> action.execute(execution));
     streamHandle.stream.add(event);
+
+    ImmutableList<? extends ExecInterceptor> registryInterceptors = ImmutableList.copyOf(execution.getAll(ExecInterceptor.class));
+    this.interceptors = Iterables.concat(globalInterceptors, registryInterceptors, adhocInterceptors);
+    for (ExecInterceptor interceptor : interceptors) {
+      interceptor.init(execution);
+    }
 
     drain();
   }
@@ -195,9 +197,7 @@ public class ExecutionBacking {
   }
 
   public void addInterceptor(ExecInterceptor interceptor) {
-    if (adhocInterceptors == null) {
-      adhocInterceptors = Lists.newArrayList();
-    }
+    interceptor.init(execution);
     adhocInterceptors.add(interceptor);
   }
 
@@ -329,12 +329,6 @@ public class ExecutionBacking {
   }
 
   public Iterable<? extends ExecInterceptor> getAllInterceptors() {
-    Iterable<? extends ExecInterceptor> interceptors;
-    if (adhocInterceptors == null) {
-      interceptors = Iterables.concat(globalInterceptors, registryInterceptors);
-    } else {
-      interceptors = Iterables.concat(globalInterceptors, registryInterceptors, adhocInterceptors);
-    }
     return interceptors;
   }
 

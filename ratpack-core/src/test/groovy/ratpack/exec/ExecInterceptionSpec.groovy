@@ -35,9 +35,14 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) {
+    void init(Execution execution) {
+      record << "init:$id"
+    }
+
+    @Override
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
       record << "$id:$type"
-      continuation.execute()
+      executionSegment.execute()
     }
   }
 
@@ -67,7 +72,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     get("1")
 
     then:
-    record == ["1:COMPUTE", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
+    record == ["init:1", "1:COMPUTE", "init:2", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
   }
 
   class ErroringInterceptor extends RecordingInterceptor {
@@ -77,8 +82,8 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) {
-      super.intercept(execution, type, continuation)
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
+      super.intercept(execution, type, executionSegment)
       throw new RuntimeException("$type:$id")
     }
   }
@@ -111,7 +116,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     then:
     getText("1") == "java.lang.RuntimeException: COMPUTE:2"
-    record == ["1:COMPUTE", "2:COMPUTE"]
+    record == ["init:1", "1:COMPUTE", "init:2", "2:COMPUTE"]
   }
 
   def "intercepted handlers can throw exceptions"() {
@@ -128,6 +133,34 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     then:
     get().statusCode == 500
+  }
+
+  def "interceptors are initd"() {
+    given:
+    bindings {
+      bindInstance new RecordingInterceptor("global")
+    }
+
+    when:
+    handlers {
+      all {
+        Promise.of { d ->
+          Execution.fork().register { it.add(new RecordingInterceptor("registry")) }.start {
+            d.success("foo")
+          }
+        } then {
+          render it
+        }
+      }
+    }
+
+    then:
+    text
+    record == [
+      "init:global", "global:COMPUTE", // startup
+      "init:global", "global:COMPUTE", // request
+      "init:global", "init:registry", "global:COMPUTE", "registry:COMPUTE", "global:COMPUTE"
+    ]
   }
 
 }

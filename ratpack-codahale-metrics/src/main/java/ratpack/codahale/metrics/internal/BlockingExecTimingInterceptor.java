@@ -42,7 +42,7 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
   }
 
   @Override
-  public void intercept(Execution execution, ExecType type, Block continuation) throws Exception {
+  public void intercept(Execution execution, ExecType type, Block executionSegment) throws Exception {
     if (type == ExecType.BLOCKING) {
       Optional<Request> requestOpt = execution.maybeGet(Request.class);
       if (requestOpt.isPresent()) {
@@ -50,7 +50,7 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
         String tag = buildBlockingTimerTag(request.getPath(), request.getMethod().getName());
         Timer.Context timer = metricRegistry.timer(tag).time();
         try {
-          continuation.execute();
+          executionSegment.execute();
         } finally {
           timer.stop();
         }
@@ -58,7 +58,7 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
       }
     }
 
-    continuation.execute();
+    executionSegment.execute();
   }
 
   private String buildBlockingTimerTag(String requestPath, String requestMethod) {

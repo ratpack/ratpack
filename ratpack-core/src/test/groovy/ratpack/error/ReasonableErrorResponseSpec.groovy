@@ -31,7 +31,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
       this.error = error
     }
 
-    void intercept(Execution execution, ExecInterceptor.ExecType execType, Block continuation) {
+    void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) {
       throw error
     }
   }

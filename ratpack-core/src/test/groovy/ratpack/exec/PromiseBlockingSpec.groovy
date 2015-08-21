@@ -120,10 +120,10 @@ class PromiseBlockingSpec extends Specification {
     def events = []
     def interceptor = new ExecInterceptor() {
       @Override
-      void intercept(Execution execution, ExecInterceptor.ExecType execType, Block continuation) throws Exception {
+      void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) throws Exception {
         events << "$execType-start"
         try {
-          continuation.execute()
+          executionSegment.execute()
         } finally {
           events << "$execType-stop"
         }

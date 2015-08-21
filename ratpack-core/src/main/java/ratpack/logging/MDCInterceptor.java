@@ -110,7 +110,7 @@ public class MDCInterceptor implements ExecInterceptor {
     return INSTANCE;
   }
 
-  public void intercept(Execution execution, ExecType type, Block continuation) throws Exception {
+  public void intercept(Execution execution, ExecType type, Block executionSegment) throws Exception {
     MDC.clear();
 
     MDCMap map = execution.maybeGet(MDCMap.class).orElse(null);
@@ -122,7 +122,7 @@ public class MDCInterceptor implements ExecInterceptor {
     }
 
     try {
-      continuation.execute();
+      executionSegment.execute();
     } finally {
       map.clear();
       Map<String, String> ctxMap = Types.cast(MDC.getCopyOfContextMap());

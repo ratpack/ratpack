@@ -29,7 +29,7 @@ public class NewRelicExecInterceptor implements ExecInterceptor {
 
   @Override
   @Trace(dispatcher = true)
-  public void intercept(Execution execution, ExecType execType, Block continuation) throws Exception {
+  public void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception {
     execution.maybeGet(Context.class).ifPresent(context -> {
       NewRelicTransaction transaction = execution.maybeGet(NewRelicTransaction.class).orElse(null);
       if (transaction == null) {
@@ -38,6 +38,6 @@ public class NewRelicExecInterceptor implements ExecInterceptor {
       }
       transaction.init();
     });
-    continuation.execute();
+    executionSegment.execute();
   }
 }

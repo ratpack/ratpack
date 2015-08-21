@@ -16,6 +16,7 @@
 
 package ratpack.exec;
 
+import ratpack.func.Action;
 import ratpack.func.Block;
 
 /**
@@ -133,17 +134,32 @@ public interface ExecInterceptor {
   }
 
   /**
-   * Intercepts the “rest” of the execution on the current thread.
+   * Called before the execution is started in order to perform any initialisation.
    * <p>
-   * The given action argument represents the rest of the execution to occur on this thread.
-   * This does not necessarily mean the rest of the execution until the work (e.g. responding to a request) is complete.
-   * Execution may involve multiple parallel (but not concurrent) threads of execution because of blocking IO or asynchronous APIs.
+   * Implementations of this method typically add objects to the execution (as it's a registry).
+   * <p>
+   * This is called before {@link ExecBuilder#start(Action)}, but after {@link ExecBuilder#onStart(Action)}.
+   * <p>
+   * The default implementation does nothing.
    *
-   * @param execution the execution who's segment is being intercepted
-   * @param execType indicates whether this is a compute (e.g. request handling) segment or blocking segment
-   * @param continuation the “rest” of the execution
+   * @param execution the execution that is about to be started.
+   */
+  default void init(Execution execution) {
+
+  }
+
+  /**
+   * Intercepts the execution of an execution segment.
+   * <p>
+   * The execution segment argument represents a unit of work of the execution.
+   * <p>
+   * Implementations <b>MUST</b> invoke {@code execute()} on the given execution segment block.
+   *
+   * @param execution the execution that this segment belongs to
+   * @param execType indicates whether this segment is execution on a compute or blocking thread
+   * @param executionSegment the execution segment that is to be executed
    * @throws Exception any
    */
-  void intercept(Execution execution, ExecType execType, Block continuation) throws Exception;
+  void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception;
 
 }
