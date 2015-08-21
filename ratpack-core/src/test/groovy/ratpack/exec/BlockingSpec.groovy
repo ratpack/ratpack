@@ -226,13 +226,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       all {
         Blocking.get {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
-          println "*** starting blocking thread"
-          String text = Blocking.on(request.body.map { TypedData td ->
-            println "*** mapping body"
-            return td
-          }).text
-          println "*** after Blocking.on"
-          return text
+          Blocking.on(request.body).text
         } then {
           render it.toString()
         }
