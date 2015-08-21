@@ -70,7 +70,7 @@ public interface Execution extends MutableRegistry {
   }
 
   static ExecBuilder fork() throws UnmanagedThreadException {
-    return current().getController().exec();
+    return ExecController.require().exec();
   }
 
   /**
