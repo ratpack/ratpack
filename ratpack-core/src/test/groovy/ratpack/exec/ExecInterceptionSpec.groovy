@@ -26,7 +26,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
   def record = []
 
-  class RecordingInterceptor implements ExecInterceptor {
+  class RecordingInterceptor implements ExecInterceptor, ExecInitializer {
 
     final String id
 
@@ -72,7 +72,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     get("1")
 
     then:
-    record == ["init:1", "1:COMPUTE", "init:2", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
+    record == ["1:COMPUTE", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
   }
 
   class ErroringInterceptor extends RecordingInterceptor {
@@ -116,7 +116,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     then:
     getText("1") == "java.lang.RuntimeException: COMPUTE:2"
-    record == ["init:1", "1:COMPUTE", "init:2", "2:COMPUTE"]
+    record == ["1:COMPUTE", "2:COMPUTE"]
   }
 
   def "intercepted handlers can throw exceptions"() {
@@ -157,8 +157,8 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     then:
     text
     record == [
-      "init:global", "global:COMPUTE", // startup
-      "init:global", "global:COMPUTE", // request
+      "init:global", "global:COMPUTE",
+      "init:global", "global:COMPUTE",
       "init:global", "init:registry", "global:COMPUTE", "registry:COMPUTE", "global:COMPUTE"
     ]
   }

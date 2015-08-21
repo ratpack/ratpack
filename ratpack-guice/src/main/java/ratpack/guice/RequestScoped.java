@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.guice.internal;
+package ratpack.guice;
 
-import com.google.inject.Key;
+import com.google.inject.ScopeAnnotation;
 
-import java.util.HashMap;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-public class ExecutionScope extends ExecutionBasedScope<ExecutionScope.Store> {
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-  static class Store extends HashMap<Key<?>, Object> {}
-
-  public ExecutionScope() {
-    super(Store.class, "an execution");
-  }
-
-  @Override
-  protected Store createStore() {
-    return new Store();
-  }
+@Target({TYPE, METHOD})
+@Retention(RUNTIME)
+@ScopeAnnotation
+public @interface RequestScoped {
 }
+

@@ -27,7 +27,7 @@ import io.netty.util.AsciiString;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
-import ratpack.guice.ExecutionScoped;
+import ratpack.guice.RequestScoped;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.session.internal.*;
@@ -199,7 +199,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
   }
 
   @Provides
-  @ExecutionScoped
+  @RequestScoped
   SessionId sessionId(Request request, Response response, SessionIdGenerator idGenerator, SessionCookieConfig cookieConfig) {
     return new CookieBasedSessionId(request, response, idGenerator, cookieConfig);
   }
@@ -215,7 +215,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
   }
 
   @Provides
-  @ExecutionScoped
+  @RequestScoped
   Session sessionAdapter(SessionId sessionId, SessionStore store, Response response, ByteBufAllocator bufferAllocator, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer) {
     return new DefaultSession(sessionId, bufferAllocator, store, response, defaultSerializer, javaSerializer);
   }

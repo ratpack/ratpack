@@ -28,6 +28,7 @@ import ratpack.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
+import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.file.FileSystemBinding;
@@ -64,8 +65,8 @@ public abstract class ServerRegistry {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
 
-    ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class));
-    execController.setDefaultInterceptors(interceptors);
+    execController.setInterceptors(ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class)));
+    execController.setInitializers(ImmutableList.copyOf(userRegistry.getAll(ExecInitializer.class)));
 
     return baseRegistry.join(userRegistry);
   }

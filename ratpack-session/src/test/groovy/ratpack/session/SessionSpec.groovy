@@ -16,7 +16,11 @@
 
 package ratpack.session
 
+import com.google.inject.AbstractModule
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
@@ -24,6 +28,12 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     modules << new SessionModule()
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(SimpleErrorHandler)
+      }
+    }
   }
 
   def "can use session"() {
@@ -33,8 +43,24 @@ class SessionSpec extends RatpackGroovyDslSpec {
         session
           .set("foo", "bar")
           .then {
-            render session.require("foo")
-          }
+          render session.require("foo")
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+  }
+
+  def "session is available via request"() {
+    when:
+    handlers {
+      get {
+        request.get(Session)
+          .set("foo", "bar")
+          .then {
+          render request.get(Session).require("foo")
+        }
       }
     }
 
@@ -52,8 +78,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
         session
           .set("value", pathTokens.value)
           .then {
-            render pathTokens.value
-          }
+          render pathTokens.value
+        }
       }
     }
 
@@ -83,8 +109,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
         render session
           .set(new Holder1(value: value))
           .map {
-            value
-          }
+          value
+        }
       }
     }
 
@@ -127,7 +153,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { Session session ->
-        render session.get("value").map{ it.orElse("null") }
+        render session.get("value").map { it.orElse("null") }
       }
       get("set/:value") { Session session ->
         render session.set("value", pathTokens.value).map {
@@ -167,7 +193,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
         render session.data.map { "ok" }
       }
       get("write") { Session session ->
-        render session.set("foo", "bar").map{"ok"}
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -187,7 +213,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
         response.send("foo")
       }
       get("write") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -203,7 +229,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -223,7 +249,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -244,7 +270,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -253,5 +279,23 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
     then:
     values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
+  }
+
+  def "session is not available in a non request execution"() {
+    when:
+    handlers {
+      get {
+        Promise.of { d ->
+          Execution.fork().onError { d.error(it) }.start {
+            Execution.current().get(Session)
+          }
+        } then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text.contains "com.google.inject.OutOfScopeException: Cannot access Key[type=ratpack.session.Session, annotation=[none]] outside of a request"
   }
 }

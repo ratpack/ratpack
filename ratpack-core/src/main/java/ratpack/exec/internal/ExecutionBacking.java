@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.BiAction;
 import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.stream.Streams;
@@ -52,19 +51,18 @@ public class ExecutionBacking {
 
   private final EventLoop eventLoop;
   private final List<AutoCloseable> closeables = Lists.newArrayList();
-  private final BiAction<? super Execution, ? super Throwable> onError;
+  private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
   private volatile boolean done;
   private final Execution execution;
 
   public ExecutionBacking(
-    ExecController controller,
+    ExecControllerInternal controller,
     EventLoop eventLoop,
-    ImmutableList<? extends ExecInterceptor> globalInterceptors,
     Action<? super RegistrySpec> registry,
     Action<? super Execution> action,
-    BiAction<? super Execution, ? super Throwable> onError,
+    Action<? super Throwable> onError,
     Action<? super Execution> onStart,
     Action<? super Execution> onComplete
   ) throws Exception {
@@ -82,10 +80,17 @@ public class ExecutionBacking {
     event.add((UserCode) () -> action.execute(execution));
     streamHandle.stream.add(event);
 
-    ImmutableList<? extends ExecInterceptor> registryInterceptors = ImmutableList.copyOf(execution.getAll(ExecInterceptor.class));
-    this.interceptors = Iterables.concat(globalInterceptors, registryInterceptors, adhocInterceptors);
-    for (ExecInterceptor interceptor : interceptors) {
-      interceptor.init(execution);
+    this.interceptors = Iterables.concat(
+      controller.getInterceptors(),
+      ImmutableList.copyOf(execution.getAll(ExecInterceptor.class)),
+      adhocInterceptors
+    );
+
+    for (ExecInitializer initializer : controller.getInitializers()) {
+      initializer.init(execution);
+    }
+    for (ExecInitializer initializer : execution.getAll(ExecInitializer.class)) {
+      initializer.init(execution);
     }
 
     drain();
@@ -197,7 +202,6 @@ public class ExecutionBacking {
   }
 
   public void addInterceptor(ExecInterceptor interceptor) {
-    interceptor.init(execution);
     adhocInterceptors.add(interceptor);
   }
 
@@ -300,7 +304,7 @@ public class ExecutionBacking {
               event.clear();
               event.addFirst(() -> {
                 try {
-                  onError.execute(execution, e);
+                  onError.execute(e);
                 } catch (final Throwable errorHandlerException) {
                   //noinspection RedundantCast
                   streamHandle.stream.element().addFirst((UserCode) () -> {

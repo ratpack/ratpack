@@ -19,7 +19,6 @@ package ratpack.exec;
 import io.netty.channel.EventLoop;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
-import ratpack.func.BiAction;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -32,25 +31,10 @@ public interface ExecBuilder {
   /**
    * Specify the top level error handler for the execution.
    *
-   * @see #onError(BiAction)
    * @param onError the top level error handler for the execution
    * @return {@code this}
    */
   ExecBuilder onError(Action<? super Throwable> onError);
-
-  /**
-   * Specify the top level error handler for the execution.
-   * <p>
-   * The given action will be called if an exception is raised during execution that is not caught.
-   * <p>
-   * This method is not additive.
-   * That is, any subsequent calls replace the previous value.
-   *
-   * @see #onError(BiAction)
-   * @param onError the top level error handler for the execution
-   * @return {@code this}
-   */
-  ExecBuilder onError(BiAction<? super Execution, ? super Throwable> onError);
 
   /**
    * Specifies the completion callback for the execution.

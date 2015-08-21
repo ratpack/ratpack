@@ -17,19 +17,27 @@
 package ratpack.guice.internal;
 
 import com.google.inject.Key;
+import ratpack.exec.Execution;
+import ratpack.http.Request;
 
 import java.util.HashMap;
 
-public class ExecutionScope extends ExecutionBasedScope<ExecutionScope.Store> {
+public class RequestScope extends ExecutionBasedScope<RequestScope.Store> {
 
   static class Store extends HashMap<Key<?>, Object> {}
 
-  public ExecutionScope() {
-    super(Store.class, "an execution");
+  public RequestScope() {
+    super(Store.class, "a request");
   }
 
   @Override
   protected Store createStore() {
     return new Store();
   }
+
+  @Override
+  protected boolean inScope(Execution execution) {
+    return execution.maybeGet(Request.class).isPresent();
+  }
+
 }

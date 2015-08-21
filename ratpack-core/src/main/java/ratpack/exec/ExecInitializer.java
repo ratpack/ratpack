@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.guice.internal;
+package ratpack.exec;
 
-import com.google.inject.Key;
+import ratpack.func.Action;
 
-import java.util.HashMap;
+@FunctionalInterface
+public interface ExecInitializer {
 
-public class ExecutionScope extends ExecutionBasedScope<ExecutionScope.Store> {
+  /**
+   * Called before the execution is started in order to perform any initialisation.
+   * <p>
+   * Implementations of this method typically add objects to the execution (as it's a registry).
+   * <p>
+   * This is called before {@link ExecBuilder#start(Action)}, but after {@link ExecBuilder#onStart(Action)}.
+   *
+   * @param execution the execution that is about to be started.
+   */
+  void init(Execution execution);
 
-  static class Store extends HashMap<Key<?>, Object> {}
-
-  public ExecutionScope() {
-    super(Store.class, "an execution");
-  }
-
-  @Override
-  protected Store createStore() {
-    return new Store();
-  }
 }

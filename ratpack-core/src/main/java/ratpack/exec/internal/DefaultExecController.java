@@ -22,10 +22,10 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.ExecBuilder;
+import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
-import ratpack.func.BiAction;
 import ratpack.registry.RegistrySpec;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.ChannelImplDetector;
@@ -40,7 +40,7 @@ import static ratpack.func.Action.noop;
 
 public class DefaultExecController implements ExecControllerInternal {
 
-  private static final BiAction<Execution, Throwable> LOG_UNCAUGHT = (o, t) -> ExecutionBacking.LOGGER.error("Uncaught execution exception", t);
+  private static final Action<Throwable> LOG_UNCAUGHT = t -> ExecutionBacking.LOGGER.error("Uncaught execution exception", t);
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecutorService blockingExecutor;
@@ -48,6 +48,7 @@ public class DefaultExecController implements ExecControllerInternal {
   private final int numThreads;
 
   private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
+  private ImmutableList<? extends ExecInitializer> initializers = ImmutableList.of();
 
   public DefaultExecController() {
     this(Runtime.getRuntime().availableProcessors() * 2);
@@ -60,8 +61,23 @@ public class DefaultExecController implements ExecControllerInternal {
   }
 
   @Override
-  public void setDefaultInterceptors(ImmutableList<? extends ExecInterceptor> interceptors) {
+  public void setInterceptors(ImmutableList<? extends ExecInterceptor> interceptors) {
     this.interceptors = interceptors;
+  }
+
+  @Override
+  public void setInitializers(ImmutableList<? extends ExecInitializer> initializers) {
+    this.initializers = initializers;
+  }
+
+  @Override
+  public ImmutableList<? extends ExecInterceptor> getInterceptors() {
+    return interceptors;
+  }
+
+  @Override
+  public ImmutableList<? extends ExecInitializer> getInitializers() {
+    return initializers;
   }
 
   public void close() {
@@ -114,7 +130,7 @@ public class DefaultExecController implements ExecControllerInternal {
   @Override
   public ExecBuilder exec() {
     return new ExecBuilder() {
-      private BiAction<? super Execution, ? super Throwable> onError = LOG_UNCAUGHT;
+      private Action<? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
       private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
@@ -127,23 +143,18 @@ public class DefaultExecController implements ExecControllerInternal {
       }
 
       @Override
-      public ExecBuilder onError(BiAction<? super Execution, ? super Throwable> onError) {
-        List<Throwable> seen = Lists.newLinkedList();
-        this.onError = (e, t) -> {
+      public ExecBuilder onError(Action<? super Throwable> onError) {
+        List<Throwable> seen = Lists.newArrayListWithCapacity(0);
+        this.onError = t -> {
           if (seen.size() < MAX_ERRORS_THRESHOLD) {
             seen.add(t);
-            onError.execute(e, t);
+            onError.execute(t);
           } else {
             seen.forEach(t::addSuppressed);
             ExecutionBacking.LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
           }
         };
         return this;
-      }
-
-      @Override
-      public ExecBuilder onError(Action<? super Throwable> onError) {
-        return onError((e, t) -> onError.execute(t));
       }
 
       @Override
@@ -167,10 +178,10 @@ public class DefaultExecController implements ExecControllerInternal {
       @Override
       public void start(Action<? super Execution> action) {
         if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
-          Exceptions.uncheck(() -> new ExecutionBacking(DefaultExecController.this, eventLoop, interceptors, registry, action, onError, onStart, onComplete));
+          Exceptions.uncheck(() -> new ExecutionBacking(DefaultExecController.this, eventLoop, registry, action, onError, onStart, onComplete));
         } else {
           eventLoop.submit(() ->
-              new ExecutionBacking(DefaultExecController.this, eventLoop, interceptors, registry, action, onError, onStart, onComplete)
+              new ExecutionBacking(DefaultExecController.this, eventLoop, registry, action, onError, onStart, onComplete)
           );
         }
       }

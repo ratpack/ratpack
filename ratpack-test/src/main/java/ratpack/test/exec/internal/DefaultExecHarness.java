@@ -48,8 +48,8 @@ public class DefaultExecHarness implements ExecHarness {
 
     controller.exec()
       .register(registry)
-      .onError((exec, throwable) -> {
-        reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), exec));
+      .onError(throwable -> {
+        reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current()));
         latch.countDown();
       })
       .onComplete(exec -> {

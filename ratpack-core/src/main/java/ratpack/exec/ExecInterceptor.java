@@ -16,7 +16,6 @@
 
 package ratpack.exec;
 
-import ratpack.func.Action;
 import ratpack.func.Block;
 
 /**
@@ -115,6 +114,7 @@ import ratpack.func.Block;
  *
  * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)
  */
+@FunctionalInterface
 public interface ExecInterceptor {
 
   /**
@@ -131,21 +131,6 @@ public interface ExecInterceptor {
      * The execution is performing computation (i.e. it is not blocking)
      */
     COMPUTE
-  }
-
-  /**
-   * Called before the execution is started in order to perform any initialisation.
-   * <p>
-   * Implementations of this method typically add objects to the execution (as it's a registry).
-   * <p>
-   * This is called before {@link ExecBuilder#start(Action)}, but after {@link ExecBuilder#onStart(Action)}.
-   * <p>
-   * The default implementation does nothing.
-   *
-   * @param execution the execution that is about to be started.
-   */
-  default void init(Execution execution) {
-
   }
 
   /**
