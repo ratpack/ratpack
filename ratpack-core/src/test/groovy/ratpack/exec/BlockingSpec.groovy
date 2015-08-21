@@ -236,8 +236,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     and:
     requestSpec {
       RequestSpec request ->
-//        request.body.type("text/plain").stream { it << "foo".multiply(50000) }
-        request.body.text("foo".multiply(50000)).type("text/plain")
+        request.body.type("text/plain").stream { it << "foo".multiply(50000) }
     }
 
     then:

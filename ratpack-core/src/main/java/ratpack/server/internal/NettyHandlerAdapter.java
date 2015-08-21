@@ -142,6 +142,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
           @Override
           protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
+            System.out.println("*** Reading body content");
             ByteBuf payload = msg.content().retain();
             if (body.capacity() + payload.readableBytes() > maxContentLength) {
               try {
