@@ -30,8 +30,8 @@ import java.util.concurrent.CompletableFuture;
  * Downstreams {@link Upstream#connect(Downstream) connect} to {@link Upstream upstreams}.
  * Once connected, an upstream will invoke only one of either the {@link #success}, {@link #error} or {@link #complete} methods exactly once.
  *
- * @see Promise#transform(ratpack.func.Function)
  * @param <T> the type of value emitted downstream
+ * @see Promise#transform(ratpack.func.Function)
  */
 public interface Downstream<T> {
 
@@ -213,7 +213,7 @@ public interface Downstream<T> {
       public void onFailure(Throwable t) {
         error(t);
       }
-    });
+    }, Execution.current().getEventLoop());
   }
 
 
