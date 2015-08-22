@@ -1,23 +1,22 @@
+<% if (patch <= 19) { %>
 import ratpack.codahale.metrics.CodaHaleMetricsModule
-import ratpack.perf.incl.*
-<% if (patch >= 14) { %>
-import ratpack.handling.ResponseTimer
+<% } else { %>
+import ratpack.dropwizard.metrics.DropwizardMetricsModule
 <% } %>
+import ratpack.perf.incl.*
+import ratpack.handling.ResponseTimer
 
 import static ratpack.groovy.Groovy.*
 
 ratpack {
-  <% if (patch < 14) { %>
-  serverConfig { it.timeResponses(true) }
-  <% } %>
-
   bindings {
-    <% if (patch < 14) { %>
-    add new CodaHaleMetricsModule(), { it.enable(true).jmx { it.enable(true) } }
-    <% } else { %>
+    <% if (patch <= 19) { %>
     add CodaHaleMetricsModule, { it.jmx() }
-    bindInstance ResponseTimer.decorator()
+    <% } else { %>
+    add DropwizardMetricsModule, { it.jmx() }
     <% } %>
+
+    bindInstance ResponseTimer.decorator()
   }
 
   handlers {

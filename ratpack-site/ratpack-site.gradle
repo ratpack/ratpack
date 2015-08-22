@@ -92,7 +92,7 @@ sourceSets {
 dependencies {
 //  springloaded "org.springframework:springloaded:1.2.3.RELEASE"
   compile project(":ratpack-groovy")
-  compile project(":ratpack-codahale-metrics")
+  compile project(":ratpack-dropwizard-metrics")
   compile project(":ratpack-remote")
   compile project(":ratpack-rx")
   compile project(":ratpack-newrelic")

@@ -19,7 +19,7 @@ package ratpack.site;
 import asset.pipeline.ratpack.AssetPipelineModule;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
-import ratpack.codahale.metrics.CodaHaleMetricsModule;
+import ratpack.dropwizard.metrics.DropwizardMetricsModule;
 import ratpack.func.Block;
 import ratpack.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
@@ -49,7 +49,7 @@ public class SiteMain {
           Guice.registry(s -> s
               .module(NewRelicModule.class)
               .module(new AssetPipelineModule())
-              .module(new CodaHaleMetricsModule(), c ->
+              .module(new DropwizardMetricsModule(), c ->
                   c.csv(csv -> csv.enable(false))
               )
               .module(SiteModule.class)

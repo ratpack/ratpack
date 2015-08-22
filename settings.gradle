@@ -30,7 +30,7 @@ include \
     "ratpack-remote-test",
     "ratpack-reactor",
     "ratpack-rx",
-    "ratpack-codahale-metrics",
+    "ratpack-dropwizard-metrics",
     "ratpack-h2",
     "ratpack-thymeleaf",
     "ratpack-lazybones",
