@@ -705,7 +705,7 @@ public abstract class RxRatpack {
   }
 
   /**
-   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#exec()}).
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#fork()}).
    *
    * @param execController the execution controller to back the scheduler
    * @return a scheduler
@@ -715,7 +715,7 @@ public abstract class RxRatpack {
   }
 
   /**
-   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#exec()}).
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#fork()}).
    * <p>
    * That same as {@link #scheduler(ExecController)}, but obtains the exec controller via {@link ExecController#require()}.
    *

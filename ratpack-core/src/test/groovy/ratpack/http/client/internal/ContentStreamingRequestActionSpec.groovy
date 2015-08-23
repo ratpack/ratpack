@@ -44,7 +44,7 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
       get { ExecController execController, ByteBufAllocator byteBufAllocator ->
         requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), execution, byteBufAllocator)
         Promise.of(requestAction).then {
-          execution.onCleanup {
+          execution.onComplete {
             latch.countDown()
           }
           render 'foo'

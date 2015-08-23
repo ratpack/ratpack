@@ -32,7 +32,7 @@ class PromiseCachingSpec extends Specification {
   def latch = new CountDownLatch(1)
 
   def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
-    execHarness.controller.exec()
+    execHarness.controller.fork()
       .onError(onError)
       .onComplete({
       events << "complete"

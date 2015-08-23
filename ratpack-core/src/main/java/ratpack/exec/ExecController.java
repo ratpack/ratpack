@@ -53,7 +53,7 @@ public interface ExecController extends AutoCloseable {
     return current().orElseThrow(UnmanagedThreadException::new);
   }
 
-  ExecStarter exec();
+  ExecStarter fork();
 
   /**
    * Indicates whether the current thread is managed by <b>this</b> execution controller.
@@ -70,7 +70,7 @@ public interface ExecController extends AutoCloseable {
    * <p>
    * This executor wraps Netty's event loop executor to provide callback features by way of Guava's executor extensions.
    * <p>
-   * It is generally preferable to use {@link #exec()} to submit computation work rather than this method,
+   * It is generally preferable to use {@link #fork()} to submit computation work rather than this method,
    * which properly initialises Ratpack's execution infrastructure.
    *
    * @return the executor that performs computation

@@ -145,7 +145,7 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    requestConstants.applicationConstants.execController.exec()
+    requestConstants.applicationConstants.execController.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s

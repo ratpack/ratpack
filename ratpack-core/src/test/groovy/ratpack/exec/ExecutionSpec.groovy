@@ -44,7 +44,7 @@ class ExecutionSpec extends Specification {
   }
 
   def exec(Action<? super Execution> action, Action<? super Throwable> onError) {
-    harness.controller.exec().onError(onError).onComplete {
+    harness.controller.fork().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
     } start {
@@ -165,7 +165,7 @@ class ExecutionSpec extends Specification {
         }
       }
 
-      outerExec.onCleanup {
+      outerExec.onComplete {
         Execution.fork().start { e2 ->
           p.then {
             assert Execution.current() == e2

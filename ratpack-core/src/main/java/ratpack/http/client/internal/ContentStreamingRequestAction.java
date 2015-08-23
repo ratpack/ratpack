@@ -66,7 +66,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
       public void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
-        execution.onCleanup(() -> {
+        execution.onComplete(() -> {
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
             ctx.close();
           }

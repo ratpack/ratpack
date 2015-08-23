@@ -146,7 +146,7 @@ public class DefaultExecController implements ExecControllerInternal {
   }
 
   @Override
-  public ExecStarter exec() {
+  public ExecStarter fork() {
     return new ExecStarter() {
       private Action<? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();

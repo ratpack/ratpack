@@ -95,7 +95,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
   }
 
   private static ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
-    execution.onCleanup(responseBuffer::release);
+    execution.onComplete(responseBuffer::release);
     return responseBuffer;
   }
 

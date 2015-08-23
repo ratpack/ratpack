@@ -101,8 +101,8 @@ public interface ExecHarness extends AutoCloseable {
     return new DefaultExecHarness(new DefaultExecController(numThreads));
   }
 
-  default ExecStarter exec() {
-    return getController().exec();
+  default ExecStarter fork() {
+    return getController().fork();
   }
 
   ExecController getController();

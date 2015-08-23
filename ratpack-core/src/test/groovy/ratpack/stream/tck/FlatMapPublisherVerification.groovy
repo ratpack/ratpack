@@ -42,7 +42,7 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
           throw null
         }
 
-        execHarness.exec().start {
+        execHarness.fork().start {
           def stream = Streams.yield {
             it.requestNum < elements ? elements : null
           }

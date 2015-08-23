@@ -53,8 +53,8 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   }
 
   @Override
-  public void onCleanup(AutoCloseable autoCloseable) {
-    closeables.add(autoCloseable);
+  public void onComplete(AutoCloseable closeable) {
+    closeables.add(closeable);
   }
 
   @Override

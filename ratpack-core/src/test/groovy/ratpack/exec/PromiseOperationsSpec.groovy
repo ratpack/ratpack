@@ -37,7 +37,7 @@ class PromiseOperationsSpec extends Specification {
 
   def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness
-      .controller.exec()
+      .controller.fork()
       .onError(onError)
       .onComplete {
       events << "complete"
@@ -224,7 +224,7 @@ class PromiseOperationsSpec extends Specification {
   def "can defer promise"() {
     when:
     def runner = new BlockingVariable<Runnable>()
-    execHarness.controller.exec().onComplete { latch.countDown() }.start {
+    execHarness.controller.fork().onComplete { latch.countDown() }.start {
       Promise.of { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
         events << it
       }
@@ -244,7 +244,7 @@ class PromiseOperationsSpec extends Specification {
   def "deferred promise can use promises even when promises are queued"() {
     when:
     def runner = new BlockingVariable<Runnable>()
-    execHarness.controller.exec().onComplete { latch.countDown() }.start {
+    execHarness.controller.fork().onComplete { latch.countDown() }.start {
       Promise.value("foo").defer { runner.set(it) }.then {
         Promise.of { it.success("foo") }.then {
           events << "inner"

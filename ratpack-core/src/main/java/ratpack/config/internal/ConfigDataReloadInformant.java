@@ -62,7 +62,7 @@ public class ConfigDataReloadInformant implements ReloadInformant, Service {
     ScheduledExecutorService scheduledExecutorService = controller.getExecutor();
 
     Runnable poll = () ->
-      controller.exec().start(e -> {
+      controller.fork().start(e -> {
           if (shouldStop()) {
             return;
           }

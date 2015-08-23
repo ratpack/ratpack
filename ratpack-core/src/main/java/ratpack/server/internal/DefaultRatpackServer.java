@@ -376,7 +376,7 @@ public class DefaultRatpackServer implements RatpackServer {
   private <E> void executeEvents(Iterator<? extends Service> services, CountDownLatch latch, AtomicReference<Throwable> error, E event, BiAction<Service, E> action, BiAction<? super Service, ? super Throwable> onError) throws Exception {
     if (services.hasNext()) {
       Service service = services.next();
-      execController.exec()
+      execController.fork()
         .onError(t -> {
           try {
             onError.execute(service, t);
@@ -420,7 +420,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-      execController.exec().start(e ->
+      execController.fork().start(e ->
           Promise.<ChannelHandler>of(f -> {
             boolean rebuild = false;
 

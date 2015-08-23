@@ -46,7 +46,7 @@ public class DefaultExecHarness implements ExecHarness {
     final AtomicReference<ExecResult<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    controller.exec()
+    controller.fork()
       .register(registry)
       .onError(throwable -> {
         reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current()));
@@ -79,7 +79,7 @@ public class DefaultExecHarness implements ExecHarness {
     final AtomicReference<Throwable> thrown = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    controller.exec()
+    controller.fork()
       .onError(thrown::set)
       .register(registry)
       .onComplete(e ->

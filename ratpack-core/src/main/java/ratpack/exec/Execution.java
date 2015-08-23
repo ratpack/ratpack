@@ -19,58 +19,77 @@ package ratpack.exec;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import ratpack.exec.internal.ExecutionBacking;
+import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 
 import java.util.function.Supplier;
 
 /**
- * A <em>logical</em> stream of execution, which is potentially serialized over many threads.
+ * A logical operation, such as servicing a request, that may be comprised of non contiguous units of work.
  * <p>
- * Ratpack is non blocking.
- * This requires that IO and other blocking operations are performed asynchronously.
- * In completely synchronous execution, the thread and the call stack serve as the representation of a stream of execution,
- * with the execution being bound to a single thread exclusively for its entire duration.
- * The {@code Execution} concept in Ratpack brings some of the characteristics of the traditional single-thread exclusive model
- * to the asynchronous, non-exclusive, environment.
+ * In a synchronous environment, a logical operation is typically given exclusive access to a thread for its duration.
+ * The use of thread local variables for operation global state and try/catch as a global error handling strategy rely on this.
+ * The execution construct provides mechanisms to emulate constructs of synchronous programming that cannot be achieved the same way in asynchronous programming.
  * <p>
- * A well understood example of a logical <em>stream of execution</em> in the web application environment is the handling of a request.
- * This can be thought of as a single logical operation; the request comes in and processing happens until the response is sent back.
- * Many web application frameworks exclusively assign a thread to such a stream of execution, from a large thread pool.
- * If a blocking operation is performed during the execution, the thread sits <em>waiting</em> until it can continue (e.g. the IO completes, or the contended resource becomes available).
- * Thereby the <em>segments</em> of the execution are <em>serialized</em> and the call stack provides execution context.
- * Ratpack supports the <em>non-blocking</em> model, where threads do not wait.
- * Instead of threads waiting for IO or some future event, they are returned to the “pool” to be used by other executions (and therefore the pool can be smaller).
- * When the IO completes or the contended resource becomes available, execution continues with a new call stack and possibly on a different thread.
+ * Almost all work that occurs as part of a running Ratpack application happens during an execution.
+ * Ratpack APIs such as {@link Promise}, {@link Blocking} etc. can only be used within an execution.
+ * Request processing is always within an execution.
+ * When initiating other work (e.g. background processing), an execution can be created via {@link Execution#fork()}
  * <p>
- * <b>The execution object underpins an entire logical operation, even when that operation may be performed by multiple threads.</b>
+ * The term “execution segment” (sometimes just “segment”) is used to refer to a unit of work within an execution.
+ * An execution segment has exclusive access to a thread.
+ * All executions start with the segment given to the {@link ExecStarter#start(Action)} method.
+ * If the initial execution segment does not use any asynchronous APIs, the execution will be comprised of that single segment.
+ * When an asynchronous API is used, via {@link Promise#of(Upstream)}, the resumption of work when the result becomes available is within a new execution segment.
+ * During any execution segment, the {@link Execution#current()} method will return the current execution, giving global access to the execution object.
  * <p>
- * Importantly, it also <em>serializes</em> execution segments by way of the {@link Promise#of(Upstream)} method.
- * These methods are fundamentally asynchronous in that they facilitate performing operations where the result will arrive later without waiting for the result,
- * but are synchronous in that the operations they perform are serialized and not executed concurrently or in parallel.
- * <em>Crucially</em>, this means that state that is local to an execution does not need to be thread safe.
- * <h3>Executions and request handling</h3>
+ * Segments of an execution are never executed concurrently.
+ *
+ * <h3>Execution state (i.e. simulating thread locals)</h3>
  * <p>
- * The execution object actually underpins the {@link ratpack.handling.Context} objects that are used when handling requests.
- * It is rarely used directly when request handling, except when concurrency or parallelism is required to process data via the {@link Execution#fork()} method.
- * Moreover, it provides its own error handling and completion mechanisms.
- * </p>
+ * Each execution is a {@link MutableRegistry}.
+ * Objects can be added to this registry and then later retrieved at any time during the execution.
+ * The registry storage can be leveraged via an {@link ExecInterceptor} to manage thread local storage for execution segments.
+ *
+ * <h3>Error handling</h3>
+ * <p>
+ * When starting an execution, a global error handler can be specified via {@link ExecStarter#onError(Action)}.
+ * The default error handler simply logs the error to a logger named {@code ratpack.exec.Execution}.
+ * <p>
+ * The error handler for request processing executions forwards the exception to {@link ratpack.handling.Context#error(Throwable)}.
+ *
+ * <h3>Cleanup</h3>
+ * <p>
+ * The {@link #onComplete(AutoCloseable)} method can be used to register actions to invoke or resources to close when the execution completes.
+ *
+ * @see ExecInterceptor
+ * @see ExecInitializer
+ * @see ExecController
+ * @see Promise
  */
 public interface Execution extends MutableRegistry {
 
   /**
-   * Provides the currently execution execution.
-   * <p>
-   * This method will fail when called outside of a Ratpack compute thread as it relies on {@link ExecController#require()}.
+   * Provides the currently executing execution.
    *
    * @return the currently executing execution
+   * @throws UnmanagedThreadException if called from outside of an execution
    */
   static Execution current() throws UnmanagedThreadException {
     return ExecutionBacking.require().getExecution();
   }
 
+  /**
+   * Used to create a new execution.
+   * <p>
+   * This method obtains the thread bound {@link ExecController} and simply calls {@link ExecController#fork()}.
+   *
+   * @return an execution starter
+   * @throws UnmanagedThreadException if there is no thread bound execution controller (i.e. this was called on a thread that is not managed by the Ratpack application)
+   */
   static ExecStarter fork() throws UnmanagedThreadException {
-    return ExecController.require().exec();
+    return ExecController.require().fork();
   }
 
   /**
@@ -80,10 +99,25 @@ public interface Execution extends MutableRegistry {
    */
   ExecController getController();
 
+  /**
+   * The specific event loop that this execution is using for compute operations.
+   * <p>
+   * When integrating with asynchronous API that allows an executor to be specified that should be used to
+   * schedule the receipt of the value, use this executor.
+   *
+   * @return the event loop used by this execution
+   */
   EventLoop getEventLoop();
 
-  // TODO: this is not the right name.
-  void onCleanup(AutoCloseable autoCloseable);
+  /**
+   * Registers a closeable that will be closed when the execution completes.
+   * <p>
+   * Where possible, care should be taken to have the given closeable not throw exceptions.
+   * Any that are thrown will be logged and ignored.
+   *
+   * @param closeable the resource to close when the execution completes
+   */
+  void onComplete(AutoCloseable closeable);
 
   /**
    * {@inheritDoc}
@@ -130,11 +164,14 @@ public interface Execution extends MutableRegistry {
   /**
    * Adds an interceptor that wraps the rest of the current execution segment and all future segments of this execution.
    * <p>
-   * The given action is executed immediately (i.e. as opposed to being queued to be executed as the next execution segment).
+   * The given action is executed immediately.
    * Any code executed after a call to this method in the same execution segment <b>WILL NOT</b> be intercepted.
    * Therefore, it is advisable to not execute any code after calling this method in a given execution segment.
    * <p>
    * See {@link ExecInterceptor} for example use of an interceptor.
+   * <p>
+   * It is generally preferable to register the interceptor in the server registry, or execution registry when starting, than using this method.
+   * That way, the interceptor can interceptor all of the execution.
    *
    * @param execInterceptor the execution interceptor to add
    * @param continuation the rest of the code to be executed
