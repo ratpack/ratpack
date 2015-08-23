@@ -16,8 +16,8 @@
 
 package ratpack.exec;
 
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
-import ratpack.exec.internal.ExecutionBacking;
 import ratpack.exec.internal.ThreadBinding;
 import ratpack.func.Block;
 import ratpack.func.Factory;
@@ -51,8 +51,8 @@ public abstract class Blocking {
    */
   public static <T> Promise<T> get(Factory<T> factory) {
     return new DefaultPromise<>(downstream -> {
-      ExecutionBacking backing = ExecutionBacking.require();
-      backing.streamSubscribe(streamHandle ->
+      DefaultExecution execution = DefaultExecution.require();
+      execution.streamSubscribe(streamHandle ->
           CompletableFuture.supplyAsync(
             new Supplier<Result<T>>() {
               Result<T> result;
@@ -60,8 +60,8 @@ public abstract class Blocking {
               @Override
               public Result<T> get() {
                 try {
-                  ExecutionBacking.THREAD_BINDING.set(backing);
-                  backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getAllInterceptors().iterator(), () -> {
+                  DefaultExecution.THREAD_BINDING.set(execution);
+                  execution.intercept(ExecInterceptor.ExecType.BLOCKING, execution.getAllInterceptors().iterator(), () -> {
                     T value = factory.create();
                     result = Result.success(value);
                   });
@@ -69,15 +69,15 @@ public abstract class Blocking {
                 } catch (Throwable e) {
                   return Result.<T>error(e);
                 } finally {
-                  ExecutionBacking.THREAD_BINDING.remove();
+                  DefaultExecution.THREAD_BINDING.remove();
                 }
               }
-            }, backing.getExecution().getController().getBlockingExecutor()
+            }, execution.getController().getBlockingExecutor()
           ).thenAcceptAsync(v ->
               streamHandle.complete(() ->
                   downstream.accept(v)
               ),
-            backing.getEventLoop()
+            execution.getEventLoop()
           )
       );
     });
@@ -182,7 +182,7 @@ public abstract class Blocking {
    */
   public static <T> T on(Promise<T> promise) throws Exception {
     ThreadBinding.requireBlockingThread("Blocking.on() can only be used while blocking (i.e. use Blocking.get() first)");
-    ExecutionBacking backing = ExecutionBacking.require();
+    DefaultExecution backing = DefaultExecution.require();
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Result<T>> resultReference = new AtomicReference<>();
 

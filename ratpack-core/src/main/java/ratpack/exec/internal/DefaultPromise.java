@@ -74,7 +74,7 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   private void throwError(Throwable throwable) {
-    ExecutionBacking.require().streamSubscribe(h ->
+    DefaultExecution.require().streamSubscribe(h ->
         h.complete(() -> {
           throw Exceptions.toException(throwable);
         })

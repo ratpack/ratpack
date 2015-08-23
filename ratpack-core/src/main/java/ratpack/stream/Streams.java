@@ -19,7 +19,7 @@ package ratpack.stream;
 import org.reactivestreams.Publisher;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
-import ratpack.exec.internal.ExecutionBacking;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.Predicate;
@@ -539,6 +539,6 @@ public class Streams {
   }
 
   public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
-    return ExecutionBacking.stream(publisher);
+    return DefaultExecution.stream(publisher);
   }
 }

@@ -19,7 +19,7 @@ package ratpack.exec;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
-import ratpack.exec.internal.ExecutionBacking;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.*;
 
 import java.util.Objects;
@@ -63,7 +63,7 @@ public interface Promise<T> {
    * @return a promise for the asynchronously created value
    */
   static <T> Promise<T> of(Upstream<T> upstream) {
-    return new DefaultPromise<>(ExecutionBacking.upstream(upstream));
+    return new DefaultPromise<>(DefaultExecution.upstream(upstream));
   }
 
   /**
@@ -715,7 +715,7 @@ public interface Promise<T> {
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
     return transform(up -> down ->
-        ExecutionBacking.require().streamSubscribe(stream -> {
+        DefaultExecution.require().streamSubscribe(stream -> {
           try {
             releaser.execute((Runnable) () -> {
                 stream.event(() -> up.connect(down));

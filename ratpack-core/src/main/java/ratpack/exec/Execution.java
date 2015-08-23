@@ -18,7 +18,7 @@ package ratpack.exec;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
-import ratpack.exec.internal.ExecutionBacking;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
@@ -77,7 +77,7 @@ public interface Execution extends MutableRegistry {
    * @throws UnmanagedThreadException if called from outside of an execution
    */
   static Execution current() throws UnmanagedThreadException {
-    return ExecutionBacking.require().getExecution();
+    return DefaultExecution.require();
   }
 
   /**

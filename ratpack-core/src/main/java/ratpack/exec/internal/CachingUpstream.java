@@ -37,9 +37,9 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private class Job {
     final Downstream<? super T> downstream;
-    final ExecutionBacking.StreamHandle streamHandle;
+    final DefaultExecution.StreamHandle streamHandle;
 
-    private Job(Downstream<? super T> downstream, ExecutionBacking.StreamHandle streamHandle) {
+    private Job(Downstream<? super T> downstream, DefaultExecution.StreamHandle streamHandle) {
       this.downstream = downstream;
       this.streamHandle = streamHandle;
     }
@@ -91,7 +91,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         }
       });
     } else {
-      ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+      DefaultExecution.require().streamSubscribe((streamHandle) -> {
         waiting.add(new Job(downstream, streamHandle));
         if (result.get() != null) {
           tryDrain();
@@ -102,7 +102,7 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private void doDrainInNewSegment() {
     this.upstream = null; // release
-    ExecutionBacking.require().getEventLoop().execute(this::tryDrain);
+    DefaultExecution.require().getEventLoop().execute(this::tryDrain);
   }
 
 }

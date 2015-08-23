@@ -20,6 +20,7 @@ import io.netty.buffer.Unpooled
 import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.exec.Blocking
+import ratpack.exec.Execution
 import ratpack.func.Block
 import ratpack.groovy.handling.GroovyContext
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -48,7 +49,7 @@ class ResponseBodyReleaseSpec extends RatpackGroovyDslSpec {
   void executionCompletionReportingHandler(@DelegatesTo(value = GroovyContext, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     handlers {
       all({
-        execution.onCleanup { requestExecutionCompleted.countDown() }
+        Execution.current().onComplete { requestExecutionCompleted.countDown() }
       } << handler)
     }
   }

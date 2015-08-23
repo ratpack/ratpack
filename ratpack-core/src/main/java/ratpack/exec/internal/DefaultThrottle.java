@@ -47,7 +47,7 @@ public class DefaultThrottle implements Throttle {
         up.connect(down);
       } else {
         active.decrementAndGet();
-        ExecutionBacking.require().streamSubscribe((streamHandle) -> {
+        DefaultExecution.require().streamSubscribe((streamHandle) -> {
           queue.add(() -> {
               streamHandle.event(() -> up.connect(down));
               streamHandle.complete();

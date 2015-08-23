@@ -41,7 +41,7 @@ import static ratpack.func.Action.noop;
 
 public class DefaultExecController implements ExecControllerInternal {
 
-  private static final Action<Throwable> LOG_UNCAUGHT = t -> ExecutionBacking.LOGGER.error("Uncaught execution exception", t);
+  private static final Action<Throwable> LOG_UNCAUGHT = t -> DefaultExecution.LOGGER.error("Uncaught execution exception", t);
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecutorService blockingExecutor;
@@ -169,7 +169,7 @@ public class DefaultExecController implements ExecControllerInternal {
             onError.execute(t);
           } else {
             seen.forEach(t::addSuppressed);
-            ExecutionBacking.LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
+            DefaultExecution.LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
           }
         };
         return this;
@@ -195,11 +195,15 @@ public class DefaultExecController implements ExecControllerInternal {
 
       @Override
       public void start(Action<? super Execution> initialExecutionSegment) {
-        if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
-          Exceptions.uncheck(() -> new ExecutionBacking(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete));
+        if (eventLoop.inEventLoop() && DefaultExecution.get() == null) {
+          try {
+            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete);
+          } catch (Exception e) {
+            throw new InternalError("could not start execution", e);
+          }
         } else {
           eventLoop.submit(() ->
-              new ExecutionBacking(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
+              new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
           );
         }
       }
