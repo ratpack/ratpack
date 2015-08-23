@@ -22,13 +22,12 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutor;
-import ratpack.exec.ExecStarter;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.ExecStarter;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
-import ratpack.util.Exceptions;
 import ratpack.util.internal.ChannelImplDetector;
 
 import java.util.List;
