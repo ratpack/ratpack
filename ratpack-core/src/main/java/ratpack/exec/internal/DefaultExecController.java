@@ -22,7 +22,7 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutor;
-import ratpack.exec.ExecBuilder;
+import ratpack.exec.ExecStarter;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
@@ -146,8 +146,8 @@ public class DefaultExecController implements ExecControllerInternal {
   }
 
   @Override
-  public ExecBuilder exec() {
-    return new ExecBuilder() {
+  public ExecStarter exec() {
+    return new ExecStarter() {
       private Action<? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
       private Action<? super Execution> onStart = noop();
@@ -155,13 +155,13 @@ public class DefaultExecController implements ExecControllerInternal {
       private EventLoop eventLoop = getEventLoopGroup().next();
 
       @Override
-      public ExecBuilder eventLoop(EventLoop eventLoop) {
+      public ExecStarter eventLoop(EventLoop eventLoop) {
         this.eventLoop = eventLoop;
         return this;
       }
 
       @Override
-      public ExecBuilder onError(Action<? super Throwable> onError) {
+      public ExecStarter onError(Action<? super Throwable> onError) {
         List<Throwable> seen = Lists.newArrayListWithCapacity(0);
         this.onError = t -> {
           if (seen.size() < MAX_ERRORS_THRESHOLD) {
@@ -176,30 +176,30 @@ public class DefaultExecController implements ExecControllerInternal {
       }
 
       @Override
-      public ExecBuilder onComplete(Action<? super Execution> onComplete) {
+      public ExecStarter onComplete(Action<? super Execution> onComplete) {
         this.onComplete = onComplete;
         return this;
       }
 
       @Override
-      public ExecBuilder onStart(Action<? super Execution> onStart) {
+      public ExecStarter onStart(Action<? super Execution> onStart) {
         this.onStart = onStart;
         return this;
       }
 
       @Override
-      public ExecBuilder register(Action<? super RegistrySpec> action) {
+      public ExecStarter register(Action<? super RegistrySpec> action) {
         this.registry = action;
         return this;
       }
 
       @Override
-      public void start(Action<? super Execution> action) {
+      public void start(Action<? super Execution> initialExecutionSegment) {
         if (eventLoop.inEventLoop() && ExecutionBacking.get() == null) {
-          Exceptions.uncheck(() -> new ExecutionBacking(DefaultExecController.this, eventLoop, registry, action, onError, onStart, onComplete));
+          Exceptions.uncheck(() -> new ExecutionBacking(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete));
         } else {
           eventLoop.submit(() ->
-              new ExecutionBacking(DefaultExecController.this, eventLoop, registry, action, onError, onStart, onComplete)
+              new ExecutionBacking(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
           );
         }
       }

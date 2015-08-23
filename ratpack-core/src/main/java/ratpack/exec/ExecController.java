@@ -53,7 +53,7 @@ public interface ExecController extends AutoCloseable {
     return current().orElseThrow(UnmanagedThreadException::new);
   }
 
-  ExecBuilder exec();
+  ExecStarter exec();
 
   /**
    * Indicates whether the current thread is managed by <b>this</b> execution controller.

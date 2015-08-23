@@ -16,15 +16,16 @@
 
 package ratpack.exec;
 
+import ratpack.func.Action;
 import ratpack.func.Block;
 
 /**
- * Intercepts execution, primarily for traceability and recording metrics.
+ * Intercepts execution segments of an execution, primarily for traceability and recording metrics.
  * <p>
- * The interception methods <i>wrap</i> the rest of the execution.
- * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
- * <p>
- * Request handling execution can be intercepted by the {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)} method.
+ * Interceptors present the base registry will be implicitly applied to all executions.
+ * Execution specific interceptors can be registered via the {@link ExecStarter#register(Action)} method when starting the execution.
+ * The {@link Execution#addInterceptor(ExecInterceptor, Block)} method allows interceptors to be registered during an execution, for the rest of the execution.
+ *
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.exec.Execution;
@@ -110,7 +111,6 @@ import ratpack.func.Block;
  *   }
  * }
  * }</pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)}.
  *
  * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)
  */
@@ -123,12 +123,12 @@ public interface ExecInterceptor {
   enum ExecType {
 
     /**
-     * The execution is performing blocking IO.
+     * The execution segment is executing on a blocking thread.
      */
     BLOCKING,
 
     /**
-     * The execution is performing computation (i.e. it is not blocking)
+     * The execution segment is executing on a compute thread.
      */
     COMPUTE
   }

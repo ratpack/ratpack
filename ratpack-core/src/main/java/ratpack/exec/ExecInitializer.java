@@ -26,7 +26,7 @@ public interface ExecInitializer {
    * <p>
    * Implementations of this method typically add objects to the execution (as it's a registry).
    * <p>
-   * This is called before {@link ExecBuilder#start(Action)}, but after {@link ExecBuilder#onStart(Action)}.
+   * This is called before {@link ExecStarter#start(Action)}, but after {@link ExecStarter#onStart(Action)}.
    *
    * @param execution the execution that is about to be started.
    */

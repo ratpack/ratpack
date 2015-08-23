@@ -22,19 +22,42 @@ import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
 
 /**
- * Builds, and initiates, a new {@link Execution execution}.
+ * Starts a new {@link Execution}.
  *
  * @see Execution#fork()
  */
-public interface ExecBuilder {
+public interface ExecStarter {
 
   /**
    * Specify the top level error handler for the execution.
+   * <p>
+   * The given action will be invoked with any exceptions that are thrown and not handled.
+   * <pre class="java">{@code
+   * import org.junit.Assert;
+   * import ratpack.exec.Execution;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     String value = ExecHarness.<String>yieldSingle(e -> Promise.of(d ->
+   *         Execution.fork()
+   *           .onError(t -> d.success("global error handler"))
+   *           .start(e1 ->
+   *               Promise.error(new RuntimeException("bang1"))
+   *                 .then(v -> d.success("should not be called"))
+   *           )
+   *     )).getValue();
+   *
+   *     Assert.assertEquals("global error handler", value);
+   *   }
+   * }
+   * }</pre>
    *
    * @param onError the top level error handler for the execution
    * @return {@code this}
    */
-  ExecBuilder onError(Action<? super Throwable> onError);
+  ExecStarter onError(Action<? super Throwable> onError);
 
   /**
    * Specifies the completion callback for the execution.
@@ -55,7 +78,7 @@ public interface ExecBuilder {
    * @param onComplete the action to invoke when the execution completes.
    * @return {@code this}
    */
-  ExecBuilder onComplete(Action<? super Execution> onComplete);
+  ExecStarter onComplete(Action<? super Execution> onComplete);
 
   /**
    * Specifies an action to be taken just before the execution starts.
@@ -68,7 +91,7 @@ public interface ExecBuilder {
    * @param onStart the action to invoke just before the execution starts
    * @return {@code this}
    */
-  ExecBuilder onStart(Action<? super Execution> onStart);
+  ExecStarter onStart(Action<? super Execution> onStart);
 
   /**
    * Populates the execution's registry.
@@ -79,7 +102,7 @@ public interface ExecBuilder {
    * @param action the initial contents of the execution's registry.
    * @return {@code this}
    */
-  ExecBuilder register(Action<? super RegistrySpec> action);
+  ExecStarter register(Action<? super RegistrySpec> action);
 
   /**
    * Specifies that the execution must run on the given event loop.
@@ -90,16 +113,14 @@ public interface ExecBuilder {
    * @param eventLoop the event loop to use for the execution
    * @return {@code this}
    */
-  ExecBuilder eventLoop(EventLoop eventLoop);
+  ExecStarter eventLoop(EventLoop eventLoop);
 
   /**
-   * Initiate the new execution.
-   * <p>
-   * This method effectively returns immediately, with the forked execution occurring on a separate thread.
+   * Starts the execution, with the given action as the initial segment.
    *
-   * @param action the initial execution segment of the execution
+   * @param initialExecutionSegment the initial execution segment of the execution
    */
   @NonBlocking
-  void start(Action<? super Execution> action);
+  void start(Action<? super Execution> initialExecutionSegment);
 
 }
