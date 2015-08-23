@@ -28,7 +28,6 @@ include \
     "ratpack-handlebars",
     "ratpack-remote",
     "ratpack-remote-test",
-    "ratpack-reactor",
     "ratpack-rx",
     "ratpack-dropwizard-metrics",
     "ratpack-h2",
