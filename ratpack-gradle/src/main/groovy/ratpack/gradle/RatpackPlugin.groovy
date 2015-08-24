@@ -19,8 +19,8 @@ package ratpack.gradle
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.plugins.ApplicationPlugin
-import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
@@ -55,8 +55,8 @@ class RatpackPlugin implements Plugin<Project> {
     def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
     mainSourceSet.resources.srcDir { ratpackExtension.baseDir }
 
-    def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
-    appPluginConvention.applicationDistribution.from(mainSourceSet.resources) {
+    def mainDistribution = project.extensions.getByType(DistributionContainer).getByName("main")
+    mainDistribution.contents.from(mainSourceSet.resources) {
       into "app"
     }
 
