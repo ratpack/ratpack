@@ -75,8 +75,6 @@ class ThrottleSpec extends Specification {
 
     then:
     polling.eventually {
-      println q.size()
-      println t.size
       q.size() == t.size
       t.active == q.size()
       t.waiting == jobs - t.size
