@@ -100,8 +100,8 @@ public class RatpackContinuousRun extends DefaultTask {
     WorkerProcess process = builder.worker(new RatpackWorkerServer(new DefaultRatpackAdapter(createRatpackSpec()))).build();
     process.start();
 
-    RatpackAdapter adapter = process.getConnection().addOutgoing(RatpackAdapter.class);
-    Signal signal = new DefaultSignal();
+    final RatpackAdapter adapter = process.getConnection().addOutgoing(RatpackAdapter.class);
+    final Signal signal = new DefaultSignal();
     process.getConnection().addIncoming(Signal.class, signal);
     process.getConnection().connect();
     return new RatpackAdapter() {
@@ -139,8 +139,8 @@ public class RatpackContinuousRun extends DefaultTask {
 
   private RatpackSpec createRatpackSpec() {
     Set<File> classpath = execSpec.getClasspath().getFiles();
-    List<URL> changing = new ArrayList<>();
-    List<URL> nonChanging = new ArrayList<>();
+    List<URL> changing = new ArrayList<URL>();
+    List<URL> nonChanging = new ArrayList<URL>();
 
     String absoluteRootDirPath = getProject().getRootDir().getAbsolutePath();
     for (File file : classpath) {

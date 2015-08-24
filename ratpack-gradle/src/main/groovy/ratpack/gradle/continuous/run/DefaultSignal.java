@@ -21,7 +21,7 @@ import java.util.concurrent.SynchronousQueue;
 public class DefaultSignal implements Signal {
 
   @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-  private final SynchronousQueue<Object> queue = new SynchronousQueue<>();
+  private final SynchronousQueue<Object> queue = new SynchronousQueue<Object>();
 
   @Override
   public void await() {
