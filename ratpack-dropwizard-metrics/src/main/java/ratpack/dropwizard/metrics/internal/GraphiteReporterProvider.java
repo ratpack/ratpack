@@ -18,8 +18,8 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.GraphiteReporter;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
-import ratpack.dropwizard.metrics.Graphite;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
+import ratpack.dropwizard.metrics.GraphiteConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -31,18 +31,18 @@ import java.util.Optional;
 public class GraphiteReporterProvider implements Provider<GraphiteReporter> {
 
   private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsModule.Config config;
+  private final DropwizardMetricsConfig config;
 
   @Inject
-  public GraphiteReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsModule.Config config) {
+  public GraphiteReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
   }
 
   @Override
   public GraphiteReporter get() {
-    Optional<Graphite> graphite = config.getGraphite();
-    boolean enabled = graphite.map(Graphite::isEnabled).orElse(false);
+    Optional<GraphiteConfig> graphite = config.getGraphite();
+    boolean enabled = graphite.map(GraphiteConfig::isEnabled).orElse(false);
     if (!enabled) {
       return null;
     }
@@ -67,4 +67,5 @@ public class GraphiteReporterProvider implements Provider<GraphiteReporter> {
     });
     return builder.build(graphite.get().getSender());
   }
+
 }

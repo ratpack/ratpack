@@ -17,7 +17,7 @@
 package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.ExecController;
 import ratpack.stream.internal.PeriodicPublisher;
 
@@ -28,7 +28,7 @@ public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricReg
   private static final Duration DEFAULT_REPORTER_INTERVAL = Duration.ofSeconds(30);
 
   @Inject
-  public MetricRegistryPeriodicPublisher(final MetricRegistry metricRegistry, DropwizardMetricsModule.Config config, ExecController execController) {
+  public MetricRegistryPeriodicPublisher(final MetricRegistry metricRegistry, DropwizardMetricsConfig config, ExecController execController) {
     super(
       execController.getExecutor(),
       i -> metricRegistry,

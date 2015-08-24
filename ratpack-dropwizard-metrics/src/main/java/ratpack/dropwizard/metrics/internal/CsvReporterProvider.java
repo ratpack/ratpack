@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
+import ratpack.dropwizard.metrics.CsvConfig;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -28,10 +28,10 @@ import javax.inject.Provider;
  */
 public class CsvReporterProvider implements Provider<CsvReporter> {
   private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsModule.Config config;
+  private final DropwizardMetricsConfig config;
 
   @Inject
-  public CsvReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsModule.Config config) {
+  public CsvReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
   }
@@ -39,7 +39,7 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
   @Override
   public CsvReporter get() {
     if (config.getCsv().isPresent()) {
-      DropwizardMetricsModule.Config.Csv csv = config.getCsv().get();
+      CsvConfig csv = config.getCsv().get();
       CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
       if (csv.getIncludeFilter() != null || csv.getExcludeFilter() != null) {
         builder.filter(new RegexMetricFilter(csv.getIncludeFilter(), csv.getExcludeFilter()));
@@ -49,5 +49,5 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
       return null;
     }
   }
-}
 
+}

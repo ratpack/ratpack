@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.MetricRegistry;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -28,10 +27,10 @@ import javax.inject.Provider;
  */
 public class Slf4jReporterProvider implements Provider<Slf4jReporter> {
   private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsModule.Config config;
+  private final DropwizardMetricsConfig config;
 
   @Inject
-  public Slf4jReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsModule.Config config) {
+  public Slf4jReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
   }

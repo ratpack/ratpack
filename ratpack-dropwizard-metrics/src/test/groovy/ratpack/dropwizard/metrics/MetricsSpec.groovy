@@ -364,7 +364,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can use metrics endpoint"() {
     given:
     bindings {
-      module new DropwizardMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofSeconds(1)).excludeFilter("2xx-responses") } }
+      module new DropwizardMetricsModule(), { it.webSocket { it.reporterInterval(Duration.ofMillis(2000)).excludeFilter("2xx-responses") } }
     }
     handlers { MetricRegistry metrics ->
 

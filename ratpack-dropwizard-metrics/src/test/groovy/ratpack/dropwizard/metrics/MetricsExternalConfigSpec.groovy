@@ -37,7 +37,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     def config = ConfigData.of { c -> c.props(propsFile) }
-    def metricsConfig = config.get("/metrics", DropwizardMetricsModule.Config)
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
 
     expect:
     metricsConfig.isJvmMetrics()
@@ -57,7 +57,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     def config = ConfigData.of { c -> c.props(propsFile) }
-    def metricsConfig = config.get("/metrics", DropwizardMetricsModule.Config)
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
 
     expect:
     !metricsConfig.isJvmMetrics()
@@ -77,7 +77,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     def config = ConfigData.of { c -> c.props(propsFile) }
-    def metricsConfig = config.get("/metrics", DropwizardMetricsModule.Config)
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
 
     expect:
     !metricsConfig.isJvmMetrics()
@@ -98,7 +98,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     def config = ConfigData.of { c -> c.props(propsFile) }
-    def metricsConfig = config.get("/metrics", DropwizardMetricsModule.Config)
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
 
     expect:
     !metricsConfig.isJvmMetrics()
@@ -121,7 +121,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     def config = ConfigData.of { c -> c.props(propsFile) }
 
     when:
-    config.get("/metrics", DropwizardMetricsModule.Config)
+    config.get("/metrics", DropwizardMetricsConfig)
 
     then:
     thrown UncheckedIOException

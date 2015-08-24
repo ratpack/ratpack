@@ -44,7 +44,7 @@ public class MetricsWebsocketBroadcastHandler implements Handler {
   public void handle(final Context context) throws Exception {
     final MetricsBroadcaster broadcaster = context.get(MetricsBroadcaster.class);
     final ByteBufAllocator byteBufAllocator = context.get(ByteBufAllocator.class);
-    final DropwizardMetricsModule.Config config = context.get(DropwizardMetricsModule.Config.class);
+    final DropwizardMetricsConfig config = context.get(DropwizardMetricsConfig.class);
 
     MetricFilter filter = MetricFilter.ALL;
     if (config.getWebSocket().isPresent()) {

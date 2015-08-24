@@ -15,23 +15,17 @@
  */
 package ratpack.dropwizard.metrics;
 
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.graphite.GraphiteSender;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
  * A Configuration implementation to setup {@link GraphiteReporter} instances
  */
-public class Graphite {
-  private Duration reporterInterval = DropwizardMetricsModule.Config.DEFAULT_INTERVAL;
+public class GraphiteConfig extends ScheduledReporterConfigSupport<GraphiteConfig> {
   private GraphiteSender sender;
   private boolean enabled = true;
-
-  private String includeFilter;
-  private String excludeFilter;
   private String prefix;
   private TimeUnit rateUnit;
   private TimeUnit durationUnit;
@@ -42,7 +36,7 @@ public class Graphite {
    * @return the state of the Graphite publisher
    */
   public boolean isEnabled() {
-    return enabled;
+    return this.enabled;
   }
 
   /**
@@ -50,7 +44,7 @@ public class Graphite {
    *
    * @return this
    */
-  public Graphite enable() {
+  public GraphiteConfig enable() {
     this.enabled = true;
     return this;
   }
@@ -60,28 +54,8 @@ public class Graphite {
    *
    * @return this
    */
-  public Graphite disable() {
+  public GraphiteConfig disable() {
     this.enabled = false;
-    return this;
-  }
-
-  /**
-   * The interval between metrics reports.
-   *
-   * @return the interval between metrics reports
-   */
-  public Duration getReporterInterval() {
-    return reporterInterval;
-  }
-
-  /**
-   * Configure the interval between broadcasts.
-   *
-   * @param reporterInterval the report interval
-   * @return {@code this}
-   */
-  public Graphite reporterInterval(Duration reporterInterval) {
-    this.reporterInterval = reporterInterval;
     return this;
   }
 
@@ -91,7 +65,7 @@ public class Graphite {
    * @return the Graphite report sender
    */
   public GraphiteSender getSender() {
-    return sender;
+    return this.sender;
   }
 
   /**
@@ -100,48 +74,8 @@ public class Graphite {
    * @param sender the report sender
    * @return {@code this}
    */
-  public Graphite sender(GraphiteSender sender) {
+  public GraphiteConfig sender(GraphiteSender sender) {
     this.sender = sender;
-    return this;
-  }
-
-  /**
-   * The state of the inclusion metric filter
-   *
-   * @return the inclusion filter
-   */
-  public String getIncludeFilter() {
-    return includeFilter;
-  }
-
-  /**
-   * Only report metrics which match the given filter.
-   *
-   * @param includeFilter a {@link MetricFilter}
-   * @return {@code this}
-   */
-  public Graphite includeFilter(String includeFilter) {
-    this.includeFilter = includeFilter;
-    return this;
-  }
-
-  /**
-   * The state of the exclusion metric filter
-   *
-   * @return the exclusion filter
-   */
-  public String getExcludeFilter() {
-    return excludeFilter;
-  }
-
-  /**
-   * Do not report metrics which match the given filter.
-   *
-   * @param excludeFilter a {@link MetricFilter}
-   * @return {@code this}
-   */
-  public Graphite excludeFilter(String excludeFilter) {
-    this.excludeFilter = excludeFilter;
     return this;
   }
 
@@ -151,7 +85,7 @@ public class Graphite {
    * @return the metric prefix value
    */
   public String getPrefix() {
-    return prefix;
+    return this.prefix;
   }
 
   /**
@@ -160,7 +94,7 @@ public class Graphite {
    * @param prefix the prefix for all metric names
    * @return {@code this}
    */
-  public Graphite prefix(String prefix) {
+  public GraphiteConfig prefix(String prefix) {
     this.prefix = prefix;
     return this;
   }
@@ -171,7 +105,7 @@ public class Graphite {
    * @return the rate conversion unit
    */
   public TimeUnit getRateUnit() {
-    return rateUnit;
+    return this.rateUnit;
   }
 
   /**
@@ -180,7 +114,7 @@ public class Graphite {
    * @param rateUnit a unit of time
    * @return {@code this}
    */
-  public Graphite rateUnit(TimeUnit rateUnit) {
+  public GraphiteConfig rateUnit(TimeUnit rateUnit) {
     this.rateUnit = rateUnit;
     return this;
   }
@@ -191,7 +125,7 @@ public class Graphite {
    * @return the duration conversion unit
    */
   public TimeUnit getDurationUnit() {
-    return durationUnit;
+    return this.durationUnit;
   }
 
   /**
@@ -200,8 +134,9 @@ public class Graphite {
    * @param durationUnit a unit of time
    * @return {@code this}
    */
-  public Graphite durationUnit(TimeUnit durationUnit) {
+  public GraphiteConfig durationUnit(TimeUnit durationUnit) {
     this.durationUnit = durationUnit;
     return this;
   }
+
 }

@@ -20,7 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Block;
@@ -33,10 +33,10 @@ import java.util.Optional;
 public class BlockingExecTimingInterceptor implements ExecInterceptor {
 
   private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsModule.Config config;
+  private final DropwizardMetricsConfig config;
 
   @Inject
-  public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsModule.Config config) {
+  public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
   }

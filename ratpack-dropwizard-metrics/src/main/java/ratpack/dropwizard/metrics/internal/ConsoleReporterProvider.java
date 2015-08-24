@@ -18,7 +18,7 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -28,10 +28,10 @@ import javax.inject.Provider;
  */
 public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
   private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsModule.Config config;
+  private final DropwizardMetricsConfig config;
 
   @Inject
-  public ConsoleReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsModule.Config config) {
+  public ConsoleReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
   }
@@ -46,5 +46,5 @@ public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
     });
     return builder.build();
   }
-}
 
+}

@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import ratpack.dropwizard.metrics.DropwizardMetricsModule;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -30,10 +29,10 @@ import java.util.concurrent.TimeUnit;
 public class RequestTimingHandler implements Handler {
 
   private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsModule.Config config;
+  private final DropwizardMetricsConfig config;
 
   @Inject
-  public RequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsModule.Config config) {
+  public RequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
   }
