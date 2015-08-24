@@ -49,7 +49,7 @@ import java.nio.file.Path;
  * <pre class="java">{@code
  * import ratpack.groovy.template.MarkupTemplateModule;
  * import ratpack.guice.Guice;
- * import ratpack.test.embed.EmbeddedBaseDir;
+ * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.nio.file.Path;
@@ -59,7 +59,7 @@ import java.nio.file.Path;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
- *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
  *       baseDir.write("templates/myTemplate.gtpl", "html { body { p(value) } }");
  *       EmbeddedApp.of(s -> s
  *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))

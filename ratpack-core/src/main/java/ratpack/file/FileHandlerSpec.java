@@ -34,14 +34,14 @@ public interface FileHandlerSpec {
    * The default value is effectively {@code ""}, which means that existing path binding is used.
    *
    * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedBaseDir;
+   * import ratpack.test.embed.EphemeralBaseDir;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static junit.framework.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+   *     EphemeralBaseDir.tmpDir().use(baseDir -> {
    *       baseDir.write("a.txt", "a");
    *       EmbeddedApp.of(s -> s
    *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
@@ -74,14 +74,14 @@ public interface FileHandlerSpec {
    * The default value is effectively {@code ""}, which means that existing file system binding is used.
    *
    * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedBaseDir;
+   * import ratpack.test.embed.EphemeralBaseDir;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static junit.framework.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+   *     EphemeralBaseDir.tmpDir().use(baseDir -> {
    *       baseDir.write("dir/a.txt", "a");
    *       EmbeddedApp.of(s -> s
    *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
@@ -116,14 +116,14 @@ public interface FileHandlerSpec {
    * The default value is effectively {@code ""}, which means that existing path binding and file system binding is used.
    *
    * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedBaseDir;
+   * import ratpack.test.embed.EphemeralBaseDir;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static junit.framework.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+   *     EphemeralBaseDir.tmpDir().use(baseDir -> {
    *       baseDir.write("dir/a.txt", "a");
    *       EmbeddedApp.of(s -> s
    *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
@@ -155,14 +155,14 @@ public interface FileHandlerSpec {
    * The first that is found is served.
    *
    * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedBaseDir;
+   * import ratpack.test.embed.EphemeralBaseDir;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static junit.framework.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+   *     EphemeralBaseDir.tmpDir().use(baseDir -> {
    *       baseDir.write("dir1/a.txt", "a1");
    *       baseDir.write("dir1/b.txt", "b1");
    *       baseDir.write("dir2/b.txt", "b2");

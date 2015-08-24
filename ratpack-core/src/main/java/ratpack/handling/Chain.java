@@ -268,14 +268,14 @@ public interface Chain {
    * The portion of the request path <i>past</i> the path binding identifies the target file within the directory.
    *
    * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedBaseDir;
+   * import ratpack.test.embed.EphemeralBaseDir;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+   *     EphemeralBaseDir.tmpDir().use(baseDir -> {
    *       baseDir.write("public/some.text", "foo");
    *       baseDir.write("public/index.html", "bar");
    *       EmbeddedApp.of(s -> s

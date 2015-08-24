@@ -17,8 +17,8 @@
 package ratpack.test.embed;
 
 import ratpack.func.Action;
-import ratpack.test.embed.internal.JarFileEmbeddedBaseDir;
-import ratpack.test.embed.internal.PathEmbeddedBaseDir;
+import ratpack.test.embed.internal.JarFileEphemeralBaseDir;
+import ratpack.test.embed.internal.PathEphemeralBaseDir;
 import ratpack.util.Exceptions;
 
 import java.io.Closeable;
@@ -47,14 +47,14 @@ import java.nio.file.attribute.FileTime;
  * It is generally always desirable to close the base dir in order not to leave files around.
  * The {@link #use(Action)} method allows an action to be executed before having the base dir be automatically closed.
  */
-public interface EmbeddedBaseDir extends AutoCloseable {
+public interface EphemeralBaseDir extends AutoCloseable {
 
   /**
    * Creates a new base dir, using a newly created dir within the JVM's assigned temp dir.
    *
    * @return a new embedded base dir
    */
-  static EmbeddedBaseDir tmpDir() {
+  static EphemeralBaseDir tmpDir() {
     return dir(com.google.common.io.Files.createTempDir());
   }
 
@@ -66,8 +66,8 @@ public interface EmbeddedBaseDir extends AutoCloseable {
    * @param dir the base dir root
    * @return a new embedded base dir
    */
-  static EmbeddedBaseDir dir(File dir) {
-    return new PathEmbeddedBaseDir(dir);
+  static EphemeralBaseDir dir(File dir) {
+    return new PathEphemeralBaseDir(dir);
   }
 
   /**
@@ -78,7 +78,7 @@ public interface EmbeddedBaseDir extends AutoCloseable {
    *
    * @return a new embedded base dir
    */
-  static EmbeddedBaseDir tmpJar() {
+  static EphemeralBaseDir tmpJar() {
     return jar(Exceptions.uncheck(() -> File.createTempFile("ratpack", ".jar")));
   }
 
@@ -93,8 +93,8 @@ public interface EmbeddedBaseDir extends AutoCloseable {
    * @param jarFile the location of the jar to act as a base dir
    * @return a new embedded base dir
    */
-  static EmbeddedBaseDir jar(File jarFile) {
-    return new JarFileEmbeddedBaseDir(jarFile);
+  static EphemeralBaseDir jar(File jarFile) {
+    return new JarFileEphemeralBaseDir(jarFile);
   }
 
   /**
@@ -102,7 +102,7 @@ public interface EmbeddedBaseDir extends AutoCloseable {
    *
    * @return {@code this}
    */
-  default EmbeddedBaseDir closeOnExit() {
+  default EphemeralBaseDir closeOnExit() {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -122,7 +122,7 @@ public interface EmbeddedBaseDir extends AutoCloseable {
    * @param action the action to execute before closing this base dir
    * @throws Exception any thrown by {@code action}
    */
-  default void use(Action<? super EmbeddedBaseDir> action) throws Exception {
+  default void use(Action<? super EphemeralBaseDir> action) throws Exception {
     try {
       action.execute(this);
     } finally {

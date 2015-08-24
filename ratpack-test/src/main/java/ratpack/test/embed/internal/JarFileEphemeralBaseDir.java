@@ -29,9 +29,9 @@ import java.util.Map;
 
 import static ratpack.util.Exceptions.uncheck;
 
-public class JarFileEmbeddedBaseDir extends PathEmbeddedBaseDir {
+public class JarFileEphemeralBaseDir extends PathEphemeralBaseDir {
 
-  public JarFileEmbeddedBaseDir(File jar) {
+  public JarFileEphemeralBaseDir(File jar) {
     super(getJarPath(jar), jar.toPath());
   }
 

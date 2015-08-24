@@ -63,7 +63,7 @@ The following example demonstrates using `BaseDir.find()` to discover the base d
 
 ```language-java
 import ratpack.server.ServerConfig;
-import ratpack.test.embed.EmbeddedBaseDir;
+import ratpack.test.embed.EphemeralBaseDir;
 import ratpack.test.embed.EmbeddedApp;
 
 import java.net.URL;
@@ -74,7 +74,7 @@ import static org.junit.Assert.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
-    EmbeddedBaseDir.tmpDir().use(baseDir -> {
+    EphemeralBaseDir.tmpDir().use(baseDir -> {
       baseDir.write("mydir/.ratpack", "");
       baseDir.write("mydir/assets/message.txt", "Hello Ratpack!");
       Path mydir = baseDir.getRoot().resolve("mydir");

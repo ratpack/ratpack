@@ -16,27 +16,27 @@
 
 package ratpack.test.embed.internal;
 
-import ratpack.test.embed.EmbeddedBaseDir;
+import ratpack.test.embed.EphemeralBaseDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
-public class PathEmbeddedBaseDir implements EmbeddedBaseDir {
+public class PathEphemeralBaseDir implements EphemeralBaseDir {
 
   private final Path baseDir;
   private final Path toDelete;
 
-  public PathEmbeddedBaseDir(File baseDir) {
+  public PathEphemeralBaseDir(File baseDir) {
     this(baseDir.toPath());
   }
 
-  public PathEmbeddedBaseDir(Path baseDir) {
+  public PathEphemeralBaseDir(Path baseDir) {
     this(baseDir, baseDir);
   }
 
-  public PathEmbeddedBaseDir(Path baseDir, Path toDelete) {
+  public PathEphemeralBaseDir(Path baseDir, Path toDelete) {
     this.baseDir = baseDir;
     this.toDelete = toDelete;
   }

@@ -52,7 +52,7 @@ import java.util.Set;
  * not specified will default to {@code text/html}.
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
- * import ratpack.test.embed.EmbeddedBaseDir;
+ * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.thymeleaf.ThymeleafModule;
  *
@@ -64,7 +64,7 @@ import java.util.Set;
  * public class Example {
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
  *       baseDir.write("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>");
  *       EmbeddedApp.of(s -> s
  *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))

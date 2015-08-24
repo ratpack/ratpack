@@ -16,14 +16,14 @@
 
 package ratpack.server.internal
 
-import ratpack.test.embed.EmbeddedBaseDir
+import ratpack.test.embed.EphemeralBaseDir
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class BaseDirFinderSpec extends Specification {
 
   @AutoCleanup
-  EmbeddedBaseDir b1 = EmbeddedBaseDir.tmpDir()
+  EphemeralBaseDir b1 = EphemeralBaseDir.tmpDir()
 
   def classLoader = new GroovyClassLoader()
 
@@ -48,7 +48,7 @@ class BaseDirFinderSpec extends Specification {
     def f = File.createTempFile("ratpack", "test")
     f.delete()
     f.deleteOnExit()
-    def dir = EmbeddedBaseDir.jar(f)
+    def dir = EphemeralBaseDir.jar(f)
       dir.path("foo") << "bar"
     dir.root.getFileSystem().close()
     classLoader.addURL(f.toURI().toURL())

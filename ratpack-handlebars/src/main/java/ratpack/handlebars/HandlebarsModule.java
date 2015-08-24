@@ -59,7 +59,7 @@ import ratpack.server.ServerConfig;
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
  * import ratpack.handlebars.HandlebarsModule;
- * import ratpack.test.embed.EmbeddedBaseDir;
+ * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  * import java.nio.file.Path;
  *
@@ -68,7 +68,7 @@ import ratpack.server.ServerConfig;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
- *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
  *       baseDir.write("handlebars/myTemplate.html.hbs", "Hello {{name}}!");
  *       EmbeddedApp.of(s -> s
  *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))

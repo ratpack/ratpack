@@ -27,7 +27,7 @@ import spock.lang.AutoCleanup
 import ratpack.server.ServerConfig
 import ratpack.file.internal.DefaultFileSystemChecksumService
 
-import ratpack.test.embed.EmbeddedBaseDir
+import ratpack.test.embed.EphemeralBaseDir
 
 class FileSystemChecksumServicesSpec extends Specification {
 
@@ -36,12 +36,12 @@ class FileSystemChecksumServicesSpec extends Specification {
 
   @AutoCleanup
   @Delegate
-  EmbeddedBaseDir baseDir
+  EphemeralBaseDir baseDir
 
   ServerConfig serverConfig
 
   def setup() {
-    baseDir = EmbeddedBaseDir.dir(temporaryFolder.newFolder("asset"))
+    baseDir = EphemeralBaseDir.dir(temporaryFolder.newFolder("asset"))
   }
 
   def "requesting checksum service in development mode"() {

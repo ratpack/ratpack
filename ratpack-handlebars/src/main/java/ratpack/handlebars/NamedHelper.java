@@ -26,7 +26,7 @@ import com.github.jknack.handlebars.Helper;
  * import ratpack.guice.Guice;
  * import ratpack.handlebars.HandlebarsModule;
  * import ratpack.handlebars.NamedHelper;
- * import ratpack.test.embed.EmbeddedBaseDir;
+ * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.io.IOException;
@@ -48,7 +48,7 @@ import com.github.jknack.handlebars.Helper;
  *   }
  *
  *   public static void main(String... args) throws Exception {
- *     EmbeddedBaseDir.tmpDir().use(baseDir -> {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
  *       baseDir.write("handlebars/myTemplate.html.hbs", "{{hello \"ratpack\"}}");
  *       EmbeddedApp.of(s -> s
  *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))

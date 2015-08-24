@@ -27,7 +27,7 @@ import ratpack.groovy.test.embed.internal.DefaultGroovyEmbeddedApp;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.test.embed.EmbeddedBaseDir;
+import ratpack.test.embed.EphemeralBaseDir;
 import ratpack.test.http.TestHttpClient;
 
 /**
@@ -47,7 +47,7 @@ import ratpack.test.http.TestHttpClient;
  * }
  * </pre>
  *
- * @see EmbeddedBaseDir
+ * @see EphemeralBaseDir
  * @see EmbeddedApp
  */
 public interface GroovyEmbeddedApp extends EmbeddedApp {

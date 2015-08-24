@@ -16,7 +16,7 @@
 
 package ratpack.groovy.template
 
-import ratpack.test.embed.internal.JarFileEmbeddedBaseDir
+import ratpack.test.embed.internal.JarFileEphemeralBaseDir
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
@@ -300,7 +300,7 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
   }
 
   def "templates are reloadable if reloading is forced"() {
-    if (baseDir instanceof JarFileEmbeddedBaseDir) {
+    if (baseDir instanceof JarFileEphemeralBaseDir) {
       // https://jira.codehaus.org/browse/GROOVY-7002
       return
     }

@@ -16,20 +16,20 @@
 
 package ratpack.test.internal
 
-import ratpack.test.embed.EmbeddedBaseDir
+import ratpack.test.embed.EphemeralBaseDir
 import spock.lang.AutoCleanup
 
 abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
 
   @AutoCleanup
   @Delegate
-  EmbeddedBaseDir baseDir
+  EphemeralBaseDir baseDir
 
   def setup() {
     baseDir = createBaseDirBuilder()
   }
 
-  protected EmbeddedBaseDir createBaseDirBuilder() {
+  protected EphemeralBaseDir createBaseDirBuilder() {
     dir(temporaryFolder.newFolder("app"))
   }
 
