@@ -15,7 +15,7 @@ See [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetrics
 ## Built-in metrics
 
 Ratpack provides built-in metric collectors for key metrics.
-When metrics are enabled within your application using [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetricsModule.Config.html), the built-in metric collectors will automatically be enabled too.
+When metrics are enabled within your application using [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html), the built-in metric collectors will automatically be enabled too.
 
 Ratpack has built-in metric collectors for:
 
@@ -23,7 +23,7 @@ Ratpack has built-in metric collectors for:
 * Background operation timing
 
 Ratpack also has support for Dropwizard Metric's JVM instrumentation.
-See [`DropwizardMetricsModule.Config.jvmMetrics(boolean)`](api/ratpack/dropwizard/metrics/DropwizardMetricsModule.Config.html#jvmMetrics-boolean-) for usage information.
+See [`DropwizardMetricsConfig.jvmMetrics(boolean)`](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jvmMetrics-boolean-) for usage information.
 
 ## Custom metrics
 
@@ -38,9 +38,9 @@ See [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetrics
 
 Ratpack supports metric reporters for the following outputs:
 
-* [JMX](api/ratpack/dropwizard/metrics/DropwizardMetricsModule.Config.html#jmx-ratpack.func.Action-)
-* [Console](api/ratpack/dropwizard/metrics/DropwizardMetricsModule.Config.html#console-ratpack.func.Action-)
-* [CSV](api/ratpack/dropwizard/metrics/DropwizardMetricsModule.Config.html#csv-ratpack.func.Action-)
-* [Websockets](api/ratpack/dropwizard/metrics/DropwizardMetricsModule.Config.html#webSocket-ratpack.func.Action-)
+* [JMX](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jmx-ratpack.func.Action-)
+* [Console](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#console-ratpack.func.Action-)
+* [CSV](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#csv-ratpack.func.Action-)
+* [Websockets](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#webSocket-ratpack.func.Action-)
 
 For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/ratpack.groovy) project.
