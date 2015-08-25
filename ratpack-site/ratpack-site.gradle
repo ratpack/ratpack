@@ -221,10 +221,6 @@ applicationDistribution.into("newrelic") {
   from "src/newrelic"
 }
 
-run {
-  main "ratpack.site.SiteMain"
-}
-
 idea {
   module {
     testSourceDirs += sourceSets.browserTest.allSource.srcDirs
