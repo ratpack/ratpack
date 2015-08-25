@@ -117,6 +117,7 @@ dependencies {
   newrelicAgent "com.newrelic.agent.java:newrelic-agent:${commonVersions.newrelic}"
 }
 
+mainClassName = 'ratpack.site.github.SiteMain'
 
 shadowJar {
   dependencies {
