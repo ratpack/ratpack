@@ -21,6 +21,7 @@ import ratpack.func.Block
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
+import spock.lang.Ignore
 
 import static ratpack.util.Exceptions.uncheck
 
