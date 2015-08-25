@@ -230,15 +230,6 @@ subprojects {
   }
 
   tasks.withType(Test) {
-    testLogging {
-      exceptionFormat "full"
-      if (isCloudCi) {
-        events "failed", "started"
-      } else {
-        events "failed"
-      }
-    }
-
     jvmArgs "-Xss320k"
     minHeapSize "312m"
     maxHeapSize "312m"
