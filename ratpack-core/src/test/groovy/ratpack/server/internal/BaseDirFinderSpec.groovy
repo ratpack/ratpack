@@ -49,7 +49,7 @@ class BaseDirFinderSpec extends Specification {
     f.delete()
     f.deleteOnExit()
     def dir = EphemeralBaseDir.jar(f)
-      dir.path("foo") << "bar"
+    dir.path("foo") << "bar"
     dir.root.getFileSystem().close()
     classLoader.addURL(f.toURI().toURL())
 
