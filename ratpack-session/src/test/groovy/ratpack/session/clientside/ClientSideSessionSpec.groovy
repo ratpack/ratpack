@@ -303,14 +303,14 @@ class ClientSideSessionSpec extends SessionSpec {
       get { Session session ->
         render session.get("value").map { it.orElse("null") }
       }
-      get("set/:value") { Session session ->
+      post("set/:value") { Session session ->
         render session.set("value", pathTokens.value).map { "ok" }
       }
     }
 
     expect:
     text == "null"
-    getText("set/foo") == "ok"
+    postText("set/foo") == "ok"
     text == "foo"
 
     where:
