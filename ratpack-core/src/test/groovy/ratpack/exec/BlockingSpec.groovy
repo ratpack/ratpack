@@ -18,11 +18,9 @@ package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
 import ratpack.func.Block
-import ratpack.http.TypedData
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
-import spock.lang.Timeout
 
 import static ratpack.util.Exceptions.uncheck
 
@@ -219,7 +217,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
-  @Timeout(10)
+  @Ignore
   def "can read large request body in blocking operation"() {
     when:
     handlers {
