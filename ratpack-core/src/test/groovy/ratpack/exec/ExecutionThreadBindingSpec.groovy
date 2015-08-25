@@ -27,11 +27,11 @@ class ExecutionThreadBindingSpec extends RatpackGroovyDslSpec {
         Promise.of { f ->
           assert Execution.current()
           Thread.start {
-            assert !Execution.managedThread
+            assert !Execution.isManagedThread()
             f.success('foo')
           }
         } then {
-          assert Execution.managedThread
+          assert Execution.isManagedThread()
           render it
         }
       }
