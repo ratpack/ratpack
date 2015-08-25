@@ -42,7 +42,12 @@ public class H2Module extends AbstractModule {
 
   @Provides
   DataSource dataSource() {
-    return JdbcConnectionPool.create(url, username, password);
+    return createDataSource();
   }
 
+  // separate from above to allow decoration of the datasource by extending the module
+  // Guice does not allow overriding @Provides methods
+  protected DataSource createDataSource() {
+    return JdbcConnectionPool.create(url, username, password);
+  }
 }

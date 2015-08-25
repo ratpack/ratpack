@@ -117,6 +117,12 @@ public class HikariModule extends ConfigurableModule<HikariConfig> {
   @Provides
   @Singleton
   public DataSource dataSource(HikariService service) {
+    return getDataSource(service);
+  }
+
+  // separate from above to allow decoration of the datasource by extending the module
+  // Guice does not allow overriding @Provides methods
+  protected DataSource getDataSource(HikariService service) {
     return service.getDataSource();
   }
 
