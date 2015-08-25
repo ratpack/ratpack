@@ -28,7 +28,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
   File getRatpackFile() {
-    temporaryFolder.newFile("custom.groovy")
+    getApplicationFile("custom.groovy")
   }
 
   @Override

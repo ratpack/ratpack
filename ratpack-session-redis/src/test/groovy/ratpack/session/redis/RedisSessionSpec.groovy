@@ -21,8 +21,9 @@ import ratpack.session.SessionModule
 import ratpack.session.SessionStore
 import ratpack.session.store.RedisSessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Requires
 
-
+@Requires({RedisPrecondition.isAvailable()})
 class RedisSessionSpec extends RatpackGroovyDslSpec {
 
   boolean supportsSize = true

@@ -26,6 +26,8 @@ abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
   @Delegate
   EmbeddedApp application
 
+  private File appFile
+
   def setup() {
     application = createApplication()
   }
@@ -33,11 +35,18 @@ abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
   abstract EmbeddedApp createApplication()
 
   File getRatpackFile() {
-    temporaryFolder.newFile("ratpack.groovy")
+    return getApplicationFile("ratpack.groovy")
   }
 
   void script(String text) {
     ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
+  }
+
+  protected getApplicationFile(String fileName) {
+    if (!appFile) {
+      appFile = temporaryFolder.newFile(fileName)
+    }
+    return appFile
   }
 
 }
