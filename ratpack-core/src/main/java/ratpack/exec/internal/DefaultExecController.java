@@ -135,11 +135,6 @@ public class DefaultExecController implements ExecControllerInternal {
   }
 
   @Override
-  public boolean isManagedThread() {
-    return ThreadBinding.get().map(c -> c.getExecController() == this).orElse(false);
-  }
-
-  @Override
   public int getNumThreads() {
     return numThreads;
   }

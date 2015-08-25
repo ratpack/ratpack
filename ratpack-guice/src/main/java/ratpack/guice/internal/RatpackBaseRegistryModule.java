@@ -20,9 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
+import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
 import io.netty.buffer.ByteBufAllocator;
+import org.aopalliance.intercept.MethodInterceptor;
 import org.reactivestreams.Publisher;
+import ratpack.api.Blocks;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
@@ -46,6 +50,7 @@ import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.sse.ServerSentEventStreamClient;
 
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -90,7 +95,9 @@ public class RatpackBaseRegistryModule extends AbstractModule {
     setTypes.stream().forEach(t -> setBind(t));
     optionalTypes.stream().forEach(t -> optionalBind(t));
 
-
+    MethodInterceptor interceptor = new BlockingInterceptor();
+    bindInterceptor(Matchers.annotatedWith(Blocks.class), new NotGroovyMethodMatcher(), interceptor);
+    bindInterceptor(Matchers.any(), Matchers.annotatedWith(Blocks.class), interceptor);
   }
 
   private <T> void simpleBind(Class<T> type) {
@@ -173,6 +180,13 @@ public class RatpackBaseRegistryModule extends AbstractModule {
 
     public <T> void doAdd(Execution execution, Key<T> key) {
       execution.addLazy(GuiceUtil.toTypeToken(key.getTypeLiteral()), injector.getProvider(key)::get);
+    }
+  }
+
+  private static class NotGroovyMethodMatcher extends AbstractMatcher<Method> {
+    @Override
+    public boolean matches(Method method) {
+      return !method.isSynthetic();
     }
   }
 }

@@ -118,7 +118,7 @@ public class DefaultRatpackServer implements RatpackServer {
     boundAddress = (InetSocketAddress) channel.localAddress();
 
     if (LOGGER.isInfoEnabled()) {
-      LOGGER.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
+      LOGGER.info(String.format("Ratpack started %sfor %s://%s:%s", serverConfig.isDevelopment() ? "(development) " : "", getScheme(), getBindHost(), getBindPort()));
     }
   }
 

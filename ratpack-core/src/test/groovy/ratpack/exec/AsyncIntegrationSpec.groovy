@@ -26,11 +26,11 @@ class AsyncIntegrationSpec extends RatpackGroovyDslSpec {
       get { ExecController execController ->
         Promise.of { f ->
           Thread.start {
-            assert !execController.managedThread
+            assert !Execution.managedThread
             f.success('foo')
           }
         } then {
-          assert execController.managedThread
+          assert Execution.managedThread
           render it
         }
       }
@@ -46,11 +46,11 @@ class AsyncIntegrationSpec extends RatpackGroovyDslSpec {
       get { ExecController execController ->
         Promise.of { f ->
           Thread.start {
-            assert !execController.managedThread
+            assert !Execution.managedThread
             f.error(new Exception("!"))
           }
         } onError {
-          assert execController.managedThread
+          assert Execution.managedThread
           render it.message
         } then {
           render "shouldn't happen"

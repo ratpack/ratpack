@@ -56,16 +56,6 @@ public interface ExecController extends AutoCloseable {
   ExecStarter fork();
 
   /**
-   * Indicates whether the current thread is managed by <b>this</b> execution controller.
-   * <p>
-   * This will return {@code true} if the current thread is either part of the event loop thread pool or blocking thread pool of the
-   * application that is backed by this execution controller.
-   *
-   * @return true if the current thread is managed by this execution controller
-   */
-  boolean isManagedThread();
-
-  /**
    * The event loop (i.e. computation) executor.
    * <p>
    * This executor wraps Netty's event loop executor to provide callback features by way of Guava's executor extensions.

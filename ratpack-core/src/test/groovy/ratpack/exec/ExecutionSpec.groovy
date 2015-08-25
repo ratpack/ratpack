@@ -201,7 +201,7 @@ class ExecutionSpec extends Specification {
 
             @Override
             void request(long elements) {
-              assert e1.controller.managedThread
+              assert Execution.managedThread
               events << 'publisher-request'
               if (capacity.getAndAdd(elements) == 0) {
                 // start sending again if it wasn't already running
@@ -212,7 +212,7 @@ class ExecutionSpec extends Specification {
             private void send() {
               Thread.start {
                 while (capacity.getAndDecrement() > 0) {
-                  assert !e1.controller.managedThread
+                  assert !Execution.managedThread
                   events << 'publisher-send'
                   subscriber.onNext('foo' + i.incrementAndGet())
                   Thread.sleep(50)
@@ -228,20 +228,20 @@ class ExecutionSpec extends Specification {
       }).subscribe(new Subscriber<String>() {
         @Override
         void onSubscribe(Subscription subscription) {
-          assert e1.controller.managedThread
+          assert Execution.managedThread
           events << 'subscriber-onSubscribe'
           subscription.request(2)
         }
 
         @Override
         void onNext(String element) {
-          assert e1.controller.managedThread
+          assert Execution.managedThread
           events << "subscriber-onNext:$element".toString()
         }
 
         @Override
         void onComplete() {
-          assert e1.controller.managedThread
+          assert Execution.managedThread
           events << 'subscriber-onComplete'
         }
 

@@ -19,6 +19,7 @@ package ratpack.exec;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import ratpack.exec.internal.DefaultExecution;
+import ratpack.exec.internal.ThreadBinding;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
@@ -90,6 +91,18 @@ public interface Execution extends MutableRegistry {
    */
   static ExecStarter fork() throws UnmanagedThreadException {
     return ExecController.require().fork();
+  }
+
+  static boolean isManagedThread() {
+    return ThreadBinding.get().isPresent();
+  }
+
+  static boolean isComputeThread() {
+    return ThreadBinding.get().map(ThreadBinding::isCompute).orElse(false);
+  }
+
+  static boolean isBlockingThread() {
+    return ThreadBinding.get().map(threadBinding -> !threadBinding.isCompute()).orElse(false);
   }
 
   /**
