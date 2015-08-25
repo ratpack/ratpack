@@ -30,6 +30,7 @@ buildscript {
 }
 
 apply plugin: "io.ratpack.ratpack-java"
+apply plugin: "org.gradle.groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'asset-pipeline'
 
@@ -117,7 +118,7 @@ dependencies {
   newrelicAgent "com.newrelic.agent.java:newrelic-agent:${commonVersions.newrelic}"
 }
 
-mainClassName = 'ratpack.site.github.SiteMain'
+mainClassName = 'ratpack.site.SiteMain'
 
 shadowJar {
   dependencies {
