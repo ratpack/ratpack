@@ -78,8 +78,8 @@ public class ServerEnvironment {
     return Boolean.parseBoolean(
       get("false", i -> i != null,
         () -> properties.getProperty(DEVELOPMENT_PROPERTY),
-        () -> env.get("RATPACK_DEVELOPMENT")
-      )
+        () -> env.get("RATPACK_DEVELOPMENT"),
+        () -> System.getProperty("sun.java.command").startsWith("com.intellij") ? "true" : null)
     );
   }
 
