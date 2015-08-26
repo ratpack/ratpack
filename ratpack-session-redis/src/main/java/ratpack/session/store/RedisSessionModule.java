@@ -41,8 +41,6 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
     private String password;
     private String host;
     private Integer port;
-    private String sessionKeyPrefix = "";
-
 
     public Config() {
       host = "127.0.0.1";
@@ -113,30 +111,6 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
      */
     public void setPort(Integer port) {
       this.port = port;
-    }
-
-    /**
-     * The prefix used for Redis Keys.
-     *
-     * @return The prefix used as part of the key in Redis
-     */
-    public String getSessionKeyPrefix() {
-      return sessionKeyPrefix;
-    }
-
-    /**
-     * The prefix is used along with the session id to generate the key used to store data in Redis.
-     * <p>
-     * This can be used to make sure your application never accidentally overrides the session data.
-     *
-     * For example setting a prefix of <i>session</i> means a session with session id of 123456 will be stored in Redis with a key of <i>session123456</i>.
-     *
-     * By default no prefix is used.
-     *
-     * @param sessionKeyPrefix What prefix to use for Keys in Redis <b>Default: ""</b>
-     */
-    public void setSessionKeyPrefix(String sessionKeyPrefix) {
-      this.sessionKeyPrefix = sessionKeyPrefix;
     }
   }
 }
