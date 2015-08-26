@@ -28,3 +28,5 @@ Gradle version 2.6 is now required by the plugin.
 `ReceivedResponse#send` and `StreamedResponse#send` have been changed to `ReceivedResponse#forwardTo` and `StreamedResponse#forwardTo`
 
 Redis session storage is now supported in the `ratpack-session-redis` library. See ["RedisSessionModule"](http://ratpack.io/manual/1.0.0/api/index.html?ratpack/session/store/RedisSessionModule.html) for details.
+
+The `ratpack-codahale-metrics` module has been renamed to `ratpack-dropwizard-metrics`.  The configuration classes associated with this module are no longer inner classes of the module, you will need to use `ratpack.dropwizard.metrics.DropwizardMetricsConfig`
