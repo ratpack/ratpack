@@ -19,10 +19,7 @@ package ratpack.render;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
-import ratpack.func.Action;
 import ratpack.handling.Context;
-import ratpack.registry.RegistrySpec;
-import ratpack.util.Types;
 
 import java.util.function.BiConsumer;
 
@@ -42,29 +39,6 @@ import java.util.function.BiConsumer;
  * @see Renderable
  */
 public interface Renderer<T> {
-
-  /**
-   * An action that registers this renderer with a registry.
-   * <p>
-   * Can be used with the {@link RegistrySpec#with(Action)} method of a registry spec.
-   *
-   * @return an action that registers this renderer with a registry
-   */
-  default Action<RegistrySpec> register() {
-    return (registrySpec) -> registrySpec.add(typeOf(getType()), this);
-  }
-
-  /**
-   * Creates a type token for a <i>compatible</i> renderer of the given type of object.
-   *
-   * @param toRender the type that the renderer renders
-   * @param <T> the type that the renderer renders
-   * @return a type token for a <i>compatible</i> renderer of the given type of object
-   */
-  static <T> TypeToken<Renderer<? super T>> typeCompatibleOf(T toRender) {
-    Class<T> clazz = Types.cast(toRender.getClass());
-    return new TypeToken<Renderer<? super T>>(clazz) {}.where(new TypeParameter<T>() {}, clazz);
-  }
 
   /**
    * Creates a renderer implementation from the given arguments.

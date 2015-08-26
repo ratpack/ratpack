@@ -209,6 +209,7 @@ You must also remember to register your `Renderer` so that Ratpack can use it.
 
 ```language-java
 import ratpack.handling.Context;
+import ratpack.registry.Registry;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.render.RendererSupport;
 import ratpack.test.embed.EmbeddedApp;
@@ -231,7 +232,7 @@ public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp
       .fromHandlers(chain -> chain
-        .register(new FooRenderer().register())
+        .register(Registry.single(new FooRenderer()))
         .all(ctx -> {
           Foo foo = new Foo();
           foo.value = "bar";

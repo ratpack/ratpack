@@ -43,10 +43,13 @@ import ratpack.handling.internal.DefaultRedirector;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
+import ratpack.jackson.JsonRender;
 import ratpack.jackson.internal.JsonParser;
 import ratpack.jackson.internal.JsonRenderer;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
+import ratpack.render.Renderable;
+import ratpack.render.Renderer;
 import ratpack.render.internal.CharSequenceRenderer;
 import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
@@ -54,6 +57,7 @@ import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
 
+import java.nio.file.Path;
 import java.time.Clock;
 
 import static ratpack.util.Exceptions.uncheck;
@@ -87,6 +91,9 @@ public abstract class ServerRegistry {
 
     RegistryBuilder baseRegistryBuilder;
     try {
+      PromiseRenderer promiseRenderer = new PromiseRenderer();
+      PublisherRenderer publisherRenderer = new PublisherRenderer();
+
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
@@ -96,12 +103,12 @@ public abstract class ServerRegistry {
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
-        .with(new DefaultFileRenderer().register())
-        .with(new PromiseRenderer().register())
-        .with(new PublisherRenderer().register())
-        .with(new RenderableRenderer().register())
-        .with(new CharSequenceRenderer().register())
-        .with(new JsonRenderer().register())
+        .add(Renderer.typeOf(Path.class), new DefaultFileRenderer())
+        .add(Renderer.typeOf(promiseRenderer.getType()), promiseRenderer)
+        .add(Renderer.typeOf(publisherRenderer.getType()), publisherRenderer)
+        .add(Renderer.typeOf(Renderable.class), new RenderableRenderer())
+        .add(Renderer.typeOf(CharSequence.class), new CharSequenceRenderer())
+        .add(Renderer.typeOf(JsonRender.class), new JsonRenderer())
         .add(FormParser.class, new FormParser())
         .add(Clock.class, Clock.systemDefaultZone())
         .add(JsonParser.class, new JsonParser())
