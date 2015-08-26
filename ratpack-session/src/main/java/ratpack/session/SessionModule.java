@@ -75,7 +75,7 @@ import java.util.function.Consumer;
  * import ratpack.session.SessionModule;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static junit.framework.Assert.assertEquals;
+ * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {

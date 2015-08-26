@@ -121,7 +121,7 @@ public class RatpackPac4j {
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static junit.framework.Assert.assertEquals;
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -174,7 +174,7 @@ public class RatpackPac4j {
    *
    * import java.util.Optional;
    *
-   * import static junit.framework.Assert.assertEquals;
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -239,7 +239,7 @@ public class RatpackPac4j {
    *
    * import java.util.Optional;
    *
-   * import static junit.framework.Assert.assertEquals;
+   * import static org.junit.Assert.assertEquals;
    * import static org.junit.Assert.assertTrue;
    *
    * public class Example {
@@ -345,7 +345,7 @@ public class RatpackPac4j {
    *
    * import java.util.Optional;
    *
-   * import static junit.framework.Assert.assertEquals;
+   * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

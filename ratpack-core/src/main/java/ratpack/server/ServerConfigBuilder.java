@@ -309,7 +309,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * <p>
    * The {@code pointer} argument is of the same format given to the {@link ConfigData#get(String, Class)} method.
    * <pre class="java">{@code
-   * import junit.framework.Assert;
+   * import org.junit.Assert;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Collections;
