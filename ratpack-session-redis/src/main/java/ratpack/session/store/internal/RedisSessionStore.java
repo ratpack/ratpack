@@ -21,8 +21,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.inject.Inject;
 import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.RedisURI;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -37,10 +35,10 @@ import ratpack.session.store.RedisSessionModule;
 
 public class RedisSessionStore implements SessionStore {
 
-  private RedisClient redisClient;
-  private RedisAsyncConnection<AsciiString, ByteBuf> connection;
-  private RedisSessionModule.Config config;
+  private final RedisSessionModule.Config config;
 
+  private TimerExposingRedisClient redisClient;
+  private RedisAsyncConnection<AsciiString, ByteBuf> connection;
 
   @Inject
   public RedisSessionStore(RedisSessionModule.Config config) {
@@ -49,31 +47,27 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
-
-    return Promise.<Boolean>of(d -> {
-      RedisFuture<String> setResult = connection.set(sessionId, sessionData);
-      Futures.addCallback(setResult, new FutureCallback<String>() {
-        @Override
-        public void onSuccess(String result) {
-          if (result != null && result.equalsIgnoreCase("OK")) {
-            d.success(true);
-          } else {
-            d.error(new RuntimeException("Failed to set session data"));
+    return Promise.<Boolean>of(d ->
+        Futures.addCallback(connection.set(sessionId, sessionData), new FutureCallback<String>() {
+          @Override
+          public void onSuccess(String result) {
+            if (result != null && result.equalsIgnoreCase("OK")) {
+              d.success(true);
+            } else {
+              d.error(new RuntimeException("Failed to set session data"));
+            }
           }
-        }
 
-        @Override
-        public void onFailure(Throwable t) {
-          d.error(new RuntimeException("Failed to set session data.", t));
-        }
-      }, Execution.current().getEventLoop());
-    }).operation();
-
+          @Override
+          public void onFailure(Throwable t) {
+            d.error(new RuntimeException("Failed to set session data.", t));
+          }
+        }, Execution.current().getEventLoop())
+    ).operation();
   }
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-
     return Promise.<ByteBuf>of(downstream -> {
       downstream.accept(connection.get(sessionId));
     }).map(byteBuf -> {
@@ -87,9 +81,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Operation remove(AsciiString sessionId) {
-    return Promise.<Long>of(d -> {
-      d.accept(connection.del(sessionId));
-    }).operation();
+    return Promise.<Long>of(d -> d.accept(connection.del(sessionId))).operation();
   }
 
   @Override
@@ -97,23 +89,27 @@ public class RedisSessionStore implements SessionStore {
     return Promise.value(-1L);
   }
 
-
   @Override
   public String getName() {
-    return "Redis Session Store";
+    return "Redis Session Store Service";
   }
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    redisClient = new RedisClient(getRedisURI());
-    AsciiStringByteBufRedisCodec asciiStringByteBufRedisCodec = new AsciiStringByteBufRedisCodec();
-    connection = redisClient.connectAsync(asciiStringByteBufRedisCodec);
+    redisClient = new TimerExposingRedisClient(getRedisURI());
+    connection = redisClient.connectAsync(new AsciiStringByteBufRedisCodec());
   }
 
   @Override
   public void onStop(StopEvent event) throws Exception {
-    connection.close();
-    redisClient.shutdown();
+    if (redisClient != null) {
+      try {
+        redisClient.getTimer().stop();
+        redisClient.shutdown();
+      } finally {
+        redisClient = null;
+      }
+    }
   }
 
   private RedisURI getRedisURI() {
