@@ -21,7 +21,7 @@ import com.codahale.metrics.graphite.GraphiteSender;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A Configuration implementation to setup {@link GraphiteReporter} instances
+ * A Configuration implementation to setup {@link GraphiteReporter} instances.
  */
 public class GraphiteConfig extends ScheduledReporterConfigSupport<GraphiteConfig> {
   private GraphiteSender sender;
@@ -80,7 +80,7 @@ public class GraphiteConfig extends ScheduledReporterConfigSupport<GraphiteConfi
   }
 
   /**
-   * The state of the metric name prefix
+   * The state of the metric name prefix.
    *
    * @return the metric prefix value
    */
@@ -100,7 +100,7 @@ public class GraphiteConfig extends ScheduledReporterConfigSupport<GraphiteConfi
   }
 
   /**
-   * The state of rate conversion
+   * The state of rate conversion.
    *
    * @return the rate conversion unit
    */
@@ -120,7 +120,7 @@ public class GraphiteConfig extends ScheduledReporterConfigSupport<GraphiteConfi
   }
 
   /**
-   * The state of duration conversion
+   * The state of duration conversion.
    *
    * @return the duration conversion unit
    */

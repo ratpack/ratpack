@@ -55,7 +55,7 @@ import ratpack.handling.internal.NcsaRequestLogger;
 public interface RequestLogger extends Handler {
 
   /**
-   * The name of {@link #LOGGER}: {@value}
+   * The name of {@link #LOGGER}: {@value}.
    */
   String LOGGER_NAME = "ratpack.request";
 
@@ -134,6 +134,8 @@ public interface RequestLogger extends Handler {
    * Adds {@link #log(RequestOutcome)} as a {@link Context#onClose(Action) context close action}, effectively logging the request.
    * <p>
    * The handler calls {@link Context#next()} after adding the context close action.
+   *
+   * @param ctx the request context
    */
   default void handle(Context ctx) {
     ctx.onClose(this::log);

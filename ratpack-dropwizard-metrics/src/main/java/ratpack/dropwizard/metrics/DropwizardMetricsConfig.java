@@ -77,7 +77,7 @@ public class DropwizardMetricsConfig {
   }
 
   /**
-   * Configure the request metric groups
+   * Configure the request metric groups.
    * @param requestMetricGroups the request metric groups
    * @return this
    */

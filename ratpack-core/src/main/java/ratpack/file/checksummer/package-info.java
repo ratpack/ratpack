@@ -15,6 +15,9 @@
  */
 
 /**
- * Objects for providing {@code Session} support.
+ * Checksum calculation implementations.
+ *
+ * @see ratpack.file.checksummer.MD5Checksummer
+ * @see ratpack.file.checksummer.Adler32Checksummer
  */
-package ratpack.session;
+package ratpack.file.checksummer;

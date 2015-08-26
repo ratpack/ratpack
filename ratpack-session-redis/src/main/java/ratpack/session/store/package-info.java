@@ -15,6 +15,6 @@
  */
 
 /**
- * Objects for providing {@code Session} support.
+ *  Provide a {@link ratpack.session.SessionStore} implementation backed by Redis.
  */
-package ratpack.session;
+package ratpack.session.store;

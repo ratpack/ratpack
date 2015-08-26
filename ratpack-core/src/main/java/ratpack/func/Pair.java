@@ -298,7 +298,7 @@ public final class Pair<L, R> {
   }
 
   /**
-   * Returns "Pair[«left.toString()»,«right.toString()»]
+   * Returns "Pair[«left.toString()»,«right.toString()»].
    *
    * @return "Pair[«left.toString()»,«right.toString()»]
    */

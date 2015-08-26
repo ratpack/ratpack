@@ -26,11 +26,12 @@ import ratpack.func.Function;
  * <p>
  * By default, the {@code id}, {@code event} and {@code data} fields are set to {@code null}.
  *
+ * @param <T> the item type contained in the event
  * @see ratpack.sse.ServerSentEvents#serverSentEvents
  */
 public interface Event<T> {
   /**
-   * The stream item that this event
+   * The stream item that this event.
    *
    * @return a supporting object
    */

@@ -219,7 +219,7 @@ public interface Session {
   }
 
   /**
-   * A convenience shorthand for {@link SessionData#set(SessionKey, Object, SessionSerializer)}
+   * A convenience shorthand for {@link SessionData#set(SessionKey, Object, SessionSerializer)}.
    *
    * @param key the key
    * @param value the value

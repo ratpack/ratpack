@@ -49,7 +49,7 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
     }
 
     /**
-     * Convenience constructor most of the time not used if you are using Ratpack Config
+     * Convenience constructor most of the time not used if you are using Ratpack Config.
      *
      * @param password Redis Password
      * @param host Redis host address
@@ -62,7 +62,7 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
     }
 
     /**
-     * Get the password for Redis
+     * Get the password for Redis.
      *
      * @return The password configured to use with Redis
      */
@@ -71,7 +71,7 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
     }
 
     /**
-     * Set the password for Redis
+     * Set the password for Redis.
      *
      * @param password The password to use when connecting to Redis
      */
@@ -80,7 +80,7 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
     }
 
     /**
-     * Get the address for Redis
+     * Get the address for Redis.
      *
      * @return String of the host address for Redis
      */
@@ -116,7 +116,7 @@ public class RedisSessionModule extends ConfigurableModule<RedisSessionModule.Co
     }
 
     /**
-     * The prefix used for Redis Keys
+     * The prefix used for Redis Keys.
      *
      * @return The prefix used as part of the key in Redis
      */

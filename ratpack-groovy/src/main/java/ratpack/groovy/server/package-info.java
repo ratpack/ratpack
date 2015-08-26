@@ -15,6 +15,6 @@
  */
 
 /**
- * Objects for providing {@code Session} support.
+ * Groovy implementations of the Ratpack server building classes.
  */
-package ratpack.session;
+package ratpack.groovy.server;

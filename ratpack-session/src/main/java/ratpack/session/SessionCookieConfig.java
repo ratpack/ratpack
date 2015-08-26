@@ -89,7 +89,7 @@ public class SessionCookieConfig {
   }
 
   /**
-   * {@code Secure} cookies can only be transmitted over encrypted connection like {@code HTTPS}
+   * {@code Secure} cookies can only be transmitted over encrypted connection like {@code HTTPS}.
    *
    * @return true if session cookies are {@code Secure}
    */

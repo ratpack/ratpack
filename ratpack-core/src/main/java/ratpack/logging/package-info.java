@@ -15,6 +15,6 @@
  */
 
 /**
- * Objects for providing {@code Session} support.
+ * Utility classes for integration Ratpack with various logging frameworks.
  */
-package ratpack.session;
+package ratpack.logging;

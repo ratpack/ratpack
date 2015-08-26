@@ -20,7 +20,7 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
 /**
- * The delegate object for commands
+ * The delegate object for commands.
  */
 public interface CommandDelegate extends Registry, RegistrySpec  {
 

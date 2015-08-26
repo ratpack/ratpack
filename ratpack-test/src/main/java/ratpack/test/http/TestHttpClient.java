@@ -93,7 +93,7 @@ public interface TestHttpClient {
   ReceivedResponse getResponse();
 
   /**
-   * Make a HEAD request with a path of "" this is the same as calling head("")
+   * Make a HEAD request with a path of "" this is the same as calling head("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the HEAD request.
    */
@@ -108,7 +108,7 @@ public interface TestHttpClient {
   ReceivedResponse head(String path);
 
   /**
-   * Make a OPTIONS request with a path of "" this is the same as calling options("")
+   * Make a OPTIONS request with a path of "" this is the same as calling options("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the OPTIONS request.
    */
@@ -123,7 +123,7 @@ public interface TestHttpClient {
   ReceivedResponse options(String path);
 
   /**
-   * Make a GET request with a path of "" this is the same as calling get("")
+   * Make a GET request with a path of "" this is the same as calling get("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the GET request.
    */
@@ -157,7 +157,7 @@ public interface TestHttpClient {
   String getText(String path);
 
   /**
-   * Make a POST request with a path of "" this is the same as calling post("")
+   * Make a POST request with a path of "" this is the same as calling post("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the POST request.
    */
@@ -187,7 +187,7 @@ public interface TestHttpClient {
   String postText(String path);
 
   /**
-   * Make a PUT request with a path of "" this is the same as calling put("")
+   * Make a PUT request with a path of "" this is the same as calling put("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the PUT request.
    */
@@ -217,7 +217,7 @@ public interface TestHttpClient {
   String putText(String path);
 
   /**
-   * Make a PATCH request with a path of "" this is the same as calling patch("")
+   * Make a PATCH request with a path of "" this is the same as calling patch("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the PATCH request.
    */
@@ -247,7 +247,7 @@ public interface TestHttpClient {
   String patchText(String path);
 
   /**
-   * Make a DELETE request with a path of "" this is the same as calling delete("")
+   * Make a DELETE request with a path of "" this is the same as calling delete("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the DELETE request.
    */

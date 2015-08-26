@@ -146,7 +146,7 @@ public interface ServerConfig extends ConfigData {
   SSLContext getSSLContext();
 
   /**
-   * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}
+   * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}.
    *
    * @return whether or not the server needs client SSL authentication
    */
