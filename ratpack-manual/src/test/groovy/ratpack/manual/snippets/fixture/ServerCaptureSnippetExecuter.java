@@ -36,7 +36,7 @@ public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
   @Override
   public void execute(TestCodeSnippet snippet) throws Exception {
-    withServer(ServerCapturer.capture(() -> executer.execute(snippet)));
+    withServer(ServerCapturer.capture(new ServerCapturer.Overrides().port(0), () -> executer.execute(snippet)));
   }
 
   protected abstract void withServer(RatpackServer server) throws Exception;
