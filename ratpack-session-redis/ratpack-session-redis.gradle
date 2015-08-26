@@ -23,4 +23,5 @@ dependencies {
   compile project(":ratpack-session")
 
   compile 'biz.paluch.redis:lettuce:3.2.Final'
+  testCompile "com.github.kstyrc:embedded-redis:0.6"
 }

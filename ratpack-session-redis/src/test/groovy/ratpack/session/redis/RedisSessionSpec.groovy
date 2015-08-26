@@ -16,23 +16,40 @@
 
 package ratpack.session.redis
 
+import com.lambdaworks.redis.RedisClient
 import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionStore
 import ratpack.session.store.RedisSessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Requires
+import redis.embedded.RedisServer
 
-@Requires({RedisPrecondition.isAvailable()})
 class RedisSessionSpec extends RatpackGroovyDslSpec {
 
   boolean supportsSize = true
+  def redisServer = RedisServer.builder().setting("bind 127.0.0.1").port(6379).build()
+
+  boolean isRedisAlreadyRunning() {
+    try {
+      new RedisClient('localhost').connect().withCloseable {
+        it.ping().equalsIgnoreCase('pong')
+      }
+    } catch (Exception ignored) {
+      false
+    }
+  }
 
   def setup() {
     modules << new SessionModule()
     modules << new RedisSessionModule()
-
     supportsSize = false
+    if (!isRedisAlreadyRunning()) {
+      redisServer.start()
+    }
+  }
+
+  def cleanup() {
+    redisServer?.stop()
   }
 
   def "can use session"() {
@@ -136,7 +153,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { Session session ->
-        render session.get("value").map{ it.orElse("null") }
+        render session.get("value").map { it.orElse("null") }
       }
       get("set/:value") { Session session ->
         render session.set("value", pathTokens.value).map {
@@ -176,7 +193,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
         render session.data.map { "ok" }
       }
       get("write") { Session session ->
-        render session.set("foo", "bar").map{"ok"}
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -196,7 +213,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
         response.send("foo")
       }
       get("write") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -212,7 +229,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -232,7 +249,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
@@ -253,7 +270,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get("foo") { Session session ->
-        render session.set("foo", "bar").map{ "ok" }
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
