@@ -33,6 +33,7 @@ import ratpack.server.ServerConfig;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.util.Exceptions.uncheck;
@@ -187,7 +188,22 @@ public abstract class Guice {
   }
 
   public static Function<Registry, Registry> registry(Action<? super BindingsSpec> bindings) {
-    return baseRegistry -> registry(bindings, baseRegistry, newInjectorFactory(baseRegistry.get(ServerConfig.class)));
+    return baseRegistry -> {
+      ServerConfig serverConfig = baseRegistry.get(ServerConfig.class);
+
+      Function<Module, Injector> injectorFactory;
+      String injectorFactoryClassName = (String) serverConfig.get("/server", Map.class).get("GuiceInjectorFactory");
+      if (injectorFactoryClassName == null) {
+        injectorFactory = newInjectorFactory(serverConfig);
+      } else {
+        injectorFactory = (AbstractGuiceInjectorFactory) baseRegistry.getClass().getClassLoader()
+            .loadClass(injectorFactoryClassName)
+            .getConstructor(ServerConfig.class)
+            .newInstance(serverConfig);
+      }
+
+      return registry(bindings, baseRegistry, injectorFactory);
+    };
   }
 
   public static Function<Registry, Registry> registry(Injector parentInjector, Action<? super BindingsSpec> bindings) {
