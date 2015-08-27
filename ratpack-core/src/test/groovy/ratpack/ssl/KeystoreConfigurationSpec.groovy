@@ -43,7 +43,7 @@ class KeystoreConfigurationSpec extends Specification {
     def serverConfig = ServerConfig.noBaseDir().props(properties).build()
 
     then:
-    serverConfig.getSSLContext() != null
+    serverConfig.getSslContext() != null
 
     where:
     keystoreFileProperty          | description

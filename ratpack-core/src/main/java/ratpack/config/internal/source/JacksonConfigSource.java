@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.util.internal.Paths2;
 
 import java.io.InputStream;
@@ -45,7 +46,7 @@ public abstract class JacksonConfigSource implements ConfigSource {
   }
 
   @Override
-  public ObjectNode loadConfigData(ObjectMapper objectMapper) throws Exception {
+  public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
     try (InputStream inputStream = byteSource.openStream()) {
       JsonParser parser = getFactory(objectMapper).createParser(inputStream);
       return objectMapper.readTree(parser);

@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.module;
+package ratpack.config;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import ratpack.server.internal.ServerConfigData;
-import ratpack.server.internal.ServerEnvironment;
+import java.nio.file.Path;
 
-import javax.net.ssl.SSLContext;
+public interface PathResolver {
 
-public class ConfigModule extends SimpleModule {
-  public ConfigModule(ServerEnvironment serverEnvironment) {
-    super("ratpack");
-    addDeserializer(ServerConfigData.class, new ServerConfigDataDeserializer(serverEnvironment));
-    addDeserializer(SSLContext.class, new SSLContextDeserializer());
-  }
+  Path resolve(String path);
+
 }

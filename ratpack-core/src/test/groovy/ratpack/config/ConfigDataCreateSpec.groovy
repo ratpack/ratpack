@@ -21,6 +21,7 @@ import com.google.common.io.ByteSource
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.func.Action
+import ratpack.server.ServerConfig
 import ratpack.server.Service
 import ratpack.server.StartEvent
 import ratpack.server.internal.ServerConfigData
@@ -144,7 +145,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     |""".stripMargin()
 
     when:
-    def configData = ConfigData.of { it.yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))) }
+    def configData = ServerConfig.of { it.yaml(ByteSource.wrap(configInput.getBytes(Charsets.UTF_8))) }
     def appConfig = configData.get(MyAppConfig)
     def serverConfig = configData.get(ServerConfigData)
     def serviceConfig = configData.get(ServiceConfig)
@@ -172,7 +173,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    def configData = ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]) }
+    def configData = ServerConfig.of { it.onError(Action.noop()).yaml(yamlFile).json(jsonFile).props([port: "8080"]) }
     def serverConfig = configData.get(ServerConfigData)
 
     then:
@@ -186,7 +187,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     def jsonFile = folder.resolve("config.json")
 
     when:
-    ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
+    ServerConfig.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
 
     then:
     def ex = thrown(UncheckedIOException)
@@ -194,7 +195,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
 
     when:
     jsonFile.text = '{"threads":7}'
-    def configData = ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
+    def configData = ServerConfig.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
     def serverConfig = configData.get(ServerConfigData)
 
     then:
@@ -204,7 +205,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
 
     when:
     yamlFile.text = 'publicAddress: http://example.com'
-    configData = ConfigData.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
+    configData = ServerConfig.of { it.onError(Action.noop()).yaml(yamlFile).onError(Action.throwException()).json(jsonFile).props([port: "8080"]) }
     serverConfig = configData.get(ServerConfigData)
 
     then:

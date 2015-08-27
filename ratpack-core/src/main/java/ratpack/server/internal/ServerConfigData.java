@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 
 import javax.net.ssl.SSLContext;
@@ -23,13 +24,11 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 public class ServerConfigData {
 
-  private Path baseDir;
+  private final FileSystemBinding baseDir;
   private int port;
   private InetAddress address;
   private boolean development;
@@ -43,10 +42,11 @@ public class ServerConfigData {
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
 
-  public ServerConfigData(ServerEnvironment serverEnvironment) {
-    this.port = serverEnvironment.getPort();
-    this.development = serverEnvironment.isDevelopment();
-    this.publicAddress = serverEnvironment.getPublicAddress();
+  public ServerConfigData(FileSystemBinding baseDir, int port, boolean development, URI publicAddress) {
+    this.baseDir = baseDir;
+    this.port = port;
+    this.development = development;
+    this.publicAddress = publicAddress;
   }
 
   public int getPort() {
@@ -87,14 +87,6 @@ public class ServerConfigData {
 
   public Optional<Integer> getWriteSpinCount() {
     return writeSpinCount;
-  }
-
-  public void setBaseDir(String baseDir) {
-    setBaseDir(Paths.get(baseDir));
-  }
-
-  public void setBaseDir(Path baseDir) {
-    this.baseDir = baseDir;
   }
 
   public void setPort(int port) {
@@ -161,7 +153,7 @@ public class ServerConfigData {
     this.writeSpinCount = Optional.of(writeSpinCount);
   }
 
-  public Path getBaseDir() {
+  public FileSystemBinding getBaseDir() {
     return baseDir;
   }
 }

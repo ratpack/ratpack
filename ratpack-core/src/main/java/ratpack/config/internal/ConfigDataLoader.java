@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.util.Exceptions;
 
 import java.util.Iterator;
@@ -27,17 +28,19 @@ import java.util.Iterator;
 public class ConfigDataLoader {
   private final ObjectMapper objectMapper;
   private final Iterable<ConfigSource> configSources;
+  private final FileSystemBinding fileSystemBinding;
 
-  public ConfigDataLoader(ObjectMapper objectMapper, Iterable<ConfigSource> configSources) {
+  public ConfigDataLoader(ObjectMapper objectMapper, Iterable<ConfigSource> configSources, FileSystemBinding fileSystemBinding) {
     this.objectMapper = objectMapper;
     this.configSources = configSources;
+    this.fileSystemBinding = fileSystemBinding;
   }
 
   public ObjectNode load() {
     ObjectNode node = objectMapper.createObjectNode();
     try {
       for (ConfigSource source : configSources) {
-        merge(source.loadConfigData(objectMapper), node);
+        merge(source.loadConfigData(objectMapper, fileSystemBinding), node);
       }
     } catch (Exception ex) {
       throw Exceptions.uncheck(ex);

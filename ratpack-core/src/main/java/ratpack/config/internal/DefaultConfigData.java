@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.ConfigSource;
+import ratpack.file.FileSystemBinding;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.server.StartEvent;
@@ -38,9 +39,9 @@ public class DefaultConfigData implements ConfigData {
   private final ConfigDataReloadInformant reloadInformant;
   private final ObjectNode emptyNode;
 
-  public DefaultConfigData(ObjectMapper objectMapper, Iterable<ConfigSource> configSources) {
+  public DefaultConfigData(ObjectMapper objectMapper, Iterable<ConfigSource> configSources, FileSystemBinding fileSystemBinding) {
     this.objectMapper = objectMapper;
-    ConfigDataLoader loader = new ConfigDataLoader(this.objectMapper, configSources);
+    ConfigDataLoader loader = new ConfigDataLoader(this.objectMapper, configSources, fileSystemBinding);
     this.rootNode = loader.load();
     this.reloadInformant = new ConfigDataReloadInformant(rootNode, loader);
     this.emptyNode = this.objectMapper.getNodeFactory().objectNode();

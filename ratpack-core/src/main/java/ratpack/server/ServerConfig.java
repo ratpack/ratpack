@@ -23,6 +23,7 @@ import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.server.internal.DefaultServerConfigBuilder;
+import ratpack.server.internal.ServerEnvironment;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -68,7 +69,7 @@ public interface ServerConfig extends ConfigData {
   }
 
   static ServerConfigBuilder builder() {
-    return new DefaultServerConfigBuilder(ConfigData.builder());
+    return new DefaultServerConfigBuilder(ServerEnvironment.env());
   }
 
   static ServerConfig of(Action<? super ServerConfigBuilder> action) throws Exception {
@@ -143,7 +144,7 @@ public interface ServerConfig extends ConfigData {
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
   @Nullable
-  SSLContext getSSLContext();
+  SSLContext getSslContext();
 
   /**
    * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}.

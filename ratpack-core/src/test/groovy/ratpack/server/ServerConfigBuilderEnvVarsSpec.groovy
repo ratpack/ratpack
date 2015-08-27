@@ -17,273 +17,134 @@
 package ratpack.server
 
 import com.google.common.io.Resources
-import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
-import javax.net.ssl.SSLContext
 import java.nio.file.Paths
 
 class ServerConfigBuilderEnvVarsSpec extends Specification {
 
-  ServerConfigBuilder builder
-  Map<String, String> source
-
-  def setup() {
-    source = [:]
-    builder = new DefaultServerConfigBuilder(new DefaultConfigDataBuilder(new ServerEnvironment(source, new Properties())))
+  private static ServerConfig build(Map<String, String> source, String env = ServerConfigBuilder.DEFAULT_ENV_PREFIX) {
+    new DefaultServerConfigBuilder(new ServerEnvironment(source, new Properties())).env(env).build()
   }
 
   def "set port"() {
-    given:
-    source['RATPACK_PORT'] = '5060'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.port == 5060
+    expect:
+    build('RATPACK_PORT': '5060').port == 5060
   }
 
   def "set property from custom prefix"() {
-    given:
-    source['APP_SERVER__PORT'] = '6060'
-
-    when:
-    def config = builder.env('APP_').build()
-
-    then:
-    config.port == 6060
+    expect:
+    build('APP_SERVER__PORT': '6060', "APP_").port == 6060
   }
 
   def "multiple sources override"() {
-    given:
-    source['RATPACK_SERVER__PORT'] = '5060'
-    source['APP_SERVER__PORT'] = '8080'
-
-    when:
-    def config = builder.env('APP_').env().build()
-
-    then:
-    config.port == 5060
-
-    when:
-    config = builder.env().env('APP_').build()
-
-    then:
-    config.port == 8080
+    expect:
+    build('RATPACK_SERVER__PORT': '5060', 'APP_SERVER__PORT': '8080').port == 5060
+    build('RATPACK_SERVER__PORT': '5060', 'APP_SERVER__PORT': '8080', "APP_").port == 8080
   }
 
   def "malformed port property uses default"() {
-    given:
-    source['RATPACK_PORT'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.port == ServerConfig.DEFAULT_PORT
+    expect:
+    build('RATPACK_PORT': 'abcd').port == ServerConfig.DEFAULT_PORT
   }
 
   def "set address"() {
-    given:
-    source['RATPACK_SERVER__ADDRESS'] = 'localhost'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.address.hostName == 'localhost'
+    expect:
+    build('RATPACK_SERVER__ADDRESS': 'localhost').address.hostName == "localhost"
   }
 
   def "malformed address property throws exception"() {
-    given:
-    source['RATPACK_SERVER__ADDRESS'] = 'blah'
-
     when:
-    builder.env().build()
+    build('RATPACK_SERVER__ADDRESS': 'blah').address.hostName == "localhost"
 
     then:
     thrown IllegalArgumentException
   }
 
   def "set development"() {
-    given:
-    source['RATPACK_SERVER__DEVELOPMENT'] = 'true'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.development
+    expect:
+    build('RATPACK_SERVER__DEVELOPMENT': 'true').development
   }
 
   def "non boolean development properties are false"() {
-    given:
-    source['RATPACK_DEVELOPMENT'] = 'hi'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    !config.development
+    expect:
+    !build('RATPACK_DEVELOPMENT': 'hi').development
   }
 
   def "set threads"() {
-    given:
-    source['RATPACK_SERVER__THREADS'] = '10'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.threads == 10
+    expect:
+    build('RATPACK_SERVER__THREADS': '10').threads == 10
   }
 
   def "malformed threads uses default"() {
-    given:
-    source['RATPACK_SERVER__THREADS'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.threads == ServerConfig.DEFAULT_THREADS
+    expect:
+    build('RATPACK_SERVER__THREADS': 'abcd').threads == ServerConfig.DEFAULT_THREADS
   }
 
   def "set public address"() {
-    given:
-    source['RATPACK_SERVER__PUBLIC_ADDRESS'] = 'http://ratpack.io'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.publicAddress.toString() == 'http://ratpack.io'
+    expect:
+    build('RATPACK_SERVER__PUBLIC_ADDRESS': 'http://ratpack.io').publicAddress.toString() == "http://ratpack.io"
   }
 
   def "set max content length"() {
-    given:
-    source['RATPACK_SERVER__MAX_CONTENT_LENGTH'] = '256'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.maxContentLength == 256
+    expect:
+    build('RATPACK_SERVER__MAX_CONTENT_LENGTH': '256').maxContentLength == 256
   }
 
   def "malformed max content length uses default"() {
-    given:
-    source['RATPACK_SERVER__MAX_CONTENT_LENGTH'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
+    expect:
+    build('RATPACK_SERVER__MAX_CONTENT_LENGTH': 'abcd').maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
   }
 
   def "set ssl context"() {
     given:
     String keystoreFile = Paths.get(Resources.getResource('ratpack/launch/internal/keystore.jks').toURI()).toString()
     String keystorePassword = 'password'
-    source['RATPACK_SERVER__SSL__KEYSTORE_FILE'] = keystoreFile
-    source['RATPACK_SERVER__SSL__KEYSTORE_PASSWORD'] = keystorePassword
 
-    when:
-    SSLContext sslContext = builder.env().build().SSLContext
-
-    then:
-    sslContext
+    expect:
+    build('RATPACK_SERVER__SSL__KEYSTORE_FILE': keystoreFile, 'RATPACK_SERVER__SSL__KEYSTORE_PASSWORD': keystorePassword).sslContext
   }
 
   def "set connect timeout millis"() {
-    given:
-    source['RATPACK_SERVER__CONNECT_TIMEOUT_MILLIS'] = '1000'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.connectTimeoutMillis.get() == 1000
+    expect:
+    build('RATPACK_SERVER__CONNECT_TIMEOUT_MILLIS': '1000').connectTimeoutMillis.get() == 1000
   }
 
   def "malformed connect timeout millis uses default"() {
-    given:
-    source['RATPACK_SERVER__CONNECT_TIMEOUT_MILLIS'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    !config.connectTimeoutMillis.present
+    expect:
+    !build('RATPACK_SERVER__CONNECT_TIMEOUT_MILLIS': 'abcd').connectTimeoutMillis.present
   }
 
   def "set max messages per read"() {
-    given:
-    source['RATPACK_SERVER__MAX_MESSAGES_PER_READ'] = '1'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.maxMessagesPerRead.get() == 1
+    expect:
+    build('RATPACK_SERVER__MAX_MESSAGES_PER_READ': '1').maxMessagesPerRead.get() == 1
   }
 
   def "malformed max messages per read uses default"() {
-    given:
-    source['RATPACK_SERVER__MAX_MESSAGES_PER_READ'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    !config.maxMessagesPerRead.present
+    expect:
+    !build('RATPACK_SERVER__MAX_MESSAGES_PER_READ': 'abcd').maxMessagesPerRead.present
   }
 
   def "set receive buffer size"() {
-    given:
-    source['RATPACK_SERVER__RECEIVE_BUFFER_SIZE'] = '1'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.receiveBufferSize.get() == 1
+    expect:
+    build('RATPACK_SERVER__RECEIVE_BUFFER_SIZE': '1').receiveBufferSize.get() == 1
   }
 
   def "malformed receive buffer size uses default"() {
-    given:
-    source['RATPACK_SERVER__RECEIVE_BUFFER_SIZE'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    !config.receiveBufferSize.present
+    expect:
+    !build('RATPACK_SERVER__RECEIVE_BUFFER_SIZE': 'abcd').receiveBufferSize.present
   }
+
   def "set write spin count"() {
-    given:
-    source['RATPACK_SERVER__WRITE_SPIN_COUNT'] = '1'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    config.writeSpinCount.get() == 1
+    expect:
+    build('RATPACK_SERVER__WRITE_SPIN_COUNT': '1').writeSpinCount.get() == 1
   }
 
   def "malformed write spin count uses default"() {
-    given:
-    source['RATPACK_SERVER__WRITE_SPIN_COUNT'] = 'abcd'
-
-    when:
-    def config = builder.env().build()
-
-    then:
-    !config.writeSpinCount.present
+    expect:
+    !build('RATPACK_SERVER__WRITE_SPIN_COUNT': 'abcd').writeSpinCount.present
   }
 
 }

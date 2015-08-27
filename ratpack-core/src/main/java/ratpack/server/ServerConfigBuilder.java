@@ -34,10 +34,36 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Builds a {@link ServerConfig}.
+ *
+ * @see RatpackServerSpec#serverConfig(Action)
+ */
 public interface ServerConfigBuilder extends ConfigDataBuilder {
 
+  /**
+   * Sets the root of the filesystem for the application.
+   * <p>
+   * The {@link ServerConfig#getBaseDir() base dir} acts as the portable file system for the application.
+   * All paths within the application, resolved by Ratpack API are resolved from this point.
+   * For example, {@link ratpack.handling.Chain#files(Action)} allows serving static files within the base dir.
+   * <p>
+   * The base dir is also used to resolve paths to file system locations when using {@link #json(String)}, {@link #yaml(String)} and {@link #props(String)}.
+   * This allows config files to travel with the application within the base dir.
+   * <p>
+   * It is generally desirable to use the {@link BaseDir#find()} to dynamically find the base dir at runtime.
+   *
+   * @param baseDir the base dir
+   * @return {@code this}
+   */
   ServerConfigBuilder baseDir(Path baseDir);
 
+  /**
+   * Calls {@link #baseDir(Path)} after converting the given {@code File} to a {@code Path} using {@link File#toPath()}.
+   *
+   * @param file the base dir
+   * @return {@code this}
+   */
   default ServerConfigBuilder baseDir(File file) {
     return baseDir(file.toPath());
   }
@@ -45,7 +71,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   /**
    * Sets the port to listen for requests on.
    * <p>
-   * Defaults to {@value ratpack.server.ServerConfig#DEFAULT_PORT}.
+   * Defaults to {@value ServerConfig#DEFAULT_PORT}.
    *
    * @param port the port to listen for requests on
    * @return {@code this}
@@ -150,7 +176,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param sslContext the SSL context
    * @return {@code this}
    * @see ratpack.ssl.SSLContexts
-   * @see ServerConfig#getSSLContext()
+   * @see ServerConfig#getSslContext()
    */
   ServerConfigBuilder ssl(SSLContext sslContext);
 
@@ -181,7 +207,13 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder props(ByteSource byteSource);
 
   /**
-   * {@inheritDoc}
+   * Adds the properties file at the given path as a configuration source.
+   * <p>
+   * If a base dir is set, the path will be resolved relative to it.
+   * Otherwise, it will be resolved relative to the file system root.
+   *
+   * @param path the path to the file
+   * @return {@code this}
    */
   @Override
   ServerConfigBuilder props(String path);
@@ -265,7 +297,13 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder json(Path path);
 
   /**
-   * {@inheritDoc}
+   * Adds the JSON file at the given path as a configuration source.
+   * <p>
+   * If a base dir is set, the path will be resolved relative to it.
+   * Otherwise, it will be resolved relative to the file system root.
+   *
+   * @param path the path to the file
+   * @return {@code this}
    */
   @Override
   ServerConfigBuilder json(String path);
@@ -289,7 +327,13 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder yaml(Path path);
 
   /**
-   * {@inheritDoc}
+   * Adds the YAML file at the given path as a configuration source.
+   * <p>
+   * If a base dir is set, the path will be resolved relative to it.
+   * Otherwise, it will be resolved relative to the file system root.
+   *
+   * @param path the path to the file
+   * @return {@code this}
    */
   @Override
   ServerConfigBuilder yaml(String path);

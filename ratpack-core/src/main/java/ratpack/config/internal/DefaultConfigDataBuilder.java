@@ -31,8 +31,8 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
-import ratpack.config.internal.module.ConfigModule;
 import ratpack.config.internal.source.*;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.server.internal.ServerEnvironment;
@@ -41,6 +41,7 @@ import ratpack.util.internal.Paths2;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -52,12 +53,27 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   private Action<? super Throwable> errorHandler = Action.throwException();
 
   public DefaultConfigDataBuilder(ServerEnvironment serverEnvironment) {
-    this(serverEnvironment, newDefaultObjectMapper(serverEnvironment));
+    this(serverEnvironment, newDefaultObjectMapper());
   }
 
   public DefaultConfigDataBuilder(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {
     this.serverEnvironment = serverEnvironment;
     this.objectMapper = objectMapper;
+  }
+
+  @Override
+  public ConfigDataBuilder json(String path) {
+    return add((objectMapper, fileSystemBinding) -> new JsonConfigSource(fileSystemBinding.file(path)).loadConfigData(objectMapper, fileSystemBinding));
+  }
+
+  @Override
+  public ConfigDataBuilder props(String path) {
+    return add((objectMapper, fileSystemBinding) -> new ByteSourcePropertiesConfigSource(Optional.empty(), Paths2.asByteSource(fileSystemBinding.file(path))).loadConfigData(objectMapper, fileSystemBinding));
+  }
+
+  @Override
+  public ConfigDataBuilder yaml(String path) {
+    return add((objectMapper, fileSystemBinding) -> new YamlConfigSource(fileSystemBinding.file(path)).loadConfigData(objectMapper, fileSystemBinding));
   }
 
   @Override
@@ -167,14 +183,13 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
     return this;
   }
 
-  public static ObjectMapper newDefaultObjectMapper(ServerEnvironment serverEnvironment) {
+  public static ObjectMapper newDefaultObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     objectMapper.registerModule(new Jdk7Module());
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new JSR310Module());
-    objectMapper.registerModule(new ConfigModule(serverEnvironment));
     JsonFactory factory = objectMapper.getFactory();
     factory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
@@ -193,6 +208,6 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
 
   @Override
   public ConfigData build() {
-    return new DefaultConfigData(getObjectMapper(), getConfigSources());
+    return new DefaultConfigData(getObjectMapper(), getConfigSources(), FileSystemBinding.of(Paths.get("/")));
   }
 }
