@@ -19,8 +19,6 @@ package ratpack.test.remote
 import io.remotecontrol.client.UnserializableResultStrategy
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.test.remote.RemoteControl.command
-
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   RemoteControl remoteControl
@@ -73,7 +71,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def "can use command method to create detached command"() {
     given:
-    def command = command { add(ValueHolder, new ValueHolder(value: "command")) }
+    def command = { add(ValueHolder, new ValueHolder(value: "command")) }
 
     when:
     remoteControl.exec command, { add(ValueHolder, new ValueHolder(value: "overridden")) }
@@ -87,13 +85,21 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     def customRemoteControl = new RemoteControl(applicationUnderTest, strategy)
 
     when:
-    customRemoteControl.exec command { new ValueHolder(value: "unserializable") }
+    customRemoteControl.exec { new ValueHolder(value: "unserializable") }
 
     then:
     text == "initial"
 
     where:
     strategy << [UnserializableResultStrategy.NULL, UnserializableResultStrategy.STRING]
+  }
+
+  def "can use support closures"() {
+    when:
+    def support = { 1 }.dehydrate()
+
+    then:
+    remoteControl.uses(support).exec { support.call() } == 1
   }
 
 }
