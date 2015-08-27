@@ -146,6 +146,17 @@ import ratpack.registry.Registry;
 public interface HandlerDecorator {
 
   /**
+   * A handler decorator implementation that does not decorate the handler.
+   *
+   * That is, it just returns the given handler.
+   *
+   * @return a handler decorator that does not decorate the handler
+   */
+  static HandlerDecorator noop() {
+    return (registry, rest) -> rest;
+  }
+
+  /**
    * Creates a new handler that decorates the application handlers, given as the {@code rest} argument.
    * <p>
    * As the {@code rest} argument encapsulates the application handlers, the returned handler should generally delegate to it (via {@link Context#insert(Handler...)}).
