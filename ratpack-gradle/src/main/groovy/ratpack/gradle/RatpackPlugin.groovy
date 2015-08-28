@@ -26,6 +26,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.application.CreateStartScripts
+import org.gradle.jvm.tasks.Jar
 import ratpack.gradle.continuous.RatpackContinuousRun
 
 class RatpackPlugin implements Plugin<Project> {
@@ -55,16 +56,24 @@ class RatpackPlugin implements Plugin<Project> {
     def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
     mainSourceSet.resources.srcDir { ratpackExtension.baseDir }
 
+    Jar jarTask = project.tasks.jar as Jar
     def mainDistribution = project.extensions.getByType(DistributionContainer).getByName("main")
-    mainDistribution.contents.from(mainSourceSet.resources) {
-      into "app"
+    mainDistribution.contents {
+      from(mainSourceSet.output) {
+        into "app"
+      }
+      eachFile {
+        if (it.name == jarTask.archiveName) {
+          it.exclude()
+        }
+      }
     }
 
     CreateStartScripts startScripts = project.startScripts
     startScripts.with {
       doLast {
-        unixScript.text = unixScript.text.replaceAll('CLASSPATH=.+\n', '$0cd "\\$APP_HOME/app"\n')
-        windowsScript.text = windowsScript.text.replaceAll('CLASSPATH=.+\r\n', '$0cd "%APP_HOME%/app"\r\n')
+        unixScript.text = unixScript.text.replaceAll('CLASSPATH=(")?(.+)(")?\n', 'CLASSPATH=$1\\$APP_HOME/app:$2$3\ncd "\\$APP_HOME/app"\n')
+        windowsScript.text = windowsScript.text.replaceAll('CLASSPATH=(")?(.+)(")\r\n', 'CLASSPATH=$1%APP_HOME%/app;$2$3\r\ncd "%APP_HOME%/app"\r\n')
       }
     }
 

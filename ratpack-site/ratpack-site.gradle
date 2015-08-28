@@ -215,7 +215,7 @@ processResources {
   }
 }
 
-applicationDistribution.into("newrelic") {
+distributions.main.contents.into("newrelic") {
   from({ configurations.newrelicAgent }) {
     rename { "agent.jar" }
   }
