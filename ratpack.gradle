@@ -137,7 +137,7 @@ subprojects {
   }
 
   tasks.withType(GroovyCompile) {
-    groovyOptions.forkOptions.memoryMaximumSize = "256m"
+    groovyOptions.forkOptions.memoryMaximumSize = "512m"
     allprojects {
       mustRunAfter tasks.withType(CodeNarc)
     }
