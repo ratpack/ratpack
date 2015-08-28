@@ -57,6 +57,7 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -72,7 +73,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeToken.of(HandlerDecorator.class);
-  private static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
+  public static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
 
   protected final Action<? super RatpackServerSpec> definitionFactory;
 
@@ -86,6 +87,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   protected boolean useSsl;
   private final ServerCapturer.Overrides overrides;
+  private Thread shutdownHookThread;
 
   public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
     this.definitionFactory = definitionFactory;
@@ -99,6 +101,8 @@ public class DefaultRatpackServer implements RatpackServer {
     }
 
     ServerConfig serverConfig;
+
+    LOGGER.info("Starting server...");
 
     DefinitionBuild definitionBuild = buildUserDefinition();
     if (definitionBuild.error != null) {
@@ -120,6 +124,18 @@ public class DefaultRatpackServer implements RatpackServer {
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info(String.format("Ratpack started %sfor %s://%s:%s", serverConfig.isDevelopment() ? "(development) " : "", getScheme(), getBindHost(), getBindPort()));
     }
+
+    shutdownHookThread = new Thread("ratpack-shutdown-thread") {
+      @Override
+      public void run() {
+        try {
+          DefaultRatpackServer.this.stop();
+        } catch (Exception ignored) {
+          ignored.printStackTrace(System.err);
+        }
+      }
+    };
+    Runtime.getRuntime().addShutdownHook(shutdownHookThread);
   }
 
   private static class DefinitionBuild {
@@ -242,12 +258,14 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected NettyHandlerAdapter buildAdapter(DefinitionBuild definition) throws Exception {
+    LOGGER.info("Building registry...");
     serverRegistry = buildServerRegistry(definition.getServerConfig(), definition.getUserRegistryFactory());
 
     Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    Iterable<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
+    Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
+    LOGGER.info("Initializing " + services.size() + " services...");
     try {
       executeEvents(services.iterator(), new DefaultEvent(serverRegistry, reloading), Service::onStart, (service, error) -> {
         throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
@@ -294,6 +312,16 @@ public class DefaultRatpackServer implements RatpackServer {
       if (!isRunning()) {
         return;
       }
+
+      try {
+        if (shutdownHookThread != null) {
+          Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
+        }
+      } catch (Exception ignored) {
+        // just ignore
+      }
+
+      LOGGER.info("Stopping server...");
       shutdownServices();
     } finally {
       Optional.ofNullable(channel).ifPresent(Channel::close);
@@ -301,11 +329,13 @@ public class DefaultRatpackServer implements RatpackServer {
       channel = null;
       execController = null;
     }
+    LOGGER.info("Server stopped.");
   }
 
   private void shutdownServices() throws Exception {
     if (serverRegistry != null) {
-      Iterable<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
+      Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
+      LOGGER.info("Stopping " + services.size() + " services...");
       Iterator<Service> reverseServices = ImmutableList.copyOf(services).reverse().iterator();
       executeEvents(reverseServices, new DefaultEvent(serverRegistry, reloading), Service::onStop, (service, error) ->
           LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
