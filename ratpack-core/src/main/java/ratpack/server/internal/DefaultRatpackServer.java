@@ -260,18 +260,21 @@ public class DefaultRatpackServer implements RatpackServer {
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
     Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
-    LOGGER.info("Initializing " + services.size() + " services...");
-    try {
-      executeEvents(services.iterator(), new DefaultEvent(serverRegistry, reloading), Service::onStart, (service, error) -> {
-        throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
-      });
-    } catch (StartupFailureException e) {
+    if (!services.isEmpty()) {
+
+      LOGGER.info("Initializing " + services.size() + " services...");
       try {
-        shutdownServices();
-      } catch (Exception e1) {
-        e.addSuppressed(e1);
+        executeEvents(services.iterator(), new DefaultEvent(serverRegistry, reloading), Service::onStart, (service, error) -> {
+          throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
+        });
+      } catch (StartupFailureException e) {
+        try {
+          shutdownServices();
+        } catch (Exception e1) {
+          e.addSuppressed(e1);
+        }
+        throw e;
       }
-      throw e;
     }
 
     return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
@@ -322,6 +325,10 @@ public class DefaultRatpackServer implements RatpackServer {
   private void shutdownServices() throws Exception {
     if (serverRegistry != null) {
       Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
+      if (services.isEmpty()) {
+        return;
+      }
+
       LOGGER.info("Stopping " + services.size() + " services...");
       Iterator<Service> reverseServices = ImmutableList.copyOf(services).reverse().iterator();
       executeEvents(reverseServices, new DefaultEvent(serverRegistry, reloading), Service::onStop, (service, error) ->
@@ -469,7 +476,7 @@ public class DefaultRatpackServer implements RatpackServer {
             }
           })
             .throttled(reloadThrottle)
-            .then(adapter -> Blocking.exec(() -> delegate(ctx, adapter, msg)))
+            .then(adapter -> delegate(ctx, adapter, msg))
       );
     }
 

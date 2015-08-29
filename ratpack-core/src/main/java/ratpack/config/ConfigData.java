@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.func.Action;
-import ratpack.server.ReloadInformant;
-import ratpack.server.Service;
 import ratpack.server.internal.ServerEnvironment;
 
 /**
@@ -30,6 +28,7 @@ import ratpack.server.internal.ServerEnvironment;
  * A {@link ConfigData} object allows configuration to be “read” as Java objects.
  * The data used to populate the objects is specified when building the configuration data.
  * The static methods of this interface can be used to build a configuration data object.
+ *
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
  * import ratpack.test.embed.EmbeddedApp;
@@ -60,14 +59,10 @@ import ratpack.server.internal.ServerEnvironment;
  *   }
  * }
  * }</pre>
- * <h3>Configuration Reloading</h3>
- * <p>
- * The created configuration data instance should be added to the server registry (as in the above example).
- * This enables automatically reloading the configuration when it changes.
  *
  * @see ConfigDataBuilder
  */
-public interface ConfigData extends ReloadInformant, Service {
+public interface ConfigData {
 
   /**
    * Builds a new config data with the default object mapper, from the given definition.

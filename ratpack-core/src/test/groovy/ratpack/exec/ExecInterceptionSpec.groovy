@@ -140,7 +140,9 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     bindings {
       bindInstance new RecordingInterceptor("global")
     }
-
+    serverConfig {
+      development false
+    }
     when:
     handlers {
       all {
@@ -157,7 +159,6 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     then:
     text
     record == [
-      "init:global", "global:COMPUTE",
       "init:global", "global:COMPUTE",
       "init:global", "init:registry", "global:COMPUTE", "registry:COMPUTE", "global:COMPUTE"
     ]

@@ -19,9 +19,6 @@ package ratpack.config.internal;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
-import ratpack.registry.Registry;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
 
 public class DelegatingConfigData implements ConfigData {
   private final ConfigData delegate;
@@ -46,22 +43,7 @@ public class DelegatingConfigData implements ConfigData {
   }
 
   @Override
-  public boolean shouldReload(Registry registry) {
-    return delegate.shouldReload(registry);
-  }
-
-  @Override
   public <O> O get(Class<O> type) {
     return delegate.get(type);
-  }
-
-  @Override
-  public void onStart(StartEvent event) throws Exception {
-    delegate.onStart(event);
-  }
-
-  @Override
-  public void onStop(StopEvent event) throws Exception {
-    delegate.onStop(event);
   }
 }

@@ -24,10 +24,6 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.ConfigSource;
 import ratpack.file.FileSystemBinding;
-import ratpack.registry.Registry;
-import ratpack.server.ServerConfig;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
 import ratpack.util.Exceptions;
 
 import java.io.IOException;
@@ -36,14 +32,12 @@ public class DefaultConfigData implements ConfigData {
 
   private final ObjectMapper objectMapper;
   private final ObjectNode rootNode;
-  private final ConfigDataReloadInformant reloadInformant;
   private final ObjectNode emptyNode;
 
   public DefaultConfigData(ObjectMapper objectMapper, Iterable<ConfigSource> configSources, FileSystemBinding fileSystemBinding) {
     this.objectMapper = objectMapper;
     ConfigDataLoader loader = new ConfigDataLoader(this.objectMapper, configSources, fileSystemBinding);
     this.rootNode = loader.load();
-    this.reloadInformant = new ConfigDataReloadInformant(rootNode, loader);
     this.emptyNode = this.objectMapper.getNodeFactory().objectNode();
   }
 
@@ -66,24 +60,4 @@ public class DefaultConfigData implements ConfigData {
     }
   }
 
-  @Override
-  public boolean shouldReload(Registry registry) {
-    return reloadInformant.shouldReload(registry);
-  }
-
-  @Override
-  public void onStart(StartEvent event) throws Exception {
-    ServerConfig serverConfig = event.getRegistry().get(ServerConfig.class);
-    if (serverConfig.isDevelopment()) {
-      reloadInformant.onStart(event);
-    }
-  }
-
-  @Override
-  public void onStop(StopEvent event) throws Exception {
-    ServerConfig serverConfig = event.getRegistry().get(ServerConfig.class);
-    if (serverConfig.isDevelopment()) {
-      reloadInformant.onStop(event);
-    }
-  }
 }
