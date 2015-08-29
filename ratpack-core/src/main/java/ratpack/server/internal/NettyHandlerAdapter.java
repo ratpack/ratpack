@@ -32,6 +32,7 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
+import ratpack.handling.RequestBodyAlreadyReadException;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
@@ -57,7 +58,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
-  private static final AttributeKey<Boolean> DONE = AttributeKey.valueOf("ratpack.done");
+
+  static final AttributeKey<Boolean> DONE = AttributeKey.valueOf("ratpack.done");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -125,45 +127,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
       remoteAddress,
       socketAddress,
       serverRegistry.get(ServerConfig.class),
-      maxContentLength -> Promise.<ByteBuf>of(downstream -> {
-        if (ctx.attr(DONE).get()) {
-          downstream.success(Unpooled.EMPTY_BUFFER);
-          return;
-        }
-        ChannelPipeline pipeline = ctx.pipeline();
-        pipeline.get(HttpRequestDecoder.class).setSingleDecode(false);
-        pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<HttpContent>() {
-          private CompositeByteBuf body = ctx.alloc().compositeBuffer();
-
-          @Override
-          public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-            pipeline.fireChannelRead(Unpooled.EMPTY_BUFFER);
-          }
-
-          @Override
-          protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
-            ByteBuf payload = msg.content().retain();
-            if (body.capacity() + payload.readableBytes() > maxContentLength) {
-              try {
-                sendError(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
-              } finally {
-                body.release();
-              }
-            } else {
-              body.addComponent(payload);
-              body.writerIndex(body.writerIndex() + payload.readableBytes());
-
-              if (msg instanceof LastHttpContent) {
-                ctx.pipeline().remove(this);
-                channel.config().setAutoRead(true);
-                downstream.success(body);
-              } else {
-                ctx.read();
-              }
-            }
-          }
-        });
-      })
+      requestBodyReader(ctx)
     );
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
@@ -256,5 +220,51 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<HttpRequest
 
     // Close the connection as soon as the error message is sent.
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+  }
+
+  private RequestBodyReader requestBodyReader(ChannelHandlerContext ctx) {
+    AtomicBoolean read = new AtomicBoolean();
+    return maxContentLength -> Promise.<ByteBuf>of(downstream -> {
+      if (!read.compareAndSet(false, true)) {
+        downstream.error(new RequestBodyAlreadyReadException());
+      }
+      if (ctx.attr(DONE).get()) {
+        downstream.success(Unpooled.EMPTY_BUFFER);
+        return;
+      }
+      ChannelPipeline pipeline = ctx.pipeline();
+      pipeline.get(HttpRequestDecoder.class).setSingleDecode(false);
+      pipeline.addLast("bodyHandler", new SimpleChannelInboundHandler<HttpContent>() {
+        private CompositeByteBuf body = ctx.alloc().compositeBuffer();
+
+        @Override
+        public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+          pipeline.fireChannelRead(Unpooled.EMPTY_BUFFER);
+        }
+
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
+          ByteBuf payload = msg.content().retain();
+          if (body.capacity() + payload.readableBytes() > maxContentLength) {
+            try {
+              sendError(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+            } finally {
+              body.release();
+            }
+          } else {
+            body.addComponent(payload);
+            body.writerIndex(body.writerIndex() + payload.readableBytes());
+
+            if (msg instanceof LastHttpContent) {
+              ctx.pipeline().remove(this);
+              ctx.channel().config().setAutoRead(true);
+              downstream.success(body);
+            } else {
+              ctx.read();
+            }
+          }
+        }
+      });
+    });
   }
 }

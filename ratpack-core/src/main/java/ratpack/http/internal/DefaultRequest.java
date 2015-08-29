@@ -26,7 +26,6 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
-import ratpack.handling.internal.BodyPreviouslyReadException;
 import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
@@ -212,12 +211,7 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody(int maxContentLength) {
-    if (!bodyRead) {
-      bodyRead = true;
-      return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType())).cache();
-    } else {
-      return Promise.error(new BodyPreviouslyReadException());
-    }
+    return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType())).cache();
   }
 
   @Override

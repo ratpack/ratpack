@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.handling;
 
-public class BodyPreviouslyReadException extends RuntimeException {
+public class RequestBodyAlreadyReadException extends RuntimeException {
   private static final long serialVersionUID = 0;
 
-  public BodyPreviouslyReadException() {
+  public RequestBodyAlreadyReadException() {
     super("Request body was previously read");
   }
 }
