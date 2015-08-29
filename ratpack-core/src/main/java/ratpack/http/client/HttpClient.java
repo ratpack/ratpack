@@ -44,35 +44,37 @@ import java.net.URI;
  *
  * public class ExampleHttpClient {
  *
- *   public static void main(String[] args) throws Exception {
+ *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlers(chain -> {
  *         chain
- *           .get("simpleGet", context -> {
- *             PublicAddress address = context.get(PublicAddress.class);         //find local ip address
- *             HttpClient httpClient = context.get(HttpClient.class);            //get httpClient
+ *           .get("simpleGet", ctx -> {
+ *             PublicAddress address = ctx.get(PublicAddress.class);         //find local ip address
+ *             HttpClient httpClient = ctx.get(HttpClient.class);            //get httpClient
+ *             URI uri = address.get(ctx, "httpClientGet");
  *
- *             httpClient.get(HttpUrlBuilder.base(address.getAddress(context)).segment("httpClientGet").build()).then(response -> {
- *                 context.render(response.getBody().getText());  //Render the response from the httpClient GET request
+ *             httpClient.get(uri).then(response -> {
+ *                 ctx.render(response.getBody().getText());  //Render the response from the httpClient GET request
  *               }
  *             );
  *           })
- *           .get("simplePost", context -> {
- *             PublicAddress address = context.get(PublicAddress.class);  //find local ip address
- *             HttpClient httpClient = context.get(HttpClient.class);     //get httpClient
+ *           .get("simplePost", ctx -> {
+ *             PublicAddress address = ctx.get(PublicAddress.class);  //find local ip address
+ *             HttpClient httpClient = ctx.get(HttpClient.class);     //get httpClient
+ *             URI uri = address.get(ctx, "httpClientPost");
  *
- *             httpClient.post(HttpUrlBuilder.base(address.getAddress(context)).segment("httpClientPost").build(), action ->
+ *             httpClient.post(uri, action ->
  *               action.body(body ->
  *                 body.text("foo")   //Configure the POST body
  *               )
  *             ).then(response -> {
- *               context.render(response.getBody().getText());   //Render the response from the httpClient POST request
+ *               ctx.render(response.getBody().getText());   //Render the response from the httpClient POST request
  *             });
  *           })
- *           .get("httpClientGet", context -> {
- *             context.render("httpClientGet");
+ *           .get("httpClientGet", ctx -> {
+ *             ctx.render("httpClientGet");
  *           })
- *           .post("httpClientPost", context -> {
- *             context.render(context.getRequest().getBody().map(b -> b.getText().toUpperCase()));
+ *           .post("httpClientPost", ctx -> {
+ *             ctx.render(ctx.getRequest().getBody().map(b -> b.getText().toUpperCase()));
  *           });
  *       }
  *     ).test(testHttpClient -> {

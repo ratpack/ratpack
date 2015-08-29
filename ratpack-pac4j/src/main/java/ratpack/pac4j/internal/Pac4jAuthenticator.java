@@ -52,7 +52,7 @@ public class Pac4jAuthenticator implements Handler {
     String boundTo = pathBinding.getBoundTo();
     String pastBinding = pathBinding.getPastBinding();
     PublicAddress publicAddress = ctx.get(PublicAddress.class);
-    String absoluteCallbackUrl = publicAddress.getAddress(ctx) + boundTo + "/" + path;
+    String absoluteCallbackUrl = publicAddress.get(ctx) + boundTo + "/" + path;
 
     @SuppressWarnings("rawtypes")
     List<Client> cast = Types.cast(this.clients);

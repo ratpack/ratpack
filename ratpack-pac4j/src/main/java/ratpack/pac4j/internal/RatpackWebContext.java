@@ -150,7 +150,7 @@ public class RatpackWebContext implements WebContext {
   }
 
   private URI getAddress() {
-    return context.get(PublicAddress.class).getAddress(context);
+    return context.get(PublicAddress.class).get(context);
   }
 
   private static boolean isFormAvailable(Request request, TypedData body) {

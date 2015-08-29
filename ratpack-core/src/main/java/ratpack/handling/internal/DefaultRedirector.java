@@ -36,15 +36,15 @@ public class DefaultRedirector implements Redirector {
     context.getResponse().send();
   }
 
-  private String generateRedirectLocation(Context context, Request request, String path) {
+  private String generateRedirectLocation(Context ctx, Request request, String path) {
     //Rules
     //1. Given absolute URL use it
     //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
     //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
 
-    PublicAddress publicAddress = context.get(PublicAddress.class);
+    PublicAddress publicAddress = ctx.get(PublicAddress.class);
     String generatedPath;
-    URI host = publicAddress.getAddress(context);
+    URI host = publicAddress.get(ctx);
 
     if (ABSOLUTE_PATTERN.matcher(path).matches()) {
       //Rule 1 - Path is absolute

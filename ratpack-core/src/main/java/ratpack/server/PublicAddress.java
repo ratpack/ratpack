@@ -16,7 +16,10 @@
 
 package ratpack.server;
 
+import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.http.HttpUrlBuilder;
+import ratpack.server.internal.ConstantPublicAddress;
 
 import java.net.URI;
 
@@ -42,10 +45,56 @@ import java.net.URI;
 public interface PublicAddress {
 
   /**
+   * Creates a new public address object using the given URI.
+   * <p>
+   * The path, query and fragment components of the URI will be stripped.
+   *
+   * @param uri the uri
+   * @return a public address
+   */
+  static PublicAddress of(URI uri) {
+    return new ConstantPublicAddress(uri);
+  }
+
+  /**
    * The advertised public address.
    *
-   * @param context The context that the public address is being determined for.
-   * @return the public address for the context.
+   * @param ctx the handling context at the time the public address is needed
+   * @return the public address for the context
    */
-  URI getAddress(Context context);
+  URI get(Context ctx);
+
+  /**
+   * Creates a URL builder using the public address as the base.
+   *
+   * @param ctx the handling context at the time the public address is needed
+   * @return a URL builder
+   */
+  default HttpUrlBuilder builder(Context ctx) {
+    return HttpUrlBuilder.base(get(ctx));
+  }
+
+  /**
+   * Creates a URL by building a URL based on the public address.
+   *
+   * @param ctx the handling context at the time the public address is needed
+   * @param action the additions to the public address
+   * @return the built url
+   * @throws Exception any thrown by {@code action}
+   */
+  default URI get(Context ctx, Action<? super HttpUrlBuilder> action) throws Exception {
+    return action.with(builder(ctx)).build();
+  }
+
+  /**
+   * Creates a URL by appending the given <i>path</i> to the public address
+   *
+   * @param ctx the handling context at the time the public address is needed
+   * @param path the path to append to the public address
+   * @return the public address with the given path appended
+   */
+  default URI get(Context ctx, String path) {
+    return builder(ctx).path(path).build();
+  }
+
 }

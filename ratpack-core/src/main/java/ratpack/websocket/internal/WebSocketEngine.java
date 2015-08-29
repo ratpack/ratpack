@@ -46,7 +46,7 @@ public class WebSocketEngine {
 
   public static <T> void connect(final Context context, String path, int maxLength, final WebSocketHandler<T> handler) {
     PublicAddress publicAddress = context.get(PublicAddress.class);
-    URI address = publicAddress.getAddress(context);
+    URI address = publicAddress.get(context);
     URI httpPath = address.resolve(path);
 
     URI wsPath;

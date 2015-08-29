@@ -26,75 +26,55 @@ import ratpack.server.PublicAddress;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.ProtocolUtil;
 
-import java.net.*;
-import java.util.Optional;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static ratpack.http.internal.HttpHeaderConstants.*;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 
-/**
- * A best-effort attempt at providing meaningful default behaviors for determining the appropriate advertised address for a request.
- * This implementation supports a number of strategies, depending on what information is available (listed in order of precedence):
- *
- * <ul>
- *   <li>Configured public address URI (optional)</li>
- *   <li>X-Forwarded-Host header (if included in request)</li>
- *   <li>X-Forwarded-Proto or X-Forwarded-Ssl headers (if included in request)</li>
- *   <li>Absolute request URI (if included in request)</li>
- *   <li>Host header (if included in request)</li>
- *   <li>Service's bind address and scheme (http vs. https)</li>
- * </ul>
- *
- * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23">Header Field Definitions: Host</a>
- * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.2">Request: The Resource Identified by a Request</a>
- */
-public class DefaultPublicAddress implements PublicAddress {
+public class InferringPublicAddress implements PublicAddress {
 
   private static final Splitter FORWARDED_HOST_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
-  private final Optional<URI> publicAddress;
   private final String scheme;
 
-  public DefaultPublicAddress(URI publicAddress, String scheme) {
-    this.publicAddress = Optional.ofNullable(publicAddress);
+  public InferringPublicAddress(String scheme) {
     this.scheme = scheme;
   }
 
-  public URI getAddress(Context context) {
-    return publicAddress.orElseGet(() -> {
-      String scheme;
-      String host;
-      int port;
-      HostAndPort forwardedHostData = getForwardedHostData(context);
-      if (forwardedHostData != null) {
-        scheme = determineScheme(context, this.scheme);
-        host = forwardedHostData.getHostText();
-        port = forwardedHostData.getPortOrDefault(-1);
+  public URI get(Context ctx) {
+    String scheme;
+    String host;
+    int port;
+    HostAndPort forwardedHostData = getForwardedHostData(ctx);
+    if (forwardedHostData != null) {
+      scheme = determineScheme(ctx, this.scheme);
+      host = forwardedHostData.getHostText();
+      port = forwardedHostData.getPortOrDefault(-1);
+    } else {
+      URI absoluteRequestURI = getAbsoluteRequestUri(ctx);
+      if (absoluteRequestURI != null) {
+        scheme = determineScheme(ctx, absoluteRequestURI.getScheme());
+        host = absoluteRequestURI.getHost();
+        port = absoluteRequestURI.getPort();
       } else {
-        URI absoluteRequestURI = getAbsoluteRequestUri(context);
-        if (absoluteRequestURI != null) {
-          scheme = determineScheme(context, absoluteRequestURI.getScheme());
-          host = absoluteRequestURI.getHost();
-          port = absoluteRequestURI.getPort();
+        scheme = determineScheme(ctx, this.scheme);
+        HostAndPort hostData = getHostData(ctx);
+        if (hostData != null) {
+          host = hostData.getHostText();
+          port = hostData.getPortOrDefault(-1);
         } else {
-          scheme = determineScheme(context, this.scheme);
-          HostAndPort hostData = getHostData(context);
-          if (hostData != null) {
-            host = hostData.getHostText();
-            port = hostData.getPortOrDefault(-1);
-          } else {
-            HostAndPort localAddress = context.getRequest().getLocalAddress();
-            host = localAddress.getHostText();
-            port = ProtocolUtil.isDefaultPortForScheme(localAddress.getPort(), this.scheme) ? -1 : localAddress.getPort();
-          }
+          HostAndPort localAddress = ctx.getRequest().getLocalAddress();
+          host = localAddress.getHostText();
+          port = ProtocolUtil.isDefaultPortForScheme(localAddress.getPort(), this.scheme) ? -1 : localAddress.getPort();
         }
       }
-      try {
-        return new URI(scheme, null, host, port, null, null, null);
-      } catch (URISyntaxException ex) {
-        throw Exceptions.uncheck(ex);
-      }
-    });
+    }
+    try {
+      return new URI(scheme, null, host, port, null, null, null);
+    } catch (URISyntaxException ex) {
+      throw Exceptions.uncheck(ex);
+    }
   }
 
   private URI getAbsoluteRequestUri(Context context) {

@@ -99,7 +99,7 @@ public abstract class ServerRegistry {
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(MimeTypes.class, new ActivationBackedMimeTypes())
-        .add(PublicAddress.class, new DefaultPublicAddress(serverConfig.getPublicAddress(), serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+        .add(PublicAddress.class, serverConfig.getPublicAddress() == null ? new InferringPublicAddress(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME) : PublicAddress.of(serverConfig.getPublicAddress()))
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
