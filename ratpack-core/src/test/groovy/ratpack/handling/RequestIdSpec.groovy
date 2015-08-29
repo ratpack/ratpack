@@ -16,13 +16,9 @@
 
 package ratpack.handling
 
-import groovy.io.GroovyPrintStream
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class RequestIdSpec extends RatpackGroovyDslSpec {
 
@@ -60,21 +56,11 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   }
 
   def "request log includes request id"() {
-    def loggerOutput = new ByteArrayOutputStream()
-    def logger = LoggerFactory.getLogger(RequestId)
-    def originalStream = logger.TARGET_STREAM
-    def latch = new CountDownLatch(2)
-    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
-
-      @Override
-      void println(String s) {
-        super.println(s)
-        originalStream.println(s)
-        latch.countDown()
-      }
+    given:
+    def logger = Mock(Logger) {
+      isInfoEnabled() >> true
     }
 
-    given:
     int count = 0
     bindings {
       bindInstance RequestId.Generator, { RequestId.of("request-${count++}") } as RequestId.Generator
@@ -90,14 +76,15 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    ReceivedResponse getResponse = get("foo")
-    ReceivedResponse postResponse = post("bar")
+    get("foo")
 
     then:
-    latch.await(5, TimeUnit.SECONDS)
-    String output = loggerOutput.toString()
-    output.contains("\"GET /foo HTTP/1.1\" 200 ${getResponse.body.text.length()} id=$getResponse.body.text")
-    output.contains("\"POST /bar HTTP/1.1\" 200 ${postResponse.body.text.length()} id=$postResponse.body.text")
-    count == 2
+    1 * logger.info({ it.contains("\"GET /foo HTTP/1.1\" 200 9 id=request-0") })
+
+    when:
+    post("bar")
+
+    then:
+    1 * logger.info({ it.contains("\"POST /bar HTTP/1.1\" 200 9 id=request-1") })
   }
 }
