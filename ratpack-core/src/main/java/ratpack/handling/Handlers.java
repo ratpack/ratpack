@@ -84,7 +84,7 @@ public abstract class Handlers {
    * @throws Exception any thrown by {@code action}
    */
   public static Handler chain(@Nullable ServerConfig serverConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
-    return ChainBuilders.build(serverConfig != null && serverConfig.isDevelopment(), new ChainActionTransformer(serverConfig, registry), action);
+    return ChainBuilders.build(new ChainActionTransformer(serverConfig, registry), action);
   }
 
   /**

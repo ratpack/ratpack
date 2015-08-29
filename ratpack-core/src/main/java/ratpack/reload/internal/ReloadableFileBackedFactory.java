@@ -46,11 +46,11 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
-  static public interface Producer<T> {
+  public interface Producer<T> {
     T produce(Path file, ByteBuf bytes) throws Exception;
   }
 
-  static public interface Releaser<T> {
+  public interface Releaser<T> {
     void release(T thing);
   }
 

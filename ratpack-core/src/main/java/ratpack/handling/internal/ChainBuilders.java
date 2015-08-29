@@ -21,27 +21,12 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.reload.internal.ClassUtil;
-import ratpack.reload.internal.ReloadableFileBackedFactory;
 
-import java.io.File;
 import java.util.List;
 
 public class ChainBuilders {
 
-  public static <T> Handler build(boolean reloadable, final Function<List<Handler>, ? extends T> toChainBuilder, final Action<? super T> chainBuilderAction) throws Exception {
-    if (reloadable) {
-      File classFile = ClassUtil.getClassFile(chainBuilderAction);
-      if (classFile != null) {
-        ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> create(toChainBuilder, chainBuilderAction));
-        return new FactoryHandler(factory);
-      }
-    }
-
-    return create(toChainBuilder, chainBuilderAction);
-  }
-
-  private static <T> Handler create(Function<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) throws Exception {
+  public static <T> Handler build(final Function<List<Handler>, ? extends T> toChainBuilder, final Action<? super T> chainBuilderAction) throws Exception {
     List<Handler> handlers = Lists.newLinkedList();
     T chainBuilder = toChainBuilder.apply(handlers);
     chainBuilderAction.execute(chainBuilder);

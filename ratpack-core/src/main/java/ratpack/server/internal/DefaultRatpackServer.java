@@ -39,21 +39,16 @@ import ratpack.exec.Throttle;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
-import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
-import ratpack.handling.internal.FactoryHandler;
 import ratpack.registry.Registry;
-import ratpack.reload.internal.ClassUtil;
-import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.*;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Optional;
@@ -261,7 +256,7 @@ public class DefaultRatpackServer implements RatpackServer {
     LOGGER.info("Building registry...");
     serverRegistry = buildServerRegistry(definition.getServerConfig(), definition.getUserRegistryFactory());
 
-    Handler ratpackHandler = buildRatpackHandler(definition.getServerConfig(), serverRegistry, definition.getHandlerFactory());
+    Handler ratpackHandler = buildRatpackHandler(serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
     Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
@@ -294,15 +289,7 @@ public class DefaultRatpackServer implements RatpackServer {
     return rootHandler;
   }
 
-  private Handler buildRatpackHandler(ServerConfig serverConfig, Registry serverRegistry, Function<? super Registry, ? extends Handler> handlerFactory) throws Exception {
-    if (serverConfig.isDevelopment()) {
-      File classFile = ClassUtil.getClassFile(handlerFactory);
-      if (classFile != null) {
-        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> handlerFactory.apply(this.serverRegistry));
-        return new FactoryHandler(factory);
-      }
-    }
-
+  private Handler buildRatpackHandler(Registry serverRegistry, Function<? super Registry, ? extends Handler> handlerFactory) throws Exception {
     return handlerFactory.apply(serverRegistry);
   }
 
