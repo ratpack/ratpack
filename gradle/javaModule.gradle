@@ -103,5 +103,10 @@ javadoc {
 
 task codeQuality {
   dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
+}
 
+tasks.withType(Test) {
+  testLogging {
+    exceptionFormat "full"
+  }
 }
