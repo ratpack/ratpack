@@ -16,8 +16,6 @@
 
 package ratpack.file.internal;
 
-import ratpack.file.FileSystemChecksumService;
-
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;

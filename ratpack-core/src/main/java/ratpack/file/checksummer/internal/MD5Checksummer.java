@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.file.checksummer;
+package ratpack.file.checksummer.internal;
 
 import java.io.InputStream;
 import ratpack.func.Function;
@@ -24,12 +24,12 @@ import java.security.MessageDigest;
 /**
  *  Calculate checksum with MD5 algorithm.
  *  <p>
- *  This function type is implementation of {@link ratpack.func.Function} interface and 
+ *  This function type is implementation of {@link ratpack.func.Function} interface and
  *  takes {@code InputStream} as parameter while returns {@code String} with calculated checksum.
  */
 public class MD5Checksummer implements Function<InputStream, String> {
   private static final int BUFFER_SIZE = 8192;
-  
+
   /**
    * Algorythm implementation.
    *

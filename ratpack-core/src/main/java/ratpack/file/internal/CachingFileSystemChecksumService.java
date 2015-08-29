@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.file;
+package ratpack.file.internal;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

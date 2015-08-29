@@ -18,7 +18,6 @@ package ratpack.file.internal;
 
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
-import ratpack.file.FileSystemChecksumService;
 import ratpack.func.Function;
 
 import java.util.List;

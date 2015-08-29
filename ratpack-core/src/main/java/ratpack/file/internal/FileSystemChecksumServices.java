@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.file;
+package ratpack.file.internal;
 
-import ratpack.file.internal.DefaultFileSystemChecksumService;
-import ratpack.file.internal.FileSystemChecksumServicePopulater;
-import ratpack.file.checksummer.Adler32Checksummer;
-import ratpack.file.checksummer.MD5Checksummer;
+import ratpack.file.FileSystemBinding;
+import ratpack.file.checksummer.internal.Adler32Checksummer;
+import ratpack.file.checksummer.internal.MD5Checksummer;
 import ratpack.func.Function;
 import ratpack.server.ServerConfig;
 
@@ -30,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.nio.file.Files;
 
 /**
- *  Factory methods for creating {@link ratpack.file.FileSystemChecksumService}.
+ *  Factory methods for creating {@link FileSystemChecksumService}.
  *  <p>
  *  Checksum service is used for calculation of file system checksums - assets or any kind of files.
  *  Checksum service is backed by either predefined checksum calculation function (Noop. Adler32, MD5), or custom function.
@@ -39,8 +38,8 @@ import java.nio.file.Files;
  *
  *
  * <pre>{@code
- * import ratpack.file.FileSystemChecksumService;
- * import ratpack.file.FileSystemChecksumServices;
+ * import ratpack.file.internal.FileSystemChecksumService;
+ * import ratpack.file.internal.FileSystemChecksumServices;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
  * import ratpack.test.handling.RequestFixture;

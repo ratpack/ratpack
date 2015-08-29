@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.file;
+package ratpack.file.internal;
 
 import ratpack.api.Nullable;
 

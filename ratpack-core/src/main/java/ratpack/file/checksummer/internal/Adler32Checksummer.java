@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.file.checksummer;
+package ratpack.file.checksummer.internal;
 
 import java.io.InputStream;
 import ratpack.func.Function;
@@ -25,7 +25,7 @@ import java.util.zip.Checksum;
 /**
  *  Calculate checksum with Adler32 algorithm.
  *  <p>
- *  This function type is implementation of {@link ratpack.func.Function} interface and 
+ *  This function type is implementation of {@link ratpack.func.Function} interface and
  *  takes {@code InputStream} as parameter while returns {@code String} with calculated checksum.
  */
 public class Adler32Checksummer implements Function<InputStream, String> {

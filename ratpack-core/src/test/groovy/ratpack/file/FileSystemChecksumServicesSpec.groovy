@@ -16,6 +16,9 @@
 
 package ratpack.file
 
+import ratpack.file.internal.CachingFileSystemChecksumService
+import ratpack.file.internal.FileSystemChecksumServices
+
 import java.nio.file.NoSuchFileException
 import java.nio.file.InvalidPathException
 
