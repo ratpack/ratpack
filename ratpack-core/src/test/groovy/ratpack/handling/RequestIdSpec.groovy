@@ -76,13 +76,13 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    get("foo")
+    getText("foo") == "request-0"
 
     then:
     1 * logger.info({ it.contains("\"GET /foo HTTP/1.1\" 200 9 id=request-0") })
 
     when:
-    post("bar")
+    postText("bar") == "request-1"
 
     then:
     1 * logger.info({ it.contains("\"POST /bar HTTP/1.1\" 200 9 id=request-1") })
