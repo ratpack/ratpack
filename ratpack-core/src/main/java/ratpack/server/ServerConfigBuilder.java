@@ -71,7 +71,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   /**
    * Sets the port to listen for requests on.
    * <p>
-   * Defaults to {@value ServerConfig#DEFAULT_PORT}.
+   * Defaults to 5050.
    *
    * @param port the port to listen for requests on
    * @return {@code this}
