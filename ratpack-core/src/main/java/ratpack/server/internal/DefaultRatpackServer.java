@@ -475,8 +475,16 @@ public class DefaultRatpackServer implements RatpackServer {
               f.success(inner);
             }
           })
+            .wiretap(r -> {
+              try {
+                ctx.pipeline().remove("inner");
+              } catch (Exception ignore) {
+                // ignore
+              }
+              ctx.pipeline().addLast("inner", r.getValueOrThrow());
+            })
             .throttled(reloadThrottle)
-            .then(adapter -> delegate(ctx, adapter, msg))
+            .then(adapter -> ctx.fireChannelRead(msg))
       );
     }
 
@@ -487,15 +495,6 @@ public class DefaultRatpackServer implements RatpackServer {
         throw uncheck(e);
       }
     }
-
-    private void delegate(ChannelHandlerContext ctx, ChannelHandler delegate, FullHttpRequest msg) {
-      try {
-        ctx.pipeline().remove("inner");
-      } catch (Exception ignore) {
-        // ignore
-      }
-      ctx.pipeline().addLast("inner", delegate);
-      ctx.fireChannelRead(msg);
-    }
   }
+
 }
