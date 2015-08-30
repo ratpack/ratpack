@@ -20,6 +20,9 @@ import org.slf4j.Logger
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
+
 class RequestIdSpec extends RatpackGroovyDslSpec {
 
   def "add request id"() {
@@ -57,13 +60,17 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
 
   def "request log includes request id"() {
     given:
+    def msgQueue = new ArrayBlockingQueue<String>(2)
     def logger = Mock(Logger) {
       isInfoEnabled() >> true
+      info(_ as String) >> { String msg -> msgQueue << msg }
     }
 
     int count = 0
     bindings {
-      bindInstance RequestId.Generator, { RequestId.of("request-${count++}") } as RequestId.Generator
+      bindInstance RequestId.Generator, {
+        RequestId.of("request-${count++}")
+      } as RequestId.Generator
     }
     handlers {
       all RequestLogger.ncsa(logger)
@@ -79,12 +86,12 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     getText("foo") == "request-0"
 
     then:
-    1 * logger.info({ it.contains("\"GET /foo HTTP/1.1\" 200 9 id=request-0") })
+    msgQueue.poll(2, TimeUnit.SECONDS).contains("\"GET /foo HTTP/1.1\" 200 9 id=request-0")
 
     when:
     postText("bar") == "request-1"
 
     then:
-    1 * logger.info({ it.contains("\"POST /bar HTTP/1.1\" 200 9 id=request-1") })
+    msgQueue.poll(2, TimeUnit.SECONDS).contains("\"POST /bar HTTP/1.1\" 200 9 id=request-1")
   }
 }
