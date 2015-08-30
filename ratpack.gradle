@@ -234,6 +234,10 @@ subprojects {
     minHeapSize "312m"
     maxHeapSize "312m"
 
+    testLogging {
+      exceptionFormat "full"
+    }
+
     doFirst {
       if (isCloudCi) {
         maxParallelForks 1
