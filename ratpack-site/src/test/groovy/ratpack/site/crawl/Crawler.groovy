@@ -36,13 +36,15 @@ import static org.codehaus.groovy.runtime.StackTraceUtils.deepSanitize
 @CompileStatic
 abstract class Crawler {
 
+  final int numThreads = Runtime.getRuntime().availableProcessors() * 4
   final int retryLimit = 3
-  final int retryWaitMillis = 1000
+  final int retryWaitMillis = 200
+  final int timeoutMins = 10
 
   final String startingUrl
 
   protected final AtomicInteger counter = new AtomicInteger(0)
-  protected final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(8)
+  protected final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(numThreads)
 
   protected final ConcurrentMap<String, Link> seen = new ConcurrentHashMap<>()
   protected final Queue<Link> visited = new ConcurrentLinkedQueue<>()
@@ -94,7 +96,7 @@ abstract class Crawler {
     executorService.execute(toVisit(link))
 
     long startAt = System.currentTimeMillis()
-    long stopAt = startAt + (1000 * 60 * 10) // 10 minutes
+    long stopAt = startAt + (1000 * 60 * timeoutMins)
     while (counter.get() > 0 && System.currentTimeMillis() < stopAt) {
       sleep 100
     }
@@ -293,7 +295,7 @@ abstract class Crawler {
   static class Link {
     final URI uri
 
-    final Set<String> referrers =  new HashSet().asSynchronized()
+    final Set<String> referrers = new HashSet().asSynchronized()
     final List<PageError> errors = [].asSynchronized()
 
     int attemptCount = 0
