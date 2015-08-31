@@ -182,13 +182,6 @@ Therefore, it needs to be on the classpath in source form (i.e. as a `.groovy` f
 
 See [Groovy](groovy.html) for more information about the contents of this file.
 
-## Development time reloading
-
-The Ratpack Gradle plugins integrate with [Gradle's Continuous Build feature](https://docs.gradle.org/@gradle-version@/userguide/continuous_build.html).
-To leverage this, you can run the `devRun` task with the `--continuous` (or `-t`) argument.
-
-Any changes made to source or resources will be compiled and processed and the application _reloaded_ as a result.
-
 ## Running the application
 
 The `'application'` plugin provides the `'run'` task for starting the Ratpack application.
@@ -217,6 +210,13 @@ run {
   systemProperty "app.dbPassword", "secret"
 }
 ```
+
+### Development time reloading
+
+The Ratpack Gradle plugins integrate with [Gradle's Continuous Build feature](https://docs.gradle.org/@gradle-version@/userguide/continuous_build.html).
+To leverage this, you can run the `run` task with the `--continuous` (or `-t`) argument.
+
+Any changes made to source or resources will be compiled and processed and the application _reloaded_ as a result.
 
 ### Running with the 'shadow' plugin
 
