@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import ratpack.config.*;
@@ -40,23 +39,21 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   private final ConfigDataBuilder configDataBuilder;
-  private final ObjectNode serverConfigData;
   private final Map<String, Class<?>> required = Maps.newHashMap();
   private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
 
   public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
     configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
     this.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
-    this.serverConfigData = getObjectMapper().createObjectNode();
   }
 
   @Override
@@ -70,22 +67,29 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     return this;
   }
 
+  private ServerConfigBuilder addToServer(Consumer<? super ObjectNode> action) {
+    add((m, f) -> {
+      ObjectNode rootNode = new ObjectNode(getObjectMapper().getNodeFactory());
+      ObjectNode server = rootNode.putObject("server");
+      action.accept(server);
+      return rootNode;
+    });
+    return this;
+  }
+
   @Override
   public ServerConfigBuilder port(int port) {
-    serverConfigData.put("port", port);
-    return this;
+    return addToServer(n -> n.put("port", port));
   }
 
   @Override
   public ServerConfigBuilder address(InetAddress address) {
-    serverConfigData.putPOJO("address", address);
-    return this;
+    return addToServer(n -> n.putPOJO("address", address));
   }
 
   @Override
   public ServerConfigBuilder development(boolean development) {
-    serverConfigData.put("development", development);
-    return this;
+    return addToServer(n -> n.put("development", development));
   }
 
   @Override
@@ -93,56 +97,47 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     if (threads < 1) {
       throw new IllegalArgumentException("'threads' must be > 0");
     }
-    serverConfigData.put("threads", threads);
-    return this;
+    return addToServer(n -> n.put("threads", threads));
   }
 
   @Override
   public ServerConfigBuilder publicAddress(URI publicAddress) {
-    serverConfigData.putPOJO("publicAddress", publicAddress);
-    return this;
+    return addToServer(n -> n.putPOJO("publicAddress", publicAddress));
   }
 
   @Override
   public ServerConfigBuilder maxContentLength(int maxContentLength) {
-    serverConfigData.put("maxContentLength", maxContentLength);
-    return this;
+    return addToServer(n -> n.put("maxContentLength", maxContentLength));
   }
 
   @Override
   public ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis) {
-    serverConfigData.put("connectTimeoutMillis", connectTimeoutMillis);
-    return this;
+    return addToServer(n -> n.put("connectTimeoutMillis", connectTimeoutMillis));
   }
 
   @Override
   public ServerConfigBuilder maxMessagesPerRead(int maxMessagesPerRead) {
-    serverConfigData.put("maxMessagesPerRead", maxMessagesPerRead);
-    return this;
+    return addToServer(n -> n.put("maxMessagesPerRead", maxMessagesPerRead));
   }
 
   @Override
   public ServerConfigBuilder receiveBufferSize(int receiveBufferSize) {
-    serverConfigData.put("receiveBufferSize", receiveBufferSize);
-    return this;
+    return addToServer(n -> n.put("receiveBufferSize", receiveBufferSize));
   }
 
   @Override
   public ServerConfigBuilder writeSpinCount(int writeSpinCount) {
-    serverConfigData.put("writeSpinCount", writeSpinCount);
-    return this;
+    return addToServer(n -> n.put("writeSpinCount", writeSpinCount));
   }
 
   @Override
   public ServerConfigBuilder ssl(SSLContext sslContext) {
-    serverConfigData.putPOJO("ssl", sslContext);
-    return this;
+    return addToServer(n -> n.putPOJO("ssl", sslContext));
   }
 
   @Override
   public ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth) {
-    serverConfigData.put("requireClientSslAuth", requireClientSslAuth);
-    return this;
+    return addToServer(n -> n.put("requireClientSslAuth", requireClientSslAuth));
   }
 
   @Override
@@ -302,13 +297,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfig build() {
-    Iterable<ConfigSource> configSources = Iterables.concat(getConfigSources(), Collections.<ConfigSource>singleton((mapper, pathResolver) -> {
-      ObjectNode node = mapper.createObjectNode();
-      node.putObject("server").setAll(serverConfigData);
-      return node;
-    }));
-
-    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), configSources, MoreObjects.firstNonNull(baseDirSupplier.baseDir, FileSystemBinding.root()));
+    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), getConfigSources(), MoreObjects.firstNonNull(baseDirSupplier.baseDir, FileSystemBinding.root()));
     ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
     return new DefaultServerConfig(configData, requiredConfig);
   }
