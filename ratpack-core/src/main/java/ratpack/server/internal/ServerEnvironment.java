@@ -38,6 +38,8 @@ public class ServerEnvironment {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);
   private static final int MAX_PORT = 65535;
   public static final String PORT_PROPERTY = "ratpack.port";
+  public static final String INTELLIJ_MAIN = "com.intellij.rt.execution.application.AppMain";
+  public static final String INTELLIJ_JUNIT = "com.intellij.rt.execution.junit.JUnitStarter";
 
   private final Map<String, String> env;
   private final Properties properties;
@@ -79,7 +81,10 @@ public class ServerEnvironment {
       get("false", i -> i != null,
         () -> properties.getProperty(DEVELOPMENT_PROPERTY),
         () -> env.get("RATPACK_DEVELOPMENT"),
-        () -> System.getProperty("sun.java.command").startsWith("com.intellij") ? "true" : null)
+        () -> {
+          String command = System.getProperty("sun.java.command");
+          return command.startsWith(INTELLIJ_MAIN) && !command.contains(INTELLIJ_JUNIT) ? "true" : null;
+        })
     );
   }
 
