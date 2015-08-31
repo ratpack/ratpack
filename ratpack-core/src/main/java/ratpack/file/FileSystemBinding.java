@@ -35,7 +35,7 @@ import java.util.Objects;
 public interface FileSystemBinding {
 
   static FileSystemBinding root() {
-    return of(Paths.get("/"));
+    return of(Paths.get(System.getProperty("user.dir")).getRoot());
   }
 
   static FileSystemBinding of(Path path) {

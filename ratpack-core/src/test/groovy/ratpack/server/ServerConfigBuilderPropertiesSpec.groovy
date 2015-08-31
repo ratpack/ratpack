@@ -16,9 +16,11 @@
 
 package ratpack.server
 
+import com.google.common.base.StandardSystemProperty
 import com.google.common.io.Files
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 class ServerConfigBuilderPropertiesSpec extends Specification {
@@ -67,6 +69,7 @@ class ServerConfigBuilderPropertiesSpec extends Specification {
     config.port == 5060
   }
 
+  @IgnoreIf({ StandardSystemProperty.OS_NAME.value().startsWith("Windows") })
   def "load from properties string path"() {
     given:
     def properties = tempFolder.newFile('test.properties').toPath()

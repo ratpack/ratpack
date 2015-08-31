@@ -41,7 +41,6 @@ import ratpack.util.internal.Paths2;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -208,6 +207,6 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
 
   @Override
   public ConfigData build() {
-    return new DefaultConfigData(getObjectMapper(), getConfigSources(), FileSystemBinding.of(Paths.get("/")));
+    return new DefaultConfigData(getObjectMapper(), getConfigSources(), FileSystemBinding.root());
   }
 }

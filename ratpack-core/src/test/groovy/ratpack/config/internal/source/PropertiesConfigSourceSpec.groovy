@@ -22,8 +22,6 @@ import ratpack.file.FileSystemBinding
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.nio.file.Paths
-
 import static ratpack.config.ConfigDataBuilder.DEFAULT_PROP_PREFIX
 
 class PropertiesConfigSourceSpec extends Specification {
@@ -149,7 +147,7 @@ class PropertiesConfigSourceSpec extends Specification {
     '''.stripMargin())
 
     when:
-    def rootNode = source.loadConfigData(mapper, FileSystemBinding.of(Paths.get("/")))
+    def rootNode = source.loadConfigData(mapper, FileSystemBinding.root())
 
     then:
     rootNode.path("nums").elements().collect { it.asText() } == (0..20).collect { it.toString() }
