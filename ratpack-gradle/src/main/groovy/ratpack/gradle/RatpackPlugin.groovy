@@ -21,7 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.plugins.ApplicationPlugin
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -40,21 +40,31 @@ class RatpackPlugin implements Plugin<Project> {
       throw new GradleException("Ratpack requires Gradle version 2.6 or later")
     }
 
-    project.plugins.apply(JavaPlugin)
     project.plugins.apply(ApplicationPlugin)
-    project.plugins.apply(RatpackBasePlugin)
 
+    project.plugins.apply(RatpackBasePlugin)
     RatpackExtension ratpackExtension = project.extensions.findByType(RatpackExtension)
+
+    SourceSetContainer sourceSets = project.sourceSets
+    def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+    mainSourceSet.resources.srcDir { ratpackExtension.baseDir }
+
+    if (project.gradle.startParameter.continuous) {
+      // duplicated from application plugin
+      def run = project.tasks.replace("run", RatpackContinuousRun)
+
+      def applicationPluginConvention = project.convention.findPlugin(ApplicationPluginConvention)
+      run.description = "Runs this project as a JVM application"
+      run.group = "application"
+      run.classpath = mainSourceSet.runtimeClasspath
+      run.conventionMapping.main = { applicationPluginConvention.mainClassName }
+      run.conventionMapping.jvmArgs = { applicationPluginConvention.applicationDefaultJvmArgs }
+    }
 
     project.dependencies {
       compile ratpackExtension.core
       testCompile ratpackExtension.test
     }
-
-    SourceSetContainer sourceSets = project.sourceSets
-
-    def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-    mainSourceSet.resources.srcDir { ratpackExtension.baseDir }
 
     Jar jarTask = project.tasks.jar as Jar
     def mainDistribution = project.extensions.getByType(DistributionContainer).getByName("main")
@@ -87,11 +97,6 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     runTask.dependsOn configureRun
-
-    project.tasks.create("devRun", RatpackContinuousRun) {
-      it.execSpec = runTask
-      it.dependsOn configureRun
-    }
   }
 
 }

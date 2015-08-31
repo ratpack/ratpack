@@ -16,12 +16,10 @@
 
 package ratpack.gradle.continuous;
 
-import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -34,29 +32,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
-public class RatpackContinuousRun extends DefaultTask {
+public class RatpackContinuousRun extends JavaExec {
 
-  public JavaExecSpec execSpec;
   public boolean flattenClassloaders;
 
-  @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
-  public RatpackContinuousRun() {
-    getInputs().files(new Callable<Object>() {
-      @Override
-      public Object call() throws Exception {
-        return execSpec.getClasspath();
-      }
-    });
-  }
-
   @TaskAction
-  public void start() {
-    if (!isContinuous()) {
-      throw new GradleException("Cannot use task " + getPath() + " unless running with --continuous (or -t)");
-    }
-
+  @Override
+  public void exec() {
     String deploymentId = getPath();
     DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
     RatpackDeploymentHandle deploymentHandle = deploymentRegistry.get(RatpackDeploymentHandle.class, deploymentId);
@@ -69,9 +52,6 @@ public class RatpackContinuousRun extends DefaultTask {
     }
   }
 
-  private boolean isContinuous() {
-    return getProject().getGradle().getStartParameter().isContinuous();
-  }
 
   @Inject
   protected DeploymentRegistry getDeploymentRegistry() {
@@ -88,15 +68,15 @@ public class RatpackContinuousRun extends DefaultTask {
     builder.setBaseName("Gradle Ratpack Worker");
     builder.sharedPackages("ratpack.gradle.continuous.run");
     JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-    javaCommand.setWorkingDir(execSpec.getWorkingDir());
-    javaCommand.setEnvironment(execSpec.getEnvironment());
-    javaCommand.setJvmArgs(execSpec.getJvmArgs());
-    javaCommand.setSystemProperties(execSpec.getSystemProperties());
-    javaCommand.setMinHeapSize(execSpec.getMinHeapSize());
-    javaCommand.setMaxHeapSize(execSpec.getMaxHeapSize());
-    javaCommand.setBootstrapClasspath(execSpec.getBootstrapClasspath());
-    javaCommand.setEnableAssertions(execSpec.getEnableAssertions());
-    javaCommand.setDebug(execSpec.getDebug());
+    javaCommand.setWorkingDir(getWorkingDir());
+    javaCommand.setEnvironment(getEnvironment());
+    javaCommand.setJvmArgs(getJvmArgs());
+    javaCommand.setSystemProperties(getSystemProperties());
+    javaCommand.setMinHeapSize(getMinHeapSize());
+    javaCommand.setMaxHeapSize(getMaxHeapSize());
+    javaCommand.setBootstrapClasspath(getBootstrapClasspath());
+    javaCommand.setEnableAssertions(getEnableAssertions());
+    javaCommand.setDebug(getDebug());
     WorkerProcess process = builder.worker(new RatpackWorkerServer(new DefaultRatpackAdapter(createRatpackSpec()))).build();
     process.start();
 
@@ -138,7 +118,7 @@ public class RatpackContinuousRun extends DefaultTask {
   }
 
   private RatpackSpec createRatpackSpec() {
-    Set<File> classpath = execSpec.getClasspath().getFiles();
+    Set<File> classpath = getClasspath().getFiles();
     List<URL> changing = new ArrayList<URL>();
     List<URL> nonChanging = new ArrayList<URL>();
 
@@ -151,11 +131,11 @@ public class RatpackContinuousRun extends DefaultTask {
       }
     }
 
-    List<String> args = execSpec.getArgs();
+    List<String> args = getArgs();
     return new RatpackSpec(
       nonChanging.toArray(new URL[nonChanging.size()]),
       changing.toArray(new URL[changing.size()]),
-      execSpec.getMain(),
+      getMain(),
       args.toArray(new String[args.size()])
     );
   }
