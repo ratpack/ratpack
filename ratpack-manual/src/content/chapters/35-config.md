@@ -56,12 +56,6 @@ Likewise, if you have default settings that you wanted to be able to override vi
 As shown in the [ConfigDataBuilder docs](api/ratpack/config/ConfigDataBuilder.html), [`onError`](api/ratpack/config/ConfigDataBuilder.html#onError-ratpack.func.Action-) can be used to customize the behavior when an error is encountered while loading data from a config source.
 Most commonly, this is used to make configuration sources optional by ignoring load exceptions.
 
-### Reloading
-Reloading based on configuration data changes is enabled if the config data object is added to the server registry (see example in [ConfigData docs](api/ratpack/config/ConfigData.html)) and the server is in [development mode](api/ratpack/server/ServerConfig.html#isDevelopment--).
-When enabled, the configuration data sources are polled periodically.
-If any changes are detected, it triggers a server reload.
-For this to work properly, all construction of the `ConfigData` object should take place within the [RatpackServer](api/ratpack/server/RatpackServer.html) `of`/`start` block.
-
 ### Object Mapper
 Ratpack uses Jackson for config object binding.
 The default `ObjectMapper` used is configured with commonly used Jackson modules pre-loaded, and set to allow unquoted field names, allow single quotes, and ignore unknown field names.
