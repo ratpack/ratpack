@@ -25,7 +25,9 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
+import ratpack.exec.Upstream;
 import ratpack.func.Function;
 import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
@@ -66,7 +68,27 @@ public class DefaultRequest implements Request {
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
-    this.body = Promise.value(new ByteBufBackedTypedData(content, getContentType()));
+    this.body = Promise.of(new BodyUpstream(content));
+  }
+
+  private class BodyUpstream implements Upstream<TypedData> {
+
+    private final ByteBuf content;
+    private boolean read;
+
+    private BodyUpstream(ByteBuf content) {
+      this.content = content;
+    }
+
+    @Override
+    public void connect(Downstream<? super TypedData> downstream) throws Exception {
+      if (read) {
+        downstream.error(new RequestBodyAlreadyReadException());
+      } else {
+        read = true;
+        downstream.success(new ByteBufBackedTypedData(content, getContentType()));
+      }
+    }
   }
 
   public MultiValueMap<String, String> getQueryParams() {

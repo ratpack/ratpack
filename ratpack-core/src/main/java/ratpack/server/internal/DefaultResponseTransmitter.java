@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
+import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
@@ -77,8 +77,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
 
+      if (nettyRequest.refCnt() > 0) {
+        nettyRequest.release();
+      }
+
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-      nettyRequest.release();
 
       if (isKeepAlive) {
         headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);

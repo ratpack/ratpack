@@ -18,6 +18,7 @@ package ratpack.http
 
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
@@ -87,4 +88,35 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     putText() == "0"
   }
 
+  def "can eagerly release body"() {
+    when:
+    handlers {
+      post {
+        request.body.then { it.buffer.release(); render "ok" }
+      }
+    }
+
+    then:
+    requestSpec {
+      it.body.text("foo")
+    }
+    postText() == "ok"
+  }
+
+  def "can't read body twice"() {
+    when:
+    bindings {
+      bind SimpleErrorHandler
+    }
+    handlers {
+      post {
+        request.body.then { 1 }
+        request.body.then { render "ok" }
+      }
+    }
+
+    then:
+    requestSpec { it.body.text("foo") }
+    postText() == "ratpack.http.RequestBodyAlreadyReadException: the request body has already been read"
+  }
 }
