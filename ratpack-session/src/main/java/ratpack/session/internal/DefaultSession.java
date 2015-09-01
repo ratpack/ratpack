@@ -142,8 +142,7 @@ public class DefaultSession implements Session {
         ByteBuf serialized = serialize();
         storeAdapter.store(sessionId.getValue(), serialized)
           .wiretap(o -> serialized.release())
-          .next(() -> state = State.CLEAN)
-          .then();
+          .then(() -> state = State.CLEAN);
       }
     });
   }
