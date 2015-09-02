@@ -130,7 +130,7 @@ public interface ExecController extends AutoCloseable {
     if (!inEventLoop) {
       long start = System.currentTimeMillis();
       getEventLoopGroup().awaitTermination(toWaitMillis, TimeUnit.MILLISECONDS);
-      toWaitMillis -= (System.currentTimeMillis() - start);
+      toWaitMillis -= System.currentTimeMillis() - start;
     }
 
     getBlockingExecutor().awaitTermination(Math.max(1, toWaitMillis), TimeUnit.MILLISECONDS);
