@@ -231,8 +231,8 @@ subprojects {
 
   tasks.withType(Test) {
     jvmArgs "-Xss320k"
-    minHeapSize "512m"
-    maxHeapSize "512m"
+    minHeapSize "312m"
+    maxHeapSize "312m"
 
     testLogging {
       exceptionFormat "full"

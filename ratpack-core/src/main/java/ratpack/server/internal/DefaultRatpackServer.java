@@ -313,18 +313,10 @@ public class DefaultRatpackServer implements RatpackServer {
 
     LOGGER.info("Stopping server...");
 
-    CountDownLatch latch = new CountDownLatch(1);
-    if (lastChannel == null) {
-      stopApp(latch);
-    } else {
-      lastChannel.close().addListener(v -> stopApp(latch));
+    if (lastChannel != null) {
+      lastChannel.close().sync();
     }
 
-    latch.await();
-    LOGGER.info("Server stopped.");
-  }
-
-  private void stopApp(CountDownLatch latch) throws Exception {
     try {
       if (execController != null) {
         try {
@@ -337,7 +329,8 @@ public class DefaultRatpackServer implements RatpackServer {
     } finally {
       this.execController = null;
     }
-    latch.countDown();
+
+    LOGGER.info("Server stopped.");
   }
 
   private void shutdownServices() throws Exception {

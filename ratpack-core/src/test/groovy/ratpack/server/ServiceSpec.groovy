@@ -61,6 +61,9 @@ class ServiceSpec extends RatpackGroovyDslSpec {
 
   def "services are executed in order returned by the registry"() {
     when:
+    serverConfig {
+      threads 1
+    }
     bindings {
       multiBindInstance new RecordingService(prefix: "2 ")
       multiBindInstance new RecordingService(prefix: "1 ")
