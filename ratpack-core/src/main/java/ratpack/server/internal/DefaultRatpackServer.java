@@ -33,7 +33,6 @@ import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.Blocking;
-import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.exec.internal.DefaultExecController;
@@ -298,28 +297,47 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized void stop() throws Exception {
-    try {
-      if (!isRunning()) {
-        return;
-      }
-
-      try {
-        if (shutdownHookThread != null) {
-          Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
-        }
-      } catch (Exception ignored) {
-        // just ignore
-      }
-
-      LOGGER.info("Stopping server...");
-      shutdownServices();
-    } finally {
-      Optional.ofNullable(channel).ifPresent(Channel::close);
-      Optional.ofNullable(execController).ifPresent(ExecController::close);
-      channel = null;
-      execController = null;
+    if (!isRunning()) {
+      return;
     }
+    Channel lastChannel = channel;
+    this.channel = null;
+
+    try {
+      if (shutdownHookThread != null) {
+        Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
+      }
+    } catch (Exception ignored) {
+      // just ignore
+    }
+
+    LOGGER.info("Stopping server...");
+
+    CountDownLatch latch = new CountDownLatch(1);
+    if (lastChannel == null) {
+      stopApp(latch);
+    } else {
+      lastChannel.close().addListener(v -> stopApp(latch));
+    }
+
+    latch.await();
     LOGGER.info("Server stopped.");
+  }
+
+  private void stopApp(CountDownLatch latch) throws Exception {
+    try {
+      if (execController != null) {
+        try {
+          shutdownServices();
+        } finally {
+          execController.close();
+          execController.awaitShutdown();
+        }
+      }
+    } finally {
+      this.execController = null;
+    }
+    latch.countDown();
   }
 
   private void shutdownServices() throws Exception {

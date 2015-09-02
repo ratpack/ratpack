@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.concurrent.EventExecutor;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.ExecStarter;
@@ -84,21 +83,6 @@ public class DefaultExecController implements ExecControllerInternal {
   public void close() {
     eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     blockingExecutor.shutdown();
-    try {
-      boolean inEventLoop = false;
-      for (EventExecutor eventExecutor : eventLoopGroup.children()) {
-        if (eventExecutor.inEventLoop()) {
-          inEventLoop = true;
-          break;
-        }
-      }
-      if (!inEventLoop) {
-        eventLoopGroup.awaitTermination(10, TimeUnit.MINUTES);
-      }
-      blockingExecutor.awaitTermination(10, TimeUnit.MINUTES);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
   }
 
   @Override

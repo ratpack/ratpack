@@ -17,11 +17,14 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.EventExecutor;
 import ratpack.exec.internal.ThreadBinding;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The exec controller manages the execution of operations.
@@ -97,5 +100,40 @@ public interface ExecController extends AutoCloseable {
    */
   @Override
   void close();
+
+  /**
+   * Waits a maximum of 60 seconds for this execution controller to shut down.
+   *
+   * @see #awaitShutdown(Duration)
+   * @throws InterruptedException if shutdown does not occur in time
+   */
+  default void awaitShutdown() throws InterruptedException {
+    awaitShutdown(Duration.ofSeconds(60));
+  }
+
+  /**
+   * Waits the given amount of time for this execution controller to completely shut down.
+   *
+   * @param duration the amount of time to wait for shutdown
+   * @throws InterruptedException if shutdown does not occur in time
+   */
+  default void awaitShutdown(Duration duration) throws InterruptedException {
+    boolean inEventLoop = false;
+    for (EventExecutor eventExecutor : getEventLoopGroup().children()) {
+      if (eventExecutor.inEventLoop()) {
+        inEventLoop = true;
+        break;
+      }
+    }
+
+    long toWaitMillis = duration.toMillis();
+    if (!inEventLoop) {
+      long start = System.currentTimeMillis();
+      getEventLoopGroup().awaitTermination(toWaitMillis, TimeUnit.MILLISECONDS);
+      toWaitMillis -= (System.currentTimeMillis() - start);
+    }
+
+    getBlockingExecutor().awaitTermination(Math.max(1, toWaitMillis), TimeUnit.MILLISECONDS);
+  }
 
 }
