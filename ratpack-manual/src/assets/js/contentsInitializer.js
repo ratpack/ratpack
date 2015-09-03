@@ -15,8 +15,8 @@
  */
 
 !(function($) {
-  if ($('.single-toc').length) {
-    $(function() {
+  $(function() {
+    if ($('.single-toc').length) {
       var contents = gajus.Contents({
         articles: $('.manual').find('h1, h2, h3, h4, h5, h6')
       });
@@ -50,7 +50,7 @@
         }
 
       });
-    });
-  }
+    }
+  });
 } (jQuery));
 
