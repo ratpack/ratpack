@@ -16,10 +16,9 @@
 
 package ratpack.gradle.continuous;
 
-import org.gradle.deployment.internal.DeploymentHandle;
 import ratpack.gradle.continuous.run.RatpackAdapter;
 
-public class RatpackDeploymentHandle implements DeploymentHandle, RatpackAdapter {
+public class RatpackDeploymentHandle implements RatpackAdapter {
 
   private final RatpackAdapter adapter;
 

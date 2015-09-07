@@ -18,6 +18,7 @@ package ratpack.gradle.continuous;
 
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.deployment.internal.DeploymentHandle;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -27,6 +28,9 @@ import ratpack.gradle.continuous.run.*;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,13 +46,36 @@ public class RatpackContinuousRun extends JavaExec {
   public void exec() {
     String deploymentId = getPath();
     DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
-    RatpackDeploymentHandle deploymentHandle = deploymentRegistry.get(RatpackDeploymentHandle.class, deploymentId);
+    RatpackAdapter deploymentHandle = (RatpackAdapter) deploymentRegistry.get(DeploymentHandle.class, deploymentId);
     if (deploymentHandle == null) {
-      deploymentHandle = new RatpackDeploymentHandle(createAdapter());
-      deploymentRegistry.register(deploymentId, deploymentHandle);
-      deploymentHandle.start();
+      RatpackAdapter proxy = (RatpackAdapter) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{DeploymentHandle.class, RatpackAdapter.class}, new ProxyBacking(new RatpackDeploymentHandle(createAdapter())));
+      deploymentRegistry.register(deploymentId, (DeploymentHandle) proxy);
+      proxy.start();
     } else {
       deploymentHandle.reload();
+    }
+  }
+
+  private static final class ProxyBacking implements InvocationHandler {
+    private final RatpackAdapter delegate;
+
+    public ProxyBacking(RatpackAdapter delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      if (method.getName().equals("isRunning")) {
+        return delegate.isRunning();
+      } else if (method.getName().equals("start")) {
+        delegate.start();
+      } else if (method.getName().equals("reload")) {
+        delegate.reload();
+      } else if (method.getName().equals("stop")) {
+        delegate.stop();
+      }
+
+      return null;
     }
   }
 

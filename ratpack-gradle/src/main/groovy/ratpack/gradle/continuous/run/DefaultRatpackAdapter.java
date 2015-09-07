@@ -51,9 +51,7 @@ public class DefaultRatpackAdapter implements RatpackAdapter, Serializable {
 
   @Override
   public void reload() {
-    if (server != null) {
-      server.stop();
-    }
+    stop();
     if (appLoader != null && appLoader instanceof Closeable) {
       try {
         ((Closeable) appLoader).close();
@@ -63,8 +61,26 @@ public class DefaultRatpackAdapter implements RatpackAdapter, Serializable {
     }
 
     appLoader = new URLClassLoader(spec.getChangingClasspath(), baseLoader);
-    Thread.currentThread().setContextClassLoader(appLoader);
-    server = RatpackServerProxy.capture(appLoader, spec.getMainClass(), spec.getArgs());
+    inContext(new Runnable() {
+      @Override
+      public void run() {
+        server = RatpackServerProxy.capture(appLoader, spec.getMainClass(), spec.getArgs());
+      }
+    });
+  }
+
+  private void inContext(Runnable runnable) {
+    Thread currentThread = Thread.currentThread();
+    ClassLoader threadClassLoader = currentThread.getContextClassLoader();
+    currentThread.setContextClassLoader(appLoader);
+    String threadName = currentThread.getName();
+    currentThread.setName("main");
+    try {
+      runnable.run();
+    } finally {
+      currentThread.setContextClassLoader(threadClassLoader);
+      currentThread.setName(threadName);
+    }
   }
 
   @Override
@@ -80,7 +96,12 @@ public class DefaultRatpackAdapter implements RatpackAdapter, Serializable {
   @Override
   public void stop() {
     if (server != null) {
-      server.stop();
+      inContext(new Runnable() {
+        @Override
+        public void run() {
+          server.stop();
+        }
+      });
     }
   }
 }

@@ -31,13 +31,13 @@ import ratpack.gradle.continuous.RatpackContinuousRun
 
 class RatpackPlugin implements Plugin<Project> {
 
-  void apply(Project project) {
-    def gradleVersions = project.gradle.gradleVersion.split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
-    def major = gradleVersions[0]
-    def minor = gradleVersions[1]
+  private static final GradleVersion GRADLE_VERSION_BASELINE = GradleVersion.version("2.6")
 
-    if (major < 2 || (major == 2 && minor < 6)) {
-      throw new GradleException("Ratpack requires Gradle version 2.6 or later")
+  void apply(Project project) {
+    def gradleVersion = GradleVersion.version(project.gradle.gradleVersion)
+
+    if (gradleVersion < GRADLE_VERSION_BASELINE) {
+      throw new GradleException("Ratpack requires Gradle version ${GRADLE_VERSION_BASELINE.version} or later")
     }
 
     project.plugins.apply(ApplicationPlugin)
