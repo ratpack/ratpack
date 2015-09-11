@@ -576,6 +576,15 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def fourxxCounter
 
     given:
+    1 * reporter.onCounterAdded("2xx-responses", !null) >> { arguments ->
+      twoxxCounter = arguments[1]
+    }
+    1 * reporter.onCounterAdded("4xx-responses", !null) >> { arguments ->
+      fourxxCounter = arguments[1]
+    }
+
+    and:
+
     bindings {
       module new DropwizardMetricsModule(), {}
     }
@@ -594,13 +603,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get("tar")
 
     then:
-    1 * reporter.onCounterAdded("2xx-responses", !null) >> { arguments ->
-      twoxxCounter = arguments[1]
+    new PollingConditions().within(2) {
+      twoxxCounter != null
+      twoxxCounter.count == 1
+
+      fourxxCounter != null
+      fourxxCounter.count == 2
     }
-    1 * reporter.onCounterAdded("4xx-responses", !null) >> { arguments ->
-      fourxxCounter = arguments[1]
-    }
-    twoxxCounter.count == 1
-    fourxxCounter.count == 2
   }
 }
