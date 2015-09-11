@@ -40,6 +40,7 @@ public class ServerEnvironment {
   public static final String PORT_PROPERTY = "ratpack.port";
   public static final String INTELLIJ_MAIN = "com.intellij.rt.execution.application.AppMain";
   public static final String INTELLIJ_JUNIT = "com.intellij.rt.execution.junit.JUnitStarter";
+  public static final String SUN_JAVA_COMMAND = "sun.java.command";
 
   private final Map<String, String> env;
   private final Properties properties;
@@ -82,7 +83,7 @@ public class ServerEnvironment {
         () -> properties.getProperty(DEVELOPMENT_PROPERTY),
         () -> env.get("RATPACK_DEVELOPMENT"),
         () -> {
-          String command = System.getProperty("sun.java.command");
+          String command = properties.getProperty(SUN_JAVA_COMMAND, "");
           return command.startsWith(INTELLIJ_MAIN) && !command.contains(INTELLIJ_JUNIT) ? "true" : null;
         })
     );

@@ -61,4 +61,11 @@ class ServerEnvironmentSpec extends Specification {
     env([RATPACK_PUBLIC_ADDRESS: "bad://example.com:2020"], ["ratpack.publicAddress":"http://example.com:3030"]).publicAddress == URI.create("http://example.com:3030")
     env([RATPACK_PUBLIC_ADDRESS: "http://example.com:2020"], ["ratpack.publicAddress":"bad://example.com:3030"]).publicAddress == URI.create("http://example.com:2020")
   }
+
+  def "is implicitly development when started from intellij but not when running tests"() {
+    expect:
+    env([:], [(ServerEnvironment.SUN_JAVA_COMMAND): "$ServerEnvironment.INTELLIJ_MAIN RealMainClass".toString()]).development
+    !env([:], [(ServerEnvironment.SUN_JAVA_COMMAND): "$ServerEnvironment.INTELLIJ_MAIN $ServerEnvironment.INTELLIJ_JUNIT".toString()]).development
+  }
+
 }
