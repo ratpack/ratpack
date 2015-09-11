@@ -16,21 +16,26 @@
 
 package ratpack.handling.internal;
 
-import io.netty.util.AsciiString;
 import ratpack.handling.RequestId;
 import ratpack.http.Request;
 
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
+public class HeaderBasedRequestIdGenerator implements RequestId.Generator {
 
-public class UuidBasedRequestIdGenerator implements RequestId.Generator {
+  private final CharSequence headerName;
+  private final RequestId.Generator fallback;
 
-  public static final RequestId.Generator INSTANCE = new UuidBasedRequestIdGenerator();
+  public HeaderBasedRequestIdGenerator(CharSequence headerName, RequestId.Generator fallback) {
+    this.headerName = headerName;
+    this.fallback = fallback;
+  }
 
   @Override
   public RequestId generate(Request request) {
-    Random random = ThreadLocalRandom.current();
-    return RequestId.of(new AsciiString(new UUID(random.nextLong(), random.nextLong()).toString()));
+    String value = request.getHeaders().get(headerName);
+    if (value == null) {
+      return fallback.generate(request);
+    } else {
+      return RequestId.of(value);
+    }
   }
 }

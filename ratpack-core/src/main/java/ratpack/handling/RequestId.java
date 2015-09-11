@@ -17,14 +17,23 @@
 package ratpack.handling;
 
 import ratpack.handling.internal.DefaultRequestId;
+import ratpack.handling.internal.HeaderBasedRequestIdGenerator;
+import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.http.Request;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * An opaque identifier for the request.
  * <p>
  * The request ID can then be obtained from the registry and used in response headers or logging.
+ * A request ID is always available.
  * <p>
- * Out of the box, a request ID is available for all requests.
+ * The value is determined by the {@link Generator} present in the server registry.
+ * By default, a {@link Generator#randomUuid() random UUID value is used}.
+ * <p>
+ * The following example demonstrates a custom request ID strategy using an incrementing long.
+ *
  * <pre class="java">{@code
  * import ratpack.handling.RequestId;
  * import ratpack.http.client.ReceivedResponse;
@@ -35,7 +44,7 @@ import ratpack.http.Request;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.fromHandlers(chain -> chain
  *       .all(ctx -> {
- *         ctx.getResponse().getHeaders().add("X-Request-Id", ctx.get(RequestId.class));
+ *         ctx.getResponse().getHeaders().add("X-Request-ID", ctx.get(RequestId.class));
  *         ctx.render("ok");
  *       })
  *     ).test(httpClient -> {
@@ -43,15 +52,12 @@ import ratpack.http.Request;
  *       assertEquals("ok", response.getBody().getText());
  *
  *       // Default request ID generator generates random UUIDs (i.e. 36 chars long)
- *       assertEquals(36, response.getHeaders().get("X-Request-Id").length());
+ *       assertEquals(36, response.getHeaders().get("X-Request-ID").length());
  *     });
  *   }
  * }
  * }</pre>
  * <p>
- * The default ID {@link Generator} uses random UUIDs.
- * <p>
- * To use an alternative strategy, provide an implementation of the {@link Generator} interface in the application's registry.
  * Please note, adding an implementation to the request or context registries will have no effect.
  * The generator is always obtained from the server registry.
  *
@@ -70,17 +76,112 @@ public interface RequestId extends CharSequence {
   }
 
   /**
-   * Generates a unique request ID.
-   * <p>
-   * A default implementation is provided uses random UUIDs as the ID value.
+   * Generates, or assigns, an ID for requests.
+   *
+   * <pre class="java">{@code
+   * import ratpack.handling.RequestId;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import java.util.concurrent.atomic.AtomicLong;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     AtomicLong counter = new AtomicLong();
+   *     EmbeddedApp.of(s -> s
+   *         .registryOf(r -> r
+   *             .add(RequestId.Generator.class, request -> RequestId.of(Long.toString(counter.incrementAndGet())))
+   *         )
+   *         .handlers(c -> c
+   *             .get(ctx ->
+   *                 ctx.render("ID: " + ctx.get(RequestId.class))
+   *             )
+   *         )
+   *     ).test(http -> {
+   *       assertEquals(http.getText(), "ID: 1");
+   *       assertEquals(http.getText(), "ID: 2");
+   *     });
+   *   }
+   * }
+   * }</pre>
+   *
+   * @see #randomUuid()
+   * @see #header(CharSequence)
    */
   interface Generator {
 
     /**
-     * Generate a request ID with a “unique” ID value.
+     * Generates IDs based of a random UUID.
+     * <p>
+     * This strategy is installed into the server registry.
+     * It is used if no other strategy is provided.
+     * <p>
+     * Internally {@link ThreadLocalRandom#current()} is used to produce values.
+     * Please consult its documentation for the nature of the randomness of the UUIDs.
+     *
+     * @return a request id generator
+     */
+    static Generator randomUuid() {
+      return UuidBasedRequestIdGenerator.INSTANCE;
+    }
+
+    /**
+     * Creates a generator that uses the value for the given header, falling back to a {@link #randomUuid()} generator if the header is not present.
+     * <p>
+     * This strategy is particularly useful in any kind of distributed environment, where a logical ID for the work is generated (or known) by the thing making the request.
+     * This applies to cloud environments like <a href="https://www.heroku.com/home">Heroku</a>, where the edge router <a href="https://devcenter.heroku.com/articles/http-request-id">assigns a request ID</a>.
+     *
+     * <pre class="java">{@code
+     * import ratpack.handling.RequestId;
+     * import ratpack.test.embed.EmbeddedApp;
+     *
+     * import static org.junit.Assert.assertEquals;
+     *
+     * public class Example {
+     *   public static void main(String... args) throws Exception {
+     *     EmbeddedApp.of(s -> s
+     *         .registryOf(r -> r
+     *             .add(RequestId.Generator.header("X-Request-ID"))
+     *         )
+     *         .handlers(c -> c
+     *             .get(ctx ->
+     *                 ctx.render("ID: " + ctx.get(RequestId.class))
+     *             )
+     *         )
+     *     ).test(http -> {
+     *       http.requestSpec(r -> r.getHeaders().add("X-Request-ID", "foo"));
+     *       assertEquals(http.getText(), "ID: foo");
+     *     });
+     *   }
+     * }
+     * }</pre>
+     *
+     * @param headerName the name of the header containing the request ID
+     * @return a request ID generator
+     * @see #header(CharSequence, RequestId.Generator)
+     */
+    static Generator header(CharSequence headerName) {
+      return new HeaderBasedRequestIdGenerator(headerName, randomUuid());
+    }
+
+    /**
+     * Creates a generator that uses the value for the given header, using the given fallback generator if the header is not present.
+     *
+     * @param headerName the name of the header containing the request ID
+     * @param fallback the generator to use if the header is not present
+     * @return a request ID generator
+     * @see #header(CharSequence)
+     */
+    static Generator header(CharSequence headerName, Generator fallback) {
+      return new HeaderBasedRequestIdGenerator(headerName, fallback);
+    }
+
+    /**
+     * Generate the ID for the request.
      *
      * @param request the request
-     * @return a unique request ID
+     * @return a request ID
      */
     RequestId generate(Request request);
 
