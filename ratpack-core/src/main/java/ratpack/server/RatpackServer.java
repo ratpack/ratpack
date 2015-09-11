@@ -80,10 +80,13 @@ public interface RatpackServer {
    * Convenience method to {@link #of(Action) define} and {@link #start()} the server in one go.
    *
    * @param definition the server definition
+   * @return the newly created and started server
    * @throws Exception any thrown by {@link #of(Action)} or {@link #start()}
    */
-  static void start(Action<? super RatpackServerSpec> definition) throws Exception {
-    of(definition).start();
+  static RatpackServer start(Action<? super RatpackServerSpec> definition) throws Exception {
+    RatpackServer server = of(definition);
+    server.start();
+    return server;
   }
 
   /**
