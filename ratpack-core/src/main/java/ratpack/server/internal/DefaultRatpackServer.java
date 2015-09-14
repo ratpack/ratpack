@@ -323,7 +323,6 @@ public class DefaultRatpackServer implements RatpackServer {
           shutdownServices();
         } finally {
           execController.close();
-          execController.awaitShutdown();
         }
       }
     } finally {
