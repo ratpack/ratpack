@@ -1,7 +1,7 @@
 # Testing Ratpack applications
 
 Ratpack provides testing support, both at the functional and unit level.
-The `ratpack-test` library contains the core support, and `ratpack-test-groovy` provides convenient Groovy extensions.
+The `ratpack-test` library contains the core support, and `ratpack-groovy-test` provides convenient Groovy extensions.
 
 Note: The `ratpack` and `ratpack-groovy` Gradle plugins auto configure these libraries to be added to the test classpath.
 
@@ -25,7 +25,7 @@ This interface provides the address of the running application. Implementations 
 
 ### TestHttpClient
 
-Ratpack provides [TestHttpClient](api/ratpack/test/http/TestHttpClient.html) in `ratpack-test-groovy`, this is a client that makes it very simple to test status codes and responses.
+Ratpack provides [TestHttpClient](api/ratpack/test/http/TestHttpClient.html) in `ratpack-groovy-test`, this is a client that makes it very simple to test status codes and responses.
 
 Note below we use @Delegate so we just need to call `get()` in the when block instead of `client.get()`.
 
