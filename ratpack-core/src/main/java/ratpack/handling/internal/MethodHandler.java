@@ -32,6 +32,7 @@ public class MethodHandler implements Handler {
   public static final Handler PUT = new MethodHandler("PUT");
   public static final Handler PATCH = new MethodHandler("PATCH");
   public static final Handler DELETE = new MethodHandler("DELETE");
+  public static final Handler OPTIONS = new MethodHandler("OPTIONS");
 
   private MethodHandler(String method) {
     this.method = DefaultHttpMethod.valueOf(HttpMethod.valueOf(method));

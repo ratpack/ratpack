@@ -110,6 +110,16 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
+  public String optionsText() {
+    return optionsText("");
+  }
+
+  @Override
+  public String optionsText(String path) {
+    return options(path).getBody().getText();
+  }
+
+  @Override
   public ReceivedResponse get() {
     return get("");
   }
