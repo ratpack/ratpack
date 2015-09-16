@@ -380,6 +380,65 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
+  default GroovyChain options(String path, Handler handler) {
+    return from(Chain.super.options(path, handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain options(String path, Class<? extends Handler> handler) {
+    return options(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain options(Handler handler) {
+    return from(Chain.super.options(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain options(Class<? extends Handler> handler) {
+    return options(getRegistry().get(handler));
+  }
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code OPTIONS}.
+   * <p>
+   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  default GroovyChain options(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return options(path, groovyHandler(handler));
+  }
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code OPTIONS} and the {@code path} is at the current root.
+   * <p>
+   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  default GroovyChain options(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return path(groovyHandler(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   default GroovyChain path(String path, Handler handler) {
     return from(Chain.super.path(path, handler));
   }
