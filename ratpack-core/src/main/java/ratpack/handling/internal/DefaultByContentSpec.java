@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import ratpack.func.Block;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.Handler;
 
@@ -23,13 +24,20 @@ import java.util.Map;
 
 public class DefaultByContentSpec implements ByContentSpec {
 
-  private final Map<String, Handler> map;
+  public static final String TYPE_PLAIN_TEXT = "text/plain";
+  public static final String TYPE_HTML = "text/html";
+  public static final String TYPE_JSON = "application/json";
+  public static final String TYPE_XML = "application/xml";
 
-  public DefaultByContentSpec(Map<String, Handler> map) {
-    this.map = map;
+  private final Map<String, Block> blocks;
+  private Handler noMatchHandler = ctx -> ctx.clientError(406);
+
+  public DefaultByContentSpec(Map<String, Block> blocks) {
+    this.blocks = blocks;
   }
 
-  public ByContentSpec type(String mimeType, Handler handler) {
+  @Override
+  public ByContentSpec type(String mimeType, Block block) {
     if (mimeType == null) {
       throw new IllegalArgumentException("mimeType cannot be null");
     }
@@ -39,24 +47,50 @@ public class DefaultByContentSpec implements ByContentSpec {
       throw new IllegalArgumentException("mimeType cannot be a blank string");
     }
 
-    map.put(trimmed, handler);
+    if (trimmed.contains("*")) {
+      throw new IllegalArgumentException("mimeType cannot include wildcards");
+    }
+
+    blocks.put(mimeType, block);
     return this;
   }
 
-  public ByContentSpec plainText(Handler handler) {
-    return type("text/plain", handler);
+  @Override
+  public ByContentSpec plainText(Block handler) {
+    return type(TYPE_PLAIN_TEXT, handler);
   }
 
-  public ByContentSpec html(Handler handler) {
-    return type("text/html", handler);
+  @Override
+  public ByContentSpec html(Block handler) {
+    return type(TYPE_HTML, handler);
   }
 
-  public ByContentSpec json(Handler handler) {
-    return type("application/json", handler);
+  @Override
+  public ByContentSpec json(Block handler) {
+    return type(TYPE_JSON, handler);
   }
 
-  public ByContentSpec xml(Handler handler) {
-    return type("application/xml", handler);
+  @Override
+  public ByContentSpec xml(Block handler) {
+    return type(TYPE_XML, handler);
   }
 
+  @Override
+  public ByContentSpec noMatch(Block handler) {
+    noMatchHandler = ctx -> handler.execute();
+    return this;
+  }
+
+  @Override
+  public ByContentSpec noMatch(String mimeType) {
+    noMatchHandler = ctx -> {
+      ctx.getResponse().contentType(mimeType);
+      blocks.get(mimeType).execute();
+    };
+    return this;
+  }
+
+  public Handler getNoMatchHandler() {
+    return noMatchHandler;
+  }
 }

@@ -16,24 +16,29 @@
 
 package ratpack.http.internal
 
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Unroll
 
 class HostRoutingSpec extends RatpackGroovyDslSpec {
 
+  @Unroll
   def "can route by host"() {
     given:
     handlers {
       host("foo.com") {
-        handler { response.send("Host Handler") }
+        all { response.send("Host Handler") }
       }
-      handler {
+      all {
         response.send("Default Handler")
       }
     }
 
     and:
     if (hostValue) {
-      request.header "Host", hostValue
+      requestSpec({RequestSpec requestSpec ->
+        requestSpec.headers.set("Host", hostValue)
+      })
     }
 
     expect:

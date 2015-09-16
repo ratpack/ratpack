@@ -16,53 +16,53 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
-import ratpack.file.internal.FileHttpTransmitter;
+import ratpack.api.Nullable;
+import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
-import ratpack.http.*;
-import ratpack.util.ExceptionUtils;
-import ratpack.util.internal.IoUtils;
+import ratpack.http.Headers;
+import ratpack.http.MutableHeaders;
+import ratpack.http.Response;
+import ratpack.http.Status;
+import ratpack.util.MultiValueMap;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.CharBuffer;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Supplier;
 
-import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
+import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
 
 public class DefaultResponse implements Response {
 
-  private final MutableStatus status;
+  private Status status = Status.OK;
   private final MutableHeaders headers;
-  private final FileHttpTransmitter fileHttpTransmitter;
-  private final ChunkedResponseTransmitter chunkedResponseTransmitter;
-  private final ServerSentEventTransmitter serverSentEventTransmitter;
-  private final Action<? super ByteBuf> committer;
   private final ByteBufAllocator byteBufAllocator;
+  private final ResponseTransmitter responseTransmitter;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
+  private List<Action<? super Response>> responseFinalizers;
 
-
-  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ChunkedResponseTransmitter chunkedResponseTransmitter, ServerSentEventTransmitter serverSentEventTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
-    this.status = status;
-    this.fileHttpTransmitter = fileHttpTransmitter;
-    this.chunkedResponseTransmitter = chunkedResponseTransmitter;
-    this.serverSentEventTransmitter = serverSentEventTransmitter;
+  public DefaultResponse(MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
     this.byteBufAllocator = byteBufAllocator;
+    this.responseTransmitter = responseTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
-    this.committer = committer;
+    this.responseFinalizers = Lists.newArrayList();
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -74,65 +74,109 @@ public class DefaultResponse implements Response {
     }
 
     @Override
-    public void add(CharSequence name, Object value) {
-      if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public MutableHeaders add(CharSequence name, Object value) {
+      if (!contentTypeSet && (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString()))) {
         contentTypeSet = true;
       }
 
       wrapped.add(name, value);
+      return this;
     }
 
     @Override
-    public void set(CharSequence name, Object value) {
-      if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public MutableHeaders set(CharSequence name, Object value) {
+      if (!contentTypeSet && (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString()))) {
         contentTypeSet = true;
       }
 
       wrapped.set(name, value);
+      return this;
     }
 
     @Override
-    public void setDate(CharSequence name, Date value) {
+    public MutableHeaders setDate(CharSequence name, Date value) {
       wrapped.set(name, value);
+      return this;
     }
 
     @Override
-    public void set(CharSequence name, Iterable<?> values) {
-      if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public MutableHeaders set(CharSequence name, Iterable<?> values) {
+      if (!contentTypeSet && (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString()))) {
         contentTypeSet = true;
       }
 
       wrapped.set(name, values);
+      return this;
     }
 
     @Override
-    public void remove(String name) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public MutableHeaders remove(CharSequence name) {
+      if (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString())) {
         contentTypeSet = false;
       }
 
       wrapped.remove(name);
+      return this;
     }
 
     @Override
-    public void clear() {
+    public MutableHeaders clear() {
       contentTypeSet = false;
       wrapped.clear();
+      return this;
     }
 
+    @Override
+    public MutableHeaders copy(Headers headers) {
+      this.wrapped.copy(headers);
+      if (headers.contains(HttpHeaderConstants.CONTENT_TYPE)) {
+        contentTypeSet = true;
+      }
+      return this;
+    }
+
+    @Override
+    public MultiValueMap<String, String> asMultiValueMap() {
+      return wrapped.asMultiValueMap();
+    }
+
+    @Nullable
+    @Override
+    public String get(CharSequence name) {
+      return wrapped.get(name);
+    }
+
+    @Nullable
     @Override
     public String get(String name) {
       return wrapped.get(name);
     }
 
+    @Nullable
     @Override
+    public Date getDate(CharSequence name) {
+      return wrapped.getDate(name);
+    }
+
+    @Override
+    @Nullable
     public Date getDate(String name) {
       return wrapped.getDate(name);
     }
 
     @Override
+    public List<String> getAll(CharSequence name) {
+      return wrapped.getAll(name);
+    }
+
+    @Override
     public List<String> getAll(String name) {
       return wrapped.getAll(name);
+    }
+
+    @Override
+    public boolean contains(CharSequence name) {
+      return wrapped.contains(name);
     }
 
     @Override
@@ -144,19 +188,26 @@ public class DefaultResponse implements Response {
     public Set<String> getNames() {
       return wrapped.getNames();
     }
+
+    @Override
+    public HttpHeaders getNettyHeaders() {
+      return wrapped.getNettyHeaders();
+    }
   }
 
-  public MutableStatus getStatus() {
+  public Status getStatus() {
     return status;
   }
 
-  public Response status(int code) {
-    status.set(code);
+  @Override
+  public Response status(Status status) {
+    this.status = status;
     return this;
   }
 
-  public Response status(int code, String message) {
-    status.set(code, message);
+  @Override
+  public Response noCompress() {
+    headers.set(HttpHeaderNames.CONTENT_ENCODING, HttpHeaderValues.IDENTITY);
     return this;
   }
 
@@ -170,88 +221,72 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public Response contentType(String contentType) {
-    headers.set(HttpHeaders.Names.CONTENT_TYPE, DefaultMediaType.utf8(contentType).toString());
+  public Response contentTypeIfNotSet(Supplier<CharSequence> contentType) {
+    if (!contentTypeSet) {
+      contentType(contentType.get());
+    }
+    return this;
+  }
+
+  @Override
+  public Response contentType(CharSequence contentType) {
+    headers.set(CONTENT_TYPE, contentType);
     return this;
   }
 
   public void send(String text) {
-    if (!contentTypeSet) {
-      contentType("text/plain");
-    }
-
-    send(IoUtils.utf8Bytes(text));
+    ByteBuf byteBuf = ByteBufUtil.encodeString(byteBufAllocator, CharBuffer.wrap(text), CharsetUtil.UTF_8);
+    contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8).send(byteBuf);
   }
 
-  public void send(String contentType, String body) {
+  public void send(CharSequence contentType, String body) {
     contentType(contentType);
     send(body);
   }
 
   public void send(byte[] bytes) {
-    if (!contentTypeSet) {
-      contentType("application/octet-stream");
-    }
-
-    commit(byteBufAllocator.buffer(bytes.length).writeBytes(bytes));
+    contentTypeIfNotSet(HttpHeaderConstants.OCTET_STREAM);
+    commit(Unpooled.wrappedBuffer(bytes));
   }
 
-  public void send(String contentType, byte[] bytes) {
+  public void send(CharSequence contentType, byte[] bytes) {
     contentType(contentType).send(bytes);
   }
 
-  @Override
-  public void send(InputStream inputStream) throws IOException {
-    commit(IoUtils.writeTo(inputStream, byteBufAllocator.buffer()));
-  }
-
-  @Override
-  public void send(String contentType, InputStream inputStream) throws IOException {
-    contentType(contentType).send(inputStream);
-  }
-
-  public void send(String contentType, ByteBuf buffer) {
+  public void send(CharSequence contentType, ByteBuf buffer) {
     contentType(contentType);
     send(buffer);
   }
 
-  @Override
-  public void send(ExecControl execContext, Publisher<HttpResponseChunk> stream) {
-    setCookieHeader();
-    chunkedResponseTransmitter.transmit(execContext, stream);
-  }
-
   public void send(ByteBuf buffer) {
-    if (!contentTypeSet) {
-      contentType("application/octet-stream");
-    }
-
+    contentTypeIfNotSet(HttpHeaderConstants.OCTET_STREAM);
     commit(buffer);
   }
 
-  @Override
-  public void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception {
-    setCookieHeader();
-    fileHttpTransmitter.transmit(execContext, attributes, file);
-  }
-
-  @Override
-  public void sendServerSentEventStream(ExecControl execContext, Publisher<ServerSentEvent> stream) {
-    setCookieHeader();
-    serverSentEventTransmitter.transmit(execContext, stream);
-  }
-
-  public void sendFile(final ExecControl execContext, final Path file) throws Exception {
-    readAttributes(execContext, file, new Action<BasicFileAttributes>() {
-      public void execute(BasicFileAttributes fileAttributes) throws Exception {
-        sendFile(execContext, fileAttributes, file);
-      }
+  public void sendFile(Path file) {
+    finalizeResponse(responseFinalizers.iterator(), () -> {
+      setCookieHeader();
+      responseTransmitter.transmit(status.getNettyStatus(), file);
     });
+  }
+
+  @Override
+  public void sendStream(Publisher<? extends ByteBuf> stream) {
+    finalizeResponse(responseFinalizers.iterator(), () -> {
+      setCookieHeader();
+      stream.subscribe(responseTransmitter.transmitter(status.getNettyStatus()));
+    });
+  }
+
+  @Override
+  public Response beforeSend(Action<? super Response> responseFinalizer) {
+    responseFinalizers.add(responseFinalizer);
+    return this;
   }
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      cookies = new HashSet<>();
+      cookies = Sets.newHashSet();
     }
     return cookies;
   }
@@ -271,17 +306,37 @@ public class DefaultResponse implements Response {
   private void setCookieHeader() {
     if (cookies != null && !cookies.isEmpty()) {
       for (Cookie cookie : cookies) {
-        headers.add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+        headers.add(HttpHeaderConstants.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
       }
     }
   }
 
-  private void commit(ByteBuf byteBuf) {
-    setCookieHeader();
-    try {
-      committer.execute(byteBuf);
-    } catch (Exception e) {
-      throw ExceptionUtils.uncheck(e);
+  private void commit(ByteBuf buffer) {
+    headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
+    finalizeResponse(Collections.emptyIterator(), () -> {
+      setCookieHeader();
+      responseTransmitter.transmit(status.getNettyStatus(), buffer);
+    });
+  }
+
+  private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then) {
+    if (finalizers.hasNext()) {
+      finalizers
+        .next()
+        .curry(this)
+        .operation()
+        .then(() ->
+            finalizeResponse(finalizers, then)
+        );
+    } else {
+      List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
+      responseFinalizers.clear();
+      if (finalizersCopy.isEmpty()) {
+        then.run();
+      } else {
+        finalizeResponse(finalizersCopy.iterator(), then);
+      }
     }
   }
+
 }

@@ -17,8 +17,11 @@
 package ratpack.file;
 
 import ratpack.api.Nullable;
+import ratpack.file.internal.DefaultFileSystemBinding;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
 
 /**
  * A file system binding represents a file system location that is used to resolve relative paths.
@@ -27,9 +30,17 @@ import java.nio.file.Path;
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *
- * @see ratpack.handling.Chain#assets(String, String...)
+ * @see ratpack.handling.Chain#files(ratpack.func.Action)
  */
 public interface FileSystemBinding {
+
+  static FileSystemBinding root() {
+    return of(Paths.get(System.getProperty("user.dir")).getRoot());
+  }
+
+  static FileSystemBinding of(Path path) {
+    return new DefaultFileSystemBinding(Objects.requireNonNull(path, "path cannot be null"));
+  }
 
   /**
    * The actual point on the filesystem that this binding is bound to.

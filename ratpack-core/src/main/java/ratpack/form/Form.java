@@ -17,6 +17,8 @@
 package ratpack.form;
 
 import ratpack.api.Nullable;
+import ratpack.form.internal.DefaultFormParseOpts;
+import ratpack.parse.Parse;
 import ratpack.util.MultiValueMap;
 
 import java.util.List;
@@ -29,8 +31,8 @@ import java.util.List;
  * <p>
  * All instances of this type are <b>immutable</b>.
  * Calling any mutative method of {@link ratpack.util.MultiValueMap} will result in an {@link UnsupportedOperationException}.
- * <h5>Example usage:</h5>
- * <pre class="java">
+ * <h3>Example usage:</h3>
+ * <pre class="java">{@code
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.form.Form;
@@ -40,16 +42,21 @@ import java.util.List;
  *
  * public class Example {
  *   public static class FormHandler implements Handler {
- *     public void handle(Context context) {
- *       Form form = context.parse(Form.class);
- *       UploadedFile file = form.file("someFile.txt");
- *       String param = form.get("param");
- *       List&lt;String&gt; multi = form.getAll("multi");
- *       context.render("form uploaded!");
+ *     public void handle(Context context) throws Exception {
+ *       context.parse(Form.class).then(form -> {
+ *         UploadedFile file = form.file("someFile.txt");
+ *         String param = form.get("param");
+ *         List<String> multi = form.getAll("multi");
+ *         context.render("form uploaded!");
+ *       });
  *     }
  *   }
  * }
- * </pre>
+ * }</pre>
+ *
+ * <p>
+ * To include the query parameters from the request in the parsed form, use {@link Form#form(boolean)}.
+ * This can be useful if you want to support both {@code GET} and {@code PUT} submission with a single handler.
  */
 public interface Form extends MultiValueMap<String, String> {
 
@@ -76,5 +83,26 @@ public interface Form extends MultiValueMap<String, String> {
    * @return all of the uploaded files.
    */
   MultiValueMap<String, UploadedFile> files();
+
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link Form}.
+   * <p>
+   * Default options will be used (no query parameters included).
+   *
+   * @return a parse object
+   */
+  static Parse<Form, FormParseOpts> form() {
+    return form(false);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link Form}.
+   *
+   * @param includeQueryParams whether to include the query parameters from the request in the parsed form
+   * @return a parse object
+   */
+  static Parse<Form, FormParseOpts> form(boolean includeQueryParams) {
+    return Parse.of(Form.class, new DefaultFormParseOpts(includeQueryParams));
+  }
 
 }

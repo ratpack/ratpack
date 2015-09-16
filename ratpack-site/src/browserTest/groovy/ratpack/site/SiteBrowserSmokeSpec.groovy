@@ -18,9 +18,8 @@ package ratpack.site
 
 import geb.spock.GebReportingSpec
 import ratpack.site.pages.HomePage
-import ratpack.site.pages.ManualToCPage
+import ratpack.site.pages.ManualPage
 import ratpack.site.pages.VersionsPage
-import spock.lang.Ignore
 import spock.lang.Shared
 
 class SiteBrowserSmokeSpec extends GebReportingSpec {
@@ -33,11 +32,6 @@ class SiteBrowserSmokeSpec extends GebReportingSpec {
     browser.baseUrl = base.toString()
   }
 
-  def setupSpec() {
-    aut.mockGithubData()
-  }
-
-  @Ignore("Unsure how to mock out manuals on disk at this time")
   def "go to current manual"() {
     given:
     to HomePage
@@ -46,7 +40,7 @@ class SiteBrowserSmokeSpec extends GebReportingSpec {
     manualLink.click()
 
     then:
-    at ManualToCPage
+    at ManualPage
   }
 
   def "got to versions pages"() {

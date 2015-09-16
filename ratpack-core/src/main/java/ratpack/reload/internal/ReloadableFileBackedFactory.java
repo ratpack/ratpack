@@ -17,6 +17,7 @@
 package ratpack.reload.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.func.Factory;
 import ratpack.util.internal.IoUtils;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public class ReloadableFileBackedFactory<T> implements Factory<T> {
 
@@ -45,11 +46,11 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
-  static public interface Producer<T> {
+  public interface Producer<T> {
     T produce(Path file, ByteBuf bytes) throws Exception;
   }
 
-  static public interface Releaser<T> {
+  public interface Releaser<T> {
     void release(T thing);
   }
 
@@ -61,7 +62,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   }
 
   public ReloadableFileBackedFactory(Path file, boolean reloadable, Producer<T> producer) {
-    this(file, reloadable, producer, new NullReleaser<T>());
+    this(file, reloadable, producer, new NullReleaser<>());
   }
 
   public ReloadableFileBackedFactory(Path file, boolean reloadable, Producer<T> producer, Releaser<T> releaser) {
@@ -118,7 +119,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
         return false;
       }
 
-      return IoUtils.read(file).equals(existing);
+      return IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file).equals(existing);
     } finally {
       lock.unlock();
     }
@@ -132,7 +133,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     lock.lock();
     try {
       FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      ByteBuf bytes = IoUtils.read(file);
+      ByteBuf bytes = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file);
 
       if (lastModifiedTime.equals(lastModifiedHolder.get()) && bytes.equals(contentHolder.get())) {
         return;

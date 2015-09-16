@@ -15,11 +15,64 @@
  */
 
 apply plugin: "groovy"
+apply from: "$rootDir/gradle/checkstyle.gradle"
+apply from: "$rootDir/gradle/codenarc.gradle"
 
 dependencies {
   testCompile commonDependencies.groovy
   testCompile commonDependencies.spock
   testCompile project(":ratpack-test-internal")
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+tasks.withType(AbstractCompile) {
+  options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
+  options.compilerArgs << "-Xlint:-classfile" // Needed due to https://issues.jboss.org/browse/JASSIST-245
+}
+
+javadoc {
+  options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
+  options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+task sourceJar(type: Jar) {
+  description "An archive of the source code for Maven Central"
+  classifier "sources"
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+  description "An archive of the JavaDocs for Maven Central"
+  classifier "javadoc"
+  from javadoc
+}
+
+artifacts {
+  archives javadocJar, sourceJar
+}
+
+signing {
+  if (!isSnapshot) {
+    sign configurations.archives
+  }
+}
+
+install {
+  repositories {
+    mavenDeployer {
+      repository(url: localRepoUrl)
+    }
+  }
+}
+
+install.repositories["mavenInstaller"].beforeDeployment { deployment ->
+  if (!isSnapshot) {
+    artifacts {
+      signatures signing.signPom(deployment)
+    }
+  }
 }
 
 configurations {
@@ -40,17 +93,14 @@ configurations {
   }
 }
 
-apply from: "$rootDir/gradle/checkstyle.gradle"
-apply from: "$rootDir/gradle/codenarc.gradle"
-
 javadoc {
   doFirst {
     if (project.ext.has("apiLinks")) {
-      options.links(* project.apiLinks)
+      options.links(*project.apiLinks)
     }
   }
 }
 
-test {
-  maxParallelForks isTravis || isDrone ? 1 : 2
+task codeQuality {
+  dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
 }

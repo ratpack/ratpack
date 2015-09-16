@@ -16,10 +16,10 @@
 
 package ratpack.handling.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.handling.Context;
-import ratpack.http.Request;
 import ratpack.handling.Redirector;
+import ratpack.http.Request;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.server.PublicAddress;
 
 import java.net.URI;
@@ -32,19 +32,19 @@ public class DefaultRedirector implements Redirector {
   public void redirect(Context context, String location, int code) {
     context.getResponse().status(code);
     String normalizedLocation = generateRedirectLocation(context, context.getRequest(), location);
-    context.getResponse().getHeaders().set(HttpHeaders.Names.LOCATION, normalizedLocation);
+    context.getResponse().getHeaders().set(HttpHeaderConstants.LOCATION, normalizedLocation);
     context.getResponse().send();
   }
 
-  private String generateRedirectLocation(Context context, Request request, String path) {
+  private String generateRedirectLocation(Context ctx, Request request, String path) {
     //Rules
     //1. Given absolute URL use it
     //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
     //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
 
-    PublicAddress publicAddress = context.get(PublicAddress.class);
+    PublicAddress publicAddress = ctx.get(PublicAddress.class);
     String generatedPath;
-    URI host = publicAddress.getAddress(context);
+    URI host = publicAddress.get(ctx);
 
     if (ABSOLUTE_PATTERN.matcher(path).matches()) {
       //Rule 1 - Path is absolute

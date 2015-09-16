@@ -18,35 +18,23 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
-import ratpack.api.Nullable;
-import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.func.Action;
-import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
-import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
-import ratpack.groovy.launch.internal.GroovyVersionCheck;
-import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigs;
-import ratpack.launch.internal.DelegatingLaunchConfig;
+import ratpack.groovy.Groovy;
+import ratpack.guice.Guice;
 import ratpack.server.RatpackServer;
-import ratpack.server.RatpackServerBuilder;
+import ratpack.server.RatpackServerSpec;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
+import ratpack.util.Exceptions;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
-import java.util.Properties;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
   private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
-
+  private final ThreadLocal<RatpackServer> running = new ThreadLocal<>();
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
@@ -55,75 +43,46 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
-    Path scriptFile = findScript(closure);
+    Optional.ofNullable(running.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
 
-    Properties defaultProperties = new Properties();
-    Path baseDir;
-
+    RatpackServer ratpackServer;
+    Path scriptFile = ClosureUtil.findScript(closure);
     if (scriptFile == null) {
-      baseDir = new File(System.getProperty("user.dir")).toPath();
+      ratpackServer = RatpackServer.of(server -> ClosureUtil.configureDelegateFirst(new RatpackBacking(server), closure));
     } else {
-      baseDir = scriptFile.getParent();
-    }
-
-    Properties properties = createProperties(scriptFile);
-
-    Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigs.CONFIG_RESOURCE_DEFAULT);
-    LaunchConfig launchConfig = LaunchConfigs.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
-
-    if (scriptFile == null) {
-      launchConfig = new DelegatingLaunchConfig(launchConfig) {
-        @Override
-        public HandlerFactory getHandlerFactory() {
-          return new GroovyClosureHandlerFactory(closure);
-        }
-      };
-    }
-
-    RatpackServer server = RatpackServerBuilder.build(launchConfig);
-
-    Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
-    if (action != null) {
-      action.execute(server);
-    }
-
-    server.start();
-
-    try {
-      while (server.isRunning() && !Thread.interrupted()) {
-        Thread.sleep(1000);
+      ratpackServer = RatpackServer.of(Groovy.Script.app(scriptFile));
+      Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
+      if (action != null) {
+        action.execute(ratpackServer);
       }
-    } catch (InterruptedException ignore) {
-      // do nothing
     }
 
-    server.stop();
+    ratpackServer.start();
+    running.set(ratpackServer);
   }
 
-  protected Properties createProperties(@Nullable Path scriptFile) {
-    Properties properties = LaunchConfigs.getDefaultPrefixedProperties();
+  private static class RatpackBacking implements Groovy.Ratpack {
+    private final RatpackServerSpec server;
 
-    properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
-    properties.setProperty(LaunchConfigs.Property.RELOADABLE, "true");
-
-    if (scriptFile != null) {
-      properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getFileName().toString());
+    public RatpackBacking(RatpackServerSpec server) {
+      this.server = server;
     }
 
-    return properties;
-  }
+    @Override
+    public void bindings(Closure<?> configurer) {
+      server.registry(Guice.registry(ClosureUtil.delegatingAction(configurer)));
+    }
 
-  private <T> Path findScript(Closure<T> closure) throws URISyntaxException {
-    Class<?> clazz = closure.getClass();
-    ProtectionDomain protectionDomain = clazz.getProtectionDomain();
-    CodeSource codeSource = protectionDomain.getCodeSource();
-    URL location = codeSource.getLocation();
-    URI uri = location.toURI();
-    Path path = Paths.get(uri);
-    if (Files.exists(path)) {
-      return path;
-    } else {
-      return null;
+    @Override
+    public void handlers(Closure<?> configurer) {
+      Exceptions.uncheck(() -> server.handlers(Groovy.chainAction(configurer)));
+    }
+
+    @Override
+    public void serverConfig(Closure<?> configurer) {
+      ServerConfigBuilder builder = ServerConfig.builder().development(true);
+      ClosureUtil.configureDelegateFirst(builder, configurer);
+      server.serverConfig(builder);
     }
   }
 }

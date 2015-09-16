@@ -16,44 +16,74 @@
 
 package ratpack.http.client.internal;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.http.HttpUrlSpec;
+import ratpack.func.Function;
 import ratpack.http.MutableHeaders;
+import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.http.internal.HttpUrlSpecBacking;
-import ratpack.util.internal.ByteBufWriteThroughOutputStream;
+import ratpack.http.internal.HttpHeaderConstants;
 
+import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.time.Duration;
 
-public class RequestSpecBacking {
+class RequestSpecBacking {
 
   private final MutableHeaders headers;
-  private final ByteBuf body;
-  private final HttpUrlSpecBacking httpUrlSpec;
+  private final URI uri;
+  private final ByteBufAllocator byteBufAllocator;
+  private final RequestParams requestParams;
+  private boolean decompressResponse;
+
+  private ByteBuf bodyByteBuf;
 
   private String method = "GET";
+  private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
+  private SSLContext sslContext;
+  private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
 
-  public RequestSpecBacking(MutableHeaders headers, ByteBuf body) {
+  public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
     this.headers = headers;
-    this.body = body;
-    this.httpUrlSpec = new HttpUrlSpecBacking();
+    this.uri = uri;
+    this.byteBufAllocator = byteBufAllocator;
+    this.requestParams = requestParams;
+    this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
+    this.decompressResponse = true;
+  }
+
+  public Function<? super ReceivedResponse, Action<? super RequestSpec>> getOnRedirect() {
+    return onRedirect;
   }
 
   public String getMethod() {
     return method;
   }
 
-  @Nullable
-  public ByteBuf getBody() {
-    return body;
+  public int getMaxRedirects() {
+    return maxRedirects;
   }
 
-  public URI getUrl() {
-    return httpUrlSpec.getURL();
+  public boolean isDecompressResponse() {
+    return decompressResponse;
+  }
+
+  @Nullable
+  public SSLContext getSslContext() {
+    return sslContext;
+  }
+
+  @Nullable
+  public ByteBuf getBody() {
+    return bodyByteBuf;
   }
 
   public RequestSpec asSpec() {
@@ -61,9 +91,37 @@ public class RequestSpecBacking {
   }
 
   private class Spec implements RequestSpec {
+
+    private BodyImpl body = new BodyImpl();
+
+    @Override
+    public RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function) {
+      RequestSpecBacking.this.onRedirect = function;
+      return this;
+    }
+
+    @Override
+    public RequestSpec redirects(int maxRedirects) {
+      Preconditions.checkArgument(maxRedirects >= 0);
+      RequestSpecBacking.this.maxRedirects = maxRedirects;
+      return this;
+    }
+
+    @Override
+    public RequestSpec sslContext(SSLContext sslContext) {
+      RequestSpecBacking.this.sslContext = sslContext;
+      return this;
+    }
+
     @Override
     public MutableHeaders getHeaders() {
       return headers;
+    }
+
+    @Override
+    public RequestSpec headers(Action<? super MutableHeaders> action) throws Exception {
+      action.execute(getHeaders());
+      return this;
     }
 
     @Override
@@ -73,36 +131,89 @@ public class RequestSpecBacking {
     }
 
     @Override
-    public HttpUrlSpec getUrl() {
-      return RequestSpecBacking.this.httpUrlSpec;
+    public RequestSpec decompressResponse(boolean shouldDecompress) {
+      RequestSpecBacking.this.decompressResponse = shouldDecompress;
+      return this;
     }
 
     @Override
-    public RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception {
-      action.execute(getUrl());
+    public URI getUrl() {
+      return uri;
+    }
+
+    @Override
+    public RequestSpec readTimeout(Duration duration) {
+      requestParams.readTimeoutNanos = duration.toNanos();
       return this;
     }
+
+    private void setBodyByteBuf(ByteBuf byteBuf) {
+      if (bodyByteBuf != null) {
+        bodyByteBuf.release();
+      }
+      bodyByteBuf = byteBuf;
+    }
+
 
     private class BodyImpl implements Body {
       @Override
       public Body type(String contentType) {
-        getHeaders().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, contentType);
         return this;
       }
 
       @Override
       public Body stream(Action<? super OutputStream> action) throws Exception {
-        try (OutputStream outputStream = new ByteBufWriteThroughOutputStream(body.clear())) {
+        ByteBuf byteBuf = byteBufAllocator.buffer();
+        try (OutputStream outputStream = new ByteBufOutputStream(byteBuf)) {
           action.execute(outputStream);
+        } catch (Throwable t) {
+          byteBuf.release();
+          throw t;
         }
 
+        setBodyByteBuf(byteBuf);
         return this;
+      }
+
+      @Override
+      public Body buffer(ByteBuf byteBuf) {
+        setBodyByteBuf(byteBuf.retain());
+        return this;
+      }
+
+      @Override
+      public Body bytes(byte[] bytes) {
+        setBodyByteBuf(Unpooled.wrappedBuffer(bytes));
+        return this;
+      }
+
+      @Override
+      public Body text(CharSequence text) {
+        return text(text, CharsetUtil.UTF_8);
+      }
+
+      @Override
+      public Body text(CharSequence text, Charset charset) {
+        if (charset.equals(CharsetUtil.UTF_8)) {
+          maybeSetContentType(HttpHeaderConstants.PLAIN_TEXT_UTF8);
+        } else {
+          maybeSetContentType("text/plain;charset=" + charset.name());
+        }
+        setBodyByteBuf(Unpooled.copiedBuffer(text, charset));
+        return this;
+      }
+
+      private void maybeSetContentType(CharSequence s) {
+        if (!headers.contains(HttpHeaderConstants.CONTENT_TYPE.toString())) {
+          headers.set(HttpHeaderConstants.CONTENT_TYPE, s);
+        }
       }
     }
 
     @Override
     public Body getBody() {
-      return new BodyImpl();
+      return body;
     }
 
     @Override

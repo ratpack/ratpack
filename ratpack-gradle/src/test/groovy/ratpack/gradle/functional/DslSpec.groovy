@@ -25,7 +25,7 @@ class DslSpec extends FunctionalSpec {
         transitive = false // we don't need jackson itself for this test
       }
       dependencies {
-        compile ratpack.dependency("jackson")
+        compile ratpack.dependency("jackson-guice")
       }
 
       task showDeps {
@@ -37,7 +37,7 @@ class DslSpec extends FunctionalSpec {
     run "showDeps"
 
     then:
-    file("deps.txt").text.contains("ratpack-jackson")
+    file("deps.txt").text.contains("ratpack-jackson-guice")
   }
 
 }

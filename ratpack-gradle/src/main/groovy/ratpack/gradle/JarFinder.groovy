@@ -26,7 +26,7 @@ class JarFinder {
     if (targetClass) {
       String absolutePath = targetClass.getResource('/' + targetClass.getName().replace(".", "/") + ".class").path
       String jarPath = absolutePath.substring("file:".length(), absolutePath.lastIndexOf("!"))
-      new File(jarPath);
+      new File(jarPath)
     } else {
       null
     }
@@ -37,7 +37,8 @@ class JarFinder {
     for (File file in classpath) {
       try {
         urls.add(file.toURI().toURL())
-      } catch (MalformedURLException ignore) {}
+      } catch (MalformedURLException ignore) {
+      }
     }
 
     new URLClassLoader(urls as URL[])
@@ -47,7 +48,8 @@ class JarFinder {
     if (classLoader) {
       try {
         return classLoader.loadClass(className)
-      } catch (ClassNotFoundException ignore) {}
+      } catch (ClassNotFoundException ignore) {
+      }
     }
 
     null

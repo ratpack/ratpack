@@ -18,11 +18,21 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import ratpack.file.FileHandlerSpec;
 import ratpack.func.Action;
+import ratpack.func.Predicate;
+import ratpack.groovy.handling.internal.DefaultGroovyChain;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
+import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
+
+import static ratpack.groovy.Groovy.chainAction;
+import static ratpack.groovy.Groovy.groovyHandler;
+import static ratpack.groovy.internal.ClosureUtil.delegatingAction;
 
 /**
  * A Groovy oriented handler chain builder DSL.
@@ -30,27 +40,58 @@ import ratpack.registry.RegistrySpec;
  * The methods specific to this subclass create {@link ratpack.handling.Handler} instances from closures and
  * add them to the underlying chain.
  * <p>
- * These methods are generally shortcuts for {@link #handler(ratpack.handling.Handler)} on this underlying chain.
+ * These methods are generally shortcuts for {@link #all(ratpack.handling.Handler)} on this underlying chain.
  */
 public interface GroovyChain extends Chain {
 
   /**
-   * {@inheritDoc}
+   * Creates a Groovy chain wrapper over a chain instance.
+   *
+   * @param chain a chain instance
+   * @return a Groovy wrapper
    */
-  @Override
-  GroovyChain assets(String path, String... indexFiles);
+  static GroovyChain from(Chain chain) {
+    if (chain instanceof GroovyChain) {
+      return (GroovyChain) chain;
+    } else {
+      return new DefaultGroovyChain(chain);
+    }
+  }
+
+  /**
+   * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
+   *
+   * @param handler the {@code Closure} to add
+   * @return this {@code GroovyChain}
+   */
+  default GroovyChain all(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return all(groovyHandler(handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain delete(Handler handler);
+  GroovyChain all(Handler handler);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain delete(String path, Handler handler);
+  default GroovyChain all(Class<? extends Handler> handler) {
+    return all(getRegistry().get(handler));
+  }
+
+  /**
+   * Creates a handler from the given closure.
+   *
+   * @param closure a chain definition
+   * @return a new handler
+   * @throws Exception any thrown by {@code closure}
+   */
+  default Handler chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return chain(c -> ClosureUtil.configureDelegateFirst(GroovyChain.from(c), closure));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -62,7 +103,9 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain delete(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain delete(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return delete(path, groovyHandler(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -73,44 +116,122 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return delete(groovyHandler(handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain fileSystem(String path, Handler handler);
+  default GroovyChain delete(String path, Handler handler) {
+    return from(Chain.super.delete(path, handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception;
+  default GroovyChain delete(String path, Class<? extends Handler> handler) {
+    return delete(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain delete(Handler handler) {
+    return from(Chain.super.delete(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain delete(Class<? extends Handler> handler) {
+    return delete(getRegistry().get(handler));
+  }
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
    * changes the {@link ratpack.file.FileSystemBinding} for the {@code Handler} list.
    * <p>
-   * See {@link GroovyChain#fileSystem(String, Handler)} for more details.
+   * See {@link GroovyChain#fileSystem(String, ratpack.func.Action)} for more details.
    *
    * @param path the relative {@code path} to the new file system binding point
    * @param handlers the definition of the handler chain
    * @return this {@code GroovyChain}
-   * @throws Exception any exception thrown by the given closure
+   * @throws Exception any thrown by {@code closure}
    */
-  GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
+  default GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
+    return fileSystem(path, chainAction(handlers));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain get(Handler handler);
+  default GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.fileSystem(path, action));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain get(String path, Handler handler);
+  default GroovyChain fileSystem(String path, Class<? extends Action<? super Chain>> action) throws Exception {
+    return fileSystem(path, getRegistry().get(action));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain files(Action<? super FileHandlerSpec> config) throws Exception {
+    return from(Chain.super.files(config));
+  }
+
+  @Override
+  default GroovyChain files() {
+    return from(Chain.super.files());
+  }
+
+
+  default GroovyChain files(@DelegatesTo(value = FileHandlerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return files(delegatingAction(FileHandlerSpec.class, closure));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain get(String path, Handler handler) {
+    return from(Chain.super.get(path, handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain get(String path, Class<? extends Handler> handler) {
+    return get(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain get(Handler handler) {
+    return from(Chain.super.get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain get(Class<? extends Handler> handler) {
+    return get(getRegistry().get(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -122,7 +243,9 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain get(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain get(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return get(path, groovyHandler(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -133,58 +256,24 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return get(groovyHandler(handler));
+  }
 
   /**
-   * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
-   *
-   * @param handler the {@code Closure} to add
-   * @return this {@code GroovyChain}
+   * {@inheritDoc}
    */
-  GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} exactly.
-   * <p>
-   * See {@link GroovyChain#handler(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match exactly on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain host(String hostName, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.host(hostName, action));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain handler(Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain handler(String path, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain header(String headerName, String headerValue, Handler handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the {@code request}
-   * has a {@code HTTPHeader} with the given name and a it's value matches the given value exactly.
-   * <p>
-   * See {@link GroovyChain#header(String, String, ratpack.handling.Handler)} for more details.
-   *
-   * @param headerName the name of the HTTP Header to match on
-   * @param headerValue the value of the HTTP Header to match on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain host(String hostName, Class<? extends Action<? super Chain>> action) throws Exception {
+    return host(hostName, getRegistry().get(action));
+  }
 
   /**
    * If the request has a {@code Host} header that matches the given host name exactly, handling will be delegated to the chain defined by the given closure.
@@ -192,26 +281,73 @@ public interface GroovyChain extends Chain {
    * @param hostName the name of the HTTP Header to match on
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
+   * @throws Exception any thrown by {@code closure}
    * @see #host(String, ratpack.func.Action)
    */
-  GroovyChain host(String hostName, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  GroovyChain host(String hostName, Action<? super Chain> action) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain patch(Handler handler);
+  default GroovyChain host(String hostName, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
+    return host(hostName, chainAction(handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain patch(String path, Handler handler);
+  default GroovyChain insert(Action<? super Chain> action) throws Exception {
+    return from(Chain.super.insert(action));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain insert(Class<? extends Action<? super Chain>> action) throws Exception {
+    return insert(getRegistry().get(action));
+  }
+
+  /**
+   * Inserts the given nested handler chain.
+   * <p>
+   * Shorter form of {@link #all(Handler)} handler}({@link #chain(groovy.lang.Closure) chain}({@code closure}).
+   *
+   * @param closure the handler chain to insert
+   * @return this
+   * @throws Exception any thrown by {@code closure}
+   */
+  default GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return insert(chainAction(closure));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain patch(String path, Handler handler) {
+    return from(Chain.super.patch(path, handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain patch(String path, Class<? extends Handler> handler) {
+    return patch(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain patch(Handler handler) {
+    return from(Chain.super.patch(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain patch(Class<? extends Handler> handler) {
+    return patch(getRegistry().get(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -223,7 +359,9 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain patch(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain patch(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return patch(path, groovyHandler(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -234,13 +372,91 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return path(groovyHandler(handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain post(String path, Handler handler);
+  default GroovyChain path(String path, Handler handler) {
+    return from(Chain.super.path(path, handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain path(Handler handler) {
+    return path("", handler);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain path(String path, Class<? extends Handler> handler) {
+    return path(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain path(Class<? extends Handler> handler) {
+    return path("", handler);
+  }
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} exactly.
+   * <p>
+   * See {@link GroovyChain#path(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match exactly on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  default GroovyChain path(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return path(path, groovyHandler(handler));
+  }
+
+  default GroovyChain path(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return path("", handler);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain post(String path, Handler handler) {
+    return from(Chain.super.post(path, handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain post(String path, Class<? extends Handler> handler) {
+    return post(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain post(Handler handler) {
+    return from(Chain.super.post(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain post(Class<? extends Handler> handler) {
+    return post(getRegistry().get(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -252,13 +468,9 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain post(Handler handler);
+  default GroovyChain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return post(path, groovyHandler(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -269,45 +481,73 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return post(groovyHandler(handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain prefix(String prefix, Handler handler);
+  default GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.prefix(prefix, action));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception;
+  default GroovyChain prefix(String prefix, Class<? extends Action<? super Chain>> action) throws Exception {
+    return prefix(prefix, getRegistry().get(action));
+  }
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to
    * this {@code GroovyChain} that delegates to the {@code Handler} list if the relative path starts with the given
    * {@code prefix}.
    * <p>
-   * See {@link Chain#prefix(String, ratpack.handling.Handler)} for more details.
+   * See {@link Chain#prefix(String, ratpack.func.Action)} for more details.
    *
    * @param prefix the relative path to match on
    * @param chain the definition of the chain to delegate to
    * @return this {@code GroovyChain}
    * @throws Exception any exception thrown by the given closure
    */
-  GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception;
+  default GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception {
+    return prefix(prefix, chainAction(chain));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain put(Handler handler);
+  default GroovyChain put(String path, Handler handler) {
+    return from(Chain.super.put(path, handler));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain put(String path, Handler handler);
+  default GroovyChain put(String path, Class<? extends Handler> handler) {
+    return put(path, getRegistry().get(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain put(Handler handler) {
+    return from(Chain.super.put(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain put(Class<? extends Handler> handler) {
+    return put(getRegistry().get(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -319,7 +559,9 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return put(path, groovyHandler(handler));
+  }
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -330,79 +572,154 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  default GroovyChain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return put(groovyHandler(handler));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  default GroovyChain redirect(int code, String location) {
+    return from(Chain.super.redirect(code, location));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Registry registry, Handler handler);
+  default GroovyChain register(Registry registry) {
+    return from(Chain.super.register(registry));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception;
+  default GroovyChain register(Action<? super RegistrySpec> action) throws Exception {
+    return from(Chain.super.register(action));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception;
-
-  GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception;
-
-  GroovyChain register(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
+  default GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.register(registry, action));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Registry registry);
+  default GroovyChain register(Registry registry, Class<? extends Action<? super Chain>> action) throws Exception {
+    return register(registry, getRegistry().get(action));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Action<? super RegistrySpec> action) throws Exception;
-
-  GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+  default GroovyChain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception {
+    return from(Chain.super.register(registryAction, chainAction));
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain insert(Action<? super Chain> action) throws Exception;
+  default GroovyChain register(Action<? super RegistrySpec> registryAction, Class<? extends Action<? super Chain>> action) throws Exception {
+    return register(registryAction, getRegistry().get(action));
+  }
 
-  /**
-   * Creates a handler from the given closure.
-   *
-   * @param closure a chain definition
-   * @return a new handler
-   * @throws Exception any thrown by {@code closure}
-   */
-  Handler chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+  default GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
+    return register(registryAction, chainAction(handler));
+  }
 
-  /**
-   * Inserts the given nested handler chain.
-   * <p>
-   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(groovy.lang.Closure) chain}({@code closure}).
-   *
-   * @param closure the handler chain to insert
-   * @return this
-   * @throws Exception any thrown by {@code closure}
-   */
-  GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+  default GroovyChain register(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
+    return register(registry, chainAction(handlers));
+  }
 
-  /**
-   * {@inheritDoc}
-   */
-  GroovyChain redirect(int code, String location);
+  default GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return register(delegatingAction(closure));
+  }
+
+  @Override
+  default GroovyChain when(Predicate<? super Context> test, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.when(test, action));
+  }
+
+  @Override
+  default GroovyChain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return from(Chain.super.when(test, action));
+  }
+
+  default GroovyChain when(
+    Predicate<? super Context> test,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers
+  ) throws Exception {
+    return when(test, chainAction(handlers));
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers
+  ) throws Exception {
+    return when(test, chainAction(handlers));
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Action<? super Chain> chain
+  ) throws Exception {
+    return when(
+      ctx -> {
+        final GroovyContext groovyContext = GroovyContext.from(ctx);
+        return DefaultGroovyMethods.asBoolean(
+          ClosureUtil.cloneAndSetDelegate(groovyContext, test, Closure.DELEGATE_FIRST).isCase(groovyContext)
+        );
+      },
+      chain
+    );
+  }
+
+  @Override
+  default GroovyChain onlyIf(Predicate<? super Context> test, Handler handler) {
+    return from(Chain.super.onlyIf(test, handler));
+  }
+
+  @Override
+  default GroovyChain onlyIf(Predicate<? super Context> test, Class<? extends Handler> handler) {
+    return from(Chain.super.onlyIf(test, handler));
+  }
+
+  default GroovyChain onlyIf(
+    Predicate<? super Context> test,
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler
+  ) {
+    return onlyIf(test, groovyHandler(handler));
+  }
+
+  default GroovyChain onlyIf(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler
+  ) {
+    return onlyIf(test, groovyHandler(handler));
+  }
+
+  default GroovyChain onlyIf(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Handler handler
+  ) {
+    return onlyIf(
+      ctx -> {
+        final GroovyContext groovyContext = GroovyContext.from(ctx);
+        return DefaultGroovyMethods.asBoolean(
+          ClosureUtil.cloneAndSetDelegate(groovyContext, test, Closure.DELEGATE_FIRST).isCase(groovyContext)
+        );
+      },
+      handler
+    );
+  }
+
 
 }

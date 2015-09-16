@@ -17,17 +17,31 @@
 package ratpack.manual.snippets.executer
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+import ratpack.func.Block
 import ratpack.manual.snippets.TestCodeSnippet
+import ratpack.manual.snippets.fixture.SnippetFixture
 
 import javax.tools.*
 import java.lang.reflect.InvocationTargetException
-import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
 public class JavaSnippetExecuter implements SnippetExecuter {
+
+  private final SnippetFixture fixture
+
+  JavaSnippetExecuter(SnippetFixture fixture) {
+    this.fixture = fixture
+  }
+
   @Override
-  public void execute(TestCodeSnippet snippet) {
+  SnippetFixture getFixture() {
+    return fixture
+  }
+
+  @Override
+  public void execute(TestCodeSnippet snippet) throws Exception {
     def compiler = ToolProvider.getSystemJavaCompiler()
     List<ByteArrayJavaClass> classFileObjects = []
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>()
@@ -40,7 +54,9 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       }
     }
 
-    def source = new StringJavaSource("Example", snippet.completeSnippet)
+    def fullSnippet = assembleFullSnippet(snippet)
+    def className = detectClassName(fullSnippet)
+    def source = new StringJavaSource(className, fullSnippet)
 
     def task = compiler.getTask(null, fileManager, diagnostics, ["-Xlint:deprecation", "-Xlint:unchecked"], null, Arrays.asList(source))
     def result = task.call()
@@ -64,15 +80,41 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       classLoader.defineClass(javaClass.name - "/", javaClass.bytes)
     }
 
-    def exampleClass = classLoader.loadClass("Example")
+    def exampleClass = classLoader.loadClass(className)
+    def previousContextClassLoader = Thread.currentThread().getContextClassLoader()
     try {
+      Thread.currentThread().setContextClassLoader(classLoader)
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
-      mainMethod.invoke(null, [[] as String[]] as Object[])
+      fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as Block)
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {
-     throw e.cause
+      throw e.cause
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousContextClassLoader)
     }
+  }
+
+  private static String detectClassName(String snippet) {
+    def match = snippet =~ /public class (\w+)/
+    def className = match ? match.group(1) : "Example"
+    def packageName = detectPackage(snippet)
+    packageName ? "${packageName}.$className".toString() : className
+  }
+
+  private static String detectPackage(String snippet) {
+    def match = snippet =~ /package ([\w.]+);/
+    match ? match.group(1) : null
+  }
+
+  private String assembleFullSnippet(TestCodeSnippet snippet) {
+    def imports = new StringBuilder()
+    def snippetMinusImports = new StringBuilder()
+    snippet.snippet.readLines().each { line ->
+      ["package ", "import "].any { line.trim().startsWith(it) } ? imports.append(line).append("\n") : snippetMinusImports.append(line).append("\n")
+    }
+    def fullSnippet = imports.toString() + fixture.pre() + snippet.executer.fixture.transform(snippetMinusImports.toString()) + fixture.post()
+    fullSnippet
   }
 
   static class StringJavaSource extends SimpleJavaFileObject {

@@ -18,6 +18,8 @@ package ratpack.site.github
 
 import com.fasterxml.jackson.databind.ObjectReader
 import com.fasterxml.jackson.databind.node.ArrayNode
+import groovy.transform.CompileStatic
+import ratpack.exec.Promise
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
@@ -26,6 +28,7 @@ import rx.Subscriber
 
 import static ratpack.rx.RxRatpack.observe
 
+@CompileStatic
 class GithubRequester {
 
   private final ObjectReader objectReader
@@ -36,17 +39,16 @@ class GithubRequester {
     this.objectReader = objectReader
   }
 
-  Observable<ArrayNode> request(String url) {
+  Promise<ArrayNode> request(String url) {
     Observable.create({ Subscriber<ArrayNode> it ->
       getPage(httpClient, url, it)
     } as Observable.OnSubscribe<ArrayNode>).reduce { ArrayNode a, ArrayNode b ->
       a.addAll(b)
-    }.cache()
+    }.promiseSingle()
   }
 
   private void getPage(HttpClient httpClient, String url, Subscriber<ArrayNode> pagingSubscription) {
-    def promise = httpClient.get { RequestSpec it ->
-      it.url.set(new URI(url))
+    def promise = httpClient.get(new URI(url)) { RequestSpec it ->
       it.headers.set("User-Agent", "http://www.ratpack.io")
     }
 
@@ -62,7 +64,7 @@ class GithubRequester {
           pagingSubscription.onCompleted()
         }
       } else {
-        throw new RuntimeException("Not an array response from $url")
+        pagingSubscription.onError(new RuntimeException("Not an array response from $url (was ${node.getClass()}): \n$response.body.text}"))
       }
     }
   }

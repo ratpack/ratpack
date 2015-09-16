@@ -16,6 +16,7 @@
 
 package ratpack.groovy.test.handling.internal;
 
+import com.google.common.net.HostAndPort;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
@@ -23,14 +24,12 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.test.handling.GroovyRequestFixture;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
-import ratpack.test.handling.HandlerTimeoutException;
 
-import java.nio.file.Path;
 import java.util.Map;
 
 public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
@@ -48,17 +47,17 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
+  public HandlingResult handle(Handler handler) {
     return delegate.handle(handler);
   }
 
   @Override
-  public HandlingResult handle(Action<? super Chain> chainAction) throws HandlerTimeoutException {
-    return delegate.handle(chainAction);
+  public HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception {
+    return delegate.handleChain(chainAction);
   }
 
   @Override
-  public GroovyRequestFixture header(String name, String value) {
+  public GroovyRequestFixture header(CharSequence name, String value) {
     delegate.header(name, value);
     return this;
   }
@@ -76,7 +75,7 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public GroovyRequestFixture responseHeader(String name, String value) {
+  public GroovyRequestFixture responseHeader(CharSequence name, String value) {
     delegate.responseHeader(name, value);
     return this;
   }
@@ -123,14 +122,26 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public GroovyRequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
-    delegate.launchConfig(baseDir, action);
+  public GroovyRequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
+    delegate.serverConfig(action);
     return this;
   }
 
   @Override
-  public GroovyRequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
-    delegate.launchConfig(action);
+  public GroovyRequestFixture remoteAddress(HostAndPort remote) {
+    delegate.remoteAddress(remote);
+    return this;
+  }
+
+  @Override
+  public GroovyRequestFixture localAddress(HostAndPort local) {
+    delegate.localAddress(local);
+    return this;
+  }
+
+  @Override
+  public GroovyRequestFixture protocol(String protocol) {
+    delegate.protocol(protocol);
     return this;
   }
 }

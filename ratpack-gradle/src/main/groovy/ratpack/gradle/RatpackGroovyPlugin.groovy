@@ -19,7 +19,6 @@ package ratpack.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
-import org.gradle.api.tasks.JavaExec
 
 class RatpackGroovyPlugin implements Plugin<Project> {
 
@@ -28,13 +27,13 @@ class RatpackGroovyPlugin implements Plugin<Project> {
     project.plugins.apply(RatpackPlugin)
     project.plugins.apply(GroovyPlugin)
 
-    project.mainClassName = "ratpack.groovy.launch.GroovyRatpackMain"
+    project.mainClassName = "ratpack.groovy.GroovyRatpackMain"
 
-    def ratpackDependencies = new RatpackDependencies(project.dependencies)
+    def ratpackExtension = project.extensions.getByType(RatpackExtension)
 
     project.dependencies {
-      compile ratpackDependencies.groovy
-      testCompile ratpackDependencies.groovyTest
+      compile ratpackExtension.groovy
+      testCompile ratpackExtension.groovyTest
     }
   }
 

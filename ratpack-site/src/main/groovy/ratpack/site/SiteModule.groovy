@@ -1,69 +1,65 @@
 package ratpack.site
 
-import com.fasterxml.jackson.databind.ObjectReader
-import com.google.inject.AbstractModule
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Provides
-import ratpack.error.ClientErrorHandler
-import ratpack.error.ServerErrorHandler
-import ratpack.http.client.HttpClient
-import ratpack.launch.LaunchConfig
-import ratpack.site.github.ApiBackedGitHubData
-import ratpack.site.github.GitHubApi
-import ratpack.site.github.GitHubData
-import ratpack.site.github.RatpackVersions
 import groovy.util.logging.Slf4j
+import ratpack.file.internal.FileSystemChecksumServices
+import ratpack.groovy.template.MarkupTemplate
+import ratpack.guice.ConfigurableModule
+import ratpack.http.client.HttpClient
+import ratpack.render.RenderableDecorator
+import ratpack.server.ServerConfig
+import ratpack.site.github.*
 
+import javax.inject.Provider
+import javax.inject.Singleton
+import java.time.Duration
+
+@Slf4j
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
-class SiteModule extends AbstractModule {
+class SiteModule extends ConfigurableModule<GitHubConfig> {
 
-  public static final String GITHUB_ENABLE = "github.enabled"
-  public static final String GITHUB_AUTH = "github.auth"
-  public static final String GITHUB_TTL = "github.ttl"
-  public static final String GITHUB_TTL_DEFAULT = "5"
-  public static final String GITHUB_URL = "github.url"
-  public static final String GITHUB_URL_DEFAULT = "https://api.github.com/"
-
-  private final LaunchConfig launchConfig
-
-  SiteModule(LaunchConfig launchConfig) {
-    this.launchConfig = launchConfig
+  static class GitHubConfig {
+    boolean enabled = true
+    String auth
+    Duration ttl = Duration.ofMinutes(5)
+    Duration errorTimeout = Duration.ofMinutes(1)
+    String url = "https://api.github.com/"
   }
 
   @Override
   protected void configure() {
-    bind(ClientErrorHandler).toInstance(new SiteErrorHandler())
-    bind(ServerErrorHandler).toInstance(new SiteErrorHandler())
-
-    boolean enableGithub = launchConfig.getOther(GITHUB_ENABLE, "true").toBoolean()
-    if (enableGithub) {
-      install(new ApiModule())
-      bind(RatpackVersions)
-      bind(GitHubData).to(ApiBackedGitHubData)
-    }
+    bind(RatpackVersions)
+    bind(SiteErrorHandler)
   }
 
-  @Slf4j
-  static class ApiModule extends AbstractModule {
-
-    @Override
-    protected void configure() {
-
+  @Provides
+  @Singleton
+  GitHubApi gitHubApi(GitHubConfig config, ObjectMapper mapper, HttpClient httpClient) {
+    String authToken = config.auth
+    if (authToken == null) {
+      log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth property)"
     }
+    String url = config.url
+    new GitHubApi(url, authToken, mapper.reader(), httpClient)
+  }
 
-    @Provides
-    @com.google.inject.Singleton
-    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, HttpClient httpClient) {
-      String authToken = launchConfig.getOther(GITHUB_AUTH, null)
-      if (authToken == null) {
-        log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth other property)"
-      }
+  @Provides
+  @Singleton
+  GitHubData gitHubData(GitHubConfig config, Provider<GitHubApi> apiProvider) {
+    config.enabled ? new GitHubDataCache(config.ttl, config.errorTimeout, new ApiBackedGitHubData(apiProvider.get())) : new NullGitHubData()
+  }
 
-      String ttlMins = launchConfig.getOther(GITHUB_TTL, GITHUB_TTL_DEFAULT)
-      def ttlMinsInt = Integer.parseInt(ttlMins)
+  @Provides
+  @Singleton
+  AssetLinkService assetLinkService(ServerConfig serverConfig) {
+    new AssetLinkService(FileSystemChecksumServices.service(serverConfig))
+  }
 
-      String url = launchConfig.getOther(GITHUB_URL, GITHUB_URL_DEFAULT)
-
-      new GitHubApi(url, authToken, ttlMinsInt, reader, httpClient)
+  @Provides
+  RenderableDecorator<MarkupTemplate> markupTemplateRenderableDecorator(AssetLinkService assetLinkService) {
+    RenderableDecorator.of(MarkupTemplate) { c, t ->
+      new MarkupTemplate(t.name, t.contentType, [assets: assetLinkService].plus(t.model))
     }
   }
 

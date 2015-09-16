@@ -17,17 +17,16 @@
 package ratpack.groovy.handling
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultServerErrorHandler
+import ratpack.error.internal.DefaultProductionErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
-import static ratpack.groovy.internal.ClosureUtil.with
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use special Groovy dsl"() {
     given:
-    file "public/foo.txt", "bar"
+    write "public/foo.txt", "bar"
 
     when:
     handlers {
@@ -47,11 +46,11 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
         get(":second") {
           response.send new LinkedHashMap<>(allPathTokens).toString()
         }
-        handler("c/:second") {
+        path("c/:second") {
           response.send new LinkedHashMap<>(allPathTokens).toString()
         }
       }
-      assets("public")
+      files { dir "public" }
     }
 
     then:
@@ -67,8 +66,8 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use file method to access file contextually"() {
     given:
-    file "foo/file.txt", "foo"
-    file "bar/file.txt", "bar"
+    write "foo/file.txt", "foo"
+    write "bar/file.txt", "bar"
 
     when:
     handlers {
@@ -92,7 +91,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
   def "can use method chain"() {
     when:
     handlers {
-      handler("foo") {
+      path("foo") {
         def prefix = "common"
         byMethod {
           get {
@@ -124,7 +123,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
     then:
     getText("p1") == DefaultFileSystemBinding.name
-    getText("p2") == DefaultServerErrorHandler.name
+    getText("p2") == DefaultProductionErrorHandler.name
   }
 
   def "can nest"() {

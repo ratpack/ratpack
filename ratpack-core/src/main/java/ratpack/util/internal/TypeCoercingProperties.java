@@ -17,6 +17,9 @@
 package ratpack.util.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 
 import java.io.*;
 import java.net.*;
@@ -136,6 +139,40 @@ public class TypeCoercingProperties {
       }
     }
     return trimmed.build();
+  }
+
+  /**
+   * Gets a property value as a ByteSource. The property value can be any of:
+   * <ul>
+   *   <li>An absolute file path to a file that exists.</li>
+   *   <li>A valid URI.</li>
+   *   <li>A classpath resource path loaded via the ClassLoader passed to the constructor.</li>
+   * </ul>
+   *
+   * @param  key the property key.
+   * @return a ByteSource or {@code null} if the property does not exist.
+   * @throws java.lang.IllegalArgumentException if the property value cannot be resolved to a byte source.
+   */
+  public ByteSource asByteSource(String key) {
+    ByteSource byteSource = null;
+    String path = delegate.getProperty(key);
+    if (path != null) {
+      // try to treat it as a File path
+      File file = new File(path);
+      if (file.isFile()) {
+        byteSource = Files.asByteSource(file);
+      } else {
+        // try to treat it as a URL
+        try {
+          URL url = new URL(path);
+          byteSource = Resources.asByteSource(url);
+        } catch (MalformedURLException e) {
+          // try to treat it as a resource path
+          byteSource = Resources.asByteSource(Resources.getResource(path));
+        }
+      }
+    }
+    return byteSource;
   }
 
   /**

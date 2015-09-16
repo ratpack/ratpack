@@ -40,7 +40,7 @@ import ratpack.api.NonBlocking;
  * Handlers can themselves insert other handlers into the pipeline, using the {@link Context#insert(Handler...)} family of methods.
  * <h3>Examples</h3>
  * While there is no strict taxonomy of handlers, the following are indicative examples of common functions.
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.handling.*;
  *
@@ -114,15 +114,16 @@ import ratpack.api.NonBlocking;
  * @see Chain
  * @see ratpack.registry.Registry
  */
+@FunctionalInterface
 public interface Handler {
 
   /**
    * Handles the context.
    *
-   * @param context The context to handle
-   * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
+   * @param ctx The context to handle
+   * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Throwable)} method)
    */
   @NonBlocking
-  void handle(Context context) throws Exception;
+  void handle(Context ctx) throws Exception;
 
 }

@@ -17,7 +17,6 @@
 /**
  * Support for creating embedded applications at test time, for testing Ratpack features and extensions.
  *
- * @see ratpack.test.embed.EmbeddedApplication
- * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
+ * @see ratpack.test.embed.EmbeddedApp
  */
 package ratpack.test.embed;

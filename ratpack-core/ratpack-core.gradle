@@ -17,18 +17,67 @@
 description = "The core HTTP and composition mechanisms of Ratpack"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
+apply from: "$rootDir/gradle/versionFile.gradle"
 
 ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api",
-    "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc"
+    "http://netty.io/4.1/api/",
+    "http://www.slf4j.org/apidocs/",
+    "http://docs.oracle.com/javase/8/docs/api/",
+    "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc/",
+    "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams}-javadoc/",
+    "http://fasterxml.github.io/jackson-databind/javadoc/2.5/",
+    "http://fasterxml.github.io/jackson-datatype-jdk7/javadoc/2.5",
+    "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.5",
+    "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.5",
+    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.5"
 ]
 
 dependencies {
   compile "io.netty:netty-codec-http:$commonVersions.netty"
+  compile "io.netty:netty-handler:$commonVersions.netty"
+  compile "io.netty:netty-transport-native-epoll:$commonVersions.netty:linux-x86_64"
   compile "com.google.guava:guava:$commonVersions.guava"
   compile commonDependencies.slf4j
-  compile 'org.reactivestreams:reactive-streams:0.4.0.M1'
+  compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
+  runtime 'com.jcraft:jzlib:1.1.3'
 
-  runtime 'org.javassist:javassist:3.18.1-GA'
+  compile 'org.javassist:javassist:3.19.0-GA'
+
+  compile commonDependencies.jackson
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk7:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
+
+  testCompile 'org.apache.commons:commons-lang3:3.3.2'
+  testCompile "org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}"
+  testCompile 'org.mockito:mockito-core:1.10.19'
+  testCompile 'com.opencsv:opencsv:3.3'
+  testCompile 'com.github.tomakehurst:wiremock:1.56'
+}
+
+test {
+  maxParallelForks = 3
+}
+
+// Reactive Streams TCK uses TestNG, and Gradle can't run TestNG and JUnit in the same run.
+task streamTckTest(type: Test) {
+  tasks.check.dependsOn it
+
+  useTestNG()
+  scanForTestClasses = false
+  include "**/stream/tck/*"
+
+  classpath = sourceSets.test.runtimeClasspath
+  testClassesDir = sourceSets.test.output.classesDir
+  testSrcDirs = sourceSets.test.allSource.srcDirs.toList()
+
+  binResultsDir = file("$buildDir/$name-results/binary")
+  reports {
+    html.destination = file("$buildDir/reports/$name")
+    junitXml.destination = binResultsDir.parentFile
+  }
+
+  maxParallelForks = 4
 }

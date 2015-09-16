@@ -19,19 +19,11 @@ package ratpack.manual.snippets.fixture
 class GroovyChainDslFixture extends GroovyScriptFixture {
 
   @Override
-  public void setup() {
-  }
-
-  @Override
-  public void cleanup() {
-  }
-
-  @Override
   public String pre() {
     """
-import ratpack.launch.LaunchConfig
+import ratpack.server.ServerConfig
 
-ratpack.groovy.Groovy.chain([isReloadable: { false }] as LaunchConfig, null) {
+ratpack.groovy.Groovy.chain([isDevelopment: { false }] as ServerConfig, null) {
 """
   }
 

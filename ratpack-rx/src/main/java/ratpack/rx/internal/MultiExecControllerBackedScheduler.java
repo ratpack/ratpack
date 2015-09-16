@@ -16,14 +16,13 @@
 
 package ratpack.rx.internal;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.MapMaker;
 import ratpack.exec.ExecController;
-import ratpack.exec.internal.DefaultExecController;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -33,35 +32,22 @@ public class MultiExecControllerBackedScheduler extends Scheduler {
   private final AtomicReference<Scheduler> fallback = new AtomicReference<>();
 
   private Scheduler getDelegateScheduler() {
-    Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
-    if (threadBoundController.isPresent()) {
-      ExecController execController = threadBoundController.get();
-      Scheduler scheduler = map.get(execController);
-      if (scheduler == null) {
-        Scheduler newScheduler = new ExecControllerBackedScheduler(execController);
-        Scheduler previous = map.putIfAbsent(execController, newScheduler);
-        if (previous == null) {
-          return newScheduler;
-        } else {
-          return previous;
+    return ExecController.current()
+      .map(c -> map.computeIfAbsent(c, ExecControllerBackedScheduler::new))
+      .orElseGet(() -> {
+        if (fallback.get() == null) {
+          int nThreads = Runtime.getRuntime().availableProcessors();
+          ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+          Scheduler scheduler = Schedulers.from(executor);
+          fallback.compareAndSet(null, scheduler);
         }
-      } else {
-        return scheduler;
-      }
-    } else {
-      fallback.compareAndSet(null, Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())));
-      return fallback.get();
-    }
+        return fallback.get();
+      });
   }
 
   @Override
   public Worker createWorker() {
     return getDelegateScheduler().createWorker();
-  }
-
-  @Override
-  public int parallelism() {
-    return getDelegateScheduler().parallelism();
   }
 
   @Override

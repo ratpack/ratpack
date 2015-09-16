@@ -16,55 +16,100 @@
 
 package ratpack.http
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.DefaultFullHttpRequest
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpVersion
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder
 import ratpack.error.ServerErrorHandler
-import ratpack.error.DebugErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.form.Form
+import ratpack.handling.Context
+import ratpack.handling.Handler
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Unroll
+
+import static ratpack.form.Form.form
+import static ratpack.http.MediaType.APPLICATION_FORM
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
   }
+
   def "can get form params"() {
-    when:
+    given:
     handlers {
       post {
         def form = parse Form
-        render form.toString()
+        form.then {
+          render it.toString()
+        }
       }
     }
 
+    when:
+    requestSpec { it.headers.add("Content-Type", APPLICATION_FORM) }
     then:
-    request.header("Content-Type", "application/x-www-form-urlencoded")
-    postText() == "[:]" && resetRequest()
-    request.with {
-      param "a", "b"
+    postText() == "[:]"
+
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << [a: "b"].collect({ it }).join('&') })
     }
-    postText() == "[a:[b]]" && resetRequest()
-    request.with {
-      param "a", "b", "c"
-      param "d", "e"
-      param "abc", ""
+    then:
+    postText() == "[a:[b]]"
+
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      def body = "a=b&a=c&d=e&abc="
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << body })
     }
-    postText() == "[a:[b, c], d:[e], abc:[]]" && resetRequest()
+    then:
+    postText() == "[a:[b, c], d:[e], abc:[]]"
   }
 
   def "can read multi part forms"() {
-    when:
+    given:
     handlers {
       post {
         def form = parse Form
-        render form.toString()
+        form.then {
+          render it.toString()
+        }
       }
     }
 
-    and:
-    request.multiPart("foo", "1", "text/plain")
-    request.multiPart("bar", "2", "text/plain")
-    request.multiPart("bar", "3", "text/plain")
+    when:
+    requestSpec { RequestSpec requestSpec ->
+
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyAttribute("foo", "1")
+      httpPostRequestEncoder.addBodyAttribute("bar", "2")
+      httpPostRequestEncoder.addBodyAttribute("bar", "3")
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
 
     then:
     postText() == "[foo:[1], bar:[2, 3]]"
@@ -72,52 +117,225 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can handle file uploads"() {
     given:
-    def fooFile = file "foo.txt", "bar"
-
-    when:
+    def fooFile = write "foo.txt", "bar"
     handlers {
       post {
         def form = parse Form
-        render "File content: " + form.file("theFile").text
+        form.then {
+          render "File content: " + it.file("theFile").text
+        }
       }
     }
 
+    when:
+    requestSpec { RequestSpec requestSpec ->
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyFileUpload("theFile", fooFile.toFile(), "text/plain", true)
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
     then:
-    request.multiPart("theFile", fooFile.toFile())
     postText() == "File content: bar"
   }
 
   def "default encoding is utf-8"() {
     given:
-    def fooFile = file "foo.txt", "bar"
-
-    when:
+    def fooFile = write "foo.txt", "bar"
     handlers {
       post {
         def form = parse Form
-        render "File type: " + form.file("theFile").contentType
+        form.then {
+          render "File type: " + it.file("theFile").contentType
+        }
       }
     }
 
+    when:
+    requestSpec { RequestSpec requestSpec ->
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyFileUpload("theFile", fooFile.toFile(), "text/plain", true)
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
     then:
-    request.multiPart("theFile", fooFile.toFile(), "text/plain")
-    postText() == "File type: text/plain;charset=UTF-8"
+    postText() == "File type: text/plain; charset=utf-8"
   }
 
   def "respects custom encoding"() {
     given:
-    def fooFile = file "foo.txt", "bar"
-
-    when:
+    def fooFile = write "foo.txt", "bar"
     handlers {
       post {
         def form = parse Form
-        render "File type: " + form.file("theFile").contentType
+        form.then {
+          render "File type: " + it.file("theFile").contentType
+        }
       }
     }
 
+    when:
+    requestSpec { RequestSpec requestSpec ->
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyFileUpload("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII", false)
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
     then:
-    request.multiPart("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII")
-    postText() == "File type: text/plain;charset=US-ASCII"
+    postText() == "File type: text/plain; charset=us-ascii"
   }
+
+  @Unroll
+  def "Error for #message"() {
+    given:
+    handlers {
+      post(handler)
+    }
+
+    when:
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.text([a: "b"].collect({ it }).join('&'))
+    }
+    post()
+
+    then:
+    response.statusCode == 500
+
+    where:
+    [message, handler] << [["Put on Parsed Form",
+                            new Handler() {
+                              void handle(Context context) throws Exception {
+                                def form = context.parse Form
+                                form.then {
+                                  it.put("bad", "idea")
+                                  context.render "I changed things I shouldn't"
+                                }
+                              }
+                            }],
+                           ["PutAll on Parsed Form", new Handler() {
+                             void handle(Context context) throws Exception {
+                               def form = context.parse Form
+                               form.then {
+                                 it.putAll([bad: "idea"])
+                                 context.render "I changed things I shouldn't"
+                               }
+                             }
+                           }],
+                           ["Remove on Parsed Form", new Handler() {
+                             void handle(Context context) throws Exception {
+                               def form = context.parse Form
+                               form.then {
+                                 it.remove("Bad")
+                                 context.render "I changed things I shouldn't"
+                               }
+                             }
+                           }],
+                           ["Clear on Parsed Form", new Handler() {
+                             void handle(Context context) throws Exception {
+                               def form = context.parse Form
+                               form.then {
+                                 it.clear()
+                                 context.render "I changed things I shouldn't"
+                               }
+                             }
+                           }]]
+  }
+
+  def "can parse form from only query parameters"() {
+    given:
+    handlers {
+      post {
+        def form = parse form(true)
+        form.then {
+          render it.toString()
+        }
+      }
+    }
+
+    when:
+    requestSpec { it.headers.add("Content-Type", APPLICATION_FORM) }
+    then:
+    postText() == "[:]"
+
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+    }
+    then:
+    postText("?a=b") == "[a:[b]]"
+
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+    }
+    then:
+    postText("?a=b&a=c&d=e&abc=") == "[a:[b, c], d:[e], abc:[]]"
+  }
+
+  def "request body merged with query parameters"() {
+    given:
+    handlers {
+      post {
+        def form = parse form(true)
+        form.then {
+          render it.toString()
+        }
+      }
+    }
+
+    when: "different keys in body and params"
+    requestSpec { RequestSpec requestSpec ->
+      def body = "d=e"
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << body })
+    }
+    then:
+    postText("?a=b") == "[a:[b], d:[e]]"
+
+    when: "same keys in body and params"
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      def body = "a=c"
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << body })
+    }
+    then:
+    postText("?a=b") == "[a:[b, c]]"
+  }
+
 }

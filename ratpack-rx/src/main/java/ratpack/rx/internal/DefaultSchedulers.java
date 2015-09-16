@@ -17,9 +17,9 @@
 package ratpack.rx.internal;
 
 import rx.Scheduler;
-import rx.plugins.RxJavaDefaultSchedulersDefault;
 
-public class DefaultSchedulers extends RxJavaDefaultSchedulersDefault {
+@SuppressWarnings("deprecation")
+public class DefaultSchedulers extends rx.plugins.RxJavaSchedulersHook {
   private Scheduler computationScheduler = new MultiExecControllerBackedScheduler();
 
   @Override

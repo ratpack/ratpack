@@ -16,41 +16,53 @@
 
 package ratpack.handling.internal;
 
+import ratpack.func.Block;
 import ratpack.handling.ByMethodSpec;
-import ratpack.handling.Handler;
 
 import java.util.Map;
 
 public class DefaultByMethodSpec implements ByMethodSpec {
 
-  private final Map<String, Handler> handlers;
+  public static final String METHOD_GET = "GET";
+  public static final String METHOD_POST = "POST";
+  public static final String METHOD_PUT = "PUT";
+  public static final String METHOD_PATCH = "PATCH";
+  public static final String METHOD_DELETE = "DELETE";
 
-  public DefaultByMethodSpec(Map<String, Handler> handlers) {
-    this.handlers = handlers;
+  private final Map<String, Block> blocks;
+
+  public DefaultByMethodSpec(Map<String, Block> blocks) {
+    this.blocks = blocks;
   }
 
-  public ByMethodSpec get(Handler handler) {
-    return named("GET", handler);
+  @Override
+  public ByMethodSpec get(Block block) {
+    return named(METHOD_GET, block);
   }
 
-  public ByMethodSpec post(Handler handler) {
-    return named("POST", handler);
+  @Override
+  public ByMethodSpec post(Block block) {
+    return named(METHOD_POST, block);
   }
 
-  public ByMethodSpec put(Handler handler) {
-    return named("PUT", handler);
+  @Override
+  public ByMethodSpec put(Block block) {
+    return named(METHOD_PUT, block);
   }
 
-  public ByMethodSpec patch(Handler handler) {
-    return named("PATCH", handler);
+  @Override
+  public ByMethodSpec patch(Block block) {
+    return named(METHOD_PATCH, block);
   }
 
-  public ByMethodSpec delete(Handler handler) {
-    return named("DELETE", handler);
+  @Override
+  public ByMethodSpec delete(Block block) {
+    return named(METHOD_DELETE, block);
   }
 
-  public ByMethodSpec named(String methodName, Handler handler) {
-    handlers.put(methodName.toUpperCase(), handler);
+  @Override
+  public ByMethodSpec named(String methodName, Block block) {
+    blocks.put(methodName, block);
     return this;
   }
 

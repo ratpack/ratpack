@@ -16,6 +16,10 @@
 
 apply plugin: 'checkstyle'
 
+dependencies {
+  checkstyle 'com.puppycrawl.tools:checkstyle:6.5'
+}
+
 def checkstyleConfigDir = new File(buildscript.sourceFile.parentFile, 'checkstyle')
 
 checkstyle {

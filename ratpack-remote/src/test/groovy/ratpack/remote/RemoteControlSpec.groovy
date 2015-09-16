@@ -16,28 +16,21 @@
 
 package ratpack.remote
 
-import io.netty.handler.codec.http.HttpHeaders
 import io.remotecontrol.groovy.ContentType
 import io.remotecontrol.groovy.client.RemoteControl
 import io.remotecontrol.transport.http.HttpTransport
-import ratpack.file.FileRenderer
 import ratpack.file.FileSystemBinding
-import ratpack.launch.LaunchConfig
+import ratpack.http.client.RequestSpec
+import ratpack.http.internal.HttpHeaderConstants
+import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
+
+import java.nio.file.Path
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*
-import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH
+import static ratpack.remote.RemoteControl.DEFAULT_REMOTE_CONTROL_PATH
 
 class RemoteControlSpec extends RatpackGroovyDslSpec {
-
-  final Map<String, String> enabled = ['remoteControl.enabled': 'true'].asImmutable()
-
-  def setup() {
-    bindings {
-      add new RemoteControlModule()
-    }
-  }
 
   RemoteControl getRemote() {
     server.start()
@@ -50,74 +43,79 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
   }
 
   void 'only posts are allowed'() {
-    given:
-    launchConfig { other(enabled) }
+    when:
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
-    expect:
+    then:
     get(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
     head(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
   }
 
   void 'only requests that contain groovy-remote-control-command are allowed'() {
-    given:
-    launchConfig { other(enabled) }
+    when:
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
-    expect:
+    then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == UNSUPPORTED_MEDIA_TYPE.code()
   }
 
   void 'only requests that accept groovy-remote-control-result are allowed'() {
-    given:
-    launchConfig { other(enabled) }
-
     when:
-    request.header(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
-    request.header(HttpHeaders.Names.ACCEPT, 'text/html')
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
+
+    then:
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.set(HttpHeaderConstants.CONTENT_TYPE, ContentType.COMMAND.value)
+      requestSpec.headers.set(HttpHeaderConstants.ACCEPT, 'text/html')
+    }
 
     then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_ACCEPTABLE.code()
   }
 
-  @Unroll
-  void 'sending a simple command - #scenario'() {
-    given:
+  void 'can use a custom path'() {
+    when:
     bindings {
-      add new RemoteControlModule(path: modulePath)
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator("foo")
     }
-    launchConfig { other(*: enabled, *: otherConfig) }
 
     and:
     server.start()
-    def remoteControl = new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/$path"))
+    def remoteControl = new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/foo"))
 
-    expect:
+    then:
     remoteControl { 1 + 2 } == 3
-
-    where:
-    scenario | path | modulePath | otherConfig
-    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null     | [:]
-    'path set in module' | 'custom'                    | 'custom' | [:]
-    'path set in config' | 'fromConfig'                | null     | ['remoteControl.path': 'fromConfig']
   }
 
   void 'registry is available in command context'() {
-    given:
-    launchConfig { other(*: enabled, test: 'it works') }
+    when:
+    bindings {
+      bindInstance String, "foo"
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
 
-    expect:
+    then:
     //from guice
-    remote.exec { get(LaunchConfig).other.test } == 'it works'
-    //from root registry
+    remote.exec { get(String) } == "foo"
+    //from root registryFunction
     remote.exec { get(FileSystemBinding) != null }
     //created just in time
-    remote.exec { get(FileRenderer) != null }
+    remote.exec { get(Renderer.typeOf(Path)) != null }
   }
 
   void 'endpoint is also enabled if reloading is enabled'() {
     given:
-    launchConfig {
-      other(enabled)
-      reloadable(true)
+    bindings {
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
+    }
+    serverConfig {
+      development(true)
     }
 
     expect:

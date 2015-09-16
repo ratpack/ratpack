@@ -16,131 +16,105 @@
 
 package ratpack.exec;
 
+import ratpack.func.Action;
+import ratpack.func.Block;
+
 /**
- * Intercepts execution, primarily for traceability and recording metrics.
+ * Intercepts execution segments of an execution, primarily for traceability and recording metrics.
  * <p>
- * The interception methods <i>wrap</i> the rest of the execution.
- * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
- * <p>
- * Request handling execution can be intercepted by the {@link ratpack.handling.Context#addExecInterceptor(ExecInterceptor, ratpack.func.Action)} method.
- * <pre class="java">
- * import ratpack.launch.LaunchConfig;
- * import ratpack.launch.LaunchConfigBuilder;
- * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
- * import ratpack.handling.Chain;
- * import ratpack.handling.ChainAction;
- * import ratpack.http.Request;
- * import ratpack.exec.ExecInterceptor;
- * import ratpack.exec.ExecInterceptor;
- * import ratpack.func.Action;
- * import ratpack.func.Actions;
+ * Interceptors present the base registry will be implicitly applied to all executions.
+ * Execution specific interceptors can be registered via the {@link ExecStarter#register(Action)} method when starting the execution.
+ * The {@link Execution#addInterceptor(ExecInterceptor, Block)} method allows interceptors to be registered during an execution, for the rest of the execution.
  *
- * import ratpack.test.UnitTest;
- * import ratpack.test.handling.HandlingResult;
+ * <pre class="java">{@code
+ * import ratpack.exec.ExecInterceptor;
+ * import ratpack.exec.Execution;
+ * import ratpack.exec.Blocking;
+ * import ratpack.exec.ExecResult;
+ * import ratpack.func.Block;
+ * import ratpack.test.exec.ExecHarness;
  *
- * import java.util.concurrent.Callable;
- * import java.util.concurrent.atomic.AtomicLong;
+ * import static java.lang.Thread.sleep;
+ * import static org.junit.Assert.assertEquals;
+ * import static org.junit.Assert.assertTrue;
  *
  * public class Example {
  *
  *   public static class Timer {
- *     private final AtomicLong totalCompute = new AtomicLong();
- *     private final AtomicLong totalBlocking = new AtomicLong();
+ *     private long totalCompute;
+ *     private long totalBlocking;
  *     private boolean blocking;
  *
- *     private final ThreadLocal&lt;Long&gt; startedAt = new ThreadLocal&lt;Long&gt;() {
- *       protected Long initialValue() {
- *         return 0l;
- *       }
- *     };
+ *     private long startedAt;
  *
  *     public void start(boolean blocking) {
  *       this.blocking = blocking;
- *       startedAt.set(System.currentTimeMillis());
+ *       startedAt = System.currentTimeMillis();
  *     }
  *
  *     public void stop() {
- *       long startedAtTime = startedAt.get();
- *       startedAt.remove();
- *       AtomicLong counter = blocking ? totalBlocking : totalCompute;
- *       counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0);
+ *       long duration = System.currentTimeMillis() - startedAt;
+ *       if (blocking) {
+ *         totalBlocking += duration;
+ *       } else {
+ *         totalCompute += duration;
+ *       }
  *     }
  *
  *     public long getBlockingTime() {
- *       return totalBlocking.get();
+ *       return totalBlocking;
  *     }
  *
  *     public long getComputeTime() {
- *       return totalCompute.get();
+ *       return totalCompute;
  *     }
  *   }
  *
  *   public static class ProcessingTimingInterceptor implements ExecInterceptor {
- *     private final Request request;
+ *     public void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) throws Exception {
+ *       Timer timer = execution.maybeGet(Timer.class).orElse(null);
+ *       if (timer == null) { // this is the first execution segment
+ *         timer = new Timer();
+ *         execution.add(Timer.class, timer);
+ *       }
  *
- *     public ProcessingTimingInterceptor(Request request) {
- *       this.request = request;
- *       request.register(new Timer());
- *     }
- *
- *     public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
- *       Timer timer = request.get(Timer.class);
  *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
- *       continuation.run();
- *       timer.stop();
+ *       try {
+ *         continuation.execute();
+ *       } finally {
+ *         timer.stop();
+ *       }
  *     }
  *   }
  *
- *   public static void main(String[] args) {
- *     Action&lt;Chain&gt; handlers = new ChainAction() {
- *       protected void execute() {
- *         handler(new Handler() {
- *           public void handle(Context context) throws Exception {
- *             context.addExecInterceptor(new ProcessingTimingInterceptor(context.getRequest()), new Action&lt;Context&gt;() {
- *               public void execute(Context context) {
- *                 context.next();
- *               }
- *             });
- *           }
- *         });
- *
- *         handler(new Handler() {
- *           public void handle(final Context context) throws Exception {
- *             Thread.currentThread().sleep(100);
- *             context
- *               .blocking(new Callable&lt;String&gt;() {
- *                 public String call() throws Exception {
- *                   Thread.currentThread().sleep(100);
- *                   return "foo";
- *                 }
- *               })
- *               .then(new Action&lt;String&gt;() {
- *                 public void execute(String string)  throws Exception {
- *                   Thread.currentThread().sleep(100);
- *                   context.render(string);
- *                 }
- *               });
- *           }
+ *   public static void main(String[] args) throws Exception {
+ *     ExecResult<String> result = ExecHarness.yieldSingle(
+ *       r -> r.add(new ProcessingTimingInterceptor()), // add the interceptor to the registry
+ *       e -> {
+ *         Thread.sleep(100);
+ *         return Blocking.get(() -> {
+ *           Thread.sleep(100);
+ *           return "foo";
+ *         })
+ *         .map(s -> {
+ *           Thread.sleep(100);
+ *           return s.toUpperCase();
  *         });
  *       }
- *     };
+ *     );
  *
- *     HandlingResult result = UnitTest.handle(handlers, Actions.noop());
+ *     assertEquals("FOO", result.getValue());
  *
- *     assert result.rendered(String.class).equals("foo");
- *
- *     Timer timer = result.getRequestRegistry().get(Timer.class);
- *     assert timer.getBlockingTime() >= 100;
- *     assert timer.getComputeTime() >= 200;
+ *     Timer timer = result.getRegistry().get(Timer.class);
+ *     assertTrue(timer.getBlockingTime() >= 100);
+ *     assertTrue(timer.getComputeTime() >= 200);
  *   }
  * }
- * </pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
+ * }</pre>
  *
- * @see Execution
- * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Action)
+ * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Block)
  */
+@FunctionalInterface
 public interface ExecInterceptor {
 
   /**
@@ -149,27 +123,28 @@ public interface ExecInterceptor {
   enum ExecType {
 
     /**
-     * The execution is performing blocking IO.
+     * The execution segment is executing on a blocking thread.
      */
     BLOCKING,
 
     /**
-     * The execution is performing computation (i.e. it is not blocking)
+     * The execution segment is executing on a compute thread.
      */
     COMPUTE
   }
 
   /**
-   * Intercepts the “rest” of the execution on the current thread.
+   * Intercepts the execution of an execution segment.
    * <p>
-   * The given {@code Runnable} argument represents the rest of the execution to occur on this thread.
-   * This does not necessarily mean the rest of the execution until the work (e.g. responding to a request) is complete.
-   * Execution may involve multiple parallel (but not concurrent) threads of execution because of blocking IO or asynchronous APIs.
+   * The execution segment argument represents a unit of work of the execution.
    * <p>
-   * All exceptions thrown by this method will be <b>ignored</b>.
-   *  @param execType indicates whether this is a compute (e.g. request handling) or blocking IO thread
-   * @param continuation the “rest” of the execution
+   * Implementations <b>MUST</b> invoke {@code execute()} on the given execution segment block.
+   *
+   * @param execution the execution that this segment belongs to
+   * @param execType indicates whether this segment is execution on a compute or blocking thread
+   * @param executionSegment the execution segment that is to be executed
+   * @throws Exception any
    */
-  void intercept(ExecType execType, Runnable continuation);
+  void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception;
 
 }

@@ -17,12 +17,13 @@
 package ratpack.http.client.internal;
 
 import ratpack.http.Headers;
+import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.http.TypedData;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.internal.ByteBufBackedTypedData;
 
-class DefaultReceivedResponse implements ReceivedResponse {
+public class DefaultReceivedResponse implements ReceivedResponse {
 
   private final Status status;
   private final Headers headers;
@@ -53,4 +54,11 @@ class DefaultReceivedResponse implements ReceivedResponse {
   public TypedData getBody() {
     return typedData;
   }
+
+  @Override
+  public void forwardTo(Response response) {
+    response.getHeaders().copy(headers);
+    response.status(status).send(typedData.getBuffer().retain());
+  }
+
 }

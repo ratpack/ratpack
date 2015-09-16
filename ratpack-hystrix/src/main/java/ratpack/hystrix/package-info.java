@@ -17,6 +17,6 @@
 /**
  * Provides integration with the <a href="https://github.com/Netflix/Hystrix">Hystrix</a> library.
  *
- * @see ratpack.hystrix.HystrixRatpack
+ * @see ratpack.hystrix.HystrixModule
  */
 package ratpack.hystrix;

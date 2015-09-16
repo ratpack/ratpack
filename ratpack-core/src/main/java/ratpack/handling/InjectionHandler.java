@@ -18,7 +18,6 @@ package ratpack.handling;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.internal.Extractions;
-import ratpack.registry.Registries;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,7 +25,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * A super class that removes the boiler plate of retrieving objects from the context registry by injecting them based on a method signature.
@@ -40,54 +39,81 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * That is, if the context provides a value for the requested type it will be used regardless of whether the request also provides this type.
  * <p>
  * The following two handlers are functionally equivalent:
- * <pre class="tested">
- * import ratpack.handling.*;
+ * <pre class="java">{@code
+ * import ratpack.handling.Context;
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.InjectionHandler;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * // Some thing that handlers use…
- * public class Thing {
- *   public final name;
- *   public Thing(String name) {
- *     this.name = name;
- *   }
- * }
+ * import static org.junit.Assert.assertEquals;
  *
- * public class VerboseHandler implements Handler {
- *   public void handle(Context context) {
- *     Thing thing = context.get(Thing.class);
- *     context.render(thing.name);
- *   }
- * }
+ * public class Example {
  *
- * public class SuccinctHandler extends InjectionHandler {
- *   public void handle(Context context, Thing thing) {
- *     context.render(thing.name);
- *   }
- * }
+ *   static class Thing {
+ *     public final String name;
  *
- * // Test (Groovy) …
- *
- * import static ratpack.registry.Registries.just
- * import static ratpack.groovy.test.TestHttpClients.testHttpClient
- * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
- *
- * def app = embeddedApp {
- *   handlers {
- *     register(just(new Thing("foo"))) {
- *       get("verbose", new VerboseHandler())
- *       get("succinct", new SuccinctHandler())
+ *     public Thing(String name) {
+ *       this.name = name;
  *     }
  *   }
+ *
+ *   static class VerboseHandler implements Handler {
+ *     public void handle(Context context) {
+ *       Thing thing = context.get(Thing.class);
+ *       context.render(thing.name);
+ *     }
+ *   }
+ *
+ *   static class SuccinctHandler extends InjectionHandler {
+ *     public void handle(Context context, Thing thing) {
+ *       context.render(thing.name);
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(chain -> chain
+ *         .register(r -> r.add(new Thing("foo")))
+ *         .get("verbose", new VerboseHandler())
+ *         .get("succinct", new SuccinctHandler())
+ *     ).test(httpClient -> {
+ *       assertEquals("foo", httpClient.getText("verbose"));
+ *       assertEquals("foo", httpClient.getText("succinct"));
+ *     });
+ *   }
+ *
  * }
- *
- * def client = testHttpClient(app)
- *
- * assert client.getText("verbose") == "foo"
- * assert client.getText("succinct") == "foo"
- *
- * app.close()
- * </pre>
+ * }</pre>
  * <p>
  * If the parameters cannot be satisfied, a {@link ratpack.registry.NotInRegistryException} will be thrown.
+ * The {@link java.util.Optional} type can be used to inject registry entries that may not exist.
+ * <pre class="java">{@code
+ * import ratpack.handling.Context;
+ * import ratpack.handling.InjectionHandler;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import static org.junit.Assert.assertEquals;
+ *
+ * import java.util.Optional;
+ *
+ * public class Example {
+ *
+ *   static class OptionalInjectingHandler extends InjectionHandler {
+ *     public void handle(Context context, Optional<String> string, Optional<Integer> integer) {
+ *       context.render(string.orElse("missing") + ":" + integer.orElse(0));
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(chain -> chain
+ *         .register(r -> r.add("foo")) // no Integer in registry
+ *         .get(new OptionalInjectingHandler())
+ *     ).test(httpClient -> {
+ *       assertEquals("foo:0", httpClient.getText());
+ *     });
+ *   }
+ *
+ * }
+ * }</pre>
  * <p>
  * If there is no suitable {@code handle(Context, ...)} method, a {@link NoSuitableHandleMethodException} will be thrown at construction time.
  */
@@ -151,7 +177,7 @@ public abstract class InjectionHandler implements Handler {
   public final void handle(Context context) {
     Object[] args = new Object[types.size() + 1];
     args[0] = context;
-    Extractions.extract(types, Registries.join(context.getRequest(), context), args, 1);
+    Extractions.extract(types, context, args, 1);
     try {
       handleMethod.invoke(this, args);
     } catch (IllegalAccessException e) {

@@ -22,8 +22,18 @@ import ratpack.util.internal.DefaultTypeCoercingMap;
 
 public class DefaultPathTokens extends DefaultTypeCoercingMap<String> implements PathTokens {
 
-  public DefaultPathTokens(ImmutableMap<String, String> delegate) {
+  private static final PathTokens EMPTY = new DefaultPathTokens(ImmutableMap.of());
+
+  private DefaultPathTokens(ImmutableMap<String, String> delegate) {
     super(delegate);
+  }
+
+  public static PathTokens of(ImmutableMap<String, String> delegate) {
+    return delegate.isEmpty() ? empty() : new DefaultPathTokens(delegate);
+  }
+
+  public static PathTokens empty() {
+    return EMPTY;
   }
 
 }

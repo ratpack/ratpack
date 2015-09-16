@@ -17,22 +17,22 @@
 package ratpack.registry.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Factory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 public class LazyRegistryEntry<T> implements RegistryEntry<T> {
 
   private final TypeToken<T> type;
-  private final Factory<? extends T> factory;
+  private final Supplier<? extends T> supplier;
   private final Lock lock = new ReentrantLock();
 
   private T object;
 
-  public LazyRegistryEntry(TypeToken<T> type, Factory<? extends T> factory) {
+  public LazyRegistryEntry(TypeToken<T> type, Supplier<? extends T> supplier) {
     this.type = type;
-    this.factory = factory;
+    this.supplier = supplier;
   }
 
   @Override
@@ -47,12 +47,17 @@ public class LazyRegistryEntry<T> implements RegistryEntry<T> {
       try {
         //noinspection ConstantConditions
         if (object == null) {
-          object = factory.create();
+          object = supplier.get();
         }
       } finally {
         lock.unlock();
       }
     }
     return object;
+  }
+
+  @Override
+  public String toString() {
+    return "LazyRegistryEntry{type=" + type + ", supplier=" + supplier + ", value=" + object + '}';
   }
 }

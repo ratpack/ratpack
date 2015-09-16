@@ -21,21 +21,11 @@ Heroku has native support for Gradle via the [Gradle buildpack](https://devcente
 All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
 If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
 
-### Java Version
-
-Heroku allows the required Java version to be set via `system.properties` file in the root of the source tree.
-
-```
-java.runtime.version=1.7
-```
-
-At the time of writing, this file is required as Heroku defaults to Java 6 and Ratpack requires Java 7.
-
 ### Building
 
 The Gradle buildpack will invoke `./gradlew stage`.
 The Ratpack Gradle plugins do not add a `stage` task to your build, so you need to add it yourself and make it build your application.
-The simplest way to do this is make the `stage` task depend on the `installApp` task which _is_ added by the Ratpack Gradle plugins.
+The simplest way to do this is make the `stage` task depend on the `installDist` task which _is_ added by the Ratpack Gradle plugins (`installApp` prior to Gradle 2.3).
 
 A minimalistic `build.gradle` looks like this:
 
@@ -49,10 +39,10 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 
 task stage {
-  dependsOn installApp
+  dependsOn installDist
 }
 ```
 
@@ -84,14 +74,14 @@ There are several ways to configure the environment for applications deployed to
 You may want to use these mechanisms to set environment variables and/or JVM system properties to configure your application.
 
 The application entry points that are used when using the `ratpack` and `ratpack-groovy` Gradle plugins support using
-JVM system properties to contribute to the [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html) (see the [launching chapter](launching.html) chapter for more detail).
+JVM system properties to contribute to the [`ServerConfig`](api/ratpack/server/ServerConfig.html) (see the [launching chapter](launching.html) chapter for more detail).
 The starter scripts created by the Ratpack Gradle plugins, support the standard `JAVA_OPTS` environment variable and an app specific `«PROJECT_NAME»_OPTS` environment variable.
 If your application name was `foo-Bar`, then the environment variable would be named `FOO_BAR_OPTS`.
 
 One way to bring this all together is to launch your application via `env`:
 
 ```language-bash
-web: env "FOO_BAR_OPTS=-Dratpack.other.dbPassword=secret" build/install/«project name»/bin/«project name»
+web: env "FOO_BAR_OPTS=-Dapp.dbPassword=secret" build/install/«project name»/bin/«project name»
 ```
 
 It is generally preferable to not use `JAVA_OPTS` as Heroku sets this to [useful defaults](https://devcenter.heroku.com/articles/java-support#environment) for the platform.
@@ -102,7 +92,7 @@ The benefit of using config vars is that they are only available to those with p
 It is possible to combine both approaches by setting config vars for values that should be secret (like passwords) and referencing them in your Procfile.
 
 ```language-bash
-web: env "FOO_BAR_OPTS=-Dratpack.other.dbPassword=$SECRET_DB_PASSWORD" build/install/«project name»/bin/«project name»
+web: env "FOO_BAR_OPTS=-Dapp.dbPassword=$SECRET_DB_PASSWORD" build/install/«project name»/bin/«project name»
 ```
 
 Now it is easy to see which properties and environment variables are set in the source tree, but sensitive values are only visible via the Heroku management tools.
@@ -116,17 +106,14 @@ Once you have a compiled Ratpack application in the Heroku environment (either t
 you can simply start the application by using `java` directly.
 
 ```language-bash
-web: java ratpack.groovy.launch.GroovyRatpackMain
+web: java ratpack.groovy.GroovyRatpackMain
 ```
 
 See the [launching chapter](launching.html) chapter for more detail on starting Ratpack applications.
 
 ## General Considerations
 
-### Port and public address
+### Port
 
-You may want to consider setting `-Dratpack.publicAddress` to the public name of your application so that application redirects work as expected.
-See [`redirect()`](api/ratpack/handling/Context.html#redirect\(java.lang.String\)) for more details.
-
-Heroku assigns each application an ephemeral port number, made available by the `PORT` environment variable.
-The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) entry point implicitly supports this environment variable if the `ratpack.port` system property is not set.
+Heroku assigns each application an ephemeral port number, made available by the `PORT` environment variable. Ratpack honors this environment variable by default
+if the `ratpack.port` system property is not set.

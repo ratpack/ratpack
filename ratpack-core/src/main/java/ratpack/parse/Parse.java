@@ -18,6 +18,8 @@ package ratpack.parse;
 
 import com.google.common.reflect.TypeToken;
 
+import java.util.Optional;
+
 /**
  * The specification of a particular parse.
  * <p>
@@ -32,9 +34,9 @@ import com.google.common.reflect.TypeToken;
 public class Parse<T, O> {
 
   private final TypeToken<T> type;
-  private final O opts;
+  private final Optional<O> opts;
 
-  private Parse(TypeToken<T> type, O opts) {
+  private Parse(TypeToken<T> type, Optional<O> opts) {
     this.type = type;
     this.opts = opts;
   }
@@ -50,10 +52,13 @@ public class Parse<T, O> {
 
   /**
    * The type of object that provides options/configuration for the parsing.
+   * <p>
+   * For any parse request, no options may be specified.
+   * Parser implementations should throw an exception if they require an options object when none is supplied.
    *
    * @return the type of object that provides options/configuration for the parsing
    */
-  public O getOpts() {
+  public Optional<O> getOpts() {
     return opts;
   }
 
@@ -67,18 +72,18 @@ public class Parse<T, O> {
    * @return a parse instance from the given arguments
    */
   public static <T, O> Parse<T, O> of(TypeToken<T> type, O opts) {
-    return new Parse<>(type, opts);
+    return new Parse<>(type, Optional.of(opts));
   }
 
   /**
-   * Creates a parse object, with a {@link NullParseOpts} options object.
+   * Creates a parse object, with no options.
    *
    * @param type the type of object to construct from the request body
    * @param <T> the type of object to construct from the request body
    * @return a parse instance to the given type
    */
-  public static <T> Parse<T, NullParseOpts> of(TypeToken<T> type) {
-    return of(type, NullParseOpts.INSTANCE);
+  public static <T> Parse<T, ?> of(TypeToken<T> type) {
+    return new Parse<>(type, Optional.empty());
   }
 
   /**
@@ -91,18 +96,18 @@ public class Parse<T, O> {
    * @return a parse instance from the given arguments
    */
   public static <T, O> Parse<T, O> of(Class<T> type, O opts) {
-    return new Parse<>(TypeToken.of(type), opts);
+    return of(TypeToken.of(type), opts);
   }
 
   /**
-   * Creates a parse object, with a {@link NullParseOpts} options object.
+   * Creates a parse object, with no options.
    *
    * @param type the type of object to construct from the request body
    * @param <T> the type of object to construct from the request body
    * @return a parse instance to the given type
    */
-  public static <T> Parse<T, NullParseOpts> of(Class<T> type) {
-    return of(type, NullParseOpts.INSTANCE);
+  public static <T> Parse<T, ?> of(Class<T> type) {
+    return of(TypeToken.of(type));
   }
 
 }

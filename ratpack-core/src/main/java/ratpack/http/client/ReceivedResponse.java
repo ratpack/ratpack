@@ -17,17 +17,35 @@
 package ratpack.http.client;
 
 import ratpack.http.Headers;
+import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.http.TypedData;
 
 public interface ReceivedResponse {
-
+  /**
+   *
+   * @return {@link ratpack.http.Status} of the response.
+   */
   Status getStatus();
 
+  /**
+   *
+   * @return The integer status code of the response.
+   */
   int getStatusCode();
 
+  /**
+   *
+   * @return {@link ratpack.http.Headers} from the response.
+   */
   Headers getHeaders();
 
+  /**
+   *
+   * @return The {@link ratpack.http.TypedData} that represents the body.
+   */
   TypedData getBody();
+
+  void forwardTo(Response response);
 
 }

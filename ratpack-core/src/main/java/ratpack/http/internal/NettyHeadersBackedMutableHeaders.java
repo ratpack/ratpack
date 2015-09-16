@@ -17,6 +17,7 @@
 package ratpack.http.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
+import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 
 import java.util.Date;
@@ -27,29 +28,42 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
     super(headers);
   }
 
-  public void add(CharSequence name, Object value) {
+  public MutableHeaders add(CharSequence name, Object value) {
     headers.add(name, value);
+    return this;
   }
 
-  public void set(CharSequence name, Object value) {
+  public MutableHeaders set(CharSequence name, Object value) {
     headers.set(name, value);
+    return this;
   }
 
   @Override
-  public void setDate(CharSequence name, Date value) {
+  public MutableHeaders setDate(CharSequence name, Date value) {
     headers.set(name, HttpHeaderDateFormat.get().format(value));
+    return this;
   }
 
-  public void set(CharSequence name, Iterable<?> values) {
+  public MutableHeaders set(CharSequence name, Iterable<?> values) {
     headers.set(name, values);
+    return this;
   }
 
-  public void remove(String name) {
+  public MutableHeaders remove(CharSequence name) {
     headers.remove(name);
+    return this;
   }
 
-  public void clear() {
+  public MutableHeaders clear() {
     headers.clear();
+    return this;
+  }
+
+  @Override
+  public MutableHeaders copy(Headers headers) {
+    this.headers.add(headers.getNettyHeaders());
+
+    return this;
   }
 
 }

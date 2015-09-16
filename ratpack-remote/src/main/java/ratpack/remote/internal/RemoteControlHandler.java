@@ -16,13 +16,10 @@
 
 package ratpack.remote.internal;
 
-import io.remotecontrol.CommandChain;
 import io.remotecontrol.groovy.ContentType;
-import io.remotecontrol.groovy.server.ContextFactory;
 import io.remotecontrol.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 
@@ -71,30 +68,27 @@ public class RemoteControlHandler implements Handler {
   private class CommandHandler implements Handler {
     @Override
     public void handle(Context context) throws Exception {
-      final Registry commandRegistry = Registries.join(context, registry);
-      final RegistryBuilder registryBuilder = Registries.registry();
+      final Registry commandRegistry = context.join(registry);
+      final RegistryBuilder registryBuilder = Registry.builder();
 
-      Receiver receiver = new RatpackReceiver(new ContextFactory() {
+      Receiver receiver = new RatpackReceiver(chain -> new DelegatingCommandDelegate(registryBuilder, commandRegistry) {
         @Override
-        public Object getContext(CommandChain chain) {
-          return new DelegatingCommandDelegate(registryBuilder, commandRegistry) {
-            @Override
-            public void clearRegistry() {
-              registryReference.set(null);
-            }
-          };
+        public void clearRegistry() {
+          registryReference.set(null);
         }
       });
 
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      receiver.execute(context.getRequest().getBody().getInputStream(), outputStream);
+      context.getRequest().getBody().then(body -> {
+        receiver.execute(body.getInputStream(), outputStream);
 
-      if (registryBuilder.size() > 0) {
-        Registry newRegistry = registryBuilder.build();
-        registryReference.set(newRegistry);
-      }
+        if (registryBuilder.size() > 0) {
+          Registry newRegistry = registryBuilder.build();
+          registryReference.set(newRegistry);
+        }
 
-      context.getResponse().send(ContentType.RESULT.getValue(), outputStream.toByteArray());
+        context.getResponse().send(ContentType.RESULT.getValue(), outputStream.toByteArray());
+      });
     }
   }
 

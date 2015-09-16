@@ -16,24 +16,19 @@
 
 package ratpack.util;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import com.google.common.io.Resources;
 import io.netty.util.CharsetUtil;
-import ratpack.util.internal.IoUtils;
-import ratpack.util.internal.ReleasingAction;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * Provides the version of the Ratpack core at runtime.
  */
 public class RatpackVersion {
-  private final static Logger LOGGER = LoggerFactory.getLogger(RatpackVersion.class);
+
+  private static final String RESOURCE_PATH = "ratpack/ratpack-version.txt";
 
   private RatpackVersion() {
   }
@@ -45,33 +40,16 @@ public class RatpackVersion {
    */
   public static String getVersion() {
     ClassLoader classLoader = RatpackVersion.class.getClassLoader();
-    final InputStream resourceAsStream = classLoader.getResourceAsStream("ratpack/ratpack-version.txt");
-    ReadAction action = new ReadAction(resourceAsStream);
+    URL resource = classLoader.getResource(RESOURCE_PATH);
+    if (resource == null) {
+      throw new RuntimeException("Could not find " + RESOURCE_PATH + " on classpath");
+    }
+
     try {
-      action.execute(Unpooled.buffer());
+      return Resources.toString(resource, CharsetUtil.UTF_8).trim();
     } catch (Exception e) {
-      LOGGER.error("", e);
-    }
-    return action.content;
-  }
-
-  private static class ReadAction extends ReleasingAction<ByteBuf> {
-
-    private final InputStream resourceAsStream;
-    String content;
-
-    public ReadAction(InputStream resourceAsStream) {
-      this.resourceAsStream = resourceAsStream;
-    }
-
-    @Override
-    protected void doExecute(ByteBuf buffer) {
-      try {
-        IoUtils.writeTo(resourceAsStream, buffer);
-        content = buffer.toString(CharsetUtil.UTF_8);
-      } catch (IOException e) {
-        throw uncheck(e);
-      }
+      throw uncheck(e);
     }
   }
+
 }

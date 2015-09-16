@@ -25,7 +25,7 @@ import ratpack.render.RendererSupport;
 import javax.inject.Inject;
 import java.io.IOException;
 
-public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
+public class HandlebarsTemplateRenderer extends RendererSupport<Template> {
 
   private final Handlebars handlebars;
 
@@ -35,13 +35,25 @@ public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
   }
 
   @Override
-  public void render(Context context, Template<?> template) {
+  public void render(Context context, Template template) {
     String contentType = template.getContentType();
-    contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
+    String templateName = template.getName();
+    contentType = contentType == null ? context.get(MimeTypes.class).getContentType(templateName) : contentType;
+    String renderedTemplate;
     try {
-      context.getResponse().send(contentType, handlebars.compile(template.getName()).apply(template.getModel()));
+      com.github.jknack.handlebars.Template compiledTemplate = handlebars.compile(templateName);
+      Object templateModel = template.getModel();
+      renderedTemplate = compiledTemplate.apply(templateModel);
     } catch (IOException e) {
       context.error(e);
+      return;
     }
+
+    context.getResponse().send(contentType, renderedTemplate);
+  }
+
+  @Override
+  public String toString() {
+    return "HandlebarsTemplateRenderer";
   }
 }

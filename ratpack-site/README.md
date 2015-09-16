@@ -1,15 +1,5 @@
-This is the future home of the source of www.ratpack-framework.com.
+The source code for http://www.ratpack.io.
 
-If you'd like to help build a Ratpack app as this site, then please see https://github.com/ratpack/ratpack/issues/4.
+To run this locally, run `./gradlew ratpack-site:run` in the root of the checkout.
 
-## Current status
-
-### Running this application
-
-To run the application in development mode use `gradle run` as normal for a Ratpack application.
-
-Currently the following pages are available:
-
-* `/` redirects to `/index.html`.
-* `/logo.html` - prototypes for the Ratpack logo.
-* `/chapter1` - a markdown rendered template.
+The app will be available @ `http://localhost:5050/`.

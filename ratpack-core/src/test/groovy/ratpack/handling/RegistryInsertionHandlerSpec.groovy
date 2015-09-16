@@ -17,19 +17,17 @@
 package ratpack.handling
 
 import groovy.transform.TupleConstructor
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.registry.NotInRegistryException
-import ratpack.registry.RegistrySpecAction
+import ratpack.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.registry.Registries.just
+import ratpack.test.internal.SimpleErrorHandler
 
 class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bindInstance ServerErrorHandler, new SimpleErrorHandler()
     }
   }
 
@@ -74,8 +72,8 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
   def "can use static register handler method that takes registry"() {
     when:
     handlers {
-      register just(Thing, new ThingImpl("foo"))
-      handler {
+      register Registry.single(Thing, new ThingImpl("foo"))
+      all {
         render get(Thing).value
       }
     }
@@ -84,21 +82,4 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
     text == "foo"
   }
 
-  def "can use RegistrySpecAction"() {
-    when:
-    handlers {
-      register new RegistrySpecAction() {
-        @Override
-        protected void execute() throws Exception {
-          add Thing, new ThingImpl("foo")
-        }
-      }
-      handler {
-        render get(Thing).value
-      }
-    }
-
-    then:
-    text == "foo"
-  }
 }

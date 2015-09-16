@@ -16,15 +16,14 @@
 
 package ratpack.remote.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.registry.NotInRegistryException;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
+
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class DelegatingCommandDelegate implements CommandDelegate {
 
@@ -36,39 +35,18 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     this.registry = registry;
   }
 
-  public <O> RegistrySpec add(Class<? super O> type, O object) {
+  @Override
+  public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
     return spec.add(type, object);
   }
 
-  public <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory) {
-    return spec.add(type, factory);
-  }
-
-  public RegistrySpec add(Object object) {
-    return spec.add(object);
-  }
-
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return registry.getAll(type);
-  }
-
-  @Nullable
-  public <O> O maybeGet(Class<O> type) {
-    return registry.maybeGet(type);
+  @Override
+  public <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    return spec.addLazy(type, supplier);
   }
 
   @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  @Override
-  @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return registry.maybeGet(type);
   }
 
@@ -77,19 +55,9 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     return registry.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return registry.first(type, function);
   }
 
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.each(type, predicate, action);
-  }
 }

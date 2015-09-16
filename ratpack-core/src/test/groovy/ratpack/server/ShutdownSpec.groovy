@@ -19,6 +19,8 @@ package ratpack.server
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.PollingConditions
 
+import java.nio.channels.ClosedChannelException
+
 class ShutdownSpec extends RatpackGroovyDslSpec {
 
   private PollingConditions conditions = new PollingConditions()
@@ -34,17 +36,18 @@ class ShutdownSpec extends RatpackGroovyDslSpec {
 
     then:
     def serverAddress = address.toString()
-    createRequest().get(serverAddress).body.asString() == "ok"
+    getText(serverAddress) == "ok"
 
     and:
 
     conditions.eventually { !server.running }
 
     when:
-    createRequest().get(serverAddress)
+    get(serverAddress)
 
     then:
-    thrown ConnectException
+    def e = thrown RuntimeException
+    e.cause instanceof ConnectException || e.cause instanceof ClosedChannelException
   }
 
 }

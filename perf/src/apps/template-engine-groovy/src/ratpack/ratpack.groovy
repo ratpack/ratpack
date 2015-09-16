@@ -1,29 +1,30 @@
-import ratpack.groovy.templating.TemplatingModule
+import ratpack.groovy.template.MarkupTemplateModule
+import ratpack.groovy.template.TextTemplateModule
 import ratpack.handlebars.HandlebarsModule
-import ratpack.perf.incl.*
 import ratpack.thymeleaf.ThymeleafModule
 
-import static ratpack.groovy.Groovy.groovyTemplate
-
-<% if (patch >= 7) { %>
-import ratpack.groovy.markuptemplates.MarkupTemplatingModule
-<% } %>
-import static ratpack.groovy.Groovy.ratpack
-
-<% if (patch >= 7) { %>
-import static ratpack.groovy.Groovy.groovyMarkupTemplate
-<% } %>
+import static ratpack.groovy.Groovy.*
 import static ratpack.handlebars.Template.handlebarsTemplate
 import static ratpack.thymeleaf.Template.thymeleafTemplate
 
+import ratpack.perf.incl.*
+
+<% if (patch >= 14) { %>
+  import ratpack.handling.ResponseTimer
+<% } %>
+
 ratpack {
+  <% if (patch < 14) { %>
+    serverConfig { it.timeResponses(true) }
+  <% } %>
   bindings {
-    config(TemplatingModule).staticallyCompile = true
-    add new HandlebarsModule()
-    add new ThymeleafModule()
-    <% if (patch >= 7) { %>
-      add new MarkupTemplatingModule()
+    <% if (patch >= 14) { %>
+      bindInstance ResponseTimer.decorator()
     <% } %>
+    module TextTemplateModule, { it.staticallyCompile = true }
+    add HandlebarsModule
+    add ThymeleafModule
+    module MarkupTemplateModule
   }
 
   handlers {
@@ -32,30 +33,26 @@ ratpack {
     def endpoint = System.getProperty("endpoint")
 
     if (endpoint == "groovy-template") {
-      handler("groovy-template") {
+      path("groovy-template") {
         render groovyTemplate("index.html", message: "Hello World!")
       }
     }
 
     if (endpoint == "handlebars") {
-      handler("handlebars") {
+      path("handlebars") {
         render handlebarsTemplate('index.html', message: "Hello World!")
       }
     }
 
     if (endpoint == "thymeleaf") {
-      handler("thymeleaf") {
+      path("thymeleaf") {
         render thymeleafTemplate('index', message: "Hello World!")
       }
     }
 
     if (endpoint == "groovy-markup") {
-      handler("groovy-markup") {
-        <% if (patch >= 7) { %>
-          render groovyMarkupTemplate('index.gtpl', message: "Hello World!")
-        <% } else { %>
-          render "ok"
-        <% } %>
+      path("groovy-markup") {
+        render groovyMarkupTemplate('index.gtpl', message: "Hello World!")
       }
     }
   }

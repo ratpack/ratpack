@@ -16,6 +16,7 @@
 
 package ratpack.websocket;
 
+import io.netty.buffer.ByteBuf;
 import ratpack.api.NonBlocking;
 
 public interface WebSocket {
@@ -23,9 +24,15 @@ public interface WebSocket {
   @NonBlocking
   void close();
 
+  @NonBlocking
+  void close(int statusCode, String reason);
+
   boolean isOpen();
 
   @NonBlocking
   void send(String text);
+
+  @NonBlocking
+  void send(ByteBuf text);
 
 }

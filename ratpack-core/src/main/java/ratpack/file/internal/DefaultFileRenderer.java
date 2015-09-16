@@ -16,41 +16,37 @@
 
 package ratpack.file.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.exec.ExecControl;
-import ratpack.file.FileRenderer;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import ratpack.exec.Blocking;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
-import ratpack.util.ExceptionUtils;
+import ratpack.util.Exceptions;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class DefaultFileRenderer extends RendererSupport<Path> implements FileRenderer {
+public class DefaultFileRenderer extends RendererSupport<Path> {
 
   @Override
-  public void render(final Context context, final Path targetFile) throws Exception {
-    readAttributes(context, targetFile, new Action<BasicFileAttributes>() {
-      @Override
-      public void execute(BasicFileAttributes attributes) throws Exception {
-        if (attributes == null || !attributes.isRegularFile()) {
-          context.clientError(404);
-        } else {
-          sendFile(context, targetFile, attributes);
-        }
+  public void render(Context context, Path targetFile) throws Exception {
+    readAttributes(targetFile, attributes -> {
+      if (attributes == null || !attributes.isRegularFile()) {
+        context.clientError(404);
+      } else {
+        sendFile(context, targetFile, attributes);
       }
     });
   }
 
-  public static void sendFile(final Context context, final Path file, final BasicFileAttributes attributes) {
+  public static void sendFile(Context context, Path file, BasicFileAttributes attributes) {
     if (!context.getRequest().getMethod().isGet()) {
       context.clientError(405);
       return;
@@ -58,37 +54,30 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
 
     Date date = new Date(attributes.lastModifiedTime().toMillis());
 
-    context.lastModified(date, new Runnable() {
-      public void run() {
-        final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
-        Response response = context.getResponse();
-        if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
-          return;
-        }
+    context.lastModified(date, () -> {
+      final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaderNames.IF_NONE_MATCH);
+      Response response = context.getResponse();
+      if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
+        response.status(NOT_MODIFIED.code()).send();
+        return;
+      }
 
-        if (!response.getHeaders().contains(HttpHeaders.Names.CONTENT_TYPE)) {
-          String contentType = context.get(MimeTypes.class).getContentType(file.getFileName().toString());
-          response.contentType(contentType);
-        }
-
-        try {
-          response.sendFile(context, attributes, file);
-        } catch (Exception e) {
-          throw ExceptionUtils.uncheck(e);
-        }
+      response.contentTypeIfNotSet(() -> context.get(MimeTypes.class).getContentType(file.getFileName().toString()));
+      response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, Long.toString(attributes.size()));
+      try {
+        response.sendFile(file);
+      } catch (Exception e) {
+        throw Exceptions.uncheck(e);
       }
     });
   }
 
-  public static void readAttributes(ExecControl execContext, final Path file, Action<? super BasicFileAttributes> then) throws Exception {
-    execContext.blocking(new Callable<BasicFileAttributes>() {
-      public BasicFileAttributes call() throws Exception {
-        if (Files.exists(file)) {
-          return Files.readAttributes(file, BasicFileAttributes.class);
-        } else {
-          return null;
-        }
+  public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
+    Blocking.get(() -> {
+      if (Files.exists(file)) {
+        return Files.readAttributes(file, BasicFileAttributes.class);
+      } else {
+        return null;
       }
     }).then(then);
   }

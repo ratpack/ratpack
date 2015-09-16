@@ -17,20 +17,18 @@
 package ratpack.handling;
 
 import ratpack.api.Nullable;
-import ratpack.file.internal.AssetHandler;
+import ratpack.file.FileHandlerSpec;
+import ratpack.file.internal.DefaultFileHandlerSpec;
 import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
+import ratpack.func.Predicate;
 import ratpack.handling.internal.*;
-import ratpack.http.internal.*;
-import ratpack.launch.LaunchConfig;
 import ratpack.path.PathBinder;
-import ratpack.path.PathBinders;
 import ratpack.path.internal.PathHandler;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
 import java.util.List;
-
-import static com.google.common.collect.ImmutableList.copyOf;
 
 /**
  * Factory methods for handler decorations.
@@ -51,51 +49,54 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * Creates a handler that serves files from the file system.
    * <p>
-   * The file to serve is calculated based on the contextual {@link ratpack.file.FileSystemBinding} and the
-   * contextual {@link ratpack.path.PathBinding}.
-   * The {@link ratpack.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
-   * relative to the contextual file system binding.
-   * <p>
-   * If the request matches a directory, an index file may be served.
-   * The {@code indexFiles} array specifies the names of files to look for in order to serve.
-   * <p>
-   * If no file can be found to serve, then control will be delegated to the next handler.
+   * This method is a standalone version of {@link Chain#files(Action)}.
    *
-   * @param launchConfig The application launch config
-   * @param path The relative path to the location of the assets to serve
-   * @param indexFiles The index files to try if the request is for a directory
-   * @return A handler
+   * @param serverConfig the server config
+   * @param config the configuration of the file handler
+   * @return a file serving handler
+   * @throws Exception any thrown by {@code config}
    */
-  public static Handler assets(LaunchConfig launchConfig, String path, List<String> indexFiles) {
-    Handler handler = new AssetHandler(copyOf(indexFiles));
-    return fileSystem(launchConfig, path, handler);
+  public static Handler files(ServerConfig serverConfig, Action<? super FileHandlerSpec> config) throws Exception {
+    return DefaultFileHandlerSpec.build(serverConfig, config);
   }
 
   /**
    * Builds a handler chain, with no backing registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The server config
    * @param action The chain definition
    * @return A handler
    * @throws Exception any thrown by {@code action}
    */
-  public static Handler chain(LaunchConfig launchConfig, Action<? super Chain> action) throws Exception {
-    return chain(launchConfig, null, action);
+  public static Handler chain(ServerConfig serverConfig, Action<? super Chain> action) throws Exception {
+    return chain(serverConfig, null, action);
   }
 
   /**
    * Builds a chain, backed by the given registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The server config
    * @param registry The registry.
    * @param action The chain building action.
    * @return A handler
    * @throws Exception any thrown by {@code action}
    */
-  public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
-    return ChainBuilders.build(launchConfig != null && launchConfig.isReloadable(), new ChainActionTransformer(launchConfig, registry), action);
+  public static Handler chain(@Nullable ServerConfig serverConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
+    return ChainBuilders.build(new ChainActionTransformer(serverConfig, registry), action);
+  }
+
+  /**
+   * Builds a chain, backed by the given registry.
+   *
+   * @param registry The registry.
+   * @param action The chain building action.
+   * @return A handler
+   * @throws Exception any thrown by {@code action}
+   */
+  public static Handler chain(Registry registry, Action<? super Chain> action) throws Exception {
+    return chain(registry.get(ServerConfig.class), registry, action);
   }
 
   /**
@@ -106,7 +107,7 @@ public abstract class Handlers {
    */
   public static Handler chain(List<? extends Handler> handlers) {
     if (handlers.size() == 0) {
-      return next();
+      return Context::next;
     } else if (handlers.size() == 1) {
       return handlers.get(0);
     } else {
@@ -122,7 +123,7 @@ public abstract class Handlers {
    */
   public static Handler chain(Handler... handlers) {
     if (handlers.length == 0) {
-      return next();
+      return Handlers.next();
     } else if (handlers.length == 1) {
       return handlers[0];
     } else {
@@ -164,13 +165,13 @@ public abstract class Handlers {
    * <p>
    * The new file system binding will be created by the {@link ratpack.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param path The relative path to the new file system binding point
    * @param handler The handler to execute with the new file system binding
    * @return A handler
    */
-  public static Handler fileSystem(LaunchConfig launchConfig, String path, Handler handler) {
-    return new FileSystemBindingHandler(launchConfig, path, handler);
+  public static Handler fileSystem(ServerConfig serverConfig, String path, Handler handler) {
+    return new FileSystemBindingHandler(serverConfig, path, handler);
   }
 
   /**
@@ -180,31 +181,6 @@ public abstract class Handlers {
    */
   public static Handler get() {
     return MethodHandler.GET;
-  }
-
-  /**
-   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHeader} with the
-   * given name and a it's value matches the given value exactly.
-   *
-   * @param headerName the name of the HTTP Header to match on
-   * @param headerValue the value of the HTTP Header to match on
-   * @param handler the handler to delegate to
-   * @return A handler
-   */
-  public static Handler header(String headerName, String headerValue, Handler handler) {
-    return new HeaderHandler(headerName, headerValue, handler);
-  }
-
-  /**
-   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHost} with the
-   * given name that matches the given value exactly.
-   *
-   * @param hostName the name of the HTTP Header to match on
-   * @param handler the handler to delegate to
-   * @return A handler
-   */
-  public static Handler host(String hostName, Handler handler) throws Exception {
-    return new HeaderHandler("Host", hostName, handler);
   }
 
   /**
@@ -249,7 +225,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler path(String path, Handler handler) {
-    return path(PathBinders.parse(path, true), handler);
+    return path(PathBinder.parse(path, true), handler);
   }
 
   /**
@@ -285,7 +261,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler prefix(String prefix, Handler handler) {
-    return path(PathBinders.parse(prefix, false), handler);
+    return path(PathBinder.parse(prefix, false), handler);
   }
 
   /**
@@ -333,4 +309,32 @@ public abstract class Handlers {
     return new RedirectionHandler(location, code);
   }
 
+  /**
+   * Creates a handler that inserts and delegates the given handler if the predicate applies to the context.
+   * <p>
+   * If the predicate does not apply, calls {@link Context#next()}.
+   *
+   * @param test the test whether to when to the given handler
+   * @param handler the handler to insert if the predicate applies
+   * @return a handler
+   */
+  public static Handler when(Predicate<? super Context> test, Handler handler) {
+    return new WhenHandler(test, handler);
+  }
+
+  /**
+   * Creates a handler that delegates to the given handler if the predicate applies to the context.
+   * <p>
+   * If the predicate does not apply, calls {@link Context#next()}.
+   * <p>
+   * This method does not {@link Context#insert(Handler...) insert} the handler as {@link #when(Predicate, Handler)} does;
+   * it calls its {@link Handler#handle(Context)} method directly
+   *
+   * @param test the test whether to when to the given handler
+   * @param handler the handler to call if the predicate applies
+   * @return a handler
+   */
+  public static Handler onlyIf(Predicate<? super Context> test, Handler handler) {
+    return new OnlyIfHandler(test, handler);
+  }
 }

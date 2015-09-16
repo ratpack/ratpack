@@ -16,37 +16,78 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Fulfiller;
+import ratpack.exec.Downstream;
+import ratpack.exec.ExecutionException;
 import ratpack.exec.Promise;
-import ratpack.exec.SuccessPromise;
-import ratpack.exec.internal.DefaultExecController.Execution;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
-import ratpack.func.Factory;
-
-import static ratpack.util.ExceptionUtils.toException;
+import ratpack.func.Function;
+import ratpack.util.Exceptions;
 
 public class DefaultPromise<T> implements Promise<T> {
-  private final Action<? super Fulfiller<T>> fulfillment;
-  private final Factory<Execution> execution;
 
-  public DefaultPromise(Factory<Execution> execution, Action<? super Fulfiller<T>> fulfillment) {
-    this.execution = execution;
-    this.fulfillment = fulfillment;
+  private final Upstream<T> upstream;
+
+  public DefaultPromise(Upstream<T> upstream) {
+    this.upstream = upstream;
   }
 
   @Override
-  public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(execution, fulfillment, errorHandler);
-  }
-
-  @Override
-  public void then(Action<? super T> then) {
-    onError(new Action<Throwable>() {
+  public void then(final Action<? super T> then) {
+    ThreadBinding.requireComputeThread("Promise.then() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
+    doConnect(new Downstream<T>() {
       @Override
-      public void execute(Throwable t) throws Exception {
-        throw toException(t);
+      public void success(T value) {
+        try {
+          then.execute(value);
+        } catch (Exception e) {
+          throwError(e);
+        }
       }
-    }).then(then);
+
+      @Override
+      public void error(Throwable throwable) {
+        throwError(throwable);
+      }
+
+      @Override
+      public void complete() {
+
+      }
+    });
+  }
+
+  @Override
+  public void connect(Downstream<T> downstream) {
+    ThreadBinding.requireComputeThread("Promise.connect() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
+    doConnect(downstream);
+  }
+
+  public void doConnect(Downstream<T> downstream) {
+    try {
+      upstream.connect(downstream);
+    } catch (ExecutionException e) {
+      throw e;
+    } catch (Exception e) {
+      throwError(e);
+    }
+  }
+
+  private void throwError(Throwable throwable) {
+    DefaultExecution.require().streamSubscribe(h ->
+        h.complete(() -> {
+          throw Exceptions.toException(throwable);
+        })
+    );
+  }
+
+  @Override
+  public <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer) {
+    try {
+      return new DefaultPromise<>(upstreamTransformer.apply(upstream));
+    } catch (Exception e) {
+      throw Exceptions.uncheck(e);
+    }
   }
 
 }

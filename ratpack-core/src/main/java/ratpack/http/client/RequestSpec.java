@@ -16,18 +16,90 @@
 
 package ratpack.http.client;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
-import ratpack.http.HttpUrlSpec;
+import ratpack.func.Factory;
+import ratpack.func.Function;
 import ratpack.http.MutableHeaders;
 
+import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Base64;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public interface RequestSpec {
+
+  /**
+   * The default number of redirects to follow automatically.
+   *
+   * @see #redirects(int)
+   */
+  int DEFAULT_MAX_REDIRECTS = 10;
+
+  /**
+   * The maximum number of redirects to automatically follow, before simply returning the redirect response.
+   * <p>
+   * The default value is {@value #DEFAULT_MAX_REDIRECTS}.
+   * <p>
+   * The given value must be &gt;= 0.
+   *
+   * @param maxRedirects the maximum number of redirects to follow
+   * @return The RequestSpec
+   */
+  RequestSpec redirects(int maxRedirects);
+
+  /**
+   * Specifies a function to invoke when a redirectable response is received.
+   * <p>
+   * If the function returns null, the redirect will not be followed.
+   * If it returns an action, it will be followed and the action will be invoked to further configure the request spec.
+   * To simply follow the redirect, return {@link Action#noop()}.
+   * <p>
+   * The function will never be invoked if {@link #redirects(int)} is set to 0.
+   *
+   * @param function the redirection handling strategy
+   * @return {@code this}
+   */
+  RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function);
+
+  /**
+   * Sets the {@link SSLContext} used for client and server SSL authentication.
+   *
+   * @param sslContext SSL context with keystore as well as trust store
+   * @return the {@link RequestSpec}
+   */
+  RequestSpec sslContext(SSLContext sslContext);
+
+  /**
+   * Factory method to create {@link SSLContext} used for client and server SSL authentication.
+   *
+   * @param factory provides a factory that will create {@link SSLContext} instance
+   * @return the {@link RequestSpec}
+   * @throws Exception this can be thrown from the action
+   */
+  default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
+    return sslContext(factory.create());
+  }
 
   /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
    */
   MutableHeaders getHeaders();
+
+  /**
+   * This method can be used to compose changes to the headers.
+   *
+   * @param action Provide an action that will act on MutableHeaders.
+   * @return The RequestSpec
+   * @throws Exception This can be thrown from the action supplied.
+   */
+  RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
 
   /**
    * Set the HTTP verb to use.
@@ -36,19 +108,135 @@ public interface RequestSpec {
    */
   RequestSpec method(String method);
 
-  HttpUrlSpec getUrl();
+  /**
+   * Enables automatic decompression of the response.
+   * @param shouldDecompress whether to enable decompression
+   * @return this
+   */
+  RequestSpec decompressResponse(boolean shouldDecompress);
 
-  RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception;
+  URI getUrl();
 
+  default RequestSpec readTimeoutSeconds(int seconds) {
+    return readTimeout(Duration.of(seconds, SECONDS));
+  }
+
+  RequestSpec readTimeout(Duration duration);
+
+  /**
+   * The body of the request, used for specifying the body content.
+   *
+   * @return the (writable) body of the request
+   */
   Body getBody();
 
+  /**
+   * Executes the given action with the {@link #getBody() request body}.
+   * <p>
+   * This method is a “fluent API” alternative to {@link #getBody()}.
+   *
+   * @param action configuration of the request body
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
   RequestSpec body(Action<? super Body> action) throws Exception;
 
+  /**
+   * Adds the appropriate header for HTTP Basic authentication with the given username and password.
+   * <p>
+   * This will replace any previous value set for the {@code "Authorization"} header.
+   *
+   * @param username the username
+   * @param password the password
+   * @return {@code this}
+   */
+  default RequestSpec basicAuth(String username, String password) {
+    byte[] bytes = (username + ":" + password).getBytes(StandardCharsets.ISO_8859_1);
+    byte[] encodedBytes = Base64.getEncoder().encode(bytes);
+    getHeaders().set(HttpHeaderNames.AUTHORIZATION, "Basic " + new String(encodedBytes, StandardCharsets.ISO_8859_1));
+    return this;
+  }
+
+  /**
+   * The request body.
+   * <p>
+   * The methods of this type are not additive.
+   * That is, successive calls to {@link #bytes(byte[])} and other methods will not add to the request body.
+   * Rather, they will replace the content specified by previous method calls.
+   * <p>
+   * It is generally best to provide the body content in the format that you have it in.
+   * That is, if you already have the desired body content as a {@link String}, use the {@link #text(CharSequence)} method.
+   * If you already have the desired body content as a {@code byte[]}, use the {@link #bytes(byte[])} method.
+   */
   interface Body {
 
+    /**
+     * Specifies the {@code "Content-Type"} of the request.
+     * <p>
+     * Call this method has the same effect as using {@link #getHeaders()} or {@link #headers(ratpack.func.Action)} to set the {@code "Content-Type"} header.
+     *
+     * @param contentType the value of the Content-Type header
+     * @return this
+     */
     Body type(String contentType);
 
+    /**
+     * Specifies the request body by writing to an output stream.
+     * <p>
+     * The output stream is not directly connected to the HTTP server.
+     * That is, bytes written to the given output stream are not directly streamed to the server.
+     * There is no performance advantage in using this method over methods such as {@link #bytes(byte[])}.
+     *
+     * @param action an action that writes to the request body to the
+     * @return this
+     * @throws Exception any thrown by action
+     */
     Body stream(Action<? super OutputStream> action) throws Exception;
+
+    /**
+     * Specifies the request body as a byte buffer.
+     * <p>
+     * The given byte buffer will not be copied.
+     * That is, changes to the byte buffer made after calling this method will affect the body.
+     *
+     * @param byteBuf the intended request body
+     * @return this
+     */
+    Body buffer(ByteBuf byteBuf);
+
+    /**
+     * Specifies the request body as a byte array.
+     * <p>
+     * The given byte array will not be copied.
+     * That is, changes to the byte array made after calling this method will affect the body.
+     *
+     * @param bytes the intended request body
+     * @return this
+     */
+    Body bytes(byte[] bytes);
+
+    /**
+     * Specifies the request body as a UTF-8 char sequence.
+     * <p>
+     * This method is a shorthand for calling {@link #text(CharSequence, java.nio.charset.Charset)} with a UTF-8 charset.
+     *
+     * @param text the request body
+     * @return this
+     * @see #text(CharSequence, java.nio.charset.Charset)
+     */
+    Body text(CharSequence text);
+
+    /**
+     * Specifies the request body as a char sequence of the given charset.
+     * <p>
+     * Unlike other methods of this interface, this method will set the request {@code "Content-Type"} header if it has not already been set.
+     * If it has not been set, it will be set to {@code "text/plain;charset=«charset»"}.
+     *
+     * @param text the request body
+     * @param charset the charset of the request body (used to convert the text to bytes)
+     * @return this
+     */
+    Body text(CharSequence text, Charset charset);
 
   }
 

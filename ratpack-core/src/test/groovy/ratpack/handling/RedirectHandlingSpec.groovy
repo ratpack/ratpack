@@ -15,14 +15,15 @@
  */
 package ratpack.handling
 
-import com.jayway.restassured.specification.RequestSpecification
+import io.netty.handler.codec.http.HttpResponseStatus
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectHandlingSpec extends RatpackGroovyDslSpec {
 
   @Override
-  void configureRequest(RequestSpecification requestSpecification) {
-    requestSpecification.redirects().follow(false)
+  void configureRequest(RequestSpec requestSpec){
+    requestSpec.redirects 0
   }
 
   def "Absolute Path Redirect"() {
@@ -36,7 +37,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("")
     resp.statusCode == 302
-    resp.getHeader("Location") == "http://www.google.com"
+    resp.headers.get("Location") == "http://www.google.com"
   }
 
   def "Server Root Path Redirect no public url"() {
@@ -50,7 +51,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("")
     resp.statusCode == 302
-    resp.getHeader("Location") == "http://${server.bindHost}:${server.bindPort}/index"
+    resp.headers.get("Location") == "http://${server.bindHost}:${server.bindPort}/index"
   }
 
   def "Server Relative Path Redirect no public url"() {
@@ -64,13 +65,13 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("index")
     resp.statusCode == 302
-    resp.getHeader("Location") == "http://${server.bindHost}:${server.bindPort}/other"
+    resp.headers.get("Location") == "http://${server.bindHost}:${server.bindPort}/other"
   }
 
   def "Server root path redirect with public url"() {
     when:
     def publicUrl = "http://example.com"
-    launchConfig {
+    serverConfig {
       publicAddress(new URI(publicUrl))
     }
 
@@ -85,13 +86,13 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("")
     resp.statusCode == 302
-    resp.getHeader("Location") == publicUrl + "/index"
+    resp.headers.get("Location") == publicUrl + "/index"
   }
 
   def "Server Relative Path Redirect with public url"() {
     when:
     def publicUrl = "http://example.com"
-    launchConfig {
+    serverConfig {
       publicAddress(new URI(publicUrl))
     }
 
@@ -104,7 +105,44 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("index")
     resp.statusCode == 302
-    resp.getHeader("Location") == publicUrl + "/other"
+    resp.headers.get("Location") == publicUrl + "/other"
+  }
+
+  def "Should set cookies from redirect"() {
+    given:
+    requestSpec { r -> r.redirects(1) }
+
+    and:
+    handlers {
+      get {
+        response.send(request.oneCookie("value") ?: 'none')
+      }
+      get(':cookie') {
+        response.cookie('value', pathTokens.cookie)
+        redirect '/'
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'none'
+
+    when:
+    get('Ratpack')
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'Ratpack'
+
+    when:
+    get()
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'Ratpack'
   }
 
 }

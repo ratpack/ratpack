@@ -19,12 +19,13 @@ package ratpack.file
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.file.FileSystems
+import java.nio.file.Files
 
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
     given:
-    def fileInsideBaseDir = file("foo")
+    def fileInsideBaseDir = path("foo")
 
     when:
     handlers {
@@ -47,14 +48,14 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     given:
     def path = "../../some-file.txt" // outside the base dir
 
-    file path, "foo"
+    write path, "foo"
 
     when:
     handlers {
       get { FileSystemBinding fsBinding ->
 
         if (fsBinding.file.fileSystem == FileSystems.default) {
-          assert new File(fsBinding.file.toFile(), path).exists()
+          assert Files.exists(fsBinding.file)
         }
 
         assert fsBinding.binding(path) == null

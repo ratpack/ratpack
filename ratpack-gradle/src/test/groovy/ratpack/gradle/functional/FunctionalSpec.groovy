@@ -16,26 +16,31 @@
 
 package ratpack.gradle.functional
 
+import com.google.common.base.StandardSystemProperty
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.tasks.TaskState
 import org.gradle.cli.CommandLineParser
-import org.gradle.initialization.DefaultCommandLineConverter
-import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.initialization.*
+import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Clock
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.gradle.RatpackGroovyPlugin
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 abstract class FunctionalSpec extends Specification {
   @Rule
@@ -49,11 +54,7 @@ abstract class FunctionalSpec extends Specification {
   List<ExecutedTask> executedTasks = []
 
   @AutoCleanup
-  DefaultServiceRegistry services = new ServiceRegistryBuilder()
-    .provider(new GlobalScopeServices(false))
-    .parent(LoggingServiceRegistry.newEmbeddableLogging())
-    .parent(NativeServices.instance)
-    .build()
+  ServiceRegistry services
 
   GradleLauncher launcher(String... args) {
     def converter = new DefaultCommandLineConverter()
@@ -62,7 +63,53 @@ abstract class FunctionalSpec extends Specification {
     def commandLine = commandLineParser.parse(args)
     StartParameter startParameter = converter.convert(commandLine, new StartParameter())
     startParameter.setProjectDir(dir.root)
-    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter)
+
+    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter, new BuildRequestContext() {
+      @Override
+      BuildCancellationToken getCancellationToken() {
+        return new DefaultBuildCancellationToken()
+      }
+
+      @Override
+      BuildEventConsumer getEventConsumer() {
+        new BuildEventConsumer() {
+          @Override
+          void dispatch(Object o) {
+
+          }
+        }
+      }
+
+      @Override
+      StandardOutputListener getOutputListener() {
+        new StandardOutputListener() {
+          @Override
+          void onOutput(CharSequence charSequence) {
+
+          }
+        }
+      }
+
+      @Override
+      StandardOutputListener getErrorListener() {
+        new StandardOutputListener() {
+          @Override
+          void onOutput(CharSequence charSequence) {
+
+          }
+        }
+      }
+
+      @Override
+      BuildClientMetaData getClient() {
+        return null
+      }
+
+      @Override
+      Clock getBuildTimeClock() {
+        return new Clock()
+      }
+    }, new BuildSessionScopeServices(services))
     executedTasks.clear()
     launcher.addListener(new TaskExecutionListener() {
       void beforeExecute(Task task) {
@@ -111,23 +158,36 @@ abstract class FunctionalSpec extends Specification {
   }
 
   def setup() {
+    NativeServices.initialize(dir.root)
+
+    services = ServiceRegistryBuilder.builder()
+      .provider(new GlobalScopeServices(false))
+      .parent(LoggingServiceRegistry.newEmbeddableLogging())
+      .parent(NativeServices.instance)
+      .build()
+
+
     file("settings.gradle") << "rootProject.name = 'test-app'"
     buildFile << """
       buildscript {
         repositories { jcenter() }
-        dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2' }
+        dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2' }
       }
 
       ext.RatpackGroovyPlugin = project.class.classLoader.loadClass('${RatpackGroovyPlugin.name}')
       apply plugin: RatpackGroovyPlugin
       apply plugin: 'com.github.johnrengelman.shadow'
-      archivesBaseName = "functional-test"
       version = "1.0"
       repositories {
         maven { url "${localRepo.toURI()}" }
         jcenter()
       }
+      dependencies {
+        compile 'org.slf4j:slf4j-simple:1.7.12'
+      }
     """
+
+    file("src/ratpack/ratpack.properties") << "port=0\n"
   }
 
   def unzip(File source, File destination) {
@@ -146,13 +206,37 @@ abstract class FunctionalSpec extends Specification {
   }
 
   File getShadowJar() {
-    def f = file("build/libs/functional-test-1.0-all.jar")
+    def f = file("build/libs/test-app-1.0-all.jar")
     assert f.exists()
     f
   }
 
   File getLocalRepo() {
     def rootRelative = new File("build/localrepo")
-    rootRelative.directory ? rootRelative : new File(new File(System.getProperty("user.dir")).parentFile, "build/localrepo")
+    rootRelative.directory ? rootRelative : new File(new File(StandardSystemProperty.USER_DIR.value()).parentFile, "build/localrepo")
+  }
+
+  int scrapePort(Process process) {
+    int port = -1
+
+    def latch = new CountDownLatch(1)
+    Thread.start {
+      process.errorStream.eachLine { String line ->
+        System.err.println(line)
+        if (latch.count) {
+          if (line.contains("Ratpack started for http://localhost:")) {
+            def matcher = (line =~ "http://localhost:(\\d+)")
+            port = matcher[0][1].toString().toInteger()
+            latch.countDown()
+          }
+        }
+      }
+    }
+
+    if (!latch.await(15, TimeUnit.SECONDS)) {
+      throw new RuntimeException("Timeout waiting for application to start")
+    }
+
+    port
   }
 }

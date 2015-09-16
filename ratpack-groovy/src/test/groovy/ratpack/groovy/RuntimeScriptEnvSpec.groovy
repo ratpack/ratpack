@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package ratpack.groovy
 
-import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.groovy.templating.EphemeralPortScriptBacking
 import ratpack.server.RatpackServer
-import ratpack.test.embed.EmbeddedApplication
-import ratpack.test.embed.EmbeddedApplicationSupport
+import ratpack.server.internal.ServerCapturer
+import ratpack.test.embed.EmbeddedApp
+import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.EmbeddedRatpackSpec
 
 class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
 
-  EmbeddedApplication application
+  EmbeddedApp application
 
   String script
 
@@ -34,23 +33,22 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
   }
 
   def setup() {
-    application = new EmbeddedApplicationSupport() {
+    application = new EmbeddedAppSupport() {
       @Override
       RatpackServer createServer() {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(script)
-          Thread.start {
-            RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
-              script.run()
-            }
+          ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
+            script.run()
           }
         })
       }
     }
   }
 
-  def "can start a ratpack app via a runtime script"() {
+  // Documents current behaviour, not desired
+  def "exception when trying to use ratpack from runtime generated script"() {
     when:
     script """
       import static ratpack.groovy.Groovy.ratpack
@@ -64,7 +62,9 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
       }
     """
 
+    getText()
+
     then:
-    text == "ok"
+    thrown IllegalStateException
   }
 }

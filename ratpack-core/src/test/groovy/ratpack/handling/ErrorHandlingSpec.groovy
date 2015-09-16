@@ -16,10 +16,11 @@
 
 package ratpack.handling
 
+import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.registry.Registry
+import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.registry.Registries.just
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -44,22 +45,22 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "can segment error handlers"() {
     given:
     def errorHandler1 = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("1: $exception.message")
+      void error(Context exchange, Throwable throwable) throws Exception {
+        exchange.response.send("1: $throwable.message")
       }
     }
     def errorHandler2 = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("2: $exception.message")
+      void error(Context exchange, Throwable throwable) throws Exception {
+        exchange.response.send("2: $throwable.message")
       }
     }
 
     when:
     bindings {
-      bind ServerErrorHandler, errorHandler1
+      bindInstance ServerErrorHandler, errorHandler1
     }
     handlers {
-      register(just(errorHandler2)) {
+      register(Registry.single(errorHandler2)) {
         get("a") {
           throw new Exception("1")
         }
@@ -77,14 +78,14 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "can use service handler"() {
     given:
     def errorHandler = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("Caught: $exception.message")
+      void error(Context exchange, Throwable throwable) throws Exception {
+        exchange.response.send("Caught: $throwable.message")
       }
     }
 
     when:
     bindings {
-      bind ServerErrorHandler, errorHandler
+      bindInstance ServerErrorHandler, errorHandler
     }
     handlers {
       get {
@@ -99,9 +100,9 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "exceptions thrown by error handler are dealt with"() {
     when:
     bindings {
-      bind ServerErrorHandler, new ServerErrorHandler() {
+      bindInstance ServerErrorHandler, new ServerErrorHandler() {
         @Override
-        void error(Context context, Exception exception) {
+        void error(Context context, Throwable throwable) throws Exception {
           throw new RuntimeException("in error handler")
         }
       }
@@ -110,6 +111,111 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         throw new RuntimeException("in handler")
+      }
+    }
+
+    then:
+    text == ""
+    response.statusCode == 500
+  }
+
+  def "exceptions thrown by render in server error handler are dealt with deterministically"() {
+    when:
+    bindings {
+      bindInstance Renderer, new Renderer<Map>() {
+        @Override
+        Class<Map> getType() { Map }
+
+        @Override
+        void render(Context context, Map object) throws Exception {
+          throw new RuntimeException("Error rendering map")
+        }
+      }
+
+      bindInstance ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Throwable throwable) throws Exception {
+          context.render([:])
+        }
+      }
+    }
+
+    handlers {
+      get {
+        throw new RuntimeException("in handler")
+      }
+    }
+
+    then:
+    text == ""
+    response.statusCode == 500
+  }
+
+  def "exceptions thrown by render in server error handler while in development mode has response body"() {
+    when:
+    serverConfig { development(true) }
+    bindings {
+      bindInstance Renderer, new Renderer<Map>() {
+        @Override
+        Class<Map> getType() { Map }
+
+        @Override
+        void render(Context context, Map object) throws Exception {
+          throw new RuntimeException("Error rendering map")
+        }
+      }
+
+      bindInstance ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Throwable throwable) throws Exception {
+          context.render([:])
+        }
+      }
+    }
+    handlers {
+      get {
+        throw new RuntimeException("in handler")
+      }
+    }
+
+    then:
+    def responseText = text
+    response.statusCode == 500
+    responseText.length() > 0
+    responseText.contains("Throwable thrown by error handler")
+    responseText.contains("Original throwable:")
+    responseText.contains("Error handler throwable:")
+  }
+
+  def "exceptions thrown by client error handler are dealt with deterministically from error prone server error handler"() {
+    when:
+    bindings {
+      bindInstance ClientErrorHandler, new ClientErrorHandler() {
+        @Override
+        void error(Context context, int statusCode) throws Exception {
+          throw new RuntimeException("Error rendering client error")
+        }
+      }
+      bindInstance Renderer, new Renderer<Map>() {
+        @Override
+        Class<Map> getType() { Map }
+
+        @Override
+        void render(Context context, Map object) throws Exception {
+          throw new RuntimeException("Error rendering map")
+        }
+      }
+      bindInstance ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Throwable throwable) throws Exception {
+          context.render([:])
+        }
+      }
+    }
+
+    handlers {
+      get {
+        clientError(400)
       }
     }
 

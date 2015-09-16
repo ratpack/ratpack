@@ -17,70 +17,79 @@
 package ratpack.test.handling.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.CharsetUtil;
+import ratpack.error.ClientErrorHandler;
+import ratpack.error.ServerErrorHandler;
+import ratpack.exec.ExecController;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
-import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
-import ratpack.http.MutableStatus;
-import ratpack.http.Request;
-import ratpack.http.internal.DefaultMediaType;
-import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.launch.LaunchConfigBuilder;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
-import ratpack.registry.Registries;
+import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
+import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
+import ratpack.server.internal.ServerRegistry;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
+import ratpack.util.Exceptions;
 
-import java.nio.file.Path;
+import java.net.InetSocketAddress;
+import java.time.Instant;
 import java.util.Map;
 
 import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 /**
- * @see ratpack.test.UnitTest#handle(ratpack.handling.Handler, ratpack.func.Action)
+ * @see ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, ratpack.func.Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public class DefaultRequestFixture implements RequestFixture {
 
   private final ByteBuf requestBody = unreleasableBuffer(buffer());
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-  private final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-
-  private final MutableStatus status = new DefaultMutableStatus();
+  private final NettyHeadersBackedMutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
   private String method = "GET";
+  private String protocol = "HTTP/1.1";
   private String uri = "/";
-
+  private HostAndPort remoteHostAndPort = HostAndPort.fromParts("localhost", 45678);
+  private HostAndPort localHostAndPort = HostAndPort.fromParts("localhost", ServerConfig.DEFAULT_PORT);
   private int timeout = 5;
 
-  private RegistryBuilder registryBuilder = Registries.registry();
+  private RegistryBuilder registryBuilder = Registry.builder();
 
-  private LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
+  private ServerConfigBuilder serverConfigBuilder = ServerConfig.builder();
+  private DefaultPathBinding pathBinding;
 
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
-    requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
-    requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
+    requestHeaders.add(HttpHeaderNames.CONTENT_TYPE, contentType);
+    requestHeaders.add(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
     requestBody.capacity(bytes.length).writeBytes(bytes);
     return this;
   }
 
   @Override
   public RequestFixture body(String text, String contentType) {
-    return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
+    return body(text.getBytes(CharsetUtil.UTF_8), contentType);
   }
 
   @Override
@@ -88,57 +97,61 @@ public class DefaultRequestFixture implements RequestFixture {
     return registryBuilder;
   }
 
-  /**
-   * Invokes a handler in a controlled way, allowing it to be tested.
-   *
-   * @param handler The handler to invoke
-   * @return A result object indicating what happened
-   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
-   */
   @Override
   public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
-    Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
-
-    Registry registry = registryBuilder.build();
-
-    return new DefaultHandlingResult(
-      request,
-      status,
-      responseHeaders,
-      registry,
-      timeout,
-      launchConfigBuilder,
-      handler
-    );
+    final DefaultHandlingResult.ResultsHolder results = new DefaultHandlingResult.ResultsHolder();
+    return invoke(handler, getEffectiveRegistry(results), results);
   }
 
   @Override
-  public HandlingResult handle(final Action<? super Chain> chainAction) throws HandlerTimeoutException {
-    return handle(new Handler() {
-      @Override
-      public void handle(Context context) throws Exception {
-        Handlers.chain(context.getLaunchConfig(), chainAction).handle(context);
-      }
-    });
+  public HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception {
+    final DefaultHandlingResult.ResultsHolder results = new DefaultHandlingResult.ResultsHolder();
+    Registry registry = getEffectiveRegistry(results);
+    ServerConfig serverConfig = registry.get(ServerConfig.class);
+    Handler handler = Handlers.chain(serverConfig, registry, chainAction);
+    return invoke(handler, registry, results);
+  }
+
+  private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
+    DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
+      new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
+      new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
+      requestBody);
+
+    if (pathBinding != null) {
+      handler = Handlers.chain(
+        Handlers.register(Registry.single(PathBinding.class, pathBinding)),
+        handler
+      );
+    }
+
+    try {
+      ServerConfig serverConfig = registry.get(ServerConfig.class);
+      return new DefaultHandlingResult(
+        request,
+        results,
+        responseHeaders,
+        registry,
+        timeout,
+        handler
+      );
+    } catch (Exception e) {
+      throw Exceptions.uncheck(e);
+    } finally {
+      registry.get(ExecController.class).close();
+    }
   }
 
   @Override
-  public RequestFixture header(String name, String value) {
+  public RequestFixture header(CharSequence name, String value) {
     requestHeaders.add(name, value);
     return this;
   }
 
   @Override
-  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
-    launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
-    action.execute(launchConfigBuilder);
-    return this;
-  }
-
-  @Override
-  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
-    launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir);
-    action.execute(launchConfigBuilder);
+  public RequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
+    serverConfigBuilder = ServerConfig.builder();
+    action.execute(serverConfigBuilder);
     return this;
   }
 
@@ -158,7 +171,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
-    registryBuilder.add(PathBinding.class, new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), null));
+    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding));
     return this;
   }
 
@@ -169,7 +182,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture responseHeader(String name, String value) {
+  public RequestFixture responseHeader(CharSequence name, String value) {
     responseHeaders.add(name, value);
     return this;
   }
@@ -196,4 +209,84 @@ public class DefaultRequestFixture implements RequestFixture {
     return this;
   }
 
+  @Override
+  public RequestFixture remoteAddress(HostAndPort remote) {
+    remoteHostAndPort = remote;
+    return this;
+  }
+
+  @Override
+  public RequestFixture localAddress(HostAndPort local) {
+    localHostAndPort = local;
+    return this;
+  }
+
+  @Override
+  public RequestFixture protocol(String protocol) {
+    this.protocol = protocol;
+    return this;
+  }
+
+  private Registry getEffectiveRegistry(final DefaultHandlingResult.ResultsHolder results) {
+
+    ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
+      results.setClientError(statusCode);
+      context.getResponse().status(statusCode);
+      results.getLatch().countDown();
+    };
+
+    ServerErrorHandler serverErrorHandler = (context, throwable1) -> {
+      results.setThrowable(throwable1);
+      results.getLatch().countDown();
+    };
+
+    final Registry userRegistry = Registry.builder().
+      add(ClientErrorHandler.class, clientErrorHandler).
+      add(ServerErrorHandler.class, serverErrorHandler).
+      build();
+    return Exceptions.uncheck(() -> {
+      ServerConfig serverConfig = serverConfigBuilder.build();
+      DefaultExecController execController = new DefaultExecController(serverConfig.getThreads());
+      return ServerRegistry.serverRegistry(new TestServer(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
+    });
+  }
+
+  // TODO some kind of impl here
+  private static class TestServer implements RatpackServer {
+
+    @Override
+    public String getScheme() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getBindPort() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getBindHost() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isRunning() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void start() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void stop() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RatpackServer reload() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+  }
 }

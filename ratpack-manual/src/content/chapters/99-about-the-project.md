@@ -13,7 +13,10 @@ The following people are currently actively contributing their time to Ratpack.
 * [Marcin Erdmann](https://github.com/erdi)
 * [Rob Fletcher](https://github.com/robfletcher)
 * [Rus Hart](https://github.com/rhart)
+* [Danny Hyun](https://github.com/danhyun)
 * [Dan Woods](https://github.com/danveloper)
+* [Jeff Beck](https://github.com/beckje01)
+* [John Engelman](https://github.com/johnrengelman)
 
 ### Contributors
 
@@ -22,7 +25,6 @@ The following people have provided significant contributions.
 * [Tim Berglund](https://github.com/tlberglund)
 * [Peter Ledbrook](https://github.com/pledbrook)
 * [Marco Vermeulen](https://github.com/marcoVermeulen)
-* [Jeff Beck](https://github.com/beckje01)
 * [Paul Fairless](https://github.com/paulfairless)
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
@@ -41,10 +43,34 @@ The following people have provided significant contributions.
 * [Cihat Keser](https://github.com/kramer)
 * [Cédric Champeau](https://github.com/melix)
 * [Kevin Greene](https://github.com/KevinGreene)
-* [Danny Hyun](https://github.com/danhyun)
 * [David Tiselius](https://github.com/traneHead)
-* [John Engelman](https://github.com/johnrengelman)
 * [Andre Steingress](https://github.com/andresteingress)
+* [Gareth Davis](https://github.com/tempredirect)
+* [Lari Hotari](https://github.com/lhotari)
+* [Massimo Lusetti](https://github.com/mlusetti)
+* [Rob Zienert](https://github.com/robzienert)
+* [Tom Duncan](https://github.com/tomdcc)
+* [Wilson MacGyver](https://github.com/wmacgyver)
+* [Jörn Huxhorn](https://github.com/huxi)
+* [Robert Zakrzewski](https://github.com/zedar)
+* [Glenn Saqui](https://github.com/gsaqui)
+* [Jeff Blaisdell](https://github.com/jeff-blaisdell)
+* [Kyle Boon](https://github.com/kyleboon)
+* [Joe Kutner](https://github.com/jkutner)
+* [David Estes](https://github.com/davydotcom)
+* [Glen Schrader](https://github.com/gschrader)
+* [Jason Winnebeck](https://github.com/gillius)
+* [Victor Vu](https://github.com/vqvu)
+* [Danny Kirchmeier](https://github.com/danthegoodman)
+* [Tom Akehurst](https://github.com/tomakehurst)
+* [Steve Anderson](https://github.com/saanvik)
+* [Dave Syer](https://github.com/dsyer)
+* [João Cabrita](https://github.com/kewne)
+* [Matt Yott](https://github.com/myott)
+* [Daniel Lopes](https://github.com/djjorjinho)
+* [Daniel Raniz](https://github.com/Raniz85)
+* [Martin Lundvall](https://github.com/lundvall)
+* [Fabian Förster](https://github.com/ffoers)
 
 ### Past project members
 
@@ -60,7 +86,7 @@ The following people have contributed their time to Ratpack in the past, but are
 #### Libraries
 
 * [Prism](http://prismjs.com/) by [Lea Verou](http://lea.verou.me/)
-* [Normalize.css](http://git.io/normalize) by [Nicolas Gallagher](https://github.com/necolas)
+* [Normalize.css](http://necolas.github.io/normalize.css/) by [Nicolas Gallagher](https://github.com/necolas)
 * [Modernizr](http://modernizr.com/)
 * [Breakpoint](http://breakpoint-sass.com/) by [Mason Wendell](http://thecodingdesigner.com/) and [Sam Richard](http://snugug.com/)
 

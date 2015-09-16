@@ -1,0 +1,86 @@
+/*
+ * Cross-browser antialias for transformed elements.
+ */
+@mixin antialias {
+  padding: 1px;
+  @include background-clip(content-box);
+	@include backface-visibility(hidden);
+}
+
+/*
+ * Given a rems size renders rems with fallback pixels.
+ *
+ * Basically the reverse of https://github.com/bitmanic/rem
+ *
+ *     @mixin rems(font-size, 2rem);
+ *
+ * becomes
+ *
+ *     font-size: 32px;
+ *     font-size: 2rem;
+ *
+ * It also works with lists so
+ *
+ *    @mixin rems(padding, 1rem 0 2rem 0.5rem);
+ *
+ * becomes
+ *
+ *    padding: 16px 0 32px 8px;
+ *    padding: 1rem 0 2rem 0.5rem;
+ */
+@mixin rem($property, $rems) {
+	@if type-of($rems) == "number" {
+		#{$property}: ($rems / 1rem) * $base-font-size;
+	} @else {
+		$px-values: ();
+		@each $value in $rems {
+			@if $value == 0 {
+				$px-values: append($px-values, $value);
+			} @else {
+				$px-values: append($px-values, ($value / 1rem) * $base-font-size);
+			}
+		}
+		#{$property}: $px-values;
+	}
+	#{$property}: $rems;
+}
+
+/*
+ * Outputs a color property with an opaque fallback for browsers that do not support RGBA.
+ */
+@mixin safe-rgba($property, $color, $fallback-color: opacify($color, 1)) {
+	@if opacity($color) == 1 {
+		#{$property}: $color;
+	} @else {
+		#{$property}: $fallback-color;
+		.rgba & {
+			#{$property}: $color;
+		}
+	}
+}
+
+/*
+ * makes an image in a link grayscale until hovered / focused
+ */
+@mixin grayscale-until-hovered {
+	img {
+		// Firefox 10+
+		filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale");
+		// IE6-9
+		filter: gray;
+		// Chrome 19+ & Safari 6+
+		-webkit-filter: grayscale(1);
+		-webkit-transition: all 0.6s ease;
+		-webkit-backface-visibility: hidden;
+	}
+	&:hover, &:focus {
+		img {
+			filter: none;
+			-webkit-filter: grayscale(0);
+		}
+	}
+}
+
+@function simple-image-url($image-path) {
+  @return image-url($image-path, false, true);
+}

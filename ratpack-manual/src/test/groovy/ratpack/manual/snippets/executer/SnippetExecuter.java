@@ -17,9 +17,12 @@
 package ratpack.manual.snippets.executer;
 
 import ratpack.manual.snippets.TestCodeSnippet;
+import ratpack.manual.snippets.fixture.SnippetFixture;
 
 public interface SnippetExecuter {
 
-  void execute(TestCodeSnippet snippet);
+  SnippetFixture getFixture();
+
+  void execute(TestCodeSnippet snippet) throws Exception;
 
 }

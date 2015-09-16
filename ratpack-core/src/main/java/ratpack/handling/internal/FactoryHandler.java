@@ -16,13 +16,14 @@
 
 package ratpack.handling.internal;
 
+import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.func.Factory;
 
-public class FactoryHandler implements Handler {
+public class FactoryHandler implements DescribingHandler {
 
   private final Factory<? extends Handler> factory;
+  private volatile Handler last;
 
   public FactoryHandler(Factory<? extends Handler> factory) {
     this.factory = factory;
@@ -30,7 +31,18 @@ public class FactoryHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {
-    factory.create().handle(context);
+    Handler handler = factory.create();
+    last = handler;
+    handler.handle(context);
   }
 
+  @Override
+  public void describeTo(StringBuilder stringBuilder) {
+    Handler last = this.last;
+    if (last == null) {
+      last = this;
+    }
+
+    DescribingHandlers.describeTo(last, stringBuilder);
+  }
 }

@@ -1,6 +1,6 @@
 [examples]: intro.html#examples
 [htmlunit]: http://htmlunit.sourceforge.net/ "HtmlUnit - Welcome to HtmlUnit"
-[groovy]: http://groovy.codehaus.org/ "Groovy - Home"
+[groovy]: http://groovy-lang.org/ "Groovy - Home"
 [hue]: http://code.google.com/p/hue/ "hue - Project Hosting on Google Code"
 [jquery]: http://jquery.com/ "jQuery: The Write Less, Do More, JavaScript Library"
 [webclient]: http://htmlunit.sourceforge.net/apidocs/com/gargoylesoftware/htmlunit/WebClient.html
@@ -23,6 +23,7 @@
 [defaultdriver]: browser.html#the_default_driver
 [defaultdriver-lifecycle]: browser.html#lifecycle
 [spock]: http://spockframework.org/
+[asset-pipeline]: https://github.com/bertramdev/asset-pipeline-core
 [junit]: http://www.junit.org/
 [testng]: http://testng.org/
 [cuke4duke]: https://github.com/cucumber/cuke4duke/wiki
@@ -42,7 +43,7 @@
 [grails]: http://grails.org
 [waiting]: javascript.html#waiting
 [waiting-content]: pages.html#wait
-[assertion-error]: http://docs.oracle.com/javase/6/docs/api/java/lang/AssertionError.html
+[assertion-error]: http://docs.oracle.com/javase/8/docs/api/java/lang/AssertionError.html
 [implicit-assertions]: implicit-assertions.html
 [page-option]: pages.html#page
 [switch-frame-and-page]: pages.html#switching_pages_and_frames_at_once

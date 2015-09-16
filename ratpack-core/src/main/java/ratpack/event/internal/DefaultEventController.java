@@ -16,12 +16,12 @@
 
 package ratpack.event.internal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultEventController<T> implements EventController<T> {
 
@@ -33,14 +33,11 @@ public class DefaultEventController<T> implements EventController<T> {
 
   @Override
   public EventRegistry<T> getRegistry() {
-    return new EventRegistry<T>() {
-      @Override
-      public void register(Action<? super T> eventHandler) {
-        if (fired) {
-          LOGGER.warn("Cannot register event listener as event has been fired: " + eventHandler, new Exception());
-        } else {
-          handlers.add(eventHandler);
-        }
+    return eventHandler -> {
+      if (fired) {
+        LOGGER.warn("Cannot register event listener as event has been fired: " + eventHandler, new Exception());
+      } else {
+        handlers.add(eventHandler);
       }
     };
   }

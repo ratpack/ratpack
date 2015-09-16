@@ -16,18 +16,22 @@
 
 package ratpack.render.internal;
 
-import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.render.NoSuchRendererException;
+import ratpack.render.RenderableDecorator;
 import ratpack.render.Renderer;
 import ratpack.render.RendererException;
+import ratpack.util.Types;
+
+import java.util.Iterator;
 
 public class DefaultRenderController implements RenderController {
 
-  private static final TypeToken<Renderer<?>> RENDERER_TYPE_TOKEN = new TypeToken<Renderer<?>>() {
-    private static final long serialVersionUID = 0;
-  };
+  private static final TypeToken<Renderer<?>> RENDERER_TYPE = new TypeToken<Renderer<?>>() {};
+  private static final TypeToken<RenderableDecorator<?>> RENDERABLE_DECORATOR_TYPE = new TypeToken<RenderableDecorator<?>>() {};
 
   @Override
   public void render(final Object toRender, final Context context) throws Exception {
@@ -36,52 +40,39 @@ public class DefaultRenderController implements RenderController {
       return;
     }
 
-    Renderer<?> renderer = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()));
-    if (renderer == null) {
-      throw new NoSuchRendererException(toRender);
+    doRender(toRender, context);
+  }
+
+  private <T> void doRender(T toRender, Context context) throws Exception {
+    Class<T> type = Types.cast(toRender.getClass());
+
+    Iterator<? extends RenderableDecorator<?>> decorators = Iterables.filter(context.getAll(RENDERABLE_DECORATOR_TYPE), d -> d.getType().isAssignableFrom(type)).iterator();
+    if (decorators.hasNext()) {
+      Promise<T> promise = Promise.value(toRender);
+      while (decorators.hasNext()) {
+        RenderableDecorator<T> cast = Types.cast(decorators.next());
+        promise = promise.flatMap(r -> cast.decorate(context, r));
+      }
+      promise.then(r -> doRender(context, type, r));
     } else {
-      try {
-        doRender(toRender, renderer, context);
-      } catch (Exception e) {
-        throw new RendererException(renderer, toRender, e);
-      }
+      doRender(context, type, toRender);
     }
   }
 
-  private <T> void doRender(Object object, Renderer<T> renderer, Context context) throws Exception {
-    @SuppressWarnings("unchecked") T cast = (T) object;
-    renderer.render(context, cast);
-  }
-
-  private static class RendererForTypePredicate implements Predicate<Renderer<?>> {
-    private final Class<?> toRenderType;
-
-    public RendererForTypePredicate(Class<?> toRenderType) {
-      this.toRenderType = toRenderType;
-    }
-
-    @Override
-    public boolean apply(Renderer<?> renderer) {
-      return renderer.getType().isAssignableFrom(toRenderType);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
+  private <T> void doRender(Context context, Class<T> type, T decorated) {
+    Iterable<? extends Renderer<?>> renderers = context.getAll(RENDERER_TYPE);
+    for (Renderer<?> renderer : renderers) {
+      if (renderer.getType().isAssignableFrom(type)) {
+        Renderer<T> cast = Types.cast(renderer);
+        try {
+          cast.render(context, decorated);
+          return;
+        } catch (Exception e) {
+          throw new RendererException(renderer, decorated, e);
+        }
       }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      RendererForTypePredicate that = (RendererForTypePredicate) o;
-
-      return toRenderType.equals(that.toRenderType);
     }
 
-    @Override
-    public int hashCode() {
-      return toRenderType.hashCode();
-    }
+    throw new NoSuchRendererException(decorated);
   }
 }

@@ -24,21 +24,22 @@ include \
     "ratpack-groovy-test",
     "ratpack-guice",
     "ratpack-session",
+    "ratpack-session-redis",
     "ratpack-gradle",
     "ratpack-handlebars",
     "ratpack-remote",
     "ratpack-remote-test",
-    "ratpack-jackson",
-    "ratpack-reactor",
     "ratpack-rx",
-    "ratpack-codahale-metrics",
+    "ratpack-dropwizard-metrics",
     "ratpack-h2",
     "ratpack-thymeleaf",
     "ratpack-lazybones",
     "ratpack-hikari",
     "ratpack-newrelic",
     "ratpack-pac4j",
-    "ratpack-hystrix"
+    "ratpack-hystrix",
+    "ratpack-spring-boot",
+    "ratpack-benchmark"
 
 include "perf"
 
@@ -52,7 +53,3 @@ def setBuildFile(project) {
 }
 
 setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-

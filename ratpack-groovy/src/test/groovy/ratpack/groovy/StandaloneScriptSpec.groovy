@@ -16,34 +16,31 @@
 
 package ratpack.groovy
 
-import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.groovy.templating.EphemeralPortScriptBacking
+import ratpack.guice.BindingsSpec
 import ratpack.server.RatpackServer
-import ratpack.test.embed.EmbeddedApplication
-import ratpack.test.embed.EmbeddedApplicationSupport
+import ratpack.server.internal.ServerCapturer
+import ratpack.test.embed.EmbeddedApp
+import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
   File getRatpackFile() {
-    temporaryFolder.newFile("custom.groovy")
+    getApplicationFile("custom.groovy")
   }
 
   @Override
-  EmbeddedApplication createApplication() {
-    new EmbeddedApplicationSupport() {
+  EmbeddedApp createApplication() {
+    new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(getRatpackFile())
-          Thread.start {
-            RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
-              script.run()
-            }
+          ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
+            script.run()
           }
         })
       }
@@ -54,6 +51,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
+        serverConfig { development true }
         handlers {
           get {
             response.send "foo"
@@ -85,7 +83,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     script """
       ratpack {
         bindings {
-          assert delegate instanceof $GroovyBindingsSpec.name
+          assert delegate instanceof $BindingsSpec.name
         }
         handlers {
           assert delegate instanceof $GroovyChain.name

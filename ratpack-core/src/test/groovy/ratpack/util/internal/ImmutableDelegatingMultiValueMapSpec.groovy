@@ -151,7 +151,7 @@ class ImmutableDelegatingMultiValueMapSpec extends Specification {
 
   void 'remove'() {
     when:
-    map.remove()
+    map.remove(null)
 
     then:
     UnsupportedOperationException e = thrown()

@@ -16,22 +16,21 @@
 
 package ratpack.test.exec
 
-import ratpack.exec.ExecControl
+
 import ratpack.exec.ExecutionException
 import ratpack.exec.Promise
 import ratpack.func.Action
-import ratpack.test.UnitTest
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class ExecHarnessSpec extends Specification {
 
   @AutoCleanup
-  def harness = UnitTest.execHarness()
-  private AsyncService service = new AsyncService(harness.control, new AsyncApi())
+  def harness = ExecHarness.harness()
+  private AsyncService service = new AsyncService(new AsyncApi())
 
   static class AsyncApi {
-    public <T> void  returnAsync(T thing, Action<? super T> callback) {
+    public <T> void returnAsync(T thing, Action<? super T> callback) {
       Thread.start {
         callback.execute(thing)
       }
@@ -40,20 +39,18 @@ class ExecHarnessSpec extends Specification {
 
   static class AsyncService {
 
-    private final ExecControl execControl
     private final AsyncApi api
 
-    AsyncService(ExecControl execControl, AsyncApi api) {
-      this.execControl = execControl
+    AsyncService(AsyncApi api) {
       this.api = api
     }
 
     public Promise<Void> fail() {
-      execControl.promise { it.error(new RuntimeException("!!!")) }
+      Promise.of { it.error(new RuntimeException("!!!")) }
     }
 
     public <T> Promise<T> promise(T value) {
-      execControl.promise { f ->
+      Promise.of { f ->
         api.returnAsync(value) {
           f.success(it)
         }
@@ -64,19 +61,19 @@ class ExecHarnessSpec extends Specification {
 
   def "can test async service"() {
     when:
-    def value = harness.execute {
+    def result = harness.yield {
       service.promise("foo")
     }
 
     then:
-    value == "foo"
+    result.value == "foo"
   }
 
   def "exception thrown by execution is rethrown"() {
     when:
-    harness.execute {
+    harness.yield {
       throw new RuntimeException("!!!")
-    }
+    }.valueOrThrow
 
     then:
     def e = thrown(RuntimeException)
@@ -88,9 +85,9 @@ class ExecHarnessSpec extends Specification {
     This is only a problem when using dynamic Groovy, as a static compiler wouldn't let you write this
      */
     when:
-    harness.execute {
+    harness.yield {
       1
-    }
+    }.valueOrThrow
 
     then:
     thrown ClassCastException
@@ -98,7 +95,7 @@ class ExecHarnessSpec extends Specification {
 
   def "null promise returns null value"() {
     when:
-    def value = harness.execute {
+    def value = harness.yield {
       null
     }
 
@@ -108,9 +105,9 @@ class ExecHarnessSpec extends Specification {
 
   def "failed promise causes exception to be thrown"() {
     when:
-    harness.execute {
+    harness.yield {
       service.fail()
-    }
+    }.valueOrThrow
 
     then:
     def e = thrown RuntimeException
@@ -123,6 +120,13 @@ class ExecHarnessSpec extends Specification {
 
     then:
     thrown ExecutionException
+  }
+
+  def "detects early complete"() {
+    expect:
+    harness.yield { service.promise("foo").route({ it == "foo" }) {} }.complete
+    !harness.yield { service.promise("foo").route({ it == "bar" }) {} }.complete
+    harness.yield { service.fail().onError {}.map {} }.complete
   }
 
 }

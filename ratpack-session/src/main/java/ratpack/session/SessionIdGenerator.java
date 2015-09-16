@@ -16,10 +16,22 @@
 
 package ratpack.session;
 
-import ratpack.http.Request;
+import io.netty.util.AsciiString;
 
+import java.util.UUID;
+
+/**
+ * Strategy interface for generating unique session ids.
+ * <p>
+ * The {@link SessionModule} provides a default implementation based on {@link UUID}.
+ */
 public interface SessionIdGenerator {
 
-  String generateSessionId(Request request);
+  /**
+   * Generates a new identifier to be used as a session id.
+   *
+   * @return a new session id
+   */
+  AsciiString generateSessionId();
 
 }

@@ -25,13 +25,12 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import ratpack.form.Form;
 import ratpack.form.UploadedFile;
 import ratpack.handling.Context;
-import ratpack.handling.RequestOutcome;
 import ratpack.http.MediaType;
 import ratpack.http.Request;
 import ratpack.http.TypedData;
 import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.http.internal.DefaultMediaType;
-import ratpack.func.Action;
+import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.io.IOException;
@@ -41,23 +40,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public abstract class FormDecoder {
 
-  public static Form parseForm(Context context, TypedData requestBody) throws RuntimeException {
+  public static Form parseForm(Context context, TypedData body, MultiValueMap<String, String> base) throws RuntimeException {
     Request request = context.getRequest();
     HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());
     HttpRequest nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
-    nettyRequest.headers().add(HttpHeaders.Names.CONTENT_TYPE, request.getBody().getContentType().toString());
+    nettyRequest.headers().add(HttpHeaderNames.CONTENT_TYPE, body.getContentType().toString());
     HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(nettyRequest);
 
-    HttpContent content = new DefaultHttpContent(requestBody.getBuffer());
+    HttpContent content = new DefaultHttpContent(body.getBuffer());
 
     decoder.offer(content);
     decoder.offer(LastHttpContent.EMPTY_LAST_CONTENT);
 
-    Map<String, List<String>> attributes = new LinkedHashMap<>();
+    Map<String, List<String>> attributes = new LinkedHashMap<>(base.getAll());
     Map<String, List<UploadedFile>> files = new LinkedHashMap<>();
 
     try {
@@ -86,12 +85,7 @@ public abstract class FormDecoder {
             FileUpload nettyFileUpload = (FileUpload) data;
             final ByteBuf byteBuf = nettyFileUpload.getByteBuf();
             byteBuf.retain();
-            context.onClose(new Action<RequestOutcome>() {
-              @Override
-              public void execute(RequestOutcome thing) throws Exception {
-                byteBuf.release();
-              }
-            });
+            context.onClose(ro -> byteBuf.release());
 
             MediaType contentType;
             String rawContentType = nettyFileUpload.getContentType();
@@ -100,9 +94,9 @@ public abstract class FormDecoder {
             } else {
               Charset charset = nettyFileUpload.getCharset();
               if (charset == null) {
-                contentType = DefaultMediaType.utf8(rawContentType);
+                contentType = DefaultMediaType.get(rawContentType);
               } else {
-                contentType = DefaultMediaType.utf8(rawContentType + ";charset=" + charset);
+                contentType = DefaultMediaType.get(rawContentType + ";charset=" + charset);
               }
             }
 

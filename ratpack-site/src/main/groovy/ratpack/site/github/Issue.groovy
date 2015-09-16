@@ -17,7 +17,7 @@
 package ratpack.site.github
 
 class Issue {
-  final int number
+  final Integer number
   final String url
   final String title
   final String author

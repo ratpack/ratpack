@@ -19,98 +19,84 @@ package ratpack.gradle
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ApplicationPluginConvention
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.jvm.tasks.Jar
+import ratpack.gradle.continuous.RatpackContinuousRun
 
 class RatpackPlugin implements Plugin<Project> {
 
+  private static final GradleVersion GRADLE_VERSION_BASELINE = GradleVersion.version("2.6")
+
   void apply(Project project) {
+    def gradleVersion = GradleVersion.version(project.gradle.gradleVersion)
 
-    def gradleVersions = project.gradle.gradleVersion.split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
-    def major = gradleVersions[0]
-
-    if (major < 2) {
-      throw new GradleException("Ratpack requires Gradle version 2.0 or later")
+    if (gradleVersion < GRADLE_VERSION_BASELINE) {
+      throw new GradleException("Ratpack requires Gradle version ${GRADLE_VERSION_BASELINE.version} or later")
     }
 
-    project.plugins.apply(JavaPlugin)
     project.plugins.apply(ApplicationPlugin)
 
-    project.configurations { springloaded }
-
-    def ratpackApp = new SpringloadedUtil(project, project.configurations['springloaded'])
-
-    def ratpackDependencies = project.extensions.create("ratpack", RatpackDependencies, project.dependencies)
-
-    project.dependencies {
-      compile ratpackDependencies.core
-      testCompile ratpackDependencies.test
-    }
-
-    def configureRun = project.task("configureRun")
-    configureRun.doFirst {
-      JavaExec runTask = project.tasks.findByName("run") as JavaExec
-      runTask.with {
-        classpath ratpackApp.springloadedClasspath
-        jvmArgs ratpackApp.springloadedJvmArgs
-        systemProperty "ratpack.reloadable", true
-      }
-    }
-
-    JavaExec run = project.run {
-      dependsOn configureRun
-      workingDir = project.file("src/ratpack")
-    }
-
-    project.mainClassName = "ratpack.launch.RatpackMain"
+    project.plugins.apply(RatpackBasePlugin)
+    RatpackExtension ratpackExtension = project.extensions.findByType(RatpackExtension)
 
     SourceSetContainer sourceSets = project.sourceSets
-    def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
-    testSourceSet.resources.srcDir(run.workingDir)
+    def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+    mainSourceSet.resources.srcDir { ratpackExtension.baseDir }
 
-    def prepareBaseDirTask = project.tasks.create("prepareBaseDir")
-    prepareBaseDirTask.with {
-      group = "Ratpack"
-      description = "Lifecycle task for all tasks that contribute content to 'src/ratpack' (add dependencies to this task)"
+    if (project.gradle.startParameter.continuous) {
+      // duplicated from application plugin
+      def run = project.tasks.replace("run", RatpackContinuousRun)
+
+      def applicationPluginConvention = project.convention.findPlugin(ApplicationPluginConvention)
+      run.description = "Runs this project as a JVM application"
+      run.group = "application"
+      run.classpath = mainSourceSet.runtimeClasspath
+      run.conventionMapping.main = { applicationPluginConvention.mainClassName }
+      run.conventionMapping.jvmArgs = { applicationPluginConvention.applicationDefaultJvmArgs }
     }
 
-    def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
-    appPluginConvention.applicationDistribution.from(run.workingDir) {
-      into "app"
+    project.dependencies {
+      compile ratpackExtension.core
+      testCompile ratpackExtension.test
     }
 
-    appPluginConvention.applicationDistribution.from prepareBaseDirTask.taskDependencies
-    run.dependsOn prepareBaseDirTask
-    project.tasks.getByName("processTestResources").dependsOn prepareBaseDirTask
-
-    CreateStartScripts startScripts = project.startScripts
-    startScripts.with {
-      doLast {
-        unixScript.text = unixScript.text.replaceAll('CLASSPATH=.+\n', '$0cd "\\$APP_HOME/app"\n')
-        windowsScript.text = windowsScript.text.replaceAll('CLASSPATH=.+\r\n', '$0cd "%APP_HOME%/app"\r\n')
+    Jar jarTask = project.tasks.jar as Jar
+    def mainDistribution = project.extensions.getByType(DistributionContainer).getByName("main")
+    mainDistribution.contents {
+      from(mainSourceSet.output) {
+        into "app"
       }
-    }
-
-    project.plugins.all {
-      if (project.plugins.hasPlugin('com.github.johnrengelman.shadow')) {
-        def shadowJarTask = project.tasks.findByName('shadowJar')
-        shadowJarTask.with {
-          dependsOn prepareBaseDirTask
-          from run.workingDir
+      eachFile {
+        if (it.name == jarTask.archiveName) {
+          it.exclude()
         }
       }
     }
 
-    project.plugins.withType(IdeaPlugin) {
-      project.rootProject.ideaWorkspace.dependsOn(configureRun)
-      new IdeaConfigurer(run).execute(project)
+    CreateStartScripts startScripts = project.startScripts
+    startScripts.with {
+      doLast {
+        unixScript.text = unixScript.text.replaceAll('CLASSPATH=(")?(.+)(")?\n', 'CLASSPATH=$1\\$APP_HOME/app:$2$3\ncd "\\$APP_HOME/app"\n')
+        windowsScript.text = windowsScript.text.replaceAll('set CLASSPATH=?(.+)\r\n', 'set CLASSPATH=%APP_HOME%/app;$1\r\ncd "%APP_HOME%/app"\r\n')
+      }
     }
+
+    JavaExec runTask = project.tasks.findByName("run") as JavaExec
+
+    def configureRun = project.task("configureRun")
+    configureRun.doFirst {
+      runTask.with {
+        systemProperty "ratpack.development", true
+      }
+    }
+
+    runTask.dependsOn configureRun
   }
 
 }

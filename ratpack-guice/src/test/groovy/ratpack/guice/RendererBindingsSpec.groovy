@@ -18,11 +18,16 @@ package ratpack.guice
 
 import com.google.inject.AbstractModule
 import ratpack.error.ServerErrorHandler
-import ratpack.error.DebugErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.handling.Context
 import ratpack.render.NoSuchRendererException
 import ratpack.render.RendererSupport
 import ratpack.test.internal.RatpackGroovyDslSpec
+
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 
 class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
@@ -33,21 +38,21 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  static class StringRenderer extends RendererSupport<String> {
+  static class InstantRenderer extends RendererSupport<Instant> {
     @Override
-    void render(Context context, String object) {
-      context.response.send("text/string", object.toString())
+    void render(Context context, Instant object) {
+      context.response.send("text/instant", DateTimeFormatter.ISO_INSTANT.format(object))
     }
   }
 
   def "bound renderers are usable"() {
     when:
     bindings {
-      add new AbstractModule() {
+      module new AbstractModule() {
         protected void configure() {
           bind(IntRenderer)
-          bind(StringRenderer)
-          bind(ServerErrorHandler).to(DebugErrorHandler)
+          bind(InstantRenderer)
+          bind(ServerErrorHandler).to(DefaultDevelopmentErrorHandler)
         }
       }
     }
@@ -56,8 +61,8 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
       get("int") {
         render 1
       }
-      get("string") {
-        render "abc"
+      get("instant") {
+        render Instant.EPOCH
       }
       get("none") {
         render new LinkedList()
@@ -66,16 +71,16 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get("int")) {
-      body.asString() == "1"
-      contentType == "text/integer;charset=UTF-8"
+      body.text == "1"
+      headers.get(CONTENT_TYPE) == "text/integer"
     }
-    with(get("string")) {
-      body.asString() == "abc"
-      contentType == "text/string;charset=UTF-8"
+    with(get("instant")) {
+      body.text == "1970-01-01T00:00:00Z"
+      headers.get(CONTENT_TYPE) == "text/instant"
     }
     with(get("none")) {
       statusCode == 500
-      body.asString().contains(NoSuchRendererException.name)
+      body.text.contains(NoSuchRendererException.name)
     }
   }
 

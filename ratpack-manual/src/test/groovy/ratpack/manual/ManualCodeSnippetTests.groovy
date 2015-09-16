@@ -16,25 +16,37 @@
 
 package ratpack.manual
 
+import com.google.common.base.StandardSystemProperty
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
+import ratpack.manual.snippets.executer.GroovySnippetExecuter
+import ratpack.manual.snippets.executer.JavaSnippetExecuter
+import ratpack.manual.snippets.executer.SnippetExecuter
 import ratpack.manual.snippets.extractor.ManualSnippetExtractor
 import ratpack.manual.snippets.fixture.*
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
-  public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
-    "language-groovy groovy-chain-dsl": new GroovyChainDslFixture(),
-    "language-groovy groovy-ratpack"  : new GroovyRatpackDslFixture(),
-    "language-groovy groovy-handlers" : new GroovyHandlersFixture(),
-    "language-groovy gradle"          : new GradleFixture(),
-    "language-groovy tested"          : new GroovyScriptFixture(),
-    "language-java"                   : new JavaExampleClassFixture()
+  public static final LinkedHashMap<String, SnippetExecuter> FIXTURES = [
+    "language-groovy groovy-chain-dsl": new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
+    "language-groovy groovy-ratpack"  : new GroovySnippetExecuter(true, new GroovyRatpackDslNoRunFixture()),
+    "language-groovy groovy-handlers" : new GroovySnippetExecuter(true, new GroovyHandlersFixture()),
+    "language-groovy gradle"          : new GroovySnippetExecuter(false, new GradleFixture()),
+    "language-groovy tested"          : new GroovySnippetExecuter(true, new GroovyScriptFixture()),
+    "language-java"                   : new JavaSnippetExecuter(new SnippetFixture()),
+    "language-java hello-world"       : new HelloWorldAppSnippetExecuter(new JavaSnippetExecuter(new SnippetFixture())),
+    "language-groovy hello-world"     : new HelloWorldAppSnippetExecuter(new GroovySnippetExecuter(true, new GroovyScriptRatpackDslFixture())),
+    "language-groovy hello-world-grab": new HelloWorldAppSnippetExecuter(new GroovySnippetExecuter(true, new GroovyScriptRatpackDslFixture() {
+      @Override
+      String transform(String text) {
+        return text.readLines()[1..-1].join("\n")
+      }
+    }))
   ]
 
   @Override
   protected void addTests(CodeSnippetTests tests) {
-    File cwd = new File(System.getProperty("user.dir"))
+    File cwd = new File(StandardSystemProperty.USER_DIR.value())
     File root
     if (new File(cwd, "ratpack-manual.gradle").exists()) {
       root = cwd.parentFile
@@ -44,8 +56,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
     def content = new File(root, "ratpack-manual/src/content/chapters")
 
-    FIXTURES.each { selector, fixture ->
-      ManualSnippetExtractor.extract(content, selector, fixture).each {
+    FIXTURES.each { selector, executer ->
+      ManualSnippetExtractor.extract(content, selector, executer).each {
         tests.add(it)
       }
     }

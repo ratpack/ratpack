@@ -16,6 +16,13 @@
 
 package ratpack.test;
 
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.registry.Registry;
+import ratpack.registry.RegistrySpec;
+import ratpack.server.RatpackServer;
+import ratpack.test.http.TestHttpClient;
+
 import java.net.URI;
 
 /**
@@ -28,11 +35,46 @@ import java.net.URI;
  */
 public interface ApplicationUnderTest {
 
+  static CloseableApplicationUnderTest of(RatpackServer ratpackServer) {
+    return of(() -> ratpackServer);
+  }
+
+  static CloseableApplicationUnderTest of(Factory<? extends RatpackServer> ratpackServer) {
+    return new ServerBackedApplicationUnderTest() {
+      @Override
+      protected RatpackServer createServer() throws Exception {
+        return ratpackServer.create();
+      }
+    };
+  }
+
+  static CloseableApplicationUnderTest of(Class<?> mainClass) {
+    return new MainClassApplicationUnderTest(mainClass);
+  }
+
+  static CloseableApplicationUnderTest of(Class<?> mainClass, Action<? super RegistrySpec> action) throws Exception {
+    return new MainClassApplicationUnderTest(mainClass) {
+      @Override
+      protected Registry createOverrides(Registry serverRegistry) throws Exception {
+        return Registry.of(action);
+      }
+    };
+  }
+
   /**
    * The address of the application under test, which is guaranteed to be accepting requests.
    *
    * @return The address of the application under test, which is guaranteed to be accepting requests
    */
   URI getAddress();
+
+  /**
+   * Creates a new test HTTP client that tests this application.
+   *
+   * @return a new test HTTP client that tests this application
+   */
+  default TestHttpClient getHttpClient() {
+    return TestHttpClient.testHttpClient(this);
+  }
 
 }

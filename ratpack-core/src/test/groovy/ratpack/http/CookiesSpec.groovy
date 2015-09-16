@@ -16,6 +16,9 @@
 
 package ratpack.http
 
+import ratpack.handling.Context
+import ratpack.handling.Handler
+import ratpack.handling.HandlerDecorator
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class CookiesSpec extends RatpackGroovyDslSpec {
@@ -59,4 +62,37 @@ class CookiesSpec extends RatpackGroovyDslSpec {
     getText("get/a") == "null"
   }
 
+  def "can finalize cookies before sending"() {
+    given:
+    bindings {
+      multiBindInstance(HandlerDecorator.prepend(new CookieHandler()))
+    }
+
+    handlers {
+      get("get/:name") {
+        response.send request.oneCookie(pathTokens.name) ?: "null"
+      }
+
+      get("set/:name/:value") {
+        response.cookie(pathTokens.name, pathTokens.value)
+        response.send()
+      }
+    }
+
+    when:
+    getText("set/a/1")
+
+    then:
+    getText("get/a") == "1"
+    getText("get/id") == "id"
+
+  }
+
+  class CookieHandler implements Handler {
+    @Override
+    void handle(Context context) throws Exception {
+      context.response.beforeSend { it.cookie('id', 'id') }
+      context.next()
+    }
+  }
 }

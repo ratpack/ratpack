@@ -19,6 +19,7 @@ package ratpack.site
 import groovy.util.logging.Slf4j
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
+import ratpack.util.RatpackVersion
 import spock.lang.Specification
 
 @Slf4j
@@ -27,10 +28,8 @@ class LinkCrawlSpec extends Specification {
   def "site has no bad links"() {
     given:
     def aut = new RatpackSiteUnderTest()
-    aut.mockGithubData()
 
-    def dontCrawl = ["/manual/current", "/manual/0.9.0"]
-    def allowBroken = ["http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk", "http://lea.verou.me/"]
+    def allowBroken = ["http://www.sparkjava.com", "http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk", "http://lea.verou.me/", "http://www.yourkit.com", "http://thecodingdesigner.com"]
 
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
@@ -39,7 +38,7 @@ class LinkCrawlSpec extends Specification {
 
       @Override
       boolean isCrawlable(Link link) {
-        if (dontCrawl.any { link.uri.path.startsWith(it) }) {
+        if (link.uri.path.startsWith("/manual") && !link.uri.path.startsWith("/manual/${RatpackVersion.version - "-SNAPSHOT"}")) {
           false
         } else {
           super.isCrawlable(link)
@@ -57,7 +56,7 @@ class LinkCrawlSpec extends Specification {
 
       @Override
       void addPageErrors(Link link, Response response) {
-        response.document?.text()?.findAll(~$/\[.+?]\(.+?\(.+?\)\)/$)?.each {
+        response.document?.text()?.findAll(~$/\[.+]\(.+\)/$)?.each {
           link.errors << new BadMarkdownLinkSyntax(it)
         }
         super.addPageErrors(link, response)
@@ -66,7 +65,7 @@ class LinkCrawlSpec extends Specification {
 
     when:
     def visited = crawler.crawl()
-    def broken = visited.findAll {it.errors.size() > 0 }
+    def broken = visited.findAll { it.errors.size() > 0 }
     def brokenByLevel = broken.groupBy { link -> allowBroken.any { link.uri.toString().startsWith(it) } ? "warn" : "error" }
     def errored = new PrettyPrintCollection(brokenByLevel["error"] ?: [])
     def warned = new PrettyPrintCollection(brokenByLevel["warn"] ?: [])

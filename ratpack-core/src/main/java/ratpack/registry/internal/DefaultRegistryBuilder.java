@@ -18,11 +18,10 @@ package ratpack.registry.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Factory;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 
-import static ratpack.registry.Registries.join;
+import java.util.function.Supplier;
 
 public class DefaultRegistryBuilder implements RegistryBuilder {
 
@@ -35,23 +34,15 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
   }
 
   @Override
-  public <O> RegistryBuilder add(Class<? super O> type, O object) {
-    builder.add(new DefaultRegistryEntry<>(TypeToken.of(type), object));
+  public <O> RegistryBuilder add(TypeToken<? super O> type, O object) {
+    builder.add(new DefaultRegistryEntry<>(type, object));
     ++size;
     return this;
   }
 
   @Override
-  public RegistryBuilder add(Object object) {
-    @SuppressWarnings("unchecked")
-    Class<? super Object> type = (Class<? super Object>) object.getClass();
-    ++size;
-    return add(type, object);
-  }
-
-  @Override
-  public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
-    builder.add(new LazyRegistryEntry<>(TypeToken.of(type), factory));
+  public <O> RegistryBuilder addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    builder.add(new LazyRegistryEntry<>(type, supplier));
     ++size;
     return this;
   }
@@ -60,15 +51,10 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
   public Registry build() {
     ImmutableList<RegistryEntry<?>> entries = builder.build();
     if (entries.size() == 1) {
-      return new CachingRegistry(new SingleEntryRegistry(entries.get(0)));
+      return new SingleEntryRegistry(entries.get(0));
     } else {
-      return new CachingRegistry(new MultiEntryRegistry(entries));
+      return CachingRegistry.of(new MultiEntryRegistry(entries.reverse()));
     }
-  }
-
-  @Override
-  public Registry build(Registry parent) {
-    return join(parent, build());
   }
 
 }

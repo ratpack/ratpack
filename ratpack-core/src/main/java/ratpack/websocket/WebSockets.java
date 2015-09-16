@@ -16,12 +16,45 @@
 
 package ratpack.websocket;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.util.CharsetUtil;
+import org.reactivestreams.Publisher;
 import ratpack.func.Function;
 import ratpack.handling.Context;
-import ratpack.launch.LaunchConfig;
+import ratpack.server.ServerConfig;
+import ratpack.stream.Streams;
 import ratpack.websocket.internal.DefaultWebSocketConnector;
 import ratpack.websocket.internal.WebSocketEngine;
+import ratpack.websocket.internal.WebsocketBroadcastSubscriber;
 
+import java.nio.CharBuffer;
+
+/**
+ * WebSockets support for Ratpack.
+ * <p>
+ * An example that broadcasts strings to a websocket every second:
+ * <pre class="java-chain-dsl">{@code
+ * import org.reactivestreams.Publisher;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.websocket.WebSockets;
+ *
+ * import java.time.Duration;
+ *
+ * import static ratpack.stream.Streams.periodically;
+ *
+ * chain.get("whatever", context -> {
+ *   Publisher<String> stream = periodically(context, Duration.ofSeconds(1), i ->
+ *     i < 5 ? i.toString() : null
+ *   );
+ *
+ *   WebSockets.websocketBroadcast(context, stream);
+ * });
+ * }</pre>
+ *
+ * @see <a href="https://developer.mozilla.org/en-US/docs/WebSockets/Writing_WebSocket_client_applications">Writing WebSocket client applications</a>
+ */
 public abstract class WebSockets {
 
   public static <T> WebSocketConnector<T> websocket(Context context, Function<WebSocket, T> openAction) {
@@ -29,7 +62,40 @@ public abstract class WebSockets {
   }
 
   public static void websocket(Context context, WebSocketHandler<?> handler) {
-    WebSocketEngine.connect(context, "/", context.get(LaunchConfig.class).getMaxContentLength(), handler);
+    WebSocketEngine.connect(context, "/", context.get(ServerConfig.class).getMaxContentLength(), handler);
   }
 
+  /**
+   * Sets up a websocket that sends the published Strings to a client.
+   * <p>
+   * This takes the place of a {@link Streams#bindExec(Publisher)} call.
+   *
+   * @param context the request handling context
+   * @param broadcaster a {@link Publisher} of Strings to send to the websocket client
+   */
+  public static void websocketBroadcast(final Context context, final Publisher<String> broadcaster) {
+    ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+    websocketByteBufBroadcast(context, Streams.map(broadcaster, s ->
+        ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(s), CharsetUtil.UTF_8)
+    ));
+  }
+
+  /**
+   * Sets up a websocket that sends the published byte buffers to a client.
+   * <p>
+   * This takes the place of a {@link Streams#bindExec(Publisher)} call.
+   *
+   * @param context the request handling context
+   * @param broadcaster a {@link Publisher} of {@link ByteBuf}s to send to the websocket client
+   */
+  public static void websocketByteBufBroadcast(final Context context, final Publisher<ByteBuf> broadcaster) {
+    websocket(context, new AutoCloseWebSocketHandler<AutoCloseable>() {
+      @Override
+      public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
+        WebsocketBroadcastSubscriber subscriber = new WebsocketBroadcastSubscriber(webSocket);
+        Streams.bindExec(broadcaster).subscribe(subscriber);
+        return subscriber;
+      }
+    });
+  }
 }

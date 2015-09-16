@@ -19,17 +19,20 @@ package ratpack.func;
 /**
  * An object that creates another.
  *
- * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
+ * Factories are expected to create a new object each time.
+ * Implementors should explain there behaviour if they do not do this.
  *
- * @param <T> The type of object that this factory creates.
+ * @param <T> the type of object that this factory creates
  */
+@FunctionalInterface
 public interface Factory<T> {
 
   /**
    * Creates a new object.
    *
-   * @return A newly created object.
+   * @return a newly created object
+   * @throws Exception any
    */
-  T create();
+  T create() throws Exception;
 
 }

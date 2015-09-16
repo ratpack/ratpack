@@ -18,9 +18,9 @@ package ratpack.handling
 
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.error.internal.DefaultProductionErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -61,7 +61,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "can inject"() {
     when:
     handlers {
-      handler new InjectedHandler()
+      all new InjectedHandler()
     }
 
     then:
@@ -84,15 +84,50 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  static class InjectedOptionalHandler1 extends InjectionHandler {
+    @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
+    protected handle(Context context, Optional<FileSystemBinding> fileSystemBinding) {
+      assert fileSystemBinding.get().is(context.get(FileSystemBinding))
+      context.render("ok")
+    }
+  }
+
+  static class InjectedOptionalHandler2 extends InjectionHandler {
+    @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
+    protected handle(Context context, Optional<Exception> exceptionOptional) {
+      assert !exceptionOptional.isPresent()
+      context.render("ok")
+    }
+  }
 
   def "can inject more than one"() {
     when:
     handlers {
-      handler new Injected2Handler()
+      all new Injected2Handler()
     }
 
     then:
-    text == DefaultServerErrorHandler.name
+    text == DefaultProductionErrorHandler.name
+  }
+
+  def "can inject optional"() {
+    when:
+    handlers {
+      all new InjectedOptionalHandler1()
+    }
+
+    then:
+    text == "ok"
+  }
+
+  def "can inject missing"() {
+    when:
+    handlers {
+      all new InjectedOptionalHandler2()
+    }
+
+    then:
+    text == "ok"
   }
 
   static class InjectedBadHandler extends InjectionHandler {
@@ -104,9 +139,9 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       register {
-        add ServerErrorHandler, new DebugErrorHandler()
+        add ServerErrorHandler, new DefaultDevelopmentErrorHandler()
       }
-      handler new InjectedBadHandler()
+      all new InjectedBadHandler()
     }
 
     then:
@@ -116,43 +151,43 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "can inject from request registry"() {
     when:
     bindings {
-      bind 10
+      bindInstance 10
     }
     handlers {
-      handler {
-        request.register("foo")
+      all {
+        request.add("foo")
         next()
       }
-      handler new InjectedPrimitivesHandler()
+      all new InjectedPrimitivesHandler()
     }
 
     then:
     text == "10:foo"
   }
 
-  def "context registry shadows request registry"() {
+  def "request registry shadows context registry"() {
     when:
     bindings {
-      bind 10
-      bind "bar"
+      bindInstance 10
+      bindInstance "bar"
     }
     handlers {
-      handler {
-        request.register("foo")
+      all {
+        request.add("foo")
         next()
       }
-      handler new InjectedPrimitivesHandler()
+      all new InjectedPrimitivesHandler()
     }
 
     then:
-    text == "10:bar"
+    text == "10:foo"
   }
 
   @Unroll
   def "injection handler accessibility #injectionHandler.class"() {
     when:
     handlers {
-      handler injectionHandler
+      all injectionHandler
     }
 
     then:
@@ -184,7 +219,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      handler new GenericInjectionHandler()
+      all new GenericInjectionHandler()
     }
 
     then:

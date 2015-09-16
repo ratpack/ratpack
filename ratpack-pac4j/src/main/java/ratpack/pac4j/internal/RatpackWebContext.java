@@ -23,78 +23,77 @@ import com.google.common.collect.Sets;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
 import ratpack.form.Form;
+import ratpack.form.internal.DefaultForm;
+import ratpack.form.internal.FormDecoder;
 import ratpack.handling.Context;
 import ratpack.http.HttpMethod;
 import ratpack.http.MediaType;
 import ratpack.http.Request;
+import ratpack.http.TypedData;
 import ratpack.server.PublicAddress;
-import ratpack.session.store.SessionStorage;
+import ratpack.session.SessionData;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-/**
- * Adapts a {@link ratpack.handling.Context} object to be usable as a {@link org.pac4j.core.context.WebContext}.
- * In order to separate foreground from background operations, methods that are part of {@code WebContext} should not
- * send the response; instead, they should store the information and only send the response as part of {@link #sendResponse()}.
- */
 public class RatpackWebContext implements WebContext {
-  private final Context context;
-  private String responseContent = "";
-  private Form form;
 
-  /**
-   * Constructs a new instance.
-   *
-   * @param context The context to adapt
-   */
-  public RatpackWebContext(Context context) {
-    this.context = context;
+  private final Context context;
+  private final SessionData session;
+  private final Request request;
+  private final Form form;
+
+  private String responseContent = "";
+
+  public RatpackWebContext(Context ctx, TypedData body, SessionData session) {
+    this.context = ctx;
+    this.session = session;
+    this.request = ctx.getRequest();
+
+    if (isFormAvailable(request, body)) {
+      this.form = FormDecoder.parseForm(ctx, body, MultiValueMap.empty());
+    } else {
+      this.form = new DefaultForm(MultiValueMap.empty(), MultiValueMap.empty());
+    }
   }
 
   @Override
   public String getRequestParameter(String name) {
-    String value = context.getRequest().getQueryParams().get(name);
-    if (value == null && isFormAvailable()) {
-      value = getForm().get(name);
-    }
-    return value;
+    return Optional.ofNullable(request.getQueryParams().get(name))
+      .orElseGet(() -> form.get(name));
   }
 
   @Override
   public Map<String, String[]> getRequestParameters() {
-    if (isFormAvailable()) {
-      return flattenMap(combineMaps(context.getRequest().getQueryParams(), getForm()));
-    } else {
-      return flattenMap(context.getRequest().getQueryParams().getAll());
-    }
+    return flattenMap(combineMaps(request.getQueryParams(), form));
   }
 
   @Override
   public String getRequestHeader(String name) {
-    return context.getRequest().getHeaders().get(name);
+    return request.getHeaders().get(name);
   }
 
   @Override
   public void setSessionAttribute(String name, Object value) {
     if (value == null) {
-      getSessionStorage().remove(name);
+      session.remove(name);
     } else {
-      getSessionStorage().put(name, value);
+      session.set(name, value, session.getJavaSerializer());
     }
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return getSessionStorage().get(name);
+    return session.get(name, session.getJavaSerializer()).orElse(null);
   }
 
   @Override
   public String getRequestMethod() {
-    return context.getRequest().getMethod().getName();
+    return request.getMethod().getName();
   }
 
   @Override
@@ -129,11 +128,11 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public String getFullRequestURL() {
-    return getAddress().toString() + context.getRequest().getUri();
+    return getAddress().toString() + request.getUri();
   }
 
   public void sendResponse(RequiresHttpAction action) {
-    context.getResponse().status(action.getCode(), action.getMessage());
+    context.getResponse().status(action.getCode());
     sendResponse();
   }
 
@@ -146,25 +145,17 @@ public class RatpackWebContext implements WebContext {
     }
   }
 
-  private SessionStorage getSessionStorage() {
-    return context.getRequest().get(SessionStorage.class);
+  public SessionData getSession() {
+    return session;
   }
 
   private URI getAddress() {
-    return context.get(PublicAddress.class).getAddress(context);
+    return context.get(PublicAddress.class).get(context);
   }
 
-  private boolean isFormAvailable() {
-    Request request = context.getRequest();
+  private static boolean isFormAvailable(Request request, TypedData body) {
     HttpMethod method = request.getMethod();
-    return request.getBody().getContentType().isForm() && (method.isPost() || method.isPut());
-  }
-
-  private Form getForm() {
-    if (form == null) {
-      form = context.parse(Form.class);
-    }
-    return form;
+    return body.getContentType().isForm() && (method.isPost() || method.isPut());
   }
 
   private Map<String, List<String>> combineMaps(MultiValueMap<String, String> first, MultiValueMap<String, String> second) {

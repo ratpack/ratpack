@@ -1,0 +1,162 @@
+@mixin divider {
+	$icon-size: 2em;
+	$box-size: $icon-size * 1.5;
+	$leader: rhythm(4);
+	$border-weight: 0.125em;
+	$icon-border-weight: $border-weight * 1.5;
+	$icon-position: ($icon-size * 0.25) - $icon-border-weight;
+  $microphone: 'noun_project_7340.svg';
+  $fedora: 'noun_project_884.svg';
+  $whisky: 'noun_project_7964.svg';
+
+	position: relative;
+	margin-top: $leader;
+
+	&:before {
+		content: " ";
+		position: absolute;
+		top: $leader / -2;
+		left: 1em;
+		right: 1em;
+		height: 0;
+		border-top: $border-weight dotted $black;
+	}
+	.borderradius.svg & {
+		&:after {
+			content: " ";
+			background: {
+				color: $white;
+				size: $icon-size $icon-size;
+				repeat: no-repeat;
+				position: $icon-position $icon-position;
+			}
+			border: {
+				width: $icon-border-weight;
+				style: solid;
+				color: $black;
+				radius: 50%;
+			}
+			position: absolute;
+			top: ($leader / -2) + $border-weight;
+			left: 50%;
+			margin-left: $box-size / -2;
+			margin-top: $box-size / -2;
+			width: $box-size;
+			height: $box-size;
+		}
+		&:nth-of-type(3n+1):after {
+			background-image: url('../images/noun_project_7340.svg');
+		}
+		&:nth-of-type(3n+2):after {
+			background: {
+				image: url('../images/noun_project_884.svg');
+				position: $icon-position 0.15em;
+			}
+		}
+		&:nth-of-type(3n):after {
+			background: {
+				image: url('../images/noun_project_7964.svg');
+				size: 1.75em 1.75em;
+				position: 0.475em 0.475em;
+			}
+		}
+	}
+}
+
+@mixin starburst($font-size: $base-font-size) {
+  $starburst-bitmap-image: 'starburst.png';
+  position: relative;
+  padding-left: (image-width($starburst-bitmap-image) / $font-size) + 0.25em;
+  &:before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: image-width($starburst-bitmap-image);
+    height: image-height($starburst-bitmap-image);
+    display: inline-block;
+    z-index: 1;
+    content: " ";
+    background: {
+      image: inline-image('starburst.svg');
+      repeat: no-repeat;
+      size: contain;
+    }
+    .no-svg & {
+      background-image: simple-image-url($starburst-bitmap-image);
+    }
+  }
+}
+
+@mixin banner($background-color, $mix-color: $white, $offset: 1rem) {
+  position: relative;
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: -1;
+    @include rem(top, $offset);
+    @include rem(bottom, $offset);
+    background-color: mix($background-color, $mix-color, 50%);
+  }
+
+  > * {
+    @include contrasted-smooth($background-color);
+  }
+}
+
+@mixin frame {
+  // TODO: base this on rems rather than %
+  position: relative;
+  z-index: 0;
+  &:before, &:after {
+    content: " ";
+    position: absolute;
+    top: 4%;
+    left: 2%;
+    width: 96%;
+    height: 92%;
+    z-index: -1;
+    @include backface-visibility(hidden);
+    border: {
+      width: 2px;
+      style: solid;
+      color: transparentize($white, 0.5);
+    }
+    // fix for aliasing on iOS - place a transparent outline just outside the border
+    outline: {
+      width: 2px;
+      style: solid;
+      color: transparent;
+    }
+  }
+  &:before {
+    @include transform(skew(2deg) rotate(-0.5deg));
+  }
+  &:after {
+    @include transform(skewY(0.5deg));
+  }
+}
+
+@mixin overlay-background($color1, $color2: complement($color1)) {
+  position: relative;
+  z-index: 0;
+  &:before, &:after {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    @include background-clip(content-box);
+  }
+  &:before {
+    background-color: transparentize($color1, 0.9);
+    @include translate(2px, 2px);
+  }
+  &:after {
+    background-color: transparentize($color2, 0.9);
+    @include translate(-2px, -2px);
+  }
+}

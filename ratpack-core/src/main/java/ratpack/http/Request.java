@@ -16,17 +16,21 @@
 
 package ratpack.http;
 
-import io.netty.handler.codec.http.Cookie;
+import com.google.common.net.HostAndPort;
+import com.google.common.reflect.TypeToken;
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
+import ratpack.exec.Promise;
 import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;
 
+import java.time.Instant;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * A request to be handled.
  */
-@SuppressWarnings("UnusedDeclaration")
 public interface Request extends MutableRegistry {
 
   /**
@@ -35,6 +39,22 @@ public interface Request extends MutableRegistry {
    * @return The method of the request.
    */
   HttpMethod getMethod();
+
+  /**
+   * The HTTP protocol of the request.
+   *
+   * @return The HTTP protocol of the request.
+   */
+  String getProtocol();
+
+  /**
+   * The raw URI of the request.
+   * <p>
+   * This value may be an absolute URI or an absolute path.
+   *
+   * @return The raw URI of the request.
+   */
+  String getRawUri();
 
   /**
    * The complete URI of the request (path + query string).
@@ -95,7 +115,7 @@ public interface Request extends MutableRegistry {
    *
    * @return the body of the request
    */
-  TypedData getBody();
+  Promise<TypedData> getBody();
 
   /**
    * The request headers.
@@ -103,4 +123,73 @@ public interface Request extends MutableRegistry {
    * @return The request headers.
    */
   Headers getHeaders();
+
+  /**
+   * The type of the data as specified in the {@code "content-type"} header.
+   * <p>
+   * If no {@code "content-type"} header is specified, an empty {@link MediaType} is returned.
+   *
+   * @return The type of the data.
+   * @see ratpack.http.MediaType#isEmpty()
+   */
+  MediaType getContentType();
+
+  /**
+   * The address of the client that initiated the request.
+   *
+   * @return the address of the client that initiated the request
+   */
+  HostAndPort getRemoteAddress();
+
+  /**
+   * The address of the local network interface that received the request.
+   *
+   * @return the address of the network interface that received the request
+   */
+  HostAndPort getLocalAddress();
+
+  /**
+   * A flag representing whether or not the request originated via AJAX.
+   * @return A flag representing whether or not the request originated via AJAX.
+   */
+  boolean isAjaxRequest();
+
+  /**
+   * The timestamp for when this request was received.
+   * Specifically, this is the timestamp of creation of the request object.
+   *
+   * @return the instant timestamp for the request.
+   */
+  Instant getTimestamp();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request add(Class<? super O> type, O object);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request add(TypeToken<? super O> type, O object);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Request add(Object object);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
+
 }

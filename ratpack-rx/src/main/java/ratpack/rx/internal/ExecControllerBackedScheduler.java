@@ -17,8 +17,6 @@
 package ratpack.rx.internal;
 
 import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.func.Action;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action0;
@@ -34,11 +32,6 @@ public class ExecControllerBackedScheduler extends Scheduler {
   public ExecControllerBackedScheduler(ExecController execController) {
     this.execController = execController;
     this.delegateScheduler = Schedulers.from(execController.getEventLoopGroup());
-  }
-
-  @Override
-  public int parallelism() {
-    return execController.getNumThreads();
   }
 
   @Override
@@ -60,12 +53,7 @@ public class ExecControllerBackedScheduler extends Scheduler {
 
         @Override
         public void call() {
-          execController.start(new Action<Execution>() {
-            @Override
-            public void execute(Execution execution) throws Exception {
-              delegate.call();
-            }
-          });
+          execController.fork().start(execution -> delegate.call());
         }
       }
 

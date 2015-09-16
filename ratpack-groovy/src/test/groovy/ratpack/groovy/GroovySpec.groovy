@@ -16,6 +16,8 @@
 
 package ratpack.groovy
 
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.func.Action
 import ratpack.handling.Chain
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -25,7 +27,7 @@ class GroovySpec extends RatpackGroovyDslSpec {
   def "can use chain method to wrap chain"() {
     when:
     handlers {
-      handler chain(new Action<Chain>() {
+      all chain(new Action<Chain>() {
         @Override
         void execute(Chain thing) throws Exception {
           Groovy.chain(thing) {
@@ -42,13 +44,43 @@ class GroovySpec extends RatpackGroovyDslSpec {
   def "can use chain method to create action"() {
     when:
     handlers {
-      handler chain(Groovy.chain {
+      all chain(Groovy.chain {
         get("foo") { render "bar" }
       })
     }
 
     then:
     getText("foo") == "bar"
+  }
+
+  class MyHandlers implements Action<Chain> {
+    @Override
+    void execute(Chain chain) throws Exception {
+      Groovy.chain(chain) {
+        get { // if this line moves, the test below will start failing
+          // no response
+        }
+      }
+    }
+  }
+
+  def "dangling closure handler is reported"() {
+    given:
+    serverConfig {
+      development(true)
+    }
+
+    bindings {
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
+    }
+
+    when:
+    handlers {
+      all chain(new MyHandlers())
+    }
+
+    then:
+    text == "No response sent for GET request to / (last handler: closure at line 60 of GroovySpec.groovy)"
   }
 
 }

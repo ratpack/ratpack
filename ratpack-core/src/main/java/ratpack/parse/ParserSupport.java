@@ -16,13 +16,14 @@
 
 package ratpack.parse;
 
-import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
+import com.google.common.reflect.TypeToken;
 
 /**
  * A convenience superclass for {@link Parser} implementations.
  * <p>
  * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
- * <pre class="java">
+ * <pre class="java">{@code
+ * import ratpack.exec.Promise;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
@@ -30,14 +31,13 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * import ratpack.parse.ParserSupport;
  * import ratpack.parse.ParseException;
  * import ratpack.util.Types;
- * import ratpack.func.Action;
- * import ratpack.registry.RegistrySpec;
  *
  * import java.io.UnsupportedEncodingException;
  *
- * import ratpack.test.UnitTest;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
+ *
+ * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *
@@ -56,49 +56,39 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *
  *   // A parser for this type
  *   public static class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
- *     public MaxLengthStringParser() {
- *       super("text/plain");
- *     }
- *
- *     public &lt;T&gt; T parse(Context context, TypedData requestBody, Parse&lt;T, StringParseOpts&gt; parse) throws UnsupportedEncodingException {
+ *     public <T> T parse(Context context, TypedData body, Parse<T, StringParseOpts> parse) throws UnsupportedEncodingException {
  *       if (!parse.getType().getRawType().equals(String.class)) {
  *         return null;
  *       }
  *
- *       String rawString = requestBody.getText();
- *       if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *       String rawString = body.getText();
+ *       StringParseOpts opts = parse.getOpts().orElse(new StringParseOpts(rawString.length()));
+ *       if (rawString.length() < opts.getMaxLength()) {
  *         return Types.cast(rawString);
  *       } else {
- *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
+ *         return Types.cast(rawString.substring(0, opts.getMaxLength()));
  *       }
  *     }
  *   }
  *
  *   public static class ToUpperCaseHandler implements Handler {
- *     public void handle(Context context) throws ParseException {
- *       String string = context.parse(String.class, new StringParseOpts(5));
- *       context.render(string);
+ *     public void handle(Context context) throws Exception {
+ *       context.parse(String.class, new StringParseOpts(5)).then(string -> context.render(string));
  *     }
  *   }
  *
  *   // unit test
- *   public static void main(String[] args) {
- *     HandlingResult result = UnitTest.handle(new ToUpperCaseHandler(), new Action&lt;RequestFixture&gt;() {
- *       public void execute(RequestFixture fixture) throws Exception {
+ *   public static void main(String[] args) throws Exception {
+ *     HandlingResult result = RequestFixture.handle(new ToUpperCaseHandler(), fixture ->
  *         fixture
  *           .body("123456", "text/plain")
- *           .registry(new Action&lt;RegistrySpec&gt;() {
- *             public void execute(RegistrySpec registry) {
- *               registry.add(new MaxLengthStringParser());
- *             }
- *           });
- *       }
- *     });
+ *           .registry(registry -> registry.add(new MaxLengthStringParser()))
+ *     );
  *
- *     assert result.rendered(String.class).equals("12345");
+ *     assertEquals("12345", result.rendered(String.class));
  *   }
  * }
- * </pre>
+ * }</pre>
  *
  * @see NoOptParserSupport
  * @param <O> the type of option object this parser accepts
@@ -106,24 +96,20 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
 abstract public class ParserSupport<O> implements Parser<O> {
 
   private final Class<O> optsType;
-  private final String contentType;
 
   /**
    * Constructor.
-   *
-   * @param contentType the type of request this parser can handle
    */
-  protected ParserSupport(String contentType) {
-    this.contentType = contentType;
-    this.optsType = findImplParameterTypeAtIndex(getClass(), ParserSupport.class, 0);
-  }
+  protected ParserSupport() {
+    TypeToken<O> typeToken = new TypeToken<O>(getClass()) {
+    };
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final String getContentType() {
-    return contentType;
+    if (typeToken.getType() instanceof Class) {
+      @SuppressWarnings("unchecked") Class<O> rawType = (Class<O>) typeToken.getRawType();
+      this.optsType = rawType;
+    } else {
+      throw new IllegalArgumentException("Type parameter O of ParserSupport must be a Class");
+    }
   }
 
   /**

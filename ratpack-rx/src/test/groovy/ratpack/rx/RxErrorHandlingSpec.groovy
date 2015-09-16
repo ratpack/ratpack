@@ -18,29 +18,26 @@ package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
-import ratpack.groovy.test.GroovyUnitTest
+import ratpack.exec.Promise
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
-import rx.exceptions.CompositeException
+import rx.Subscriber
+import rx.exceptions.OnErrorNotImplementedException
 import rx.functions.Action0
-import rx.functions.Action1
-
-import static ratpack.groovy.test.TestHttpClients.testHttpClient
-import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
-import static ratpack.rx.RxRatpack.observe
-import static ratpack.rx.RxRatpack.subscriber
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   static class MessagePrintingErrorHandler implements ServerErrorHandler {
-    List<Exception> errors = []
+    List<Throwable> errors = []
 
     @Override
-    void error(Context context, Exception exception) throws Exception {
-      errors << exception
-      context.render("threw exception")
+    void error(Context context, Throwable throwable) throws Exception {
+      errors << throwable
+      context.render("threw throwable")
     }
   }
 
@@ -50,12 +47,12 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   def setup() {
     RxRatpack.initialize()
     bindings {
-      bind ServerErrorHandler, errorHandler
+      bindInstance ServerErrorHandler, errorHandler
     }
   }
 
-  Exception getThrownException() {
-    assert text == "threw exception"
+  Throwable getThrownException() {
+    assert text == "threw throwable"
     errorHandler.errors.last()
   }
 
@@ -63,9 +60,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
-          it.error(error)
-        })) subscribe {
+        Promise.error(error).observe().subscribe {
           render "got to end"
         }
       }
@@ -75,13 +70,26 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == error
   }
 
+  def "observable sequence without error handler fulfills with Error subclass"() {
+    when:
+    def e = new Error("Error")
+    handlers {
+      get {
+        Promise.error(e).observe().subscribe {
+          render "got to end"
+        }
+      }
+    }
+
+    then:
+    thrownException == e
+  }
+
   def "no error handler for successful promise that throws"() {
     when:
     handlers {
       get {
-        observe(promise({
-          it.success("")
-        })) subscribe {
+        Promise.value("").observe().subscribe {
           throw error
         }
       }
@@ -95,12 +103,8 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
-          it.success("")
-        })) subscribe {
-          observe(promise({
-            it.error(error)
-          })) subscribe {
+        Promise.value("").observe().subscribe {
+          Promise.error(error).observe().subscribe {
             render "got to end"
           }
         }
@@ -115,12 +119,8 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        observe(promise({
-          it.success("")
-        })) subscribe {
-          observe(promise({
-            it.success("")
-          })) subscribe {
+        Promise.value("").observe().subscribe {
+          Promise.value("").observe().subscribe {
             throw error
           }
         }
@@ -136,20 +136,18 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def otherError = new RuntimeException("other")
     handlers {
       get {
-        observe(promise({
-          it.error(error)
-        })) subscribe({
+        Promise.error(error).observe().subscribe {
           render "success"
-        }, {
+        } {
           throw otherError
-        } as Action1)
+        }
       }
     }
 
-    CompositeException cause = thrownException.cause as CompositeException
-
     then:
-    cause.exceptions == [error, otherError]
+    def t = thrownException
+    t instanceof RuntimeException
+    t.suppressed.length == 1
   }
 
   def "subscription without error handler results in error forwarded to context error handler"() {
@@ -229,7 +227,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
           next()
         }
       }
-      handler {
+      all {
         throw e
       }
     }
@@ -241,11 +239,11 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can use two different rx ratpack apps in same jvm"() {
     when:
-    def app1 = embeddedApp {
-      bindings {
-        bind ServerErrorHandler, new ServerErrorHandler() {
+    def app1 = GroovyEmbeddedApp.of {
+      registryOf {
+        add ServerErrorHandler, new ServerErrorHandler() {
           @Override
-          void error(Context context, Exception exception) throws Exception {
+          void error(Context context, Throwable throwable) throws Exception {
             context.render "app1"
           }
         }
@@ -254,12 +252,11 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         get { Observable.error(new Exception("1")).subscribe() }
       }
     }
-    def client1 = testHttpClient(app1)
-    def app2 = embeddedApp {
-      bindings {
-        bind ServerErrorHandler, new ServerErrorHandler() {
+    def app2 = GroovyEmbeddedApp.of {
+      registryOf {
+        add ServerErrorHandler, new ServerErrorHandler() {
           @Override
-          void error(Context context, Exception exception) throws Exception {
+          void error(Context context, Throwable throwable) throws Exception {
             context.render "app2"
           }
         }
@@ -268,13 +265,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         get { Observable.error(new Exception("2")).subscribe() }
       }
     }
-    def client2 = testHttpClient(app2)
-
-    app2.server.start()
 
     then:
-    client1.text == "app1"
-    client2.text == "app2"
+    app1.httpClient.text == "app1"
+    app2.httpClient.text == "app2"
   }
 
   def "can use rx in a unit test"() {
@@ -282,21 +276,36 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Exception("!")
 
     when:
-    def result = GroovyUnitTest.handle({ Observable.error(e).subscribe() } as Handler) {
+    def result = GroovyRequestFixture.handle({ Observable.error(e).subscribe() } as Handler) {
 
     }
 
     then:
-    result.exception == e
+    result.exception(Exception) == e
   }
 
   def "error handler is invoked even when error occurs on different thread"() {
     given:
     handlers {
       get { ExecController execController ->
-        promise { f ->
+        Promise.of { f ->
           execController.executor.execute {
-            Observable.error(error).subscribe(subscriber(f))
+            Observable.error(error).subscribe(new Subscriber() {
+              @Override
+              void onCompleted() {
+
+              }
+
+              @Override
+              void onError(Throwable e) {
+                f.error(e)
+              }
+
+              @Override
+              void onNext(Object o) {
+
+              }
+            })
           }
         } then {
           render "unexpected"
@@ -310,6 +319,54 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     errorHandler.errors == [error]
+  }
+
+  def "composed observable errors"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just(1).
+          flatMap { Observable.error(e) }.
+          subscribe { render "onNext" }
+      }
+    }
+
+    then:
+    thrownException == e
+  }
+
+  def "exception thrown by oncomplete throwns"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Subscriber<Integer>() {
+            @Override
+            void onCompleted() {
+              throw e
+            }
+
+            @Override
+            void onError(Throwable t) {
+              throw new OnErrorNotImplementedException(t)
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    then:
+    thrownException == e
   }
 
 }

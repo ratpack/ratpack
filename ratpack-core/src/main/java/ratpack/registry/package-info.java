@@ -23,6 +23,5 @@
  * See {@link ratpack.registry.Registry} for examples of how registries are used by handlers.
  *
  * @see ratpack.registry.Registry
- * @see ratpack.registry.Registries
  */
 package ratpack.registry;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,101 @@
 
 package ratpack.session
 
-import ratpack.error.ServerErrorHandler
-import ratpack.error.DebugErrorHandler
-import ratpack.session.store.MapSessionsModule
-import ratpack.session.store.SessionStorage
-import ratpack.session.store.SessionStore
+import com.google.inject.AbstractModule
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
+  boolean supportsSize = true
+
   def setup() {
     modules << new SessionModule()
-    modules << new MapSessionsModule(10, 5)
-    bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(SimpleErrorHandler)
+      }
     }
   }
 
   def "can use session"() {
     when:
     handlers {
-      get(":v") { Session session ->
-        render session.id
+      get { Session session ->
+        session
+          .set("foo", "bar")
+          .then {
+          render session.require("foo")
+        }
       }
     }
 
     then:
-    getText("a") == getText("b")
+    text == "bar"
   }
 
-  def "can store session vars"() {
+  def "session is available via request"() {
     when:
     handlers {
-      get("") { SessionStorage storage ->
-        render storage.value.toString()
+      get {
+        request.get(Session)
+          .set("foo", "bar")
+          .then {
+          render request.get(Session).require("foo")
+        }
       }
-      get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value.toString()
+    }
+
+    then:
+    text == "bar"
+  }
+
+  def "can store strings"() {
+    when:
+    handlers {
+      get { Session session ->
+        render session.require("value")
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+          render pathTokens.value
+        }
+      }
+    }
+
+    and:
+    getText("set/foo") == "false"
+
+    then:
+    getText() == "foo"
+  }
+
+  static class Holder1 implements Serializable {
+    String value
+  }
+
+  static class Holder2 implements Serializable {
+    String value
+  }
+
+  def "can store objects"() {
+    when:
+    handlers {
+      get { Session session ->
+        render session.require(Holder1).map { it.value }
+      }
+      get("set/:value") { Session session ->
+        def value = pathTokens.value
+        render session
+          .set(new Holder1(value: value))
+          .map {
+          value
+        }
       }
     }
 
@@ -64,22 +121,50 @@ class SessionSpec extends RatpackGroovyDslSpec {
     getText() == "foo"
   }
 
-  def "can invalidate session vars"() {
+  def "objects are differentiated"() {
     when:
     handlers {
-      get("") { SessionStorage storage ->
-        render storage.value ?: "null"
+      get { Session session ->
+        session.data.then {
+          it.set(new Holder1(value: "1"))
+          it.set(new Holder2(value: "2"))
+          render "ok"
+        }
       }
-      get("set/:value") { SessionStorage storage ->
-        storage.value = pathTokens.value
-        render storage.value ?: "null"
+      get("get") { Session session ->
+        session.data.then {
+          render it.require(Holder1).value + it.require(Holder2).value
+        }
+      }
+    }
+
+    and:
+    get() // put data
+
+    then:
+    getText("get") == "12"
+  }
+
+  def "can invalidate session vars"() {
+    if (!supportsSize) {
+      return
+    }
+
+    when:
+    handlers {
+      get { Session session ->
+        render session.get("value").map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        render session.set("value", pathTokens.value).map {
+          pathTokens.value
+        }
       }
       get("invalidate") { Session session ->
-        session.terminate()
-        response.send()
+        render session.terminate().map { "ok" }
       }
-      get("size") { SessionStore store ->
-        render store.size().toString()
+      get("size") { SessionStore storeAdapter ->
+        render storeAdapter.size().map { it.toString() }
       }
     }
 
@@ -89,48 +174,128 @@ class SessionSpec extends RatpackGroovyDslSpec {
     then:
     getText() == "foo"
     getText("size") == "1"
-
-    when:
-    getText("invalidate")
-
-    then:
+    getText("invalidate") == "ok"
     getText() == "null"
-    getText("size") == "1"
+    getText("size") == "0"
   }
 
   def "sessions are created on demand"() {
+    if (!supportsSize) {
+      return
+    }
+
     when:
     handlers {
       get { SessionStore store ->
-        render store.size().toString()
+        render store.size().map { it.toString() }
       }
-      get("store") { SessionStorage storage ->
-        render "ok"
+      get("readOnly") { Session session ->
+        render session.data.map { "ok" }
+      }
+      get("write") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
     then:
     getText() == "0"
-    getText("store") == "ok"
+    getText("readOnly") == "ok"
+    getText("write") == "ok"
+    getText() == "1"
+    getText("write") == "ok"
     getText() == "1"
   }
 
   def "session cookies are only set when needed"() {
     when:
     handlers {
-      get("foo") {
+      get("nowrite") {
         response.send("foo")
       }
-      get("bar") { SessionStorage store ->
-        response.send("bar")
+      get("write") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
       }
     }
 
     then:
-    get("foo").cookies().isEmpty()
-    get("bar").cookies().JSESSIONID != null
+    get("nowrite").headers.get("Set-Cookie") == null
+    get("write").headers.get("Set-Cookie").contains('JSESSIONID')
 
-    // null because the session id is already set
-    get("bar").cookies().JSESSIONID == null
+    // null because the session cookieSessionId is already set
+    !get("write").headers.get("Set-Cookie")?.contains('JSESSIONID')
+  }
+
+  def "session cookies are all HTTPOnly"() {
+    when:
+    handlers {
+      get("foo") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+    }
+
+    then:
+    def values = get("foo").headers.getAll("Set-Cookie")
+    values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are not HTTPOnly"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.httpOnly = false
+      }
+
+    }
+    handlers {
+      get("foo") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
+  }
+
+  def "session cookies are all Secure, can be transmitted via secure protocol"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule, {
+        it.secure = true
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+    }
+
+    when:
+    def values = get("foo").headers.getAll("Set-Cookie")
+
+    then:
+    values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
+  }
+
+  def "session is not available in a non request execution"() {
+    when:
+    handlers {
+      get {
+        Promise.of { d ->
+          Execution.fork().onError { d.error(it) }.start {
+            Execution.current().get(Session)
+          }
+        } then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text.contains "com.google.inject.OutOfScopeException: Cannot access Key[type=ratpack.session.Session, annotation=[none]] outside of a request"
   }
 }

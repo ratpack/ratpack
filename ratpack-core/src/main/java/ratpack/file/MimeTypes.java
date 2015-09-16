@@ -16,8 +16,6 @@
 
 package ratpack.file;
 
-import java.util.Set;
-
 /**
  * A registry for mime types.
  *
@@ -33,12 +31,5 @@ public interface MimeTypes {
    * @return The mime type for the file name.
    */
   String getContentType(String name);
-
-  /**
-   * Enumerate the known mime types.
-   *
-   * @return The mime types that the system is aware of.
-   */
-  Set<String> getKnownMimeTypes();
 
 }

@@ -16,16 +16,26 @@
 
 package ratpack.registry.internal
 
+import ratpack.func.Action
 import ratpack.registry.NotInRegistryException
-import spock.lang.Specification
+import ratpack.registry.Registry
+import ratpack.registry.RegistrySpec
+import ratpack.test.internal.registry.RegistryContractSpec
 
-class SimpleMutableRegistrySpec extends Specification {
+class SimpleMutableRegistrySpec extends RegistryContractSpec {
 
-  def r = new SimpleMutableRegistry<Object>()
+  def r = new SimpleMutableRegistry()
+
+  @Override
+  Registry build(Action<? super RegistrySpec> spec) {
+    def r = new SimpleMutableRegistry()
+    spec.execute(r)
+    r
+  }
 
   def "empty mutable registry"() {
     expect:
-    r.maybeGet(String) == null
+    !r.maybeGet(String).isPresent()
     r.remove(String)
 
     when:
@@ -37,7 +47,7 @@ class SimpleMutableRegistrySpec extends Specification {
 
   def "add to registry"() {
     when:
-    r.register("foo")
+    r.add("foo")
 
     then:
     r.get(String) == "foo"
@@ -59,14 +69,14 @@ class SimpleMutableRegistrySpec extends Specification {
 
   def "ordering"() {
     when:
-    r.register("foo")
-    r.register("bar")
+    r.add("foo")
+    r.add("bar")
 
     then:
-    r.get(String) == "foo"
-    r.get(CharSequence) == "foo"
-    r.getAll(String).toList() == ["foo", "bar"]
-    r.getAll(CharSequence).toList() == ["foo", "bar"]
+    r.get(String) == "bar"
+    r.get(CharSequence) == "bar"
+    r.getAll(String).toList() == ["bar", "foo"]
+    r.getAll(CharSequence).toList() == ["bar", "foo"]
 
     when:
     r.remove(String)
@@ -83,7 +93,7 @@ class SimpleMutableRegistrySpec extends Specification {
   def "laziness"() {
     given:
     def called = false
-    r.registerLazy(Integer) { called = true; 2 }
+    r.addLazy(Integer) { called = true; 2 }
 
     when:
     r.maybeGet(String) == null

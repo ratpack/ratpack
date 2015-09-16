@@ -1,12 +1,14 @@
-[![Build Status](https://drone.io/github.com/ratpack/ratpack/status.png)](https://drone.io/github.com/ratpack/ratpack/latest)
-[ ![Codeship Status for ratpack/ratpack](https://www.codeship.io/projects/ec47dd80-f2b8-0131-9544-4a285323a758/status)](https://www.codeship.io/projects/27726)
+[![Build Status](https://snap-ci.com/ratpack/ratpack/branch/master/build_image)](https://snap-ci.com/ratpack/ratpack/branch/master)
+[![codecov.io](http://codecov.io/github/ratpack/ratpack/coverage.svg?branch=master)](http://codecov.io/github/ratpack/ratpack?branch=master)
+
+[![Ratpack.io](/ratpack-site/src/assets/images/ratpack-logo.png?raw=true)](https://ratpack.io)
 
 # What is Ratpack?
 
 Ratpack is a simple, capable, toolkit for creating high performance web applications.
 
 Ratpack is built on Java and the Netty event-driven networking engine. 
-The API is optimized for Groovy and Java 8, though Java 7 can also be used.
+The API is optimized for Groovy and Java 8.
 
 Optional Google Guice integration provides a foundation for scaling your application in size in a managed way.
 

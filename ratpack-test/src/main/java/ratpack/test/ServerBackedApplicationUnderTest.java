@@ -17,29 +17,23 @@
 package ratpack.test;
 
 import ratpack.server.RatpackServer;
-import ratpack.func.Factory;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
-public class ServerBackedApplicationUnderTest implements ApplicationUnderTest, Closeable {
+public abstract class ServerBackedApplicationUnderTest implements CloseableApplicationUnderTest {
 
   private RatpackServer server;
-  private final Factory<RatpackServer> serverFactory;
 
-  public ServerBackedApplicationUnderTest(Factory<RatpackServer> serverFactory) {
-    this.serverFactory = serverFactory;
-  }
+  protected abstract RatpackServer createServer() throws Exception;
 
   @Override
   public URI getAddress() {
     if (server == null) {
-      server = serverFactory.create();
       try {
+        server = createServer();
         server.start();
       } catch (Exception e) {
         throw uncheck(e);
@@ -68,7 +62,7 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest, C
 
   }
 
-  public void close() throws IOException {
+  public void close() {
     stop();
   }
 }

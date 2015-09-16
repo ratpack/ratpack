@@ -68,15 +68,15 @@ Instead, we need to use the “blocking” API…
 ```language-java
 import ratpack.handling.InjectionHandler;
 import ratpack.handling.Context;
-import ratpack.func.Action;
+import ratpack.exec.Blocking;
 
-import ratpack.test.UnitTest;
+import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
-import ratpack.test.handling.RequestFixtureAction;
 
-import java.util.concurrent.Callable;
 import java.util.Collections;
 import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
 
 public class Example {
 
@@ -89,131 +89,48 @@ public class Example {
   public static class DeletingHandler extends InjectionHandler {
     void handle(final Context context, final Datastore datastore) {
       final int days = context.getPathTokens().asInt("days");
-      context.blocking(new Callable<Integer>() {
-        public Integer call() throws IOException {
-          return datastore.deleteOlderThan(days);
-        }
-      }).then(new Action<Integer>() {
-        public void execute(Integer result) {
-          context.render(result + " records deleted");
-        }
-      });
+      Blocking.get(() -> datastore.deleteOlderThan(days))
+        .then(i -> context.render(i + " records deleted"));
     }
   }
 
   // Unit test
-  public static void main(String[] args) {
-    HandlingResult result = UnitTest.handle(new DeletingHandler(), new RequestFixtureAction() {
-      protected void execute() {
-        pathBinding(Collections.singletonMap("days", "10"));
-        getRegistry().add(Datastore.class, new Datastore() {
-          public int deleteOlderThan(int days) throws IOException {
-            return days;
-          }
-        });
-      }
-    });
+  public static void main(String... args) throws Exception {
+    HandlingResult result = RequestFixture.handle(new DeletingHandler(), fixture -> fixture
+        .pathBinding(Collections.singletonMap("days", "10"))
+        .registry(r -> r.add(Datastore.class, days -> days))
+    );
 
-    assert result.rendered(String.class).equals("10 records deleted");
+    assertEquals("10 records deleted", result.rendered(String.class));
   }
 }
 ```
 
-The use of anonymous inner classes adds some syntax weight here.
-However, this API is very Java 8 [lambda syntax](http://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html) friendly.
-
-In Groovy, it's much nicer…
-
-```language-groovy groovy-handlers
-import ratpack.groovy.handling.GroovyHandler
-import ratpack.groovy.handling.GroovyContext
-import ratpack.func.Action
-import java.util.concurrent.Callable
-
-public interface Datastore {
-  int deleteOlderThan(int days) throws IOException
-}
-
-class DeletingHandler extends GroovyHandler {
-  void handle(GroovyContext context) {
-    int days = context.pathTokens.asInt("days")
-    def datastore = context.get(Datastore)
-
-    context.blocking {
-      datastore.deleteOlderThan(days)
-    } then {
-      context.render("$it records deleted")
-    }
-  }
-}
-
-// Or when using the handlers dsl
-handlers {
-  get("deleteOlderThan/:days") { Datastore datastore ->
-    blocking {
-      datastore.deleteOlderThan(pathTokens.asInt("days"))
-    } then {
-      context.render("$it records deleted")
-    }
-  }
-}
-```
-
-The `Callable` submitted as the blocking operation is executed asynchronously (i.e. the `blocking()` method returns instantly), in a separate thread pool.
+The function submitted as the blocking operation is executed asynchronously (i.e. the `Blocking.get()` method returns a promise instantly), in a separate thread pool.
 The result that it returns will processed back on a request processing (i.e. compute) thread.
 
-See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking\(java.util.concurrent.Callable\)) method for more details.
+See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.func.Factory-) method for more details.
 
 ## Performing async operations
 
-The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise\(ratpack.func.Action\)) for integrating with async APIs.
+The [Promise#of(Upstream<T>>)](api/ratpack/exec/Promise.html#of-ratpack.exec.Upstream-) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
-```language-groovy groovy-handlers
-import ratpack.handling.*;
-import ratpack.exec.Fulfiller;
-import ratpack.func.Action;
+```language-java
+import ratpack.test.embed.EmbeddedApp;
+import ratpack.exec.Promise;
 
-public class PromiseUsingJavaHandler implements Handler {
-  public void handle(final Context context) {
-    context.promise(new Action<Fulfiller<String>>() {
-      public void execute(final Fulfiller<String> fulfiller) {
-        new Thread(new Runnable() {
-          public void run() {
-            fulfiller.success("hello world!");
-          }
-        }).start();
-      }
-    }).then(new Action<String>() {
-      public void execute(String string) {
-        context.render(string);
-      }
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp.fromHandler(ctx ->
+        Promise.of((f) ->
+            new Thread(() -> f.success("hello world")).start()
+        ).then(ctx::render)
+    ).test(httpClient -> {
+      assertEquals("hello world", httpClient.getText());
     });
-  }
-}
-
-class PromiseUsingGroovyHandler implements Handler {
-  void handle(Context context) {
-    context.promise { Fulfiller<String> fulfiller ->
-      Thread.start {
-        fulfiller.success("hello world!")
-      }
-    } then { String string ->
-      context.render(string)
-    }
-  }
-}
-
-// Or when using the handlers dsl
-handlers {
-  get {
-    promise { Fulfiller<String> fulfiller ->
-      Thread.start {
-        fulfiller.success("hello world!")
-      }
-    } then {
-      render(it)
-    }
   }
 }
 ```

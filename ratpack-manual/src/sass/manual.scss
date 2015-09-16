@@ -1,0 +1,283 @@
+@import "compass";
+// common stuff from /ratpack-stylesheets
+@import "palette";
+@import "settings";
+@import "breakpoints";
+@import "reset";
+@import "utilities";
+@import "typography";
+@import "layout";
+@import "prism";
+@import "ratpack-logo";
+@import "theme-elements";
+@import "page-elements";
+
+$pagination-background: $purple;
+
+body.single-toc {
+  @media (min-width: $tablet-portrait) {
+    padding-left: 15em;
+  }
+}
+
+.pagination {
+	@include margin-leader(1);
+	@include margin-trailer(1);
+	@include banner($background-color: $pagination-background, $offset: 0.5rem);
+
+	ul {
+		@extend .content;
+		@include clearfix;
+		margin: {
+			top: 0;
+			bottom: 0;
+		}
+		list-style: none;
+	}
+	li {
+		width: $column-width * 4;
+		float: left;
+		padding: 0;
+
+		&.prev {
+			text-align: left;
+			@media (min-width: $tablet-portrait) {
+				padding-left: 1em;
+			}
+		}
+		&.next {
+			text-align: right;
+			@media (min-width: $tablet-portrait) {
+				padding-right: 1em;
+			}
+		}
+		&.index {
+			text-align: center;
+			&:first-child {
+				margin-left: $column-width * 4;
+			}
+		}
+	}
+
+	a {
+		display: inline-block;
+		max-width: 100%;
+		@include ellipsis;
+
+		font: {
+			family: $header-font-family;
+			style: italic;
+			weight: 700;
+		}
+		vertical-align: middle;
+		@include adjust-font-size-to($to-size: 18px, $lines: 2);
+		@include link-colors(contrast-color($pagination-background), $yellow);
+
+		&:before, &:after {
+			font: {
+				style: normal;
+			}
+		}
+
+		&[rel="prev"] {
+			&:before {
+				content: "«\00a0";
+			}
+		}
+
+		&[rel="next"] {
+			&:after {
+				content: "\00a0»";
+			}
+		}
+	}
+}
+
+nav.nav-toc {
+
+  @media (min-width: $tablet-portrait) {
+    font-size: .95em;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    overflow: auto;
+    width: 15em;
+    height: 100%;
+    background: $white;
+    z-index: 1000;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    > ol > li {
+      > ol {
+        display: none;
+      }
+    }
+
+    li.active-guide {
+      font-weight: bold;
+      li {
+        font-weight: normal;
+      }
+    }
+
+    li.active-chapter {
+      ol {
+        display: block;
+      }
+    }
+  }
+}
+
+.toc {
+	@include margin-leader(1);
+	@include margin-trailer(1);
+
+	> ul, > ol {
+		@include content-width;
+		@include clearfix;
+
+		margin-top: 0;
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	h3 {
+		margin: 0;
+	}
+
+	li {
+		list-style: none;
+	}
+
+	.toc_number {
+		display: inline-block;
+		margin-right: 1em;
+		margin-top: 0.25em;
+	}
+
+	.manual-links {
+		@extend .pagination;
+
+		h2 {
+			display: none;
+			@include adjust-font-size-to($to-size: 18px, $lines: 2);
+			vertical-align: middle;
+		}
+
+		a {
+			font: {
+				family: $header-font-family;
+				style: italic;
+				weight: 700;
+			}
+			margin-right: 1em;
+			@include link-colors(contrast-color($pagination-background), $yellow);
+
+			&.download {
+				@media (max-width: $tablet-portrait - 1) {
+					display: none;
+				}
+			}
+		}
+
+		@media (min-width: $tablet-portrait) {
+			h2 {
+				display: block;
+				float: right;
+				margin: 0;
+				@include pull(1);
+			}
+			a {
+				&:first-of-type {
+					@include push(1);
+				}
+			}
+		}
+	}
+}
+
+.single-toc .toc .manual-links {
+  h2 {
+    display: block;
+    float: right;
+    margin: 0;
+    @include pull(1);
+  }
+  @media (max-width: $tablet-half) {
+    h2 {
+      display: none;
+    }
+  }
+}
+
+
+nav.all-toc > ul > li:first-child > {
+	a:first-of-type, span:first-of-type {
+		font-size: 120%;
+		font-weight: bold;
+		margin-bottom: 0.2em;
+	}
+}
+
+.manual {
+	@include margin-leader(1);
+	@include margin-trailer(2);
+
+  @media (min-width: $tablet-portrait) {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: .9375em;
+    padding-right: .9375em;
+  }
+
+	.chapter {
+		@include content-width;
+		@include margin-trailer(1);
+		@include divider;
+	}
+
+	// Broken in Sass 3.4.6 - https://github.com/sass/sass/issues/1476
+	//  em, :not(pre) > code {
+	//    @include hyphenation;
+	//  }
+
+	blockquote {
+		background-color: lightgrey;
+		padding: 0.1em 1em;
+		border-radius: 4px;
+	}
+}
+
+#page-footer {
+	h2, p {
+		margin: {
+			top: 0;
+			bottom: 0;
+		}
+	}
+
+	h2 {
+		@include adjust-font-size-to($to-size: $footer-font-size, $from-size: $footer-font-size);
+		text-transform: uppercase;
+	}
+
+	@media (min-width: $tablet-portrait) {
+		h2, p {
+			width: $column-width * 6;
+			float: left;
+		}
+
+		p {
+			text-align: right;
+		}
+	}
+}
+
+

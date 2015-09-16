@@ -25,12 +25,13 @@ import java.nio.file.Paths
 
 class DefaultFileSystemBindingSpec extends Specification {
 
-  @Rule TemporaryFolder temporaryFolder
+  @Rule
+  TemporaryFolder temporaryFolder
 
   FileSystemBinding binding
 
   def setup() {
-    binding = new DefaultFileSystemBinding(temporaryFolder.root.toPath())
+    binding = FileSystemBinding.of(temporaryFolder.root.toPath())
   }
 
   def "absolute paths are resolved relative"() {
@@ -45,7 +46,7 @@ class DefaultFileSystemBindingSpec extends Specification {
 
   def "non-absolute binding throws exception"() {
     when:
-    new DefaultFileSystemBinding(Paths.get("somewhere"))
+    FileSystemBinding.of(Paths.get("somewhere"))
 
     then:
     thrown(IllegalArgumentException)

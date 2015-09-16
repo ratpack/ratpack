@@ -18,10 +18,12 @@ package ratpack.thymeleaf
 
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.cache.StandardCacheManager
+import org.thymeleaf.fragment.DOMSelectorFragmentSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.thymeleafTemplate
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 
 class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
@@ -29,12 +31,11 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a thymeleaf template from #scenario'() {
     given:
-    launchConfig { other(otherConfig) }
-    file filePath, '<span th:text="${key}"/>'
+    write filePath, '<span th:text="${key}"/>'
 
     when:
     bindings {
-      add new ThymeleafModule(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -46,23 +47,39 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<span>it works!</span>'
 
     where:
-    scenario                    | templatesPrefix | templateName    | filePath                       | otherConfig
-    'default path'              | null            | 'simple'        | 'thymeleaf/simple.html'        | [:]
-    'default nested path'       | null            | 'inside/simple' | 'thymeleaf/inside/simple.html' | [:]
-    'path set in module'        | 'custom'        | 'simple'        | 'custom/simple.html'           | [:]
-    'nested path set in module' | 'custom'        | 'inside/simple' | 'custom/inside/simple.html'    | [:]
-    'path set in config'        | null            | 'simple'        | 'fromConfig/simple.html'       | ['thymeleaf.templatesPrefix': "fromConfig"]
+    scenario                    | templatesPrefix | templateName    | filePath
+    'default path'              | null            | 'simple'        | 'thymeleaf/simple.html'
+    'default nested path'       | null            | 'inside/simple' | 'thymeleaf/inside/simple.html'
+    'path set in module'        | 'custom'        | 'simple'        | 'custom/simple.html'
+    'nested path set in module' | 'custom'        | 'inside/simple' | 'custom/inside/simple.html'
+  }
+
+  void 'can render a thymeleaf template from path set in config'() {
+    given:
+    write 'fromConfig/simple.html', '<span th:text="${key}"/>'
+
+    when:
+    bindings {
+      module ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', key: 'it works!')
+      }
+    }
+
+    then:
+    text == '<span>it works!</span>'
   }
 
   @Unroll
   void 'use default suffix if a #scenario suffix is used'() {
     given:
-    launchConfig { other(otherConfig) }
-    file 'thymeleaf/simple.html', '<span th:text="${text}"/>'
+    write 'thymeleaf/simple.html', '<span th:text="${text}"/>'
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix)
+      module new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
     }
     handlers {
       get {
@@ -74,19 +91,19 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<span>it works!</span>'
 
     where:
-    scenario              | templatesSuffix | otherConfig
-    'empty'               | ''              | [:]
-    'null'                | null            | [:]
-    'empty (from config)' | null            | ['thymeleaf.templatesSuffix': '']
+    scenario              | templatesSuffix | configTemplatesSuffix
+    'empty'               | ''              | null
+    'null'                | null            | null
+    'empty (from config)' | null            | ''
   }
 
   void 'can handle abitrary suffixes'() {
     given:
-    file "thymeleaf/simple${templatesSuffix}", '<span th:text="${text}"/>'
+    write "thymeleaf/simple${templatesSuffix}", '<span th:text="${text}"/>'
 
     when:
     bindings {
-      add new ThymeleafModule(templatesSuffix: templatesSuffix)
+      module new ThymeleafModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -103,10 +120,10 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'missing templates are handled'() {
     given:
-    dir('thymeleaf')
+    mkdir('thymeleaf')
 
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -123,12 +140,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can render a thymeleaf template with variables and messages'() {
     given:
-    file "thymeleaf/simple.properties", 'greeting=Hello {0}'
-    file "thymeleaf/simple.html", '<span th:text="#{greeting(${name})}"/>'
+    write "thymeleaf/simple.properties", 'greeting=Hello {0}'
+    write "thymeleaf/simple.html", '<span th:text="#{greeting(${name})}"/>'
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -142,12 +159,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can render a thymeleaf template with fragments'() {
     given:
-    file "thymeleaf/footer.html", '<div th:fragment="copyright">page footer</div>'
-    file "thymeleaf/page.html", '<div th:include="footer :: copyright"></div>'
+    write "thymeleaf/footer.html", '<div th:fragment="copyright">page footer</div>'
+    write "thymeleaf/page.html", '<div th:include="footer :: copyright"></div>'
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -159,13 +176,40 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<div>page footer</div>'
   }
 
-  void 'surrounding html tags can be removed'() {
+  @Unroll
+  void 'can render a thymeleaf template with #urlType link URL expressions'() {
     given:
-    file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
+    write 'thymeleaf/link.html', "<a th:href=\"${linkExpression}\">link</a>"
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('link')
+      }
+    }
+
+    then:
+    text == "<a href=\"${expectedText}\">link</a>"
+
+    where:
+    urlType             | linkExpression                       | expectedText
+    'absolute'          | '@{http://example.com/absolute}'     | 'http://example.com/absolute'
+    'page-relative'     | '@{page-relative/link}'              | 'page-relative/link'
+    'context-relative'  | '@{/context-relative/link}'          | '/context-relative/link'
+    'server-relative'   | '@{~/server-relative/link}'          | '/server-relative/link'
+    'protocol-relative' | '@{//example.com/protocol-relative}' | '//example.com/protocol-relative'
+  }
+
+  void 'surrounding html tags can be removed'() {
+    given:
+    write 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
+
+    when:
+    bindings {
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -180,11 +224,11 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can handle templates prefix with #scenario slash'() {
     given:
-    file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
+    write 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
     bindings {
-      add new ThymeleafModule(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -204,38 +248,38 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'content types can be set'() {
     given:
-    file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
+    write 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
     bindings {
-      add new ThymeleafModule()
+      module new ThymeleafModule()
     }
     handlers {
-      handler {
+      all {
         render thymeleafTemplate(request.path, text: 'content types', request.queryParams.type)
       }
     }
 
     then:
-    get("simple?type=text/html").contentType == "text/html;charset=UTF-8"
-    get("simple?type=text/xml").contentType == "text/xml;charset=UTF-8"
+    get("simple?type=text/html").headers.get(CONTENT_TYPE) == "text/html"
+    get("simple?type=text/xml").headers.get(CONTENT_TYPE) == "text/xml"
   }
 
   @Unroll
   void 'can configure templates cache with #scenario'() {
     given:
-    file 'thymeleaf/simple.html', 'DUMMY'
+    write 'thymeleaf/simple.html', 'DUMMY'
 
     when:
     TemplateEngine engine = null
     StandardCacheManager cacheManager = null
 
     bindings {
-      add new ThymeleafModule(templatesCacheSize: templatesCacheSize)
+      module new ThymeleafModule(templatesCacheSize: templatesCacheSize)
     }
 
     handlers {
-      handler { TemplateEngine te, StandardCacheManager cm ->
+      all { TemplateEngine te, StandardCacheManager cm ->
         // Get the current engine
         engine = te
         cacheManager = cm
@@ -268,20 +312,44 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can register a custom dialect'() {
     given:
-    file 'thymeleaf/simple.html', '<p hello:sayto="World">Hi ya!</p>'
+    write 'thymeleaf/simple.html', '<p hello:sayto="World">Hi ya!</p>'
 
     when:
     bindings {
-      add new ThymeleafModule()
-      add new HelloDialectModule()
+      module new ThymeleafModule()
+      module new HelloDialectModule()
     }
     handlers {
-      handler {
+      all {
         render thymeleafTemplate('simple')
       }
     }
 
     then:
     text == '<p>Hello, World!</p>'
+  }
+
+  void 'can select a template fragment'() {
+    given:
+    write 'thymeleaf/with-fragment.html', '''
+      <html>
+        <head><title>Whatever</title></head>
+        <body>Just show me this bit</body>
+      </html>'''
+
+    when:
+    bindings {
+      module new ThymeleafModule()
+    }
+
+    handlers {
+      all {
+        render thymeleafTemplate('with-fragment', new DOMSelectorFragmentSpec('body'))
+      }
+    }
+
+    then:
+    text == '<body>Just show me this bit</body>'
+
   }
 }

@@ -19,7 +19,7 @@ description = "Integration with Google Guice for Ratpack applications - https://
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-    "http://google-guice.googlecode.com/git/javadoc"
+    "http://google-guice.googlecode.com/git/javadoc/"
 ]
 
 configurations {
@@ -28,6 +28,11 @@ configurations {
 
 dependencies {
   compile project(":ratpack-core")
-  compile 'com.google.inject:guice:3.0'
-  compile 'com.google.inject.extensions:guice-multibindings:3.0'
+  compile "com.google.inject:guice:$commonVersions.guice", {
+    exclude group: "com.google.guava", module: "guava"
+  }
+  compile "com.google.inject.extensions:guice-multibindings:$commonVersions.guice", {
+    exclude group: "com.google.guava", module: "guava"
+    exclude group: "com.google.inject", module: "guice"
+  }
 }

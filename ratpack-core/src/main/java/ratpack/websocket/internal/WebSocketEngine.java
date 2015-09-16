@@ -28,7 +28,6 @@ import ratpack.handling.Context;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.server.PublicAddress;
-import ratpack.func.Action;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketHandler;
 
@@ -37,17 +36,17 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.SEC_WEBSOCKET_KEY;
-import static io.netty.handler.codec.http.HttpHeaders.Names.SEC_WEBSOCKET_VERSION;
+import static io.netty.handler.codec.http.HttpHeaderNames.SEC_WEBSOCKET_KEY;
+import static io.netty.handler.codec.http.HttpHeaderNames.SEC_WEBSOCKET_VERSION;
 import static io.netty.handler.codec.http.HttpMethod.valueOf;
-import static ratpack.util.ExceptionUtils.toException;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.toException;
+import static ratpack.util.Exceptions.uncheck;
 
 public class WebSocketEngine {
 
   public static <T> void connect(final Context context, String path, int maxLength, final WebSocketHandler<T> handler) {
     PublicAddress publicAddress = context.get(PublicAddress.class);
-    URI address = publicAddress.getAddress(context);
+    URI address = publicAddress.get(context);
     URI httpPath = address.resolve(path);
 
     URI wsPath;
@@ -91,43 +90,32 @@ public class WebSocketEngine {
     public void operationComplete(ChannelFuture future) throws Exception {
       if (future.isSuccess()) {
         final AtomicBoolean open = new AtomicBoolean(true);
-        final WebSocket webSocket = new DefaultWebSocket(context.getDirectChannelAccess().getChannel(), open, new Runnable() {
-          @Override
-          public void run() {
-            try {
-              handler.onClose(new DefaultWebSocketClose<>(false, openResult));
-            } catch (Exception e) {
-              throw uncheck(e);
-            }
+        final WebSocket webSocket = new DefaultWebSocket(context.getDirectChannelAccess().getChannel(), open, () -> {
+          try {
+            handler.onClose(new DefaultWebSocketClose<>(false, openResult));
+          } catch (Exception e) {
+            throw uncheck(e);
           }
         });
 
-        context.getDirectChannelAccess().takeOwnership(new Action<Object>() {
-          @Override
-          public void execute(Object msg) throws Exception {
-            openLatch.await();
-            Channel channel = context.getDirectChannelAccess().getChannel();
-            if (channel.isOpen()) {
-              if (msg instanceof WebSocketFrame) {
-                WebSocketFrame frame = (WebSocketFrame) msg;
-                if (frame instanceof CloseWebSocketFrame) {
-                  open.set(false);
-                  handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                      handler.onClose(new DefaultWebSocketClose<>(true, openResult));
-                    }
-                  });
-                  return;
-                }
-                if (frame instanceof PingWebSocketFrame) {
-                  channel.write(new PongWebSocketFrame(frame.content().retain()));
-                  return;
-                }
-                if (frame instanceof TextWebSocketFrame) {
-                  TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
-                  handler.onMessage(new DefaultWebSocketMessage<>(webSocket, textWebSocketFrame.text(), openResult));
-                }
+        context.getDirectChannelAccess().takeOwnership(msg -> {
+          openLatch.await();
+          Channel channel = context.getDirectChannelAccess().getChannel();
+          if (channel.isOpen()) {
+            if (msg instanceof WebSocketFrame) {
+              WebSocketFrame frame = (WebSocketFrame) msg;
+              if (frame instanceof CloseWebSocketFrame) {
+                open.set(false);
+                handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(future1 -> handler.onClose(new DefaultWebSocketClose<>(true, openResult)));
+                return;
+              }
+              if (frame instanceof PingWebSocketFrame) {
+                channel.write(new PongWebSocketFrame(frame.content().retain()));
+                return;
+              }
+              if (frame instanceof TextWebSocketFrame) {
+                TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
+                handler.onMessage(new DefaultWebSocketMessage<>(webSocket, textWebSocketFrame.text(), openResult));
               }
             }
           }

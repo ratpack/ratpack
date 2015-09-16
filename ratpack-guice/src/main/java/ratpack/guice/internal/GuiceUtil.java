@@ -21,10 +21,11 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.util.Types;
 
 import java.util.Map;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 public abstract class GuiceUtil {
 
@@ -32,11 +33,13 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void search(Injector injector, TypeToken<T> type, Function<Provider<? extends T>, Boolean> transformer) {
-    Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
-    for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
-      TypeLiteral<?> bindingType = keyBindingEntry.getKey().getTypeLiteral();
+    Map<Key<?>, Binding<?>> bindings = injector.getBindings();
+    for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : bindings.entrySet()) {
+      final Key<?> key = keyBindingEntry.getKey();
+      final Binding<?> binding = keyBindingEntry.getValue();
+      TypeLiteral<?> bindingType = key.getTypeLiteral();
       if (type.isAssignableFrom(toTypeToken(bindingType))) {
-        @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) keyBindingEntry.getValue().getProvider();
+        @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) binding.getProvider();
         try {
           if (!transformer.apply(provider)) {
             return;
@@ -53,50 +56,31 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void eachOfType(Injector injector, TypeToken<T> type, final Action<? super T> action) {
-    search(injector, type, new Function<Provider<? extends T>, Boolean>() {
-      @Override
-      public Boolean apply(Provider<? extends T> from) throws Exception {
-        action.execute(from.get());
-        return true;
-      }
+    search(injector, type, from -> {
+      action.execute(from.get());
+      return true;
     });
   }
 
   public static <T> void eachProviderOfType(Injector injector, TypeToken<T> type, final Action<? super Provider<? extends T>> action) {
-    search(injector, type, new Function<Provider<? extends T>, Boolean>() {
-      @Override
-      public Boolean apply(Provider<? extends T> from) throws Exception {
-        action.execute(from);
-        return true;
-      }
+    search(injector, type, from -> {
+      action.execute(from);
+      return true;
     });
-  }
-
-  public static <T> ImmutableList<T> allOfType(Injector injector, TypeToken<T> type) {
-    final ImmutableList.Builder<T> listBuilder = ImmutableList.builder();
-    eachOfType(injector, type, new Action<T>() {
-      @Override
-      public void execute(T thing) throws Exception {
-        listBuilder.add(thing);
-      }
-    });
-    return listBuilder.build();
   }
 
   public static <T> ImmutableList<Provider<? extends T>> allProvidersOfType(Injector injector, TypeToken<T> type) {
     final ImmutableList.Builder<Provider<? extends T>> listBuilder = ImmutableList.builder();
-    eachProviderOfType(injector, type, new Action<Provider<? extends T>>() {
-      @Override
-      public void execute(Provider<? extends T> thing) throws Exception {
-        listBuilder.add(thing);
-      }
-    });
+    eachProviderOfType(injector, type, listBuilder::add);
     return listBuilder.build();
   }
 
   public static <T> TypeToken<T> toTypeToken(TypeLiteral<T> type) {
-    @SuppressWarnings("unchecked") TypeToken<T> typeToken = (TypeToken<T>) TypeToken.of(type.getType());
-    return typeToken;
+    return Types.cast(TypeToken.of(type.getType()));
+  }
+
+  public static <T> TypeLiteral<T> toTypeLiteral(TypeToken<T> type) {
+    return Types.cast(TypeLiteral.get(type.getType()));
   }
 
 }

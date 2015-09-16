@@ -16,83 +16,58 @@
 
 package ratpack.exec;
 
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
-import ratpack.api.NonBlocking;
-import ratpack.func.Action;
+import ratpack.exec.internal.ThreadBinding;
+
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The exec controller manages the execution of operations.
  * <p>
- * The instance for an application can be obtained via the launch config's {@link ratpack.launch.LaunchConfig#getExecController()} method.
+ * The instance for an application can be obtained via the server registry.
  */
 public interface ExecController extends AutoCloseable {
 
   /**
-   * Initiates a new execution with the given action.
+   * Returns the execution controller bound to the current thread, if this is a Ratpack managed compute thread.
    * <p>
-   * The action is guaranteed to be executed on a Ratpack event loop thread.
-   * Therefore, it may not be executed in the calling thread.
-   * <p>
-   * If the action raises an uncaught exception, it will be forwarded to the execution object's {@link Execution#setErrorHandler(ratpack.func.Action) error handler}.
-   * The default implementation just logs the error so it is usually a good idea to call the {@link Execution#setErrorHandler(ratpack.func.Action)} method
-   * with an error handler immediately in the action implementation.
-   * <p>
-   * See {@link ratpack.exec.Execution} for more information about what an execution is in Ratpack.
+   * If called on a non Ratpack compute thread, the returned optional will be empty.
    *
-   * @param action the initial execution segment of the new execution.
+   * @return the execution controller for the current thread
    */
-  @NonBlocking
-  void start(Action<? super Execution> action);
+  static Optional<ExecController> current() {
+    return ThreadBinding.get().map(ThreadBinding::getExecController);
+  }
 
   /**
-   * Provides the current execution that is bound to the current thread.
+   * Returns the execution controller bound to the current thread, or throws an exception if called on a non Ratpack managed compute thread.
    * <p>
-   * If the current thread has no bound execution, this method will throw an {@link ExecutionException}.
-   * The most likely scenario for this to occur is when the current thread is not managed by Ratpack,
-   * which is indicated by the {@link #isManagedThread()} method.
-   * <p>
-   * There's generally no need to call this method in normal application programming.
-   * It is provided to aid integrating execution related tools (e.g. RxJava).
+   * If called on a non Ratpack compute thread, the returned optional will be empty.
    *
-   * @return the current context on the current thread
-   * @throws ExecutionException if this method is called from a thread that is not performing request processing
+   * @return the execution controller for the current thread
+   * @throws UnmanagedThreadException when called from a non Ratpack managed thread
    */
-  Execution getExecution() throws ExecutionException;
+  static ExecController require() throws UnmanagedThreadException {
+    return current().orElseThrow(UnmanagedThreadException::new);
+  }
 
-  /**
-   * Indicates whether the current thread is managed by <b>this</b> execution controller.
-   * <p>
-   * This will return {@code true} if the current thread is either part of the event loop thread pool or blocking thread pool of the
-   * application that is backed by this execution controller.
-   *
-   * @return true if the current thread is managed by this execution controller
-   */
-  boolean isManagedThread();
-
-  /**
-   * A <strong>singleton</strong> that can be used from any managed thread to perform asynchronous or blocking operations.
-   * <p>
-   * The control is typically used by services that are not inherently tied to any specific execution to perform execution operations
-   * such as blocking and forking.
-   * <p>
-   * If you are using the Guice integration, an instance of this type can be injected.
-   *
-   * @return the execution control
-   */
-  ExecControl getControl();
+  ExecStarter fork();
 
   /**
    * The event loop (i.e. computation) executor.
    * <p>
    * This executor wraps Netty's event loop executor to provide callback features by way of Guava's executor extensions.
    * <p>
-   * It is generally preferable to use {@link #start(ratpack.func.Action)} to submit computation work rather than this method,
+   * It is generally preferable to use {@link #fork()} to submit computation work rather than this method,
    * which properly initialises Ratpack's execution infrastructure.
    *
    * @return the executor that performs computation
    */
-  ListeningScheduledExecutorService getExecutor();
+  ScheduledExecutorService getExecutor();
+
+  ExecutorService getBlockingExecutor();
 
   /**
    * The event loop group used by Netty for this application.
@@ -106,7 +81,7 @@ public interface ExecController extends AutoCloseable {
   /**
    * The number of threads that will be used for computation.
    * <p>
-   * This is determined by the {@link ratpack.launch.LaunchConfig#getThreads()} value of the launch config that created this controller.
+   * This is determined by the {@link ratpack.server.ServerConfig#getThreads()} value of the launch config that created this controller.
    *
    * @return the number of threads that will be used for computation
    */

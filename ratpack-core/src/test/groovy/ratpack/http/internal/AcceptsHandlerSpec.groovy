@@ -26,8 +26,8 @@ class AcceptsHandlerSpec extends RatpackGroovyDslSpec {
   def "ok for valid"() {
     when:
     handlers {
-      handler(Handlers.accepts(APPLICATION_JSON, "application/xml"))
-      handler {
+      all(Handlers.accepts(APPLICATION_JSON, "application/xml"))
+      all {
         byContent {
           json {
             render "[]"
@@ -40,13 +40,13 @@ class AcceptsHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.header("Accept", "foo/bar")
+    requestSpec { it.headers.add("Accept", "foo/bar") }
 
     then:
     get().statusCode == 406
 
     when:
-    request.header("Accept", APPLICATION_JSON)
+    requestSpec { it.headers.add("Accept", APPLICATION_JSON) }
 
     then:
     text == "[]"
@@ -54,7 +54,7 @@ class AcceptsHandlerSpec extends RatpackGroovyDslSpec {
 
     when:
     resetRequest()
-    request.header("Accept", "application/xml")
+    requestSpec { it.headers.add("Accept", "application/xml") }
 
     then:
     text == "<foo/>"

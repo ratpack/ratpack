@@ -19,9 +19,11 @@ package ratpack.handling
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
-import ratpack.launch.LaunchConfig
+import ratpack.server.ServerConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.handling.Handlers.chain
@@ -42,11 +44,11 @@ class HandlersSpec extends RatpackGroovyDslSpec {
   def "default services available"() {
     when:
     handlers {
-      handler {
+      all {
         get(ServerErrorHandler)
         get(ClientErrorHandler)
         get(MimeTypes)
-        get(LaunchConfig)
+        get(ServerConfig)
         get(FileSystemBinding)
         response.send "ok"
       }
@@ -60,8 +62,8 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { ExecController execController ->
-        promise { f ->
-          execController.start {
+        Promise.of { f ->
+          Execution.fork().start {
             f.success("ok")
           }
         } then {

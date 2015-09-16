@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +18,32 @@ package ratpack.ssl
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.handling.Handler
-import ratpack.launch.HandlerFactory
-import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigs
+import ratpack.server.ServerConfig
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.launch.LaunchConfigs.Property.HANDLER_FACTORY
-import static ratpack.launch.LaunchConfigs.Property.SSL_KEYSTORE_FILE
-import static ratpack.launch.LaunchConfigs.Property.SSL_KEYSTORE_PASSWORD
-
+@Ignore("TODO - john")
 class KeystoreConfigurationSpec extends Specification {
 
   private static final String KEYSTORE_PATH = "ratpack/ssl/dummy.keystore"
 
-  @Rule TemporaryFolder temporaryFolder
+  @Rule
+  TemporaryFolder temporaryFolder
 
-  static class NullHandlerFactory implements HandlerFactory {
-    @Override
-    Handler create(LaunchConfig launchConfig) throws Exception {
-      return null
-    }
-  }
 
   @Unroll
   def "can configure SSL keystore using a keystore file property that is #description"() {
     given:
     Properties properties = new Properties()
-    properties.setProperty SSL_KEYSTORE_FILE, keystoreFileProperty
-    properties.setProperty SSL_KEYSTORE_PASSWORD, "password"
-    properties.setProperty HANDLER_FACTORY, NullHandlerFactory.name
+    properties.setProperty "", keystoreFileProperty
+    properties.setProperty "", "password"
 
     when:
-    def launchConfig = LaunchConfigs.createWithBaseDir(getClass().classLoader, temporaryFolder.root.toPath(), properties)
+    def serverConfig = ServerConfig.noBaseDir().props(properties).build()
 
     then:
-    launchConfig.getSSLContext() != null
+    serverConfig.getSslContext() != null
 
     where:
     keystoreFileProperty          | description

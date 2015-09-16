@@ -19,37 +19,50 @@ package ratpack.groovy;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
+import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
-import ratpack.groovy.guice.GroovyBindingsSpec;
+import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.GroovyChainAction;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
-import ratpack.groovy.handling.internal.DefaultGroovyChain;
-import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.groovy.internal.RatpackScriptBacking;
-import ratpack.groovy.markup.Markup;
-import ratpack.groovy.markup.internal.DefaultMarkup;
-import ratpack.groovy.markuptemplates.MarkupTemplate;
-import ratpack.groovy.templating.Template;
-import ratpack.groovy.templating.internal.DefaultTemplate;
+import ratpack.groovy.internal.GroovyVersionCheck;
+import ratpack.groovy.internal.ScriptBackedHandler;
+import ratpack.groovy.internal.capture.*;
+import ratpack.groovy.script.ScriptNotFoundException;
+import ratpack.groovy.template.Markup;
+import ratpack.groovy.template.MarkupTemplate;
+import ratpack.groovy.template.TextTemplate;
+import ratpack.guice.BindingsSpec;
+import ratpack.guice.Guice;
 import ratpack.handling.Chain;
-import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
-import ratpack.http.MediaType;
-import ratpack.http.internal.DefaultMediaType;
-import ratpack.launch.LaunchConfig;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
+import ratpack.server.BaseDir;
+import ratpack.server.RatpackServerSpec;
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
+import ratpack.server.internal.BaseDirFinder;
+import ratpack.server.internal.FileBackedReloadInformant;
+import ratpack.util.internal.IoUtils;
 
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.uncheck;
 
 /**
  * Static methods for specialized Groovy integration.
@@ -89,7 +102,7 @@ public abstract class Groovy {
    * <h3>Full Applications</h3>
    * <p>
    * It's also possible to build Groovy Ratpack applications with a traditional class based entry point.
-   * The {@link ratpack.groovy.launch.GroovyRatpackMain} class provides such an entry point.
+   * The {@link ratpack.groovy.GroovyRatpackMain} class provides such an entry point.
    * In such a mode, a script like above is still used to define the application, but the script is no longer the entry point.
    * Ratpack will manage the compilation and execution of the script internally.
    *
@@ -108,14 +121,14 @@ public abstract class Groovy {
    *
    * @see ratpack.groovy.Groovy#ratpack(groovy.lang.Closure)
    */
-  public static interface Ratpack {
+  public interface Ratpack {
 
     /**
-     * Registers the closure used to configure the {@link ratpack.groovy.guice.GroovyBindingsSpec} that will back the application.
+     * Registers the closure used to configure the {@link ratpack.guice.BindingsSpec} that will back the application.
      *
-     * @param configurer The configuration closure, delegating to {@link ratpack.groovy.guice.GroovyBindingsSpec}
+     * @param configurer The configuration closure, delegating to {@link ratpack.guice.BindingsSpec}
      */
-    void bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void bindings(@DelegatesTo(value = BindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
     /**
      * Registers the closure used to build the handler chain of the application.
@@ -124,45 +137,168 @@ public abstract class Groovy {
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
+    /**
+     * Registers the closure used to build the configuration of the server.
+     *
+     * @param configurer The configuration closure, delegating to {@link ServerConfigBuilder}
+     */
+    void serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+
+  }
+
+  public static abstract class Script {
+
+    public static final String DEFAULT_HANDLERS_PATH = "handlers.groovy";
+    public static final String DEFAULT_BINDINGS_PATH = "bindings.groovy";
+    public static final String DEFAULT_APP_PATH = "ratpack.groovy";
+
+    private Script() {
+    }
+
+    public static void checkGroovy() {
+      GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
+    }
+
+    public static Action<? super RatpackServerSpec> app() {
+      return app(false);
+    }
+
+    public static Action<? super RatpackServerSpec> app(boolean staticCompile) {
+      return app(staticCompile, DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1));
+    }
+
+    public static Action<? super RatpackServerSpec> app(Path script) {
+      return app(false, script);
+    }
+
+    public static Action<? super RatpackServerSpec> app(boolean compileStatic, Path script) {
+      return b -> doApp(b, compileStatic, script.getParent(), script);
+    }
+
+    public static Action<? super RatpackServerSpec> app(boolean staticCompile, String... scriptPaths) {
+      return b -> {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+        BaseDirFinder.Result baseDirResult = Arrays.stream(scriptPaths)
+          .map(scriptPath -> BaseDirFinder.find(classLoader, scriptPath))
+          .filter(Optional::isPresent)
+          .map(Optional::get)
+          .findFirst()
+          .orElseThrow(() -> new ScriptNotFoundException(scriptPaths));
+
+        Path baseDir = baseDirResult.getBaseDir();
+        Path scriptFile = baseDirResult.getResource();
+        doApp(b, staticCompile, baseDir, scriptFile);
+      };
+    }
+
+    private static void doApp(RatpackServerSpec definition, boolean staticCompile, Path baseDir, Path scriptFile) throws Exception {
+      String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+
+      RatpackDslClosures closures = new RatpackDslScriptCapture(staticCompile, RatpackDslBacking::new).apply(scriptFile, script);
+      definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.builder().baseDir(baseDir), baseDir), closures.getServerConfig()));
+
+      definition.registry(r -> {
+        return Guice.registry(bindingsSpec -> {
+          bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
+          ClosureUtil.configureDelegateFirst(bindingsSpec, closures.getBindings());
+        }).apply(r);
+      });
+
+      definition.handler(r -> {
+        return Groovy.chain(r, closures.getHandlers());
+      });
+    }
+
+    private static ServerConfigBuilder loadPropsIfPresent(ServerConfigBuilder serverConfigBuilder, Path baseDir) {
+      Path propsFile = baseDir.resolve(BaseDir.DEFAULT_BASE_DIR_MARKER_FILE_PATH);
+      if (Files.exists(propsFile)) {
+        serverConfigBuilder.props(propsFile);
+      }
+      return serverConfigBuilder;
+    }
+
+    public static Function<Registry, Handler> handlers() {
+      return handlers(false);
+    }
+
+    public static Function<Registry, Handler> handlers(boolean staticCompile) {
+      return handlers(staticCompile, DEFAULT_HANDLERS_PATH);
+    }
+
+    public static Function<Registry, Handler> handlers(boolean staticCompile, String scriptPath) {
+      checkGroovy();
+      return r -> {
+        Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
+        boolean development = r.get(ServerConfig.class).isDevelopment();
+        return new ScriptBackedHandler(scriptFile, development,
+          new RatpackDslScriptCapture(staticCompile, HandlersOnly::new)
+            .andThen(RatpackDslClosures::getHandlers)
+            .andThen(c -> Groovy.chain(r, c))
+        );
+      };
+    }
+
+    public static Function<Registry, Registry> bindings() {
+      return bindings(false);
+    }
+
+    public static Function<Registry, Registry> bindings(boolean staticCompile) {
+      return bindings(staticCompile, DEFAULT_BINDINGS_PATH);
+    }
+
+    public static Function<Registry, Registry> bindings(boolean staticCompile, String scriptPath) {
+      checkGroovy();
+      return r -> {
+        Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
+        String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+        Closure<?> bindingsClosure = new RatpackDslScriptCapture(staticCompile, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
+        return Guice.registry(bindingsSpec -> {
+          bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
+          ClosureUtil.configureDelegateFirst(bindingsSpec, bindingsClosure);
+        }).apply(r);
+      };
+    }
   }
 
   /**
    * Builds a handler chain, with no backing registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param closure The chain definition
    * @return A handler
    * @throws Exception any exception thrown by the given closure
    */
-  public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
-    return chain(launchConfig, null, closure);
-  }
-
-  /**
-   * Creates a specialized Groovy context.
-   *
-   * @param context The context to convert to a Groovy context
-   * @return The original context wrapped in a Groovy context
-   */
-  public static GroovyContext context(Context context) {
-    return context instanceof GroovyContext ? (GroovyContext) context : new DefaultGroovyContext(context);
+  public static Handler chain(ServerConfig serverConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return chain(serverConfig, null, closure);
   }
 
   /**
    * Builds a chain, backed by the given registry.
    *
-   * @param launchConfig The application launch config
+   * @param serverConfig The application server config
    * @param registry The registry.
    * @param closure The chain building closure.
    * @return A handler
    * @throws Exception any exception thrown by the given closure
    */
-  public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+  public static Handler chain(@Nullable ServerConfig serverConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return ChainBuilders.build(
-      launchConfig != null && launchConfig.isReloadable(),
-      new GroovyDslChainActionTransformer(launchConfig, registry),
+      new GroovyDslChainActionTransformer(serverConfig, registry),
       new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
     );
+  }
+
+  /**
+   * Builds a chain, backed by the given registry.
+   *
+   * @param registry The registry.
+   * @param closure The chain building closure.
+   * @return A handler
+   * @throws Exception any exception thrown by the given closure
+   */
+  public static Handler chain(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return chain(registry.get(ServerConfig.class), registry, closure);
   }
 
   /**
@@ -170,15 +306,9 @@ public abstract class Groovy {
    *
    * @param closure The chain building closure.
    * @return A chain action
-   * @throws Exception any exception thrown by the given closure
    */
-  public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
-    return new Action<Chain>() {
-      @Override
-      public void execute(Chain chain) throws Exception {
-        ClosureUtil.configureDelegateFirst(new DefaultGroovyChain(chain), closure);
-      }
-    };
+  public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
+    return chain -> ClosureUtil.configureDelegateFirst(GroovyChain.from(chain), closure);
   }
 
   /**
@@ -187,7 +317,7 @@ public abstract class Groovy {
    * @param id The id/name of the template
    * @return a template
    */
-  public static Template groovyTemplate(String id) {
+  public static TextTemplate groovyTemplate(String id) {
     return groovyTemplate(id, null);
   }
 
@@ -198,7 +328,7 @@ public abstract class Groovy {
    * @return a template
    */
   public static MarkupTemplate groovyMarkupTemplate(String id) {
-    return groovyMarkupTemplate(id, null);
+    return groovyMarkupTemplate(id, (String) null);
   }
 
   /**
@@ -208,7 +338,7 @@ public abstract class Groovy {
    * @param type The content type of template
    * @return a template
    */
-  public static Template groovyTemplate(String id, String type) {
+  public static TextTemplate groovyTemplate(String id, String type) {
     return groovyTemplate(ImmutableMap.<String, Object>of(), id, type);
   }
 
@@ -230,7 +360,7 @@ public abstract class Groovy {
    * @param id The id/name of the template
    * @return a template
    */
-  public static Template groovyTemplate(Map<String, ?> model, String id) {
+  public static TextTemplate groovyTemplate(Map<String, ?> model, String id) {
     return groovyTemplate(model, id, null);
   }
 
@@ -246,6 +376,30 @@ public abstract class Groovy {
   }
 
   /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template, using the default content type.
+   *
+   * @param id the id/name of the template
+   * @param modelBuilder an action the builds a model map
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(String id, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    return groovyMarkupTemplate(id, null, modelBuilder);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template.
+   *
+   * @param id the id/name of the template
+   * @param type The content type of template
+   * @param modelBuilder an action the builds a model map
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(String id, String type, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    ImmutableMap<String, Object> model = uncheck(() -> Action.with(ImmutableMap.<String, Object>builder(), Action.noopIfNull(modelBuilder)).build());
+    return groovyMarkupTemplate(model, id, type);
+  }
+
+  /**
    * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template.
    *
    * @param model The template model
@@ -253,8 +407,8 @@ public abstract class Groovy {
    * @param type The content type of template
    * @return a template
    */
-  public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
-    return new DefaultTemplate(id, model, type);
+  public static TextTemplate groovyTemplate(Map<String, ?> model, String id, String type) {
+    return new TextTemplate(model, id, type);
   }
 
   /**
@@ -287,8 +441,7 @@ public abstract class Groovy {
    * @throws Exception any exception thrown by {@code closure}
    */
   public static void chain(Chain chain, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
-    GroovyChain groovyChain = chain instanceof GroovyChain ? (GroovyChain) chain : new DefaultGroovyChain(chain);
-    new ClosureInvoker<Object, GroovyChain>(closure).invoke(chain.getRegistry(), groovyChain, Closure.DELEGATE_FIRST);
+    new ClosureInvoker<Object, GroovyChain>(closure).invoke(chain.getRegistry(), GroovyChain.from(chain), Closure.DELEGATE_FIRST);
   }
 
   /**
@@ -296,24 +449,20 @@ public abstract class Groovy {
    *
    * @param closure the definition of handlers to add
    * @throws Exception any exception thrown by {@code closure}
+   * @return The created action
    */
   public static Action<Chain> chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
-    return new GroovyChainAction() {
-      @Override
-      protected void execute() throws Exception {
-        Groovy.chain(getChain(), closure);
-      }
-    };
+    return (c) -> Groovy.chain(c, closure);
   }
 
   /**
-   * Shorthand for {@link #markupBuilder(String, String, groovy.lang.Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding.
+   * Shorthand for {@link #markupBuilder(CharSequence, Charset, Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding.
    *
    * @param closure The html definition
    * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
    */
   public static Markup htmlBuilder(@DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return markupBuilder(MediaType.TEXT_HTML, DefaultMediaType.UTF8, closure);
+    return markupBuilder(HttpHeaderConstants.HTML_UTF_8, CharsetUtil.UTF_8, closure);
   }
 
   /**
@@ -334,8 +483,12 @@ public abstract class Groovy {
    * @param closure The definition of the markup
    * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
    */
-  public static Markup markupBuilder(String contentType, String encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return new DefaultMarkup(contentType, encoding, closure);
+  public static Markup markupBuilder(CharSequence contentType, CharSequence encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new Markup(contentType, Charset.forName(encoding.toString()), closure);
+  }
+
+  public static Markup markupBuilder(CharSequence contentType, Charset encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new Markup(contentType, encoding, closure);
   }
 
 }

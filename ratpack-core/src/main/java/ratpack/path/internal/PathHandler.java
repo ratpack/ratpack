@@ -16,28 +16,80 @@
 
 package ratpack.path.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registries;
+import ratpack.registry.Registry;
+
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public class PathHandler implements Handler {
 
-  private final PathBinder binding;
+  private static final LoadingCache<CacheKey, Optional<Registry>> CACHE = CacheBuilder.newBuilder()
+    .maximumSize(2048) // TODO - make this tuneable
+    .build(new CacheLoader<CacheKey, Optional<Registry>>() {
+      @Override
+      public Optional<Registry> load(CacheKey key) throws Exception {
+        return key.pathBinder.bind(key.parentBinding).map(b ->
+            Registry.single(PathBinding.class, b)
+        );
+      }
+    });
+
+  private static class CacheKey {
+    private final PathBinder pathBinder;
+    private final String path;
+    private final PathBinding parentBinding;
+
+    public CacheKey(PathBinder pathBinder, String path, PathBinding parentBinding) {
+      this.pathBinder = pathBinder;
+      this.path = path;
+      this.parentBinding = parentBinding;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      CacheKey cacheKey = (CacheKey) o;
+
+      return parentBinding.equals(cacheKey.parentBinding) && path.equals(cacheKey.path) && pathBinder.equals(cacheKey.pathBinder);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = pathBinder.hashCode();
+      result = 31 * result + path.hashCode();
+      result = 31 * result + parentBinding.hashCode();
+      return result;
+    }
+  }
+
+  private final PathBinder binder;
   private final Handler handler;
 
-  public PathHandler(PathBinder binding, Handler handler) {
-    this.binding = binding;
+  public PathHandler(PathBinder binder, Handler handler) {
+    this.binder = binder;
     this.handler = handler;
   }
 
-  public void handle(Context context) {
-    PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
-    if (childBinding != null) {
-      context.insert(Registries.just(PathBinding.class, childBinding), handler);
+  public void handle(Context context) throws ExecutionException {
+    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.get(PathBinding.class)));
+    if (registry.isPresent()) {
+      context.insert(registry.get(), handler);
     } else {
       context.next();
     }
   }
+
 }

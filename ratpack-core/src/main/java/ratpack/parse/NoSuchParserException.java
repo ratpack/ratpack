@@ -39,7 +39,7 @@ public class NoSuchParserException extends ParseException {
    * @param contentType The content type of the request
    */
   public NoSuchParserException(TypeToken<?> type, Object opts, String contentType) {
-    super("Could not find parser content type '" + contentType + "', target type type '" + type + "' and options '" + opts);
+    super("Could not find parser able to produce object of type '" + type + "' from request of content type '" + contentType + "'" + (opts == null ? "" : " and parse options '" + opts + "'"));
     this.type = type;
     this.opts = opts;
     this.contentType = contentType;

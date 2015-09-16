@@ -16,139 +16,129 @@
 
 package ratpack.pac4j.openid
 
-import com.jayway.restassured.specification.RequestSpecification
-import org.junit.ClassRule
-import org.junit.rules.TemporaryFolder
-import org.pac4j.openid.credentials.OpenIdCredentials
-import org.pac4j.openid.profile.google.GoogleOpenIdProfile
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
-import ratpack.pac4j.InjectedPac4jModule
-import ratpack.pac4j.Pac4jModule
-import ratpack.test.ApplicationUnderTest
-import ratpack.test.embed.BaseDirBuilder
-import ratpack.test.embed.PathBaseDirBuilder
+import org.pac4j.core.profile.UserProfile
+import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
+import ratpack.http.client.RequestSpec
+import ratpack.http.internal.HttpHeaderConstants
+import ratpack.pac4j.RatpackPac4j
+import ratpack.session.SessionModule
+import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.LOCATION
+import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
 
 /**
  * Tests OpenID Relying Party support.
  */
-class OpenIdRpSpec extends Specification {
+class OpenIdRpSpec extends RatpackGroovyDslSpec {
   private static final String EMAIL = "fake@example.com"
 
-  @Shared
-  @ClassRule
-  TemporaryFolder temporaryFolder
-
-  @Shared
   @AutoCleanup
-  BaseDirBuilder baseDir
+  EmbeddedProvider provider = new EmbeddedProvider()
 
-  @Shared
-  RatpackOpenIdTestApplication autConstructed
+  def setup() {
+    provider.open()
 
-  @Shared
-  RatpackOpenIdTestApplication autInjected
-
-  @Shared
-  @AutoCleanup
-  EmbeddedProvider provider
-
-  static int allocatePort() {
-    def socket = new ServerSocket(0)
-    try {
-      return socket.localPort
-    } finally {
-      socket.close()
+    bindings {
+      module SessionModule
     }
-  }
 
-  def setupSpec() {
-    def providerPort = allocatePort()
-    provider = new EmbeddedProvider()
-    provider.open(providerPort)
-    baseDir = new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
-    autConstructed = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer()))
-    autInjected = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(providerPort))
-  }
-
-  def cleanupSpec() {
-    for (aut in [autConstructed, autInjected]) {
-      if (aut) {
-        aut.close()
+    handlers {
+      all(RatpackPac4j.authenticator(new OpenIdTestClient(provider.port)))
+      get("noauth") {
+        def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
+        def genericUserProfile = maybeGet(UserProfile).orElse(null)
+        response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
+      }
+      prefix("auth") {
+        all(RatpackPac4j.requireAuth(OpenIdTestClient))
+        get {
+          def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
+          def genericUserProfile = maybeGet(UserProfile).orElse(null)
+          response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
+        }
       }
     }
+
   }
 
-  def cleanup() {
-    provider.clear()
-  }
-
-  @Unroll
-  def "test noauth"(RatpackOpenIdTestApplication aut) {
-    setup:
-    def client = newClient(aut)
-
-    when: "request a page that doesn't require authentication"
+  def "test noauth"() {
+    when:
     def response = client.get("noauth")
 
-    then: "the page is returned without any redirects, and without authentication"
-    response.asString() == "noauth:null:null"
-
-    where:
-    aut << [autConstructed, autInjected]
+    then:
+    response.body.text == "noauth:null:null"
   }
 
-  @Unroll
-  def "test successful auth"(RatpackOpenIdTestApplication aut) {
+  def "test successful auth"() {
     setup:
-    def client = newClient(aut)
+    client.requestSpec { it.redirects(0) }
     provider.addResult(true, EMAIL)
 
-    when: "request a page that requires authentication"
+    when:
     def response1 = client.get("auth")
 
-    then: "the request is redirected to the openid provider"
+    then:
     response1.statusCode == FOUND.code()
-    response1.header(LOCATION).contains("/openid_provider")
+    response1.headers.get(LOCATION).contains("/openid_provider")
 
-    when: "following the redirect"
-    def response2 = client.get(response1.header(LOCATION))
+    when:
+    def response2 = client.get(response1.headers.get(LOCATION))
 
-    then: "the response is redirected to the callback"
+    then:
     response2.statusCode == FOUND.code()
-    response2.header(LOCATION).contains("/pac4j-callback")
+    response2.headers.get(LOCATION).contains(RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH)
 
-    when: "following the redirect"
-    def response3 = client.createRequest().cookies(response1.cookies).get(response2.header(LOCATION))
+    when:
+    client.resetRequest()
+    client.requestSpec {
+      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
+      it.redirects(0)
+    }
+    def response3 = client.get(response2.headers.get(LOCATION))
 
-    then: "the response is redirected to the original page"
+    then:
     response3.statusCode == FOUND.code()
-    response3.header(LOCATION).contains("/auth")
+    response3.headers.get(LOCATION).contains("/auth")
 
-    when: "following the redirect"
-    def response4 = client.createRequest().cookies(response1.cookies).get(response3.header(LOCATION))
+    when:
+    client.resetRequest()
+    client.requestSpec {
+      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
+    }
+    def response4 = client.get(response3.headers.get(LOCATION))
 
-    then: "the original page is returned"
-    response4.asString() == "auth:${EMAIL}:${EMAIL}"
+    then:
+    response4.body.text == "auth:${EMAIL}:${EMAIL}"
 
-    when: "request a page that doesn't require authentication after authenticating"
-    def response5 = client.createRequest().cookies(response1.cookies).get("noauth")
+    when:
+    client.resetRequest()
+    client.requestSpec {
+      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
+    }
+    def response5 = client.get("noauth")
 
-    then: "authentication information is still available"
-    response5.asString() == "noauth:${EMAIL}:${EMAIL}"
-
-    where:
-    aut << [autConstructed, autInjected]
+    then:
+    response5.body.text == "noauth:null:null"
   }
 
-  private static TestHttpClient newClient(ApplicationUnderTest aut) {
-    return TestHttpClients.testHttpClient(aut, { RequestSpecification request -> request.port(aut.address.port).redirects().follow(false) })
+  def "it should not redirect ajax requests"() {
+    setup:
+    // Set AJAX request header.
+    client.requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add(
+        HttpHeaderConstants.X_REQUESTED_WITH,
+        HttpHeaderConstants.XML_HTTP_REQUEST
+      )
+    }
+
+    when: "make a request that requires authentication"
+    def response = client.get("auth")
+
+    then: "a 401 response is returned and no redirect is made"
+    assert response.statusCode == UNAUTHORIZED.code()
   }
+
 }

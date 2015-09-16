@@ -16,13 +16,12 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
+
+import java.util.Optional;
 
 public class HierarchicalRegistry implements Registry {
 
@@ -35,40 +34,13 @@ public class HierarchicalRegistry implements Registry {
   }
 
   @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O object = maybeGet(type);
-
-    if (object == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return object;
-    }
-  }
-
-  @Override
-  public <O> O maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
-  @Nullable
-  @Override
-  public <O> O maybeGet(TypeToken<O> type) {
-    O object = child.maybeGet(type);
-    if (object == null) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
+    Optional<O> object = child.maybeGet(type);
+    if (!object.isPresent()) {
       object = parent.maybeGet(type);
     }
 
     return object;
-  }
-
-  @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
   }
 
   @Override
@@ -78,28 +50,13 @@ public class HierarchicalRegistry implements Registry {
     return Iterables.concat(childAll, parentAll);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    T first = child.first(type, predicate);
-    if (first == null) {
-      first = parent.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    Optional<O> first = child.first(type, function);
+    if (!first.isPresent()) {
+      first = parent.first(type, function);
     }
     return first;
-  }
-
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    Iterable<? extends T> childAll = child.all(type, predicate);
-    Iterable<? extends T> parentAll = parent.all(type, predicate);
-    return Iterables.concat(childAll, parentAll);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    boolean childFound = child.each(type, predicate, action);
-    boolean parentFound = parent.each(type, predicate, action);
-    return childFound || parentFound;
   }
 
   @Override
@@ -121,5 +78,10 @@ public class HierarchicalRegistry implements Registry {
     int result = parent.hashCode();
     result = 31 * result + child.hashCode();
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "HierarchicalRegistry{parent=" + parent + ", child=" + child + '}';
   }
 }

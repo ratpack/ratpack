@@ -18,11 +18,11 @@ package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
+import java.util.Optional;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,11 +37,8 @@ public class TokenPathBinder implements PathBinder {
     this.regex = regex;
   }
 
-  public PathBinding bind(String path, PathBinding parentBinding) {
-    if (parentBinding != null) {
-      path = parentBinding.getPastBinding();
-    }
-    Matcher matcher = regex.matcher(path);
+  public Optional<PathBinding> bind(PathBinding parentBinding) {
+    Matcher matcher = regex.matcher(parentBinding.getPastBinding());
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
       String boundPath = matchResult.group(1);
@@ -54,19 +51,34 @@ public class TokenPathBinder implements PathBinder {
         }
       }
 
-      return new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding);
+      return Optional.of(new DefaultPathBinding(boundPath, paramsBuilder.build(), parentBinding));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 
   private String decodeURIComponent(String s) {
-    String str;
-    try {
-      str = URLDecoder.decode(s.replaceAll("\\+", "%2B"), "UTF-8");
-    } catch (UnsupportedEncodingException ignored) {
-      throw new IllegalStateException("UTF-8 decoder should always be available");
+    return QueryStringDecoder.decodeComponent(s.replace("+", "%2B"));
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-    return str;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    TokenPathBinder that = (TokenPathBinder) o;
+
+    return regex.equals(that.regex) && tokenNames.equals(that.tokenNames);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = tokenNames.hashCode();
+    result = 31 * result + regex.hashCode();
+    return result;
   }
 }

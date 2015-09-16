@@ -18,53 +18,32 @@ package ratpack.site.github
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectReader
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import groovy.transform.CompileStatic
+import ratpack.exec.Promise
 import ratpack.http.client.HttpClient
 
-import java.util.concurrent.TimeUnit
-
-@CompileStatic
 @javax.inject.Singleton
 class GitHubApi {
 
   private final String api
   private final String authToken
+  private final GithubRequester requester
 
-  private final LoadingCache<String, rx.Observable<ArrayNode>> cache
-
-  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, HttpClient httpClient) {
+  GitHubApi(String api, String authToken, ObjectReader objectReader, HttpClient httpClient) {
     this.api = api
     this.authToken = authToken
-
-    def requester = new GithubRequester(objectReader, httpClient)
-    this.cache = CacheBuilder.newBuilder().
-      initialCapacity(30).
-      expireAfterWrite(cacheMins, TimeUnit.MINUTES).
-      build(new CacheLoader<String, rx.Observable<ArrayNode>>() {
-        rx.Observable<ArrayNode> load(String key) throws Exception {
-          requester.request(key)
-        }
-      })
+    this.requester = new GithubRequester(objectReader, httpClient)
   }
 
-  private rx.Observable<JsonNode> get(String path, Map<String, String> params) {
-    cache.get(api + path + toQueryString(params))
+  private Promise<JsonNode> get(String path, Map<String, String> params) {
+    requester.request(api + path + toQueryString(params))
   }
 
-  rx.Observable<JsonNode> milestones(Map<String, String> params) {
+  Promise<JsonNode> milestones(Map<String, String> params) {
     get("repos/ratpack/ratpack/milestones", params)
   }
 
-  rx.Observable<JsonNode> issues(Map<String, String> params) {
+  Promise<JsonNode> issues(Map<String, String> params) {
     get("repos/ratpack/ratpack/issues", params)
-  }
-
-  void invalidateCache() {
-    cache.invalidateAll()
   }
 
   private String toQueryString(Map<String, String> params) {

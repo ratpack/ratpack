@@ -68,7 +68,7 @@ class Harness {
 
     LinkedList<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as LinkedList<String>
 
-    def concurrency = Math.ceil(Runtime.runtime.availableProcessors() / 2).toInteger()
+    def concurrency = Math.ceil(Runtime.runtime.availableProcessors() * 2).toInteger()
     log.debug "Request concurrency: $concurrency"
     def executor = Executors.newFixedThreadPool(concurrency)
     def requester = new Requester("http://localhost:5050")
@@ -130,7 +130,7 @@ class Harness {
             }
 
 
-            log.info "Testing endpoint: $endpoint"
+            log.info "Testing endpoint: $appName $endpoint @ $version"
 
             String endpointName = "$appName:$endpoint"
             def versionName = version
@@ -186,7 +186,11 @@ class Harness {
     def latch = new CountDownLatch(1)
     def resultHandler = new LatchResultHandler(latch)
 
-    connection.newBuild().withArguments("-u", "run", "-Pendpoint=$endpoint").setStandardOutput(output).setStandardError(output).run(resultHandler)
+    connection.newBuild()
+      .setJvmArguments("-Xmx512m")
+      .withArguments("-u", "run", "-Pendpoint=$endpoint")
+      .setStandardOutput(output)
+      .setStandardError(output).run(resultHandler)
 
     def timeoutMins = 1
     def retryMs = 500
@@ -199,7 +203,7 @@ class Harness {
       if (outputString.lastIndexOf("Ratpack started for http://localhost:") > -1) {
         latch.countDown()
       }
-      if (outputString.contains("ratpack.launch.LaunchException")) {
+      if (outputString.contains("ratpack.server.LaunchException")) {
         throw new RuntimeException("App failed to launch: $outputString")
       }
       sleep retryMs

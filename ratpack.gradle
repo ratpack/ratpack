@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 
 buildscript {
   repositories {
@@ -20,8 +22,14 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
     classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
+
+    // Artifactory plugin pulls in very old Guava, which conflicts with child projects.
+    // Force to newer version here.
+    classpath 'com.google.guava:guava:18.0'
+
+    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
+    classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
   }
 }
 
@@ -30,11 +38,13 @@ if (jvmEncoding != "UTF-8") {
   throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
 }
 
-if (!JavaVersion.current().java7Compatible) {
-  throw new IllegalStateException("Must be built with Java 7 or higher")
+if (!JavaVersion.current().java8Compatible) {
+  throw new IllegalStateException("Must be built with Java 8 or higher")
 }
 
-apply plugin: 'artifactory'
+apply plugin: "artifactory"
+apply plugin: "com.github.kt3k.coveralls"
+apply plugin: "com.github.ben-manes.versions"
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
@@ -44,13 +54,32 @@ artifactoryPublish {
   skip true
 }
 
+task bintrayPublish << {
+  if (!(ratpackBintrayUser && ratpackBintrayApiKey)) {
+    throw new InvalidUserDataException("You must provide ratpackBintrayUser and ratpackBintrayApiKey")
+  }
+
+  if (!project.hasProperty('buildNumber')) {
+    throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
+  }
+
+  def baseUrl = 'https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/'
+  def params = '?params=org=ratpack|repo=maven|package=ratpack'
+  def curlUrl = [baseUrl, project.buildNumber, params].join('')
+  def curl = ['curl', '-X', 'POST', '-u',
+              /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, curlUrl].execute()
+  logger.info("Received response: ${curl.text}")
+}
+
 allprojects {
   group = "io.ratpack"
-  version = rootProject.file("shared-resources/ratpack/ratpack-version.txt").text.trim()
+  version = "1.0.1-SNAPSHOT"
 
   apply plugin: "base"
   apply plugin: "idea"
   apply plugin: "eclipse"
+  apply plugin: "java"
+  apply plugin: "jacoco"
   apply from: "$rootDir/gradle/dependencyRules.gradle"
 
   repositories {
@@ -58,13 +87,8 @@ allprojects {
     maven { url 'http://oss.jfrog.org/artifactory/repo' }
   }
 
-  def noClover = ["ratpack-site", "ratpack-manual", "ratpack-lazybones"]
-  if (project.hasProperty("enableClover") && !noClover.contains(project.name)) {
-    project.apply from: rootProject.file("gradle/clover.gradle")
-  }
-
-  clean {
-    delete fileTree(dir: projectDir, include: "**/Expression\$*.class")
+  jacoco {
+    toolVersion = "0.7.2.201409121644"
   }
 }
 
@@ -74,15 +98,22 @@ ext {
   isSnapshot = version.endsWith("SNAPSHOT")
   isTravis = System.getenv("TRAVIS") != null
   isDrone = System.getenv("DRONE") != null
+  isCodeship = System.getenv("CI_NAME") == "codeship"
+  isSnapCi = System.getenv("SNAP_CI") != null
+  isAppveyor = System.getenv("APPVEYOR") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
+  isHeroku = System.getenv("HEROKU") != null
 
   publishedModules = [
-    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
-    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
-    "ratpack-codahale-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix"
+    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
+    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
+    "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot"
   ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
+
+  localRepoUrl = "${buildDir.toURI()}/localrepo"
 }
 
 apply from: "gradle/dependencies.gradle"
@@ -106,6 +137,7 @@ subprojects {
   }
 
   tasks.withType(GroovyCompile) {
+    groovyOptions.forkOptions.memoryMaximumSize = "512m"
     allprojects {
       mustRunAfter tasks.withType(CodeNarc)
     }
@@ -130,74 +162,21 @@ subprojects {
     }
   }
 
-  plugins.withType(JavaPlugin) {
-    sourceSets.main {
-      resources {
-        srcDir rootProject.file("shared-resources")
-      }
-    }
-
-    tasks.withType(AbstractCompile) {
-      options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options"
-    }
-
-    test {
-      testLogging {
-        exceptionFormat "full"
-        showStackTraces true
-        showCauses true
-        quiet {
-          events "failed"
-        }
-      }
-      jvmArgs "-Xss320k"
-    }
-
-    sourceCompatibility = "1.7"
-    targetCompatibility = "1.7"
-
-    task sourceJar(type: Jar) {
-      description "An archive of the source code for Maven Central"
-      classifier "sources"
-      from sourceSets.main.allSource
-    }
-
-    task javadocJar(type: Jar) {
-      description "An archive of the JavaDocs for Maven Central"
-      classifier "javadoc"
-      from javadoc
-    }
-
-    artifacts {
-      archives javadocJar, sourceJar
-    }
-
-    signing {
-      if (!isSnapshot) {
-        sign configurations.archives
-      }
-    }
-
-    install {
-      repositories {
-        mavenDeployer {
-          repository(url: "file://${rootProject.buildDir.absolutePath}/localrepo")
-        }
-      }
-    }
-
-    install.repositories["mavenInstaller"].beforeDeployment { deployment ->
-      if (!isSnapshot) {
-        artifacts {
-          signatures signing.signPom(deployment)
-        }
-      }
+  jacocoTestReport {
+    additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+    classDirectories = files(sourceSets.main.output)
+    reports {
+      html.enabled = true
+      xml.enabled = true
+      csv.enabled = false
     }
   }
 }
 
 // Have to evaluate the children before setting up the publishing stuff so the dependencies are defined.
 evaluationDependsOnChildren()
+
 subprojects {
   configurations.signatures.artifacts.all {
     extension = toSignArtifact.extension + "." + extension
@@ -249,6 +228,23 @@ subprojects {
       }
     }
   }
+
+  tasks.withType(Test) {
+    jvmArgs "-Xss320k"
+    minHeapSize "312m"
+    maxHeapSize "312m"
+
+    testLogging {
+      exceptionFormat "full"
+    }
+
+    doFirst {
+      if (isCloudCi) {
+        maxParallelForks 1
+        systemProperty "cloudCi", "true"
+      }
+    }
+  }
 }
 
 task ciZip(type: Zip) {
@@ -259,5 +255,61 @@ task ciZip(type: Zip) {
 }
 
 task stage {
-  dependsOn "clean", ":ratpack-site:installApp"
+  dependsOn ":ratpack-site:prepareDeployment"
+  finalizedBy getTasksByName("clean", true)
+}
+
+task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+  dependsOn publishedModules.test
+  sourceDirectories = files(publishedModules.sourceSets.main.allSource.srcDirs)
+  classDirectories = files(publishedModules.sourceSets.main.output)
+  executionData = files(publishedModules.jacocoTestReport.executionData)
+  reports {
+    html.enabled = true
+    xml.enabled = true
+    csv.enabled = false
+  }
+}
+
+coveralls {
+  service = System.getenv().get("CI_NAME")
+  sourceDirs = jacocoReport.sourceDirectories.files.toList()
+  jacocoReportPath = jacocoReport.reports.xml.destination.absolutePath - rootDir.absolutePath
+}
+
+task testReport(type: TestReport) {
+  destinationDir file("$buildDir/tests")
+  reportOn subprojects.collect { it.tasks.test }
+}
+
+task allDependencies << {
+  allprojects { p ->
+    configurations.each { c ->
+      println "Downloading dependencies for $p.path - $c.name"
+      c.files
+    }
+  }
+}
+
+// Maven POM generation is not thread safe, so serialize all the Upload tasks we can use `--parallel`.
+def lock = new ReentrantLock()
+def available = lock.newCondition()
+def busy = new AtomicBoolean()
+allprojects {
+  tasks.withType(Upload) { uploadTask ->
+    doFirst {
+      lock.lock()
+      while (busy.get()) {
+        available.await()
+      }
+      busy.set(true)
+    }
+  }
+}
+gradle.taskGraph.afterTask {
+  if (it instanceof Upload && lock.heldByCurrentThread) {
+    busy.set(false)
+    available.signal()
+    lock.unlock()
+  }
 }

@@ -16,13 +16,32 @@
 
 package ratpack.manual.snippets.fixture
 
+import ratpack.func.Block
+
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+
 class GradleFixture extends GroovyScriptFixture {
-  @Override
-  void setup() {
-  }
+
+  private final Lock lock = new ReentrantLock()
+  private final Condition available = lock.newCondition()
+  private volatile boolean busy
 
   @Override
-  void cleanup() {
+  void around(Block action) throws Exception {
+    try {
+      lock.lock()
+      while (busy) {
+        available.await()
+      }
+      busy = true
+      action.execute()
+    } finally {
+      busy = false
+      available.signal()
+      lock.unlock()
+    }
   }
 
   @Override
@@ -37,7 +56,7 @@ def script = '''
 
   @Override
   String post() {
-    String localRepo = System.getProperty("localRepo", "build/localrepo")
+    String localRepo = System.getProperty("localRepo", "../build/localrepo")
     def localRepoPath = new File(localRepo).canonicalPath?.replaceAll("\\\\", "/")
     """
 '''
@@ -45,7 +64,7 @@ def projectDir = File.createTempDir()
 def buildFile = new File(projectDir, "build.gradle")
 try {
   buildFile.text = 'buildscript { repositories { maven { url "file://${localRepoPath}" } } }\\n' + script
-  def connector = GradleConnector.newConnector().forProjectDirectory(projectDir)
+  def connector = (org.gradle.tooling.internal.consumer.DefaultGradleConnector) GradleConnector.newConnector().forProjectDirectory(projectDir)
 
   def gradleUserHome = System.getProperty("gradleUserHome")
   if (gradleUserHome) {
@@ -57,6 +76,7 @@ try {
     connector.useInstallation(new File(gradleHome))
   }
 
+  connector.embedded(true)
   def connection = connector.connect()
   try {
     connection.getModel(GradleProject)

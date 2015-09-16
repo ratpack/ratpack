@@ -16,7 +16,9 @@
 
 package ratpack.file.internal
 
-import com.jayway.restassured.response.Response
+import ratpack.func.Action
+import ratpack.http.client.ReceivedResponse
+import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -33,7 +35,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
   private Path myFile
 
   def setup() {
-    myFile = file("myFile.text",  FILE_CONTENTS)
+    myFile = write("myFile.text", FILE_CONTENTS)
   }
 
   def "can render file"() {
@@ -48,9 +50,9 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().contains(FILE_CONTENTS)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == FILE_CONTENTS.length()
+      body.text.contains(FILE_CONTENTS)
+      headers.get(CONTENT_TYPE) == "text/plain"
+      headers.get(CONTENT_LENGTH).toInteger() == FILE_CONTENTS.length()
     }
   }
 
@@ -61,7 +63,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.header IF_MODIFIED_SINCE, formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add IF_MODIFIED_SINCE, formatDateHeader(Files.getLastModifiedTime(myFile).toMillis()) } as Action<? super RequestSpec>
 
     when:
     get("path")
@@ -69,7 +71,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == NOT_MODIFIED.code()
-      header(CONTENT_LENGTH).toInteger() == 0
+      headers.get(CONTENT_LENGTH).toInteger() == 0
     }
   }
 
@@ -83,16 +85,15 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     get("path")
 
     then:
-    with(response) {
-      statusCode == OK.code()
-      // compare the last modified dates formatted as milliseconds are stripped when added as a response header
-      formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
-    }
+    response.statusCode == OK.code()
+    // compare the last modified dates formatted as milliseconds are stripped when added as a response header
+    formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
+
 
   }
 
-  private static Date parseDateHeader(Response response, String name) {
-    HttpHeaderDateFormat.get().parse(response.getHeader(name))
+  private static Date parseDateHeader(ReceivedResponse response, String name) {
+    HttpHeaderDateFormat.get().parse(response.headers.get(name))
   }
 
   private static String formatDateHeader(long timestamp) {

@@ -39,8 +39,8 @@ class SpecifiedContentTypeSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      response.body.asString() == content
-      response.contentType == "$mimeType;charset=UTF-8"
+      body.text == content
+      headers.get("Content-Type") == mimeType
     }
 
     where:

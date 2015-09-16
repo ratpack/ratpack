@@ -16,43 +16,36 @@
 
 package ratpack.site
 
-import ratpack.exec.ExecControl
-import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import groovy.transform.CompileStatic
+import ratpack.registry.Registry
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
 import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
-import ratpack.test.remote.RemoteControl
+import ratpack.test.MainClassApplicationUnderTest
 
-
-class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
-
-  final RemoteControl remote = new RemoteControl(this)
+@CompileStatic
+class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   RatpackSiteUnderTest() {
-    super(
-      "other.remoteControl.enabled": "true",
-      ("other.${SiteModule.GITHUB_ENABLE}".toString()): "false"
-    )
+    super(SiteMain)
   }
 
-  void mockGithubData() {
-    remote.exec {
+  @Override
+  protected Registry createOverrides(Registry serverRegistry) throws Exception {
+    Registry.of {
       def data = new MockGithubData()
 
-      // This is a temporary measure, as we are hard coding the type of the github data at the time of writing this test.
-      // We need to sync up some kind of strategy with what manuals have actually been put in place by the build.
-      data.released.add(new RatpackVersion("0.9.0", 1, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.1", 2, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.2", 3, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.3", 4, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.4", 5, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.5", 6, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.6", 7, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.7", 8, "foo", new Date(), false))
-      add(GitHubData, data)
-      add(new RatpackVersions(data, get(ExecControl)))
+      def config = new TestConfig()
+
+      config.manualVersions.eachWithIndex { version, index ->
+        data.released.add(new RatpackVersion(version, index + 1, "foo", new Date(), true))
+      }
+
+      data.unreleased.add(new RatpackVersion(config.currentVersion - "-SNAPSHOT", config.manualVersions.size() + 1, "foo", new Date(), false))
+
+      it.add(GitHubData, data)
+      it.add(new RatpackVersions(data))
     }
   }
-
 }

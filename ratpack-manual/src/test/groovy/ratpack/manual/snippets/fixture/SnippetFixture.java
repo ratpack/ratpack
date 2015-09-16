@@ -16,14 +16,16 @@
 
 package ratpack.manual.snippets.fixture;
 
-import ratpack.manual.snippets.executer.SnippetExecuter;
+import ratpack.func.Block;
 
-public abstract class SnippetFixture {
+public class SnippetFixture {
 
-  public void setup() {
+  public void around(Block action) throws Exception {
+    action.execute();
   }
 
-  public void cleanup() {
+  public String transform(String text) {
+    return text;
   }
 
   public String pre() {
@@ -34,6 +36,8 @@ public abstract class SnippetFixture {
     return "";
   }
 
-  abstract public SnippetExecuter getExecuter();
+  public Integer getOffset() {
+    return pre().split("\n").length;
+  }
 
 }

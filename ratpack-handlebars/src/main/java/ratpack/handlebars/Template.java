@@ -16,20 +16,22 @@
 
 package ratpack.handlebars;
 
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
 
-public class Template<T> {
+import java.util.Map;
+import java.util.function.Consumer;
+
+public class Template {
 
   private final String name;
-  private final T model;
-
+  private final Object model;
   private final String contentType;
 
   public String getName() {
     return name;
   }
 
-  public T getModel() {
+  public Object getModel() {
     return model;
   }
 
@@ -37,29 +39,48 @@ public class Template<T> {
     return contentType;
   }
 
-  private Template(String name, T model, String contentType) {
+  private Template(String name, Object model, String contentType) {
     this.name = name;
     this.model = model;
     this.contentType = contentType;
   }
 
-  public static Template<Object> handlebarsTemplate(String name) {
-    return handlebarsTemplate(name, null);
+  public static Template handlebarsTemplate(String name) {
+    return handlebarsTemplate(name, (String) null);
   }
 
-  public static Template<Map<String, ?>> handlebarsTemplate(Map<String, ?> model, String name) {
+  public static Template handlebarsTemplate(Map<String, ?> model, String name) {
     return handlebarsTemplate(model, name, null);
   }
 
-  public static Template<Map<String, ?>> handlebarsTemplate(Map<String, ?> model, String name, String contentType) {
-    return new Template<Map<String, ?>>(name, model, contentType);
+  public static Template handlebarsTemplate(String name, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    return handlebarsTemplate(name, null, modelBuilder);
   }
 
-  public static <T> Template<T> handlebarsTemplate(String name, T model) {
+  public static Template handlebarsTemplate(Map<String, ?> model, String name, String contentType) {
+    return new Template(name, model, contentType);
+  }
+
+  public static Template handlebarsTemplate(String name, String contentType, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    if (modelBuilder == null) {
+      return handlebarsTemplate(name, null, contentType);
+    } else {
+      ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+      modelBuilder.accept(builder);
+      return handlebarsTemplate(builder.build(), name, contentType);
+    }
+  }
+
+  public static Template handlebarsTemplate(String name, Object model) {
     return handlebarsTemplate(name, model, null);
   }
 
-  public static <T> Template<T> handlebarsTemplate(String name, T model, String contentType) {
-    return new Template<>(name, model, contentType);
+  public static Template handlebarsTemplate(String name, Object model, String contentType) {
+    return new Template(name, model, contentType);
+  }
+
+  @Override
+  public String toString() {
+    return "Template{name='" + name + '\'' + ", model=" + model + ", contentType='" + contentType + '\'' + '}';
   }
 }

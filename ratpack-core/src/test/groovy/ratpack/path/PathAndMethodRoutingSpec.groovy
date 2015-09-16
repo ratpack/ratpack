@@ -28,7 +28,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
         response.send request.query
       }
       prefix(":a/:b") {
-        handler(":c/:d") {
+        path(":c/:d") {
           byMethod {
             post {
               response.send new LinkedHashMap(allPathTokens).toString()
@@ -48,15 +48,15 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     putText("5/6/7/8") == "[A:5, B:6, C:7, D:8]"
     with(head("a/b/c?head")) {
       statusCode == 200
-      getHeader("X-value") == "head"
-      asByteArray().length == 0
+      headers.get("X-value") == "head"
+      text.size() == 0
     }
   }
 
   def "can use method chain"() {
     when:
     handlers {
-      handler("foo") {
+      path("foo") {
         def prefix = "common"
         byMethod {
           get {
@@ -88,17 +88,17 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
     then:
     options("foo")
-    response.header("Allow") == "GET"
+    response.headers.get("Allow") == "GET"
     response.statusCode == 200
     options("bar")
-    response.header("Allow") == "POST"
+    response.headers.get("Allow") == "POST"
     response.statusCode == 200
   }
 
   def "options requests are handled for multi method handlers"() {
     when:
     handlers {
-      handler {
+      all {
         byMethod {
           get {
             render "foo"
@@ -112,6 +112,6 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
     then:
     options()
-    response.header("Allow") == "GET,POST"
+    response.headers.get("Allow") == "GET,POST"
   }
 }

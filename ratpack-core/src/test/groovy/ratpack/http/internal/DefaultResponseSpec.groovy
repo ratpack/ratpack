@@ -16,14 +16,13 @@
 
 package ratpack.http.internal
 
+import io.netty.buffer.Unpooled
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.util.internal.IoUtils
-
-import java.nio.file.Files
-import java.nio.file.attribute.BasicFileAttributes
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
+import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
 class DefaultResponseSpec extends RatpackGroovyDslSpec {
@@ -44,9 +43,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -65,9 +64,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -85,9 +84,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/octet-stream")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/octet-stream"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -106,15 +105,15 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/octet-stream")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/octet-stream"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
   def "can send bytes"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -129,15 +128,15 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
   def "can set content type and override with send bytes"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -153,15 +152,15 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
   def "can send bytes with default content type"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -176,15 +175,15 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/octet-stream")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/octet-stream"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
   def "can set content type and not override with send bytes"() {
     given:
-    def bufferedBody = IoUtils.byteBuf(BODY.bytes)
+    def bufferedBody = Unpooled.wrappedBuffer(BODY.bytes)
 
     and:
     handlers {
@@ -200,9 +199,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/foo")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/foo"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -220,35 +219,21 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().empty
-      contentType.equals("")
-      header(CONTENT_LENGTH).toInteger() == 0
+      body.text.empty
+      !headers.get(CONTENT_TYPE)
+      headers.get(CONTENT_LENGTH).toInteger() == 0
     }
-  }
-
-  def "can send input streams"() {
-    when:
-    def string = "a" * 1024 * 10
-    def bytes = string.getBytes("utf8")
-
-    handlers {
-      handler {
-        response.send "text/plain;charset=UTF-8", new ByteArrayInputStream(bytes)
-      }
-    }
-
-    then:
-    text == string
   }
 
   def "can send files"() {
     given:
     def file = File.createTempFile("ratpackTest", "jpg")
-    file << "abcd".bytes
+    file << "abcd".getBytes("US-ASCII")
     def path = file.toPath()
     handlers {
       get {
-        response.sendFile context, Files.readAttributes(path, BasicFileAttributes), path
+        response.headers.set('content-length', 4)
+        response.sendFile path
       }
     }
 
@@ -259,4 +244,56 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     text == "abcd"
   }
 
+  def "can finalize response before sending"() {
+    given:
+    handlers {
+      get {
+        response.beforeSend { it.status(202) }
+        response.send()
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    with(response) {
+      statusCode == ACCEPTED.code()
+      body.text.empty
+      !headers.get(CONTENT_TYPE)
+      headers.get(CONTENT_LENGTH).toInteger() == 0
+    }
+
+  }
+
+  def "can finalize response before sending with async actions"() {
+    given:
+    handlers {
+      get {
+        response.beforeSend {
+          Blocking.get { 1 }.then { response.headers.set("foo", 1) }
+        }
+        response.beforeSend {
+          Blocking.get {
+            2
+          } then {
+            response.headers.set("foo", response.headers.get("foo") + ":" + it)
+          }
+        }
+        response.beforeSend {
+          response.headers.set("foo", response.headers.get("foo") + ":3")
+        }
+        response.send()
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    with(response) {
+      headers.get("foo") == "1:2:3"
+    }
+  }
 }
+

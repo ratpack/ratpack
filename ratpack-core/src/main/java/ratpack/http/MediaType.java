@@ -16,9 +16,8 @@
 
 package ratpack.http;
 
+import com.google.common.collect.ImmutableListMultimap;
 import ratpack.api.Nullable;
-
-import java.util.Map;
 
 /**
  * A structured value for a Content-Type header value.
@@ -27,6 +26,11 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 public interface MediaType {
+
+  /**
+   * {@value}.
+   */
+  String PLAIN_TEXT_UTF8 = "text/plain;charset=utf-8";
 
   /**
    * {@value}.
@@ -46,7 +50,7 @@ public interface MediaType {
   /**
    * The type without parameters.
    * <p>
-   * Given a mime type of "application/json;charset=utf-8", returns "application/json".
+   * Given a mime type of "text/plain;charset=utf-8", returns "text/plain".
    * <p>
    * May be null to represent no content type.
    *
@@ -56,25 +60,32 @@ public interface MediaType {
   String getType();
 
   /**
-   * The parameters of the mime type.
+   * The multimap containing parameters of the mime type.
    * <p>
-   * Given a mime type of "application/json;charset=utf-8", returns {@code [charset: "utf-8"]}".
+   * Given a mime type of "application/json;charset=utf-8", the {@code get("charset")} returns {@code  ["utf-8"]}".
    * May be empty, never null.
    * <p>
-   * All param names have been lower cased.
+   * All param names have been lower cased. The {@code charset} parameter values has been lower cased too.
    *
-   * @return the media type params.
+   * @return the immutable multimap of the media type params.
    */
-  Map<String, String> getParams();
+  ImmutableListMultimap<String, String> getParams();
 
   /**
-   * The value of the "charset" parameter, or the HTTP default of {@code "ISO-8859-1"}.
-   * <p>
-   * This method always returns a value, even if the actual type is a binary type.
+   * The value of the "charset" parameter.
    *
-   * @return The value of the charset parameter, or the HTTP default of {@code "ISO-8859-1"}.
+   * @return the value of the charset parameter, or {@code null} if the no charset parameter was specified
    */
+  @Nullable
   String getCharset();
+
+  /**
+   * The value of the "charset" parameter, or the given default value of no charset was specified.
+   *
+   * @param defaultValue the value if this type has no charset
+   * @return the value of the charset parameter, or the given default
+   */
+  String getCharset(String defaultValue);
 
   /**
    * True if this type starts with "{@code text/}".

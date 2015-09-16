@@ -16,16 +16,14 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
+import ratpack.util.Types;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 public class MultiEntryRegistry implements Registry {
 
@@ -40,41 +38,19 @@ public class MultiEntryRegistry implements Registry {
     return "Registry{" + entries + '}';
   }
 
-  @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O object = maybeGet(type);
-    if (object == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return object;
-    }
-  }
-
-  public <O> O maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        return cast;
+        return Optional.of(cast);
       }
     }
 
-    return null;
-  }
-
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
+    return Optional.empty();
   }
 
   public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
+    //noinspection Convert2Lambda
     return new Iterable<O>() {
       @Override
       public Iterator<O> iterator() {
@@ -117,48 +93,18 @@ public class MultiEntryRegistry implements Registry {
     };
   }
 
-  @Nullable
   @Override
-  public <O> O first(TypeToken<O> type, Predicate<? super O> predicate) {
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          return cast;
+        RegistryEntry<? extends T> cast = Types.cast(entry);
+        O result = function.apply(cast.get());
+        if (result != null) {
+          return Optional.of(result);
         }
       }
     }
-    return null;
-  }
-
-  @Override
-  public <O> Iterable<? extends O> all(TypeToken<O> type, Predicate<? super O> predicate) {
-
-    ImmutableList.Builder<O> builder = ImmutableList.builder();
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          builder.add(cast);
-        }
-      }
-    }
-    return builder.build();
-  }
-
-  @Override
-  public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
-    boolean foundMatch = false;
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          action.execute(cast);
-          foundMatch = true;
-        }
-      }
-    }
-    return foundMatch;
+    return Optional.empty();
   }
 
   @Override

@@ -25,7 +25,7 @@ import java.lang.annotation.*;
  * In other words, non blocking methods are free to do their work on other threads and return from the method immediately.
  */
 @Documented
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface NonBlocking {
 }

@@ -16,7 +16,7 @@
 
 package ratpack.thymeleaf;
 
-import com.google.inject.AbstractModule;
+import com.google.common.base.Strings;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
@@ -27,7 +27,8 @@ import org.thymeleaf.dialect.IDialect;
 import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
-import ratpack.launch.LaunchConfig;
+import ratpack.guice.ConfigurableModule;
+import ratpack.server.ServerConfig;
 import ratpack.thymeleaf.internal.FileSystemBindingThymeleafResourceResolver;
 import ratpack.thymeleaf.internal.ThymeleafTemplateRenderer;
 
@@ -41,129 +42,153 @@ import java.util.Set;
  * Instances of {@code Template} can be created using one of the
  * {@link ratpack.thymeleaf.Template#thymeleafTemplate(java.util.Map, String, String)}
  * static methods.
- * </p>
  * <p>
  * By default templates are looked up in the {@code thymeleaf} directory of the application root with a {@code .html} suffix.
  * So {@code thymeleafTemplate("my/template/path")} maps to {@code thymeleaf/my/template/path.html} in the application root directory.
- * This can be configured using {@link #setTemplatesPrefix(String)} and {@link #setTemplatesSuffix(String)} as well as
- * {@code other.thymeleaf.templatesPrefix} and {@code other.thymeleaf.templatesSuffix} configuration properties.
- * </p>
+ * This can be configured using {@link #setTemplatesPrefix(String)} and {@link #setTemplatesSuffix(String)} as well as configuration of
+ * {@link Config#templatesPrefix(String)} and {@link Config#templateSuffix(String)}.
  * <p>
  * Response content type can be manually specified, i.e. {@code thymeleafTemplate("template", model, "text/html")} if
  * not specified will default to {@code text/html}.
- * </p>
- *
- * Example usage: (Java DSL)
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.EphemeralBaseDir;
+ * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.thymeleaf.ThymeleafModule;
+ *
+ * import java.nio.file.Path;
+ *
  * import static ratpack.thymeleaf.Template.thymeleafTemplate;
+ * import static org.junit.Assert.*;
  *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.render(thymeleafTemplate("my/template/path", key: "it works!"));
- *   }
- * }
+ * public class Example {
  *
- * class Bindings implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.add(new ThymeleafModule());
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *     .build(new HandlerFactory() {
- *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.handler(launchConfig, new Bindings(), new ChainAction() {
- *       protected void execute() {
- *         handler(chain.getRegistry().get(MyHandler.class));
- *       }
+ *   public static void main(String... args) throws Exception {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
+ *       baseDir.write("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>");
+ *       EmbeddedApp.of(s -> s
+ *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
+ *         .registry(Guice.registry(b -> b.module(ThymeleafModule.class)))
+ *         .handlers(chain -> chain
+ *           .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
+ *         )
+ *       ).test(httpClient -> {
+ *         assertEquals("<span>Hello Ratpack!</span>", httpClient.getText());
+ *       });
  *     });
  *   }
- * });
- * </pre>
- *
- * Example usage: (Groovy DSL)
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.thymeleaf.ThymeleafModule
- * import static ratpack.thymeleaf.Template.thymeleafTemplate
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     add new ThymeleafModule()
- *   }
- *   handlers {
- *     get {
- *       render thymeleafTemplate('my/template/path', key: 'it works!')
- *     }
- *   }
  * }
- * </pre>
- *
+ * }</pre>
  * <p>
  * To register dialects, use Guice Multibindings to bind an implementation of {@code IDialect} in a module.
- * </p>
- *
- * Example usage: (Groovy DSL)
- * <pre class="groovy-ratpack-dsl">
- * import com.google.inject.AbstractModule
- * import com.google.inject.multibindings.Multibinder
- * import org.thymeleaf.Arguments
- * import org.thymeleaf.dialect.AbstractDialect
- * import org.thymeleaf.dialect.IDialect
- * import org.thymeleaf.dom.Element
- * import org.thymeleaf.processor.IProcessor
- * import org.thymeleaf.processor.attr.AbstractTextChildModifierAttrProcessor
- * import ratpack.thymeleaf.ThymeleafModule
- * import static ratpack.groovy.Groovy.ratpack
- * import static ratpack.thymeleaf.Template.thymeleafTemplate
- *
- * class SayToAttrProcessor extends AbstractTextChildModifierAttrProcessor {
- *   int precedence = 10000
- *   SayToAttrProcessor() {
- *     super('sayto')
- *   }
- *   protected String getText(Arguments arguments, Element element, String attributeName) {
- *     return "Hello, ${element.getAttributeValue(attributeName)}!"
- *   }
- * }
- *
- * class HelloDialect extends AbstractDialect {
- *   String prefix = 'hello'
- *   Set&lt;IProcessor&gt; processors = [new SayToAttrProcessor()] as Set
- * }
- *
- * class HelloDialectModule extends AbstractModule {
- *   protected void configure() {
- *     Multibinder.newSetBinder(binder(), IDialect).addBinding().to(HelloDialect)
- *   }
- * }
- *
- * ratpack {
- *   bindings {
- *     add new ThymeleafModule(),
- *         new HelloDialectModule()
- *   }
- *   handlers {
- *     get {
- *       render thymeleafTemplate('my/template/path', key: 'it works!')
- *     }
- *   }
- * }
- * </pre>
  *
  * @see <a href="http://www.thymeleaf.org/" target="_blank">Thymeleaf</a>
  * @see <a href="https://code.google.com/p/google-guice/wiki/Multibindings" target="_blank">Guice Multibindings</a>
  */
-public class ThymeleafModule extends AbstractModule {
+@SuppressWarnings("UnusedDeclaration")
+public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> {
 
-  private static final String DEFAULT_TEMPLATE_MODE = "XHTML";
-  private static final String DEFAULT_TEMPLATE_PREFIX = "thymeleaf";
-  private static final String DEFAULT_TEMPLATE_SUFFIX = ".html";
+  /**
+   * The configuration object for {@link ThymeleafModule}.
+   */
+  public static class Config {
+    private int templatesCacheSize;
+    private String templatesMode = DEFAULT_TEMPLATE_MODE;
+    private String templatesPrefix = DEFAULT_TEMPLATE_PREFIX;
+    private String templatesSuffix = DEFAULT_TEMPLATE_SUFFIX;
+
+    /**
+     * The size of the templates cache.
+     * <p>
+     * {@code 0} by default (disabled).
+     *
+     * @return the size of the templates cache.
+     */
+    public int getTemplatesCacheSize() {
+      return templatesCacheSize;
+    }
+
+    /**
+     * The mode for templates.
+     * <p>
+     * {@value ratpack.thymeleaf.ThymeleafModule#DEFAULT_TEMPLATE_MODE} by default.
+     *
+     * @return the mode for templates.
+     */
+    public String getTemplatesMode() {
+      return templatesMode;
+    }
+
+    /**
+     * The prefix for templates.
+     * <p>
+     * {@value ratpack.thymeleaf.ThymeleafModule#DEFAULT_TEMPLATE_PREFIX} by default.
+     *
+     * @return the prefix for templates.
+     */
+    public String getTemplatesPrefix() {
+      return templatesPrefix;
+    }
+
+    /**
+     * The suffix for templates.
+     * <p>
+     * {@value ratpack.thymeleaf.ThymeleafModule#DEFAULT_TEMPLATE_SUFFIX} by default.
+     *
+     * @return the suffix for templates.
+     */
+    public String getTemplatesSuffix() {
+      return templatesSuffix;
+    }
+
+    /**
+     * Sets the size of the templates cache.
+     *
+     * @param templatesCacheSize the size of the templates cache
+     * @return this
+     */
+    public Config templatesCacheSize(int templatesCacheSize) {
+      this.templatesCacheSize = templatesCacheSize;
+      return this;
+    }
+
+    /**
+     * Sets the mode for templates.
+     *
+     * @param templatesMode the mode for templates
+     * @return this
+     */
+    public Config templatesMode(String templatesMode) {
+      this.templatesMode = templatesMode;
+      return this;
+    }
+
+    /**
+     * Sets the prefix for templates.
+     *
+     * @param templatesPrefix the prefix for templates
+     * @return this
+     */
+    public Config templatesPrefix(String templatesPrefix) {
+      this.templatesPrefix = templatesPrefix;
+      return this;
+    }
+
+    /**
+     * Sets the suffix for templates.
+     *
+     * @param templatesSuffix the suffix for templates
+     * @return this
+     */
+    public Config templateSuffix(String templatesSuffix) {
+      this.templatesSuffix = templatesSuffix;
+      return this;
+    }
+  }
+
+  public static final String DEFAULT_TEMPLATE_MODE = "XHTML";
+  public static final String DEFAULT_TEMPLATE_PREFIX = "thymeleaf";
+  public static final String DEFAULT_TEMPLATE_SUFFIX = ".html";
 
   private String templatesMode;
   private String templatesPrefix;
@@ -209,63 +234,60 @@ public class ThymeleafModule extends AbstractModule {
     bind(ICacheManager.class).to(StandardCacheManager.class).in(Singleton.class);
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  ITemplateResolver provideTemplateResolver(LaunchConfig launchConfig) {
-    IResourceResolver resourceResolver = new FileSystemBindingThymeleafResourceResolver(launchConfig.getBaseDir());
+  ITemplateResolver provideTemplateResolver(ServerConfig serverConfig, Config config) {
+    IResourceResolver resourceResolver = new FileSystemBindingThymeleafResourceResolver(serverConfig.getBaseDir());
     TemplateResolver templateResolver = new TemplateResolver();
     templateResolver.setResourceResolver(resourceResolver);
-
-
-    String mode = templatesMode == null ? launchConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
-    templateResolver.setTemplateMode(mode);
-
-    String prefix = templatesPrefix == null ? launchConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
-    if (!prefix.endsWith(File.separator)) {
-      prefix += File.separator;
-    }
-    templateResolver.setPrefix(prefix);
-
-    String suffix = templatesSuffix == null ? launchConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
-    if (suffix.equalsIgnoreCase("")) {
-      suffix = DEFAULT_TEMPLATE_SUFFIX;
-    }
-    templateResolver.setSuffix(suffix);
-
-    Integer cacheSize = getCacheSizeSetting(launchConfig);
-    templateResolver.setCacheable(cacheSize > 0);
-
-    // Never use TTL expiration
-    templateResolver.setCacheTTLMs(null);
-
+    templateResolver.setTemplateMode(getTemplatesModeSetting(config));
+    templateResolver.setPrefix(getTemplatesPrefixSetting(config));
+    templateResolver.setSuffix(getTemplatesSuffixSetting(config));
+    templateResolver.setCacheable(getCacheSizeSetting(config) > 0);
+    templateResolver.setCacheTTLMs(null); // Never use TTL expiration
     return templateResolver;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  StandardCacheManager provideCacheManager(LaunchConfig launchConfig) {
-    Integer cacheSize = getCacheSizeSetting(launchConfig);
+  StandardCacheManager provideCacheManager(Config config) {
+    int cacheSize = getCacheSizeSetting(config);
     StandardCacheManager cacheManager = new StandardCacheManager();
     cacheManager.setTemplateCacheMaxSize(cacheSize);
     return cacheManager;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
   TemplateEngine provideTemplateEngine(ITemplateResolver templateResolver, ICacheManager cacheManager, Set<IDialect> dialects) {
     final TemplateEngine templateEngine = new TemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
     templateEngine.setCacheManager(cacheManager);
-    for (IDialect dialect : dialects) {
-      templateEngine.addDialect(dialect);
-    }
+    dialects.stream().forEach(templateEngine::addDialect);
     return templateEngine;
   }
 
-  private Integer getCacheSizeSetting(LaunchConfig launchConfig) {
-    return templatesCacheSize == null ? Integer.valueOf(launchConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
+  private int getCacheSizeSetting(Config config) {
+    return templatesCacheSize == null ? config.getTemplatesCacheSize() : templatesCacheSize;
+  }
+
+  private String getTemplatesModeSetting(Config config) {
+    return templatesMode == null ? config.getTemplatesMode() : templatesMode;
+  }
+
+  private String getTemplatesPrefixSetting(Config config) {
+    String prefix = templatesPrefix == null ? config.getTemplatesPrefix() : templatesPrefix;
+    if (!prefix.endsWith(File.separator)) {
+      prefix += File.separator;
+    }
+    return prefix;
+  }
+
+  private String getTemplatesSuffixSetting(Config config) {
+    String suffix = Strings.emptyToNull(templatesSuffix == null ? config.getTemplatesSuffix() : templatesSuffix);
+    if (suffix == null) {
+      suffix = DEFAULT_TEMPLATE_SUFFIX;
+    }
+    return suffix;
   }
 }

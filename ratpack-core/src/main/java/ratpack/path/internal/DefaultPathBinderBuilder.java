@@ -20,11 +20,15 @@ import com.google.common.collect.ImmutableList;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinderBuilder;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DefaultPathBinderBuilder implements PathBinderBuilder {
-  private ImmutableList.Builder<String> tokensBuilder = ImmutableList.builder();
-  private StringBuilder pattern = new StringBuilder();
+
+  private static final Pattern PLACEHOLDER = Pattern.compile("((?:^|/):(\\w+)\\??:([^/])+)|((?:^|/)::([^/])+)|((?:^|/):(\\w+)\\??)");
+
+  private final ImmutableList.Builder<String> tokensBuilder = ImmutableList.builder();
+  private final StringBuilder pattern = new StringBuilder();
   private boolean addedOptional;
   private boolean addedToken;
 
@@ -65,7 +69,7 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
   }
 
   public PathBinderBuilder literalPattern(String pattern) {
-    this.pattern.append(String.format("(?:%s)", pattern));
+    this.pattern.append("(?:(?:^|/)").append(String.format("(?:%s)", pattern)).append(")");
     return this;
   }
 
@@ -74,9 +78,45 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
     return this;
   }
 
-  public PathBinder build(boolean exact) {
-    String regex = (addedToken ? "(\\Q\\E" : "(") + pattern + (addedToken ? "\\Q\\E)" : ")") + (exact ? "(?:/|$)" : "(?:/.*)?");
+  public PathBinder build(boolean exhaustive) {
+    String regex = (addedToken ? "(\\Q\\E" : "(") + pattern + (addedToken ? "\\Q\\E)" : ")") + (exhaustive ? "(?:/|$)" : "(?:/.*)?");
     Pattern compiled = Pattern.compile(regex);
     return new TokenPathBinder(tokensBuilder.build(), compiled);
   }
+
+  public static PathBinder parse(String path, boolean exact) {
+    PathBinderBuilder pathBinderBuilder = new DefaultPathBinderBuilder();
+
+    Matcher matchResult = PLACEHOLDER.matcher(path);
+
+    int lastIndex = 0;
+
+    if (matchResult.find()) {
+      do {
+        int thisIndex = matchResult.start();
+        if (thisIndex != lastIndex) {
+          pathBinderBuilder.literal(path.substring(lastIndex, thisIndex));
+        }
+        lastIndex = matchResult.end();
+        String component = matchResult.group(0);
+        boolean found = false;
+        for (PathTokenType type : PathTokenType.values()) {
+          if (type.match(component, pathBinderBuilder)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          throw new IllegalArgumentException(String.format("Cannot match path %s (%s)", path, component));
+        }
+      } while (matchResult.find());
+      if (lastIndex < path.length()) {
+        pathBinderBuilder.literal(path.substring(lastIndex));
+      }
+    } else {
+      pathBinderBuilder.literal(path);
+    }
+    return pathBinderBuilder.build(exact);
+  }
+
 }

@@ -24,14 +24,10 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 class ParserSpec extends RatpackGroovyDslSpec {
 
   static class IntParser extends NoOptParserSupport {
-    IntParser() {
-      super("text/plain")
-    }
-
     @Override
-    <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
+    <T> T parse(Context context, TypedData body, TypeToken<T> type) throws Exception {
       if (type.rawType == Integer) {
-        context.request.body.text.toInteger()
+        body.text.toInteger()
       } else {
         return null
       }
@@ -46,12 +42,14 @@ class ParserSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         def i = parse Integer
-        response.send(i.getClass().toString())
+        i.then { integer ->
+          response.send(integer.getClass().toString())
+        }
       }
     }
 
     then:
-    request.body("123")
+    requestSpec { it.body.stream { it << "123" } }
     postText() == Integer.toString()
   }
 

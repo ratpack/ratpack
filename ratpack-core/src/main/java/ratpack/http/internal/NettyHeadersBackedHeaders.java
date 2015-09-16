@@ -16,8 +16,11 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.ImmutableMap;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.http.Headers;
+import ratpack.util.MultiValueMap;
+import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -32,11 +35,18 @@ public class NettyHeadersBackedHeaders implements Headers {
     this.headers = headers;
   }
 
+  @Override
+  public String get(CharSequence name) {
+    return headers.get(name);
+  }
+
+  @Override
   public String get(String name) {
     return headers.get(name);
   }
 
-  public Date getDate(String name) {
+  @Override
+  public Date getDate(CharSequence name) {
     final String value = get(name);
     if (value == null) {
       return null;
@@ -49,16 +59,47 @@ public class NettyHeadersBackedHeaders implements Headers {
     }
   }
 
+  @Override
+  public Date getDate(String name) {
+    return getDate((CharSequence) name);
+  }
+
+  @Override
   public List<String> getAll(String name) {
     return headers.getAll(name);
   }
 
+  @Override
   public boolean contains(String name) {
     return headers.contains(name);
   }
 
+  @Override
+  public List<String> getAll(CharSequence name) {
+    return headers.getAll(name);
+  }
+
+  @Override
+  public boolean contains(CharSequence name) {
+    return headers.contains(name);
+  }
+
+  @Override
   public Set<String> getNames() {
     return headers.names();
   }
 
+  @Override
+  public MultiValueMap<String, String> asMultiValueMap() {
+    ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
+    for (String s : headers.names()) {
+      builder.put(s, headers.getAll(s));
+    }
+    return new ImmutableDelegatingMultiValueMap<>(builder.build());
+  }
+
+  @Override
+  public HttpHeaders getNettyHeaders() {
+    return headers;
+  }
 }

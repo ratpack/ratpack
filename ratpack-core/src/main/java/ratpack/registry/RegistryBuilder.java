@@ -16,15 +16,18 @@
 
 package ratpack.registry;
 
-import ratpack.func.Factory;
+import com.google.common.reflect.TypeToken;
+import ratpack.func.Action;
+
+import java.util.function.Supplier;
 
 /**
  * A builder of {@link Registry registries}.
  * <p>
- * For create single entry registries, see the factory methods on {@link Registries}.
+ * For create single entry registries, see the factory methods on {@link Registry}.
  * A builder can be used for creating an registry with multiple entries.
  *
- * @see Registries#registry()
+ * @see Registry#builder()
  */
 public interface RegistryBuilder extends RegistrySpec {
 
@@ -39,19 +42,46 @@ public interface RegistryBuilder extends RegistrySpec {
    * {@inheritDoc}
    */
   @Override
-  <O> RegistryBuilder add(Class<? super O> type, O object);
+  default RegistryBuilder add(Object object) {
+    RegistrySpec.super.add(object);
+    return this;
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  RegistryBuilder add(Object object);
+  default <O> RegistryBuilder add(Class<? super O> type, O object) {
+    return add(TypeToken.of(type), object);
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory);
+  default <O> RegistryBuilder add(TypeToken<? super O> type, O object) {
+    return addLazy(type, () -> object);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> RegistryBuilder addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    return addLazy(TypeToken.of(type), supplier);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> RegistryBuilder addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
+
+  @Override
+  default RegistryBuilder with(Action<? super RegistrySpec> action) throws Exception {
+    RegistrySpec.super.with(action);
+    return this;
+  }
 
   /**
    * Builds the registry.
@@ -59,16 +89,5 @@ public interface RegistryBuilder extends RegistrySpec {
    * @return a newly created registry
    */
   Registry build();
-
-  /**
-   * Builds a registry containing the entries specified by this builder and the given “parent” registry.
-   * <p>
-   * This method uses {@link Registries#join(Registry, Registry)}, with this registry as the child argument.
-   *
-   * @param parent the parent of the registry to create
-   * @return a newly created registry
-   * @see Registries#join(Registry, Registry)
-   */
-  Registry build(Registry parent);
 
 }

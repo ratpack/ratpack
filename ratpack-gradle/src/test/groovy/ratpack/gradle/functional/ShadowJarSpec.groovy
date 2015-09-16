@@ -16,6 +16,7 @@
 
 package ratpack.gradle.functional
 
+import com.google.common.base.StandardSystemProperty
 import org.gradle.internal.jvm.Jvm
 import spock.util.concurrent.PollingConditions
 
@@ -31,8 +32,9 @@ class ShadowJarSpec extends FunctionalSpec {
       import ratpack.server.Stopper
 
       ratpack {
+        serverConfig { port 0 }
         handlers {
-          assets "public"
+          files { dir "public" }
           get { Stopper stopper ->
             onClose { stopper.stop() }
             render "stopping"
@@ -44,13 +46,13 @@ class ShadowJarSpec extends FunctionalSpec {
     when:
     run "shadowJar"
     def p = new ProcessBuilder().command(Jvm.current().javaExecutable.absolutePath, "-jar", shadowJar.absolutePath).start()
-    p.consumeProcessOutput(System.out as Appendable, System.err as Appendable)
+    def port = scrapePort(p)
 
     then:
     new PollingConditions().within(10) {
       try {
-        urlText("foo.txt") == "bar"
-        urlText() == "stopping"
+        urlText(port, "foo.txt") == "bar"
+        urlText(port) == "stopping"
       } catch (ConnectException ignore) {
         false
       }
@@ -60,20 +62,20 @@ class ShadowJarSpec extends FunctionalSpec {
     p?.destroy()
   }
 
-  HttpURLConnection url(String path = "") {
-    new URL("http://localhost:5050/$path").openConnection() as HttpURLConnection
+  HttpURLConnection url(int port, String path = "") {
+    new URL("http://localhost:$port/$path").openConnection() as HttpURLConnection
   }
 
-  String urlText(String path = "") {
-    new URL("http://localhost:5050/$path").text
+  String urlText(int port, String path = "") {
+    new URL("http://localhost:$port/$path").text
   }
 
   String osSpecificCommand() {
-    if (System.getProperty("os.name").startsWith("Windows")) {
+    if (StandardSystemProperty.OS_NAME.value().startsWith("Windows")) {
       // Windows doesn't take the working directory into account when searching for the command so a relative path won't work.
-      return file("build/install/test-app/bin/test-app.bat").absolutePath
+      file("build/install/test-app/bin/test-app.bat").absolutePath
     } else {
-      return "bin/test-app"
+      "bin/test-app"
     }
   }
 }

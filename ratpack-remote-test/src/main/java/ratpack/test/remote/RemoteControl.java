@@ -32,15 +32,17 @@ import ratpack.remote.CommandDelegate;
 import ratpack.test.ApplicationUnderTest;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH;
+import static ratpack.remote.RemoteControl.DEFAULT_REMOTE_CONTROL_PATH;
 
 public class RemoteControl {
 
   private final RemoteControlSupport<ClosureCommand> support;
+  private final List<Closure<?>> uses;
   private final CommandGenerator<RawClosureCommand, ClosureCommand> generator = new ClosureCommandGenerator();
 
   private final static class DelegatingTransport implements Transport {
@@ -59,18 +61,39 @@ public class RemoteControl {
     }
   }
 
+  public RemoteControl(ApplicationUnderTest application, String path, UnserializableResultStrategy unserializableResultStrategy) {
+    this(createSupport(application, path, unserializableResultStrategy), Collections.emptyList());
+  }
+
+  public static RemoteControlSupport<ClosureCommand> createSupport(ApplicationUnderTest application, String path, UnserializableResultStrategy unserializableResultStrategy) {
+    return new RemoteControlSupport<>(new DelegatingTransport(application, path), unserializableResultStrategy, Thread.currentThread().getContextClassLoader());
+  }
+
   public RemoteControl(ApplicationUnderTest application, String path) {
-    support = new RemoteControlSupport<>(new DelegatingTransport(application, path), UnserializableResultStrategy.THROW, getClass().getClassLoader());
+    this(application, path, UnserializableResultStrategy.THROW);
+  }
+
+  public RemoteControl(ApplicationUnderTest application, UnserializableResultStrategy unserializableResultStrategy) {
+    this(application, DEFAULT_REMOTE_CONTROL_PATH, unserializableResultStrategy);
   }
 
   public RemoteControl(ApplicationUnderTest application) {
-    this(application, DEFAULT_REMOTE_CONTROL_PATH);
+    this(application, DEFAULT_REMOTE_CONTROL_PATH, UnserializableResultStrategy.THROW);
+  }
+
+  private RemoteControl(RemoteControlSupport<ClosureCommand> support, List<Closure<?>> uses) {
+    this.support = support;
+    this.uses = uses;
+  }
+
+  public RemoteControl uses(Closure<?>... uses) {
+    return new RemoteControl(support, Arrays.asList(uses));
   }
 
   public Object exec(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure<?>... commands) throws IOException {
     List<ClosureCommand> closureCommands = new LinkedList<>();
     for (Closure<?> command : commands) {
-      ClosureCommand closureCommand = generator.generate(new RawClosureCommand(command, Collections.<Closure<?>>emptyList()));
+      ClosureCommand closureCommand = generator.generate(new RawClosureCommand(command, uses));
       closureCommands.add(closureCommand);
     }
 
@@ -80,6 +103,5 @@ public class RemoteControl {
   public static Closure<?> command(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure<?> command) {
     return command.dehydrate();
   }
-
 
 }

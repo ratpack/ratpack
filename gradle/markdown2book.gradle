@@ -18,19 +18,18 @@ buildscript {
   repositories.jcenter()
   dependencies {
     classpath  \
-         "commons-io:commons-io:1.4",
-        "org.pegdown:pegdown:1.2.1"
+        "commons-io:commons-io:1.4",
+        "org.pegdown:pegdown:${commonVersions.pegdown}"
   }
 }
 
-import org.pegdown.PegDownProcessor
-import org.pegdown.Extensions
-
-import java.nio.charset.Charset
-import java.util.regex.Pattern
 
 import groovy.text.SimpleTemplateEngine
 import org.apache.commons.io.FileUtils
+import org.pegdown.PegDownProcessor
+
+import java.nio.charset.Charset
+import java.util.regex.Pattern
 
 class Generator {
 
@@ -196,9 +195,9 @@ class Generator {
         toc << [heading: heading, prefix: prefix, id: id, lastLevel: lastLevel]
 
         content << "#" * heading.level
-        content << "<span id='"
+        content << '<span id="'
         content << id
-        content << "'>"
+        content << '">'
         content << prefix
         content << "</span> "
         content << "[$heading.title](#$id)"

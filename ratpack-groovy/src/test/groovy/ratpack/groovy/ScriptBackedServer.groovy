@@ -17,8 +17,7 @@
 package ratpack.groovy
 
 import ratpack.groovy.internal.StandaloneScriptBacking
-import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchException
+import ratpack.server.StartupFailureException
 import ratpack.server.RatpackServer
 
 class ScriptBackedServer implements RatpackServer {
@@ -31,16 +30,9 @@ class ScriptBackedServer implements RatpackServer {
     this.starter = starter
   }
 
-  @Override
-  LaunchConfig getLaunchConfig() {
-    if (nestedServer == null) {
-      start()
-    }
-    nestedServer.launchConfig
-  }
 
   @Override
-  void start() throws LaunchException {
+  void start() throws StartupFailureException {
     StandaloneScriptBacking.captureNext { RatpackServer it ->
       nestedServer = it
     }
@@ -60,6 +52,11 @@ class ScriptBackedServer implements RatpackServer {
   @Override
   void stop() throws Exception {
     nestedServer?.stop()
+  }
+
+  @Override
+  RatpackServer reload() throws Exception {
+    return nestedServer?.reload()
   }
 
   @Override

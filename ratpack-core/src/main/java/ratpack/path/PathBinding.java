@@ -47,17 +47,6 @@ public interface PathBinding {
   String getPastBinding();
 
   /**
-   * Constructs a new path using the {@link #getBoundTo()} value of this binding and the given path.
-   * <p>
-   * For a binding with a "bound to" value of "a/b/c", calling childPath("d/e") will return "a/b/c/d/e".
-   * It is invalid to call this method with an absolute path.
-   *
-   * @param path The path to use to construct a new child path from the bind point of this binding
-   * @return The child path
-   */
-  String childPath(String path);
-
-  /**
    * Any tokens that the binding has extracted from the path.
    * <p>
    * The definition of how tokens are extracted is implementation specific. Except that tokens are never

@@ -16,15 +16,17 @@
 
 package ratpack.exec
 
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.func.Block
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
   def record = []
 
-  class RecordingInterceptor implements ExecInterceptor {
+  class RecordingInterceptor implements ExecInterceptor, ExecInitializer {
 
     final String id
 
@@ -33,9 +35,14 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+    void init(Execution execution) {
+      record << "init:$id"
+    }
+
+    @Override
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
       record << "$id:$type"
-      continuation.run()
+      executionSegment.execute()
     }
   }
 
@@ -45,15 +52,15 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     def interceptor2 = new RecordingInterceptor("2")
 
     handlers {
-      handler {
-        addExecInterceptor(interceptor1) {
-          addExecInterceptor(interceptor2) {
+      all {
+        execution.addInterceptor(interceptor1) {
+          execution.addInterceptor(interceptor2) {
             next()
           }
         }
       }
       get(":path") {
-        blocking {
+        Blocking.get {
           2
         } then {
           render pathTokens.path
@@ -75,27 +82,31 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
-      super.intercept(type, continuation)
+    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
+      super.intercept(execution, type, executionSegment)
       throw new RuntimeException("$type:$id")
     }
   }
 
-  def "errors thrown by interceptors are ignored"() {
+  def "errors thrown by interceptors bubble up"() {
     given:
     def interceptor1 = new ErroringInterceptor("1")
     def interceptor2 = new ErroringInterceptor("2")
 
+    when:
     handlers {
-      handler {
-        addExecInterceptor(interceptor1) {
-          addExecInterceptor(interceptor2) {
+      register {
+        add(new SimpleErrorHandler())
+      }
+      all {
+        execution.addInterceptor(interceptor1) {
+          execution.addInterceptor(interceptor2) {
             next()
           }
         }
       }
       get(":path") {
-        blocking {
+        Blocking.get {
           2
         } then {
           render pathTokens.path
@@ -103,27 +114,54 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when:
-    get("1")
-
     then:
-    record == ["1:COMPUTE", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
+    getText("1") == "java.lang.RuntimeException: COMPUTE:2"
+    record == ["1:COMPUTE", "2:COMPUTE"]
   }
 
   def "intercepted handlers can throw exceptions"() {
     given:
     bindings {
-      bind new RecordingInterceptor("id") // just need any interceptor
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bindInstance new RecordingInterceptor("id") // just need any interceptor
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
 
     when:
     handlers {
-      handler { throw new RuntimeException("!") }
+      all { throw new RuntimeException("!") }
     }
 
     then:
     get().statusCode == 500
+  }
+
+  def "interceptors are initd"() {
+    given:
+    bindings {
+      bindInstance new RecordingInterceptor("global")
+    }
+    serverConfig {
+      development false
+    }
+    when:
+    handlers {
+      all {
+        Promise.of { d ->
+          Execution.fork().register { it.add(new RecordingInterceptor("registry")) }.start {
+            d.success("foo")
+          }
+        } then {
+          render it
+        }
+      }
+    }
+
+    then:
+    text
+    record == [
+      "init:global", "global:COMPUTE",
+      "init:global", "init:registry", "global:COMPUTE", "registry:COMPUTE", "global:COMPUTE"
+    ]
   }
 
 }

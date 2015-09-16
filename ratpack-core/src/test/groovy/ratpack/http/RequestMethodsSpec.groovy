@@ -29,14 +29,25 @@ class RequestMethodsSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "[:]" && resetRequest()
-    getText("?a=b") == "[a:[b]]" && resetRequest()
-    request.with {
-      queryParam "a", "b", "c"
-      queryParam "d", "e"
+    getText() == "[:]"
+    resetRequest()
+
+    then:
+    params { it.put("a", "b") }
+    getText("/") == "[a:[b]]"
+    resetRequest()
+
+    then:
+    params {
+      it.putAll("a", ["b", "c"]).put("d", "e")
     }
-    getText() == "[a:[b, c], d:[e]]" && resetRequest()
-    getText("?abc") == "[abc:[]]" && resetRequest()
+    getText("/") == "[a:[b, c], d:[e]]"
+    resetRequest()
+
+    then:
+    params { it.put("abc", "") }
+    getText("/") == "[abc:[]]"
+    resetRequest()
   }
 
 }

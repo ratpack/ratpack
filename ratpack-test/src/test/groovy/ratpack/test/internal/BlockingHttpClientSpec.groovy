@@ -16,6 +16,8 @@
 
 package ratpack.test.internal
 
+import java.time.Duration
+
 class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
 
   def "can use blocking http client"() {
@@ -30,7 +32,7 @@ class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
     def client = new BlockingHttpClient()
 
     then:
-    client.request({it.url.set(applicationUnderTest.address)}).body.text == "ok"
+    client.request(applicationUnderTest.address, Duration.ofSeconds(5), {}).body.text == "ok"
   }
 
 }

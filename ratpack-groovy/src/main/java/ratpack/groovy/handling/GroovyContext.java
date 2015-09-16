@@ -18,6 +18,9 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.groovy.handling.internal.DefaultGroovyContext;
+import ratpack.handling.ByContentSpec;
+import ratpack.handling.ByMethodSpec;
 import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 
@@ -25,6 +28,20 @@ import ratpack.handling.RequestOutcome;
  * Subclass of {@link ratpack.handling.Context} that adds Groovy friendly variants of methods.
  */
 public interface GroovyContext extends Context {
+
+  /**
+   * Creates a Groovy context from a context.
+   *
+   * @param ctx the actual context
+   * @return a Groovy context
+   */
+  static GroovyContext from(Context ctx) {
+    if (ctx instanceof GroovyContext) {
+      return (GroovyContext) ctx;
+    } else {
+      return new DefaultGroovyContext(ctx);
+    }
+  }
 
   /**
    * {@inheritDoc}
@@ -35,8 +52,8 @@ public interface GroovyContext extends Context {
   /**
    * Groovy friendly overload of {@link #byMethod(ratpack.func.Action)}.
    *
-   * <pre class="tested">
-   * import ratpack.groovy.test.GroovyUnitTest
+   * <pre class="tested-dynamic">
+   * import ratpack.groovy.test.handling.GroovyRequestFixture
    * import static ratpack.groovy.Groovy.groovyHandler
    *
    * def handler = groovyHandler {
@@ -51,13 +68,13 @@ public interface GroovyContext extends Context {
    *   }
    * }
    *
-   * def result = GroovyUnitTest.handle(handler) {
+   * def result = GroovyRequestFixture.handle(handler) {
    *   method "get"
    * }
    *
    * assert result.rendered(CharSequence) == "hello! from GET request"
    *
-   * result = GroovyUnitTest.handle(handler) {
+   * result = GroovyRequestFixture.handle(handler) {
    *   method "post"
    * }
    *
@@ -67,13 +84,13 @@ public interface GroovyContext extends Context {
    * @param closure defines the action to take for different HTTP methods
    * @throws Exception any thrown by the closure
    */
-  void byMethod(@DelegatesTo(GroovyByMethodSpec.class) Closure<?> closure) throws Exception;
+  void byMethod(@DelegatesTo(value = ByMethodSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
   /**
    * Groovy friendly overload of {@link #byContent(ratpack.func.Action)}.
    *
-   * <pre class="tested">
-   * import ratpack.groovy.test.GroovyUnitTest
+   * <pre class="tested-dynamic">{@code
+   * import ratpack.groovy.test.handling.GroovyRequestFixture
    * import static ratpack.groovy.Groovy.groovyHandler
    *
    * def handler = groovyHandler {
@@ -88,25 +105,25 @@ public interface GroovyContext extends Context {
    *   }
    * }
    *
-   * def result = GroovyUnitTest.handle(handler) {
+   * def result = GroovyRequestFixture.handle(handler) {
    *   header("Accept", "application/json");
    * }
    *
    * assert result.rendered(CharSequence) == "{\"msg\": \"hello!\"}"
    * assert result.headers.get("content-type") == "application/json"
    *
-   * result = GroovyUnitTest.handle(handler) {
+   * result = GroovyRequestFixture.handle(handler) {
    *   header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
    * }
    *
    * assert result.rendered(CharSequence) == "<p>hello!</p>";
-   * assert result.headers.get("content-type") == "text/html;charset=UTF-8";
-   * </pre>
+   * assert result.headers.get("content-type") == "text/html";
+   * }</pre>
    *
    * @param closure defines the action to take for the different content types
    * @throws Exception any thrown by the closure
    */
-  void byContent(@DelegatesTo(GroovyByContentSpec.class) Closure<?> closure) throws Exception;
+  void byContent(@DelegatesTo(value = ByContentSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
   /**
    * Adds a request close handler.

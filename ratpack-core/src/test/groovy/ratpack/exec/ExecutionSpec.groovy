@@ -16,34 +16,38 @@
 
 package ratpack.exec
 
+import com.google.common.util.concurrent.Futures
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
-import ratpack.launch.LaunchConfigBuilder
+import ratpack.stream.Streams
+import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 class ExecutionSpec extends Specification {
 
   @AutoCleanup
-  ExecController controller
-  def events = []
+  ExecHarness harness = ExecHarness.harness()
+  List<Object> events = []
   def latch = new CountDownLatch(1)
 
-  def setup() {
-    controller = LaunchConfigBuilder.noBaseDir().build().execController
-  }
 
   def exec(Action<? super Execution> action) {
-    controller.start {
-      it.onComplete {
-        latch.countDown()
-      }
+    exec(action, Action.noop())
+  }
 
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError) {
+    harness.controller.fork().onError(onError).onComplete {
+      events << "complete"
+      latch.countDown()
+    } start {
       action.execute(it)
     }
     latch.await()
@@ -51,14 +55,10 @@ class ExecutionSpec extends Specification {
 
   def "exception thrown after promise prevents promise from running"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        events << "error"
-      }
-
-      e.promise { f ->
+    exec({ e ->
+      Promise.of { f ->
         events << "action"
-        e.fork {
+        e.fork().start {
           f.success(1)
         }
       } then {
@@ -66,63 +66,64 @@ class ExecutionSpec extends Specification {
       }
 
       throw new RuntimeException("!")
-    }
+    }, {
+      events << "error"
+    })
 
     then:
-    events == ["error"]
+    events == ["error", "complete"]
   }
 
   def "error handler can perform blocking ops"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        e.blocking { 2 } then { events << "error" }
-      }
-
+    exec({ e ->
       throw new RuntimeException("!")
-    }
+    }, {
+      try {
+        Blocking.get { 2 } then { events << "error" }
+
+      } catch (e) {
+        e.printStackTrace()
+      }
+    })
 
     then:
-    events == ["error"]
+    events == ["error", "complete"]
   }
 
   def "error handler can perform blocking ops then blocking opts"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        e.blocking {
-          2
+    exec({
+      throw new RuntimeException("!")
+    }, {
+      Blocking.get {
+        2
+      } then {
+        Blocking.get {
+          5
         } then {
-          e.blocking {
-            2
-          } then {
-            events << "error"
-          }
+          events << "error"
         }
       }
-
-      throw new RuntimeException("!")
-    }
+    })
 
     then:
-    events == ["error"]
+    events == ["error", "complete"]
   }
 
   def "error handler can throw error"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        events << "e$it.message".toString()
-        if (!("e2" in events)) {
-          throw new RuntimeException("2")
-        }
-      }
-
+    exec({ e ->
       throw new RuntimeException("1")
-    }
+    }, {
+      events << "e$it.message".toString()
+      if (!("e2" in events)) {
+        throw new RuntimeException("2")
+      }
+    })
 
     then:
-    events == ["e1", "e2"]
+    events == ["e1", "e2", "complete"]
   }
 
   def "execution can queue promises"() {
@@ -130,10 +131,7 @@ class ExecutionSpec extends Specification {
 
     when:
     exec { e1 ->
-      e1.setErrorHandler {
-        it.printStackTrace()
-      }
-      e1.promise { f ->
+      Promise.of { f ->
         Thread.start {
           sleep 100
           f.success "1"
@@ -141,7 +139,7 @@ class ExecutionSpec extends Specification {
       } then {
         events << it
       }
-      e1.promise { f ->
+      Promise.of { f ->
         Thread.start {
           f.success "2"
         }
@@ -153,53 +151,47 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    events == ["1", "2"]
+    events == ["1", "2", "complete"]
   }
 
   def "promise is bound to subscribing execution"() {
     when:
     def innerLatch = new CountDownLatch(1)
 
-    exec { e1 ->
-      def p = e1.promise { f ->
-        e1.fork {
+    exec { outerExec ->
+      def p = Promise.value { f ->
+        Execution.fork().start {
           f.success(2)
         }
       }
 
-      e1.fork { e2 ->
-        p.then {
-          assert e2.controller.execution == e2
-          events << "then"
-          innerLatch.countDown()
+      outerExec.onComplete {
+        Execution.fork().start { e2 ->
+          p.then {
+            assert Execution.current() == e2
+            events << "then"
+            innerLatch.countDown()
+          }
         }
       }
     }
 
     then:
     innerLatch.await()
-    events == ["then"]
+    events == ["complete", "then"]
   }
 
   def "subscriber callbacks are bound to execution"() {
     when:
-    def streamEvents = []
-    def innerLatch = new CountDownLatch(4)
-
     exec { e1 ->
-      controller.execution.onComplete {
-        streamEvents << 'execution-complete'
-        innerLatch.countDown()
-      }
-
-      e1.stream(new Publisher<String>() {
+      Streams.bindExec(new Publisher<String>() {
         @Override
         void subscribe(Subscriber subscriber) {
-          streamEvents << 'publisher-subscribe'
-          final AtomicInteger i = new AtomicInteger()
+          events << 'publisher-subscribe'
+          final AtomicLong i = new AtomicLong()
 
           Subscription subscription = new Subscription() {
-            AtomicInteger capacity = new AtomicInteger()
+            AtomicLong capacity = new AtomicLong()
 
             @Override
             void cancel() {
@@ -208,9 +200,9 @@ class ExecutionSpec extends Specification {
             }
 
             @Override
-            void request(int elements) {
-              assert e1.controller.managedThread
-              streamEvents << 'publisher-request'
+            void request(long elements) {
+              assert Execution.isManagedThread()
+              events << 'publisher-request'
               if (capacity.getAndAdd(elements) == 0) {
                 // start sending again if it wasn't already running
                 send()
@@ -220,10 +212,10 @@ class ExecutionSpec extends Specification {
             private void send() {
               Thread.start {
                 while (capacity.getAndDecrement() > 0) {
-                  assert !e1.controller.managedThread
-                  streamEvents << 'publisher-send'
+                  assert !Execution.isManagedThread()
+                  events << 'publisher-send'
                   subscriber.onNext('foo' + i.incrementAndGet())
-                  Thread.sleep(500)
+                  Thread.sleep(50)
                 }
 
                 cancel()
@@ -233,26 +225,24 @@ class ExecutionSpec extends Specification {
 
           subscriber.onSubscribe(subscription)
         }
-      }, new Subscriber<String>() {
+      }).subscribe(new Subscriber<String>() {
         @Override
         void onSubscribe(Subscription subscription) {
-          assert e1.controller.managedThread
-          streamEvents << 'subscriber-onSubscribe'
+          assert Execution.isManagedThread()
+          events << 'subscriber-onSubscribe'
           subscription.request(2)
         }
 
         @Override
         void onNext(String element) {
-          assert e1.controller.managedThread
-          streamEvents << "subscriber-onNext:$element".toString()
-          innerLatch.countDown()
+          assert Execution.isManagedThread()
+          events << "subscriber-onNext:$element".toString()
         }
 
         @Override
         void onComplete() {
-          assert e1.controller.managedThread
-          streamEvents << 'subscriber-onComplete'
-          innerLatch.countDown()
+          assert Execution.isManagedThread()
+          events << 'subscriber-onComplete'
         }
 
         @Override
@@ -263,8 +253,7 @@ class ExecutionSpec extends Specification {
     }
 
     then:
-    innerLatch.await()
-    streamEvents.toString() == [
+    events == [
       'publisher-subscribe',
       'subscriber-onSubscribe',
       'publisher-request',
@@ -273,8 +262,128 @@ class ExecutionSpec extends Specification {
       'publisher-send',
       'subscriber-onNext:foo2',
       'subscriber-onComplete',
-      'execution-complete'
-    ].toString()
+      "complete"
+    ]
   }
 
+  @Unroll
+  def "can subscribe to promise more than once"() {
+    when:
+    exec({
+      def p = Blocking.get { 2 }
+      code(p).then { events << it }
+      code(p).then { events << it }
+    }) {
+      events << it
+    }
+
+    then:
+    events.size() == 3
+
+    where:
+    code << [
+      { it.flatMap { Blocking.get { 2 } } },
+      { it },
+      { it.map { 2 } },
+      { it.flatMap { Blocking.get { 2 } } },
+      { it.onNull { 2 } },
+      { it.route({ it == 4 }) { throw new UnsupportedOperationException() } },
+    ]
+  }
+
+  @Unroll
+  def "can subscribe to success promise more than once"() {
+    when:
+    exec({
+      def p = Blocking.get { 2 }.onError { throw new UnsupportedOperationException() }
+      code(p).then { events << it }
+      code(p).then { events << it }
+    }) {
+      events << it
+    }
+
+    then:
+    events.size() == 3
+
+    where:
+    code << [
+      { it.flatMap { Blocking.get { 2 } } },
+      { it },
+      { it.map { 2 } },
+      { it.flatMap { Blocking.get { 2 } } },
+      { it.onNull { 2 } },
+      { it.route({ it == 4 }) { throw new UnsupportedOperationException() } },
+    ]
+  }
+
+  def "can complete future"() {
+    when:
+    exec({ e ->
+      Promise.of {
+        it.accept(CompletableFuture.supplyAsync({ "foo" }, e.controller.executor))
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "can complete ListenableFuture"() {
+    when:
+    exec({ c ->
+      Promise.of {
+        it.accept(Futures.immediateFuture("foo"))
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "can error from ListenableFuture"() {
+    when:
+    exec({ c ->
+      Promise.<String>of {  f ->
+        f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
+      } onError {
+        events << "error"
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["error", "complete"]
+  }
+
+
+  def "can nest promises"() {
+    when:
+    exec({ e ->
+      Promise.of { f1 ->
+        Promise.of { f -> f.success("foo") }.result { r -> f1.accept(r) }
+      } then {
+        events << it
+      }
+    }, {
+      events << it.class
+    })
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "can have multiple on error"() {
+    when:
+    exec {
+      Promise.error(new Exception("!")).onError { events << "1" }.onError { events << "2" }.then { events << "3" }
+    }
+
+    then:
+    events == ["1", "complete"]
+  }
 }

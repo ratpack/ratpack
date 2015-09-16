@@ -1,0 +1,122 @@
+$sans-font-family: "Merriweather Sans", Futura, "Trebuchet MS", Arial, sans-serif !default;
+$serif-font-family: "Merriweather", Georgia, Times, "Times New Roman", serif !default;
+$mono-font-family: "Monaco", "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
+$tagline-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
+$script-font-family: "Engagement", cursive !default;
+
+$body-font-family: $serif-font-family !default;
+$header-font-family: $sans-font-family !default;
+$code-font-family: $mono-font-family !default;
+
+$anchor-font-color: darken($blue, 30%) !default;
+$anchor-font-color-hover: $blue !default;
+$anchor-text-decoration: none !default;
+
+$anchor-font-color-alt: $blue !default;
+$anchor-font-color-hover-alt: lighten($blue, 15%) !default;
+
+/**
+ * Helps legibility by adding a small text shadow (Windows) and using alternate font-smoothing for light text on dark (OSX Webkit).
+ */
+@mixin smooth-font($bg-color) {
+	@include text-shadow(0 1px 1px transparentize($bg-color, 0.7));
+	@if contrast-color($bg-color) == $contrasted-light-default {
+		-webkit-font-smoothing: antialiased;
+	}
+}
+
+@mixin contrasted-smooth($bg-color) {
+	@include contrasted($bg-color);
+	@include smooth-font($bg-color);
+}
+
+@mixin link-colors($inactive-color, $active-color) {
+	&:link, &:visited, &:active {
+		color: $inactive-color;
+	}
+	&:hover, &:focus {
+		color: $active-color;
+	}
+}
+
+@mixin link-underline($inactive-color, $active-color, $style: dotted) {
+	border-bottom: 1px $style $inactive-color;
+	&:hover, &:focus {
+		border-bottom-color: $active-color;
+	}
+}
+
+@include establish-baseline;
+
+body {
+	font-family: $body-font-family;
+	text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font: {
+		family: $header-font-family;
+    style: italic;
+    weight: 700;
+	}
+}
+
+$h1-font-size: 36px;
+$h2-font-size: 32px;
+$h3-font-size: 28px;
+$h4-font-size: 24px;
+$h5-font-size: 20px;
+
+h1 {
+	@include adjust-font-size-to($h1-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h1-font-size);
+}
+h2 {
+	@include adjust-font-size-to($h2-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h2-font-size);
+}
+h3 {
+	@include adjust-font-size-to($h3-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h3-font-size);
+}
+h4 {
+	@include adjust-font-size-to($h4-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h4-font-size);
+}
+h5 {
+	@include adjust-font-size-to($h5-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h5-font-size);
+}
+
+pre, code, tt {
+	font-family: $code-font-family;
+	-webkit-font-smoothing: subpixel-antialiased; // this looks better with Courier New even light on dark
+    font-size: 95%;
+}
+
+pre {
+	white-space: pre;
+}
+
+a {
+	text-decoration: $anchor-text-decoration;
+	line-height: inherit;
+	@include single-transition;
+
+	&:link,
+	&:active,
+	&:visited {
+		color: $anchor-font-color;
+	}
+
+	&:hover,
+	&:focus {
+		color: $anchor-font-color-hover;
+	}
+
+	img { border:none; }
+}
+
+ul, ol {
+	padding-left: 1.2em;
+}

@@ -16,52 +16,79 @@
 
 package ratpack.http.internal;
 
-import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.http.Headers;
-import ratpack.http.HttpMethod;
-import ratpack.http.Request;
-import ratpack.http.TypedData;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import ratpack.exec.Downstream;
+import ratpack.exec.Promise;
+import ratpack.exec.Upstream;
+import ratpack.func.Function;
+import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.time.Instant;
+import java.util.*;
+import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
-  private final MutableRegistry registry = new SimpleMutableRegistry();
+  private MutableRegistry registry;
 
   private final Headers headers;
-  private final ByteBuf content;
-  private final String uri;
+  private final String rawUri;
+  private final HttpMethod method;
+  private final String protocol;
+  private final InetSocketAddress remoteSocket;
+  private final InetSocketAddress localSocket;
+  private final Instant timestamp;
+  private final Promise<TypedData> body;
 
-  private TypedData body;
-
+  private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
   private String path;
-  private final HttpMethod method;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, String methodName, String uri, ByteBuf content) {
+  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
     this.headers = headers;
-    this.content = content;
-    this.method = new DefaultHttpMethod(methodName);
-    this.uri = uri;
+    this.method = DefaultHttpMethod.valueOf(method);
+    this.protocol = protocol.toString();
+    this.rawUri = rawUri;
+    this.remoteSocket = remoteSocket;
+    this.localSocket = localSocket;
+    this.timestamp = timestamp;
+    this.body = Promise.of(new BodyUpstream(content));
+  }
+
+  private class BodyUpstream implements Upstream<TypedData> {
+
+    private final ByteBuf content;
+    private boolean read;
+
+    private BodyUpstream(ByteBuf content) {
+      this.content = content;
+    }
+
+    @Override
+    public void connect(Downstream<? super TypedData> downstream) throws Exception {
+      if (read) {
+        downstream.error(new RequestBodyAlreadyReadException());
+      } else {
+        read = true;
+        downstream.success(new ByteBufBackedTypedData(content, getContentType()));
+      }
+    }
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -76,7 +103,39 @@ public class DefaultRequest implements Request {
     return method;
   }
 
+  public String getProtocol() {
+    return protocol;
+  }
+
+  public Instant getTimestamp() {
+    return timestamp;
+  }
+
+  public String getRawUri() {
+    return rawUri;
+  }
+
   public String getUri() {
+    if (uri == null) {
+      if (rawUri.startsWith("/")) {
+        uri = rawUri;
+      } else {
+        URI parsed = URI.create(rawUri);
+        String path = parsed.getPath();
+        if (Strings.isNullOrEmpty(path)) {
+          path = "/";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        if (parsed.getQuery() != null) {
+          sb.append("?").append(parsed.getQuery());
+        }
+        if (parsed.getFragment() != null) {
+          sb.append("#").append(parsed.getFragment());
+        }
+        uri = sb.toString();
+      }
+    }
     return uri;
   }
 
@@ -111,11 +170,11 @@ public class DefaultRequest implements Request {
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      String header = headers.get(HttpHeaders.Names.COOKIE);
+      String header = headers.get(HttpHeaderNames.COOKIE);
       if (header == null || header.length() == 0) {
         cookies = Collections.emptySet();
       } else {
-        cookies = CookieDecoder.decode(header);
+        cookies = ServerCookieDecoder.STRICT.decode(header);
       }
     }
 
@@ -126,7 +185,7 @@ public class DefaultRequest implements Request {
     Cookie found = null;
     List<Cookie> allFound = null;
     for (Cookie cookie : getCookies()) {
-      if (cookie.getName().equals(name)) {
+      if (cookie.name().equals(name)) {
         if (found == null) {
           found = cookie;
         } else if (allFound == null) {
@@ -152,15 +211,16 @@ public class DefaultRequest implements Request {
 
       throw new IllegalStateException(s.toString());
     } else {
-      return found.getValue();
+      return found.value();
     }
   }
 
+  public boolean isAjaxRequest() {
+    return HttpHeaderConstants.XML_HTTP_REQUEST.equalsIgnoreCase(headers.get(HttpHeaderConstants.X_REQUESTED_WITH));
+  }
+
   @Override
-  public TypedData getBody() {
-    if (body == null) {
-      body = new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE)));
-    }
+  public Promise<TypedData> getBody() {
     return body;
   }
 
@@ -170,70 +230,79 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public <O> void register(Class<O> type, O object) {
-    registry.register(type, object);
+  public MediaType getContentType() {
+    return DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE));
   }
 
   @Override
-  public void register(Object object) {
-    registry.register(object);
+  public HostAndPort getRemoteAddress() {
+    return HostAndPort.fromParts(remoteSocket.getHostString(), remoteSocket.getPort());
   }
 
   @Override
-  public <O> void registerLazy(Class<O> type, Factory<? extends O> factory) {
-    registry.registerLazy(type, factory);
+  public HostAndPort getLocalAddress() {
+    return HostAndPort.fromParts(localSocket.getHostString(), localSocket.getPort());
   }
 
   @Override
-  public <O> void remove(Class<O> type) throws NotInRegistryException {
-    registry.remove(type);
+  public <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    getDelegateRegistry().addLazy(type, supplier);
+    return this;
   }
 
   @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return registry.get(type);
+  public <O> Request add(TypeToken<? super O> type, O object) {
+    getDelegateRegistry().add(type, object);
+    return this;
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(Class<O> type) {
-    return registry.maybeGet(type);
+  public <O> Request add(Class<? super O> type, O object) {
+    getDelegateRegistry().add(type, object);
+    return this;
   }
 
   @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return registry.getAll(type);
+  public Request add(Object object) {
+    getDelegateRegistry().add(object);
+    return this;
   }
 
   @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return registry.get(type);
+  public <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    getDelegateRegistry().addLazy(type, supplier);
+    return this;
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
-    return registry.maybeGet(type);
+  public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
+    getDelegateRegistry().remove(type);
+  }
+
+  @Override
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
+    return getDelegateRegistry().maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return registry.getAll(type);
-  }
-
-  @Nullable
-  @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.first(type, predicate);
+    return getDelegateRegistry().getAll(type);
   }
 
   @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.all(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return getDelegateRegistry().first(type, function);
   }
 
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.each(type, predicate, action);
+  private MutableRegistry getDelegateRegistry() {
+    if (registry == null) {
+      throw new IllegalStateException("Cannot access registry before it has been set");
+    }
+    return registry;
+  }
+
+  // Implemented as static method (instead of public instance) so that it's not accidentally callable from dynamic languages
+  public static void setDelegateRegistry(DefaultRequest request, MutableRegistry registry) {
+    request.registry = registry;
   }
 }

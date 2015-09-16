@@ -322,7 +322,8 @@ ruleset {
 //  ConfusingMethodName
 //  FactoryMethodName
   FieldName {
-    finalRegex = '^[a-z][a-zA-Z0-9]*$'
+    regex = '^_?[a-z][a-zA-Z0-9]*$'
+    finalRegex = '^_?[a-z][a-zA-Z0-9]*$'
     staticFinalRegex = '^logger$|^[A-Z][A-Z_0-9]*$|^serialVersionUID$'
   }
   InterfaceName

@@ -32,11 +32,11 @@ class EmbeddedProvider implements Closeable {
   private PatchedSampleServer sampleServer
 
   void addResult(Boolean authenticatedAndApproved, String email) {
-    results << [authenticatedAndApproved:authenticatedAndApproved, email:email]
+    results << [authenticatedAndApproved: authenticatedAndApproved, email: email]
   }
 
-  void open(int port) {
-    sampleServer = new PatchedSampleServer("http://localhost:${port}/openid_provider/provider/server/o2") {
+  void open() {
+    sampleServer = new PatchedSampleServer() {
       @Override
       protected List userInteraction(ParameterList request) {
         def result = results.remove()
@@ -44,7 +44,7 @@ class EmbeddedProvider implements Closeable {
         return [userSelectedClaimedId, result.authenticatedAndApproved, result.email]
       }
     }
-    server = new Server(port)
+    server = new Server(0)
     server.handler = new AbstractHandler() {
       @Override
       void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
@@ -86,14 +86,20 @@ class EmbeddedProvider implements Closeable {
       }
     }
     server.start()
+    sampleServer.manager.setOPEndpointUrl("http://localhost:${getPort()}/openid_provider/provider/server/o2")
   }
 
   @Override
   void close() {
     server.stop()
+    clear()
   }
 
   void clear() {
     results.clear()
+  }
+
+  int getPort() {
+    server.connectors[0].localPort
   }
 }

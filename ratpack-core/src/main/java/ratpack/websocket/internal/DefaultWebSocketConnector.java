@@ -17,10 +17,9 @@
 package ratpack.websocket.internal;
 
 import ratpack.func.Action;
-import ratpack.func.Actions;
 import ratpack.func.Function;
 import ratpack.handling.Context;
-import ratpack.launch.LaunchConfig;
+import ratpack.server.ServerConfig;
 import ratpack.websocket.*;
 
 public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
@@ -29,8 +28,8 @@ public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
   private final Function<WebSocket, T> open;
 
   private class Spec implements WebSocketSpec<T> {
-    private Action<? super WebSocketMessage<T>> messageHandler = Actions.noop();
-    private Action<? super WebSocketClose<T>> closeHandler = Actions.noop();
+    private Action<? super WebSocketMessage<T>> messageHandler = Action.noop();
+    private Action<? super WebSocketClose<T>> closeHandler = Action.noop();
 
     private String path = "/";
     private int maxLength;
@@ -71,7 +70,7 @@ public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
 
   @Override
   public void connect(Action<? super WebSocketSpec<T>> specAction) throws Exception {
-    Spec spec = new Spec(context.get(LaunchConfig.class).getMaxContentLength());
+    Spec spec = new Spec(context.get(ServerConfig.class).getMaxContentLength());
     specAction.execute(spec);
     WebSocketEngine.connect(context, spec.path, spec.maxLength, new BuiltWebSocketHandler<>(open, spec.closeHandler, spec.messageHandler));
 

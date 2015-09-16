@@ -19,12 +19,14 @@ description = "Ratpack integration for the Groovy programmming language - http:/
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 ext.apiLinks = [
-    "http://docs.groovy-lang.org/${commonVersions.groovy}/html/api"
+    "http://docs.groovy-lang.org/${commonVersions.groovy}/html/api/",
+    "http://docs.guava-libraries.googlecode.com/git/javadoc/"
 ]
 
 dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
+  testCompile project(":ratpack-test")
 }
 
 processResources {

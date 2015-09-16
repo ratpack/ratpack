@@ -16,28 +16,37 @@
 
 package ratpack.util.internal;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.*;
 import ratpack.util.MultiValueMap;
+import ratpack.util.Types;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, V> {
 
-  private final Map<? extends K, ? extends List<? extends V>> delegate;
+  private static final ImmutableDelegatingMultiValueMap<Object, Object> EMPTY = new ImmutableDelegatingMultiValueMap<>(ImmutableMap.of());
 
-  public ImmutableDelegatingMultiValueMap(Map<? extends K, ? extends List<? extends V>> map) {
+  @SuppressWarnings("unchecked")
+  public static <K, V> MultiValueMap<K, V> empty() {
+    return Types.cast(EMPTY);
+  }
+
+  private final Map<K, List<V>> delegate;
+
+  public ImmutableDelegatingMultiValueMap(Map<K, List<V>> map) {
     this.delegate = map;
   }
 
   @SuppressWarnings("unchecked")
   public List<V> getAll(K key) {
-    return (List<V>) delegate.get(key);
+    return MoreObjects.firstNonNull(delegate.get(key), Collections.<V>emptyList());
   }
 
   @SuppressWarnings("unchecked")
   public Map<K, List<V>> getAll() {
-    return (Map<K, List<V>>) delegate;
+    return delegate;
   }
 
   public int size() {
@@ -84,26 +93,31 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
     throw new UnsupportedOperationException("This implementation is immutable");
   }
 
+  @Override
+  public ListMultimap<K, V> asMultimap() {
+    ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
+    for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
+      builder.putAll(entry.getKey(), entry.getValue());
+    }
+    return builder.build();
+  }
+
   @SuppressWarnings({"unchecked", "NullableProblems"})
   public Set<K> keySet() {
-    return (Set<K>) delegate.keySet();
+    return delegate.keySet();
   }
 
   @SuppressWarnings("NullableProblems")
   public Collection<V> values() {
-    return Lists.newArrayList(Iterables.<V>concat(delegate.values()));
+    return Lists.newArrayList(Iterables.concat(delegate.values()));
   }
 
   @SuppressWarnings("NullableProblems")
   public Set<Entry<K, V>> entrySet() {
-    Set<Entry<K, V>> result = new HashSet<>();
-    for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
-      if (entry.getValue().size() > 0) {
-        result.add(new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(0)));
-      }
-    }
-
-    return result;
+    return delegate.entrySet().stream()
+      .filter(entry -> entry.getValue().size() > 0)
+      .map(entry -> new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(0)))
+      .collect(Collectors.toSet());
   }
 
   @Override

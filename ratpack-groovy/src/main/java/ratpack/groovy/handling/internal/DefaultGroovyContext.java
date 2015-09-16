@@ -16,44 +16,30 @@
 
 package ratpack.groovy.handling.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
-import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.groovy.handling.GroovyByContentSpec;
-import ratpack.groovy.handling.GroovyByMethodSpec;
+import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.handling.internal.DefaultByContentSpec;
-import ratpack.handling.internal.DefaultByMethodSpec;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.internal.ContentNegotiationHandler;
-import ratpack.http.internal.MultiMethodHandler;
-import ratpack.launch.LaunchConfig;
-import ratpack.parse.NoSuchParserException;
+import ratpack.http.TypedData;
 import ratpack.parse.Parse;
-import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.server.BindAddress;
+import ratpack.server.ServerConfig;
 
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.Optional;
 
 public class DefaultGroovyContext implements GroovyContext {
 
@@ -74,8 +60,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public LaunchConfig getLaunchConfig() {
-    return delegate.getLaunchConfig();
+  public ServerConfig getServerConfig() {
+    return delegate.getServerConfig();
   }
 
   @Override
@@ -84,26 +70,13 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception {
-    delegate.addExecInterceptor(execInterceptor, action);
-  }
-
-  @Override
   public void byMethod(Closure<?> closure) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    ByMethodSpec delegate = new DefaultByMethodSpec(handlers);
-    GroovyByMethodSpec spec = new DefaultGroovyByMethodSpec(delegate);
-    ClosureUtil.configureDelegateFirst(spec, closure);
-    new MultiMethodHandler(handlers).handle(this);
+    delegate.byMethod(ClosureUtil.delegatingAction(ByMethodSpec.class, closure));
   }
 
   @Override
   public void byContent(Closure<?> closure) throws Exception {
-    Map<String, Handler> handlers = new LinkedHashMap<>(2);
-    ByContentSpec delegate = new DefaultByContentSpec(handlers);
-    GroovyByContentSpec spec = new DefaultGroovyByContentSpec(delegate);
-    ClosureUtil.configureDelegateFirst(spec, closure);
-    new ContentNegotiationHandler(handlers).handle(this);
+    delegate.byContent(ClosureUtil.delegatingAction(ByContentSpec.class, closure));
   }
 
   @Override
@@ -157,8 +130,8 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
-  public void error(Exception exception) throws NotInRegistryException {
-    delegate.error(exception);
+  public void error(Throwable throwable) throws NotInRegistryException {
+    delegate.error(throwable);
   }
 
   @Override
@@ -189,26 +162,6 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
-    return delegate.blocking(blockingOperation);
-  }
-
-  @Override
-  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return delegate.promise(action);
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action) {
-    delegate.fork(action);
-  }
-
-  @Override
-  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
-    delegate.stream(publisher, subscriber);
-  }
-
-  @Override
   public void redirect(String location) throws NotInRegistryException {
     delegate.redirect(location);
   }
@@ -225,33 +178,33 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public BindAddress getBindAddress() {
-    return delegate.getBindAddress();
-  }
-
-  @Override
-  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+  public <T> Promise<T> parse(Class<T> type) {
     return delegate.parse(type);
   }
 
   @Override
-  public <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException {
+  public <T> Promise<T> parse(TypeToken<T> type) {
     return delegate.parse(type);
   }
 
   @Override
-  public <T, O> T parse(TypeToken<T> type, O options) throws NoSuchParserException, ParserException {
+  public <T, O> Promise<T> parse(TypeToken<T> type, O options) {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException {
+  public <T, O> Promise<T> parse(Class<T> type, O options) {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> T parse(Parse<T, O> parse) {
+  public <T, O> Promise<T> parse(Parse<T, O> parse) {
     return delegate.parse(parse);
+  }
+
+  @Override
+  public <T, O> T parse(TypedData body, Parse<T, O> parse) throws Exception {
+    return delegate.parse(body, parse);
   }
 
   @Override
@@ -265,8 +218,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(Class<O> type) {
+  public <O> Optional<O> maybeGet(Class<O> type) {
     return delegate.maybeGet(type);
   }
 
@@ -275,14 +227,13 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getAll(type);
   }
 
-  @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     return delegate.get(type);
   }
 
   @Override
   @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return delegate.maybeGet(type);
   }
 
@@ -291,19 +242,9 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return delegate.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return delegate.first(type, function);
   }
 
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return delegate.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return delegate.each(type, predicate, action);
-  }
 }

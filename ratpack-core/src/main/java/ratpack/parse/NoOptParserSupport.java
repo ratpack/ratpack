@@ -24,29 +24,22 @@ import ratpack.http.TypedData;
  * A convenience base for parsers that don't require options.
  * <p>
  * The following is an example of an implementation that parses to an {@code Integer}.
- * <pre class="java">
- * import ratpack.parse.NullParseOpts;
- * import ratpack.parse.NoOptParserSupport;
- * import ratpack.http.TypedData;
+ * <pre class="java">{@code
+ * import com.google.common.reflect.TypeToken;
+ * import ratpack.exec.Promise;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
- * import ratpack.util.Types;
- * import ratpack.func.Action;
- * import ratpack.registry.RegistrySpec;
- *
- * import com.google.common.reflect.TypeToken;
- *
- * import ratpack.test.UnitTest;
+ * import ratpack.http.TypedData;
+ * import ratpack.parse.NoOptParserSupport;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
+ * import ratpack.util.Types;
+ *
+ * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *   public static class IntParser extends NoOptParserSupport {
- *     public IntParser() {
- *       super("text/plain");
- *     }
- *
- *     public &lt;T&gt; T parse(Context context, TypedData body, TypeToken&lt;T&gt; type) {
+ *     public <T> T parse(Context context, TypedData body, TypeToken<T> type) {
  *       if (type.getRawType().equals(Integer.class)) {
  *         return Types.cast(Integer.valueOf(body.getText()));
  *       } else {
@@ -56,42 +49,25 @@ import ratpack.http.TypedData;
  *   }
  *
  *   public static class ExampleHandler implements Handler {
- *     public void handle(Context context) {
- *       Integer integer = context.parse(Integer.class);
- *       context.render(integer.toString());
+ *     public void handle(Context context) throws Exception {
+ *       context.parse(Integer.class).then(integer -> context.render(integer.toString()));
  *     }
  *   }
  *
  *   // unit test
- *   public static void main(String[] args) {
- *     HandlingResult result = UnitTest.handle(new ExampleHandler(), new Action&lt;RequestFixture&gt;() {
- *       public void execute(RequestFixture fixture) throws Exception {
- *         fixture
+ *   public static void main(String[] args) throws Exception {
+ *     HandlingResult result = RequestFixture.handle(new ExampleHandler(),
+ *       fixture -> fixture
  *           .body("10", "text/plain")
- *           .registry(new Action&lt;RegistrySpec&gt;() {
- *             public void execute(RegistrySpec registry) {
- *               registry.add(new IntParser());
- *             }
- *           });
- *       }
- *     });
+ *           .registry(registry -> registry.add(new IntParser()))
+ *     );
  *
- *     assert result.rendered(String.class).equals("10");
+ *     assertEquals("10", result.rendered(String.class));
  *   }
- *
  * }
- * </pre>
+ * }</pre>
  */
-public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
-
-  /**
-   * Constructor.
-   *
-   * @param contentType the type of request this parser can handle
-   */
-  protected NoOptParserSupport(String contentType) {
-    super(contentType);
-  }
+public abstract class NoOptParserSupport extends ParserSupport<Void> {
 
   /**
    * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
@@ -104,7 +80,7 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
    * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
    */
   @Override
-  public final <T> T parse(Context context, TypedData requestBody, Parse<T, NullParseOpts> parse) throws Exception {
+  public final <T> T parse(Context context, TypedData requestBody, Parse<T, Void> parse) throws Exception {
     return parse(context, requestBody, parse.getType());
   }
 

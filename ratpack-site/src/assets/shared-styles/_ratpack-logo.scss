@@ -1,0 +1,148 @@
+$logo-font-size: 8em;
+$small-logo-scale: 0.625;
+$tiny-logo-scale: 0.375;
+
+$martini-vector: 'martini.svg';
+$martini-image: 'martini.png';
+
+@mixin skewed-background-scale($base-size) {
+	&:before {
+		top: $base-size * 0.225;
+		height: $base-size * 0.75;
+		left: $base-size * 0.25;
+		width: $base-size * 2.1875;
+		.backgroundsize & {
+			width: $base-size * 3.375;
+		}
+	}
+}
+
+@mixin skewed-background-color($background-color) {
+	&:before {
+		@if $background-color == transparent {
+			background-color: transparent;
+		} @else {
+			@include safe-rgba(background-color, $background-color);
+		}
+	}
+}
+
+@mixin skewed-background($base-size, $background-color) {
+	position: relative;
+	z-index: 0;
+	@include skewed-background-scale($base-size);
+	@include skewed-background-color($background-color);
+	&:before {
+		content: " ";
+		position: absolute;
+		z-index: -1;
+		@include transform(rotate(-4deg) scaleY(1.15));
+		@include antialias;
+	}
+}
+
+.ratpack-logo {
+	display: inline-block;
+	vertical-align: top;
+
+  @include skewed-background($logo-font-size, transparentize($yellow, 0.1));
+
+	h1, p {
+		line-height: 1;
+		margin: 0 0;
+	}
+
+	h1 {
+		display: inline-block;
+		padding: 0;
+		color: $black;
+		font: {
+			family: 'Engagement', sans-serif;
+			weight: normal;
+			size: $logo-font-size;
+      style: normal;
+		}
+		text-transform: none;
+
+		.backgroundsize & {
+			padding: 0 (image-width($martini-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
+			background: {
+				image: simple-image-url($martini-vector);
+				repeat: no-repeat;
+				position: {
+					y: bottom;
+					x: left;
+				}
+				size: contain;
+			}
+
+		}
+    .backgroundsize.no-svg & {
+      background-image: simple-image-url($martini-image);
+    }
+
+		&:last-child {
+			border-bottom: 0.03em solid $black;
+		}
+	}
+
+	p {
+		@include contrasted($black);
+		font: {
+			family: $tagline-font-family;
+			size: $logo-font-size * 0.18;
+		}
+		@include text-shadow(0 1px 0 darken($black, 15), 0 -1px 0 darken(contrast-color($black), 40));
+		padding: 0.2em 0.4em;
+    text-align: center;
+	}
+
+	@include rem(font-size, 1rem);
+
+	&.small {
+		@include rem(font-size, $small-logo-scale * 1rem);
+	}
+
+	&.tiny {
+		@include rem(font-size, $tiny-logo-scale * 1rem);
+	}
+
+	&.plain {
+		@include skewed-background-color(transparent);
+	}
+}
+
+// fallback for browsers that can't display the logo properly using CSS
+$logo-image: 'ratpack-logo.png';
+$small-logo-image: 'ratpack-logo-small.png';
+
+.no-fontface, .no-csstransforms {
+  .ratpack-logo {
+    background: {
+      image: simple-image-url($logo-image);
+      right: no-repeat;
+      size: contain;
+    }
+    width: image-width($logo-image);
+    height: image-height($logo-image);
+
+    &:before {
+      background: none;
+    }
+
+    h1, p {
+      display: none;
+    }
+
+    &.small {
+      background-image: simple-image-url($small-logo-image);
+      width: image-width($small-logo-image);
+      height: image-height($small-logo-image);
+    }
+
+    &.tiny {
+      width: image-width($logo-image) * $tiny-logo-scale;
+      height: image-height($logo-image) * $tiny-logo-scale;
+    }
+  }
+}

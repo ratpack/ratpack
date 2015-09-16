@@ -8,18 +8,18 @@ Conceptually, a handler ([`Handler`](api/ratpack/handling/Handler.html)) is just
 
 The “hello world” handler looks like this…
 
-```language-groovy tested
+```language-java
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 
-public class HelloWorld implements Handler {
+public class Example implements Handler {
   public void handle(Context context) {
       context.getResponse().send("Hello world!");
   }
 }
 ```
 
-As we saw in the [previous chapter](launching.html), one of the mandatory launch config properties is the [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation
+As we saw in the [previous chapter](launching.html), one of the mandatory launch config properties is the HandlerFactory implementation
 that provides the primary handler.
 The handler that this factory creates is effectively the application.
 
@@ -72,8 +72,8 @@ public class Router implements Handler {
 }
 ```
 
-The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) method that passes control to one or more linked handlers.
-The [`context.next()`](api/ratpack/handling/Context.html#next\(\)) method passes control to the next linked handler.
+The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert-ratpack.handling.Handler...-) method that passes control to one or more linked handlers.
+The [`context.next()`](api/ratpack/handling/Context.html#next--) method passes control to the next linked handler.
 
 Consider the following…
 
@@ -192,109 +192,4 @@ Read on.
 
 ## Building handler chains
 
-Ratpack provides a suite of routing type handlers out of the box that make it easy to compose dispatch logic.
-These are available via the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
-
-For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#path\(java.lang.String,%20ratpack.handling.Handler\)) method can be used for path based routing.
-
-```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.HandlerFactory;
-
-import static ratpack.handling.Handlers.path;
-import static ratpack.handling.Handlers.get;
-import static ratpack.handling.Handlers.chain;
-
-public class SomeHandler implements Handler {
-  public void handle(Context context) {
-      // do some application work
-  }
-}
-
-public class Application implements HandlerFactory {
-  public Handler create(LaunchConfig launchConfig) {
-    return path("foo/bar", chain(get(), new SomeHandler()));
-  }
-}
-```
-
-Here we have a [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) that can be used when launching an app (see previous chapter).
-For this “application”:
-
-1. a GET request to `/foo/bar` would be routed to the `SomeHandler`
-2. a non-GET request to `/foo/bar` would produce a HTTP 405 (method not allowed)
-3. anything else would produce a HTTP 404
-
-This is easier than doing it all yourself, but we can do better.
-We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig,%20ratpack.func.Action\)) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
-
-```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
-import ratpack.handling.ChainAction;
-import ratpack.func.Action;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.HandlerFactory;
-
-import static ratpack.handling.Handlers.chain;
-
-public class Application implements HandlerFactory {
-  public Handler create(LaunchConfig launchConfig) {
-    return chain(launchConfig, new ChainAction() {
-      protected void execute() {
-        prefix("api", new ChainAction() {
-          protected void execute() {
-            delete("someResource", new Handler() {
-              public void handle(Context context) {
-                // delete the resource
-              }
-            });
-          }
-        });
-
-        assets("public");
-
-        get("foo/bar", new Handler() {
-          public void handle(Context context) {
-            // do stuff
-          }
-        });
-      }
-    });
-  }
-}
-```
-
-(note: the use of inner classes adds a lot of syntactic bloat here, things are more concise with Java 8 lambdas)
-
-The chain DSL is built on the existing delegation methods that have been presented so far.
-It is merely syntactic sugar.
-The Groovy version of this DSL is extremely sweet…
-
-```language-groovy tested
-import ratpack.handling.Handler
-import ratpack.launch.LaunchConfig
-import ratpack.launch.HandlerFactory
-
-import static ratpack.groovy.Groovy.chain
-
-class Application implements HandlerFactory {
-  Handler create(LaunchConfig launchConfig) {
-    chain(launchConfig) {
-      prefix("api") {
-        delete("someResource") {
-          // delete the resource
-        }
-      }
-      assets("public")
-      get("foo/bar") {
-        // do stuff
-      }
-    }
-  }
-}
-```
-
-See the [chapter on Groovy](groovy.html) for more information on using Groovy with Ratpack.
+TODO

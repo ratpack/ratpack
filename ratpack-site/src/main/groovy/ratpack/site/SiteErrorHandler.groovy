@@ -17,16 +17,15 @@
 package ratpack.site
 
 import groovy.transform.CompileStatic
-import ratpack.error.ClientErrorHandler
-import ratpack.error.ServerErrorHandler
+import groovy.util.logging.Slf4j
+import ratpack.error.internal.ErrorHandler
 import ratpack.handling.Context
 
-import static ratpack.groovy.Groovy.groovyTemplate
-import groovy.util.logging.Slf4j
+import static ratpack.groovy.Groovy.groovyMarkupTemplate
 
 @Slf4j
 @CompileStatic
-class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
+class SiteErrorHandler implements ErrorHandler {
 
   @Override
   void error(Context context, int statusCode) {
@@ -38,16 +37,16 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
   }
 
   @Override
-  void error(Context context, Exception exception) throws Exception {
+  void error(Context context, Throwable throwable) throws Exception {
     context.with {
       response.status(500)
-      message(context, exception.message ?: "<no message>")
-      blocking { log.error "", exception }.then {}
+      log.error "", throwable
+      message(context, throwable.message ?: "<no message>")
     }
   }
 
-  void message(Context context, CharSequence message) {
-    context.render(groovyTemplate("error.html", message: message.toString(), statusCode: context.response.status.code))
+  static void message(Context context, CharSequence message) {
+    context.render(groovyMarkupTemplate("error.gtpl", message: message.toString(), statusCode: context.response.status.code))
   }
 
 }

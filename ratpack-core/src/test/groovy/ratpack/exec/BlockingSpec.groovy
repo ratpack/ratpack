@@ -17,8 +17,12 @@
 package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.DebugErrorHandler
+import ratpack.func.Block
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
+
+import static ratpack.util.Exceptions.uncheck
 
 class BlockingSpec extends RatpackGroovyDslSpec {
 
@@ -28,7 +32,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         steps << "start"
-        blocking {
+        Blocking.get {
           sleep 300
           steps << "operation"
           2
@@ -48,11 +52,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "by default errors during blocking operations are forwarded to server error handler"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
-        blocking {
+        Blocking.get {
           sleep 300
           throw new Exception("!")
         } then {
@@ -70,7 +74,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        blocking {
+        Blocking.get {
           sleep 300
           throw new Exception("!")
         } onError {
@@ -89,11 +93,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "errors in custom error handlers are forwarded to the server error handler"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
-        blocking {
+        Blocking.get {
           throw new Exception("!")
         } onError { Throwable t ->
           throw new Exception("!!", t)
@@ -111,11 +115,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "errors in success handlers are forwarded to the server error handler"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
-        blocking {
+        Blocking.get {
           1
         } onError {
           throw new Exception("!")
@@ -133,12 +137,12 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "closure arg type mismatch errors on success handler are handled well"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
         //noinspection GroovyAssignabilityCheck
-        blocking {
+        Blocking.get {
           1
         } then { List<String> result ->
           response.send("unexpected")
@@ -154,12 +158,12 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "closure arg type mismatch errors on error handler are handled well"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
         //noinspection GroovyAssignabilityCheck
-        blocking {
+        Blocking.get {
           throw new Exception("!")
         } onError { String string ->
           response.send("unexpected")
@@ -177,8 +181,8 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "delegate in closure actions is no the arg"() {
     when:
     handlers {
-      handler {
-        blocking {
+      all {
+        Blocking.get {
           [foo: "bar"]
         } then {
           response.send it.toString()
@@ -193,18 +197,23 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "can read request body in blocking operation"() {
     when:
     handlers {
-      handler {
-        blocking {
+      all {
+        Blocking.get {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
-          request.body.text
+          Blocking.on(request.body).text
         } then {
           render it.toString()
         }
       }
     }
 
+    and:
+    requestSpec {
+      RequestSpec request ->
+        request.body.type("text/plain").stream { it << "foo" }
+    }
+
     then:
-    request.content("foo")
     postText() == "foo"
   }
 
@@ -214,15 +223,15 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      handler {
+      all {
         next()
         events << "compute"
       }
-      handler {
-        blocking {
+      all {
+        Blocking.get {
           events << "blocking"
         } then {
-          blocking {
+          Blocking.get {
             events << "inner blocking"
           } then {
             render "ok"
@@ -241,6 +250,21 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     events == ["compute", "blocking", "inner compute", "inner blocking"]
   }
 
+  def "should throw UnmanagedThreadException when trying to use blocking outside of Execution"() {
+    given:
+    def promise = Blocking.get {}
 
+    when:
+    uncheck({ promise.then {} } as Block)
+
+    then:
+    thrown(UnmanagedThreadException)
+
+    when:
+    uncheck({ promise.then {} } as Block)
+
+    then:
+    thrown(UnmanagedThreadException)
+  }
 
 }

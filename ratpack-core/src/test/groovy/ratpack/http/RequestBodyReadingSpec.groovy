@@ -16,7 +16,9 @@
 
 package ratpack.http
 
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
@@ -24,12 +26,14 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send new String(request.body.bytes, "utf8")
+        request.body.then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
       }
     }
 
     then:
-    request.body("foo".getBytes("utf8"))
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
     postText() == "foo"
   }
 
@@ -37,12 +41,14 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send new String(request.body.inputStream.bytes, "utf8")
+        request.body.then { body ->
+          response.send new String(body.inputStream.bytes, "utf8")
+        }
       }
     }
 
     then:
-    request.body("foo".getBytes("utf8"))
+    requestSpec { it.body.stream { it << "foo".getBytes("utf8") } }
     postText() == "foo"
   }
 
@@ -53,20 +59,26 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send new String(request.body.bytes, "utf8")
+        request.body.then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
       }
     }
 
     then:
-    request.body(string.getBytes("utf8"))
-    postText() == string
+    requestSpec { requestSpec ->
+      requestSpec.body.stream({ it << string.getBytes("utf8") })
+      postText() == string
+    }
   }
 
   def "get bytes on get request"() {
     when:
     handlers {
-      handler {
-        response.send request.body.bytes.length.toString()
+      all {
+        request.body.then { body ->
+          response.send body.bytes.length.toString()
+        }
       }
     }
 
@@ -76,4 +88,35 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     putText() == "0"
   }
 
+  def "can eagerly release body"() {
+    when:
+    handlers {
+      post {
+        request.body.then { it.buffer.release(); render "ok" }
+      }
+    }
+
+    then:
+    requestSpec {
+      it.body.text("foo")
+    }
+    postText() == "ok"
+  }
+
+  def "can't read body twice"() {
+    when:
+    bindings {
+      bind SimpleErrorHandler
+    }
+    handlers {
+      post {
+        request.body.then { 1 }
+        request.body.then { render "ok" }
+      }
+    }
+
+    then:
+    requestSpec { it.body.text("foo") }
+    postText() == "ratpack.http.RequestBodyAlreadyReadException: the request body has already been read"
+  }
 }

@@ -33,8 +33,19 @@ public class ChainHandler implements Handler {
     this.handlers = handlers;
   }
 
+  public static Handler[] unpack(Handler handler) {
+    if (handler instanceof ChainHandler) {
+      return ((ChainHandler) handler).handlers;
+    } else {
+      return new Handler[]{handler};
+    }
+  }
+
   public void handle(Context context) {
     context.insert(handlers);
   }
 
+  public Handler[] getHandlers() {
+    return handlers;
+  }
 }

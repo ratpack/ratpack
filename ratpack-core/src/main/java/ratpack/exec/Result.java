@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,95 +16,77 @@
 
 package ratpack.exec;
 
+import ratpack.exec.internal.DefaultResult;
+import ratpack.util.Exceptions;
+
 /**
- * The result of an asynchronous operation, which may be a failure.
+ * The result of an asynchronous operation, which may be an error.
  *
  * @param <T> The type of the successful result object
  */
-public class Result<T> {
-
-  private final Throwable failure;
-  private final T value;
+public interface Result<T> {
 
   /**
-   * Creates a successful result object.
+   * Creates a new successful result.
    *
-   * @param <T> The type of the result object
-   * @param value The object representing the result of the operation
-   * @return a success result
+   * @param value the result value
+   * @param <T> the type of the result
+   * @return the success result
    */
-  public static <T> Result<T> success(T value) {
-    return new Result<>(value);
+  static <T> Result<T> success(T value) {
+    return new DefaultResult<>(value);
   }
 
   /**
-   * Creates a failure result object.
+   * Creates a new error result.
    *
-   * @param <T> The type of the result object
-   * @param failure An exception representing the failure
-   * @return a failure result
+   * @param error the error
+   * @param <T> the type of the result
+   * @return the error result
    */
-  public static <T> Result<T> failure(Throwable failure) {
-    return new Result<>(failure);
-  }
-
-  private Result(Throwable failure) {
-    this.failure = failure;
-    this.value = null;
-  }
-
-  private Result(T value) {
-    this.value = value;
-    this.failure = null;
+  static <T> Result<T> error(Throwable error) {
+    return new DefaultResult<>(error);
   }
 
   /**
-   * The failure exception.
+   * The error exception.
    *
-   * @return The failure exception, or null if the result was not failure.
+   * @return The error exception, or null if the result was not an error.
    */
-  public Throwable getFailure() {
-    return failure;
-  }
+  Throwable getThrowable();
 
   /**
    * The result value.
    *
    * @return The result value, or null if the result was not success.
    */
-  public T getValue() {
-    return value;
-  }
+  T getValue();
 
   /**
    * True if this was a success result.
    *
    * @return whether the result is success.
    */
-  public boolean isSuccess() {
-    return failure == null;
-  }
+  boolean isSuccess();
 
   /**
-   * True if this was a failure result.
+   * True if this was an error result.
    *
-   * @return whether the result is failure.
+   * @return whether the result is an error.
    */
-  public boolean isFailure() {
-    return failure != null;
-  }
+  boolean isError();
 
   /**
-   * Returns the value if this is a success result, or throws the exception if it's a failure.
+   * Returns the value if this is a success result, or throws the exception if it's an error.
    *
    * @return the value (if this is a success result)
-   * @throws Throwable the failure (if this is a failure result)
+   * @throws Exception the error (if this is an error result)
    */
-  public T getValueOrThrow() throws Throwable {
-    if (isFailure()) {
-      throw failure;
+  default T getValueOrThrow() throws Exception {
+    if (isError()) {
+      throw Exceptions.toException(getThrowable());
     } else {
-      return value;
+      return getValue();
     }
   }
 

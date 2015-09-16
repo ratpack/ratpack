@@ -16,19 +16,16 @@
 
 package ratpack.test.remote
 
-import ratpack.remote.RemoteControlModule
+import io.remotecontrol.client.UnserializableResultStrategy
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.test.remote.RemoteControl.command
 
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   RemoteControl remoteControl
 
   def setup() {
-    launchConfig { other("remoteControl.enabled": "true") }
     bindings {
-      add new RemoteControlModule()
+      bindInstance ratpack.remote.RemoteControl.handlerDecorator()
       bind ValueHolder
     }
     handlers {
@@ -74,13 +71,35 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def "can use command method to create detached command"() {
     given:
-    def command = command { add(ValueHolder, new ValueHolder(value: "command")) }
+    def command = { add(ValueHolder, new ValueHolder(value: "command")) }
 
     when:
     remoteControl.exec command, { add(ValueHolder, new ValueHolder(value: "overridden")) }
 
     then:
-    text == "command:overridden:initial"
+    text == "overridden:command:initial"
+  }
+
+  def "can customize UnserializableResultStrategy"() {
+    given:
+    def customRemoteControl = new RemoteControl(applicationUnderTest, strategy)
+
+    when:
+    customRemoteControl.exec { new ValueHolder(value: "unserializable") }
+
+    then:
+    text == "initial"
+
+    where:
+    strategy << [UnserializableResultStrategy.NULL, UnserializableResultStrategy.STRING]
+  }
+
+  def "can use support closures"() {
+    when:
+    def support = { 1 }.dehydrate()
+
+    then:
+    remoteControl.uses(support).exec { support.call() } == 1
   }
 
 }

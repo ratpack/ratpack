@@ -16,49 +16,40 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
-import ratpack.func.Action;
-import ratpack.func.Factory;
+import ratpack.func.Function;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistrySpec;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import static ratpack.util.Types.cast;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class SimpleMutableRegistry implements MutableRegistry {
 
   private final List<RegistryEntry<?>> entries = new LinkedList<>();
-  private final Registry registry = new MultiEntryRegistry(entries);
+  private final Registry registry = new MultiEntryRegistry(Lists.reverse(entries));
 
   @Override
-  public <T> void register(Class<T> type, T object) {
-    entries.add(new DefaultRegistryEntry<>(TypeToken.of(type), object));
+  public <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    entries.add(new LazyRegistryEntry<>(type, supplier));
+    return this;
   }
 
   @Override
-  public void register(Object object) {
-    doRegister(object);
-  }
-
-  private <T> void doRegister(T object) {
-    Class<T> type = cast(object.getClass());
-    TypeToken<T> typeToken = TypeToken.of(type);
-    entries.add(new DefaultRegistryEntry<>(typeToken, object));
+  public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+    entries.add(new DefaultRegistryEntry<>(type, object));
+    return this;
   }
 
   @Override
-  public <T> void registerLazy(Class<T> type, Factory<? extends T> factory) {
-    entries.add(new LazyRegistryEntry<>(TypeToken.of(type), factory));
-  }
-
-  @Override
-  public <T> void remove(Class<T> type) throws NotInRegistryException {
+  public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     Iterator<? extends RegistryEntry<?>> iterator = entries.iterator();
     while (iterator.hasNext()) {
       if (iterator.next().getType().isAssignableFrom(type)) {
@@ -68,29 +59,8 @@ public class SimpleMutableRegistry implements MutableRegistry {
   }
 
   @Override
-  public <T> T get(Class<T> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
   @Nullable
-  @Override
-  public <T> T maybeGet(Class<T> type) {
-    return registry.maybeGet(type);
-  }
-
-  @Override
-  public <T> Iterable<? extends T> getAll(Class<T> type) {
-    return registry.getAll(type);
-  }
-
-  @Override
-  public <T> T get(TypeToken<T> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  @Override
-  @Nullable
-  public <T> T maybeGet(TypeToken<T> type) {
+  public <T> Optional<T> maybeGet(TypeToken<T> type) {
     return registry.maybeGet(type);
   }
 
@@ -99,19 +69,9 @@ public class SimpleMutableRegistry implements MutableRegistry {
     return registry.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.first(type, predicate);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    return registry.first(type, function);
   }
 
-  @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.each(type, predicate, action);
-  }
 }

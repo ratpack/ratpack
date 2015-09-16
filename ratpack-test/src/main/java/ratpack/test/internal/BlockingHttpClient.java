@@ -16,65 +16,60 @@
 
 package ratpack.test.internal;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Result;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
-import ratpack.http.client.HttpClients;
+import ratpack.http.TypedData;
+import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigBuilder;
-import ratpack.util.ExceptionUtils;
+import ratpack.http.client.internal.DefaultReceivedResponse;
+import ratpack.http.internal.ByteBufBackedTypedData;
+import ratpack.util.Exceptions;
 
+import java.net.URI;
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class BlockingHttpClient {
 
-  private final LaunchConfig launchConfig;
+  public ReceivedResponse request(URI uri, Duration duration, Action<? super RequestSpec> action) throws Throwable {
+    try (ExecController execController = new DefaultExecController(2)) {
+      final RequestAction requestAction = new RequestAction(uri, action);
 
-  public BlockingHttpClient() {
-    this.launchConfig = LaunchConfigBuilder
-      .noBaseDir()
-      .bufferAllocator(UnpooledByteBufAllocator.DEFAULT)
-      .build();
-  }
+      execController.fork()
+        .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>error(throwable)))
+        .start(requestAction::execute);
 
-  public ReceivedResponse request(Action<? super RequestSpec> action) throws Throwable {
-    final RequestAction requestAction = new RequestAction(launchConfig, action);
-
-    launchConfig.getExecController().start(new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        execution.setErrorHandler(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable throwable) throws Exception {
-            requestAction.setResult(Result.<ReceivedResponse>failure(throwable));
-
-          }
-        });
-        requestAction.execute(execution);
+      try {
+        if (!requestAction.latch.await(duration.toNanos(), TimeUnit.NANOSECONDS)) {
+          TemporalUnit unit = duration.getUnits().get(0);
+          throw new IllegalStateException("Request to " + uri + " took more than " + duration.get(unit) + " " + unit.toString() + " to complete");
+        }
+      } catch (InterruptedException e) {
+        throw Exceptions.uncheck(e);
       }
-    });
 
-    try {
-      requestAction.latch.await();
-    } catch (InterruptedException e) {
-      throw ExceptionUtils.uncheck(e);
+      return requestAction.result.getValueOrThrow();
     }
-
-    return requestAction.result.getValueOrThrow();
   }
 
   private static class RequestAction implements Action<Execution> {
-    private final LaunchConfig launchConfig;
+    private final URI uri;
     private final Action<? super RequestSpec> action;
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private Result<ReceivedResponse> result;
 
-    private RequestAction(LaunchConfig launchConfig, Action<? super RequestSpec> action) {
-      this.launchConfig = launchConfig;
+    private RequestAction(URI uri, Action<? super RequestSpec> action) {
+      this.uri = uri;
       this.action = action;
     }
 
@@ -85,19 +80,18 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(launchConfig).request(action)
-        .onError(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable exception) throws Exception {
-            setResult(Result.<ReceivedResponse>failure(exception));
-          }
-        })
-        .then(new Action<ReceivedResponse>() {
-          @Override
-          public void execute(ReceivedResponse response) throws Exception {
-            response.getBody().getBuffer().retain();
-            setResult(Result.success(response));
-          }
+      HttpClient.httpClient(UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
+        .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
+        .then(response -> {
+          TypedData responseBody = response.getBody();
+          ByteBuf responseBodyBuffer = responseBody.getBuffer();
+          responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
+          ReceivedResponse copiedResponse = new DefaultReceivedResponse(
+            response.getStatus(),
+            response.getHeaders(),
+            new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
+          );
+          setResult(Result.success(copiedResponse));
         });
     }
   }

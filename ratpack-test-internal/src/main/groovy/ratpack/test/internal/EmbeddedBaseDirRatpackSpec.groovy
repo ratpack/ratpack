@@ -16,38 +16,25 @@
 
 package ratpack.test.internal
 
-import ratpack.test.embed.BaseDirBuilder
-import ratpack.test.embed.JarFileBaseDirBuilder
-import ratpack.test.embed.PathBaseDirBuilder
+import ratpack.test.embed.EphemeralBaseDir
 import spock.lang.AutoCleanup
-
-import java.nio.file.Path
 
 abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
 
   @AutoCleanup
   @Delegate
-  BaseDirBuilder baseDir
+  EphemeralBaseDir baseDir
 
   def setup() {
     baseDir = createBaseDirBuilder()
   }
 
-  protected BaseDirBuilder createBaseDirBuilder() {
-    new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
-  }
-
-  protected ratpack.func.Factory<Path> getBaseDirFactory() {
-    new ratpack.func.Factory() {
-      @Override
-      Object create() {
-        getBaseDir().build()
-      }
-    }
+  protected EphemeralBaseDir createBaseDirBuilder() {
+    dir(temporaryFolder.newFolder("app"))
   }
 
   void useJarBaseDir() {
-    baseDir = new JarFileBaseDirBuilder(new File(temporaryFolder.newFolder("jar"), "the.jar"))
+    baseDir = jar(new File(temporaryFolder.newFolder("jar"), "the.jar"))
   }
 
 }

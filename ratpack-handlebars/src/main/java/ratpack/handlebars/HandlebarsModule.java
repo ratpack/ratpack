@@ -21,18 +21,17 @@ import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Action;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
 import ratpack.handlebars.internal.RatpackTemplateCache;
 import ratpack.handlebars.internal.TemplateKey;
-import ratpack.launch.LaunchConfig;
+import ratpack.server.ServerConfig;
 
 /**
  * An extension module that provides support for Handlebars.java templating engine.
@@ -45,8 +44,10 @@ import ratpack.launch.LaunchConfig;
  * <p>
  * By default templates are looked up in the {@code handlebars} directory of the application root with a {@code .hbs} suffix.
  * So {@code handlebarsTemplate("my/template/path")} maps to {@code handlebars/my/template/path.hbs} in the application root directory.
- * This can be configured using {@link #setTemplatesPath(String)} and {@link #setTemplatesSuffix(String)} as well as
- * {@code other.handlebars.templatesPath} and {@code other.handlebars.templatesSuffix} configuration properties.
+ * This can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#templatesPath(String)} and {@link ratpack.handlebars.HandlebarsModule.Config#templatesSuffix(String)}.
+ * </p>
+ * <p>
+ * The default template delimiters are {@code {{ }}} but can be configured using {@link ratpack.handlebars.HandlebarsModule.Config#delimiters(String, String)}.
  * </p>
  * <p>
  * Response content type can be manually specified, i.e. {@code handlebarsTemplate("template", model, "text/html")} or can
@@ -55,102 +56,106 @@ import ratpack.launch.LaunchConfig;
  * would be {@code text/html} by default.
  * </p>
  * <p>Custom handlebars helpers can be registered by binding instances of {@link ratpack.handlebars.NamedHelper}.</p>
- * <p>
- * Example usage: (Java DSL)
- * </p>
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
  * import ratpack.handlebars.HandlebarsModule;
+ * import ratpack.test.embed.EphemeralBaseDir;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import java.nio.file.Path;
+ *
  * import static ratpack.handlebars.Template.handlebarsTemplate;
+ * import static org.junit.Assert.*;
  *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.render(handlebarsTemplate("my/template/path", key: "it works!"));
- *   }
- * }
- *
- * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.add(new HandlebarsModule());
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *   .build(new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *           chain.handler(chain.getRegistry().get(MyHandler.class));
- *         }
+ * public class Example {
+ *   public static void main(String... args) throws Exception {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
+ *       baseDir.write("handlebars/myTemplate.html.hbs", "Hello {{name}}!");
+ *       EmbeddedApp.of(s -> s
+ *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
+ *         .registry(Guice.registry(b -> b.module(HandlebarsModule.class)))
+ *         .handlers(chain -> chain
+ *           .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
+ *         )
+ *       ).test(httpClient -> {
+ *         assertEquals("Hello Ratpack!", httpClient.getText());
  *       });
- *     }
- *   });
- * </pre>
- * <p>
- * Example usage: (Groovy DSL)
- * </p>
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.handlebars.HandlebarsModule
- * import static ratpack.handlebars.Template.handlebarsTemplate
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     add new HandlebarsModule()
- *   }
- *   handlers {
- *     get {
- *       render handlebarsTemplate('my/template/path', key: 'it works!')
- *     }
+ *     });
  *   }
  * }
- * </pre>
+ * }</pre>
  *
  * @see <a href="http://jknack.github.io/handlebars.java/" target="_blank">Handlebars.java</a>
  */
-public class HandlebarsModule extends AbstractModule {
+public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config> {
 
-  private String templatesPath;
+  private static final TypeToken<NamedHelper<?>> NAMED_HELPER_TYPE = new TypeToken<NamedHelper<?>>() {
+  };
 
-  private String templatesSuffix;
+  /**
+   * The configuration object for {@link HandlebarsModule}.
+   */
+  public static class Config {
+    private String templatesPath = "handlebars";
 
-  private Integer cacheSize;
+    private String templatesSuffix = ".hbs";
 
-  private Boolean reloadable;
+    private String startDelimiter = Handlebars.DELIM_START;
 
-  public String getTemplatesPath() {
-    return templatesPath;
-  }
+    private String endDelimiter = Handlebars.DELIM_END;
 
-  public void setTemplatesPath(String templatesPath) {
-    this.templatesPath = templatesPath;
-  }
+    private int cacheSize = 100;
 
-  public String getTemplatesSuffix() {
-    return templatesSuffix;
-  }
+    private Boolean reloadable;
 
-  public void setTemplatesSuffix(String templatesSuffix) {
-    this.templatesSuffix = templatesSuffix;
-  }
+    public String getTemplatesPath() {
+      return templatesPath;
+    }
 
-  public int getCacheSize() {
-    return cacheSize;
-  }
+    public Config templatesPath(String templatesPath) {
+      this.templatesPath = templatesPath;
+      return this;
+    }
 
-  public void setCacheSize(int cacheSize) {
-    this.cacheSize = cacheSize;
-  }
+    public String getTemplatesSuffix() {
+      return templatesSuffix;
+    }
 
-  public boolean isReloadable() {
-    return reloadable;
-  }
+    public Config templatesSuffix(String templatesSuffix) {
+      this.templatesSuffix = templatesSuffix;
+      return this;
+    }
 
-  public void setReloadable(boolean reloadable) {
-    this.reloadable = reloadable;
+    public String getStartDelimiter() {
+      return startDelimiter;
+    }
+
+    public String getEndDelimiter() {
+      return endDelimiter;
+    }
+
+    public Config delimiters(String startDelimiter, String endDelimiter) {
+      this.startDelimiter = startDelimiter;
+      this.endDelimiter = endDelimiter;
+      return this;
+    }
+
+    public int getCacheSize() {
+      return cacheSize;
+    }
+
+    public Config cacheSize(int cacheSize) {
+      this.cacheSize = cacheSize;
+      return this;
+    }
+
+    public Boolean isReloadable() {
+      return reloadable;
+    }
+
+    public Config reloadable(boolean reloadable) {
+      this.reloadable = reloadable;
+      return this;
+    }
   }
 
   @Override
@@ -161,39 +166,29 @@ public class HandlebarsModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  TemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
-    String path = templatesPath == null ? launchConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
-    String suffix = templatesSuffix == null ? launchConfig.getOther("handlebars.templatesSuffix", ".hbs") : templatesSuffix;
-
-    FileSystemBinding templatesBinding = launchConfig.getBaseDir().binding(path);
-    return new FileSystemBindingTemplateLoader(templatesBinding, suffix);
+  TemplateLoader provideTemplateLoader(Config config, FileSystemBinding fileSystemBinding) {
+    FileSystemBinding templatesBinding = fileSystemBinding.binding(config.getTemplatesPath());
+    return new FileSystemBindingTemplateLoader(templatesBinding, config.getTemplatesSuffix());
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  TemplateCache provideTemplateCache(LaunchConfig launchConfig) {
-    boolean reloadable = this.reloadable == null ? launchConfig.isReloadable() : this.reloadable;
-    int cacheSize = this.cacheSize == null ? Integer.parseInt(launchConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
-    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build());
+  TemplateCache provideTemplateCache(Config config, ServerConfig serverConfig) {
+    boolean reloadable = config.isReloadable() == null ? serverConfig.isDevelopment() : config.isReloadable();
+    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(config.getCacheSize()).<TemplateKey, com.github.jknack.handlebars.Template>build());
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+  Handlebars provideHandlebars(Config config, Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+    final Handlebars handlebars = new Handlebars()
+      .with(templateLoader)
+      .with(templateCache)
+      .startDelimiter(config.getStartDelimiter())
+      .endDelimiter(config.getEndDelimiter());
 
-    final Handlebars handlebars = new Handlebars().with(templateLoader);
-    handlebars.with(templateCache);
-
-    TypeToken<NamedHelper<?>> type = new TypeToken<NamedHelper<?>>() {
-      private static final long serialVersionUID = 0;
-    };
-
-    GuiceUtil.eachOfType(injector, type, new Action<NamedHelper<?>>() {
-      public void execute(NamedHelper<?> helper) {
-        handlebars.registerHelper(helper.getName(), helper);
-      }
-    });
+    GuiceUtil.eachOfType(injector, NAMED_HELPER_TYPE, helper -> handlebars.registerHelper(helper.getName(), helper));
 
     return handlebars;
   }

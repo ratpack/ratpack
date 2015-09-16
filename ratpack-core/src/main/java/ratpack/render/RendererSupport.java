@@ -16,37 +16,62 @@
 
 package ratpack.render;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.util.internal.Types;
+import ratpack.util.Types;
+import ratpack.util.internal.InternalRatpackError;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
 
 /**
  * A {@link Renderer} super class that provides a {@link #getType()} implementation based on the generic type of the impl.
  * <p>
  * Implementations need only to declare the type they render as the value for type variable {@code T} and implement {@link #render(ratpack.handling.Context, Object)}.
- * <pre class="tested">
+ * <pre class="java">{@code
  * import ratpack.handling.Context;
  * import ratpack.render.RendererSupport;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * // A type of thing to be rendered
- * public class Thing {
- *   private final String name;
+ * import static org.junit.Assert.assertEquals;
  *
- *   public Thing(String name) {
- *     this.name = name;
+ * public class Example {
+ *
+ *   // A type of thing to be rendered
+ *   static class Thing {
+ *     private final String name;
+ *
+ *     public Thing(String name) {
+ *       this.name = name;
+ *     }
+ *
+ *     public String getName() {
+ *       return this.name;
+ *     }
  *   }
  *
- *   public String getName() {
- *     return this.name;
+ *   // Renderer implementation
+ *   public static class ThingRenderer extends RendererSupport<Thing> {
+ *     public void render(Context context, Thing thing) {
+ *       context.render("Thing: " + thing.getName());
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) throws Exception {
+ *     EmbeddedApp.fromHandlers(c -> c
+ *       .register(r -> r.add(new ThingRenderer()))
+ *       .all(ctx -> ctx.render(new Thing("foo")))
+ *     ).test(httpClient -> {
+ *       assertEquals("Thing: foo", httpClient.getText());
+ *     });
  *   }
  * }
- *
- * // Renderer implementation
- * public class ThingRenderer extends RendererSupport&lt;Thing&gt; {
- *   public void render(Context context, Thing thing) {
- *     context.render("Thing: " + thing.getName());
- *   }
- * }
- * </pre>
+ * }</pre>
+ * <p>
+ * An alternative to implementing a render is to make the type to be rendered implement {@link Renderable}.
  *
  * @param <T> The type of object this renderer renders
  */
@@ -54,25 +79,23 @@ public abstract class RendererSupport<T> implements Renderer<T> {
 
   private final Class<T> type;
 
-  /**
-   * Constructor.
-   * <p>
-   * Determines the value for {@link #getType()} by reflecting for {@code T}
-   */
   protected RendererSupport() {
-    this(RendererSupport.class);
-  }
+    TypeToken<T> typeToken = new TypeToken<T>(getClass()) {
+    };
 
-  /**
-   * Constructor.
-   * <p>
-   * Only necessary for abstract implementations that propagate the generic type {@code T}.
-   * Almost all implementations should use the {@link #RendererSupport()}  default constructor}.
-   *
-   * @param type the most specialised parent type of {@code this} that does not have a concrete type for {@code T}
-   */
-  protected RendererSupport(Class<?> type) {
-    this.type = Types.findImplParameterTypeAtIndex(getClass(), type, 0);
+    Type type = typeToken.getType();
+    if (type instanceof Class) {
+      @SuppressWarnings("unchecked") Class<T> rawType = (Class<T>) typeToken.getRawType();
+      this.type = rawType;
+    } else if (type instanceof ParameterizedType) {
+      Iterable<Type> typeArgs = Arrays.asList(((ParameterizedType) type).getActualTypeArguments());
+      if (Iterables.any(typeArgs, Predicates.not((t) -> t.getTypeName().equals("?")))) {
+        throw new IllegalArgumentException("Invalid renderable type " + type + ": due to type erasure, type parameter T of RendererSupport must be a Class or a parameterized type with '?' for all type variables (e.g. List<?>)");
+      }
+      this.type = Types.cast(typeToken.getRawType());
+    } else {
+      throw new InternalRatpackError("Unhandled type for renderer support: " + type.getClass());
+    }
   }
 
   /**
@@ -88,6 +111,6 @@ public abstract class RendererSupport<T> implements Renderer<T> {
   /**
    * {@inheritDoc}
    */
-  abstract public void render(Context context, T object) throws Exception;
+  abstract public void render(Context context, T t) throws Exception;
 
 }

@@ -18,114 +18,90 @@ package ratpack.http.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.http.MediaType;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 
-import static ratpack.util.ExceptionUtils.toException;
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Exceptions.toException;
+import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultMediaType implements MediaType {
 
-  public static final String DEFAULT_CHARSET = "ISO-8859-1";
-  public static final String UTF8 = "UTF-8";
   public static final String CHARSET_KEY = "charset";
 
   private final String type;
-  protected final Map<String, String> params;
+  private final ImmutableListMultimap<String, String> params;
   private final String string;
 
   private static final int CACHE_SIZE = 200;
 
-  private static final Cache<String, MediaType> ISO_CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
-  private static final Cache<String, MediaType> UTF8_CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
+  private static final Cache<String, MediaType> CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
   public static MediaType get(final String contentType) {
-    return fromCache(ISO_CACHE, contentType, DEFAULT_CHARSET);
-  }
-
-  public static MediaType utf8(final String contentType) {
-    return fromCache(UTF8_CACHE, contentType, UTF8);
-  }
-
-  private static MediaType fromCache(final Cache<String, MediaType> cache, String contentType, final String defaultCharset) {
-    if (contentType == null) {
-      contentType = "";
+    String contentType1 = contentType;
+    if (contentType1 == null) {
+      contentType1 = "";
     } else {
-      contentType = contentType.trim();
+      contentType1 = contentType1.trim();
     }
 
-    final String finalContentType = contentType;
+    final String finalContentType = contentType1;
     try {
-      return cache.get(contentType, new Callable<MediaType>() {
-        public MediaType call() throws Exception {
-          return new DefaultMediaType(finalContentType, defaultCharset);
-        }
-      });
+      return CACHE.get(contentType1, () -> new DefaultMediaType(finalContentType));
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }
   }
 
-  public DefaultMediaType(String value, String defaultCharset) {
-    ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
-    boolean setCharset = false;
-
-    if (value == null) {
+  public DefaultMediaType(String value) {
+    if (value == null || value.trim().length() == 0) {
       type = null;
+      params = ImmutableListMultimap.of();
+      string = "";
     } else {
-      value = value.trim();
-      if (value.length() == 0) {
-        type = null;
-      } else {
-        String[] parts = value.split(";");
-        type = parts[0].toLowerCase();
-        if (parts.length > 1) {
-          for (int i = 1; i < parts.length; ++i) {
-            String part = parts[i].trim();
-            String keyPart;
-            String valuePart;
-            if (part.contains("=")) {
-              String[] valueSplit = part.split("=", 2);
-              keyPart = valueSplit[0].toLowerCase();
-              valuePart = valueSplit[1];
-
-              if (keyPart.equals(CHARSET_KEY)) {
-                setCharset = true;
-              }
-            } else {
-              keyPart = part.toLowerCase();
-              valuePart = "";
-            }
-            paramsBuilder.put(keyPart, valuePart);
-          }
+      com.google.common.net.MediaType mediaType = com.google.common.net.MediaType.parse(value.trim());
+      if (mediaType != null && mediaType.type() != null) {
+        if (mediaType.subtype() != null) {
+          type = mediaType.type() + "/" + mediaType.subtype();
+        } else {
+          type = mediaType.type();
         }
+        params = mediaType.parameters();
+        string = mediaType.toString();
+      } else {
+        type = null;
+        params = ImmutableListMultimap.of();
+        string ="";
       }
     }
-
-    if (!setCharset && isText() && !defaultCharset.equals(DEFAULT_CHARSET)) {
-      paramsBuilder.put(CHARSET_KEY, defaultCharset);
-    }
-
-    params = paramsBuilder.build();
-    string = generateString();
   }
 
   public String getType() {
     return type;
   }
 
-  public Map<String, String> getParams() {
-    return Collections.unmodifiableMap(params);
+  public ImmutableListMultimap<String, String> getParams() {
+    return params;
   }
 
   public String getCharset() {
-    return params.containsKey(CHARSET_KEY) ? params.get(CHARSET_KEY) : DEFAULT_CHARSET;
+    return getCharset(null);
+  }
+
+  public String getCharset(String defaultCharset) {
+    ImmutableList<String> charsetValues = params.get(CHARSET_KEY);
+    switch (charsetValues.size()) {
+      case 0:
+        return defaultCharset;
+      case 1:
+        return Charset.forName(charsetValues.get(0)).toString();
+      default:
+        throw new IllegalStateException("Multiple charset values defined: " + charsetValues);
+    }
   }
 
   public boolean isText() {
@@ -152,20 +128,5 @@ public class DefaultMediaType implements MediaType {
   @Override
   public String toString() {
     return string;
-  }
-
-  private String generateString() {
-    if (isEmpty()) {
-      return "";
-    } else {
-      StringBuilder s = new StringBuilder(getType());
-      for (Map.Entry<String, String> param : getParams().entrySet()) {
-        s.append(";").append(param.getKey());
-        if (!param.getValue().isEmpty()) {
-          s.append("=").append(param.getValue());
-        }
-      }
-      return s.toString();
-    }
   }
 }

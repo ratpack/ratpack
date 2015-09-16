@@ -1,12 +1,10 @@
-import com.sun.org.apache.xerces.internal.parsers.XMLParser
-
 // This only gets applied to the root project
 apply plugin: "idea"
 
 idea {
   project {
-    jdkName "1.7"
-    languageLevel "1.7"
+    jdkName "1.8"
+    languageLevel "1.8"
     wildcards.add 'ratpack.groovy'
     ipr {
       withXml { provider ->
@@ -65,7 +63,7 @@ idea {
         if (!javacSettings) {
           node.append(new XmlParser().parseText("""
           <component name="JavacSettings">
-            <option name="ADDITIONAL_OPTIONS_STRING" value="-Werror -Xlint:all -Xlint:-options" />
+            <option name="ADDITIONAL_OPTIONS_STRING" value="-Werror -Xlint:all -Xlint:-options -Xlint:-serial -Xlint:-classfile" />
           </component>
           """))
         }

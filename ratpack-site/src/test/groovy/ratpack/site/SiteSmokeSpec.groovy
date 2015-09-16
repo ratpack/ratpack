@@ -16,15 +16,19 @@
 
 package ratpack.site
 
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
+import ratpack.test.http.TestHttpClient
 import spock.lang.Specification
 
 class SiteSmokeSpec extends Specification {
 
   def aut = new RatpackSiteUnderTest()
+
   @Delegate
-  TestHttpClient client = TestHttpClients.testHttpClient(aut)
+  TestHttpClient client = TestHttpClient.testHttpClient(aut)
+
+  def setup() {
+    requestSpec { r -> r.redirects(1) }
+  }
 
   def "Check Site Index"() {
     when:
@@ -32,8 +36,7 @@ class SiteSmokeSpec extends Specification {
 
     then:
     response.statusCode == 200
-    response.body.asString().contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
-
+    response.body.text.contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
   }
 
   def "Check Site /"() {
@@ -42,7 +45,7 @@ class SiteSmokeSpec extends Specification {
 
     then:
     response.statusCode == 200
-    response.body.asString().contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
+    response.body.text.contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
   }
 
   def cleanup() {

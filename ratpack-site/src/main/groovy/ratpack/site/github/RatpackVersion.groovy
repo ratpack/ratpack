@@ -18,14 +18,18 @@ package ratpack.site.github
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
+import groovy.transform.CompileStatic
 import org.pegdown.PegDownProcessor
 
+import java.text.SimpleDateFormat
+
+@CompileStatic
 class RatpackVersion {
 
   static final String TITLE_PREFIX = "release-"
 
   final String version
-  final int githubNumber
+  final Integer githubNumber
   final String description
   final Date due
   final boolean released
@@ -42,11 +46,11 @@ class RatpackVersion {
     def milestonesBuilder = new ImmutableList.Builder()
 
     for (node in nodes) {
-      def title = node.get("title").asText()
+      String title = node.get("title").asText()
 
       if (title.startsWith(TITLE_PREFIX) && !node.get("due_on").null) {
         def milestone = new RatpackVersion(
-          title - TITLE_PREFIX,
+          title.substring(TITLE_PREFIX.length()),
           node.get("number").asInt(),
           node.get("description").asText(),
           fromGithubDateString(node.get("due_on").asText()),
@@ -61,7 +65,7 @@ class RatpackVersion {
   }
 
   String dueString() {
-    due.format("yyyy-MM-dd")
+    new SimpleDateFormat("yyyy-MM-dd").format(due)
   }
 
   String getManualDownloadUrl() {
@@ -77,7 +81,8 @@ class RatpackVersion {
     if (str == null || str.empty) {
       null
     } else {
-      Date.parse("yyyy-MM-dd'T'HH:mm:ss'Z'", str)
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").parse(str)
     }
   }
+
 }

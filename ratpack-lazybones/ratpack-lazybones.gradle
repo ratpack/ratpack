@@ -14,19 +14,65 @@
  * limitations under the License.
  */
 
+import org.apache.tools.ant.filters.ReplaceTokens
+import ratpack.gradle.WriteTestConfig
+
 buildscript {
   repositories {
-    maven { url "http://dl.bintray.com/pledbrook/plugins" }
+    jcenter()
   }
 
   dependencies {
-    classpath "uk.co.cacoethes:lazybones-gradle:1.0.4"
+    classpath "uk.co.cacoethes:lazybones-gradle:1.2.3"
   }
 }
 
-apply plugin: "lazybones-templates"
+dependencies {
+  compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
 
-tasks.matching { it.name.startsWith("publishTemplate") }.all {
+  testCompile "commons-io:commons-io:2.4"
+  testCompile "org.apache.commons:commons-lang3:3.3.2"
+  testCompile project(":ratpack-test-internal")
+}
+
+apply from: "$rootDir/gradle/javaModule.gradle"
+apply plugin: "uk.co.cacoethes.lazybones-templates"
+
+ext {
+  generatedTestResourcesDir = file("$buildDir/generated-test-resources")
+  compiledTemplateDir = file("$buildDir/lazybones-templates/ratpack")
+}
+
+task replaceTemplateTokens(type: Sync) {
+  def tokens = [version: version, slf4jVersion: commonVersions.slf4j, spockVersion: commonVersions.spock]
+  inputs.properties(tokens)
+
+  from('src/templates/ratpack') {
+    include 'build.gradle'
+    filter(ReplaceTokens, tokens: tokens)
+  }
+  from('src/templates/ratpack') {
+    exclude 'build.gradle'
+  }
+
+  into compiledTemplateDir
+}
+
+lazybones {
+  templateDirs = files(compiledTemplateDir)
+  fileMode "755", "gradlew", "**/*.sh"
+  repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
+  repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
+  repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
+  publish = true
+
+  template("ratpack") {
+    version = project.version
+  }
+}
+
+packageTemplateRatpack {
+  dependsOn test, replaceTemplateTokens
   it.doFirst {
     if (isSnapshot) {
       throw new GradleException("Cannot publish lazybones template with a snapshot version: $version")
@@ -34,14 +80,28 @@ tasks.matching { it.name.startsWith("publishTemplate") }.all {
   }
 }
 
-lazybones {
-  file("templates").listFiles().each { templateRootDirectory ->
-    def f = new File("$templateRootDirectory/VERSION")
-    f.write(version)
-  }
+task writeTestConfig(type: WriteTestConfig) {
+  generatedTestResourcesDir = project.generatedTestResourcesDir
+  testProperties.putAll(
+    "template.path": project.compiledTemplateDir.absolutePath,
+    "localRepo.url": project.localRepoUrl.toString()
+  )
+}
 
-  repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
-  repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
-  repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
-  publish = true
+task prepareTestResources {
+  dependsOn { apiModules*.install }
+  dependsOn ":ratpack-gradle:install", replaceTemplateTokens, writeTestConfig
+}
+
+sourceSets.test.resources.srcDir generatedTestResourcesDir
+
+processTestResources.dependsOn writeTestConfig
+
+test {
+  inputs.dir compiledTemplateDir
+
+  dependsOn prepareTestResources
+
+  // Don't run these tests for the joint Groovy build
+  onlyIf { !System.getenv("CI_GROOVY_VERSION") }
 }

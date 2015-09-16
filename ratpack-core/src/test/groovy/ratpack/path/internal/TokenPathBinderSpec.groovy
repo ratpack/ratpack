@@ -16,14 +16,14 @@
 
 package ratpack.path.internal
 
+import ratpack.path.PathBinder
 import ratpack.path.PathBinding
-import ratpack.path.PathBinders
 import spock.lang.Specification
 
 class TokenPathBinderSpec extends Specification {
 
   PathBinding bind(String pattern, String path, boolean exact = false, PathBinding parent = null) {
-    PathBinders.parse(pattern, exact).bind(path, parent)
+    PathBinder.parse(pattern, exact).bind(Optional.ofNullable(parent).orElse(new RootPathBinding(path))).orElse(null)
   }
 
   Map<String, String> tokens(String pattern, String path, boolean exact = false, PathBinding parent = null) {
@@ -37,13 +37,15 @@ class TokenPathBinderSpec extends Specification {
     then:
     bind("a/b", "a/b/c").boundTo == "a/b"
     bind("a/b", "a/b/c").pastBinding == "c"
-    bind("a/b", "a/b/c").childPath("f") == "a/b/f"
   }
 
   def tokens() {
     expect:
     tokens("a", "b") == null
     tokens("a", "a") == [:]
+    tokens("a/::[bc]", "a/a") == null
+    tokens("a/::[bc]", "a/b") == [:]
+    tokens("a/::[bc]", "a/c") == [:]
     tokens("(.+)", "abc") == null
     tokens(":a", "abc") == [a: "abc"]
     tokens(":a", "abc/") == [a: "abc"]

@@ -16,15 +16,12 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
+import ratpack.func.Function;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public class SingleEntryRegistry implements Registry {
 
@@ -35,82 +32,28 @@ public class SingleEntryRegistry implements Registry {
   }
 
   @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O value = maybeGet(type);
-    if (value == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return value;
-    }
-  }
-
-
-  @Nullable
-  @Override
-  public <O> O maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
-  @Nullable
-  @Override
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     if (type.isAssignableFrom(entry.getType())) {
       @SuppressWarnings("unchecked") O cast = (O) entry.get();
-      return cast;
+      return Optional.of(cast);
     } else {
-      return null;
+      return Optional.empty();
     }
-  }
-
-  @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    O value = maybeGet(type);
-    if (value == null) {
-      return Collections.emptyList();
-    } else {
-      return Collections.singleton(value);
-    }
-  }
-
-  @Nullable
-  @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    T value = maybeGet(type);
-    if (value != null && predicate.apply(value)) {
-      return value;
-    } else {
-      return null;
-    }
+    //noinspection Convert2MethodRef
+    return maybeGet(type).map((o) -> Collections.singleton(o)).orElse(Collections.emptySet());
   }
 
   @Override
-  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    T value = first(type, predicate);
-    if (value != null) {
-      return ImmutableList.of(value);
+  public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    Optional<T> item = maybeGet(type);
+    if (item.isPresent()) {
+      return Optional.ofNullable(function.apply(item.get()));
     } else {
-      return ImmutableList.of();
-    }
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    T first = first(type, predicate);
-    if (first == null) {
-      return false;
-    } else {
-      action.execute(first);
-      return true;
+      return Optional.empty();
     }
   }
 
@@ -131,5 +74,10 @@ public class SingleEntryRegistry implements Registry {
   @Override
   public int hashCode() {
     return entry.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "SingleEntryRegistry{" + entry + '}';
   }
 }

@@ -21,6 +21,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.handlebarsTemplate
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 
 class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
@@ -28,12 +29,14 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a handlebars template from #scenario'() {
     given:
-    launchConfig { other(otherConfig) }
-    file filePath, '{{key}}'
+    write filePath, '{{key}}'
 
     when:
     bindings {
-      add new HandlebarsModule(templatesPath: templatesPath)
+      module new HandlebarsModule(), { if(configPath) { it.templatesPath(configPath) } }
+      if (templatesPath) {
+        bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesPath(templatesPath))
+      }
     }
     handlers {
       get {
@@ -45,21 +48,23 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == 'it works!'
 
     where:
-    scenario             | templatesPath | filePath                | otherConfig
-    'default path'       | null          | 'handlebars/simple.hbs' | [:]
-    'path set in module' | 'custom'      | 'custom/simple.hbs'     | [:]
-    'path set in config' | null          | 'fromConfig/simple.hbs' | ['handlebars.templatesPath': "fromConfig"]
+    scenario             | templatesPath | filePath                | configPath
+    'default path'       | null          | 'handlebars/simple.hbs' | null
+    'path set in module' | 'custom'      | 'custom/simple.hbs'     | null
+    'path set in config' | null          | 'fromConfig/simple.hbs' | "fromConfig"
   }
 
   @Unroll
   void 'can configure loader suffix via #scenario'() {
     given:
-    launchConfig { other(otherConfig) }
-    file('handlebars/simple.hbs', '{{this}}')
+    write('handlebars/simple.hbs', '{{this}}')
 
     when:
     bindings {
-      add new HandlebarsModule(templatesSuffix: templatesSuffix)
+      module new HandlebarsModule(), { if (configSuffix != null) { it.templatesSuffix(configSuffix) } }
+      if (templatesSuffix != null) {
+        bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesSuffix(templatesSuffix))
+      }
     }
     handlers {
       get {
@@ -71,17 +76,17 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == 'it works!'
 
     where:
-    scenario | templatesSuffix | otherConfig
-    'module' | ''              | [:]
-    'config' | null            | ['handlebars.templatesSuffix': '']
+    scenario | templatesSuffix | configSuffix
+    'module' | ''              | null
+    'config' | null            | ''
   }
 
   void 'missing templates are handled'() {
     given:
-    dir('handlebars')
+    mkdir('handlebars')
 
     bindings {
-      add new HandlebarsModule()
+      module new HandlebarsModule()
     }
     handlers {
       get {
@@ -98,11 +103,11 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'helpers can be registered'() {
     given:
-    file 'handlebars/helper.hbs', '{{test}}'
+    write 'handlebars/helper.hbs', '{{test}}'
 
     when:
     bindings {
-      add new HandlebarsModule()
+      module new HandlebarsModule()
       bind TestHelper
     }
     handlers {
@@ -117,34 +122,34 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'content types are based on file type but can be overriden'() {
     given:
-    file 'handlebars/simple.hbs', '{{this}}'
-    file 'handlebars/simple.json.hbs', '{{this}}'
-    file 'handlebars/simple.html.hbs', '{{this}}'
+    write 'handlebars/simple.hbs', '{{this}}'
+    write 'handlebars/simple.json.hbs', '{{this}}'
+    write 'handlebars/simple.html.hbs', '{{this}}'
 
     when:
     bindings {
-      add new HandlebarsModule()
+      module new HandlebarsModule()
     }
     handlers {
-      handler {
-        render handlebarsTemplate(request.path, 'content types', request.queryParams.type)
+      all {
+        render handlebarsTemplate(request.path, 'content types', (String) request.queryParams.type)
       }
     }
 
     then:
-    get("simple").contentType == "application/octet-stream"
-    get("simple.json").contentType == "application/json"
-    get("simple.html").contentType == "text/html;charset=UTF-8"
-    get("simple.html?type=application/octet-stream").contentType == "application/octet-stream"
+    get("simple").headers.get(CONTENT_TYPE) == "application/octet-stream"
+    get("simple.json").headers.get(CONTENT_TYPE) == "application/json"
+    get("simple.html").headers.get(CONTENT_TYPE) == "text/html"
+    get("simple.html?type=application/octet-stream").headers.get(CONTENT_TYPE) == "application/octet-stream"
   }
 
   void "templates are reloadable when reloading is enabled"() {
     given:
-    file 'handlebars/simple.hbs', 'A'
+    write 'handlebars/simple.hbs', 'A'
 
     when:
     bindings {
-      add new HandlebarsModule(reloadable: true)
+      module new HandlebarsModule(), { it.reloadable(true) }
     }
     handlers {
       get {
@@ -157,7 +162,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000 // make sure last modified times are different
-    file 'handlebars/simple.hbs', 'B'
+    write 'handlebars/simple.hbs', 'B'
 
     then:
     text == 'B'
@@ -165,11 +170,11 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void "templates are not reloadable when reloading is disabled"() {
     given:
-    file 'handlebars/simple.hbs', 'A'
+    write 'handlebars/simple.hbs', 'A'
 
     when:
     bindings {
-      add new HandlebarsModule(reloadable: false)
+      module new HandlebarsModule(), { it.reloadable(false) }
     }
     handlers {
       get {
@@ -182,10 +187,51 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000 // make sure last modified times are different
-    file 'handlebars/simple.hbs', 'B'
+    write 'handlebars/simple.hbs', 'B'
 
     then:
     text == 'A'
+  }
+
+  void "template cache allows templates with the same filename with different paths"() {
+    given:
+    write 'handlebars/foo/simple.hbs', 'A'
+    write 'handlebars/bar/simple.hbs', 'B'
+
+    when:
+    bindings {
+      module new HandlebarsModule(), { it.reloadable(false).cacheSize(20) }
+    }
+    handlers {
+      get('foo') {
+        render handlebarsTemplate('foo/simple')
+      }
+      get('bar') {
+        render handlebarsTemplate('bar/simple')
+      }
+    }
+
+    then:
+    get('foo').body.text == 'A'
+    get('bar').body.text == 'B'
+  }
+
+  void 'can configure delimiters'() {
+    given:
+    write('handlebars/simple.hbs', '<%key%>')
+
+    when:
+    bindings {
+      module new HandlebarsModule(), { it.delimiters('<%', '%>') }
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple', key: 'it works!')
+      }
+    }
+
+    then:
+    text == 'it works!'
   }
 }
 

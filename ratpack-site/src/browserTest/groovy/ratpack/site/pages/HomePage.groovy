@@ -26,7 +26,7 @@ class HomePage extends Page {
 
   static content = {
     promoNavLink { text -> $('#promo nav a', text: text) }
-    manualLink(to: ManualToCPage, wait: true) { promoNavLink("Current Manual") }
+    manualLink(to: ManualPage, wait: true) { promoNavLink("Current Manual") }
     versionsLink(to: VersionsPage, wait: true)  { promoNavLink("All Versions") }
   }
 }

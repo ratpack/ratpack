@@ -19,7 +19,7 @@ package ratpack.file
 class StaticFileCompressedSpec extends StaticFileSpec {
 
   def setup() {
-    launchConfig { compressResponses(true) }
+    compressResponses = true
   }
 
 }

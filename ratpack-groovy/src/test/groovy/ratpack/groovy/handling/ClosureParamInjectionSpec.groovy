@@ -24,10 +24,10 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
 
   def "can have global services"() {
     when:
-    file "templates/foo.html", "bar"
+    write "templates/foo.html", "bar"
 
     bindings {
-      bind new Thing()
+      bindInstance new Thing()
     }
 
     handlers { Thing thing ->
@@ -43,8 +43,8 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
   def "can inject request scoped objects"() {
     when:
     handlers {
-      handler {
-        request.register(new Thing())
+      all {
+        request.add(new Thing())
         next()
       }
       get { Thing thing ->
@@ -56,16 +56,16 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     text == Thing.name
   }
 
-  def "context scope shadows request scope for handlers"() {
+  def "request scope shadows context scope for handlers"() {
     when:
     bindings {
-      bind "bar"
-      bind new Thing()
+      bindInstance "bar"
+      bindInstance new Thing()
     }
 
     handlers {
-      handler {
-        request.register("foo")
+      all {
+        request.add("foo")
         next()
       }
       get { Thing thing, String string ->
@@ -74,7 +74,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "${Thing.name} bar"
+    text == "${Thing.name} foo"
   }
 
 }

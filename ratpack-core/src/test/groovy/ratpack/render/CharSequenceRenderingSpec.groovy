@@ -30,8 +30,8 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      header("content-type") == "text/plain;charset=UTF-8"
-      body.asString() == "foo"
+      headers.get("content-type") == "text/plain;charset=UTF-8"
+      body.text == "foo"
     }
   }
 
@@ -45,8 +45,8 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      header("content-type") == "text/plain;charset=UTF-8"
-      body.asString() == "foo"
+      headers.get("content-type") == "text/plain;charset=UTF-8"
+      body.text == "foo"
     }
   }
 
@@ -61,8 +61,8 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      header("content-type") == "application/json"
-      body.asString() == "foo"
+      headers.get("content-type") == "application/json"
+      body.text == "foo"
     }
   }
 

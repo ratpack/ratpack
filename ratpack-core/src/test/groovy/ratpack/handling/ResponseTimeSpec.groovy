@@ -16,6 +16,7 @@
 
 package ratpack.handling
 
+import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ResponseTimeSpec extends RatpackGroovyDslSpec {
@@ -25,7 +26,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
   def "does not contain response time header by default"() {
     when:
     handlers {
-      handler { response.send() }
+      all { response.send() }
     }
 
     then:
@@ -36,74 +37,74 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
   def "does contain response time header if enabled"() {
     given:
-    launchConfig {
-      timeResponses true
+    bindings {
+      bindInstance ResponseTimer.decorator()
     }
 
     when:
     handlers {
-      handler { response.send() }
+      all { response.send() }
     }
 
     then:
     with(get()) {
-      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
+      headers.get("X-Response-Time") ==~ DECIMAL_NUMBER
     }
   }
 
   def "does contain response time header when blocking operation used"() {
     given:
-    launchConfig {
-      timeResponses true
+    bindings {
+      bindInstance ResponseTimer.decorator()
     }
 
     when:
     handlers {
-      handler {
-        blocking { sleep 100 } then { response.send() }
+      all {
+        Blocking.get { sleep 100 } then { response.send() }
       }
     }
 
     then:
     with(get()) {
-      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
+      headers.get("X-Response-Time") ==~ DECIMAL_NUMBER
     }
   }
 
   def "static files have no response time when not enabled"() {
     given:
-    file("files/foo.txt", "foo")
+    write("files/foo.txt", "foo")
 
     when:
     handlers {
-      assets "files"
+      files { dir "files" }
     }
 
     then:
     with(get("foo.txt")) {
-      body.asString() == "foo"
+      body.text == "foo"
       headers.get("X-Response-Time") == null
     }
   }
 
   def "static files have response time when enabled"() {
     given:
-    launchConfig {
-      timeResponses true
+    bindings {
+      bindInstance ResponseTimer.decorator()
     }
 
     and:
-    file("files/foo.txt", "foo")
+    write("files/foo.txt", "foo")
 
     when:
     handlers {
-      assets "files"
+      files { dir "files" }
     }
 
     then:
     with(get("foo.txt")) {
-      body.asString() == "foo"
-      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
+      body.text == "foo"
+      headers.get("X-Response-Time") ==~ DECIMAL_NUMBER
     }
   }
 

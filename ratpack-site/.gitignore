@@ -1,6 +1,5 @@
-/src/ratpack/assets/scripts/*
-/src/ratpack/assets/styles/*
 /src/ratpack/manual/*
+src/ratpack/assets
 /src/ratpack/*.class
 *.class
 *.log

@@ -17,7 +17,7 @@
 package ratpack.handlebars.internal;
 
 import com.github.jknack.handlebars.io.TemplateSource;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public class TemplateKey {
   private final String identifier;
@@ -62,7 +62,7 @@ public class TemplateKey {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("identifier", identifier)
       .add("source", source)
       .toString();

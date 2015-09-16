@@ -18,34 +18,31 @@ package ratpack.form.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.form.Form;
+import ratpack.form.FormParseOpts;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
-import ratpack.parse.NoOptParserSupport;
+import ratpack.parse.Parse;
+import ratpack.parse.ParserSupport;
+import ratpack.util.MultiValueMap;
+import ratpack.util.Types;
 
-public class FormParser extends NoOptParserSupport {
+import static ratpack.util.MultiValueMap.empty;
+
+public class FormParser extends ParserSupport<FormParseOpts> {
 
   private static final TypeToken<Form> FORM_TYPE = TypeToken.of(Form.class);
 
-  private FormParser(String contentType) {
-    super(contentType);
-  }
-
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
-    if (type.equals(FORM_TYPE)) {
-      return (T) FormDecoder.parseForm(context, requestBody);
+  public <T> T parse(Context context, TypedData requestBody, Parse<T, FormParseOpts> parse) throws Exception {
+    if (parse.getType().equals(FORM_TYPE)) {
+      MultiValueMap<String, String> base = parse.getOpts().map(FormParseOpts::isIncludeQueryParams).orElse(false)
+        ? context.getRequest().getQueryParams()
+        : empty();
+      return Types.cast(FormDecoder.parseForm(context, requestBody, base));
     } else {
       return null;
     }
-  }
-
-  public static FormParser multiPart() {
-    return new FormParser("multipart/form-data");
-  }
-
-  public static FormParser urlEncoded() {
-    return new FormParser("application/x-www-form-urlencoded");
   }
 
 }

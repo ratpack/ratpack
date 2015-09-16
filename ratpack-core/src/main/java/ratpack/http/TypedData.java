@@ -21,6 +21,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * Data that potentially has a content type.
@@ -46,6 +47,8 @@ public interface TypedData {
    * @return The data decoded as text
    */
   String getText();
+
+  String getText(Charset charset);
 
   /**
    * The raw data as bytes.

@@ -16,15 +16,7 @@
 
 package ratpack.manual.snippets.fixture
 
-import ratpack.manual.snippets.executer.GroovySnippetExecuter
-import ratpack.manual.snippets.executer.SnippetExecuter
-
 class GroovyScriptFixture extends SnippetFixture {
-
-  @Override
-  SnippetExecuter getExecuter() {
-    new GroovySnippetExecuter()
-  }
 
   @Override
   public String post() {

@@ -32,6 +32,7 @@ class RecordingWebSocketClient extends WebSocketClient {
   int closeCode
   String closeReason
   boolean closeRemote
+  ServerHandshake serverHandshake
 
   private final CountDownLatch closeLatch = new CountDownLatch(1)
 
@@ -41,7 +42,7 @@ class RecordingWebSocketClient extends WebSocketClient {
 
   @Override
   void onOpen(ServerHandshake handshakedata) {
-
+    serverHandshake = handshakedata
   }
 
   @Override
@@ -64,6 +65,6 @@ class RecordingWebSocketClient extends WebSocketClient {
   @Override
   void onError(Exception ex) {
     this.exception = ex
-
   }
+
 }

@@ -1,30 +1,119 @@
 # Launching
 
-This chapter introduces how to launch a Ratpack application, and the associated launch time configuration.
+This chapter describes how Ratpack applications are started, effectively detailing the entry points to the Ratpack API.
 
-## Launch configuration
+## RatpackServer
 
-To launch a Ratpack application, you must create a [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html).
-This can then be used with the [`RatpackServerBuilder`](api/ratpack/server/RatpackServerBuilder.html#build\(ratpack.launch.LaunchConfig\)) method to create a [`RatpackServer`](api/ratpack/server/RatpackServer.html) that can then be started.
+The [`RatpackServer`](api/ratpack/server/RatpackServer.html) type is the Ratpack entry point.
+You write your own main class that uses this API to launch the application.
+ 
+```language-java hello-world
+package my.app;
 
-Note that one of the `LaunchConfig` object's responsibilities is to provide a [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation.
-This factory is responsible for creating the handler that is effectively the Ratpack application.
-See the [chapter on handlers](handlers.html) for more details.
+import ratpack.server.RatpackServer;
+import ratpack.server.ServerConfig;
+import java.net.URI;
 
-One option for building a `LaunchConfig` is to use the [`LaunchConfigBuilder`](api/ratpack/launch/LaunchConfigBuilder.html).
-Another option is to use [`LaunchConfigs`](api/ratpack/launch/LaunchConfigs.html) which is able to build a launch config from system properties and a properties file.
-
-## RatpackMain
-
-The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) class is a convenient entry point (i.e. main class) that bootstraps a Ratpack application.
-When [building with Gradle](gradle.html), this is the default main class.
-
-The minimum requirement for launching a `RatpackMain` based application, is to ensure there is a `ratpack.properties` file on the JVM classpath that indicates the application [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html)…
-
+public class Main {
+  public static void main(String... args) throws Exception {
+    RatpackServer.start(server -> server
+      .serverConfig(ServerConfig.embedded().publicAddress(new URI("http://company.org")))
+      .registryOf(registry -> registry.add("World!"))
+      .handlers(chain -> chain
+        .get(ctx -> ctx.render("Hello " + ctx.get(String.class)))
+        .get(":name", ctx -> ctx.render("Hello " + ctx.getPathTokens().get("name") + "!"))     
+      )
+    );
+  }
+}
 ```
-handlerFactory=org.my.HandlerFactory
+
+Applications are defined as the function given to the `of()` or `start()` static methods of this interface.
+The function takes a [`RatpackServerSpec`](api/ratpack/server/RatpackServerSpec.html) which can be used to specify the three fundamental aspects of Ratpack apps (i.e. server config, base registry, root handler).
+
+> Most examples in this manual and the API reference use [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) instead of `RatpackServer` to create applications.
+> This is due to the “testing” nature of the examples.
+> Please see [this section](intro.html#code_samples) for more information regarding the code samples.
+
+### Server Config
+
+The [`ServerConfig`](api/ratpack/server/ServerConfig.html) defines the configuration settings that are needed in order to start the server.
+The static methods of `ServerConfig` can be used to create instances.
+ 
+#### Base dir
+
+An important aspect of the server config is the [base dir](api/ratpack/server/ServerConfig.html#getBaseDir--).
+The base dir is effectively the root of the file system for the application, providing a portable file system.
+All relative paths to be resolved to files during runtime will be resolved relative to the base dir.
+Static assets (e.g. images, scripts) are typically served via the base dir using relative paths.
+ 
+The [baseDir(Path)](api/ratpack/server/ServerConfigBuilder.html#baseDir-java.nio.file.Path-) method allows setting the base dir to some known location.
+In order to achieve portability across environments, if necessary, the code that calls this is responsible for determining what the base dir should be for a given runtime.
+
+It is more common to use [BaseDir.find()](api/ratpack/server/BaseDir.html#find--) that supports finding the base dir on the classpath, providing better portability across environments.
+This method searches for a resource on the classpath at the path `"/.ratpack"`. 
+
+> To use a different path than the `/.ratpack` default, use the [BaseDir.find(String)](api/ratpack/server/BaseDir.html#find-java.lang.String-) method.
+
+The contents of the marker file are entirely ignored.
+It is just used to find the enclosing directory, which will be used as the base dir.
+The file may within a JAR that is on the classpath, or within a directory that is on the classpath.
+
+The following example demonstrates using `BaseDir.find()` to discover the base dir from the classpath.
+
+```language-java
+import ratpack.server.ServerConfig;
+import ratpack.test.embed.EphemeralBaseDir;
+import ratpack.test.embed.EmbeddedApp;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EphemeralBaseDir.tmpDir().use(baseDir -> {
+      baseDir.write("mydir/.ratpack", "");
+      baseDir.write("mydir/assets/message.txt", "Hello Ratpack!");
+      Path mydir = baseDir.getRoot().resolve("mydir");
+
+      ClassLoader classLoader = new URLClassLoader(new URL[]{mydir.toUri().toURL()});
+      Thread.currentThread().setContextClassLoader(classLoader);
+
+      EmbeddedApp.of(serverSpec -> serverSpec
+        .serverConfig(c -> c.baseDir(mydir))
+        .handlers(chain ->
+          chain.files(f -> f.dir("assets"))
+        )
+      ).test(httpClient -> {
+        String message = httpClient.getText("message.txt");
+        assertEquals("Hello Ratpack!", message);
+      });
+    });
+  }
+}
 ```
 
-All aspects of the LaunchConfig can be specified in this properties file.
-Aspects can also be environmentally overridden by JVM system properties.
-See [`RatpackMain`](api/ratpack/launch/RatpackMain.html) for details.
+The use of [`EphemeralBaseDir`](api/ratpack/test/embed/EphemeralBaseDir.html) and the construction of a new context class loader are in the example above are purely to make the example self contained.
+A real main method would simply call `BaseDir.find()`, relying on whatever launched the Ratpack application JVM to have launched with the appropriate classpath.
+
+Ratpack accesses the base dir via the Java 7 [Path](http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) API,
+allowing transparent use of JAR contents as the file system.
+
+### Registry
+
+A [`registry`](api/ratpack/registry/Registry.html) is a store of objects stored by type.
+There may be many different registries within an application, but all applications are backed a “server registry”.
+A server registry is just the name given to the registry that backs the application and is defined at launch time.
+
+### Handler
+
+The server [handler](handlers.html) receives all incoming HTTP requests.
+Handlers are composable, and very few applications are actually comprised of only one handler.
+The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
+that uses the [`Chain`](api/ratpack/handling/Chain.html) DSL to create the composite handler.
+
+### Hooking into the application lifecycle
+The [`service`](api/ratpack/server/Service.html) interface is used to hook into the applications lifecycle.
