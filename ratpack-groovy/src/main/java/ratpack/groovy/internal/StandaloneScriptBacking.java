@@ -30,11 +30,13 @@ import ratpack.util.Exceptions;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
   private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
-  private final ThreadLocal<RatpackServer> running = new ThreadLocal<>();
+  private final ThreadLocal<RatpackServer> threadRunning = new ThreadLocal<>();
+  private final static AtomicReference<RatpackServer> CONSOLE_RUNNING = new AtomicReference<>(null);
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
@@ -43,13 +45,17 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
-    Optional.ofNullable(running.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
+    Optional.ofNullable(CONSOLE_RUNNING.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
+    Optional.ofNullable(threadRunning.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
 
     RatpackServer ratpackServer;
     Path scriptFile = ClosureUtil.findScript(closure);
+    Consumer<RatpackServer> captureFunction;
     if (scriptFile == null) {
+      captureFunction = CONSOLE_RUNNING::set;
       ratpackServer = RatpackServer.of(server -> ClosureUtil.configureDelegateFirst(new RatpackBacking(server), closure));
     } else {
+      captureFunction = threadRunning::set;
       ratpackServer = RatpackServer.of(Groovy.Script.app(scriptFile));
       Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
       if (action != null) {
@@ -58,7 +64,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
 
     ratpackServer.start();
-    running.set(ratpackServer);
+    captureFunction.accept(ratpackServer);
   }
 
   private static class RatpackBacking implements Groovy.Ratpack {
