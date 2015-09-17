@@ -19,7 +19,6 @@ package ratpack.groovy
 import ratpack.groovy.handling.GroovyChain
 import ratpack.guice.BindingsSpec
 import ratpack.server.RatpackServer
-import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -39,9 +38,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(getRatpackFile())
-          ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
-            script.run()
-          }
+          script.run()
         })
       }
     }

@@ -26,7 +26,7 @@ public abstract class RatpackScriptBacking {
   private static final ThreadLocal<Action<Closure<?>>> BACKING_HOLDER = new InheritableThreadLocal<Action<Closure<?>>>() {
     @Override
     protected Action<Closure<?>> initialValue() {
-      return new StandaloneScriptBacking();
+      return StandaloneScriptBacking.INSTANCE;
     }
   };
 

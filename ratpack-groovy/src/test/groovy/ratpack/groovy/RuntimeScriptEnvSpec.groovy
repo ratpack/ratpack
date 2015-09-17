@@ -17,7 +17,6 @@
 package ratpack.groovy
 
 import ratpack.server.RatpackServer
-import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.EmbeddedRatpackSpec
@@ -39,16 +38,13 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
         new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(script)
-          ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
-            script.run()
-          }
+          script.run()
         })
       }
     }
   }
 
-  // Documents current behaviour, not desired
-  def "exception when trying to use ratpack from runtime generated script"() {
+  def "can generate script at runtime"() {
     when:
     script """
       import static ratpack.groovy.Groovy.ratpack
@@ -62,9 +58,7 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
       }
     """
 
-    getText()
-
     then:
-    thrown IllegalStateException
+    text == "ok"
   }
 }

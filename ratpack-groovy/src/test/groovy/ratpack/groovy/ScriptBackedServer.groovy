@@ -16,9 +16,9 @@
 
 package ratpack.groovy
 
-import ratpack.groovy.internal.StandaloneScriptBacking
-import ratpack.server.StartupFailureException
 import ratpack.server.RatpackServer
+import ratpack.server.StartupFailureException
+import ratpack.server.internal.ServerCapturer
 
 class ScriptBackedServer implements RatpackServer {
 
@@ -33,11 +33,7 @@ class ScriptBackedServer implements RatpackServer {
 
   @Override
   void start() throws StartupFailureException {
-    StandaloneScriptBacking.captureNext { RatpackServer it ->
-      nestedServer = it
-    }
-
-    starter.run()
+    nestedServer = ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) { -> starter.run() }
 
     def stopAt = System.currentTimeMillis() + 10000
     while (System.currentTimeMillis() < stopAt && (nestedServer == null || !nestedServer.running)) {

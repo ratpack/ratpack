@@ -28,43 +28,45 @@ import ratpack.server.ServerConfigBuilder;
 import ratpack.util.Exceptions;
 
 import java.nio.file.Path;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
-  private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
-  private final ThreadLocal<RatpackServer> threadRunning = new ThreadLocal<>();
-  private final static AtomicReference<RatpackServer> CONSOLE_RUNNING = new AtomicReference<>(null);
+  private final Lock lock = new ReentrantLock();
+  private RatpackServer running;
 
-  public static void captureNext(Action<? super RatpackServer> action) {
-    CAPTURE_ACTION.set(action);
+  public static final StandaloneScriptBacking INSTANCE = new StandaloneScriptBacking();
+
+  private StandaloneScriptBacking() {
   }
 
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
-    Optional.ofNullable(CONSOLE_RUNNING.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
-    Optional.ofNullable(threadRunning.get()).ifPresent(s -> Exceptions.uncheck(s::stop));
-
-    RatpackServer ratpackServer;
-    Path scriptFile = ClosureUtil.findScript(closure);
-    Consumer<RatpackServer> captureFunction;
-    if (scriptFile == null) {
-      captureFunction = CONSOLE_RUNNING::set;
-      ratpackServer = RatpackServer.of(server -> ClosureUtil.configureDelegateFirst(new RatpackBacking(server), closure));
-    } else {
-      captureFunction = threadRunning::set;
-      ratpackServer = RatpackServer.of(Groovy.Script.app(scriptFile));
-      Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
-      if (action != null) {
-        action.execute(ratpackServer);
+    lock.lock();
+    try {
+      if (running != null) {
+        running.stop();
+        running = null;
       }
-    }
 
-    ratpackServer.start();
-    captureFunction.accept(ratpackServer);
+      Path scriptFile = ClosureUtil.findScript(closure);
+      if (scriptFile == null) {
+        running = RatpackServer.start(server -> ClosureUtil.configureDelegateFirst(new RatpackBacking(server), closure));
+      } else {
+        running = RatpackServer.start(Groovy.Script.app(scriptFile));
+      }
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  public void stopServer() throws Exception {
+    if (running != null) {
+      running.stop();
+      running = null;
+    }
   }
 
   private static class RatpackBacking implements Groovy.Ratpack {
