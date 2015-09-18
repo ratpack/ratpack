@@ -115,8 +115,14 @@ public class DefaultRatpackServer implements RatpackServer {
 
     boundAddress = (InetSocketAddress) channel.localAddress();
 
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info(String.format("Ratpack started %sfor %s://%s:%s", serverConfig.isDevelopment() ? "(development) " : "", getScheme(), getBindHost(), getBindPort()));
+    String startMessage = String.format("Ratpack started %sfor %s://%s:%s", serverConfig.isDevelopment() ? "(development) " : "", getScheme(), getBindHost(), getBindPort());
+
+    if (Slf4jNoBindingDetector.isHasBinding()) {
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info(startMessage);
+      }
+    } else {
+      System.out.println(startMessage);
     }
 
     shutdownHookThread = new Thread("ratpack-shutdown-thread") {
