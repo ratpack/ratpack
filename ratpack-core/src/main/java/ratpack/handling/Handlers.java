@@ -213,6 +213,15 @@ public abstract class Handlers {
   }
 
   /**
+   * A handler that delegates to the next handler if the request is OPTIONS, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler options() {
+    return MethodHandler.OPTIONS;
+  }
+
+  /**
    * Creates a handler that delegates to the given handlers if the request matches the given path exactly.
    * <p>
    * The {@code path} is relative to the contextual {@link ratpack.path.PathBinding} of the exchange.

@@ -27,6 +27,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   public static final String METHOD_POST = "POST";
   public static final String METHOD_PUT = "PUT";
   public static final String METHOD_PATCH = "PATCH";
+  public static final String METHOD_OPTIONS = "OPTIONS";
   public static final String METHOD_DELETE = "DELETE";
 
   private final Map<String, Block> blocks;
@@ -53,6 +54,11 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   @Override
   public ByMethodSpec patch(Block block) {
     return named(METHOD_PATCH, block);
+  }
+
+  @Override
+  public ByMethodSpec options(Block block) {
+    return named(METHOD_OPTIONS, block);
   }
 
   @Override

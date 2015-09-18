@@ -123,6 +123,21 @@ public interface TestHttpClient {
   ReceivedResponse options(String path);
 
   /**
+   *  A convenience method for doing a OPTIONS request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @return A String that is the body of the response.
+   */
+  String optionsText();
+
+  /**
+   * A convenience method for doing a OPTIONS request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *
+   * @param path What path the OPTIONS request will be made against.
+   * @return A String that is the body of the response.
+   */
+  String optionsText(String path);
+
+  /**
    * Make a GET request with a path of "" this is the same as calling get("").
    *
    * @return The {@link ratpack.http.client.ReceivedResponse} from the GET request.

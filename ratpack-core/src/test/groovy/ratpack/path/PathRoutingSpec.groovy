@@ -268,6 +268,24 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     patch("a/b/c").statusCode == NOT_FOUND.code()
   }
 
+  def "can use options handler"() {
+    when:
+    handlers {
+      options {
+        response.send("root")
+      }
+
+      options("a") {
+        response.send("a")
+      }
+    }
+
+    then:
+    optionsText() == "root"
+    optionsText("a") == "a"
+    options("a/b/c").statusCode == NOT_FOUND.code()
+  }
+
   def "can use delete handler"() {
     when:
     handlers {

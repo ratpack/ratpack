@@ -71,6 +71,7 @@ The following people have provided significant contributions.
 * [Daniel Raniz](https://github.com/Raniz85)
 * [Martin Lundvall](https://github.com/lundvall)
 * [Fabian Förster](https://github.com/ffoers)
+* [Guillaume Laforge](https://github.com/glaforge)
 
 ### Past project members
 

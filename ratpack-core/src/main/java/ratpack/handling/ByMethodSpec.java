@@ -58,6 +58,14 @@ public interface ByMethodSpec {
   ByMethodSpec patch(Block block);
 
   /**
+   * Defines the action to to take if the request has a HTTP method of OPTIONS.
+   *
+   * @param block the code to invoke if the request method matches
+   * @return this
+   */
+  ByMethodSpec options(Block block);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
    *
    * @param block the code to invoke if the request method matches

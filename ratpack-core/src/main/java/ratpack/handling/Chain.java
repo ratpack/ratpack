@@ -604,6 +604,47 @@ public interface Chain {
   /**
    * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
+   * is {@code OPTIONS}.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(String, Handler)
+   * @see Chain#post(String, Handler)
+   * @see Chain#put(String, Handler)
+   * @see Chain#delete(String, Handler)
+   * @see Chain#path(String, Handler)
+   */
+  default Chain options(String path, Handler handler) {
+    return all(Handlers.path(path, Handlers.chain(Handlers.options(), handler)));
+  }
+
+  default Chain options(String path, Class<? extends Handler> handler) {
+    return options(path, getRegistry().get(handler));
+  }
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the {@code request} {@code HTTPMethod} is {@code OPTIONS} and the {@code path} is at the current root.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(Handler)
+   * @see Chain#post(Handler)
+   * @see Chain#put(Handler)
+   * @see Chain#delete(Handler)
+   */
+  default Chain options(Handler handler) {
+    return options("", handler);
+  }
+
+  default Chain options(Class<? extends Handler> handler) {
+    return options(getRegistry().get(handler));
+  }
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code POST}.
    * <p>
    *
