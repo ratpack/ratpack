@@ -35,8 +35,8 @@ public abstract class Slf4jNoBindingDetector {
       return true;
     } catch (ClassNotFoundException e) {
       System.err.println(
-        "WARNING: No slf4j logging binding found for Ratpack, there will be no logging output." + System.lineSeparator() +
-          "WARNING: Please add an slf4j binding, such as slf4j-log4j2, to the classpath."
+        "WARNING: No slf4j logging binding found for Ratpack, there will be no logging output." + System.lineSeparator()
+          + "WARNING: Please add an slf4j binding, such as slf4j-log4j2, to the classpath."
       );
       return false;
     }
