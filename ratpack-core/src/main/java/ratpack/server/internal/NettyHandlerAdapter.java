@@ -51,10 +51,12 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
-public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
+
+  static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(RequestBodyAccumulator.class.getName());
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -66,7 +68,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final boolean development;
 
   public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
-    super(false);
     this.handlers = ChainHandler.unpack(handler);
     this.serverRegistry = serverRegistry;
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
@@ -74,23 +75,44 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   }
 
   @Override
-  public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
-    if (!(msg instanceof FullHttpRequest)) {
-      Action<Object> subscriber = channelHandlerContext.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
-      if (subscriber != null) {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    if (msg instanceof HttpRequest) {
+      newRequest(ctx, (HttpRequest) msg);
+    } else if (msg instanceof HttpContent) {
+      ctx.attr(BODY_ACCUMULATOR_KEY).get().add((HttpContent) msg);
+      if (msg instanceof LastHttpContent) {
+        ctx.read();
+      }
+    } else {
+      Action<Object> subscriber = ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
+      if (subscriber == null) {
+        super.channelRead(ctx, msg);
+      } else {
         subscriber.execute(msg);
-        return;
       }
     }
-    super.channelRead(channelHandlerContext, msg);
   }
 
-  public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
+  private void newRequest(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
-      nettyRequest.release();
       return;
     }
+    if (HttpUtil.is100ContinueExpected(nettyRequest)) {
+      FullHttpResponse continueResponse = new DefaultFullHttpResponse(
+        HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
+      ChannelFutureListener listener = future -> {
+        if (!future.isSuccess()) {
+          ctx.fireExceptionCaught(future.cause());
+        }
+      };
+      ctx.writeAndFlush(continueResponse).addListener(listener);
+      ctx.read();
+      return;
+    }
+
+    RequestBody bodyReader = new RequestBody(ctx);
+    ctx.attr(BODY_ACCUMULATOR_KEY).set(bodyReader);
 
     final Channel channel = ctx.channel();
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
@@ -104,7 +126,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       nettyRequest.uri(),
       remoteAddress,
       socketAddress,
-      nettyRequest.content());
+      serverRegistry.get(ServerConfig.class),
+      bodyReader
+    );
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
@@ -129,6 +153,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
+      bodyReader.close();
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
@@ -157,7 +182,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           body = ByteBufUtil.encodeString(ctx.alloc(), charBuffer, CharsetUtil.UTF_8);
           response.contentType(HttpHeaderConstants.PLAIN_TEXT_UTF8);
         } else {
-          body = ctx.alloc().buffer(0, 0);
+          body = Unpooled.EMPTY_BUFFER;
         }
 
         response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
@@ -187,7 +212,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   }
 
   @SuppressWarnings("deprecation")
-  private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+  public static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+  @SuppressWarnings("deprecation")
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
     response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);
@@ -195,4 +221,5 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     // Close the connection as soon as the error message is sent.
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
+
 }

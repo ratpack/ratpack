@@ -19,19 +19,18 @@ package ratpack.http.internal;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
-import ratpack.exec.Upstream;
 import ratpack.func.Function;
 import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
+import ratpack.server.ServerConfig;
+import ratpack.server.internal.RequestBodyReader;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -46,13 +45,14 @@ public class DefaultRequest implements Request {
   private MutableRegistry registry;
 
   private final Headers headers;
+  private final RequestBodyReader bodyReader;
   private final String rawUri;
   private final HttpMethod method;
   private final String protocol;
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
-  private final Promise<TypedData> body;
+  private final ServerConfig serverConfig;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -60,35 +60,17 @@ public class DefaultRequest implements Request {
   private String path;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri, InetSocketAddress remoteSocket, InetSocketAddress localSocket, ByteBuf content) {
+  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
+                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, RequestBodyReader bodyReader) {
     this.headers = headers;
+    this.bodyReader = bodyReader;
     this.method = DefaultHttpMethod.valueOf(method);
     this.protocol = protocol.toString();
     this.rawUri = rawUri;
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
-    this.body = Promise.of(new BodyUpstream(content));
-  }
-
-  private class BodyUpstream implements Upstream<TypedData> {
-
-    private final ByteBuf content;
-    private boolean read;
-
-    private BodyUpstream(ByteBuf content) {
-      this.content = content;
-    }
-
-    @Override
-    public void connect(Downstream<? super TypedData> downstream) throws Exception {
-      if (read) {
-        downstream.error(new RequestBodyAlreadyReadException());
-      } else {
-        read = true;
-        downstream.success(new ByteBufBackedTypedData(content, getContentType()));
-      }
-    }
+    this.serverConfig = serverConfig;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -221,7 +203,12 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    return body;
+    return getBody(serverConfig.getMaxContentLength());
+  }
+
+  @Override
+  public Promise<TypedData> getBody(int maxContentLength) {
+    return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
   }
 
   @Override
