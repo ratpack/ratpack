@@ -39,7 +39,7 @@ class GitHubApi {
   }
 
   Promise<JsonNode> milestones(Map<String, String> params) {
-    get("repos/ratpack/ratpack/milestones", params)
+      get("repos/ratpack/ratpack/milestones", params)
   }
 
   Promise<JsonNode> issues(Map<String, String> params) {

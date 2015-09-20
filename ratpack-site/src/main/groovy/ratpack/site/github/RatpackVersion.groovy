@@ -48,7 +48,7 @@ class RatpackVersion {
     for (node in nodes) {
       String title = node.get("title").asText()
 
-      if (title.startsWith(TITLE_PREFIX) && !node.get("due_on").null) {
+      if (title.startsWith(TITLE_PREFIX)) {
         def milestone = new RatpackVersion(
           title.substring(TITLE_PREFIX.length()),
           node.get("number").asInt(),
@@ -65,7 +65,7 @@ class RatpackVersion {
   }
 
   String dueString() {
-    new SimpleDateFormat("yyyy-MM-dd").format(due)
+    due ? new SimpleDateFormat("yyyy-MM-dd").format(due) : "unscheduled"
   }
 
   String getManualDownloadUrl() {
@@ -78,11 +78,20 @@ class RatpackVersion {
   }
 
   private static Date fromGithubDateString(String str) {
-    if (str == null || str.empty) {
+    if (str == null || str.empty || str == "null") {
       null
     } else {
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").parse(str)
     }
   }
 
+  @Override
+  public String toString() {
+    return "RatpackVersion{" +
+      "version='" + version + '\'' +
+      ", githubNumber=" + githubNumber +
+      ", due=" + due +
+      ", released=" + released +
+      '}';
+  }
 }
