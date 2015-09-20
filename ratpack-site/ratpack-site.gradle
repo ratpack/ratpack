@@ -18,6 +18,8 @@ import ratpack.gradle.WriteTestConfig
 import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang.SystemUtils.*
 
+version = null
+
 buildscript {
   repositories {
     jcenter()
@@ -26,6 +28,7 @@ buildscript {
     classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.3.8'
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
     classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
+    classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
   }
 }
 
@@ -177,10 +180,6 @@ task browserTest(type: Test) {
   }
 }
 
-if (isSnapCi || !isCloudCi) {
-  check.dependsOn browserTest
-}
-
 task writeTestConfig(type: WriteTestConfig) {
   dependsOn configureWriteTestConfig
   generatedTestResourcesDir = project.generatedTestResourcesDir
@@ -216,11 +215,18 @@ processResources {
   }
 }
 
-distributions.main.contents.into("newrelic") {
-  from({ configurations.newrelicAgent }) {
-    rename { "agent.jar" }
+distributions.main.contents {
+  from "src/heroku"
+  into("newrelic") {
+    from({ configurations.newrelicAgent }) {
+      rename { "agent.jar" }
+    }
+    from "src/newrelic"
   }
-  from "src/newrelic"
+}
+
+distTar {
+  compression = Compression.GZIP
 }
 
 idea {
@@ -230,15 +236,30 @@ idea {
   }
 }
 
-def deployDir = rootProject.file("deploy")
-
-task prepareDeployment(type: Sync) {
-  into deployDir
-  with distributions.main.contents
-}
-
 run {
   if (it.getClass().name.startsWith("ratpack.gradle.continuous.RatpackContinuousRun")) {
     flattenClassloaders = true
   }
+}
+
+task deployToHerokuFromSnap << {
+  def apiKey = project.ratpackHerokuApiKey
+
+  def pipelineId = System.getenv("SNAP_PIPELINE_COUNTER")
+  if (!pipelineId) {
+    throw new RuntimeException("SNAP_PIPELINE_COUNTER not set")
+  }
+
+  def heroku = new RESTClient("https://api.heroku.com/apps/ratpack-site/")
+  heroku.headers['Authorization'] = "Bearer $apiKey"
+  heroku.headers['Accept'] = 'application/vnd.heroku+json; version=3'
+
+  def url = "https://snap-ci.com/buildartifacts/green/7602/defaultPipeline/$pipelineId/Test/1/ratpack-site/build/distributions/ratpack-site.tgz"
+  logger.lifecycle("Building $url")
+  heroku.post(path: 'builds', requestContentType: 'application/json', body: [
+      source_blob: [
+        url: url,
+        version: "git rev-parse HEAD".execute().text.trim()
+      ]
+  ])
 }

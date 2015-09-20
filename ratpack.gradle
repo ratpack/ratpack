@@ -254,11 +254,6 @@ task ciZip(type: Zip) {
   destinationDir = buildDir
 }
 
-task stage {
-  dependsOn ":ratpack-site:prepareDeployment"
-  finalizedBy getTasksByName("clean", true)
-}
-
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
   dependsOn publishedModules.test
   sourceDirectories = files(publishedModules.sourceSets.main.allSource.srcDirs)
