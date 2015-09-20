@@ -250,7 +250,7 @@ task deployToHerokuFromSnap << {
     throw new RuntimeException("SNAP_PIPELINE_COUNTER not set")
   }
 
-  def heroku = new RESTClient("https://api.heroku.com/apps/ratpack-site/")
+  def heroku = new groovyx.net.http.RESTClient("https://api.heroku.com/apps/ratpack-site/")
   heroku.headers['Authorization'] = "Bearer $apiKey"
   heroku.headers['Accept'] = 'application/vnd.heroku+json; version=3'
 
