@@ -18,8 +18,6 @@ import ratpack.gradle.WriteTestConfig
 import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang.SystemUtils.*
 
-version = null
-
 buildscript {
   repositories {
     jcenter()
@@ -53,7 +51,7 @@ ext {
     "1.0.0-rc-2", "1.0.0-rc-3", "1.0.0"
   ]
 
-  if (!isHeroku) {
+  if (!isHeroku || !isCi) {
     manualVersions = [manualVersions.last()]
   }
 }
@@ -227,6 +225,7 @@ distributions.main.contents {
 
 distTar {
   compression = Compression.GZIP
+  version = null
 }
 
 idea {
