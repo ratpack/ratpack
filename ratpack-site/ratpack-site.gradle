@@ -243,6 +243,7 @@ run {
 
 task deployToHerokuFromSnap << {
   def apiKey = project.ratpackHerokuApiKey
+  def buildStepName = project.snapCiBuildStepName
 
   def pipelineId = System.getenv("SNAP_PIPELINE_COUNTER")
   if (!pipelineId) {
@@ -253,7 +254,7 @@ task deployToHerokuFromSnap << {
   heroku.headers['Authorization'] = "Bearer $apiKey"
   heroku.headers['Accept'] = 'application/vnd.heroku+json; version=3'
 
-  def url = "https://snap-ci.com/buildartifacts/green/7602/defaultPipeline/$pipelineId/Build-Site/1/ratpack-site/build/distributions/ratpack-site.tgz"
+  def url = "https://snap-ci.com/buildartifacts/green/7602/defaultPipeline/$pipelineId/Build-Site/1/ratpack-site/build/distributions/ratpack-site.tgz".toString()
   logger.lifecycle("Building $url")
   heroku.post(path: 'builds', requestContentType: 'application/json', body: [
       source_blob: [
