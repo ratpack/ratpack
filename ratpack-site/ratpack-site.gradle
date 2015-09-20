@@ -142,9 +142,12 @@ task downloadChromeDriver {
     webdriverOs = 'win32'
   }
 
-  def output = new File(buildDir, "webdriver/downloads/chromedriver.zip")
+  def output = new File(gradle.gradleUserHomeDir, "chromedriver-${version}.zip")
   outputs.file output
 
+  onlyIf {
+    !output.exists()
+  }
   doLast {
     copyURLToFile(new URL("http://chromedriver.storage.googleapis.com/${version}/chromedriver_${webdriverOs}.zip"), output)
   }
