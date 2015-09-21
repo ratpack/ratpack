@@ -33,6 +33,7 @@ public class SmartHttpContentCompressor extends HttpContentCompressor {
 
   private boolean passThrough;
 
+  @SuppressWarnings("deprecation")
   @Override
   protected void encode(ChannelHandlerContext ctx, HttpObject msg, List<Object> out) throws Exception {
     if (msg instanceof HttpResponse) {

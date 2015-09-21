@@ -216,8 +216,9 @@ public class DefaultRatpackServer implements RatpackServer {
       serverBootstrap.childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, i);
     });
     serverConfig.getMaxMessagesPerRead().ifPresent(i -> {
-      serverBootstrap.option(ChannelOption.MAX_MESSAGES_PER_READ, i);
-      serverBootstrap.childOption(ChannelOption.MAX_MESSAGES_PER_READ, i);
+      FixedRecvByteBufAllocator allocator = new FixedRecvByteBufAllocator(i);
+      serverBootstrap.option(ChannelOption.RCVBUF_ALLOCATOR, allocator);
+      serverBootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, allocator);
     });
     serverConfig.getReceiveBufferSize().ifPresent(i -> {
       serverBootstrap.option(ChannelOption.SO_RCVBUF, i);

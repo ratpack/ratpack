@@ -69,10 +69,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
     this.requestOutcomeEventController = requestOutcomeEventController;
-    this.isKeepAlive = HttpHeaderUtil.isKeepAlive(nettyRequest);
+    this.isKeepAlive = HttpUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
+  @SuppressWarnings("deprecation")
   private ChannelFuture pre(HttpResponseStatus responseStatus) {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
@@ -127,11 +128,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
-    String sizeString = responseHeaders.get(HttpHeaderConstants.CONTENT_LENGTH);
+    String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
     long size = sizeString == null ? 0 : Long.parseLong(sizeString);
     boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
-
-    responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, size);
 
     if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
       Blocking.get(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {

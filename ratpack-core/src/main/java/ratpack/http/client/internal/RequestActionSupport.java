@@ -146,7 +146,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                 final HttpResponse response = (HttpResponse) msg;
                 int maxRedirects = requestSpecBacking.getMaxRedirects();
                 int status = response.status().code();
-                String locationValue = response.headers().get(HttpHeaderConstants.LOCATION);
+                String locationValue = response.headers().getAsString(HttpHeaderConstants.LOCATION);
 
                 Action<? super RequestSpec> redirectConfigurer = RequestActionSupport.this.requestConfigurer;
                 if (isRedirect(status) && redirectCounter < maxRedirects && locationValue != null) {
@@ -216,10 +216,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         }
 
         HttpHeaders requestHeaders = request.headers();
-
-        for (String name : headers.getNames()) {
-          requestHeaders.set(name, headers.getAll(name));
-        }
+        requestHeaders.set(headers.getNettyHeaders());
 
         ChannelFuture writeFuture = connectFuture.channel().writeAndFlush(request);
         writeFuture.addListener(f2 -> {

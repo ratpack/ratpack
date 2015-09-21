@@ -215,7 +215,7 @@ class RatpackServerTestSpec extends Specification {
           .writeSpinCount(10))
         .handlers {
           it.path("connectTimeoutMillis") { it.render it.directChannelAccess.channel.config().connectTimeoutMillis.toString() }
-          it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().maxMessagesPerRead.toString() }
+          it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().recvByteBufAllocator.newHandle().guess().toString() }
           it.path("writeSpinCount") { it.render it.directChannelAccess.channel.config().writeSpinCount.toString() }
         }
     } as Action<RatpackServerSpec>)

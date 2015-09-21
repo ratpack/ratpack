@@ -37,12 +37,12 @@ public class NettyHeadersBackedHeaders implements Headers {
 
   @Override
   public String get(CharSequence name) {
-    return headers.get(name);
+    return headers.getAsString(name);
   }
 
   @Override
   public String get(String name) {
-    return headers.get(name);
+    return headers.getAsString(name);
   }
 
   @Override
@@ -66,17 +66,17 @@ public class NettyHeadersBackedHeaders implements Headers {
 
   @Override
   public List<String> getAll(String name) {
-    return headers.getAll(name);
+    return headers.getAllAsString(name);
   }
 
   @Override
   public boolean contains(String name) {
-    return headers.contains(name);
+    return headers.contains((CharSequence) name);
   }
 
   @Override
   public List<String> getAll(CharSequence name) {
-    return headers.getAll(name);
+    return headers.getAllAsString(name);
   }
 
   @Override
@@ -84,6 +84,7 @@ public class NettyHeadersBackedHeaders implements Headers {
     return headers.contains(name);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public Set<String> getNames() {
     return headers.names();
@@ -92,8 +93,8 @@ public class NettyHeadersBackedHeaders implements Headers {
   @Override
   public MultiValueMap<String, String> asMultiValueMap() {
     ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
-    for (String s : headers.names()) {
-      builder.put(s, headers.getAll(s));
+    for (String s : getNames()) {
+      builder.put(s, headers.getAllAsString(s));
     }
     return new ImmutableDelegatingMultiValueMap<>(builder.build());
   }

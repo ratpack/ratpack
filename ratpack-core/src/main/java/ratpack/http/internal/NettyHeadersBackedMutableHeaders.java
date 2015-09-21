@@ -28,27 +28,32 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
     super(headers);
   }
 
+  @SuppressWarnings("deprecation")
   public MutableHeaders add(CharSequence name, Object value) {
     headers.add(name, value);
     return this;
   }
 
+  @SuppressWarnings("deprecation")
   public MutableHeaders set(CharSequence name, Object value) {
     headers.set(name, value);
     return this;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public MutableHeaders setDate(CharSequence name, Date value) {
     headers.set(name, HttpHeaderDateFormat.get().format(value));
     return this;
   }
 
+  @SuppressWarnings("deprecation")
   public MutableHeaders set(CharSequence name, Iterable<?> values) {
     headers.set(name, values);
     return this;
   }
 
+  @SuppressWarnings("deprecation")
   public MutableHeaders remove(CharSequence name) {
     headers.remove(name);
     return this;

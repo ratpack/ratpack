@@ -27,7 +27,7 @@ import java.time.Duration
 class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
   public BufferingPublisherVerification() {
-    super(new TestEnvironment(300L))
+    super(new TestEnvironment(300L), 5000)
   }
 
   ExecHarness harness = ExecHarness.harness()

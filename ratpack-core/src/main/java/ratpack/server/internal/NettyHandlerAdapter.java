@@ -186,6 +186,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     return throwable instanceof IOException && throwable.getMessage().endsWith("Connection reset by peer");
   }
 
+  @SuppressWarnings("deprecation")
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
