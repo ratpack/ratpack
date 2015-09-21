@@ -780,5 +780,11 @@ public interface GroovyChain extends Chain {
     );
   }
 
-
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default Chain notFound() {
+    return from(Chain.super.notFound());
+  }
 }
