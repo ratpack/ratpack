@@ -870,4 +870,44 @@ public interface Chain {
   default Chain onlyIf(Predicate<? super Context> test, Class<? extends Handler> handler) {
     return all(Handlers.onlyIf(test, getRegistry().get(handler)));
   }
+
+  /**
+   * Raises a 404 {@link Context#clientError(int)}.
+   * <p>
+   * This can be used to effectively terminate processing early.
+   * This is sometimes useful when using a scoped client error handler.
+   * <pre class="java">{@code
+   * import ratpack.error.ClientErrorHandler;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(s -> s
+   *         .registryOf(r -> r
+   *             .add(ClientErrorHandler.class, (ctx, code) -> ctx.render("global"))
+   *         )
+   *         .handlers(c -> c
+   *             .prefix("api", api -> api
+   *                 .register(r -> r.add(ClientErrorHandler.class, (ctx, code) -> ctx.render("scoped")))
+   *                 .get("foo", ctx -> ctx.render("foo"))
+   *                 .notFound()
+   *             )
+   *         )
+   *     ).test(http -> {
+   *       assertEquals(http.getText("not-there"), "global");
+   *       assertEquals(http.getText("api/foo"), "foo");
+   *       assertEquals(http.getText("api/not-there"), "scoped");
+   *     });
+   *   }
+   * }
+   * }</pre>
+   *
+   * @return {@code this}
+   */
+  default Chain notFound() {
+    return all(Handlers.notFound());
+  }
+
 }
