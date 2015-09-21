@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 abstract class SubscriptionSupport<T> implements Subscription {
 
-  private final Subscriber<? super T> subscriber;
+  private Subscriber<? super T> subscriber;
 
   private final AtomicBoolean started = new AtomicBoolean();
   private final AtomicBoolean stopped = new AtomicBoolean();
@@ -100,6 +100,7 @@ abstract class SubscriptionSupport<T> implements Subscription {
   @Override
   public final void cancel() {
     stopped.set(true);
+    subscriber = null;
     doCancel();
   }
 

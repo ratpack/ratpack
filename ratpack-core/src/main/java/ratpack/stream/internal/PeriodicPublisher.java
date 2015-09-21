@@ -44,37 +44,49 @@ public class PeriodicPublisher<T> implements TransformablePublisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> s) {
-    s.onSubscribe(new Subscription() {
-      private final AtomicInteger counter = new AtomicInteger(0);
-      private final ScheduledFuture<?> future = executorService.scheduleWithFixedDelay(() -> {
-        int i = counter.getAndIncrement();
-        T value;
-        try {
-          value = producer.apply(i);
-        } catch (Exception e) {
-          cancel();
-          s.onError(e);
-          return;
-        }
+    s.onSubscribe(new PeriodicSubscription(s));
+  }
 
-        if (value == null) {
-          s.onComplete();
-          cancel();
-        } else {
-          s.onNext(value);
-        }
-      }, 0, duration.toNanos(), TimeUnit.NANOSECONDS);
+  private class PeriodicSubscription implements Subscription {
+    private final AtomicInteger counter;
+    private final ScheduledFuture<?> future;
+    private Subscriber<? super T> s;
 
-      @Override
-      public void request(long n) {
+    public PeriodicSubscription(Subscriber<? super T> subscription) {
+      this.s = subscription;
+      counter = new AtomicInteger(0);
+      future = executorService.scheduleWithFixedDelay(this::run, 0, duration.toNanos(), TimeUnit.NANOSECONDS);
+    }
 
+    private void run() {
+      int i = counter.getAndIncrement();
+      T value;
+      try {
+        value = producer.apply(i);
+      } catch (Exception e) {
+        s.onError(e);
+        cancel();
+        return;
       }
 
-      @Override
-      public void cancel() {
-        future.cancel(false);
+      if (value == null) {
+        s.onComplete();
+        cancel();
+      } else {
+        s.onNext(value);
       }
+    }
 
-    });
+    @Override
+    public void request(long n) {
+
+    }
+
+    @Override
+    public void cancel() {
+      future.cancel(false);
+      s = null;
+    }
+
   }
 }

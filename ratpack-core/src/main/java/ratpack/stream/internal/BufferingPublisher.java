@@ -84,12 +84,13 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     protected void doCancel() {
-      org.reactivestreams.Subscription subscription = upstreamSubscription.get();
+      org.reactivestreams.Subscription subscription = upstreamSubscription.getAndSet(null);
       if (subscription != null) {
         subscription.cancel();
       }
       if (bufferingSubscriber != null) {
         bufferingSubscriber.wanted.set(Long.MIN_VALUE);
+        bufferingSubscriber = null;
       }
     }
 
