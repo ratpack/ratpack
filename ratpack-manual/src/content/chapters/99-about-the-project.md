@@ -72,6 +72,7 @@ The following people have provided significant contributions.
 * [Martin Lundvall](https://github.com/lundvall)
 * [Fabian Förster](https://github.com/ffoers)
 * [Guillaume Laforge](https://github.com/glaforge)
+* [Ari Becker](https://github.com/solatic)
 
 ### Past project members
 
