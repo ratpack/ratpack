@@ -217,6 +217,29 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
+  def "can read large request body in blocking operation - #size"() {
+    def bodyLength = 1024 * 1024 * 4
+    when:
+    def string = "f" * bodyLength // 4MB
+
+    handlers {
+      all {
+        Blocking.get {
+          sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
+          Blocking.on(request.getBody(bodyLength)).text
+        } then {
+          render it
+        }
+      }
+    }
+
+    and:
+    requestSpec { it.body.type("text/plain").text(string) }
+
+    then:
+    postText() == string
+  }
+
   def "blocking processing does not start until compute processing has unwound"() {
     given:
     def events = []

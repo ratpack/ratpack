@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
+import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
-import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
@@ -51,7 +51,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final AtomicBoolean transmitted;
   private final Channel channel;
-  private final FullHttpRequest nettyRequest;
+  private final HttpRequest nettyRequest;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
   private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
@@ -62,7 +62,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
     this.transmitted = transmitted;
     this.channel = channel;
     this.nettyRequest = nettyRequest;
@@ -77,10 +77,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private ChannelFuture pre(HttpResponseStatus responseStatus) {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
-
-      if (nettyRequest.refCnt() > 0) {
-        nettyRequest.release();
-      }
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
 
