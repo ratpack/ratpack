@@ -207,7 +207,7 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public Promise<TypedData> getBody(int maxContentLength) {
+  public Promise<TypedData> getBody(long maxContentLength) {
     return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
   }
 

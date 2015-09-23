@@ -111,7 +111,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    RequestBody bodyReader = new RequestBody(ctx);
+    RequestBody bodyReader = new RequestBody(HttpUtil.getContentLength(nettyRequest, -1), ctx);
     ctx.attr(BODY_ACCUMULATOR_KEY).set(bodyReader);
 
     final Channel channel = ctx.channel();
@@ -213,7 +213,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @SuppressWarnings("deprecation")
   public static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-  @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation")
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
     response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);

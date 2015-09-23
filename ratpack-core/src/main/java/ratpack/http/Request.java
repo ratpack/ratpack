@@ -131,7 +131,7 @@ public interface Request extends MutableRegistry {
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @return the body of the request.
    */
-  Promise<TypedData> getBody(int maxContentLength);
+  Promise<TypedData> getBody(long maxContentLength);
 
   /**
    * The request headers.

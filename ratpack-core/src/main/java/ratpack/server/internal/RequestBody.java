@@ -32,16 +32,18 @@ import java.util.List;
 public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private final List<ByteBuf> byteBufs = new ArrayList<>();
+  private final long advertisedLength;
   private final ChannelHandlerContext ctx;
 
   private boolean read;
   private boolean done;
-  private int maxContentLength = -1;
+  private long maxContentLength = -1;
   private int length;
   private Downstream<? super ByteBuf> downstream;
   private ByteBuf compositeBuffer;
 
-  public RequestBody(ChannelHandlerContext ctx) {
+  public RequestBody(long advertisedLength, ChannelHandlerContext ctx) {
+    this.advertisedLength = advertisedLength;
     this.ctx = ctx;
   }
 
@@ -101,7 +103,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
-  public Promise<ByteBuf> read(int maxContentLength) {
+  public Promise<ByteBuf> read(long maxContentLength) {
     return Promise.<ByteBuf>of(downstream -> {
       if (read) {
         downstream.error(new RequestBodyAlreadyReadException());
@@ -109,7 +111,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       }
       read = true;
 
-      if (length > maxContentLength) {
+      if (advertisedLength > maxContentLength || length > maxContentLength) {
         tooLarge(downstream);
       } else if (done) {
         complete(downstream);

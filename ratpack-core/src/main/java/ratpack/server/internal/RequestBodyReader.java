@@ -21,6 +21,6 @@ import ratpack.exec.Promise;
 
 public interface RequestBodyReader {
 
-  Promise<ByteBuf> read(int maxContentLength);
+  Promise<ByteBuf> read(long maxContentLength);
 
 }
