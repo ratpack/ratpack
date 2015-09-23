@@ -246,7 +246,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
           pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
           pipeline.addLast("encoder", new HttpResponseEncoder());
-          pipeline.addLast("deflater", new SmartHttpContentCompressor());
+          pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);
         }
