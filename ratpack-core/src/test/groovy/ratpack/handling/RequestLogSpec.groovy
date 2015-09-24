@@ -16,31 +16,20 @@
 
 package ratpack.handling
 
-import groovy.io.GroovyPrintStream
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-
 class RequestLogSpec extends RatpackGroovyDslSpec {
 
   def "add request logging"() {
-    def loggerOutput = new ByteArrayOutputStream()
-    def logger = LoggerFactory.getLogger(RequestLogger)
-    def originalStream = logger.TARGET_STREAM
+    def messages = []
     def latch = new CountDownLatch(2)
-    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
-
-      @Override
-      void println(String s) {
-        super.println(s)
-        originalStream.println(s)
-        if (s.contains(RequestLogger.simpleName)) {
-          latch.countDown()
-        }
-      }
+    def logger = Mock(Logger) {
+      _ * isInfoEnabled() >> true
+      2 * info(_) >> { String m -> messages << m; latch.countDown() }
     }
 
     given:
@@ -59,9 +48,6 @@ class RequestLogSpec extends RatpackGroovyDslSpec {
     post("bar")
 
     then:
-    latch.await(5, TimeUnit.SECONDS)
-    String output = loggerOutput.toString()
-    output.contains("\"GET /foo HTTP/1.1\" 200 2")
-    output.contains("\"POST /bar HTTP/1.1\" 200 2")
+    latch.await(10, TimeUnit.SECONDS)
   }
 }

@@ -16,13 +16,14 @@
 
 package ratpack.logging;
 
+import com.google.common.reflect.TypeToken;
 import org.slf4j.MDC;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
+import ratpack.func.Action;
 import ratpack.func.Block;
-import ratpack.util.Types;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -98,38 +99,103 @@ import java.util.Map;
  *
  * @see ratpack.exec.ExecInterceptor
  */
-public class MDCInterceptor implements ExecInterceptor {
+public final class MDCInterceptor implements ExecInterceptor {
 
-  private static final MDCInterceptor INSTANCE = new MDCInterceptor();
+  private final Action<? super Execution> init;
 
-  private static class MDCMap extends LinkedHashMap<String, String> {
-
+  private static class MDCHolder {
+    static final TypeToken<MDCHolder> TYPE = TypeToken.of(MDCHolder.class);
+    Map<String, String> map = new HashMap<>();
   }
 
+  private MDCInterceptor(Action<? super Execution> init) {
+    this.init = init;
+  }
+
+  /**
+   * Creates an interceptor with no initialisation action.
+   *
+   * @return an interceptor with no initialisation action.
+   * @see #of(Action)
+   */
   public static MDCInterceptor instance() {
-    return INSTANCE;
+    return of(Action.noop());
   }
 
-  public void intercept(Execution execution, ExecType type, Block executionSegment) throws Exception {
-    MDC.clear();
+  /**
+   * Creates an interceptor with the given initialisation action.
+   * <p>
+   * The given action will be executed before the first segment of each execution,
+   * allowing the MDC to be primed with initial values.
+   * <p>
+   * The following demonstrates priming the MDC with the {@link ratpack.handling.RequestId}.
+   *
+   * <pre class="java">{@code
+   * import org.slf4j.MDC;
+   * import ratpack.handling.RequestId;
+   * import ratpack.logging.MDCInterceptor;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(s -> s
+   *         .registryOf(r -> r
+   *             .add(MDCInterceptor.of(e ->
+   *                 e.maybeGet(RequestId.class).ifPresent(requestId ->
+   *                     MDC.put("requestId", requestId.toString())
+   *                 )
+   *             ))
+   *         )
+   *         .handlers(c -> c
+   *             .get(ctx -> ctx.render(MDC.get("requestId")))
+   *         )
+   *     ).test(http ->
+   *         // The default request ID generator generates UUIDs (i.e. 36 chars long)
+   *         assertEquals(http.getText().length(), 36)
+   *     );
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If no initialisation is required, use {@link #instance()}.
+   *
+   * @param init the initialisation action
+   * @return an {@link MDCInterceptor}
+   * @since 1.1.0
+   */
+  public static MDCInterceptor of(Action<? super Execution> init) {
+    return new MDCInterceptor(init);
+  }
 
-    MDCMap map = execution.maybeGet(MDCMap.class).orElse(null);
-    if (map == null) {
-      map = new MDCMap();
-      execution.add(map);
+  /**
+   *
+   * @param execution the execution that this segment belongs to
+   * @param execType indicates whether this segment is execution on a compute or blocking thread
+   * @param executionSegment the execution segment that is to be executed
+   * @throws Exception any
+   */
+  public void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception {
+    MDCHolder holder = execution.maybeGet(MDCHolder.TYPE).orElse(null);
+    if (holder == null) {
+      MDC.clear();
+      holder = new MDCHolder();
+      init.execute(execution);
+      execution.add(MDCHolder.TYPE, holder);
     } else {
-      MDC.setContextMap(map);
+      if (holder.map == null) {
+        MDC.clear();
+      } else {
+        MDC.setContextMap(holder.map);
+      }
     }
 
     try {
       executionSegment.execute();
     } finally {
-      map.clear();
-      Map<String, String> ctxMap = Types.cast(MDC.getCopyOfContextMap());
-      if (ctxMap != null && ctxMap.size() > 0) {
-        map.putAll(ctxMap);
-        MDC.clear();
-      }
+      holder.map = MDC.getCopyOfContextMap();
+      MDC.clear();
     }
   }
 }

@@ -16,20 +16,16 @@
 
 package ratpack.pac4j.cookiesession
 
-import groovy.io.GroovyPrintStream
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.FormClient
 import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.http.profile.UsernameProfileCreator
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import ratpack.handling.RequestId
 import ratpack.handling.RequestLogger
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
@@ -130,18 +126,8 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
   }
 
   def "log user id in request log"() {
-    def loggerOutput = new ByteArrayOutputStream()
-    def logger = LoggerFactory.getLogger("requests")
-    def originalStream = logger.TARGET_STREAM
-    def latch = new CountDownLatch(1)
-    logger.TARGET_STREAM = new GroovyPrintStream(loggerOutput) {
-
-      @Override
-      void println(String s) {
-        super.println(s)
-        originalStream.println(s)
-        latch.countDown()
-      }
+    def logger = Mock(Logger) {
+      isInfoEnabled() >> true
     }
 
     given:
@@ -194,8 +180,6 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     resp4.statusCode == OK.code()
 
     then: 'the request is logged with the user id'
-    latch.await(5, TimeUnit.SECONDS)
-    String output = loggerOutput.toString()
-    output ==~ /(?s).*INFO requests - 127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/
+    1 * logger.info({ it ==~ /(?s).*127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/ })
   }
 }
