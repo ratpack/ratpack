@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.Duration;
+import java.util.Optional;
 
 class RequestSpecBacking {
 
@@ -143,7 +144,7 @@ class RequestSpecBacking {
 
     @Override
     public RequestSpec connectTimeout(Duration duration) {
-      requestParams.connectTimeout = duration;
+      requestParams.connectTimeout = Optional.of(duration);
       return this;
     }
 

@@ -300,7 +300,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     handlers {
       get { HttpClient httpClient ->
         httpClient.get("http://$nonRoutableIp".toURI()) {
-          it.connectTimeout(Duration.ofMillis(1))
+          it.connectTimeout(Duration.ofMillis(20))
         } onError {
           render it.class.name
         } then {
