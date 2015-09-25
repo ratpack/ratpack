@@ -302,7 +302,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
         httpClient.get("http://$nonRoutableIp".toURI()) {
           it.connectTimeout(Duration.ofMillis(20))
         } onError {
-          render it.class.name
+          render "error"
         } then {
           render "success"
         }
@@ -310,7 +310,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     }
 
     then:
-    text == ConnectTimeoutException.name
+    text == "error"
   }
 
   def "can set read timeout"() {
