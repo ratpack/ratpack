@@ -117,6 +117,12 @@ public interface RequestSpec {
 
   URI getUrl();
 
+  default RequestSpec connectTimeoutSeconds(int seconds) {
+    return connectTimeout(Duration.of(seconds, SECONDS));
+  }
+
+  RequestSpec connectTimeout(Duration duration);
+
   default RequestSpec readTimeoutSeconds(int seconds) {
     return readTimeout(Duration.of(seconds, SECONDS));
   }

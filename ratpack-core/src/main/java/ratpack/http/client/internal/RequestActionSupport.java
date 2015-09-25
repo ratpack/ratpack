@@ -102,6 +102,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
   public void connect(final Downstream<? super T> downstream) throws Exception {
     final Bootstrap b = new Bootstrap();
     b.group(this.execution.getEventLoop())
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) requestParams.connectTimeout.toMillis())
       .channel(ChannelImplDetector.getSocketChannelImpl())
       .handler(new ChannelInitializer<SocketChannel>() {
         @Override

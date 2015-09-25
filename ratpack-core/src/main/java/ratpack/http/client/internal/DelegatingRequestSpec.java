@@ -98,6 +98,12 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  public RequestSpec connectTimeout(Duration duration) {
+    delegate.connectTimeout(duration);
+    return null;
+  }
+
+  @Override
   public RequestSpec readTimeout(Duration duration) {
     delegate.readTimeout(duration);
     return this;
