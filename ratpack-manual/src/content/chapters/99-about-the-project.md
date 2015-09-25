@@ -73,6 +73,7 @@ The following people have provided significant contributions.
 * [Fabian Förster](https://github.com/ffoers)
 * [Guillaume Laforge](https://github.com/glaforge)
 * [Ari Becker](https://github.com/solatic)
+* [James Lee](https://github.com/brucenunk)
 
 ### Past project members
 
