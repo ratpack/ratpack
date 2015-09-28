@@ -103,6 +103,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     final Bootstrap b = new Bootstrap();
     b.group(this.execution.getEventLoop())
       .channel(ChannelImplDetector.getSocketChannelImpl())
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) requestParams.connectTimeout.toMillis())
       .handler(new ChannelInitializer<SocketChannel>() {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
@@ -199,8 +200,6 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
           error(downstream, cause);
         }
       });
-
-    requestParams.connectTimeout.ifPresent(connectTimeout -> b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) connectTimeout.toMillis()));
 
     ChannelFuture connectFuture = b.connect(host, port);
     connectFuture.addListener(f1 -> {

@@ -17,11 +17,10 @@
 package ratpack.http.client.internal;
 
 import java.time.Duration;
-import java.util.Optional;
 
 class RequestParams {
 
-  Optional<Duration> connectTimeout = Optional.empty();
+  Duration connectTimeout = Duration.ofSeconds(30);
   long readTimeoutNanos = Duration.ofSeconds(30).toNanos();
 
 }
