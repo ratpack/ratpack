@@ -417,6 +417,7 @@ public interface GroovyChain extends Chain {
    * @param path the relative path to match on
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
+   * @since 1.1.0
    */
   default GroovyChain options(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     return options(path, groovyHandler(handler));
@@ -430,6 +431,7 @@ public interface GroovyChain extends Chain {
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
+   * @since 1.1.0
    */
   default GroovyChain options(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     return path(groovyHandler(handler));

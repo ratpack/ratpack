@@ -609,6 +609,7 @@ public interface Chain {
    * @param path the relative path to match on
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.1.0
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
@@ -619,6 +620,9 @@ public interface Chain {
     return all(Handlers.path(path, Handlers.chain(Handlers.options(), handler)));
   }
 
+  /**
+   * @since 1.1.0
+   */
   default Chain options(String path, Class<? extends Handler> handler) {
     return options(path, getRegistry().get(handler));
   }
@@ -629,6 +633,7 @@ public interface Chain {
    *
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.1.0
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
@@ -638,6 +643,9 @@ public interface Chain {
     return options("", handler);
   }
 
+  /**
+   * @since 1.1.0
+   */
   default Chain options(Class<? extends Handler> handler) {
     return options(getRegistry().get(handler));
   }
