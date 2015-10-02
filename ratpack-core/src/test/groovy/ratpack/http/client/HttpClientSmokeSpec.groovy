@@ -17,6 +17,7 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
+import io.netty.channel.ConnectTimeoutException
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
@@ -289,6 +290,27 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     response.statusCode == 500
+  }
+
+  def "can set connect timeout"() {
+    setup:
+    def nonRoutableIp = '192.168.0.0'
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get("http://$nonRoutableIp".toURI()) {
+          it.connectTimeout(Duration.ofMillis(20))
+        } onError {
+          render it.class.name
+        } then {
+          render "success"
+        }
+      }
+    }
+
+    then:
+    text == ConnectTimeoutException.name
   }
 
   def "can set read timeout"() {

@@ -142,6 +142,12 @@ class RequestSpecBacking {
     }
 
     @Override
+    public RequestSpec connectTimeout(Duration duration) {
+      requestParams.connectTimeout = duration;
+      return this;
+    }
+
+    @Override
     public RequestSpec readTimeout(Duration duration) {
       requestParams.readTimeoutNanos = duration.toNanos();
       return this;

@@ -20,6 +20,7 @@ import java.time.Duration;
 
 class RequestParams {
 
+  Duration connectTimeout = Duration.ofSeconds(30);
   long readTimeoutNanos = Duration.ofSeconds(30).toNanos();
 
 }
