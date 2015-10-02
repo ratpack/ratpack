@@ -117,10 +117,29 @@ public interface RequestSpec {
 
   URI getUrl();
 
+  /**
+   * Sets the socket connection timeout to the given value in seconds.
+   * <p>
+   * This value defaults to 30 seconds.
+   *
+   * @since 1.1.0
+   * @param seconds the socket connection timeout in seconds
+   * @see #connectTimeout(Duration)
+   * @return {@code this}
+   */
   default RequestSpec connectTimeoutSeconds(int seconds) {
     return connectTimeout(Duration.of(seconds, SECONDS));
   }
 
+  /**
+   * Sets the socket connection timeout.
+   * <p>
+   * This value defaults to 30 seconds.
+   *
+   * @since 1.1.0
+   * @param duration the socket connection timeout
+   * @return {@code this}
+   */
   RequestSpec connectTimeout(Duration duration);
 
   default RequestSpec readTimeoutSeconds(int seconds) {
