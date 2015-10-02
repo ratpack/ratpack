@@ -913,6 +913,7 @@ public interface Chain {
    * }</pre>
    *
    * @return {@code this}
+   * @since 1.1.0
    */
   default Chain notFound() {
     return all(Handlers.notFound());
