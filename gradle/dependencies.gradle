@@ -67,6 +67,6 @@ ext {
     jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
     h2: "com.h2database:h2:1.4.186",
-    compass: "rubygems:compass:1.0.3"
+    compass: ["rubygems:compass:1.0.3", "rubygems:chunky_png:1.2.9"]
   ]
 }
