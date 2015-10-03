@@ -34,7 +34,7 @@ import static ratpack.stream.Streams.publish
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
-@Timeout(5)
+@Timeout(30)
 class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   def "can send and receive websockets"() {
