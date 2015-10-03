@@ -18,6 +18,7 @@ package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
@@ -49,18 +50,19 @@ public class DefaultExecution implements Execution {
 
   // The “stream” must be a concurrent safe collection because stream events can arrive from other threads
   // All other collections do not need to be concurrent safe because they are only accessed on the event loop
-  StreamHandle streamHandle;
+  private StreamHandle streamHandle;
 
   private final ExecControllerInternal controller;
   private final EventLoop eventLoop;
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
-  private final List<AutoCloseable> closeables = Lists.newArrayListWithCapacity(0);
+
+  private List<AutoCloseable> closeables;
 
   private final MutableRegistry registry = new SimpleMutableRegistry();
 
-  private final List<ExecInterceptor> adhocInterceptors = Lists.newArrayListWithCapacity(0);
-  private final Iterable<? extends ExecInterceptor> interceptors;
+  private List<ExecInterceptor> adhocInterceptors;
+  private Iterable<? extends ExecInterceptor> interceptors;
 
   private boolean done;
 
@@ -89,8 +91,7 @@ public class DefaultExecution implements Execution {
 
     this.interceptors = Iterables.concat(
       controller.getInterceptors(),
-      ImmutableList.copyOf(registry.getAll(ExecInterceptor.class)),
-      adhocInterceptors
+      ImmutableList.copyOf(registry.getAll(ExecInterceptor.class))
     );
 
     for (ExecInitializer initializer : controller.getInitializers()) {
@@ -320,8 +321,7 @@ public class DefaultExecution implements Execution {
   }
 
   private void intercept(ExecInterceptor.ExecType execType, Block segment) throws Exception {
-    Iterator<? extends ExecInterceptor> iterator = getAllInterceptors().iterator();
-    intercept(execType, iterator, segment);
+    intercept(execType, interceptors.iterator(), segment);
   }
 
   public Iterable<? extends ExecInterceptor> getAllInterceptors() {
@@ -336,11 +336,13 @@ public class DefaultExecution implements Execution {
       LOGGER.warn("exception raised during onComplete action", e);
     }
 
-    for (AutoCloseable closeable : closeables) {
-      try {
-        closeable.close();
-      } catch (Throwable e) {
-        LOGGER.warn(String.format("exception raised by closeable %s", closeable), e);
+    if (closeables != null) {
+      for (AutoCloseable closeable : closeables) {
+        try {
+          closeable.close();
+        } catch (Throwable e) {
+          LOGGER.warn("exception raised by execution closeable " + closeable, e);
+        }
       }
     }
   }
@@ -369,6 +371,9 @@ public class DefaultExecution implements Execution {
 
   @Override
   public void onComplete(AutoCloseable closeable) {
+    if (closeables == null) {
+      closeables = Lists.newArrayList();
+    }
     closeables.add(closeable);
   }
 
@@ -380,8 +385,12 @@ public class DefaultExecution implements Execution {
 
   @Override
   public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
+    if (adhocInterceptors == null) {
+      adhocInterceptors = Lists.newArrayList();
+      interceptors = Iterables.concat(interceptors, adhocInterceptors);
+    }
     adhocInterceptors.add(execInterceptor);
-    intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor).iterator(), continuation);
+    intercept(ExecInterceptor.ExecType.COMPUTE, Iterators.forArray(execInterceptor), continuation);
   }
 
   @Override
