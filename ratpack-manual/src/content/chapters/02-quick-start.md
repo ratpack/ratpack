@@ -13,6 +13,7 @@ Create the file `ratpack.groovy` with the following content:
  
 ```language-groovy hello-world-grab
 @Grab('io.ratpack:ratpack-groovy:@ratpack-version@')
+@Grab('org.slf4j:slf4j-simple:@slf4j-version@')
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
