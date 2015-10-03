@@ -17,7 +17,6 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -29,7 +28,6 @@ import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.ChannelImplDetector;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,7 +38,6 @@ import static ratpack.func.Action.noop;
 public class DefaultExecController implements ExecControllerInternal {
 
   private static final Action<Throwable> LOG_UNCAUGHT = t -> DefaultExecution.LOGGER.error("Uncaught execution exception", t);
-  private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
@@ -140,16 +137,7 @@ public class DefaultExecController implements ExecControllerInternal {
 
       @Override
       public ExecStarter onError(Action<? super Throwable> onError) {
-        List<Throwable> seen = Lists.newArrayListWithCapacity(0);
-        this.onError = t -> {
-          if (seen.size() < MAX_ERRORS_THRESHOLD) {
-            seen.add(t);
-            onError.execute(t);
-          } else {
-            seen.forEach(t::addSuppressed);
-            DefaultExecution.LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
-          }
-        };
+        this.onError = onError;
         return this;
       }
 

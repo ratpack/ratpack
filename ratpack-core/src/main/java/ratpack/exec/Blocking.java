@@ -62,12 +62,16 @@ public abstract class Blocking {
                 try {
                   DefaultExecution.THREAD_BINDING.set(execution);
                   execution.intercept(ExecInterceptor.ExecType.BLOCKING, execution.getAllInterceptors().iterator(), () -> {
-                    T value = factory.create();
-                    result = Result.success(value);
+                    try {
+                      result = Result.success(factory.create());
+                    } catch (Throwable e) {
+                      result = Result.error(e);
+                    }
                   });
                   return result;
                 } catch (Throwable e) {
-                  return Result.<T>error(e);
+                  DefaultExecution.interceptorError(e);
+                  return result;
                 } finally {
                   DefaultExecution.THREAD_BINDING.remove();
                 }

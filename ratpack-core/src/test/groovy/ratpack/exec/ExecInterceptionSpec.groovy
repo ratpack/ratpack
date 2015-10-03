@@ -164,4 +164,30 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     ]
   }
 
+  def "execution interceptors wrap error handler"() {
+    when:
+    boolean on = false
+    bindings {
+      bindInstance(ExecInterceptor, { Execution e, ExecInterceptor.ExecType type, Block segment ->
+        on = true
+        try {
+          segment.execute()
+        } finally {
+          on = false
+        }
+      } as ExecInterceptor)
+      bindInstance(ServerErrorHandler, { ctx, e ->
+        ctx.render(Boolean.toString(on))
+      } as ServerErrorHandler)
+    }
+    handlers {
+      all {
+        throw new Exception("!")
+      }
+    }
+
+    then:
+    text == "true"
+  }
+
 }

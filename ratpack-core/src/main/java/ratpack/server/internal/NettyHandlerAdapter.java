@@ -161,16 +161,19 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
           .append("No response sent for ")
           .append(request.getMethod().getName())
           .append(" request to ")
-          .append(request.getUri())
-          .append(" (last handler: ");
+          .append(request.getUri());
 
-        if (lastHandler instanceof DescribingHandler) {
-          ((DescribingHandler) lastHandler).describeTo(description);
-        } else {
-          DescribingHandlers.describeTo(lastHandler, description);
+        if (lastHandler != null) {
+          description.append(" (last handler: ");
+
+          if (lastHandler instanceof DescribingHandler) {
+            ((DescribingHandler) lastHandler).describeTo(description);
+          } else {
+            DescribingHandlers.describeTo(lastHandler, description);
+          }
+          description.append(")");
         }
 
-        description.append(")");
         String message = description.toString();
         LOGGER.warn(message);
 

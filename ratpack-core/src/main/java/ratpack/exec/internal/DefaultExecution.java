@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 
 public class DefaultExecution implements Execution {
 
-  final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
+  public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
   public final static ThreadLocal<DefaultExecution> THREAD_BINDING = new ThreadLocal<>();
 
@@ -287,7 +287,7 @@ public class DefaultExecution implements Execution {
         if (segment == null) {
           streamHandle.stream.remove();
           if (streamHandle.stream.isEmpty()) {
-            if (streamHandle.getClass().equals(InitialStreamHandle.class)) {
+            if (streamHandle.getClass() == InitialStreamHandle.class) {
               done();
               return;
             } else {
@@ -299,18 +299,7 @@ public class DefaultExecution implements Execution {
             try {
               intercept(ExecInterceptor.ExecType.COMPUTE, segment);
             } catch (final Throwable e) {
-              Deque<Block> event = streamHandle.stream.element();
-              event.clear();
-              event.addFirst(() -> {
-                try {
-                  onError.execute(e);
-                } catch (final Throwable errorHandlerException) {
-                  //noinspection RedundantCast
-                  streamHandle.stream.element().addFirst((UserCode) () -> {
-                    throw errorHandlerException;
-                  });
-                }
-              });
+              interceptorError(e);
             }
           } else {
             try {
@@ -324,6 +313,10 @@ public class DefaultExecution implements Execution {
     } finally {
       THREAD_BINDING.remove();
     }
+  }
+
+  public static void interceptorError(Throwable e) {
+    LOGGER.warn("exception was thrown by an execution interceptor (which will be ignored):", e);
   }
 
   private void intercept(ExecInterceptor.ExecType execType, Block segment) throws Exception {
@@ -356,7 +349,16 @@ public class DefaultExecution implements Execution {
     if (interceptors.hasNext()) {
       interceptors.next().intercept(this, execType, () -> intercept(execType, interceptors, action));
     } else {
-      action.execute();
+      try {
+        action.execute();
+      } catch (Throwable segmentError) {
+        streamHandle = new InitialStreamHandle();
+        try {
+          onError.execute(segmentError);
+        } catch (Throwable errorHandlerError) {
+          LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
+        }
+      }
     }
   }
 

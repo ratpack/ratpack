@@ -123,7 +123,7 @@ class ExecutionSpec extends Specification {
     })
 
     then:
-    events == ["e1", "e2", "complete"]
+    events == ["e1", "complete"]
   }
 
   def "execution can queue promises"() {
