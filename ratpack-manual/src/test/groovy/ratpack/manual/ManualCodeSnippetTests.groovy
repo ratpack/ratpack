@@ -39,7 +39,7 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy hello-world-grab": new HelloWorldAppSnippetExecuter(new GroovySnippetExecuter(true, new GroovyScriptRatpackDslFixture() {
       @Override
       String transform(String text) {
-        return text.readLines()[1..-1].join("\n")
+        return text.readLines()[4..-1].join("\n")
       }
     }))
   ]
