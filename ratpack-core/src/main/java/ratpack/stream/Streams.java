@@ -86,6 +86,24 @@ public class Streams {
   }
 
   /**
+   * Converts a {@link Promise} for an iterable into a publishable.
+   * <p>
+   * Upon subscription the promise will be consumed and the promised iterable will be emitted
+   * to the subscriber one element at a time.
+   * <p>
+   * Any exception thrown by the the promise will be forwarded to the subscriber.
+   *
+   * @param promise the promise
+   * @param <T> the element type of the promised iterable
+   * @param <I> the type of iterable
+   * @return a publisher for each element of the promised iterable
+   * @since 1.1.0
+   */
+  public static <T, I extends Iterable<T>> TransformablePublisher<T> publish(Promise<I> promise) {
+    return new IterablePromisePublisher<>(promise);
+  }
+
+  /**
    * Creates a new publisher, backed by the given data producing function.
    * <p>
    * As subscribers request data of the returned stream, the given function is invoked.

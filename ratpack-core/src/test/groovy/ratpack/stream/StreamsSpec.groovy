@@ -636,4 +636,11 @@ class StreamsSpec extends Specification {
     then:
     s.received == [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
   }
+
+  def "can stream a promised iterable"() {
+    expect:
+    harness.yield {
+      Promise.value(["a", "b", "c", "d"]).publish().map{it.toUpperCase()}.toList()
+    }.value == ["A", "B", "C", "D"]
+  }
 }
