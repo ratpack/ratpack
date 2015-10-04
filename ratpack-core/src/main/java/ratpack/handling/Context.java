@@ -302,8 +302,10 @@ public interface Context extends Registry {
    * <ul>
    * <li>{@link java.nio.file.Path}</li>
    * <li>{@link java.lang.CharSequence}</li>
+   * <li>{@link ratpack.jackson.JsonRender} (Typically created via {@link ratpack.jackson.Jackson#json(Object)})</li>
    * <li>{@link Promise} (renders the promised value, using this {@code render()} method)</li>
    * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(Publisher)} and renders it)</li>
+   * <li>{@link ratpack.render.Renderable} (Delegates to the {@link ratpack.render.Renderable#render(Context)} method of the object)</li>
    * </ul>
    * <p>
    * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
