@@ -17,9 +17,9 @@
 package ratpack.exec;
 
 import ratpack.exec.internal.CachingUpstream;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
-import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.*;
 
 import java.util.Objects;
@@ -715,17 +715,11 @@ public interface Promise<T> {
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
     return transform(up -> down ->
-        DefaultExecution.require().streamSubscribe(stream -> {
-          try {
-            releaser.execute((Runnable) () -> {
-                stream.event(() -> up.connect(down));
-                stream.complete();
-              }
-            );
-          } catch (Throwable t) {
-            down.error(t);
-          }
-        })
+        Promise.of(innerDown ->
+            releaser.execute((Runnable) () -> innerDown.success(true))
+        ).then(v ->
+            up.connect(down)
+        )
     );
   }
 

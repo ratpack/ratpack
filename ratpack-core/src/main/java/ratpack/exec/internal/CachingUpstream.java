@@ -27,34 +27,22 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private Upstream<? extends T> upstream;
   private final AtomicBoolean fired = new AtomicBoolean();
-  private final Queue<Job> waiting = new ConcurrentLinkedQueue<>();
+  private final Queue<Downstream<? super ExecResult<? extends T>>> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
-  private final AtomicReference<ExecResult<T>> result = new AtomicReference<>();
+  private final AtomicReference<ExecResult<? extends T>> result = new AtomicReference<>();
 
   public CachingUpstream(Upstream<? extends T> upstream) {
     this.upstream = upstream;
   }
 
-  private class Job {
-    final Downstream<? super T> downstream;
-    final DefaultExecution.StreamHandle streamHandle;
-
-    private Job(Downstream<? super T> downstream, DefaultExecution.StreamHandle streamHandle) {
-      this.downstream = downstream;
-      this.streamHandle = streamHandle;
-    }
-  }
-
   private void tryDrain() {
     if (draining.compareAndSet(false, true)) {
       try {
-        ExecResult<T> result = this.result.get();
-
-        Job job = waiting.poll();
-        while (job != null) {
-          Job finalJob = job;
-          job.streamHandle.complete(() -> finalJob.downstream.accept(result));
-          job = waiting.poll();
+        ExecResult<? extends T> result = this.result.get();
+        Downstream<? super ExecResult<? extends T>> downstream = waiting.poll();
+        while (downstream != null) {
+          downstream.success(result);
+          downstream = waiting.poll();
         }
       } finally {
         draining.set(false);
@@ -91,12 +79,15 @@ public class CachingUpstream<T> implements Upstream<T> {
         }
       });
     } else {
-      DefaultExecution.require().streamSubscribe((streamHandle) -> {
-        waiting.add(new Job(downstream, streamHandle));
-        if (result.get() != null) {
-          tryDrain();
+      Promise.<ExecResult<? extends T>>of(innerDownstream -> {
+        ExecResult<? extends T> result = this.result.get();
+        if (result == null) {
+          waiting.add(innerDownstream);
+        } else {
+          innerDownstream.success(result);
         }
-      });
+      }).then(result -> downstream.accept(result));
+
     }
   }
 

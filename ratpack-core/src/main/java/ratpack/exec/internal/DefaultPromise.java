@@ -74,8 +74,8 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   private void throwError(Throwable throwable) {
-    DefaultExecution.require().streamSubscribe(h ->
-        h.complete(() -> {
+    DefaultExecution.require().delimit(h ->
+        h.resume(() -> {
           throw Exceptions.toException(throwable);
         })
     );

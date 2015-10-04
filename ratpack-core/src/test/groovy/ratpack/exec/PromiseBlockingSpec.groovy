@@ -26,9 +26,7 @@ class PromiseBlockingSpec extends Specification {
 
   private <T> Promise<T> async(Result<T> t) {
     Promise.of { f ->
-      Thread.start {
         f.accept(t)
-      }
     }
   }
 

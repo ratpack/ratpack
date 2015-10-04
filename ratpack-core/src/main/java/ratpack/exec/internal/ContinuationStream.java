@@ -14,36 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.exec
+package ratpack.exec.internal;
 
-import ratpack.test.exec.ExecHarness
-import spock.lang.Specification
+import ratpack.func.Block;
 
-class PromiseSpec extends Specification {
+public interface ContinuationStream {
 
-  def exec = ExecHarness.harness()
+  void complete(Block rest);
 
-  def "simple promise"() {
-    expect:
-    exec.run {
-      Promise.of {
-        it.success(1)
-      }.then {
-        assert it == 1
-      }
-    }
-  }
+  void event(Block event);
 
-  def "cannot subscribe to promise when blocking"() {
-    when:
-    exec.yield {
-      Blocking.get {
-        Promise.value(1).then { it }
-      }
-    }.valueOrThrow
-
-    then:
-    def e = thrown ExecutionException
-    e.message.startsWith("Promise.then() can only be called on a compute thread")
-  }
 }

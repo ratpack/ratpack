@@ -16,6 +16,7 @@
 
 package ratpack.exec.internal;
 
+import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 
@@ -47,14 +48,10 @@ public class DefaultThrottle implements Throttle {
         up.connect(down);
       } else {
         active.decrementAndGet();
-        DefaultExecution.require().streamSubscribe((streamHandle) -> {
-          queue.add(() -> {
-              streamHandle.event(() -> up.connect(down));
-              streamHandle.complete();
-            }
-          );
+        Promise.<Downstream<? super T>>of(innerDown -> {
+          queue.add(() -> innerDown.success(down));
           drain();
-        });
+        }).then(up::connect);
       }
     }).wiretap(r -> {
       active.decrementAndGet();

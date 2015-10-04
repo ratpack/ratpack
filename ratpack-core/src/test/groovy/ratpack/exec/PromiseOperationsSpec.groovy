@@ -243,7 +243,7 @@ class PromiseOperationsSpec extends Specification {
 
   def "deferred promise can use promises even when promises are queued"() {
     when:
-    def runner = new BlockingVariable<Runnable>()
+    def runner = new BlockingVariable<Runnable>(200)
     execHarness.controller.fork().onComplete { latch.countDown() }.start {
       Promise.value("foo").defer { runner.set(it) }.then {
         Promise.of { it.success("foo") }.then {

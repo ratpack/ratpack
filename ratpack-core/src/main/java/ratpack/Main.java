@@ -14,36 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.exec
+package ratpack;
 
-import ratpack.test.exec.ExecHarness
-import spock.lang.Specification
+import ratpack.server.RatpackServer;
 
-class PromiseSpec extends Specification {
-
-  def exec = ExecHarness.harness()
-
-  def "simple promise"() {
-    expect:
-    exec.run {
-      Promise.of {
-        it.success(1)
-      }.then {
-        assert it == 1
-      }
-    }
-  }
-
-  def "cannot subscribe to promise when blocking"() {
-    when:
-    exec.yield {
-      Blocking.get {
-        Promise.value(1).then { it }
-      }
-    }.valueOrThrow
-
-    then:
-    def e = thrown ExecutionException
-    e.message.startsWith("Promise.then() can only be called on a compute thread")
+public class Main {
+  public static void main(String[] args) throws Exception {
+    RatpackServer.start(s -> s
+        .serverConfig(c -> c.development(false))
+        .handlers(c -> c
+            .get(":foo/:bar", ctx ->
+                ctx.render("ok")
+            )
+        )
+    );
   }
 }
