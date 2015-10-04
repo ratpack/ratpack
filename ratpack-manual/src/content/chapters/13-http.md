@@ -248,7 +248,10 @@ public class Example {
 }
 ```
 
-TODO introduce Jackson module and methods to help render arbitrary types to json
+### Sending JSON
+
+Support for rendering arbitrary objects as JSON is based on Jackson.
+See [`Jackson rendering`](api/ratpack/jackson/Jackson.html#rendering) for examples.
 
 ### Sending files
 
