@@ -40,6 +40,11 @@ public interface MediaType {
   /**
    * {@value}.
    */
+  String JSON_SUFFIX = "+json";
+
+  /**
+   * {@value}.
+   */
   String APPLICATION_FORM = "application/x-www-form-urlencoded";
 
   /**
@@ -95,9 +100,9 @@ public interface MediaType {
   boolean isText();
 
   /**
-   * True if this type equals {@value #APPLICATION_JSON}.
+   * True if this type equals {@value #APPLICATION_JSON}, or ends with {@value #JSON_SUFFIX}.
    *
-   * @return True if this type equals {@value #APPLICATION_JSON}.
+   * @return if this represents a JSON like type
    */
   boolean isJson();
 

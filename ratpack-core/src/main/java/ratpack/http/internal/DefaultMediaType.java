@@ -109,7 +109,7 @@ public class DefaultMediaType implements MediaType {
   }
 
   public boolean isJson() {
-    return getType() != null && getType().equals(APPLICATION_JSON);
+    return getType() != null && (getType().equals(APPLICATION_JSON) || getType().endsWith(JSON_SUFFIX));
   }
 
   public boolean isForm() {

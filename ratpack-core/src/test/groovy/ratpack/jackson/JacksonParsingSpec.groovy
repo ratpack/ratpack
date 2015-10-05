@@ -136,4 +136,43 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     postText() == "[java.lang.Integer]"
   }
 
+  def "can parse custom type with +json suffix as json node"() {
+    when:
+    handlers {
+      post {
+        def node = parse Jackson.jsonNode()
+        node.then {
+          response.send it.get("value").toString()
+        }
+      }
+    }
+
+    and:
+    requestSpec {
+      it.body.text('{"value": 3}').type("application/vnd.foo+json")
+    }
+
+    then:
+    postText() == "3"
+  }
+
+  def "can parse custom type with +json suffix as object"() {
+    when:
+    handlers {
+      post {
+        parse Map then {
+          response.send it.value.toString()
+        }
+      }
+    }
+
+    and:
+    requestSpec {
+      it.body.text('{"value": 3}').type("application/vnd.foo+json")
+    }
+
+    then:
+    postText() == "3"
+  }
+
 }
