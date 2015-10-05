@@ -35,4 +35,9 @@ public class DefaultJsonParseOpts implements JsonParseOpts {
   public Optional<ObjectMapper> getObjectMapper() {
     return objectMapper;
   }
+
+  @Override
+  public String toString() {
+    return "JsonParseOpts{objectMapper=" + objectMapper.orElse(null) + '}';
+  }
 }

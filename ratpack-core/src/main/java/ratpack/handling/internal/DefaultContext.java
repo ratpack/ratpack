@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
@@ -293,24 +294,28 @@ public class DefaultContext implements Context {
 
   @Override
   public <T, O> T parse(TypedData body, Parse<T, O> parse) throws Exception {
-    Function<Parser<?>, T> parserPredicate = parse.getOpts().isPresent()
-      ?
-      parser -> {
+    Function<Parser<?>, T> parserPredicate;
+    List<Parser<?>> parsers = Lists.newArrayList();
+    if (parse.getOpts().isPresent()) {
+      parserPredicate = parser -> {
         if (parser.getOptsType().isInstance(parse.getOpts().get())) {
+          parsers.add(parser);
           Parser<O> cast = Types.cast(parser);
           return cast.parse(DefaultContext.this, body, parse);
         }
         return null;
-      }
-      :
-      parser -> {
+      };
+    } else {
+      parserPredicate = parser -> {
+        parsers.add(parser);
         Parser<O> cast = Types.cast(parser);
         return cast.parse(DefaultContext.this, body, parse);
       };
+    }
 
     return joinedRegistry
       .first(PARSER_TYPE_TOKEN, parserPredicate)
-      .orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts().orElse(null), body.getContentType().getType()));
+      .orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts().orElse(null), body.getContentType().getType(), parsers));
   }
 
   @Override

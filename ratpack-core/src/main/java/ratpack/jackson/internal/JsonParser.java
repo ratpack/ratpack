@@ -57,4 +57,8 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
     return objectMapper.getTypeFactory().constructType(type.getType());
   }
 
+  @Override
+  public String toString() {
+    return getClass().getName() + " (parses 'application/json' and types ending in '+json')";
+  }
 }
