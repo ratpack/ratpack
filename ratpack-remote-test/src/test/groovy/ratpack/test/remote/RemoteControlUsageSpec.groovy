@@ -17,6 +17,9 @@
 package ratpack.test.remote
 
 import io.remotecontrol.client.UnserializableResultStrategy
+import ratpack.exec.Blocking
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
@@ -100,6 +103,16 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
     then:
     remoteControl.uses(support).exec { support.call() } == 1
+  }
+
+  def "is in blocking thread"() {
+    expect:
+    remoteControl.exec { Execution.isComputeThread() } == false
+  }
+
+  def "can block on promises"() {
+    expect:
+    remoteControl.exec { Blocking.on(Promise.of { f -> Thread.start { f.success(1) } }) } == 1
   }
 
 }

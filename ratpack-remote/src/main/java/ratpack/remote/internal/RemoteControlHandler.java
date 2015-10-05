@@ -79,16 +79,16 @@ public class RemoteControlHandler implements Handler {
       });
 
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      context.getRequest().getBody().then(body -> {
-        receiver.execute(body.getInputStream(), outputStream);
+      context.getRequest().getBody()
+        .blockingOp(body -> receiver.execute(body.getInputStream(), outputStream))
+        .then(body -> {
+          if (registryBuilder.size() > 0) {
+            Registry newRegistry = registryBuilder.build();
+            registryReference.set(newRegistry);
+          }
 
-        if (registryBuilder.size() > 0) {
-          Registry newRegistry = registryBuilder.build();
-          registryReference.set(newRegistry);
-        }
-
-        context.getResponse().send(ContentType.RESULT.getValue(), outputStream.toByteArray());
-      });
+          context.getResponse().send(ContentType.RESULT.getValue(), outputStream.toByteArray());
+        });
     }
   }
 
