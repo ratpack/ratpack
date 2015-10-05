@@ -48,26 +48,15 @@ public class DefaultExecHarness implements ExecHarness {
 
     controller.fork()
       .register(registry)
-      .onError(throwable -> {
-        reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current()));
-        latch.countDown();
-      })
-      .onComplete(exec -> {
-        if (latch.getCount() > 0) {
-          reference.set(new CompleteExecResult<>(exec));
-          latch.countDown();
-        }
-      })
+      .onError(throwable -> reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current())))
+      .onComplete(exec -> latch.countDown())
       .start(execution -> {
+        reference.set(new CompleteExecResult<>(execution));
         Promise<T> promise = func.apply(execution);
         if (promise == null) {
           reference.set(null);
-          latch.countDown();
         } else {
-          promise.then(t -> {
-            reference.set(new ResultBackedExecResult<>(Result.success(t), execution));
-            latch.countDown();
-          });
+          promise.then(t -> reference.set(new ResultBackedExecResult<>(Result.success(t), execution)));
         }
       });
     latch.await();

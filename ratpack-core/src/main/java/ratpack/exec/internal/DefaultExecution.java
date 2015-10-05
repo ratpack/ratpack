@@ -222,6 +222,24 @@ public class DefaultExecution implements Execution {
     } finally {
       THREAD_BINDING.remove();
     }
+
+    if (execStream == TerminalExecStream.INSTANCE) {
+      try {
+        onComplete.execute(this);
+      } catch (Throwable e) {
+        LOGGER.warn("exception raised during onComplete action", e);
+      }
+
+      if (closeables != null) {
+        for (AutoCloseable closeable : closeables) {
+          try {
+            closeable.close();
+          } catch (Throwable e) {
+            LOGGER.warn("exception raised by execution closeable " + closeable, e);
+          }
+        }
+      }
+    }
   }
 
   public static void interceptorError(Throwable e) {
@@ -230,24 +248,6 @@ public class DefaultExecution implements Execution {
 
   public Iterable<? extends ExecInterceptor> getAllInterceptors() {
     return interceptors;
-  }
-
-  private void done() {
-    try {
-      onComplete.execute(this);
-    } catch (Throwable e) {
-      LOGGER.warn("exception raised during onComplete action", e);
-    }
-
-    if (closeables != null) {
-      for (AutoCloseable closeable : closeables) {
-        try {
-          closeable.close();
-        } catch (Throwable e) {
-          LOGGER.warn("exception raised by execution closeable " + closeable, e);
-        }
-      }
-    }
   }
 
   private void intercept(final Iterator<? extends ExecInterceptor> interceptors) throws Exception {
@@ -272,7 +272,6 @@ public class DefaultExecution implements Execution {
       } catch (Throwable errorHandlerError) {
         LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
         execStream = TerminalExecStream.INSTANCE;
-        done();
       }
     }
   }
@@ -361,13 +360,11 @@ public class DefaultExecution implements Execution {
       if (initial == null) {
         if (segments == null) {
           execStream = TerminalExecStream.INSTANCE;
-          done();
           return false;
         } else {
           Block segment = segments.poll();
           if (segment == null) {
             execStream = TerminalExecStream.INSTANCE;
-            done();
             return false;
           } else {
             segment.execute();
