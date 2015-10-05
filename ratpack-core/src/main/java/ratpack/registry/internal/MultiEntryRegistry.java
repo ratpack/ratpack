@@ -40,7 +40,7 @@ public class MultiEntryRegistry implements Registry {
 
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
     for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
+      if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
         return Optional.of(cast);
       }
@@ -67,7 +67,7 @@ public class MultiEntryRegistry implements Registry {
 
             while (delegate.hasNext()) {
               RegistryEntry<?> entry = delegate.next();
-              if (type.isAssignableFrom(entry.getType())) {
+              if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
                 @SuppressWarnings("unchecked") O cast = (O) entry.get();
                 next = cast;
                 return true;
@@ -96,7 +96,7 @@ public class MultiEntryRegistry implements Registry {
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
     for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
+      if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
         RegistryEntry<? extends T> cast = Types.cast(entry);
         O result = function.apply(cast.get());
         if (result != null) {

@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
@@ -94,7 +93,7 @@ public class DefaultContext implements Context {
     private final EventRegistry<RequestOutcome> onCloseRegistry;
     private Execution execution;
 
-    private final Deque<ChainIndex> indexes = Lists.newLinkedList();
+    private final Deque<ChainIndex> indexes = new ArrayDeque<>();
 
     public Response response;
     public Context context;
@@ -134,7 +133,7 @@ public class DefaultContext implements Context {
   }
 
   private final RequestConstants requestConstants;
-  private final Registry joinedRegistry;
+  private Registry joinedRegistry;
 
   public static void start(EventLoop eventLoop, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     PathBinding initialPathBinding = new RootPathBinding(requestConstants.request.getPath());
@@ -158,17 +157,29 @@ public class DefaultContext implements Context {
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
       .start(e -> {
         requestConstants.execution = e;
+        context.joinedRegistry = new ContextRegistry(context).join(requestConstants.execution);
         context.next();
       });
   }
 
+  private static class ContextRegistry implements DelegatingRegistry {
+    private final DefaultContext context;
+
+    public ContextRegistry(DefaultContext context) {
+      this.context = context;
+    }
+
+    @Override
+    public Registry getDelegate() {
+      return context.getCurrentRegistry();
+    }
+  }
 
   public DefaultContext(RequestConstants requestConstants) {
     this.requestConstants = requestConstants;
-    this.joinedRegistry = ((DelegatingRegistry) DefaultContext.this::getContextRegistry).join(requestConstants.request);
   }
 
-  private Registry getContextRegistry() {
+  private Registry getCurrentRegistry() {
     return requestConstants.indexes.peek().registry;
   }
 
@@ -203,7 +214,7 @@ public class DefaultContext implements Context {
       if (index.hasNext()) {
         handler = index.next();
         if (handler.getClass().equals(ChainHandler.class)) {
-          requestConstants.indexes.push(new ChainIndex(((ChainHandler) handler).getHandlers(), getContextRegistry(), false));
+          requestConstants.indexes.push(new ChainIndex(((ChainHandler) handler).getHandlers(), getCurrentRegistry(), false));
           index = requestConstants.indexes.peek();
           handler = null;
         }
@@ -229,7 +240,7 @@ public class DefaultContext implements Context {
 
   @Override
   public void next(Registry registry) {
-    requestConstants.indexes.peek().registry = getContextRegistry().join(registry);
+    requestConstants.indexes.peek().registry = getCurrentRegistry().join(registry);
     next();
   }
 
@@ -238,7 +249,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.push(new ChainIndex(handlers, getContextRegistry(), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getCurrentRegistry(), false));
     next();
   }
 
@@ -247,7 +258,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.push(new ChainIndex(handlers, getContextRegistry().join(registry), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getCurrentRegistry().join(registry), false));
     next();
   }
 

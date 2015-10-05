@@ -19,6 +19,7 @@ package ratpack.path.internal;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
@@ -40,6 +41,8 @@ public class PathHandler implements Handler {
         );
       }
     });
+
+  private static final TypeToken<PathBinding> PATH_BINDING_TYPE_TOKEN = TypeToken.of(PathBinding.class);
 
   private static class CacheKey {
     private final PathBinder pathBinder;
@@ -84,7 +87,7 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Context context) throws ExecutionException {
-    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.get(PathBinding.class)));
+    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.get(PATH_BINDING_TYPE_TOKEN)));
     if (registry.isPresent()) {
       context.insert(registry.get(), handler);
     } else {
