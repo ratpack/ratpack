@@ -27,11 +27,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MulticastPublisher<T> implements TransformablePublisher<T> {
 
   private final ConcurrentLinkedDeque<Subscriber<? super T>> bufferedSubscribers = new ConcurrentLinkedDeque<>();
-  private final Publisher<T> upstreamPublisher;
+  private final Publisher<? extends T> upstreamPublisher;
   private final AtomicBoolean requestedUpstream;
   private final AtomicBoolean upstreamFinished;
 
-  public MulticastPublisher(Publisher<T> publisher) {
+  public MulticastPublisher(Publisher<? extends T> publisher) {
     this.upstreamPublisher = publisher;
     this.requestedUpstream = new AtomicBoolean();
     this.upstreamFinished = new AtomicBoolean();

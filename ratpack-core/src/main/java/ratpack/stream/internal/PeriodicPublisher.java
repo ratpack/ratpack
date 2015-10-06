@@ -33,10 +33,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PeriodicPublisher<T> implements TransformablePublisher<T> {
   private final ScheduledExecutorService executorService;
-  private final Function<Integer, T> producer;
+  private final Function<? super Integer, ? extends T> producer;
   private final Duration duration;
 
-  public PeriodicPublisher(ScheduledExecutorService executorService, Function<Integer, T> producer, Duration duration) {
+  public PeriodicPublisher(ScheduledExecutorService executorService, Function<? super Integer, ? extends T> producer, Duration duration) {
     this.executorService = executorService;
     this.producer = producer;
     this.duration = duration;

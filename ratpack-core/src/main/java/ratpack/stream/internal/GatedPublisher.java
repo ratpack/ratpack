@@ -27,10 +27,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class GatedPublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<T> upstream;
+  private final Publisher<? extends T> upstream;
   private final Action<? super Runnable> releaseReceiver;
 
-  public GatedPublisher(Publisher<T> upstream, Action<? super Runnable> releaseReceiver) {
+  public GatedPublisher(Publisher<? extends T> upstream, Action<? super Runnable> releaseReceiver) {
     this.upstream = upstream;
     this.releaseReceiver = releaseReceiver;
   }

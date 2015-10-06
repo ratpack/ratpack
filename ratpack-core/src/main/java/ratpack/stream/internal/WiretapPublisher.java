@@ -29,11 +29,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class WiretapPublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<T> publisher;
+  private final Publisher<? extends T> publisher;
   private final Action<? super StreamEvent<? super T>> listener;
   private final AtomicInteger counter = new AtomicInteger();
 
-  public WiretapPublisher(Publisher<T> publisher, Action<? super StreamEvent<? super T>> listener) {
+  public WiretapPublisher(Publisher<? extends T> publisher, Action<? super StreamEvent<? super T>> listener) {
     this.publisher = publisher;
     this.listener = listener;
   }

@@ -27,9 +27,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<T> publisher;
+  private final Publisher<? extends T> publisher;
 
-  public BufferingPublisher(Publisher<T> publisher) {
+  public BufferingPublisher(Publisher<? extends T> publisher) {
     this.publisher = publisher;
   }
 

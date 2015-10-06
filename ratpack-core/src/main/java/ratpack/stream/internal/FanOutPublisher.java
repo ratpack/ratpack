@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FanOutPublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<? extends Iterable<T>> upstream;
+  private final Publisher<? extends Iterable<? extends T>> upstream;
 
-  public FanOutPublisher(Publisher<? extends Iterable<T>> upstream) {
+  public FanOutPublisher(Publisher<? extends Iterable<? extends T>> upstream) {
     this.upstream = upstream;
   }
 
@@ -36,7 +36,7 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> downstream) {
-    upstream.subscribe(new Subscriber<Iterable<T>>() {
+    upstream.subscribe(new Subscriber<Iterable<? extends T>>() {
 
       private final AtomicBoolean done = new AtomicBoolean();
 
@@ -57,8 +57,8 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
       }
 
       @Override
-      public void onNext(Iterable<T> iterable) {
-        Iterator<T> iterator = iterable.iterator();
+      public void onNext(Iterable<? extends T> iterable) {
+        Iterator<? extends T> iterator = iterable.iterator();
         while (iterator.hasNext() && !done.get()) {
           downstream.onNext(iterator.next());
         }

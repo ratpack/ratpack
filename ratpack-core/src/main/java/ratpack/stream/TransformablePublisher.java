@@ -169,7 +169,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    * @param <O> the type of transformed item
    * @return a publisher that respects back pressure for each of its subscribers
    */
-  default <O> TransformablePublisher<O> transform(java.util.function.Function<? super TransformablePublisher<T>, ? extends Publisher<O>> transformer) {
+  default <O> TransformablePublisher<O> transform(java.util.function.Function<? super TransformablePublisher<? extends T>, ? extends Publisher<O>> transformer) {
     return Streams.transformable(transformer.apply(this));
   }
 
@@ -180,7 +180,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    * @param <O> the type of transformed item
    * @return the transformed publisher
    */
-  default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<T>> function) {
+  default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<? super T>> function) {
     return Streams.streamMap(this, function);
   }
 
@@ -190,7 +190,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    * @param filter the filter
    * @return the filtered publisher
    */
-  default TransformablePublisher<T> filter(Predicate<T> filter) {
+  default TransformablePublisher<T> filter(Predicate<? super T> filter) {
     return Streams.filter(this, filter);
   }
 

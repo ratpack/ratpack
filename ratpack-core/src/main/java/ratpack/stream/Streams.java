@@ -95,11 +95,10 @@ public class Streams {
    *
    * @param promise the promise
    * @param <T> the element type of the promised iterable
-   * @param <I> the type of iterable
    * @return a publisher for each element of the promised iterable
    * @since 1.1.0
    */
-  public static <T, I extends Iterable<T>> TransformablePublisher<T> publish(Promise<I> promise) {
+  public static <T> TransformablePublisher<T> publish(Promise<? extends Iterable<T>> promise) {
     return new IterablePromisePublisher<>(promise);
   }
 
@@ -142,7 +141,7 @@ public class Streams {
    * @see #flatYield
    * @return a publisher backed by the given producer
    */
-  public static <T> TransformablePublisher<T> yield(Function<? super YieldRequest, T> producer) {
+  public static <T> TransformablePublisher<T> yield(Function<? super YieldRequest, ? extends T> producer) {
     return new YieldingPublisher<>(producer);
   }
 
@@ -187,7 +186,7 @@ public class Streams {
    * @see #yield
    * @return a publisher backed by the given producer
    */
-  public static <T> TransformablePublisher<T> flatYield(Function<? super YieldRequest, ? extends Promise<? extends T>> producer) {
+  public static <T> TransformablePublisher<T> flatYield(Function<? super YieldRequest, ? extends Promise<T>> producer) {
     return new FlatYieldingPublisher<>(producer);
   }
 
@@ -254,7 +253,7 @@ public class Streams {
    * @param <T> the type of item emitted
    * @return the input stream filtered
    */
-  public static <T> TransformablePublisher<T> filter(Publisher<T> input, Predicate<T> filter) {
+  public static <T> TransformablePublisher<T> filter(Publisher<T> input, Predicate<? super T> filter) {
     return streamMap(input, out -> new WriteStream<T>() {
       @Override
       public void item(T item) {
@@ -334,11 +333,11 @@ public class Streams {
    *
    * @param input the stream to map
    * @param mapper the mapping function
-   * @param <I> the type of item received
+   * @param <T> the type of item received
    * @param <O> the type of item produced
    * @return the input stream transformed
    */
-  public static <I, O> TransformablePublisher<O> streamMap(Publisher<I> input, Function<? super WriteStream<O>, ? extends WriteStream<I>> mapper) {
+  public static <T, O> TransformablePublisher<O> streamMap(Publisher<T> input, Function<? super WriteStream<O>, ? extends WriteStream<? super T>> mapper) {
     /*
        Implementation note: we need a smarter buffering strategy here.
 
@@ -433,11 +432,11 @@ public class Streams {
    * @param <T> the type of item
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
-  public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, Duration duration, Function<Integer, T> producer) {
+  public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, Duration duration, Function<? super Integer, ? extends T> producer) {
     return new PeriodicPublisher<>(executorService, producer, duration).buffer();
   }
 
-  public static <T> TransformablePublisher<T> periodically(Registry registry, Duration duration, Function<Integer, T> producer) {
+  public static <T> TransformablePublisher<T> periodically(Registry registry, Duration duration, Function<? super Integer, ? extends T> producer) {
     return new PeriodicPublisher<>(registry.get(ExecController.class).getExecutor(), producer, duration).buffer();
   }
 
@@ -491,7 +490,7 @@ public class Streams {
    * @param <T> the type of item emitted
    * @return a publisher that splits collection items into new items per collection element
    */
-  public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<T>> publisher) {
+  public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<? extends T>> publisher) {
     return new FanOutPublisher<>(publisher).buffer();
   }
 

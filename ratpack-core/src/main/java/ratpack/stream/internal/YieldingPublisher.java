@@ -26,10 +26,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class YieldingPublisher<T> implements TransformablePublisher<T> {
 
-  private final Function<? super YieldRequest, T> producer;
+  private final Function<? super YieldRequest, ? extends T> producer;
   private final AtomicLong subscriptionCounter = new AtomicLong();
 
-  public YieldingPublisher(Function<? super YieldRequest, T> producer) {
+  public YieldingPublisher(Function<? super YieldRequest, ? extends T> producer) {
     this.producer = producer;
   }
 

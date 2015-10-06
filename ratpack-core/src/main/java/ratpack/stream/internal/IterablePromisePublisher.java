@@ -21,11 +21,11 @@ import ratpack.exec.Promise;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 
-public class IterablePromisePublisher<T, I extends Iterable<T>> implements TransformablePublisher<T> {
+public class IterablePromisePublisher<T> implements TransformablePublisher<T> {
 
-  private final Promise<I> promise;
+  private final Promise<? extends Iterable<? extends T>> promise;
 
-  public IterablePromisePublisher(Promise<I> promise) {
+  public IterablePromisePublisher(Promise<? extends Iterable<? extends T>> promise) {
     this.promise = promise;
   }
 

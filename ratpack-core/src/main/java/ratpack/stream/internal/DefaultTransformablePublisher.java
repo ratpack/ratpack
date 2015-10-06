@@ -22,9 +22,9 @@ import ratpack.stream.TransformablePublisher;
 
 public class DefaultTransformablePublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<T> delegate;
+  private final Publisher<? extends T> delegate;
 
-  public DefaultTransformablePublisher(Publisher<T> delegate) {
+  public DefaultTransformablePublisher(Publisher<? extends T> delegate) {
     this.delegate = delegate;
   }
 

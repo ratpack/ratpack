@@ -23,22 +23,22 @@ import java.util.Iterator;
 
 public class IterablePublisher<T> implements TransformablePublisher<T> {
 
-  private final Iterable<T> iterable;
+  private final Iterable<? extends T> iterable;
 
-  public IterablePublisher(Iterable<T> iterable) {
+  public IterablePublisher(Iterable<? extends T> iterable) {
     this.iterable = iterable;
   }
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    final Iterator<T> iterator = iterable.iterator();
+    final Iterator<? extends T> iterator = iterable.iterator();
     new Subscription(subscriber, iterator);
   }
 
   private class Subscription extends SubscriptionSupport<T> {
-    private final Iterator<T> iterator;
+    private final Iterator<? extends T> iterator;
 
-    public Subscription(Subscriber<? super T> subscriber, Iterator<T> iterator) {
+    public Subscription(Subscriber<? super T> subscriber, Iterator<? extends T> iterator) {
       super(subscriber);
       this.iterator = iterator;
       start();
