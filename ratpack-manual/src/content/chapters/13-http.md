@@ -14,7 +14,7 @@ the [URI](api/ratpack/http/Request.html#getUri--) and a key/value model of the [
 
 ## Reading the request
 
-The body of the request is available via [`Response.getBody()`](api/ratpack/http/Request.html#getBody--).
+The body of the request is available via [`Request.getBody()`](api/ratpack/http/Request.html#getBody--).
 Alternatively, you can use the parser mechanism to turn the request body into an object representation.
 The context object provides the [`parse()`](api/ratpack/handling/Context.html#parse-ratpack.parse.Parse-) method (and some variants).
 
