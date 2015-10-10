@@ -137,15 +137,17 @@ subprojects {
     }
   }
 
-  tasks.withType(JavaCompile) {
-    options.compilerArgs = ["-proc:none"]
-  }
-  tasks.withType(GroovyCompile) {
-    groovyOptions.forkOptions.memoryMaximumSize = "512m"
-    allprojects {
-      mustRunAfter tasks.withType(CodeNarc)
+  if (project.path != ":ratpack-benchmark") {
+    tasks.withType(JavaCompile) {
+      options.compilerArgs = ["-proc:none"]
     }
-    options.compilerArgs = ["-proc:none"]
+    tasks.withType(GroovyCompile) {
+      groovyOptions.forkOptions.memoryMaximumSize = "512m"
+      allprojects {
+        mustRunAfter tasks.withType(CodeNarc)
+      }
+      options.compilerArgs = ["-proc:none"]
+    }
   }
 
   apply from: "$rootDir/gradle/ratpackLocal.gradle"
