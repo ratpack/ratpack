@@ -23,9 +23,9 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.3.8'
+    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.6.0'
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
-    classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
+    classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.0'
     classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
   }
 }
@@ -93,8 +93,8 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.5.0'
-  providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.3.0'
+  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.6.0'
+  providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.0'
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"
   runtime "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
