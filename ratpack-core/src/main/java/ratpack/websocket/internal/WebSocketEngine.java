@@ -102,9 +102,19 @@ public class WebSocketEngine {
           }
         });
 
-        context.getDirectChannelAccess().takeOwnership(msg -> {
+        final DirectChannelAccess directAccessChannel = context.getDirectChannelAccess();
+        final Channel channel = directAccessChannel.getChannel();
+
+        channel.closeFuture().addListener(fu -> {
+            try {
+              handler.onClose(new DefaultWebSocketClose<>(true, openResult));
+            } catch (Exception e) {
+              throw uncheck(e);
+            }
+          });
+
+        directAccessChannel.takeOwnership(msg -> {
           openLatch.await();
-          Channel channel = context.getDirectChannelAccess().getChannel();
           if (channel.isOpen()) {
             if (msg instanceof WebSocketFrame) {
               WebSocketFrame frame = (WebSocketFrame) msg;
