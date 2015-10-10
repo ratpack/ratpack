@@ -326,8 +326,24 @@ public interface Registry {
    * @param <T> the public type of the entry
    * @return a new single entry registry
    * @see RegistryBuilder#addLazy(Class, Supplier)
+   * @deprecated use {@link #singleLazy(Class, Supplier)}
    */
+  @Deprecated
   static <T> Registry single(Class<T> publicType, Supplier<? extends T> supplier) {
+    return builder().addLazy(publicType, supplier).build();
+  }
+
+  /**
+   * Creates a single lazily created entry registry, using {@link RegistryBuilder#addLazy(Class, Supplier)}.
+   *
+   * @param publicType the public type of the entry
+   * @param supplier the supplier for the object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#addLazy(Class, Supplier)
+   * @since 1.1.0
+   */
+  static <T> Registry singleLazy(Class<T> publicType, Supplier<? extends T> supplier) {
     return builder().addLazy(publicType, supplier).build();
   }
 

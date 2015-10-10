@@ -77,7 +77,32 @@ public class RatpackPac4j {
   }
 
   /**
-   * The authenticator handler implements authentication.
+   * Creates a handler that implements authentication when the request path matches, and makes a Pac4j {@link Clients} available to downstream handlers otherwise.
+   * <p>
+   * This methods performs the same function as {@link #authenticator(String, ClientsProvider)},
+   * but is more convenient to use when the {@link Client} instances do not depend on the request environment.
+   *
+   * @param path the path to bind the authenticator to (relative to the current request path binding)
+   * @param clients the supported authentication clients
+   * @return a handler
+   */
+  public static Handler authenticator(String path, Client<?, ?>... clients) {
+    ImmutableList<Client<?, ?>> clientList = ImmutableList.copyOf(clients);
+    return authenticator(path, ctx -> clientList);
+  }
+
+  /**
+   * Provides the set of Pac4j {@link Client clients}.
+   *
+   * @see #authenticator(String, ClientsProvider)
+   * @since 1.1.0
+   */
+  public interface ClientsProvider {
+    Iterable<? extends Client<?, ?>> get(Context ctx);
+  }
+
+  /**
+   * Creates a handler that implements authentication when the request path matches, and makes a Pac4j {@link Clients} available to downstream handlers otherwise.
    * <p>
    * This handler <b>MUST</b> be <b>BEFORE</b> any code in the handler pipeline that tries to identify the user, such as a {@link #requireAuth} handler in the pipeline.
    * It should be added to the handler chain via the {@link Chain#all(Handler)}.
@@ -93,11 +118,11 @@ public class RatpackPac4j {
    * The {@link Clients} instance will be retrieved downstream by any {@link #requireAuth(Class)} handler (or use of {@link #login(Context, Class)}.
    *
    * @param path the path to bind the authenticator to (relative to the current request path binding)
-   * @param clients the supported authentication clients
+   * @param clientsProvider the provider of authentication clients
    * @return a handler
    */
-  public static Handler authenticator(String path, Client<?, ?>... clients) {
-    return new Pac4jAuthenticator(path, ImmutableList.copyOf(clients));
+  public static Handler authenticator(String path, ClientsProvider clientsProvider) {
+    return new Pac4jAuthenticator(path, clientsProvider);
   }
 
   /**

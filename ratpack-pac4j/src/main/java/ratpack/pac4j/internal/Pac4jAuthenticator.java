@@ -36,33 +36,28 @@ import ratpack.util.Types;
 import java.util.List;
 import java.util.Optional;
 
+import static ratpack.util.Exceptions.uncheck;
+
 public class Pac4jAuthenticator implements Handler {
 
   private final String path;
-  private final ImmutableList<Client<?, ?>> clients;
+  private final RatpackPac4j.ClientsProvider clientsProvider;
 
-  public Pac4jAuthenticator(String path, List<Client<?, ?>> clients) {
+  public Pac4jAuthenticator(String path, RatpackPac4j.ClientsProvider clientsProvider) {
     this.path = path;
-    this.clients = ImmutableList.copyOf(clients);
+    this.clientsProvider = clientsProvider;
   }
 
   @Override
   public void handle(Context ctx) throws Exception {
     PathBinding pathBinding = ctx.get(PathBinding.class);
-    String boundTo = pathBinding.getBoundTo();
     String pastBinding = pathBinding.getPastBinding();
-    PublicAddress publicAddress = ctx.get(PublicAddress.class);
-    String absoluteCallbackUrl = publicAddress.get(ctx) + boundTo + "/" + path;
-
-    @SuppressWarnings("rawtypes")
-    List<Client> cast = Types.cast(this.clients);
-    Clients clients = new Clients(absoluteCallbackUrl, cast);
 
     if (pastBinding.equals(path)) {
-
       RatpackPac4j.webContext(ctx).map(Types::<RatpackWebContext>cast).then(webContext -> {
         SessionData sessionData = webContext.getSession();
         try {
+          Clients clients = createClients(ctx, pathBinding);
           Client<?, ?> client = clients.findClient(webContext);
           UserProfile profile = getProfile(webContext, client);
           if (profile != null) {
@@ -80,9 +75,25 @@ public class Pac4jAuthenticator implements Handler {
         }
       });
     } else {
-      Registry registry = Registry.single(Clients.class, clients);
+      Registry registry = Registry.singleLazy(Clients.class, () -> uncheck(() -> createClients(ctx, pathBinding)));
       ctx.next(registry);
     }
+  }
+
+  public Clients createClients(Context ctx, PathBinding pathBinding) throws Exception {
+    String boundTo = pathBinding.getBoundTo();
+    PublicAddress publicAddress = ctx.get(PublicAddress.class);
+    String absoluteCallbackUrl = publicAddress.get(ctx) + boundTo + "/" + path;
+
+    Iterable<? extends Client<?, ?>> result = clientsProvider.get(ctx);
+    List<Client<?, ?>> cast;
+    if (result instanceof List) {
+      cast = Types.cast(result);
+    } else {
+      cast = ImmutableList.copyOf(result);
+    }
+
+    return new Clients(absoluteCallbackUrl, (Client) cast);
   }
 
   private <C extends Credentials, U extends UserProfile> UserProfile getProfile(WebContext webContext, Client<C, U> client) throws RequiresHttpAction {
