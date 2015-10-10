@@ -253,7 +253,6 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
   }
 
   def "onClose method is called when socket is closed abruptly"() {
-
     setup:
     def closed = new BlockingVariable<Boolean>(2)
     def connected = new BlockingVariable<Boolean>(2)
@@ -261,14 +260,12 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get {
-        context.websocket({
+        context.websocket {
           ws = it
           connected.set(true)
-        } as Function) connect {
-          // connected.set(true)
-          it.onClose {
-            closed.set(true)
-          }
+          null
+        } connect {
+          it.onClose { closed.set(true) }
         }
       }
     }
@@ -280,13 +277,13 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    connected.get() == true
+    connected.get()
 
     when:
     client.connection.eot()
 
     then:
-    closed.get() == true
+    closed.get()
   }
 
 }
