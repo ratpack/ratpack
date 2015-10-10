@@ -222,24 +222,6 @@ public class DefaultExecution implements Execution {
     } finally {
       THREAD_BINDING.remove();
     }
-
-    if (execStream == TerminalExecStream.INSTANCE) {
-      try {
-        onComplete.execute(this);
-      } catch (Throwable e) {
-        LOGGER.warn("exception raised during onComplete action", e);
-      }
-
-      if (closeables != null) {
-        for (AutoCloseable closeable : closeables) {
-          try {
-            closeable.close();
-          } catch (Throwable e) {
-            LOGGER.warn("exception raised by execution closeable " + closeable, e);
-          }
-        }
-      }
-    }
   }
 
   public static void interceptorError(Throwable e) {
@@ -268,10 +250,31 @@ public class DefaultExecution implements Execution {
       execStream = new InitialExecStream();
       try {
         onError.execute(segmentError);
-        exec();
+        boolean didExec = execStream.exec();
+        while (didExec) {
+          didExec = execStream.exec();
+        }
       } catch (Throwable errorHandlerError) {
         LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
         execStream = TerminalExecStream.INSTANCE;
+      }
+    }
+
+    if (execStream == TerminalExecStream.INSTANCE) {
+      try {
+        onComplete.execute(this);
+      } catch (Throwable e) {
+        LOGGER.warn("exception raised during onComplete action", e);
+      }
+
+      if (closeables != null) {
+        for (AutoCloseable closeable : closeables) {
+          try {
+            closeable.close();
+          } catch (Throwable e) {
+            LOGGER.warn("exception raised by execution closeable " + closeable, e);
+          }
+        }
       }
     }
   }
