@@ -86,14 +86,16 @@ public class Pac4jAuthenticator implements Handler {
     String absoluteCallbackUrl = publicAddress.get(ctx) + boundTo + "/" + path;
 
     Iterable<? extends Client<?, ?>> result = clientsProvider.get(ctx);
-    List<Client<?, ?>> cast;
+
+    @SuppressWarnings("rawtypes")
+    List<Client> clients;
     if (result instanceof List) {
-      cast = Types.cast(result);
+      clients = Types.cast(result);
     } else {
-      cast = ImmutableList.copyOf(result);
+      clients = ImmutableList.copyOf(result);
     }
 
-    return new Clients(absoluteCallbackUrl, (Client) cast);
+    return new Clients(absoluteCallbackUrl, clients);
   }
 
   private <C extends Credentials, U extends UserProfile> UserProfile getProfile(WebContext webContext, Client<C, U> client) throws RequiresHttpAction {
