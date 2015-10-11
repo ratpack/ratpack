@@ -74,6 +74,7 @@ The following people have provided significant contributions.
 * [Guillaume Laforge](https://github.com/glaforge)
 * [Ari Becker](https://github.com/solatic)
 * [James Lee](https://github.com/brucenunk)
+* [Bob wen](https://github.com/bobwenx)
 
 ### Past project members
 
