@@ -19,6 +19,9 @@ package ratpack.exec
 import ratpack.func.Block
 import ratpack.test.exec.ExecHarness
 import spock.lang.Specification
+import spock.lang.Timeout
+
+import java.util.concurrent.CountDownLatch
 
 class PromiseBlockingSpec extends Specification {
 
@@ -113,9 +116,11 @@ class PromiseBlockingSpec extends Specification {
     e.message.startsWith("Blocking.on() can only be used while blocking")
   }
 
+  @Timeout(10)
   def "can intercept when using block"() {
     when:
     def events = []
+    def latch = new CountDownLatch(4)
     def interceptor = new ExecInterceptor() {
       @Override
       void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) throws Exception {
@@ -124,6 +129,7 @@ class PromiseBlockingSpec extends Specification {
           executionSegment.execute()
         } finally {
           events << "$execType-stop"
+          latch.countDown()
         }
       }
     }
@@ -135,6 +141,7 @@ class PromiseBlockingSpec extends Specification {
     }).valueOrThrow
 
     then:
+    latch.await()
     events == [
       "COMPUTE-start",
       "COMPUTE-stop",
