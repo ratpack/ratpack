@@ -169,11 +169,12 @@ public interface Promise<T> {
   <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer);
 
   /**
-   * Specifies the action to take if the an error occurs trying to produce the promised value.
+   * Specifies the action to take if the an error occurs trying to produce the promised value, that the given predicate applies to.
    * <p>
    * If the given action throws an exception, the original exception will be rethrown with the exception thrown
    * by the action added to the suppressed exceptions list.
    *
+   * @param predicate the predicate to test against the error
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
    * @since 1.1.0
@@ -236,6 +237,7 @@ public interface Promise<T> {
    *
    * @param errorType the type of exception to handle with the given action
    * @param errorHandler the action to take if an error occurs
+   * @param <E> the type of exception to handle with the given action
    * @return A promise for the successful result
    * @since 1.1.0
    */
