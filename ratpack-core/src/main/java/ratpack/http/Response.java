@@ -46,6 +46,9 @@ public interface Response {
 
   /**
    * Adds a cookie to the response with a 0 max-age, forcing the client to expire it.
+   * <p>
+   * If the cookie that you want to expire has an explicit path, you must use {@link Cookie#setPath(String)} on the return
+   * value of this method to have the cookie expire.
    *
    * @param name The name of the cookie to expire.
    * @return The created cookie

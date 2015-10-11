@@ -88,6 +88,44 @@ class CookiesSpec extends RatpackGroovyDslSpec {
 
   }
 
+  def "can get and set cookies with path"() {
+    given:
+    handlers {
+      get("get/:name") {
+        response.send request.oneCookie(pathTokens.name) ?: "null"
+      }
+
+      get("set/:name/:value/:path") {
+        response.cookie(pathTokens.name, pathTokens.value).path = "/get/$pathTokens.path"
+        response.send()
+      }
+
+      get("clear/:name/:path") {
+        response.expireCookie(pathTokens.name).path = "/get/$pathTokens.path"
+        response.send()
+      }
+    }
+
+    when:
+    getText("set/a/1/b")
+
+    then:
+    getText("get/a") == "null"
+
+    when:
+    getText("set/a/1/a")
+
+    then:
+    getText("get/a") == "1"
+
+    when:
+    get("clear/a/a")
+
+    then:
+    getText("get/a") == "null"
+  }
+
+
   class CookieHandler implements Handler {
     @Override
     void handle(Context context) throws Exception {
