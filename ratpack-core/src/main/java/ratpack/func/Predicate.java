@@ -17,6 +17,7 @@
 package ratpack.func;
 
 import ratpack.util.Exceptions;
+import ratpack.util.Types;
 
 /**
  * A function that returns {@code true} or {@code false} for a value.
@@ -92,6 +93,42 @@ public interface Predicate<T> {
    */
   static <T> Predicate<T> fromGuava(com.google.common.base.Predicate<T> predicate) {
     return predicate::apply;
+  }
+
+  /**
+   * A predicate that always returns {@code true}, regardless of the input object.
+   *
+   * @since 1.1.0
+   */
+  Predicate<Object> TRUE = o -> true;
+
+  /**
+   * A predicate that always returns {@code true}, regardless of the input object.
+   *
+   * @param <T> the type of input object
+   * @return a predicate that always returns {@code true}
+   * @since 1.1.0
+   */
+  static <T> Predicate<T> alwaysTrue() {
+    return Types.cast(TRUE);
+  }
+
+  /**
+   * A predicate that always returns {@code false}, regardless of the input object.
+   *
+   * @since 1.1.0
+   */
+  Predicate<Object> FALSE = o -> false;
+
+  /**
+   * A predicate that always returns {@code false}, regardless of the input object.
+   *
+   * @param <T> the type of input object
+   * @return a predicate that always returns {@code false}
+   * @since 1.1.0
+   */
+  static <T> Predicate<T> alwaysFalse() {
+    return Types.cast(FALSE);
   }
 
 }

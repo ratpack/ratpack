@@ -176,22 +176,84 @@ public interface Promise<T> {
    *
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
+   * @since 1.1.0
    */
-  default Promise<T> onError(Action<? super Throwable> errorHandler) {
+  default Promise<T> onError(Predicate<? super Throwable> predicate, Action<? super Throwable> errorHandler) {
     return transform(up -> down ->
         up.connect(down.onError(throwable -> {
-          try {
-            errorHandler.execute(throwable);
-          } catch (Throwable e) {
-            if (e != throwable) {
-              e.addSuppressed(throwable);
+          if (predicate.apply(throwable)) {
+            try {
+              errorHandler.execute(throwable);
+            } catch (Throwable e) {
+              if (e != throwable) {
+                e.addSuppressed(throwable);
+              }
+              down.error(e);
+              return;
             }
-            down.error(e);
-            return;
+            down.complete();
+          } else {
+            down.error(throwable);
           }
-          down.complete();
         }))
     );
+  }
+
+  /**
+   * Specifies the action to take if the an error of the given type occurs trying to produce the promised value.
+   *
+   * <pre class="java">{@code
+   * import ratpack.http.TypedData;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.fromHandler(ctx ->
+   *         ctx.getRequest().getBody()
+   *           .map(TypedData::getText)
+   *           .map(t -> {
+   *             if (t.equals("1")) {
+   *               throw new IllegalArgumentException("validation error!");
+   *             } else {
+   *               throw new RuntimeException("some other error!");
+   *             }
+   *           })
+   *           .onError(IllegalArgumentException.class, e -> ctx.render("the value is invalid"))
+   *           .onError(e -> ctx.render("unknown error: " + e.getMessage()))
+   *           .then(t -> ctx.render("ok"))
+   *     ).test(httpClient -> {
+   *       assertEquals(httpClient.requestSpec(r -> r.getBody().text("0")).postText(), "unknown error: some other error!");
+   *       assertEquals(httpClient.requestSpec(r -> r.getBody().text("1")).postText(), "the value is invalid");
+   *     });
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * If the given action throws an exception, the original exception will be rethrown with the exception thrown
+   * by the action added to the suppressed exceptions list.
+   *
+   * @param errorType the type of exception to handle with the given action
+   * @param errorHandler the action to take if an error occurs
+   * @return A promise for the successful result
+   * @since 1.1.0
+   */
+  default <E extends Throwable> Promise<T> onError(Class<E> errorType, Action<? super E> errorHandler) {
+    return onError(errorType::isInstance, t -> errorHandler.execute(errorType.cast(t)));
+  }
+
+  /**
+   * Specifies the action to take if the an error occurs trying to produce the promised value.
+   * <p>
+   * If the given action throws an exception, the original exception will be rethrown with the exception thrown
+   * by the action added to the suppressed exceptions list.
+   *
+   * @param errorHandler the action to take if an error occurs
+   * @return A promise for the successful result
+   */
+  default Promise<T> onError(Action<? super Throwable> errorHandler) {
+    return onError(Predicate.TRUE, errorHandler);
   }
 
   /**
