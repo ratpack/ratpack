@@ -16,6 +16,7 @@
 
 package ratpack.groovy.internal.capture;
 
+import groovy.lang.Binding;
 import groovy.lang.Script;
 import ratpack.func.BiFunction;
 import ratpack.func.Function;
@@ -27,17 +28,23 @@ import java.nio.file.Path;
 public class RatpackDslScriptCapture implements BiFunction<Path, String, RatpackDslClosures> {
 
   private final boolean compileStatic;
+  private final String[] args;
   private final Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function;
 
-  public RatpackDslScriptCapture(boolean compileStatic, Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function) {
+  public RatpackDslScriptCapture(boolean compileStatic, String[] args, Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function) {
     this.compileStatic = compileStatic;
+    this.args = args;
     this.function = function;
   }
 
-  public RatpackDslClosures apply(Path file, String script) throws Exception {
+  public RatpackDslClosures apply(Path file, String scriptContent) throws Exception {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     ScriptEngine<Script> scriptEngine = new ScriptEngine<>(classLoader, compileStatic, Script.class);
-    return RatpackDslClosures.capture(function, () -> scriptEngine.create(file.getFileName().toString(), file, script).run());
+    return RatpackDslClosures.capture(function, () -> {
+      Script script = scriptEngine.create(file.getFileName().toString(), file, scriptContent);
+      script.setBinding(new Binding(args));
+      script.run();
+    });
   }
 
 }

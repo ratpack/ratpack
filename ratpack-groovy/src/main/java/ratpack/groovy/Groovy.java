@@ -47,10 +47,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
-import ratpack.server.BaseDir;
-import ratpack.server.RatpackServerSpec;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
+import ratpack.server.*;
 import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.FileBackedReloadInformant;
 import ratpack.util.internal.IoUtils;
@@ -146,36 +143,153 @@ public abstract class Groovy {
 
   }
 
+  /**
+   * Methods for working with Groovy scripts as application components.
+   */
   public static abstract class Script {
 
+    /**
+     * {@value}
+     */
     public static final String DEFAULT_HANDLERS_PATH = "handlers.groovy";
+
+    /**
+     * {@value}
+     */
     public static final String DEFAULT_BINDINGS_PATH = "bindings.groovy";
+
+    /**
+     * {@value}
+     */
     public static final String DEFAULT_APP_PATH = "ratpack.groovy";
 
     private Script() {
     }
 
+    /**
+     * Asserts that the version of Groovy on the classpath meets the minimum requirement for Ratpack.
+     */
     public static void checkGroovy() {
       GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
     }
 
+    /**
+     * Creates an application defining action from a Groovy script named {@value #DEFAULT_APP_PATH}.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @return an application definition action
+     */
     public static Action<? super RatpackServerSpec> app() {
       return app(false);
     }
 
-    public static Action<? super RatpackServerSpec> app(boolean staticCompile) {
-      return app(staticCompile, DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1));
+    /**
+     * Creates an application defining action from a Groovy script named {@value #DEFAULT_APP_PATH}.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @return an application definition action
+     */
+    public static Action<? super RatpackServerSpec> app(boolean compileStatic) {
+      return app(compileStatic, DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1));
     }
 
+    /**
+     * Creates an application defining action from a Groovy script.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param script the script
+     * @return an application definition action
+     */
     public static Action<? super RatpackServerSpec> app(Path script) {
       return app(false, script);
     }
 
+    /**
+     * Creates an application defining action from a Groovy script.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param script the script
+     * @return an application definition action
+     */
     public static Action<? super RatpackServerSpec> app(boolean compileStatic, Path script) {
       return b -> doApp(b, compileStatic, script.getParent(), script);
     }
 
-    public static Action<? super RatpackServerSpec> app(boolean staticCompile, String... scriptPaths) {
+    /**
+     * Creates an application defining action from a Groovy script.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param scriptPaths the potential paths to the scripts (first existing is used)
+     * @return an application definition action
+     */
+    public static Action<? super RatpackServerSpec> app(boolean compileStatic, String... scriptPaths) {
+      return appWithArgs(compileStatic, scriptPaths);
+    }
+
+    /**
+     * Creates an application defining action from a Groovy script named {@value #DEFAULT_APP_PATH}
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param args args to make available to the script via the {@code args} variable
+     * @return an application definition action
+     * @since 1.1.0
+     */
+    public static Action<? super RatpackServerSpec> appWithArgs(String... args) {
+      return appWithArgs(false, new String[]{DEFAULT_APP_PATH}, args);
+    }
+
+    /**
+     * Creates an application defining action from a Groovy script.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param script the script
+     * @param args args to make available to the script via the {@code args} variable
+     * @return an application definition action
+     * @since 1.1.0
+     */
+    public static Action<? super RatpackServerSpec> appWithArgs(boolean compileStatic, Path script, String... args) {
+      return b -> doApp(b, compileStatic, script.getParent(), script, args);
+    }
+
+    /**
+     * Creates an application defining action from a Groovy script.
+     * <p>
+     * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param scriptPaths the potential paths to the scripts (first existing is used)
+     * @param args args to make available to the script via the {@code args} variable
+     * @return an application definition action
+     * @since 1.1.0
+     */
+    public static Action<? super RatpackServerSpec> appWithArgs(boolean compileStatic, String[] scriptPaths, String... args) {
       return b -> {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -188,14 +302,14 @@ public abstract class Groovy {
 
         Path baseDir = baseDirResult.getBaseDir();
         Path scriptFile = baseDirResult.getResource();
-        doApp(b, staticCompile, baseDir, scriptFile);
+        doApp(b, compileStatic, baseDir, scriptFile, args);
       };
     }
 
-    private static void doApp(RatpackServerSpec definition, boolean staticCompile, Path baseDir, Path scriptFile) throws Exception {
+    private static void doApp(RatpackServerSpec definition, boolean compileStatic, Path baseDir, Path scriptFile, String... args) throws Exception {
       String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
 
-      RatpackDslClosures closures = new RatpackDslScriptCapture(staticCompile, RatpackDslBacking::new).apply(scriptFile, script);
+      RatpackDslClosures closures = new RatpackDslScriptCapture(compileStatic, args, RatpackDslBacking::new).apply(scriptFile, script);
       definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.builder().baseDir(baseDir), baseDir), closures.getServerConfig()));
 
       definition.registry(r -> {
@@ -218,41 +332,135 @@ public abstract class Groovy {
       return serverConfigBuilder;
     }
 
+    /**
+     * Creates a handler defining function from a {@value #DEFAULT_HANDLERS_PATH} Groovy script.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#handler(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#handlers(Closure)} method.
+     *
+     * @return a handler definition function
+     */
     public static Function<Registry, Handler> handlers() {
       return handlers(false);
     }
 
-    public static Function<Registry, Handler> handlers(boolean staticCompile) {
-      return handlers(staticCompile, DEFAULT_HANDLERS_PATH);
+    /**
+     * Creates a handler defining function from a {@value #DEFAULT_HANDLERS_PATH} Groovy script.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#handler(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#handlers(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @return a handler definition function
+     */
+    public static Function<Registry, Handler> handlers(boolean compileStatic) {
+      return handlers(compileStatic, DEFAULT_HANDLERS_PATH);
     }
 
-    public static Function<Registry, Handler> handlers(boolean staticCompile, String scriptPath) {
+    /**
+     * Creates a handler defining function from a Groovy script.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#handler(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#handlers(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param scriptPath the path to the script
+     * @return a handler definition function
+     */
+    public static Function<Registry, Handler> handlers(boolean compileStatic, String scriptPath) {
+      return handlersWithArgs(compileStatic, scriptPath);
+    }
+
+    /**
+     * Creates a handler defining function from a Groovy script.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#handler(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#handlers(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param scriptPath the path to the script
+     * @param args args to make available to the script via the {@code args} variable
+     * @return a handler definition function
+     * @since 1.1.0
+     */
+    public static Function<Registry, Handler> handlersWithArgs(boolean compileStatic, String scriptPath, String... args) {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
         boolean development = r.get(ServerConfig.class).isDevelopment();
         return new ScriptBackedHandler(scriptFile, development,
-          new RatpackDslScriptCapture(staticCompile, HandlersOnly::new)
+          new RatpackDslScriptCapture(compileStatic, args, HandlersOnly::new)
             .andThen(RatpackDslClosures::getHandlers)
             .andThen(c -> Groovy.chain(r, c))
         );
       };
     }
 
+    /**
+     * Creates a registry building function from a Groovy script named {@value #DEFAULT_BINDINGS_PATH}.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#registry(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#bindings(Closure)} method.
+     *
+     * @return a registry definition function
+     */
     public static Function<Registry, Registry> bindings() {
       return bindings(false);
     }
 
-    public static Function<Registry, Registry> bindings(boolean staticCompile) {
-      return bindings(staticCompile, DEFAULT_BINDINGS_PATH);
+    /**
+     * Creates a registry building function from a Groovy script named {@value #DEFAULT_BINDINGS_PATH}.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#registry(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#bindings(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @return a registry definition function
+     */
+    public static Function<Registry, Registry> bindings(boolean compileStatic) {
+      return bindings(compileStatic, DEFAULT_BINDINGS_PATH);
     }
 
-    public static Function<Registry, Registry> bindings(boolean staticCompile, String scriptPath) {
+    /**
+     * Creates a registry building function from a Groovy script.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#registry(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#bindings(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param scriptPath the path to the script
+     * @return a registry definition function
+     */
+    public static Function<Registry, Registry> bindings(boolean compileStatic, String scriptPath) {
+      return bindingsWithArgs(compileStatic, scriptPath);
+    }
+
+    /**
+     * Creates a registry building function from a Groovy script.
+     * <p>
+     * This method returns a function that can be used with {@link RatpackServerSpec#registry(Function)} when bootstrapping.
+     * <p>
+     * The script should call the {@link Script#ratpack(Closure)} method, and <b>only</b> invoke the {@link Ratpack#bindings(Closure)} method.
+     *
+     * @param compileStatic whether to statically compile the script
+     * @param scriptPath the path to the script
+     * @param args args to make available to the script via the {@code args} variable
+     * @return a registry definition function
+     * @since 1.1.0
+     */
+    public static Function<Registry, Registry> bindingsWithArgs(boolean compileStatic, String scriptPath, String... args) {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
         String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
-        Closure<?> bindingsClosure = new RatpackDslScriptCapture(staticCompile, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
+        Closure<?> bindingsClosure = new RatpackDslScriptCapture(compileStatic, args, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
         return Guice.registry(bindingsSpec -> {
           bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
           ClosureUtil.configureDelegateFirst(bindingsSpec, bindingsClosure);

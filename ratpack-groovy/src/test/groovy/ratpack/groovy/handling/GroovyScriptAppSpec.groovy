@@ -28,13 +28,15 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
   boolean compileStatic = false
   boolean development = false
 
+  String[] args = [] as String[]
+
   @Override
   EmbeddedApp createApplication() {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
         ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
-          RatpackServer.of(Groovy.Script.app(compileStatic, ratpackFile.canonicalFile.toPath()))
+          RatpackServer.of(Groovy.Script.appWithArgs(compileStatic, ratpackFile.canonicalFile.toPath(), args))
         }
       }
     }
@@ -365,5 +367,22 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
     then:
     text == "foo"
+  }
+
+  def "can access scripts args via args variable"() {
+    when:
+    args = ["foo", "bar"] as String[]
+    script """
+      ratpack {
+        handlers {
+          get(":i") { render args[pathTokens.i.toInteger()] }
+        }
+      }
+    """
+
+    then:
+    getText("0") == "foo"
+    getText("1") == "bar"
+
   }
 }
