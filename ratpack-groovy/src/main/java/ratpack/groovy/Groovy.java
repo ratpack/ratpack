@@ -256,7 +256,7 @@ public abstract class Groovy {
      * @since 1.1.0
      */
     public static Action<? super RatpackServerSpec> appWithArgs(String... args) {
-      return appWithArgs(false, new String[]{DEFAULT_APP_PATH}, args);
+      return appWithArgs(false, new String[]{DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1)}, args);
     }
 
     /**
