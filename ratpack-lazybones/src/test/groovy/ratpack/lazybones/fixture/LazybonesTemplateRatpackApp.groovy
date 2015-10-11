@@ -126,6 +126,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     StringBuilder processText = new StringBuilder()
     Thread.start {
       process.inputStream.eachLine { String line ->
+        println line
         processText.append(line)
         processText.append('\n')
         if (latch.count) {
