@@ -150,7 +150,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
   }
 
   URI getAddress() {
-    ensureLaunched().address
+    Objects.requireNonNull(ensureLaunched()).address
   }
 
   void close() {
