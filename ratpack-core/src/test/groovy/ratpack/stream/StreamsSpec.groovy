@@ -637,10 +637,24 @@ class StreamsSpec extends Specification {
     s.received == [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
   }
 
+  static class ExceptionThrowingIterable implements Iterable<String> {
+
+    @Override
+    Iterator<String> iterator() {
+      throw new IllegalStateException("!")
+    }
+  }
+
   def "can stream a promised iterable"() {
     expect:
     harness.yield {
       Promise.value(["a", "b", "c", "d"]).publish().map{it.toUpperCase()}.toList()
     }.value == ["A", "B", "C", "D"]
+
+    and:
+    harness.yield { c ->
+      Promise.value(new ExceptionThrowingIterable()).publish().toList()
+    }.throwable.message == "!"
   }
+
 }
