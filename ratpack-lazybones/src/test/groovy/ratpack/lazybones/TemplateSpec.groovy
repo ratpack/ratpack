@@ -29,12 +29,7 @@ class TemplateSpec extends Specification {
   TestConfig testConfig = new TestConfig()
 
   @Rule
-  TemporaryFolder projectDirectoryProvider = new TemporaryFolder(new File("build/reports").with { mkdirs(); it }) {
-    @Override
-    protected void after() {
-
-    }
-  }
+  TemporaryFolder projectDirectoryProvider = new TemporaryFolder()
 
   @AutoCleanup
   LazybonesTemplateRatpackApp app = new LazybonesTemplateRatpackApp(projectDirectoryProvider, testConfig.templateDirectory, testConfig.localRepoUrl)
