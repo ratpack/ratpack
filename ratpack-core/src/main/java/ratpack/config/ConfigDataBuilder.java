@@ -154,6 +154,44 @@ public interface ConfigDataBuilder {
   ConfigDataBuilder env(EnvironmentParser environmentParser);
 
   /**
+   * Invokes {@link #args(String, String, String[])}, with no prefix and {@code "="} as the separator.
+   *
+   * @param args the argument values
+   * @return {@code this}
+   * @since 1.1.0
+   */
+  default ConfigDataBuilder args(String[] args) {
+    return args("=", args);
+  }
+
+  /**
+   * Invokes {@link #args(String, String, String[])}, with no prefix.
+   *
+   * @param separator the separator of the key and value in each arg
+   * @param args the argument values
+   * @return {@code this}
+   * @since 1.1.0
+   */
+  default ConfigDataBuilder args(String separator, String[] args) {
+    return args("", separator, args);
+  }
+
+  /**
+   * Adds a configuration source for the given string args.
+   * <p>
+   * Args that do not start with the given {@code prefix} are ignored.
+   * The remaining are each split using the given {@code separator} (as a literal string, not as a regex),
+   * then trimmed of the prefix.
+   *
+   * @param prefix the prefix that each arg must have to be considered (use {@code null} or {@code ""} for no prefix)
+   * @param separator the separator between the key and the value
+   * @param args the argument values
+   * @return {@code this}
+   * @since 1.1.0
+   */
+  ConfigDataBuilder args(String prefix, String separator, String[] args);
+
+  /**
    * Adds a configuration source for a JSON file.
    *
    * @param byteSource the source of the JSON data

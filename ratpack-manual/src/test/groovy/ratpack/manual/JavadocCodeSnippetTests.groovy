@@ -34,6 +34,7 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
     "groovy-chain-dsl"  : new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
     "groovy-ratpack-dsl": new GroovySnippetExecuter(true, new GroovyRatpackDslNoRunFixture()),
     "java"              : new JavaSnippetExecuter(new SnippetFixture()),
+    "java-args"         : new JavaSnippetExecuter(new SnippetFixture(), "thing.name=foo"),
   ]
 
   @Override

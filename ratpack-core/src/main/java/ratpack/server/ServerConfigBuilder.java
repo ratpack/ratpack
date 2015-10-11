@@ -201,6 +201,76 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder env(String prefix);
 
   /**
+   * Adds the given args as a config source.
+   * <p>
+   * This method is designed to be used with the args var of the {@code static main(String... args)} application entry point.
+   * This allows configuration parameters to be passed to the application on the command line.
+   * <p>
+   * Each arg should be of the format {@code «key»=«value»}.
+   * For the following example, the application has been started with the argument {@code thing.name=foo}.
+   *
+   * <pre class="java-args">{@code
+   * import ratpack.test.embed.EmbeddedApp;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   static class Thing {
+   *     public String name;
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(a -> a
+   *         .serverConfig(s -> s
+   *             .args(args)
+   *             .require("/thing", Thing.class)
+   *         )
+   *         .handlers(c -> c
+   *             .get(ctx -> ctx.render(ctx.get(Thing.class).name))
+   *         )
+   *     ).test(httpClient ->
+   *         assertEquals(httpClient.getText(), "foo")
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param args the argument values
+   * @return {@code this}
+   * @since 1.1.0
+   */
+  @Override
+  ServerConfigBuilder args(String[] args);
+
+  /**
+   * Invokes {@link #args(String, String, String[])}, with no prefix.
+   *
+   * @param separator the separator of the key and value in each arg
+   * @param args the argument values
+   * @return {@code this}
+   * @since 1.1.0
+   * @see #args(String[])
+   */
+  @Override
+  ServerConfigBuilder args(String separator, String[] args);
+
+  /**
+   * Adds a configuration source for the given string args.
+   * <p>
+   * Args that do not start with the given {@code prefix} are ignored.
+   * The remaining are each split using the given {@code separator} (as a literal string, not as a regex),
+   * then trimmed of the prefix.
+   *
+   * @param prefix the prefix that each arg must have to be considered (use {@code null} or {@code ""} for no prefix)
+   * @param separator the separator between the key and the value
+   * @param args the argument values
+   * @return {@code this}
+   * @since 1.1.0
+   * @see #args(String[])
+   */
+  @Override
+  ServerConfigBuilder args(String prefix, String separator, String[] args);
+
+  /**
    * {@inheritDoc}
    */
   @Override

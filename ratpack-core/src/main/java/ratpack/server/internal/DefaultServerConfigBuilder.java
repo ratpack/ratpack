@@ -177,6 +177,25 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder args(String[] args) {
+    configDataBuilder.args(args);
+    return this;
+
+  }
+
+  @Override
+  public ServerConfigBuilder args(String separator, String[] args) {
+    configDataBuilder.args(separator, args);
+    return this;
+  }
+
+  @Override
+  public ServerConfigBuilder args(String prefix, String separator, String[] args) {
+    configDataBuilder.args(prefix, separator, args);
+    return this;
+  }
+
+  @Override
   public ServerConfigBuilder json(ByteSource byteSource) {
     configDataBuilder.json(byteSource);
     return this;

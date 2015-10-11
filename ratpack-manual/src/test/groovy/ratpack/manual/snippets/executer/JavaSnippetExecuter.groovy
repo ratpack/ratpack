@@ -29,10 +29,12 @@ import java.lang.reflect.InvocationTargetException
 @CompileStatic
 public class JavaSnippetExecuter implements SnippetExecuter {
 
+  private final String[] args
   private final SnippetFixture fixture
 
-  JavaSnippetExecuter(SnippetFixture fixture) {
+  JavaSnippetExecuter(SnippetFixture fixture, String... args) {
     this.fixture = fixture
+    this.args = args
   }
 
   @Override
@@ -85,7 +87,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     try {
       Thread.currentThread().setContextClassLoader(classLoader)
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
-      fixture.around({ mainMethod.invoke(null, [[] as String[]] as Object[]) } as Block)
+      fixture.around({ mainMethod.invoke(null, [args] as Object[]) } as Block)
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {
