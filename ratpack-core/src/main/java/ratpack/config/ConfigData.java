@@ -73,7 +73,7 @@ public interface ConfigData {
    *     <li>{@link com.fasterxml.jackson.datatype.jdk7.Jdk7Module}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.jdk8.Jdk8Module}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.guava.GuavaModule}</li>
-   *     <li>{@link com.fasterxml.jackson.datatype.jsr310.JSR310Module}</li>
+   *     <li>{@link com.fasterxml.jackson.datatype.jsr310.JavaTimeModule}</li>
    * </ul>
    * <p>
    * The {@link com.fasterxml.jackson.databind.DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES} feature is disabled.

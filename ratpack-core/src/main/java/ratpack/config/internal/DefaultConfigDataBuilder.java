@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
@@ -188,7 +188,7 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
     objectMapper.registerModule(new Jdk7Module());
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new GuavaModule());
-    objectMapper.registerModule(new JSR310Module());
+    objectMapper.registerModule(new JavaTimeModule());
     JsonFactory factory = objectMapper.getFactory();
     factory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
