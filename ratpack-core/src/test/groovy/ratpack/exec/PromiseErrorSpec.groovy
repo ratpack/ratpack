@@ -80,4 +80,87 @@ class PromiseErrorSpec extends Specification {
     (events[0] as Exception).suppressed.length == 0
   }
 
+  def "on error called when predicate passes"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException("!"))
+        .onError {it.message == "!"} { events << "error" }
+        .then {
+          events << "then"
+        }
+    } {
+      events << it
+    }
+
+    then:
+    events == ["error", "complete"]
+  }
+
+  def "on error not called when predicate fails"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException("!"))
+        .onError {it.message != "!"} { events << "error" }
+        .then {
+        events << "then"
+      }
+    } {
+      events << it
+    }
+
+    then:
+    events.size() == 2
+    events[0] instanceof IllegalArgumentException
+  }
+
+  def "on error called for match on exception"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException("!"))
+        .onError(IllegalArgumentException) { events << "error" }
+        .then {
+        events << "then"
+      }
+    } {
+      events << it
+    }
+
+    then:
+    events == ["error", "complete"]
+  }
+
+  def "on error not called when exception doesn't match"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException("!"))
+        .onError(NullPointerException) { events << "error" }
+        .then {
+        events << "then"
+      }
+    } {
+      events << it
+    }
+
+    then:
+    events.size() == 2
+    events[0] instanceof IllegalArgumentException
+  }
+
+  def "multiple on error handlers"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException("!"))
+        .onError {t -> t.message == "foo"} { events << "error1" }
+        .onError(IllegalArgumentException) { events << "error2" }
+        .then {
+        events << "then"
+      }
+    } {
+      events << it
+    }
+
+    then:
+    events == ["error2", "complete"]
+  }
+
 }
