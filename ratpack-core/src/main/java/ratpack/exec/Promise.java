@@ -335,6 +335,8 @@ public interface Promise<T> {
   @Deprecated
   /**
    * Replaces {@code this} promise with the provided promise.
+   * <p>
+   * This is simply a more convenient form using using {@link #flatMap(Function)}.
    *
    * @param next the promise to replace {@code this} with
    * @return a promise
@@ -344,10 +346,127 @@ public interface Promise<T> {
     return flatMap(in -> next);
   }
 
+  /**
+   * Executes the provided {@link Action} with the promised value as input.
+   * <p>
+   * This is similar to {@link #wiretap(Action)} except that the action is executed asynchronously.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.CountDownLatch;
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     CountDownLatch latch = new CountDownLatch(1);
+   *     List<String> events = Lists.newLinkedList();
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .next(v -> {
+   *          events.add(v);
+   *          latch.countDown();
+   *        })
+   *        .then(v -> events.add("complete"))
+   *     );
+   *     latch.await(1, TimeUnit.SECONDS);
+   *     assertEquals(Arrays.asList("foo", "complete"), events);
+   *   }
+   * }
+   * }</pre>
+   * @param action the action to execute with the promised value
+   * @return a promise for the original value
+   * @since 1.1.0
+   */
   default Promise<T> next(Action<? super T> action) {
     return nextOp(v -> Operation.of(() -> action.execute(v)));
   }
 
+
+  /**
+   * Maps the promised value to an {@link Operation} and executes it asynchronously.
+   * <p>
+   * This is similar to {@link #wiretap(Action)} except that the operation is executed asynchronously.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Operation;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.CountDownLatch;
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     CountDownLatch latch = new CountDownLatch(1);
+   *     List<String> events = Lists.newLinkedList();
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .nextOp(v -> Operation.of(() -> {
+   *          events.add(v);
+   *          latch.countDown();
+   *        }))
+   *        .then(v -> events.add("complete"))
+   *     );
+   *     latch.await(1, TimeUnit.SECONDS);
+   *     assertEquals(Arrays.asList("foo", "complete"), events);
+   *   }
+   * }
+   * }</pre>
+   * @param function
+   * @return a promise for the original value
+   * @since 1.1.0
+   */
+  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
+    return transform(up -> down -> up.connect(
+        down.<T>onSuccess(value -> function.apply(value).onError(down::error).then(() -> down.success(value)))
+      )
+    );
+  }
+
+  /**
+   * Replaces {@code this} promise with the provided promise.
+   * <p>
+   * This is simply a more convenient form using using {@link #flatMap(Function)}.
+   *
+   *  <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .replace(Promise.value("bar"))
+   *     );
+   *
+   *     assertEquals("bar", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param next the promise to replace {@code this} with
+   * @return a promise
+   * @since 1.1.0
+   */
   default <O> Promise<O> replace(Promise<O> next) {
     return flatMap(in -> next);
   }
@@ -887,13 +1006,6 @@ public interface Promise<T> {
 
           down.success(value);
         }))
-    );
-  }
-
-  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
-    return transform(up -> down -> up.connect(
-        down.<T>onSuccess(value -> function.apply(value).onError(down::error).then(() -> down.success(value)))
-      )
     );
   }
 
