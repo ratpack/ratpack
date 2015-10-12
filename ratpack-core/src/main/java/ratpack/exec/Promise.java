@@ -16,10 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.exec.internal.CachingUpstream;
-import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.internal.DefaultOperation;
-import ratpack.exec.internal.DefaultPromise;
+import ratpack.exec.internal.*;
 import ratpack.func.*;
 
 import java.util.Objects;
@@ -874,6 +871,13 @@ public interface Promise<T> {
 
           down.success(value);
         }))
+    );
+  }
+
+  default Promise<T> sample(Sampler<? super T> sampler) {
+    return transform(up -> down -> up.connect(
+        down.<T>onSuccess(value -> sampler.sample(value).onError(down::error).then(() -> down.success(value)))
+      )
     );
   }
 

@@ -344,4 +344,32 @@ class PromiseOperationsSpec extends Specification {
     events == ["!", "complete"]
   }
 
+  def "can apply async action to promise"() {
+    when:
+    exec {
+      Promise.value("foo").sample { v ->
+        return Operation.of {
+          events << v
+        }
+      }.sample { v ->
+        return Operation.of {
+          events << "${v}2"
+        }
+      }.map { v ->
+        return v.reverse()
+      }.sample { v ->
+        Operation.of {
+          events << v
+        }
+      }.operation { v ->
+        events << "bar"
+      }.next {
+        events << "baz"
+      }.then()
+    }
+
+    then:
+    events == ["foo", "foo2", "oof", "bar", "baz", "complete"]
+  }
+
 }
