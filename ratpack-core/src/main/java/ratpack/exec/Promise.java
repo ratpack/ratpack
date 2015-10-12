@@ -345,12 +345,7 @@ public interface Promise<T> {
   }
 
   default Promise<T> next(Action<? super T> action) {
-    return transform(up -> down ->
-        up.connect(down.<T>onSuccess(v -> {
-          action.execute(v);
-          down.success(v);
-        }).onError(down::error))
-    );
+    return nextOp(v -> Operation.of(() -> action.execute(v)));
   }
 
   default <O> Promise<O> replace(Promise<O> next) {
