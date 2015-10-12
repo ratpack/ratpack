@@ -332,7 +332,28 @@ public interface Promise<T> {
     return flatMap(t -> Blocking.op(action.curry(t)).map(() -> t));
   }
 
+  @Deprecated
+  /**
+   * Replaces {@code this} promise with the provided promise.
+   *
+   * @param next the promise to replace {@code this} with
+   * @return a promise
+   * @deprecated as of 1.1.0, replaced by {@link #replace(Promise)}
+   */
   default <O> Promise<O> next(Promise<O> next) {
+    return flatMap(in -> next);
+  }
+
+  default Promise<T> next(Action<? super T> action) {
+    return transform(up -> down ->
+        up.connect(down.<T>onSuccess(v -> {
+          action.execute(v);
+          down.success(v);
+        }).onError(down::error))
+    );
+  }
+
+  default <O> Promise<O> replace(Promise<O> next) {
     return flatMap(in -> next);
   }
 
@@ -874,9 +895,9 @@ public interface Promise<T> {
     );
   }
 
-  default Promise<T> sample(Sampler<? super T> sampler) {
+  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
     return transform(up -> down -> up.connect(
-        down.<T>onSuccess(value -> sampler.sample(value).onError(down::error).then(() -> down.success(value)))
+        down.<T>onSuccess(value -> function.apply(value).onError(down::error).then(() -> down.success(value)))
       )
     );
   }
