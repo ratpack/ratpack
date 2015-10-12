@@ -42,10 +42,10 @@ section(id: "main") {
 
     p {
       strong('Want to know more?')
-      yield ' See some example apps @ '
-      a(href: "http://github.com/ratpack", 'github.com/ratpack')
-      yield ' or checkout the '
-      a(href: "/manual/current", 'Ratpack Manual')
+      yield ' Check out the  '
+      a(href: "/manual/current", 'manual')
+      yield ' or '
+      a(href: "/resources", 'resources')
       yield '.'
     }
     p {
@@ -55,8 +55,8 @@ section(id: "main") {
       yield ' (powered by  '
       a(href: 'http://slack.com', "Slack")
       yield '). '
-      a(href: "http://slack-signup.ratpack.io", "Sign up")
-      yield " is required (one time)."
+      a(href: "http://slack-signup.ratpack.io", "One time sign up")
+      yield " is required."
     }
     p {
       yield "If realtime chat isn't your thing, you can use the "

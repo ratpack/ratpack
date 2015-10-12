@@ -99,6 +99,8 @@ public class SiteMain {
 
             .get(ctx -> ctx.render(groovyMarkupTemplate("index.gtpl")))
 
+            .get("resources", ctx -> ctx.render(groovyMarkupTemplate("resources.gtpl")))
+
             .path("reset", ctx ->
                 ctx.byMethod(methods -> {
                   Block impl = () -> {
