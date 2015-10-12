@@ -7,7 +7,7 @@ yieldUnescaped '''<!doctype html>
 
 head {
   meta(charset:'utf-8')
-  title('Ratpack: Simple, lean & powerful HTTP apps')
+  title('Ratpack: Lean & powerful HTTP apps for the JVM')
 
   meta(name: 'apple-mobile-web-app-title', content: 'Ratpack')
   meta(name: 'description', content: 'Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.')
@@ -21,13 +21,10 @@ head {
   script(src: assets['prism/prism.js']) {}
 }
 body {
-
-
-
   header(id: 'page-header') {
     div(class: 'ratpack-logo') {
       a(href: '/') { h1('Ratpack') }
-      p('Simple, lean &amp; powerful HTTP apps')
+      p('Lean & powerful HTTP apps')
     }
 
     nav(class: 'social') {

@@ -8,15 +8,15 @@ section(id: "promo") {
     article {
       h2('What is Ratpack?')
 
-      p('Ratpack is a set of Java libraries that facilitate fast, efficient, evolvable and well tested HTTP applications.')
+      p "Ratpack is a set of Java libraries for building modern HTTP applications."
+
+      p "It provides just enough for writing practical, high performance, apps."
 
       p {
-        yield 'It is built on the highly performant and efficient '
+        yield "It is built on Java 8, "
         a(href:"http://netty.io/", 'Netty')
-        yield ' event-driven networking engine.'
+        yield " and reactive principles."
       }
-
-      p('Ratpack focuses on allowing HTTP applications to be efficient, modular, adaptive to new requirements and technologies, and well-tested over time.')
     }
 
     nav {
@@ -39,28 +39,7 @@ section(id: "promo") {
 
 section(id: "main") {
   article(class: "content") {
-    p {
-      yield 'The core of Ratpack is made up of only '
-      strong("Java 8")
-      yield ', '
-      a(href: "http://netty.io", 'Netty')
-      yield ', '
-      a(href: "https://github.com/google/guava", "Google Guava")
-      yield ' and '
-      a(href:"https://github.com/reactive-streams/reactive-streams", "Reactive Streams")
-      yield '.'
-    }
-    p {
-      yield 'You can write Ratpack applications in Java 8 or any alternative JVM language that plays well with Java. Specific support for the '
-      a(href: "http://www.groovy-lang.org", 'Groovy')
-      yield ' language is provided, utilizing the latest static compilation and typing features.'
-    }
-    p {
-      yield 'Ratpack does not take a heavily opinionated approach as to what libraries and tools you should use to compose your application. As the developer of the application, '
-      strong('you')
-      yield ' are in control. Direct integration of tools and libraries is favored over generic abstractions.'
-    }
-    p('Ratpack is for nontrivial, high performance, low resource usage, HTTP applications.')
+
     p {
       strong('Want to know more?')
       yield ' See some example apps @ '
