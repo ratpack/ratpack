@@ -34,24 +34,28 @@ Note below we use @Delegate so we just need to call `get()` in the when block in
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import ratpack.test.ServerBackedApplicationUnderTest
+import spock.lang.*
 
-class SiteSmokeSpec {
+class SiteSmokeSpec extends Specification {
 
   ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
   @Delegate TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
   def "Check Site Index"() {
+	when:
     get("index.html")
 
-
+    then:
     assert response.statusCode == 200
     assert response.body.text.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
 
   }
 
   def "Check Site Root"() {
+	when:
     get()
 
+	then:
     assert response.statusCode == 200
     assert response.body.text.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
   }
