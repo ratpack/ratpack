@@ -22,7 +22,7 @@ class HomePage extends Page {
 
   static url = "/"
 
-  static at = { title == "Ratpack: Simple, lean & powerful HTTP apps" }
+  static at = { title == "Ratpack: Lean & powerful HTTP apps for the JVM" }
 
   static content = {
     promoNavLink { text -> $('#promo nav a', text: text) }
