@@ -332,7 +332,6 @@ public interface Promise<T> {
     return flatMap(t -> Blocking.op(action.curry(t)).map(() -> t));
   }
 
-  @Deprecated
   /**
    * Replaces {@code this} promise with the provided promise.
    * <p>
@@ -340,8 +339,9 @@ public interface Promise<T> {
    *
    * @param next the promise to replace {@code this} with
    * @return a promise
-   * @deprecated as of 1.1.0, replaced by {@link #replace(Promise)}
+   * @deprecated replaced by {@link #replace(Promise)} as of 1.1.0
    */
+  @Deprecated
   default <O> Promise<O> next(Promise<O> next) {
     return flatMap(in -> next);
   }
@@ -349,7 +349,8 @@ public interface Promise<T> {
   /**
    * Executes the provided {@link Action} with the promised value as input.
    * <p>
-   * This is similar to {@link #wiretap(Action)} except that the action is executed asynchronously.
+   * This method is useful for executing code upon a promised value without modifying the stream.
+   * For example, persisting an intermediate value in a stream before continuing.
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -372,29 +373,38 @@ public interface Promise<T> {
    *     ExecHarness.runSingle(c ->
    *       Promise.value("foo")
    *        .next(v -> {
-   *          events.add(v);
-   *          latch.countDown();
+   *          Promise.value(v)
+   *            .map(String::toUpperCase)
+   *            .then(u -> {
+   *              events.add(u);
+   *              latch.countDown();
+   *            });
    *        })
-   *        .then(v -> events.add("complete"))
+   *        .then(v -> events.add(v))
    *     );
    *     latch.await(1, TimeUnit.SECONDS);
-   *     assertEquals(Arrays.asList("foo", "complete"), events);
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
    * }
    * }</pre>
    * @param action the action to execute with the promised value
    * @return a promise for the original value
+   * @see #nextOp(Function)
    * @since 1.1.0
    */
   default Promise<T> next(Action<? super T> action) {
-    return nextOp(v -> Operation.of(() -> action.execute(v)));
+    return nextOp(v ->
+      Operation.of(() ->
+        action.execute(v)
+      )
+    );
   }
 
 
   /**
    * Maps the promised value to an {@link Operation} and executes it asynchronously.
    * <p>
-   * This is similar to {@link #wiretap(Action)} except that the operation is executed asynchronously.
+   * This method is useful when integrating method class that return operations with promises.
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -412,24 +422,39 @@ public interface Promise<T> {
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
+   *
+   *   public static class CaseService {
+   *
+   *     public Operation toUpper(String value, List<String> values) {
+   *       return Operation.of(() ->
+   *         values.add(value.toUpperCase())
+   *       );
+   *     }
+   *   }
+   *
    *   public static void main(String... args) throws Exception {
+   *     CaseService service = new CaseService();
    *     CountDownLatch latch = new CountDownLatch(1);
    *     List<String> events = Lists.newLinkedList();
+   *
    *     ExecHarness.runSingle(c ->
    *       Promise.value("foo")
-   *        .nextOp(v -> Operation.of(() -> {
-   *          events.add(v);
-   *          latch.countDown();
-   *        }))
-   *        .then(v -> events.add("complete"))
+   *        .nextOp(v ->
+   *          service.toUpper(v, events)
+   *            .next(() ->
+   *              latch.countDown()
+   *            )
+   *        )
+   *        .then(v -> events.add(v))
    *     );
    *     latch.await(1, TimeUnit.SECONDS);
-   *     assertEquals(Arrays.asList("foo", "complete"), events);
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
    * }
    * }</pre>
-   * @param function
+   * @param function the function that maps the promised value to an {@link Operation}
    * @return a promise for the original value
+   * @see #next(Action)
    * @since 1.1.0
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
@@ -442,7 +467,10 @@ public interface Promise<T> {
   /**
    * Replaces {@code this} promise with the provided promise.
    * <p>
-   * This is simply a more convenient form using using {@link #flatMap(Function)}.
+   * This is simply a more convenient form of {@link #flatMap(Function)}.
+   * This method is useful when chaining promises that are not dependent upon each other.
+   * <p>
+   * When chaining promises with this method, upstream errors are propagated to the downstream promise.
    *
    *  <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
