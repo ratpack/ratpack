@@ -359,7 +359,6 @@ public interface Promise<T> {
    *
    * import com.google.common.collect.Lists;
    *
-   * import java.util.concurrent.CountDownLatch;
    * import java.util.concurrent.TimeUnit;
    * import java.util.Arrays;
    * import java.util.List;
@@ -368,7 +367,6 @@ public interface Promise<T> {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     CountDownLatch latch = new CountDownLatch(1);
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
    *       Promise.value("foo")
@@ -377,12 +375,10 @@ public interface Promise<T> {
    *            .map(String::toUpperCase)
    *            .then(u -> {
    *              events.add(u);
-   *              latch.countDown();
    *            });
    *        })
    *        .then(v -> events.add(v))
    *     );
-   *     latch.await(1, TimeUnit.SECONDS);
    *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
    * }
@@ -404,7 +400,8 @@ public interface Promise<T> {
   /**
    * Maps the promised value to an {@link Operation} and executes it asynchronously.
    * <p>
-   * This method is useful when integrating method class that return operations with promises.
+   * This method is useful when calling a void method that will execute upon a promise.
+   * For example, calling a service method to persist a data object constructured via a promise.
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -414,7 +411,6 @@ public interface Promise<T> {
    *
    * import com.google.common.collect.Lists;
    *
-   * import java.util.concurrent.CountDownLatch;
    * import java.util.concurrent.TimeUnit;
    * import java.util.Arrays;
    * import java.util.List;
@@ -434,20 +430,15 @@ public interface Promise<T> {
    *
    *   public static void main(String... args) throws Exception {
    *     CaseService service = new CaseService();
-   *     CountDownLatch latch = new CountDownLatch(1);
    *     List<String> events = Lists.newLinkedList();
    *
    *     ExecHarness.runSingle(c ->
    *       Promise.value("foo")
    *        .nextOp(v ->
    *          service.toUpper(v, events)
-   *            .next(() ->
-   *              latch.countDown()
-   *            )
    *        )
    *        .then(v -> events.add(v))
    *     );
-   *     latch.await(1, TimeUnit.SECONDS);
    *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
    * }

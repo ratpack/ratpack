@@ -385,6 +385,8 @@ class PromiseOperationsSpec extends Specification {
         return Operation.of {
           events << "one"
         }
+      }.next { v ->
+        events << v
       }.nextOp { v ->
         return Operation.of {
           events << "two"
@@ -395,6 +397,8 @@ class PromiseOperationsSpec extends Specification {
         Operation.of {
           events << "three"
         }
+      }.next { v ->
+        events << v
       }.operation { v ->
         events << "four"
       }.next {
@@ -403,7 +407,7 @@ class PromiseOperationsSpec extends Specification {
     }
 
     then:
-    events == ["one", "two", "three", "four", "five", "complete"]
+    events == ["one", "foo", "two", "three", "oof", "four", "five", "complete"]
   }
 
 }
