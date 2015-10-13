@@ -318,7 +318,7 @@ file("src/assets").eachDir { File dir ->
 }
 
 tasks.withType(com.github.jrubygradle.JRubyExec) {
-  maxHeapSize "256m"
+  maxHeapSize "128m"
 }
 
 task packageManual(type: Sync) {
