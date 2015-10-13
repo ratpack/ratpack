@@ -16,16 +16,28 @@
 
 package ratpack.api;
 
+import ratpack.exec.Operation;
+import ratpack.exec.Promise;
+
 import java.lang.annotation.*;
 
 /**
- * Declares that a method is non blocking, making no guarantees about when it will return.
+ * Declares that a method or function-like method parameter is non-blocking and can freely use {@link Promise} and other async constructs.
  * <p>
- * Callers of non blocking methods cannot assume anything about what was done before the method returned.
- * In other words, non blocking methods are free to do their work on other threads and return from the method immediately.
+ * If this annotation is present on a method, it indicates that the method may be asynchronous.
+ * That is, it is not necessarily expected to have completed its logical work when the method returns.
+ * The method must however use {@link Promise}, {@link Operation}, or other execution mechanisms to perform asynchronous work.
+ * <p>
+ * Most such methods are invoked as part of Ratpack.
+ * If you need to invoke such a method, do so as part of a discrete {@link Operation}.
+ * <p>
+ * If this annotation is present on a function type method parameter, it indicates that the annotated function may be asynchronous.
+ * Similarly, if you need to invoke such a parameter, do so as part of a discrete {@link Operation}.
+ * <p>
+ * <b>Note:</b> the ability to annotate method parameters with this annotation was added in version {@code 1.1.0}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.PARAMETER})
 public @interface NonBlocking {
 }

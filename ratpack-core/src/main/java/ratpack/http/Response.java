@@ -242,7 +242,7 @@ public interface Response {
    * @param responseFinalizer the action to execute on the response.
    * @return {@code this}
    */
-  Response beforeSend(Action<? super Response> responseFinalizer);
+  Response beforeSend(@NonBlocking Action<? super Response> responseFinalizer);
 
   /**
    * Prevents the response from being compressed.
