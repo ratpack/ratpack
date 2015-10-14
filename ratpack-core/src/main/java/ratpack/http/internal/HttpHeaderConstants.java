@@ -30,6 +30,7 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence ACCEPT = HttpHeaderNames.ACCEPT;
   public static final CharSequence LAST_MODIFIED = HttpHeaderNames.LAST_MODIFIED;
   public static final CharSequence CONNECTION = HttpHeaderNames.CONNECTION;
+  public static final CharSequence CLOSE = HttpHeaderValues.CLOSE;
   public static final CharSequence KEEP_ALIVE = HttpHeaderValues.KEEP_ALIVE;
   public static final CharSequence CONTENT_ENCODING = HttpHeaderNames.CONTENT_ENCODING;
   public static final CharSequence IDENTITY = HttpHeaderValues.IDENTITY;

@@ -20,8 +20,10 @@ import io.netty.buffer.Unpooled
 import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
+import static io.netty.handler.codec.http.HttpHeaders.Values.CLOSE
 import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
@@ -293,6 +295,24 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       headers.get("foo") == "1:2:3"
+    }
+  }
+
+  def "can set connection close response header"() {
+    given:
+    handlers {
+      get {
+        response.headers.set(CONNECTION, CLOSE)
+        response.send()
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    with(response) {
+      headers.get(CONNECTION) == CLOSE
     }
   }
 }

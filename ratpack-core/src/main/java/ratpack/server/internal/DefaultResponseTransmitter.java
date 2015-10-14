@@ -55,9 +55,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
   private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
-  private final boolean isKeepAlive;
   private final boolean isSsl;
 
+  private boolean isKeepAlive;
   private Instant stopTime;
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
@@ -77,6 +77,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private ChannelFuture pre(HttpResponseStatus responseStatus) {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
+
+      if (responseHeaders.contains(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.CLOSE, true)) {
+        isKeepAlive = false;
+      }
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
 
