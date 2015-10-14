@@ -16,10 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.exec.internal.CachingUpstream;
-import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.internal.DefaultOperation;
-import ratpack.exec.internal.DefaultPromise;
+import ratpack.exec.internal.*;
 import ratpack.func.*;
 
 import java.util.Objects;
@@ -335,7 +332,161 @@ public interface Promise<T> {
     return flatMap(t -> Blocking.op(action.curry(t)).map(() -> t));
   }
 
+  /**
+   * Replaces {@code this} promise with the provided promise.
+   * <p>
+   * This is simply a more convenient form using using {@link #flatMap(Function)}.
+   *
+   * @param next the promise to replace {@code this} with
+   * @return a promise
+   * @deprecated replaced by {@link #replace(Promise)} as of 1.1.0
+   */
+  @Deprecated
   default <O> Promise<O> next(Promise<O> next) {
+    return flatMap(in -> next);
+  }
+
+  /**
+   * Executes the provided {@link Action} with the promised value as input.
+   * <p>
+   * This method is useful for executing code upon a promised value without modifying the stream.
+   * For example, persisting an intermediate value in a stream before continuing.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> events = Lists.newLinkedList();
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .next(v -> {
+   *          Promise.value(v)
+   *            .map(String::toUpperCase)
+   *            .then(u -> {
+   *              events.add(u);
+   *            });
+   *        })
+   *        .then(v -> events.add(v))
+   *     );
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
+   *   }
+   * }
+   * }</pre>
+   * @param action the action to execute with the promised value
+   * @return a promise for the original value
+   * @see #nextOp(Function)
+   * @since 1.1.0
+   */
+  default Promise<T> next(Action<? super T> action) {
+    return nextOp(v ->
+      Operation.of(() ->
+        action.execute(v)
+      )
+    );
+  }
+
+
+  /**
+   * Maps the promised value to an {@link Operation} and executes it asynchronously.
+   * <p>
+   * This method is useful when calling a void method that will execute upon a promise.
+   * For example, calling a service method to persist a data object constructured via a promise.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Operation;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static class CaseService {
+   *
+   *     public Operation toUpper(String value, List<String> values) {
+   *       return Operation.of(() ->
+   *         values.add(value.toUpperCase())
+   *       );
+   *     }
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     CaseService service = new CaseService();
+   *     List<String> events = Lists.newLinkedList();
+   *
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .nextOp(v ->
+   *          service.toUpper(v, events)
+   *        )
+   *        .then(v -> events.add(v))
+   *     );
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
+   *   }
+   * }
+   * }</pre>
+   * @param function the function that maps the promised value to an {@link Operation}
+   * @return a promise for the original value
+   * @see #next(Action)
+   * @since 1.1.0
+   */
+  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
+    return transform(up -> down -> up.connect(
+        down.<T>onSuccess(value -> function.apply(value).onError(down::error).then(() -> down.success(value)))
+      )
+    );
+  }
+
+  /**
+   * Replaces {@code this} promise with the provided promise.
+   * <p>
+   * This is simply a more convenient form of {@link #flatMap(Function)}.
+   * This method is useful when chaining promises that are not dependent upon each other.
+   * <p>
+   * When chaining promises with this method, upstream errors are propagated to the downstream promise.
+   *
+   *  <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .replace(Promise.value("bar"))
+   *     );
+   *
+   *     assertEquals("bar", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param next the promise to replace {@code this} with
+   * @return a promise
+   * @since 1.1.0
+   */
+  default <O> Promise<O> replace(Promise<O> next) {
     return flatMap(in -> next);
   }
 

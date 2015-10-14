@@ -344,4 +344,70 @@ class PromiseOperationsSpec extends Specification {
     events == ["!", "complete"]
   }
 
+  def "can apply action to promised value before continuing"() {
+    when:
+    exec {
+      Promise.value("foo").next { v ->
+        events << "one"
+      }.map { v ->
+        v.reverse()
+      }.next { v ->
+        events << "two"
+      }.then { v ->
+        events << "three"
+      }
+    }
+
+    then:
+    events == ["one", "two", "three", "complete"]
+  }
+
+  def "can execute async actions on promise"() {
+    when:
+    exec {
+      Promise.value("foo").next { v ->
+        Promise.of { d -> Thread.start { d.success(v) } }.then { v2 ->
+          events << "one"
+        }
+      }.then { v ->
+        events << "two"
+      }
+    }
+
+    then:
+    events == ["one", "two", "complete"]
+  }
+
+  def "can apply operation to promised value before continuing"() {
+    when:
+    exec {
+      Promise.value("foo").nextOp { v ->
+        return Operation.of {
+          events << "one"
+        }
+      }.next { v ->
+        events << v
+      }.nextOp { v ->
+        return Operation.of {
+          events << "two"
+        }
+      }.map { v ->
+        return v.reverse()
+      }.nextOp { v ->
+        Operation.of {
+          events << "three"
+        }
+      }.next { v ->
+        events << v
+      }.operation { v ->
+        events << "four"
+      }.next {
+        events << "five"
+      }.then()
+    }
+
+    then:
+    events == ["one", "foo", "two", "three", "oof", "four", "five", "complete"]
+  }
+
 }
