@@ -16,7 +16,11 @@
 
 package ratpack.exec;
 
-import ratpack.exec.internal.*;
+import ratpack.api.NonBlocking;
+import ratpack.exec.internal.CachingUpstream;
+import ratpack.exec.internal.DefaultExecution;
+import ratpack.exec.internal.DefaultOperation;
+import ratpack.exec.internal.DefaultPromise;
 import ratpack.func.*;
 
 import java.util.Objects;
@@ -333,9 +337,9 @@ public interface Promise<T> {
   }
 
   /**
-   * Replaces {@code this} promise with the provided promise.
+   * Deprecated.
    * <p>
-   * This is simply a more convenient form using using {@link #flatMap(Function)}.
+   * Use {@link #replace(Promise)}.
    *
    * @param next the promise to replace {@code this} with
    * @return a promise
@@ -347,10 +351,12 @@ public interface Promise<T> {
   }
 
   /**
-   * Executes the provided {@link Action} with the promised value as input.
+   * Executes the provided, potentially asynchronous, {@link Action} with the promised value as input.
    * <p>
-   * This method is useful for executing code upon a promised value without modifying the stream.
-   * For example, persisting an intermediate value in a stream before continuing.
+   * This method can be used when needing to perform an action with the promised value, without substituting the promised value.
+   * That is, the exact same object provided to the given action will be propagated downstream.
+   * <p>
+   * The given action is executed within an {@link Operation}, allowing it to perform asynchronous work.
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -370,36 +376,36 @@ public interface Promise<T> {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
    *       Promise.value("foo")
-   *        .next(v -> {
-   *          Promise.value(v)
+   *        .next(v ->
+   *          Promise.value(v) // may be async
    *            .map(String::toUpperCase)
-   *            .then(events::add);
-   *        })
-   *        .then(v -> events.add(v))
+   *            .then(events::add)
+   *        )
+   *        .then(events::add)
    *     );
    *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
    * }
    * }</pre>
+   *
    * @param action the action to execute with the promised value
    * @return a promise for the original value
    * @see #nextOp(Function)
    * @since 1.1.0
    */
-  default Promise<T> next(Action<? super T> action) {
+  default Promise<T> next(@NonBlocking Action<? super T> action) {
     return nextOp(v ->
-      Operation.of(() ->
-        action.execute(v)
-      )
+        Operation.of(() ->
+            action.execute(v)
+        )
     );
   }
 
 
   /**
-   * Maps the promised value to an {@link Operation} and executes it asynchronously.
+   * Executes the operation returned by the given function.
    * <p>
-   * This method is useful when calling a void method that will execute upon a promise.
-   * For example, calling a service method to persist a data object constructured via a promise.
+   * This method can be used when needing to perform an operation returned by another object, based on the promised value.
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -418,11 +424,8 @@ public interface Promise<T> {
    * public class Example {
    *
    *   public static class CaseService {
-   *
    *     public Operation toUpper(String value, List<String> values) {
-   *       return Operation.of(() ->
-   *         values.add(value.toUpperCase())
-   *       );
+   *       return Operation.of(() -> values.add(value.toUpperCase()));
    *     }
    *   }
    *
@@ -432,41 +435,40 @@ public interface Promise<T> {
    *
    *     ExecHarness.runSingle(c ->
    *       Promise.value("foo")
-   *        .nextOp(v ->
-   *          service.toUpper(v, events)
-   *        )
+   *        .nextOp(v -> service.toUpper(v, events))
    *        .then(events::add)
    *     );
+   *
    *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
    * }
    * }</pre>
-   * @param function the function that maps the promised value to an {@link Operation}
+   *
+   * @param function a function that returns an operation that acts on the promised value
    * @return a promise for the original value
    * @see #next(Action)
    * @since 1.1.0
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
-    return transform(up -> down ->
-      up.connect(
+    return transform(up -> down -> up.connect(
         down.<T>onSuccess(value ->
-          function.apply(value)
-            .onError(down::error)
-            .then(() ->
-              down.success(value)
-            )
+            function.apply(value)
+              .onError(down::error)
+              .then(() ->
+                  down.success(value)
+              )
         )
       )
     );
   }
 
   /**
-   * Replaces {@code this} promise with the provided promise.
+   * Replaces {@code this} promise with the provided promise for downstream subscribers.
    * <p>
-   * This is simply a more convenient form of {@link #flatMap(Function)}.
-   * This method is useful when chaining promises that are not dependent upon each other.
+   * This is simply a more convenient form of {@link #flatMap(Function)}, where the given promise is returned.
+   * This method can be used when a subsequent operation on a promise isn't dependent on the actual promised value.
    * <p>
-   * When chaining promises with this method, upstream errors are propagated to the downstream promise.
+   * If the upstream promise fails, its error will propagate downstream and the given promise will never be subscribed to.
    *
    *  <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -476,13 +478,17 @@ public interface Promise<T> {
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
+   *   private static String value;
+   *
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
    *         Promise.value("foo")
+   *           .next(v -> value = v)
    *           .replace(Promise.value("bar"))
    *     );
    *
    *     assertEquals("bar", result.getValue());
+   *     assertEquals("foo", value);
    *   }
    * }
    * }</pre>
