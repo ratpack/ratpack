@@ -373,9 +373,7 @@ public interface Promise<T> {
    *        .next(v -> {
    *          Promise.value(v)
    *            .map(String::toUpperCase)
-   *            .then(u -> {
-   *              events.add(u);
-   *            });
+   *            .then(events::add);
    *        })
    *        .then(v -> events.add(v))
    *     );
@@ -437,7 +435,7 @@ public interface Promise<T> {
    *        .nextOp(v ->
    *          service.toUpper(v, events)
    *        )
-   *        .then(v -> events.add(v))
+   *        .then(events::add)
    *     );
    *     assertEquals(Arrays.asList("FOO", "foo"), events);
    *   }
@@ -449,8 +447,15 @@ public interface Promise<T> {
    * @since 1.1.0
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
-    return transform(up -> down -> up.connect(
-        down.<T>onSuccess(value -> function.apply(value).onError(down::error).then(() -> down.success(value)))
+    return transform(up -> down ->
+      up.connect(
+        down.<T>onSuccess(value ->
+          function.apply(value)
+            .onError(down::error)
+            .then(() ->
+              down.success(value)
+            )
+        )
       )
     );
   }
