@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 
 public class RatpackTemplateCache implements TemplateCache {
 
-  private final boolean reloadable;
+  private boolean reloadable;
   private final Cache<TemplateKey, Template> cache;
 
   public RatpackTemplateCache(boolean reloadable, Cache<TemplateKey, Template> cache) {
@@ -53,5 +53,11 @@ public class RatpackTemplateCache implements TemplateCache {
     } catch (ExecutionException e) {
       throw new IOException("Can't parse " + source, e);
     }
+  }
+
+  @Override
+  public TemplateCache setReload(boolean reload) {
+    this.reloadable = reload;
+    return this;
   }
 }
