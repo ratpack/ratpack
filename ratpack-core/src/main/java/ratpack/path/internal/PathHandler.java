@@ -33,12 +33,12 @@ public class PathHandler implements Handler {
   private static final TypeToken<PathBinding> PATH_BINDING_TYPE_TOKEN = TypeToken.of(PathBinding.class);
 
   private final PathBinder binder;
-  private final Handler handler;
+  private final Handler[] handler;
   private final ConcurrentMap<PathBinding, Registry> cache = new BoundedConcurrentHashMap<>(2048, Runtime.getRuntime().availableProcessors());
 
   public PathHandler(PathBinder binder, Handler handler) {
     this.binder = binder;
-    this.handler = handler;
+    this.handler = new Handler[]{handler};
   }
 
   private Registry tryBind(PathBinding binding) {

@@ -30,14 +30,14 @@ import java.util.concurrent.ExecutionException;
 public class FileSystemBindingHandler implements Handler {
 
   private final String path;
-  private final Handler handler;
+  private final Handler[] handler;
 
   private final static ConcurrentMap<FileSystemBinding, Registry> CACHE = new BoundedConcurrentHashMap<>(1024, Runtime.getRuntime().availableProcessors());
 
   public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
     if (serverConfig.isHasBaseDir()) {
       this.path = path;
-      this.handler = handler;
+      this.handler = new Handler[]{handler};
     } else {
       throw new BaseDirRequiredException("An application base directory is required to use this handler");
     }
