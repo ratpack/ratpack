@@ -18,6 +18,9 @@ package ratpack.groovy.template.internal;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.markup.MarkupTemplateEngine;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import ratpack.file.MimeTypes;
 import ratpack.groovy.template.MarkupTemplate;
 import ratpack.handling.Context;
@@ -25,25 +28,42 @@ import ratpack.render.RendererSupport;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 public class MarkupTemplateRenderer extends RendererSupport<MarkupTemplate> {
 
   private final MarkupTemplateEngine engine;
+  private final ByteBufAllocator byteBufAllocator;
 
   @Inject
-  public MarkupTemplateRenderer(MarkupTemplateEngine engine) {
+  public MarkupTemplateRenderer(MarkupTemplateEngine engine, ByteBufAllocator byteBufAllocator) {
     this.engine = engine;
+    this.byteBufAllocator = byteBufAllocator;
   }
 
   @Override
   public void render(Context context, MarkupTemplate template) throws Exception {
     String contentType = template.getContentType();
     contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
-    try {
 
+    try {
       Template compiledTemplate = engine.createTemplateByPath(template.getName());
       Writable boundTemplate = compiledTemplate.make(template.getModel());
-      context.getResponse().send(contentType, boundTemplate.toString());
+
+      ByteBuf byteBuf = byteBufAllocator.directBuffer();
+      try {
+        OutputStream outputStream = new ByteBufOutputStream(byteBuf);
+        Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        boundTemplate.writeTo(writer);
+      } catch (Exception e) {
+        byteBuf.release();
+        throw e;
+      }
+
+      context.getResponse().send(contentType, byteBuf);
     } catch (IOException e) {
       context.error(e);
     }
