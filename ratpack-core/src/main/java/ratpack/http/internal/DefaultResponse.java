@@ -234,6 +234,14 @@ public class DefaultResponse implements Response {
     return this;
   }
 
+  @Override
+  public Response contentTypeIfNotSet(CharSequence contentType) {
+    if (!contentTypeSet) {
+      contentType(contentType);
+    }
+    return this;
+  }
+
   public void send(String text) {
     ByteBuf byteBuf = ByteBufUtil.encodeString(byteBufAllocator, CharBuffer.wrap(text), CharsetUtil.UTF_8);
     contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8).send(byteBuf);
