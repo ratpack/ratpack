@@ -32,24 +32,22 @@ public class PathHandler implements Handler {
 
   private static final TypeToken<PathBinding> PATH_BINDING_TYPE_TOKEN = TypeToken.of(PathBinding.class);
 
+  private static final int CACHE_SIZE = Integer.parseInt(System.getProperty("ratpack.cachesize.path", "10000"));
+
   private final PathBinder binder;
   private final Handler[] handler;
-  private final ConcurrentMap<PathBinding, Registry> cache = new BoundedConcurrentHashMap<>(2048, Runtime.getRuntime().availableProcessors());
+  private final ConcurrentMap<PathBinding, Registry> cache = new BoundedConcurrentHashMap<>(CACHE_SIZE, Runtime.getRuntime().availableProcessors());
 
   public PathHandler(PathBinder binder, Handler handler) {
     this.binder = binder;
     this.handler = new Handler[]{handler};
   }
 
-  private Registry tryBind(PathBinding binding) {
-    return binder.bind(binding).map(Registry::single).orElse(Registry.empty());
-  }
-
   public void handle(Context context) throws ExecutionException {
     PathBinding pathBinding = context.get(PATH_BINDING_TYPE_TOKEN);
     Registry registry = cache.get(pathBinding);
     if (registry == null) {
-      registry = cache.computeIfAbsent(pathBinding, this::tryBind);
+      registry = cache.computeIfAbsent(pathBinding, binding -> binder.bind(binding).map(Registry::single).orElse(Registry.empty()));
     }
 
     if (registry == EmptyRegistry.INSTANCE) {
