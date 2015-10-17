@@ -52,7 +52,7 @@ public class SimpleMutableRegistry implements MutableRegistry {
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     Iterator<? extends RegistryEntry<?>> iterator = entries.iterator();
     while (iterator.hasNext()) {
-      if (TypeAssignabilityCache.isAssignableFrom(iterator.next().getType(), type)) {
+      if (TypeCaching.isAssignableFrom(iterator.next().getType(), type)) {
         iterator.remove();
       }
     }

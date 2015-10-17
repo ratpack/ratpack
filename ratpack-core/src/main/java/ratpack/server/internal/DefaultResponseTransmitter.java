@@ -21,6 +21,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioStream;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -29,9 +30,9 @@ import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
+import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
@@ -44,6 +45,8 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
+
+  static final AttributeKey<DefaultResponseTransmitter> ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
   private static final Runnable NOOP_RUNNABLE = () -> {
@@ -242,6 +245,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     } else {
       notifyListeners(responseStatus, channel.newSucceededFuture());
     }
+    channel.attr(ATTRIBUTE_KEY).remove();
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {

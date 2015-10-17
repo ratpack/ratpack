@@ -53,7 +53,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
-  private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
 
   static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(RequestBodyAccumulator.class.getName());
@@ -136,7 +135,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController);
 
-    ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
+    ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 
     Action<Action<Object>> subscribeHandler = thing -> {
       transmitted.set(true);
@@ -206,7 +205,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).get().writabilityChanged();
+    ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().writabilityChanged();
   }
 
   private boolean isIgnorableException(Throwable throwable) {
