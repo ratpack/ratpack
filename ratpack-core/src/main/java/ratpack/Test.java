@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.event.internal;
+package ratpack;
 
-/**
- * Note: a controller only fires an event once.
- *
- * After it's been fired, it cannot be fired again and new listeners cannot be added.
- *
- * They also do not employ any thread safety.
- */
-public interface EventController<T> {
+import ratpack.server.RatpackServer;
 
-  EventRegistry<T> getRegistry();
-
-  void fire(T payload);
-
+public class Test {
+  public static void main(String[] args) throws Exception {
+    RatpackServer.start(s -> s
+      .handlers(c -> c
+        .get("foo", ctx -> {
+          ctx.render("out");
+        })
+      )
+    );
+  }
 }

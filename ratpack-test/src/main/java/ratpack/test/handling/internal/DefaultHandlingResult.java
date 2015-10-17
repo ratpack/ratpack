@@ -16,14 +16,14 @@
 
 package ratpack.test.handling.internal;
 
+import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Subscriber;
+import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
-import ratpack.event.internal.DefaultEventController;
-import ratpack.event.internal.EventController;
 import ratpack.exec.ExecController;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
@@ -48,6 +48,7 @@ import ratpack.test.handling.UnexpectedHandlerException;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -75,8 +76,6 @@ public class DefaultHandlingResult implements HandlingResult {
     this.results = results;
     final CountDownLatch latch = results.getLatch();
 
-    final EventController<RequestOutcome> eventController = new DefaultEventController<>();
-
     final Handler next = context -> {
       calledNext = true;
       results.getLatch().countDown();
@@ -92,20 +91,23 @@ public class DefaultHandlingResult implements HandlingResult {
     };
 
     ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
+
+      private List<Action<? super RequestOutcome>> outcomeListeners = Lists.newArrayList();
+
       @Override
       public void transmit(HttpResponseStatus status, ByteBuf byteBuf) {
         sentResponse = true;
         body = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(body);
         byteBuf.release();
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, new DefaultStatus(status)), Instant.now()));
+        fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, new DefaultStatus(status)), Instant.now()));
         latch.countDown();
       }
 
       @Override
       public void transmit(HttpResponseStatus status, Path file) {
         sentFile = file;
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, DefaultHandlingResult.this.status), Instant.now()));
+        fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, DefaultHandlingResult.this.status), Instant.now()));
         latch.countDown();
       }
 
@@ -113,14 +115,28 @@ public class DefaultHandlingResult implements HandlingResult {
       public Subscriber<ByteBuf> transmitter(HttpResponseStatus status) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
+
+      private void fire(RequestOutcome requestOutcome) {
+        for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
+          try {
+            outcomeListener.execute(requestOutcome);
+          } catch (Exception e) {
+            LoggerFactory.getLogger(DefaultHandlingResult.class).warn("request outcome listener " + outcomeListener + " threw exception", e);
+          }
+        }
+      }
+
+      @Override
+      public void addOutcomeListener(Action<? super RequestOutcome> action) {
+        outcomeListeners.add(action);
+      }
     };
 
     ExecController execController = registry.get(ExecController.class);
     Registry effectiveRegistry = Registry.single(Stopper.class, stopper).join(registry);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, execController, next);
     requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, request, null, eventController.getRegistry()
-    );
+      applicationConstants, request, null, responseTransmitter, null);
     Response response = new DefaultResponse(responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
     requestConstants.response = response;
     DefaultContext.start(execController.getEventLoopGroup().next(), requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());

@@ -27,9 +27,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
+import ratpack.func.Action;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DoubleTransmissionException;
@@ -42,6 +42,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
@@ -54,24 +56,22 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final AtomicBoolean transmitted;
   private final Channel channel;
-  private final HttpRequest nettyRequest;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
-  private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
   private final boolean isSsl;
+
+  private List<Action<? super RequestOutcome>> outcomeListeners;
 
   private boolean isKeepAlive;
   private Instant stopTime;
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders) {
     this.transmitted = transmitted;
     this.channel = channel;
-    this.nettyRequest = nettyRequest;
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
-    this.requestOutcomeEventController = requestOutcomeEventController;
     this.isKeepAlive = HttpUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
@@ -249,16 +249,30 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {
-    if (requestOutcomeEventController.isHasListeners()) {
+    if (outcomeListeners != null) {
       future.addListener(ignore -> {
         SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
         RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
-        requestOutcomeEventController.fire(requestOutcome);
+        for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
+          try {
+            outcomeListener.execute(requestOutcome);
+          } catch (Exception e) {
+            LOGGER.warn("request outcome listener " + outcomeListener + " threw exception", e);
+          }
+        }
       });
     }
   }
 
   public void writabilityChanged() {
     onWritabilityChanged.run();
+  }
+
+  @Override
+  public void addOutcomeListener(Action<? super RequestOutcome> action) {
+    if (outcomeListeners == null) {
+      outcomeListeners = new ArrayList<>(1);
+    }
+    outcomeListeners.add(action);
   }
 }

@@ -26,8 +26,6 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
-import ratpack.event.internal.DefaultEventController
-import ratpack.handling.RequestOutcome
 import ratpack.server.internal.DefaultResponseTransmitter
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -57,12 +55,8 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
 
     HttpHeaders responseHeaders = mock(HttpHeaders)
 
-    DefaultEventController<RequestOutcome> eventController = mock(DefaultEventController)
-    when(eventController.hasListeners).thenReturn(false)
 
-    new DefaultResponseTransmitter(
-      new AtomicBoolean(), channel, nettyRequest, null, responseHeaders, eventController
-    ).transmitter(HttpResponseStatus.OK)
+    new DefaultResponseTransmitter(new AtomicBoolean(), channel, nettyRequest, null, responseHeaders).transmitter(HttpResponseStatus.OK)
   }
 
   @Override

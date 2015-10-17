@@ -25,14 +25,10 @@ import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecController;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.handling.RequestOutcome;
-import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
 import ratpack.handling.internal.ChainHandler;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DescribingHandler;
@@ -130,10 +126,9 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     );
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
-    final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders);
 
     ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 
@@ -142,10 +137,13 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
     };
 
-    final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
     final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, request, directChannelAccess, requestOutcomeEventController.getRegistry()
+      applicationConstants,
+      request,
+      channel,
+      responseTransmitter,
+      subscribeHandler
     );
 
     final Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);

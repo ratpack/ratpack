@@ -19,17 +19,18 @@ package ratpack.handling.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
-import ratpack.event.internal.EventRegistry;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
+import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Function;
@@ -63,6 +64,7 @@ import java.util.*;
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
+import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
 
@@ -85,13 +87,13 @@ public class DefaultContext implements Context {
     }
   }
 
-  public static class RequestConstants {
+  public static class RequestConstants implements DirectChannelAccess {
     private final ApplicationConstants applicationConstants;
-
     private final DefaultRequest request;
+    private final Channel channel;
+    private final ResponseTransmitter responseTransmitter;
+    private final Action<Action<Object>> onTakeOwnership;
 
-    private final DirectChannelAccess directChannelAccess;
-    private final EventRegistry<RequestOutcome> onCloseRegistry;
     private Execution execution;
 
     private final Deque<ChainIndex> indexes = new ArrayDeque<>();
@@ -100,14 +102,26 @@ public class DefaultContext implements Context {
     public Context context;
     public Handler handler;
 
-    public RequestConstants(
-      ApplicationConstants applicationConstants, DefaultRequest request,
-      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
-    ) {
+    public RequestConstants(ApplicationConstants applicationConstants, DefaultRequest request, Channel channel, ResponseTransmitter responseTransmitter, Action<Action<Object>> onTakeOwnership) {
       this.applicationConstants = applicationConstants;
       this.request = request;
-      this.directChannelAccess = directChannelAccess;
-      this.onCloseRegistry = onCloseRegistry;
+      this.channel = channel;
+      this.responseTransmitter = responseTransmitter;
+      this.onTakeOwnership = onTakeOwnership;
+    }
+
+    @Override
+    public Channel getChannel() {
+      return channel;
+    }
+
+    @Override
+    public void takeOwnership(Action<Object> messageReceiver) {
+      try {
+        onTakeOwnership.execute(messageReceiver);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
     }
   }
 
@@ -338,12 +352,12 @@ public class DefaultContext implements Context {
 
   @Override
   public void onClose(Action<? super RequestOutcome> callback) {
-    requestConstants.onCloseRegistry.register(callback);
+    requestConstants.responseTransmitter.addOutcomeListener(callback);
   }
 
   @Override
   public DirectChannelAccess getDirectChannelAccess() {
-    return requestConstants.directChannelAccess;
+    return requestConstants;
   }
 
   public void redirect(String location) {
