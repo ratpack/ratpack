@@ -24,7 +24,7 @@ The following people have provided significant contributions.
 
 * [Tim Berglund](https://github.com/tlberglund)
 * [Peter Ledbrook](https://github.com/pledbrook)
-* [Marco Vermeulen](https://github.com/marcoVermeulen)
+* [Marco Vermeulen](https://github.com/marc0der)
 * [Paul Fairless](https://github.com/paulfairless)
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
