@@ -23,7 +23,6 @@ import ratpack.path.PathTokens;
 public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
-  private final String bindingWithSlash;
   private final String pastBinding;
 
   private final PathTokens tokens;
@@ -53,10 +52,10 @@ public class DefaultPathBinding implements PathBinding {
 
   public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
     this.binding = binding;
-    this.bindingWithSlash = binding.concat("/");
     this.tokens = DefaultPathTokens.of(tokens);
     this.allTokens = parent.getAllTokens().isEmpty() ? this.tokens : DefaultPathTokens.of(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
 
+    String bindingWithSlash = binding.concat("/");
     String path = parent.getPastBinding();
     if (path.equals(binding)) {
       pastBinding = "";

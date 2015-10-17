@@ -26,11 +26,20 @@ import java.nio.file.Path;
 public class PathTemplateSource implements TemplateSource {
 
   private final Path path;
-  private final Path bindingPath;
+  private final String filename;
+  private final long lastModified;
 
   public PathTemplateSource(Path path, Path bindingPath) {
     this.path = path;
-    this.bindingPath = bindingPath;
+    this.filename = bindingPath.relativize(path).toString();
+
+    long lastModified1;
+    try {
+      lastModified1 = Files.getLastModifiedTime(path).toMillis();
+    } catch (IOException e) {
+      lastModified1 = -1;
+    }
+    this.lastModified = lastModified1;
   }
 
   @Override
@@ -40,15 +49,31 @@ public class PathTemplateSource implements TemplateSource {
 
   @Override
   public String filename() {
-    return bindingPath.relativize(path).toString();
+    return filename;
   }
 
   @Override
   public long lastModified() {
-    try {
-      return Files.getLastModifiedTime(path).toMillis();
-    } catch (IOException e) {
-      return -1;
+    return lastModified;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    PathTemplateSource that = (PathTemplateSource) o;
+    return path.equals(that.path) && filename.equals(that.filename);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = path.hashCode();
+    result = 31 * result + filename.hashCode();
+    return result;
   }
 }

@@ -16,18 +16,13 @@
 
 package ratpack.http.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.http.MediaType;
+import ratpack.util.internal.BoundedConcurrentHashMap;
 
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutionException;
-
-import static ratpack.util.Exceptions.toException;
-import static ratpack.util.Exceptions.uncheck;
+import java.util.concurrent.ConcurrentMap;
 
 public class DefaultMediaType implements MediaType {
 
@@ -37,24 +32,19 @@ public class DefaultMediaType implements MediaType {
   private final ImmutableListMultimap<String, String> params;
   private final String string;
 
-  private static final int CACHE_SIZE = 200;
+  private static final int CACHE_SIZE = 1024;
 
-  private static final Cache<String, MediaType> CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
+  private static final ConcurrentMap<String, MediaType> CACHE = new BoundedConcurrentHashMap<>(CACHE_SIZE, Runtime.getRuntime().availableProcessors());
 
   public static MediaType get(final String contentType) {
-    String contentType1 = contentType;
-    if (contentType1 == null) {
-      contentType1 = "";
+    String trimmed = contentType;
+    if (trimmed == null) {
+      trimmed = "";
     } else {
-      contentType1 = contentType1.trim();
+      trimmed = trimmed.trim();
     }
 
-    final String finalContentType = contentType1;
-    try {
-      return CACHE.get(contentType1, () -> new DefaultMediaType(finalContentType));
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw uncheck(toException(e.getCause()));
-    }
+    return CACHE.computeIfAbsent(trimmed, DefaultMediaType::new);
   }
 
   public DefaultMediaType(String value) {
@@ -75,7 +65,7 @@ public class DefaultMediaType implements MediaType {
       } else {
         type = null;
         params = ImmutableListMultimap.of();
-        string ="";
+        string = "";
       }
     }
   }

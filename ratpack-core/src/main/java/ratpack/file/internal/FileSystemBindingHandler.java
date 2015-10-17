@@ -16,16 +16,15 @@
 
 package ratpack.file.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.server.ServerConfig;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
+import ratpack.util.internal.BoundedConcurrentHashMap;
 
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 public class FileSystemBindingHandler implements Handler {
@@ -33,14 +32,7 @@ public class FileSystemBindingHandler implements Handler {
   private final String path;
   private final Handler handler;
 
-  private final static LoadingCache<FileSystemBinding, Registry> CACHE = CacheBuilder.newBuilder()
-    .maximumSize(1024)
-    .build(new CacheLoader<FileSystemBinding, Registry>() {
-      @Override
-      public Registry load(FileSystemBinding key) throws Exception {
-        return Registry.single(FileSystemBinding.class, key);
-      }
-    });
+  private final static ConcurrentMap<FileSystemBinding, Registry> CACHE = new BoundedConcurrentHashMap<>(1024, Runtime.getRuntime().availableProcessors());
 
   public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
     if (serverConfig.isHasBaseDir()) {
@@ -59,7 +51,11 @@ public class FileSystemBindingHandler implements Handler {
     if (binding == null) {
       context.clientError(404);
     } else {
-      context.insert(CACHE.get(binding), handler);
+      context.insert(CACHE.computeIfAbsent(binding, FileSystemBindingHandler::registry), handler);
     }
+  }
+
+  private static Registry registry(FileSystemBinding binding) {
+    return Registry.single(FileSystemBinding.class, binding);
   }
 }

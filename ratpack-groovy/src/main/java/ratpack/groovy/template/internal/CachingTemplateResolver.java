@@ -16,30 +16,26 @@
 
 package ratpack.groovy.template.internal;
 
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import groovy.text.markup.MarkupTemplateEngine;
-import ratpack.util.Exceptions;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplateResolver {
 
-  private final LoadingCache<String, URL> urlCache = CacheBuilder.newBuilder().build(new CacheLoader<String, URL>() {
-    @Override
-    public URL load(String key) throws Exception {
-      return doLoad(key);
-    }
-  });
+  private final ConcurrentMap<String, URL> urlCache = new ConcurrentHashMap<>();
 
-  private URL doLoad(String key) throws MalformedURLException {
-    return templatesDir.resolve(key).toUri().toURL();
+  private URL doLoad(String key) {
+    try {
+      return templatesDir.resolve(key).toUri().toURL();
+    } catch (MalformedURLException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private final Path templatesDir;
@@ -50,11 +46,6 @@ public class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplat
 
   @Override
   public URL resolveTemplate(String templatePath) throws IOException {
-    try {
-      return urlCache.get(templatePath);
-    } catch (ExecutionException e) {
-      Throwables.propagateIfInstanceOf(e, IOException.class);
-      throw Exceptions.uncheck(e);
-    }
+    return urlCache.computeIfAbsent(templatePath, this::doLoad);
   }
 }
