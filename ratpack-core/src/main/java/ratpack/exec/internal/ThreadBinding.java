@@ -16,6 +16,7 @@
 
 package ratpack.exec.internal;
 
+import io.netty.util.concurrent.FastThreadLocal;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecutionException;
 import ratpack.exec.UnmanagedThreadException;
@@ -32,7 +33,7 @@ public class ThreadBinding {
     this.execController = execController;
   }
 
-  private static final ThreadLocal<ThreadBinding> STORAGE = new ThreadLocal<>();
+  private static final FastThreadLocal<ThreadBinding> STORAGE = new FastThreadLocal<>();
 
   static void bind(boolean compute, ExecController execController) {
     STORAGE.set(new ThreadBinding(compute, execController));

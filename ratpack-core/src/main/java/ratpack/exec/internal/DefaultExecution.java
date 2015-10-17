@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
+import io.netty.util.concurrent.FastThreadLocal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -45,7 +46,7 @@ public class DefaultExecution implements Execution {
 
   public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
-  public final static ThreadLocal<DefaultExecution> THREAD_BINDING = new ThreadLocal<>();
+  public final static FastThreadLocal<DefaultExecution> THREAD_BINDING = new FastThreadLocal<>();
 
   private ExecStream execStream;
 
