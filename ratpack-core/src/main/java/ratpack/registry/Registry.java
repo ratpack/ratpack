@@ -132,7 +132,12 @@ public interface Registry {
    * @throws NotInRegistryException If no object of this type can be returned
    */
   default <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return maybeGet(type).orElseThrow(() -> new NotInRegistryException(type));
+    Optional<O> o = maybeGet(type);
+    if (o.isPresent()) {
+      return o.get();
+    } else {
+      throw new NotInRegistryException(type);
+    }
   }
 
   /**
