@@ -245,12 +245,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     } else {
       notifyListeners(responseStatus, channel.newSucceededFuture());
     }
-    channel.attr(ATTRIBUTE_KEY).remove();
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {
     if (outcomeListeners != null) {
       future.addListener(ignore -> {
+        channel.attr(ATTRIBUTE_KEY).remove();
         SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
         RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
         for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
