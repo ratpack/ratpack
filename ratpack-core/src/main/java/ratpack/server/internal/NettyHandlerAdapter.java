@@ -50,8 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
-
-  static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(RequestBodyAccumulator.class.getName());
+  private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(RequestBodyAccumulator.class.getName());
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -151,6 +150,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
       bodyReader.close();
+      channel.attr(BODY_ACCUMULATOR_KEY).remove();
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
