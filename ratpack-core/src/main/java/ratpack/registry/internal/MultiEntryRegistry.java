@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 
 public class MultiEntryRegistry implements Registry {
 
@@ -41,8 +42,9 @@ public class MultiEntryRegistry implements Registry {
   }
 
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     for (RegistryEntry<?> entry : entries) {
-      if (TypeCaching.isAssignableFrom(type, entry.getType())) {
+      if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
         return Optional.of(cast);
       }
@@ -53,8 +55,9 @@ public class MultiEntryRegistry implements Registry {
 
   public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
     ImmutableList.Builder<RegistryEntry<?>> builder = null;
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     for (RegistryEntry<?> entry : entries) {
-      if (TypeCaching.isAssignableFrom(type, entry.getType())) {
+      if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
         if (builder == null) {
           builder = ImmutableList.builder();
         }
@@ -71,8 +74,9 @@ public class MultiEntryRegistry implements Registry {
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     for (RegistryEntry<?> entry : entries) {
-      if (TypeCaching.isAssignableFrom(type, entry.getType())) {
+      if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
         RegistryEntry<? extends T> cast = Types.cast(entry);
         O result = function.apply(cast.get());
         if (result != null) {

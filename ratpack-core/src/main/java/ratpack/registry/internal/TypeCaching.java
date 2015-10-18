@@ -27,7 +27,12 @@ import java.util.function.Function;
 public abstract class TypeCaching {
 
   private static class Impl {
-    boolean isAssignableFrom(TypeToken<?> left, TypeToken<?> right) {
+
+    ConcurrentMap<TypeToken<?>, Boolean> cache(TypeToken<?> left) {
+      return null;
+    }
+
+    boolean isAssignableFrom(ConcurrentMap<TypeToken<?>, Boolean> cache, TypeToken<?> left, TypeToken<?> right) {
       return left.isAssignableFrom(right);
     }
 
@@ -45,11 +50,17 @@ public abstract class TypeCaching {
     private final ConcurrentMap<Type, TypeToken<?>> typeTokensCache = new ConcurrentHashMap<>();
     private final Function<Type, TypeToken<?>> typeTokenProducer = TypeToken::of;
 
-    boolean isAssignableFrom(TypeToken<?> left, TypeToken<?> right) {
+    @Override
+    ConcurrentMap<TypeToken<?>, Boolean> cache(TypeToken<?> left) {
       ConcurrentMap<TypeToken<?>, Boolean> forLeft = assignabilityCache.get(left);
       if (forLeft == null) {
         forLeft = assignabilityCache.computeIfAbsent(left, assignabilityIndexProducer);
       }
+      return forLeft;
+    }
+
+    @Override
+    boolean isAssignableFrom(ConcurrentMap<TypeToken<?>, Boolean> forLeft, TypeToken<?> left, TypeToken<?> right) {
       Boolean value = forLeft.get(right);
       if (value == null) {
         boolean assignableFrom = left.isAssignableFrom(right);
@@ -73,13 +84,16 @@ public abstract class TypeCaching {
 
   private static final Impl IMPL = ServerEnvironment.INSTANCE.isDevelopment() ? new Impl() : new CachingImpl();
 
-  public static boolean isAssignableFrom(TypeToken<?> left, TypeToken<?> right) {
-    return IMPL.isAssignableFrom(left, right);
+  public static ConcurrentMap<TypeToken<?>, Boolean> cache(TypeToken<?> left) {
+    return IMPL.cache(left);
+  }
+
+  public static boolean isAssignableFrom(ConcurrentMap<TypeToken<?>, Boolean> cache, TypeToken<?> left, TypeToken<?> right) {
+    return IMPL.isAssignableFrom(cache, left, right);
   }
 
   public static <T> TypeToken<T> typeToken(Type type) {
     return IMPL.typeToken(type);
   }
-
 
 }

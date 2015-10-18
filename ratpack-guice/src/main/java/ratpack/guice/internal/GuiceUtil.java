@@ -25,6 +25,7 @@ import ratpack.registry.internal.TypeCaching;
 import ratpack.util.Types;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -34,12 +35,13 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void search(Injector injector, TypeToken<T> type, Function<Provider<? extends T>, Boolean> transformer) {
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     Map<Key<?>, Binding<?>> bindings = injector.getBindings();
     for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : bindings.entrySet()) {
       final Key<?> key = keyBindingEntry.getKey();
       final Binding<?> binding = keyBindingEntry.getValue();
       TypeLiteral<?> bindingType = key.getTypeLiteral();
-      if (TypeCaching.isAssignableFrom(type, toTypeToken(bindingType))) {
+      if (TypeCaching.isAssignableFrom(cache, type, toTypeToken(bindingType))) {
         @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) binding.getProvider();
         try {
           if (!transformer.apply(provider)) {

@@ -52,7 +52,8 @@ public class SimpleMutableRegistry implements MutableRegistry {
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     Iterator<? extends RegistryEntry<?>> iterator = entries.iterator();
     while (iterator.hasNext()) {
-      if (TypeCaching.isAssignableFrom(iterator.next().getType(), type)) {
+      TypeToken<?> entryType = iterator.next().getType();
+      if (TypeCaching.isAssignableFrom(TypeCaching.cache(entryType), entryType, type)) {
         iterator.remove();
       }
     }
