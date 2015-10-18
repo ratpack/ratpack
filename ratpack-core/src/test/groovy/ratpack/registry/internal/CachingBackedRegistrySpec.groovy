@@ -61,7 +61,7 @@ class CachingBackedRegistrySpec extends Specification {
     TypeToken other = Types.token(Number)
     def value = "Something"
 
-    r.register(value)dac
+    r.register(value)
 
     expect:
     r.first(type, Function.identity()).get() == value
