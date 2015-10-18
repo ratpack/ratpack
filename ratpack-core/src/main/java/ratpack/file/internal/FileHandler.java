@@ -26,8 +26,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
-import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
-import static ratpack.file.internal.DefaultFileRenderer.sendFile;
+import static ratpack.file.internal.FileRenderer.readAttributes;
+import static ratpack.file.internal.FileRenderer.sendFile;
 import static ratpack.util.Exceptions.uncheck;
 
 public class FileHandler implements Handler {

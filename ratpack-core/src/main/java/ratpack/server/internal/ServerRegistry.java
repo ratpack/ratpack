@@ -34,7 +34,7 @@ import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
-import ratpack.file.internal.DefaultFileRenderer;
+import ratpack.file.internal.FileRenderer;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
@@ -103,7 +103,7 @@ public abstract class ServerRegistry {
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
-        .add(Renderer.typeOf(Path.class), new DefaultFileRenderer())
+        .add(Renderer.typeOf(Path.class), new FileRenderer())
         .add(Renderer.typeOf(promiseRenderer.getType()), promiseRenderer)
         .add(Renderer.typeOf(publisherRenderer.getType()), publisherRenderer)
         .add(Renderer.typeOf(Renderable.class), new RenderableRenderer())

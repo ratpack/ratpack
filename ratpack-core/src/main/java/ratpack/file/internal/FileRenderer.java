@@ -38,10 +38,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class DefaultFileRenderer extends RendererSupport<Path> {
+public class FileRenderer extends RendererSupport<Path> {
 
   private static final boolean CACHEABLE = !ServerEnvironment.env().isDevelopment();
-  private static final ConcurrentMap<String, Optional<BasicFileAttributes>> CACHE = new BoundedConcurrentHashMap<>(10000, Runtime.getRuntime().availableProcessors());
+  private static final ConcurrentMap<Path, Optional<BasicFileAttributes>> CACHE = new BoundedConcurrentHashMap<>(10000, Runtime.getRuntime().availableProcessors());
 
   @Override
   public void render(Context context, Path targetFile) throws Exception {
@@ -92,11 +92,10 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
 
   public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
     if (CACHEABLE) {
-      String key = file.toAbsolutePath().toString();
-      Optional<BasicFileAttributes> basicFileAttributes = CACHE.get(key);
+      Optional<BasicFileAttributes> basicFileAttributes = CACHE.get(file);
       if (basicFileAttributes == null) {
         Blocking.get(getter(file)).then(a -> {
-          CACHE.put(key, Optional.ofNullable(a));
+          CACHE.put(file, Optional.ofNullable(a));
           then.execute(a);
         });
       } else {
