@@ -120,7 +120,10 @@ public class DefaultRequestFixture implements RequestFixture {
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       serverConfig,
-      maxContentLength -> Promise.value(requestBody));
+      (maxContentLength, onTooLarge) ->
+        Promise.value(requestBody)
+          .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action())
+    );
 
     if (pathBinding != null) {
       handler = Handlers.chain(

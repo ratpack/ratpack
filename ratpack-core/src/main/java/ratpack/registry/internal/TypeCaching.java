@@ -96,4 +96,8 @@ public abstract class TypeCaching {
     return IMPL.typeToken(type);
   }
 
+  public static <T> TypeToken<T> typeToken(TypeToken<T> type) {
+    return IMPL.typeToken(type.getType());
+  }
+
 }

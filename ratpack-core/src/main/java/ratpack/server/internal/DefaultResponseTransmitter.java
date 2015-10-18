@@ -275,4 +275,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
     outcomeListeners.add(action);
   }
+
+  @Override
+  public void forceCloseConnection() {
+    responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+  }
 }

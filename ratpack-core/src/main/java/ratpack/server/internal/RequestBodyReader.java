@@ -18,9 +18,10 @@ package ratpack.server.internal;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.Promise;
+import ratpack.func.Block;
 
 public interface RequestBodyReader {
 
-  Promise<ByteBuf> read(long maxContentLength);
+  Promise<ByteBuf> read(long maxContentLength, Block onTooLarge);
 
 }

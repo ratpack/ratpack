@@ -18,10 +18,10 @@ package ratpack.http;
 
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
+import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
 import ratpack.util.MultiValueMap;
@@ -123,24 +123,57 @@ public interface Request extends MutableRegistry {
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * The body content must be less than or equal to {@link ServerConfig#getMaxContentLength()} else a {@link HttpResponseStatus#REQUEST_ENTITY_TOO_LARGE} is sent.
+   * If the transmitted content is larger than provided {@link ServerConfig#getMaxContentLength()}, the given block will be invoked.
+   * If the block completes successfully, the promise will be terminated.
+   * If the block errors, the promise will carry the failure.
    *
    * @return the body of the request
    */
   Promise<TypedData> getBody();
 
   /**
+   * The body of the request.
+   * <p>
+   * If this request does not have a body, a non null object is still returned but it effectively has no data.
+   * <p>
+   * If the transmitted content is larger than provided {@code maxContentLength}, the given block will be invoked.
+   * If the block completes successfully, the promise will be terminated.
+   * If the block errors, the promise will carry the failure.
+   *
+   * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
+   * @return the body of the request
+   * @since 1.1.0
+   */
+  Promise<TypedData> getBody(Block onTooLarge);
+
+  /**
    * The body of the request allowing up to the provided size for the content.
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * If the transmitted content is larger than provided maxContentLength, then a {@link HttpResponseStatus#REQUEST_ENTITY_TOO_LARGE} is sent.
+   * If the transmitted content is larger than the provided {@code maxContentLength}, an {@code 413} client error will be issued.
    *
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @return the body of the request.
    * @since 1.1.0
    */
   Promise<TypedData> getBody(long maxContentLength);
+
+  /**
+   * The body of the request allowing up to the provided size for the content.
+   * <p>
+   * If this request does not have a body, a non null object is still returned but it effectively has no data.
+   * <p>
+   * If the transmitted content is larger than the provided {@code maxContentLength}, the given block will be invoked.
+   * If the block completes successfully, the promise will be terminated.
+   * If the block errors, the promise will carry the failure.
+   *
+   * @param maxContentLength the maximum number of bytes allowed for the request.
+   * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
+   * @return the body of the request.
+   * @since 1.1.0
+   */
+  Promise<TypedData> getBody(long maxContentLength, Block onTooLarge);
 
   /**
    * The request headers.

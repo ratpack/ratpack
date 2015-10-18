@@ -20,12 +20,15 @@ import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import ratpack.exec.Promise;
+import ratpack.func.Block;
 import ratpack.func.Function;
+import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
@@ -207,8 +210,18 @@ public class DefaultRequest implements Request {
   }
 
   @Override
+  public Promise<TypedData> getBody(Block onTooLarge) {
+    return getBody(serverConfig.getMaxContentLength(), onTooLarge);
+  }
+
+  @Override
   public Promise<TypedData> getBody(long maxContentLength) {
-    return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    return getBody(maxContentLength, () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code()));
+  }
+
+  @Override
+  public Promise<TypedData> getBody(long maxContentLength, Block onTooLarge) {
+    return bodyReader.read(maxContentLength, onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
   }
 
   @Override

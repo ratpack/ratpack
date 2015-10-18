@@ -20,10 +20,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
+import ratpack.func.Block;
 import ratpack.http.RequestBodyAlreadyReadException;
 
 import java.util.ArrayList;
@@ -38,6 +38,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private boolean read;
   private boolean done;
   private long maxContentLength = -1;
+  private Block onTooLarge;
   private int length;
   private Downstream<? super ByteBuf> downstream;
   private ByteBuf compositeBuffer;
@@ -87,8 +88,13 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private void tooLarge(Downstream<? super ByteBuf> downstream) {
     close();
-    NettyHandlerAdapter.sendError(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
-    downstream.complete();
+    try {
+      ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().forceCloseConnection();
+      onTooLarge.execute();
+      downstream.complete();
+    } catch (Throwable t) {
+      downstream.error(t);
+    }
   }
 
   private void complete(Downstream<? super ByteBuf> downstream) {
@@ -103,13 +109,14 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
-  public Promise<ByteBuf> read(long maxContentLength) {
+  public Promise<ByteBuf> read(long maxContentLength, Block onTooLarge) {
     return Promise.<ByteBuf>of(downstream -> {
       if (read) {
         downstream.error(new RequestBodyAlreadyReadException());
         return;
       }
       read = true;
+      this.onTooLarge = onTooLarge;
 
       if (advertisedLength > maxContentLength || length > maxContentLength) {
         tooLarge(downstream);

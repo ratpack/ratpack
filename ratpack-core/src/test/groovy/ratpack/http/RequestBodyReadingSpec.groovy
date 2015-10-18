@@ -200,7 +200,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
         }
       }
       post("allow") {
-        request.getBody(16*8).then { body ->
+        request.getBody(16 * 8).then { body ->
           response.send new String(body.bytes, "utf8")
         }
       }
@@ -269,5 +269,27 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     then:
     requestSpec { it.body.text("foo") }
     postText() == "ratpack.http.RequestBodyAlreadyReadException: the request body has already been read"
+  }
+
+  def "can take custom action on request body too large"() {
+    when:
+    serverConfig {
+      maxContentLength 16
+    }
+    handlers {
+      post { ctx ->
+        request.getBody({ ctx.render("foo") }).then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
+      }
+    }
+
+    then:
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.text("bar".multiply(16)) }
+    with(post()) {
+      statusCode == 200
+      body.text == "foo"
+      headers.connection == "close"
+    }
   }
 }

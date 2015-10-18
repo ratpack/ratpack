@@ -34,4 +34,6 @@ public interface ResponseTransmitter {
 
   void addOutcomeListener(Action<? super RequestOutcome> action);
 
+  void forceCloseConnection();
+
 }

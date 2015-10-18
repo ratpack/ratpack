@@ -130,6 +130,11 @@ public class DefaultHandlingResult implements HandlingResult {
       public void addOutcomeListener(Action<? super RequestOutcome> action) {
         outcomeListeners.add(action);
       }
+
+      @Override
+      public void forceCloseConnection() {
+
+      }
     };
 
     ExecController execController = registry.get(ExecController.class);
