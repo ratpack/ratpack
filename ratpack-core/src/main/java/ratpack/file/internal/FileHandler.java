@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
-import ratpack.path.PathBinding;
+import ratpack.path.internal.PathBindingStorage;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,11 +39,7 @@ public class FileHandler implements Handler {
   }
 
   public void handle(Context context) throws Exception {
-    Request request = context.getRequest();
-
-    String path = context.maybeGet(PathBinding.class)
-      .map(PathBinding::getPastBinding)
-      .orElse(request.getPath());
+    String path = context.getExecution().get(PathBindingStorage.TYPE).peek().getPastBinding();
 
     // Decode the path.
     try {

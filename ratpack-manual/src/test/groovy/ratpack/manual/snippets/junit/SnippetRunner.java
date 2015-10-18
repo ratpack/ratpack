@@ -41,8 +41,15 @@ public class SnippetRunner extends Runner {
 
   @Override
   public void run(RunNotifier notifier) {
+    Description description = getDescription();
+    String filter = System.getProperty("filter");
+    if (filter != null && !filter.equals(description.getMethodName())) {
+      notifier.fireTestIgnored(description);
+      return;
+    }
+
     try {
-      notifier.fireTestStarted(getDescription());
+      notifier.fireTestStarted(description);
       snippet.getExecuter().execute(snippet);
     } catch (Throwable t) {
       Throwable transform;
@@ -51,9 +58,9 @@ public class SnippetRunner extends Runner {
       } catch (Exception e) {
         throw uncheck(e);
       }
-      notifier.fireTestFailure(new Failure(getDescription(), transform));
+      notifier.fireTestFailure(new Failure(description, transform));
     } finally {
-      notifier.fireTestFinished(getDescription());
+      notifier.fireTestFinished(description);
     }
   }
 

@@ -16,7 +16,11 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.reflect.TypeToken;
+
 class ThrowableHolder {
+
+  public static final TypeToken<ThrowableHolder> TYPE = TypeToken.of(ThrowableHolder.class);
 
   private final Throwable throwable;
 

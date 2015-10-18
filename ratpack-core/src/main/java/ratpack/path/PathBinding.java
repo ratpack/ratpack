@@ -16,12 +16,21 @@
 
 package ratpack.path;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  * A path binding represents some kind of "match" on the path of a request.
  *
  * @see PathBinder
  */
 public interface PathBinding {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<PathBinding> TYPE = TypeToken.of(PathBinding.class);
 
   /**
    * The path of the request path that was bound to.

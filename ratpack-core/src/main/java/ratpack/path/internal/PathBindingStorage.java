@@ -16,37 +16,18 @@
 
 package ratpack.path.internal;
 
-import io.netty.util.concurrent.FastThreadLocal;
+import com.google.common.reflect.TypeToken;
 import ratpack.path.PathBinding;
 
 import java.util.ArrayDeque;
-import java.util.Deque;
 
-public abstract class PathBindingStorage {
+public class PathBindingStorage extends ArrayDeque<PathBinding> {
 
-  private static final FastThreadLocal<Deque<PathBinding>> STACK = new FastThreadLocal<>();
+  public static final TypeToken<PathBindingStorage> TYPE = TypeToken.of(PathBindingStorage.class);
 
-  public static Deque<PathBinding> install(PathBinding pathBinding) {
-    Deque<PathBinding> pathBindings = STACK.get();
-    if (pathBindings == null) {
-      pathBindings = new ArrayDeque<>(4);
-      STACK.set(pathBindings);
-    }
-    pathBindings.clear();
-    pathBindings.add(pathBinding);
-    return pathBindings;
-  }
-
-  public static void push(PathBinding pathBinding) {
-    STACK.get().push(pathBinding);
-  }
-
-  public static PathBinding get() {
-    return STACK.get().peek();
-  }
-
-  public static void pop() {
-    STACK.get().poll();
+  public PathBindingStorage(PathBinding pathBinding) {
+    super(4);
+    add(pathBinding);
   }
 
 }

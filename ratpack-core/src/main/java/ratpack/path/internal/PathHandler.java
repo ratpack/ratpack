@@ -16,7 +16,6 @@
 
 package ratpack.path.internal;
 
-import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainHandler;
@@ -30,11 +29,9 @@ import java.util.concurrent.ExecutionException;
 
 public class PathHandler implements Handler {
 
-  private static final TypeToken<PathBinding> PATH_BINDING_TYPE_TOKEN = TypeToken.of(PathBinding.class);
-
   private static final int CACHE_SIZE = Integer.parseInt(System.getProperty("ratpack.cachesize.path", "10000"));
   private static final Handler POP_BINDING = ctx -> {
-    PathBindingStorage.pop();
+    ctx.getExecution().get(PathBindingStorage.TYPE).pop();
     ctx.next();
   };
 
@@ -52,14 +49,15 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Context ctx) throws ExecutionException {
-    PathBinding pathBinding = PathBindingStorage.get();
+    PathBindingStorage pathBindings = ctx.getExecution().get(PathBindingStorage.TYPE);
+    PathBinding pathBinding = pathBindings.peek();
     Optional<PathBinding> newBinding = cache.get(pathBinding);
     if (newBinding == null) {
       newBinding = cache.computeIfAbsent(pathBinding, binder::bind);
     }
 
     if (newBinding.isPresent()) {
-      PathBindingStorage.push(newBinding.get());
+      pathBindings.push(newBinding.get());
       ctx.insert(handler);
     } else {
       ctx.next();

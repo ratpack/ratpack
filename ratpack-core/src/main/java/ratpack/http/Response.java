@@ -16,6 +16,7 @@
 
 package ratpack.http;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.cookie.Cookie;
 import org.reactivestreams.Publisher;
@@ -32,6 +33,13 @@ import java.util.function.Supplier;
  * The headers and status are configured, before committing the response with one of the {@link #send} methods.
  */
 public interface Response {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<Response> TYPE = TypeToken.of(Response.class);
 
   /**
    * Creates a new cookie with the given name and value.

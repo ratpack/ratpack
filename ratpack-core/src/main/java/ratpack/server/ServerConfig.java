@@ -17,6 +17,7 @@
 package ratpack.server;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
@@ -41,6 +42,13 @@ import java.util.Optional;
  * Server config objects are programmatically built via a {@link ServerConfigBuilder}, which can be obtained via the static methods {@link #builder()}} and {@link #embedded()}.
  */
 public interface ServerConfig extends ConfigData {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<ServerConfig> TYPE = TypeToken.of(ServerConfig.class);
 
   /**
    * The default port for Ratpack applications, {@value}.

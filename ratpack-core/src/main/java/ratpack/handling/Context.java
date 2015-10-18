@@ -73,6 +73,13 @@ import java.util.Date;
 public interface Context extends Registry {
 
   /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<Context> TYPE = TypeToken.of(Context.class);
+
+  /**
    * Returns this.
    *
    * @return this.

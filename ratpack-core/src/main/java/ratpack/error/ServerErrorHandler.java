@@ -16,6 +16,7 @@
 
 package ratpack.error;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 import ratpack.handling.Context;
 
@@ -27,6 +28,13 @@ import ratpack.handling.Context;
  * @see ratpack.handling.Context#error(Throwable)
  */
 public interface ServerErrorHandler {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<ServerErrorHandler> TYPE = TypeToken.of(ServerErrorHandler.class);
 
   /**
    * Processes the given exception that occurred processing the given context.

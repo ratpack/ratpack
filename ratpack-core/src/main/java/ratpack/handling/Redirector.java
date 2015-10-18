@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 
 /**
@@ -27,6 +28,13 @@ import ratpack.api.NonBlocking;
  * This strategy is typically sufficient and a user implementation of this type is not required.
  */
 public interface Redirector {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<Redirector> TYPE = TypeToken.of(Redirector.class);
 
   /**
    * Issue a redirect to the client.

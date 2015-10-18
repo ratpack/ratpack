@@ -82,7 +82,7 @@ public class DefaultContext implements Context {
     public ApplicationConstants(Registry registry, RenderController renderController, ExecController execController, Handler end) {
       this.renderController = renderController;
       this.execController = execController;
-      this.serverConfig = registry.get(ServerConfig.class);
+      this.serverConfig = registry.get(ServerConfig.TYPE);
       this.end = end;
     }
   }
@@ -149,7 +149,7 @@ public class DefaultContext implements Context {
 
   private final RequestConstants requestConstants;
   private Registry joinedRegistry;
-  private Deque<PathBinding> pathBindings;
+  private PathBindingStorage pathBindings;
 
   public static void start(EventLoop eventLoop, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     ChainIndex index = new ChainIndex(handlers, registry, true);
@@ -158,21 +158,22 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
+    context.pathBindings = new PathBindingStorage(new RootPathBinding(requestConstants.request.getPath()));
+
     requestConstants.applicationConstants.execController.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s
-          .add(Context.class, context)
-          .add(Request.class, requestConstants.request)
-          .add(Response.class, requestConstants.response)
-          .addLazy(PathBinding.class, PathBindingStorage::get)
-          .addLazy(RequestId.class, () -> registry.get(RequestId.Generator.class).generate(requestConstants.request))
+          .add(Context.TYPE, context)
+          .add(Request.TYPE, requestConstants.request)
+          .add(Response.TYPE, requestConstants.response)
+          .add(PathBindingStorage.TYPE, context.pathBindings)
+          .addLazy(RequestId.TYPE, () -> registry.get(RequestId.Generator.TYPE).generate(requestConstants.request))
       )
       .eventLoop(eventLoop)
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
       .start(e -> {
         requestConstants.execution = e;
-        context.pathBindings = PathBindingStorage.install(new RootPathBinding(requestConstants.request.getPath()));
         context.joinedRegistry = new ContextRegistry(context).join(requestConstants.execution);
         context.next();
       });
@@ -287,7 +288,7 @@ public class DefaultContext implements Context {
   }
 
   public Path file(String path) {
-    return get(FileSystemBinding.class).file(path);
+    return get(FileSystemBinding.TYPE).file(path);
   }
 
   public void render(Object object) throws NoSuchRendererException {
@@ -364,7 +365,7 @@ public class DefaultContext implements Context {
   }
 
   public void redirect(int code, String location) {
-    Redirector redirector = joinedRegistry.get(Redirector.class);
+    Redirector redirector = joinedRegistry.get(Redirector.TYPE);
     redirector.redirect(this, location, code);
   }
 
@@ -388,12 +389,12 @@ public class DefaultContext implements Context {
   }
 
   public void error(Throwable throwable) {
-    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
+    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
     throwable = unpackThrowable(throwable);
 
-    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.class).orElse(null);
+    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.TYPE).orElse(null);
     if (throwableHolder == null) {
-      getRequest().add(ThrowableHolder.class, new ThrowableHolder(throwable));
+      getRequest().add(ThrowableHolder.TYPE, new ThrowableHolder(throwable));
 
       try {
         serverErrorHandler.error(this, throwable);
@@ -430,7 +431,7 @@ public class DefaultContext implements Context {
 
   public void clientError(int statusCode) {
     try {
-      get(ClientErrorHandler.class).error(this, statusCode);
+      get(ClientErrorHandler.TYPE).error(this, statusCode);
     } catch (Throwable e) {
       error(Exceptions.toException(e));
     }
@@ -452,6 +453,9 @@ public class DefaultContext implements Context {
 
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    if (type.equals(PathBinding.TYPE)) {
+      return Types.cast(pathBindings.peek());
+    }
     return joinedRegistry.get(type);
   }
 

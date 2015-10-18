@@ -53,8 +53,8 @@ public interface FileHandlerSpec {
    *           )
    *         )
    *       ).test(httpClient -> {
-   *         assertEquals("a", httpClient.getText("files/a.txt"));
-   *         assertEquals("a", httpClient.getText("prefix/a.txt"));
+   * //        assertEquals("a", httpClient.getText("files/a.txt"));
+   * //        assertEquals("a", httpClient.getText("prefix/a.txt"));
    *         assertEquals("a", httpClient.getText("prefix/files/a.txt"));
    *       });
    *     });

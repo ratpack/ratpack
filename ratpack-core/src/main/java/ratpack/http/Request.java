@@ -36,6 +36,13 @@ import java.util.function.Supplier;
 public interface Request extends MutableRegistry {
 
   /**
+   * A type token for this type.
+   *
+   * @since 1.1.0
+   */
+  TypeToken<Request> TYPE = TypeToken.of(Request.class);
+
+  /**
    * The method of the request.
    *
    * @return The method of the request.
