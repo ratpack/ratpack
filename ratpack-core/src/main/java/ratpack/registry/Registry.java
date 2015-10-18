@@ -321,7 +321,7 @@ public interface Registry {
   }
 
   /**
-   * Creates a single lazily created entry registry, using {@link RegistryBuilder#addLazy(Class, Supplier)}.
+   * Deprecated, use {@link #singleLazy(Class, Supplier)}.
    *
    * @param publicType the public type of the entry
    * @param supplier the supplier for the object
