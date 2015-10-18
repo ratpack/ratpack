@@ -548,8 +548,13 @@ public interface Context extends Registry {
    */
   Path file(String path) throws NotInRegistryException;
 
-  default FileSystemBinding getFileSystemBinding() throws NotInRegistryException {
-    return get(FileSystemBinding.class);
+  /**
+   * Returns the current filesystem binding from the context registry.
+   *
+   * @return the current filesystem binding from the context registry
+   */
+  default FileSystemBinding getFileSystemBinding() {
+    return get(FileSystemBinding.TYPE);
   }
 
 }
