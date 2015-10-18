@@ -112,11 +112,6 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   }
 
   @Override
-  public ConfigDataBuilder args(String prefix, String separator, String[] args) {
-    return add(new ArgsConfigSource(prefix, separator, args));
-  }
-
-  @Override
   public ConfigDataBuilder json(ByteSource byteSource) {
     return add(new JsonConfigSource(byteSource));
   }

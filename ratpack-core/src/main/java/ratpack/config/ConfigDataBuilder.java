@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+import ratpack.config.internal.source.ArgsConfigSource;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
@@ -189,7 +190,9 @@ public interface ConfigDataBuilder {
    * @return {@code this}
    * @since 1.1.0
    */
-  ConfigDataBuilder args(String prefix, String separator, String[] args);
+  default ConfigDataBuilder args(String prefix, String separator, String[] args) {
+    return add(new ArgsConfigSource(prefix, separator, args));
+  }
 
   /**
    * Adds a configuration source for a JSON file.
