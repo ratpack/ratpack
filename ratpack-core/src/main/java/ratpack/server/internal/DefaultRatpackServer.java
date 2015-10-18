@@ -41,9 +41,9 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.registry.Registry;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.server.*;
 import ratpack.util.Exceptions;
+import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
@@ -60,7 +60,7 @@ import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultRatpackServer implements RatpackServer {
 
-  public static final TypeToken<ReloadInformant> RELOAD_INFORMANT_TYPE = TypeCaching.typeToken(ReloadInformant.class);
+  public static final TypeToken<ReloadInformant> RELOAD_INFORMANT_TYPE = Types.token(ReloadInformant.class);
 
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
@@ -68,7 +68,7 @@ public class DefaultRatpackServer implements RatpackServer {
     }
   }
 
-  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeCaching.typeToken(HandlerDecorator.class);
+  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = Types.token(HandlerDecorator.class);
   public static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
 
   protected final Action<? super RatpackServerSpec> definitionFactory;
