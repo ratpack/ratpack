@@ -21,6 +21,7 @@ import groovy.text.markup.MarkupTemplateEngine;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.util.CharsetUtil;
 import ratpack.file.MimeTypes;
 import ratpack.groovy.template.MarkupTemplate;
 import ratpack.handling.Context;
@@ -56,7 +57,7 @@ public class MarkupTemplateRenderer extends RendererSupport<MarkupTemplate> {
       ByteBuf byteBuf = byteBufAllocator.directBuffer();
       try {
         OutputStream outputStream = new ByteBufOutputStream(byteBuf);
-        Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.getEncoder(StandardCharsets.UTF_8));
         boundTemplate.writeTo(writer);
       } catch (Exception e) {
         byteBuf.release();
