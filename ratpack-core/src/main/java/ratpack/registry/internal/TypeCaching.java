@@ -62,7 +62,12 @@ public abstract class TypeCaching {
     @SuppressWarnings("unchecked")
     @Override
     <T> TypeToken<T> typeToken(Type type) {
-      return (TypeToken<T>) typeTokensCache.computeIfAbsent(type, typeTokenProducer);
+      TypeToken<?> typeToken = typeTokensCache.get(type);
+      if (typeToken == null) {
+        return (TypeToken<T>) typeTokensCache.computeIfAbsent(type, typeTokenProducer);
+      } else {
+        return (TypeToken<T>) typeToken;
+      }
     }
   }
 

@@ -19,10 +19,7 @@ package ratpack.registry;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.registry.internal.CachingBackedRegistry;
-import ratpack.registry.internal.DefaultRegistryBuilder;
-import ratpack.registry.internal.EmptyRegistry;
-import ratpack.registry.internal.HierarchicalRegistry;
+import ratpack.registry.internal.*;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -120,7 +117,7 @@ public interface Registry {
    * @throws NotInRegistryException If no object of this type can be returned
    */
   default <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
+    return get(TypeCaching.typeToken(type));
   }
 
   /**
@@ -148,7 +145,7 @@ public interface Registry {
    * @return An object of the specified type, or null if no object of this type is available.
    */
   default <O> Optional<O> maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
+    return maybeGet(TypeCaching.typeToken(type));
   }
 
   /**
@@ -168,7 +165,7 @@ public interface Registry {
    * @return All objects of the given type
    */
   default <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
+    return getAll(TypeCaching.typeToken(type));
   }
 
   /**
@@ -218,7 +215,7 @@ public interface Registry {
    * @see #first(TypeToken, Function)
    */
   default <T, O> Optional<O> first(Class<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return first(TypeToken.of(type), function);
+    return first(TypeCaching.typeToken(type), function);
   }
 
   /**

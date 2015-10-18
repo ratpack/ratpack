@@ -51,7 +51,7 @@ public class CachingBackedRegistryTestImpl extends CachingBackedRegistry {
   }
 
   public void register(Object instance) {
-    register(TypeToken.of(instance.getClass()), instance);
+    register(Types.token(instance.getClass()), instance);
   }
 
   public void register(TypeToken<?> type, Object instance) {

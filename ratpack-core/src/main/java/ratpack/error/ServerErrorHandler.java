@@ -19,6 +19,7 @@ package ratpack.error;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 import ratpack.handling.Context;
+import ratpack.util.Types;
 
 /**
  * An object that can deal with errors that occur during the processing of an exchange.
@@ -34,7 +35,7 @@ public interface ServerErrorHandler {
    *
    * @since 1.1.0
    */
-  TypeToken<ServerErrorHandler> TYPE = TypeToken.of(ServerErrorHandler.class);
+  TypeToken<ServerErrorHandler> TYPE = Types.token(ServerErrorHandler.class);
 
   /**
    * Processes the given exception that occurred processing the given context.

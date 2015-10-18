@@ -22,6 +22,7 @@ import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
 import ratpack.func.Block;
+import ratpack.util.Types;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public final class MDCInterceptor implements ExecInterceptor {
   private final Action<? super Execution> init;
 
   private static class MDCHolder {
-    static final TypeToken<MDCHolder> TYPE = TypeToken.of(MDCHolder.class);
+    static final TypeToken<MDCHolder> TYPE = Types.token(MDCHolder.class);
     Map<String, String> map = new HashMap<>();
   }
 

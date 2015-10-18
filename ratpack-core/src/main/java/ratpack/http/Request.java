@@ -25,6 +25,7 @@ import ratpack.exec.Promise;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
 import ratpack.util.MultiValueMap;
+import ratpack.util.Types;
 
 import java.time.Instant;
 import java.util.Set;
@@ -40,7 +41,7 @@ public interface Request extends MutableRegistry {
    *
    * @since 1.1.0
    */
-  TypeToken<Request> TYPE = TypeToken.of(Request.class);
+  TypeToken<Request> TYPE = Types.token(Request.class);
 
   /**
    * The method of the request.

@@ -22,6 +22,7 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
+import ratpack.util.Types;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -39,7 +40,7 @@ public interface Response {
    *
    * @since 1.1.0
    */
-  TypeToken<Response> TYPE = TypeToken.of(Response.class);
+  TypeToken<Response> TYPE = Types.token(Response.class);
 
   /**
    * Creates a new cookie with the given name and value.

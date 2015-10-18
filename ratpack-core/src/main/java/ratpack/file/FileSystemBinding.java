@@ -19,6 +19,7 @@ package ratpack.file;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.file.internal.DefaultFileSystemBinding;
+import ratpack.util.Types;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,7 +41,7 @@ public interface FileSystemBinding {
    *
    * @since 1.1.0
    */
-  TypeToken<FileSystemBinding> TYPE = TypeToken.of(FileSystemBinding.class);
+  TypeToken<FileSystemBinding> TYPE = Types.token(FileSystemBinding.class);
 
 
   static FileSystemBinding root() {

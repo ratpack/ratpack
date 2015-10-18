@@ -18,6 +18,7 @@ package ratpack.handling;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
+import ratpack.util.Types;
 
 /**
  * Contextual strategy for issuing redirects.
@@ -34,7 +35,7 @@ public interface Redirector {
    *
    * @since 1.1.0
    */
-  TypeToken<Redirector> TYPE = TypeToken.of(Redirector.class);
+  TypeToken<Redirector> TYPE = Types.token(Redirector.class);
 
   /**
    * Issue a redirect to the client.

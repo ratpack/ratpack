@@ -17,6 +17,7 @@
 package ratpack.path;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.util.Types;
 
 /**
  * A path binding represents some kind of "match" on the path of a request.
@@ -30,7 +31,7 @@ public interface PathBinding {
    *
    * @since 1.1.0
    */
-  TypeToken<PathBinding> TYPE = TypeToken.of(PathBinding.class);
+  TypeToken<PathBinding> TYPE = Types.token(PathBinding.class);
 
   /**
    * The path of the request path that was bound to.

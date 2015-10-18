@@ -30,7 +30,7 @@ import static ratpack.util.MultiValueMap.empty;
 
 public class FormParser extends ParserSupport<FormParseOpts> {
 
-  private static final TypeToken<Form> FORM_TYPE = TypeToken.of(Form.class);
+  private static final TypeToken<Form> FORM_TYPE = Types.token(Form.class);
 
   @SuppressWarnings("unchecked")
   @Override

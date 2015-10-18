@@ -25,6 +25,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
+import ratpack.util.Types;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -48,7 +49,7 @@ public interface ServerConfig extends ConfigData {
    *
    * @since 1.1.0
    */
-  TypeToken<ServerConfig> TYPE = TypeToken.of(ServerConfig.class);
+  TypeToken<ServerConfig> TYPE = Types.token(ServerConfig.class);
 
   /**
    * The default port for Ratpack applications, {@value}.

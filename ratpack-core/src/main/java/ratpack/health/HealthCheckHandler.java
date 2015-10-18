@@ -25,6 +25,7 @@ import ratpack.exec.Throttle;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
+import ratpack.util.Types;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -119,7 +120,7 @@ public class HealthCheckHandler implements Handler {
    */
   public static final String DEFAULT_NAME_TOKEN = "name";
 
-  private static final TypeToken<HealthCheck> HEALTH_CHECK_TYPE_TOKEN = TypeToken.of(HealthCheck.class);
+  private static final TypeToken<HealthCheck> HEALTH_CHECK_TYPE_TOKEN = Types.token(HealthCheck.class);
 
   private final String name;
   private final Throttle throttle;

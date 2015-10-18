@@ -18,12 +18,13 @@ package ratpack.path.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.path.PathBinding;
+import ratpack.util.Types;
 
 import java.util.ArrayDeque;
 
 public class PathBindingStorage extends ArrayDeque<PathBinding> {
 
-  public static final TypeToken<PathBindingStorage> TYPE = TypeToken.of(PathBindingStorage.class);
+  public static final TypeToken<PathBindingStorage> TYPE = Types.token(PathBindingStorage.class);
 
   public PathBindingStorage(PathBinding pathBinding) {
     super(4);

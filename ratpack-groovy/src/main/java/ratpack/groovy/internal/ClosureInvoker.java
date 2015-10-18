@@ -16,7 +16,6 @@
 
 package ratpack.groovy.internal;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
@@ -24,6 +23,7 @@ import groovy.lang.Closure;
 import ratpack.func.Action;
 import ratpack.handling.internal.Extractions;
 import ratpack.registry.Registry;
+import ratpack.registry.internal.TypeCaching;
 
 import java.util.Collections;
 import java.util.List;
@@ -67,11 +67,7 @@ public class ClosureInvoker<T, D> {
   }
 
   public Action<D> toAction(final Registry registry, final int resolveStrategy) {
-    return new Action<D>() {
-      public void execute(D delegate) throws Exception {
-        invoke(registry, delegate, resolveStrategy);
-      }
-    };
+    return delegate -> invoke(registry, delegate, resolveStrategy);
   }
 
   private static List<TypeToken<?>> retrieveParameterTypes(Closure<?> closure) {
@@ -85,12 +81,7 @@ public class ClosureInvoker<T, D> {
         }
       }
 
-      return Lists.transform(ImmutableList.copyOf(parameterTypes), new Function<Class<?>, TypeToken<?>>() {
-        @Override
-        public TypeToken<?> apply(Class<?> input) {
-          return TypeToken.of(input);
-        }
-      });
+      return Lists.transform(ImmutableList.copyOf(parameterTypes), TypeCaching::typeToken);
     }
   }
 }

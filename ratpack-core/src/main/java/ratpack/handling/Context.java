@@ -32,6 +32,7 @@ import ratpack.parse.Parser;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.ServerConfig;
 
@@ -77,7 +78,7 @@ public interface Context extends Registry {
    *
    * @since 1.1.0
    */
-  TypeToken<Context> TYPE = TypeToken.of(Context.class);
+  TypeToken<Context> TYPE = TypeCaching.typeToken(Context.class);
 
   /**
    * Returns this.

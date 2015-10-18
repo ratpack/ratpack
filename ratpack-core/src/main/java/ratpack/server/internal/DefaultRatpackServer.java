@@ -41,6 +41,7 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.registry.Registry;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.server.*;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.ChannelImplDetector;
@@ -59,13 +60,15 @@ import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultRatpackServer implements RatpackServer {
 
+  public static final TypeToken<ReloadInformant> RELOAD_INFORMANT_TYPE = TypeCaching.typeToken(ReloadInformant.class);
+
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
       ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
     }
   }
 
-  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeToken.of(HandlerDecorator.class);
+  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeCaching.typeToken(HandlerDecorator.class);
   public static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
 
   protected final Action<? super RatpackServerSpec> definitionFactory;
@@ -471,7 +474,7 @@ public class DefaultRatpackServer implements RatpackServer {
             if (inner == null || definitionBuild.error != null) {
               rebuild = true;
             } else {
-              Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry) ? r : null);
+              Optional<ReloadInformant> reloadInformant = serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(serverRegistry) ? r : null);
               if (reloadInformant.isPresent()) {
                 LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
                 rebuild = true;

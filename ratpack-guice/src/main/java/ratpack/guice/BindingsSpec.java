@@ -25,6 +25,7 @@ import com.google.inject.multibindings.Multibinder;
 import ratpack.func.Action;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.registry.RegistrySpec;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.server.ServerConfig;
 import ratpack.util.Types;
 
@@ -143,7 +144,7 @@ public interface BindingsSpec extends RegistrySpec {
   }
 
   default <T> BindingsSpec multiBinder(Class<T> type, Action<? super Multibinder<T>> action) throws Exception {
-    return multiBinder(TypeToken.of(type), action);
+    return multiBinder(TypeCaching.typeToken(type), action);
   }
 
   /**
