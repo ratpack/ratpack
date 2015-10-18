@@ -20,20 +20,28 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.exec.Blocking;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
+import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Exceptions;
+import ratpack.util.internal.BoundedConcurrentHashMap;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class DefaultFileRenderer extends RendererSupport<Path> {
+
+  private static final boolean CACHEABLE = !ServerEnvironment.env().isDevelopment();
+  private static final ConcurrentMap<String, Optional<BasicFileAttributes>> CACHE = new BoundedConcurrentHashMap<>(10000, Runtime.getRuntime().availableProcessors());
 
   @Override
   public void render(Context context, Path targetFile) throws Exception {
@@ -72,14 +80,31 @@ public class DefaultFileRenderer extends RendererSupport<Path> {
     });
   }
 
-  public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
-    Blocking.get(() -> {
+  private static Factory<BasicFileAttributes> getter(Path file) {
+    return () -> {
       if (Files.exists(file)) {
         return Files.readAttributes(file, BasicFileAttributes.class);
       } else {
         return null;
       }
-    }).then(then);
+    };
+  }
+
+  public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
+    if (CACHEABLE) {
+      String key = file.toAbsolutePath().toString();
+      Optional<BasicFileAttributes> basicFileAttributes = CACHE.get(key);
+      if (basicFileAttributes == null) {
+        Blocking.get(getter(file)).then(a -> {
+          CACHE.put(key, Optional.ofNullable(a));
+          then.execute(a);
+        });
+      } else {
+        then.execute(basicFileAttributes.orElse(null));
+      }
+    } else {
+      Blocking.get(getter(file)).then(then);
+    }
   }
 
 }
