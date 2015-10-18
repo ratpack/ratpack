@@ -19,12 +19,12 @@ package ratpack.path.internal;
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ChainHandler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registry;
-import ratpack.registry.internal.EmptyRegistry;
 import ratpack.util.internal.BoundedConcurrentHashMap;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
@@ -33,27 +33,36 @@ public class PathHandler implements Handler {
   private static final TypeToken<PathBinding> PATH_BINDING_TYPE_TOKEN = TypeToken.of(PathBinding.class);
 
   private static final int CACHE_SIZE = Integer.parseInt(System.getProperty("ratpack.cachesize.path", "10000"));
+  private static final Handler POP_BINDING = ctx -> {
+    PathBindingStorage.pop();
+    ctx.next();
+  };
 
   private final PathBinder binder;
   private final Handler[] handler;
-  private final ConcurrentMap<PathBinding, Registry> cache = new BoundedConcurrentHashMap<>(CACHE_SIZE, Runtime.getRuntime().availableProcessors());
+  private final ConcurrentMap<PathBinding, Optional<PathBinding>> cache = new BoundedConcurrentHashMap<>(CACHE_SIZE, Runtime.getRuntime().availableProcessors());
 
   public PathHandler(PathBinder binder, Handler handler) {
     this.binder = binder;
-    this.handler = new Handler[]{handler};
+    Handler[] unpacked = ChainHandler.unpack(handler);
+    Handler[] withPop = new Handler[unpacked.length + 1];
+    System.arraycopy(unpacked, 0, withPop, 0, unpacked.length);
+    withPop[unpacked.length] = POP_BINDING;
+    this.handler = withPop;
   }
 
-  public void handle(Context context) throws ExecutionException {
-    PathBinding pathBinding = context.get(PATH_BINDING_TYPE_TOKEN);
-    Registry registry = cache.get(pathBinding);
-    if (registry == null) {
-      registry = cache.computeIfAbsent(pathBinding, binding -> binder.bind(binding).map(Registry::single).orElse(Registry.empty()));
+  public void handle(Context ctx) throws ExecutionException {
+    PathBinding pathBinding = PathBindingStorage.get();
+    Optional<PathBinding> newBinding = cache.get(pathBinding);
+    if (newBinding == null) {
+      newBinding = cache.computeIfAbsent(pathBinding, binder::bind);
     }
 
-    if (registry == EmptyRegistry.INSTANCE) {
-      context.next();
+    if (newBinding.isPresent()) {
+      PathBindingStorage.push(newBinding.get());
+      ctx.insert(handler);
     } else {
-      context.insert(registry, handler);
+      ctx.next();
     }
   }
 

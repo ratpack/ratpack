@@ -94,7 +94,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       path("abc") {
-        response.send(get(PathBinding).boundTo)
+        def binding = get(PathBinding)
+        response.send(binding.boundTo)
       }
     }
 

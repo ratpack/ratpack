@@ -46,7 +46,7 @@ import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
-import ratpack.path.internal.DefaultPathTokens;
+import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -149,15 +149,16 @@ public class DefaultContext implements Context {
 
   private final RequestConstants requestConstants;
   private Registry joinedRegistry;
+  private Deque<PathBinding> pathBindings;
 
   public static void start(EventLoop eventLoop, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
-    PathBinding initialPathBinding = new RootPathBinding(requestConstants.request.getPath());
-    Registry pathBindingRegistry = Registry.single(PathBinding.class, initialPathBinding);
-    ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
+    ChainIndex index = new ChainIndex(handlers, registry, true);
     requestConstants.indexes.push(index);
 
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
+
+    context.pathBindings = PathBindingStorage.install(new RootPathBinding(requestConstants.request.getPath()));
 
     requestConstants.applicationConstants.execController.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
@@ -166,6 +167,7 @@ public class DefaultContext implements Context {
           .add(Context.class, context)
           .add(Request.class, requestConstants.request)
           .add(Response.class, requestConstants.response)
+          .addLazy(PathBinding.class, context.pathBindings::peek)
           .addLazy(RequestId.class, () -> registry.get(RequestId.Generator.class).generate(requestConstants.request))
       )
       .eventLoop(eventLoop)
@@ -278,13 +280,11 @@ public class DefaultContext implements Context {
   }
 
   public PathTokens getPathTokens() {
-    return maybeGet(PathBinding.class)
-      .map(PathBinding::getTokens)
-      .orElseGet(DefaultPathTokens::empty);
+    return pathBindings.peek().getTokens();
   }
 
   public PathTokens getAllPathTokens() {
-    return get(PathBinding.class).getAllTokens();
+    return pathBindings.peek().getAllTokens();
   }
 
   public Path file(String path) {
