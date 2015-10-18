@@ -125,7 +125,7 @@ public class DefaultRequestFixture implements RequestFixture {
     if (pathBinding != null) {
       handler = Handlers.chain(
         ctx -> {
-          PathBindingStorage.push(pathBinding);
+          ctx.getExecution().get(PathBindingStorage.TYPE).push(pathBinding);
           ctx.next();
         },
         handler

@@ -65,8 +65,6 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
       throw new IllegalArgumentException("uri " + uri + " must be a http or https uri");
     }
 
-    System.out.println("uri: " + uri);
-
     host(uri.getHost());
     port(uri.getPort());
     String rawPath = uri.getRawPath();
