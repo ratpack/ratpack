@@ -648,12 +648,17 @@ class StreamsSpec extends Specification {
   def "can stream a promised iterable"() {
     expect:
     harness.yield {
-      Promise.value(["a", "b", "c", "d"]).publish().map{it.toUpperCase()}.toList()
+      Promise.value(["a", "b", "c", "d"]).publish().map { it.toUpperCase() }.toList()
     }.value == ["A", "B", "C", "D"]
 
     and:
     harness.yield { c ->
       Promise.value(new ExceptionThrowingIterable()).publish().toList()
+    }.throwable.message == "!"
+
+    and:
+    harness.yield { c ->
+      Promise.error(new RuntimeException("!")).publish().toList()
     }.throwable.message == "!"
   }
 
