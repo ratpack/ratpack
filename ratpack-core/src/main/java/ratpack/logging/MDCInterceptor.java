@@ -117,10 +117,10 @@ public final class MDCInterceptor implements ExecInterceptor {
    * Creates an interceptor with no initialisation action.
    *
    * @return an interceptor with no initialisation action.
-   * @see #of(Action)
+   * @see #withInit(Action)
    */
   public static MDCInterceptor instance() {
-    return of(Action.noop());
+    return withInit(Action.noop());
   }
 
   /**
@@ -143,7 +143,7 @@ public final class MDCInterceptor implements ExecInterceptor {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
    *         .registryOf(r -> r
-   *             .add(MDCInterceptor.of(e ->
+   *             .add(MDCInterceptor.withInit(e ->
    *                 e.maybeGet(RequestId.class).ifPresent(requestId ->
    *                     MDC.put("requestId", requestId.toString())
    *                 )
@@ -166,7 +166,7 @@ public final class MDCInterceptor implements ExecInterceptor {
    * @return an {@link MDCInterceptor}
    * @since 1.1.0
    */
-  public static MDCInterceptor of(Action<? super Execution> init) {
+  public static MDCInterceptor withInit(Action<? super Execution> init) {
     return new MDCInterceptor(init);
   }
 
