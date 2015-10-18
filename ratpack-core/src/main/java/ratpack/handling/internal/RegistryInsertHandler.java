@@ -26,7 +26,7 @@ public class RegistryInsertHandler implements Handler {
   private final Registry registry;
 
   public RegistryInsertHandler(Registry registry, Handler handler) {
-    this.handler = new Handler[]{handler};
+    this.handler = ChainHandler.unpack(handler);
     this.registry = registry;
   }
 

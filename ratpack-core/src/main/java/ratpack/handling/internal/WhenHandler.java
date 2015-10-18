@@ -27,7 +27,7 @@ public class WhenHandler implements Handler {
 
   public WhenHandler(Predicate<? super Context> test, Handler handler) {
     this.test = test;
-    this.handler = new Handler[]{handler};
+    this.handler = ChainHandler.unpack(handler);
   }
 
   @Override

@@ -20,6 +20,7 @@ import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ChainHandler;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.util.internal.BoundedConcurrentHashMap;
@@ -37,7 +38,7 @@ public class FileSystemBindingHandler implements Handler {
   public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
     if (serverConfig.isHasBaseDir()) {
       this.path = path;
-      this.handler = new Handler[]{handler};
+      this.handler = ChainHandler.unpack(handler);
     } else {
       throw new BaseDirRequiredException("An application base directory is required to use this handler");
     }
