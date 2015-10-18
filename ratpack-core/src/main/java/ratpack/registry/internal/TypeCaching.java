@@ -46,7 +46,10 @@ public abstract class TypeCaching {
     private final Function<Type, TypeToken<?>> typeTokenProducer = TypeToken::of;
 
     boolean isAssignableFrom(TypeToken<?> left, TypeToken<?> right) {
-      ConcurrentMap<TypeToken<?>, Boolean> forLeft = assignabilityCache.computeIfAbsent(left, assignabilityIndexProducer);
+      ConcurrentMap<TypeToken<?>, Boolean> forLeft = assignabilityCache.get(left);
+      if (forLeft == null) {
+        forLeft = assignabilityCache.computeIfAbsent(left, assignabilityIndexProducer);
+      }
       Boolean value = forLeft.get(right);
       if (value == null) {
         boolean assignableFrom = left.isAssignableFrom(right);
