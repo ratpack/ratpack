@@ -158,8 +158,6 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    context.pathBindings = PathBindingStorage.install(new RootPathBinding(requestConstants.request.getPath()));
-
     requestConstants.applicationConstants.execController.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
@@ -167,13 +165,14 @@ public class DefaultContext implements Context {
           .add(Context.class, context)
           .add(Request.class, requestConstants.request)
           .add(Response.class, requestConstants.response)
-          .addLazy(PathBinding.class, context.pathBindings::peek)
+          .addLazy(PathBinding.class, PathBindingStorage::get)
           .addLazy(RequestId.class, () -> registry.get(RequestId.Generator.class).generate(requestConstants.request))
       )
       .eventLoop(eventLoop)
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
       .start(e -> {
         requestConstants.execution = e;
+        context.pathBindings = PathBindingStorage.install(new RootPathBinding(requestConstants.request.getPath()));
         context.joinedRegistry = new ContextRegistry(context).join(requestConstants.execution);
         context.next();
       });

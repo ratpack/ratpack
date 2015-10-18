@@ -36,8 +36,8 @@ import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
+import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -124,7 +124,10 @@ public class DefaultRequestFixture implements RequestFixture {
 
     if (pathBinding != null) {
       handler = Handlers.chain(
-        Handlers.register(Registry.single(PathBinding.class, pathBinding)),
+        ctx -> {
+          PathBindingStorage.push(pathBinding);
+          ctx.next();
+        },
         handler
       );
     }
