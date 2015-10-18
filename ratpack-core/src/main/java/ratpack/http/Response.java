@@ -18,6 +18,8 @@ package ratpack.http;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.cookie.Cookie;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
@@ -259,4 +261,20 @@ public interface Response {
    * @return {@code this}
    */
   Response noCompress();
+
+  /**
+   * Forces the closing of the current connection, even if the client requested it to be kept alive.
+   * <p>
+   * This method can be used when it is desirable to force the client's connection to close, defeating HTTP keep alive.
+   * This can be desirable in some networking environments where rate limiting or throttling is performed via edge routers or similar.
+   * <p>
+   * This method simply calls {@code getHeaders().set("Connection", "close")}, which has the same effect.
+   *
+   * @return {@code this}
+   * @since 1.1.0
+   */
+  default Response forceCloseConnection() {
+    getHeaders().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    return this;
+  }
 }
