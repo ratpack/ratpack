@@ -557,4 +557,17 @@ public interface Context extends Registry {
     return get(FileSystemBinding.TYPE);
   }
 
+  /**
+   * Issues a 404 client error.
+   * <p>
+   * This method is literally a shorthand for {@link #clientError(int) clientError(404)}.
+   * <p>
+   * This is a terminal handler operation.
+   *
+   * @since 1.1.0
+   */
+  default void notFound() {
+    clientError(404);
+  }
+
 }
