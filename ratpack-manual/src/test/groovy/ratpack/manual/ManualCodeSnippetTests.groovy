@@ -33,6 +33,7 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy groovy-handlers" : new GroovySnippetExecuter(true, new GroovyHandlersFixture()),
     "language-groovy gradle"          : new GroovySnippetExecuter(false, new GradleFixture()),
     "language-groovy tested"          : new GroovySnippetExecuter(true, new GroovyScriptFixture()),
+    "language-groovy tested-dynamic"  : new GroovySnippetExecuter(false, new GroovyScriptFixture()),
     "language-java"                   : new JavaSnippetExecuter(new SnippetFixture()),
     "language-java hello-world"       : new HelloWorldAppSnippetExecuter(new JavaSnippetExecuter(new SnippetFixture())),
     "language-groovy hello-world"     : new HelloWorldAppSnippetExecuter(new GroovySnippetExecuter(true, new GroovyScriptRatpackDslFixture())),

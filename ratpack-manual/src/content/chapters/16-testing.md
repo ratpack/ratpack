@@ -29,7 +29,7 @@ Ratpack provides [TestHttpClient](api/ratpack/test/http/TestHttpClient.html) in 
 
 Note below we use @Delegate so we just need to call `get()` in the when block instead of `client.get()`.
 
-```language-groovy tested
+```language-groovy tested-dynamic
 
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.test.http.TestHttpClient
