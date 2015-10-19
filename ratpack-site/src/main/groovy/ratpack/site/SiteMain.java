@@ -84,14 +84,15 @@ public class SiteMain {
               ctx.next();
             })
 
-            .prefix("assets", assets -> assets
-                .all(ctx -> {
-                  int cacheFor = ctx.getRequest().getQuery().isEmpty() ? shortCache : longCache;
-                  ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
-                  ctx.next();
-                })
-                .files(f -> f.dir("assets").indexFiles("index.html"))
-            )
+            // No longer needed and hasnt been for a while. Cache busting automatically handled by the AssetPipelineHandler
+            // .prefix("assets", assets -> assets
+            //     .all(ctx -> {
+            //       int cacheFor = ctx.getRequest().getQuery().isEmpty() ? shortCache : longCache;
+            //       ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + cacheFor + ", public");
+            //       ctx.next();
+            //     })
+            //     .files(f -> f.dir("assets").indexFiles("index.html"))
+            // )
 
             .get("index.html", ctx -> {
               ctx.redirect(301, "/");
