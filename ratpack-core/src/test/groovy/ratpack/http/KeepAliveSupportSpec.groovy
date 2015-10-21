@@ -16,39 +16,42 @@
 
 package ratpack.http
 
-import io.netty.util.AttributeKey
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicInteger
 
 class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
 
   @Unroll
-  def "can serve keep alive requests - dev = #dev"() {
+  @Timeout(30)
+  def "can serve keep alive requests - dev = #dev, post = #post"() {
     when:
-    def attrKey = AttributeKey.<Integer> valueOf(KeepAliveSupportSpec.name)
-    def counter = new AtomicInteger()
     serverConfig {
       development(dev)
     }
     handlers {
-      get {
-        directChannelAccess.channel.attr(attrKey).with {
-          setIfAbsent(counter.incrementAndGet())
-          render get().toString()
+      all {
+        request.body.then {
+          render "ok"
         }
       }
     }
 
     then:
     def url = applicationUnderTest.address.toURL()
-    def latch = new CountDownLatch(200)
-    2.times { i ->
+    def latch = new CountDownLatch(400)
+    4.times { i ->
       Thread.start {
         100.times {
-          assert url.text in ["1", "2"]
+          HttpURLConnection connection = url.openConnection()
+          if (post) {
+            connection.doOutput = true
+            connection.requestMethod = "POST"
+            connection.outputStream << "a" * (1024 * 6)
+          }
+          connection.getHeaderField("Connection") == "keep-alive"
           latch.countDown()
         }
       }
@@ -56,6 +59,7 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
     latch.await()
 
     where:
-    dev << [true, false]
+    dev << [true, false, true, false]
+    post << [true, true, false, false]
   }
 }
