@@ -28,7 +28,7 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
   @Timeout(30)
   def "can serve keep alive requests - dev = #dev, post = #post"() {
     when:
-    def threads = 4
+    def threads = 2
     def requests = 20
 
     serverConfig {
