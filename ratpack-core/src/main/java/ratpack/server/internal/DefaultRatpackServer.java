@@ -236,25 +236,7 @@ public class DefaultRatpackServer implements RatpackServer {
       .channel(ChannelImplDetector.getServerSocketChannelImpl())
       .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
       .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-      .childHandler(new ChannelInitializer<SocketChannel>() {
-        @Override
-        protected void initChannel(SocketChannel ch) throws Exception {
-          ChannelPipeline pipeline = ch.pipeline();
-          if (sslContext != null) {
-            SSLEngine sslEngine = sslContext.createSSLEngine();
-            sslEngine.setUseClientMode(false);
-            sslEngine.setNeedClientAuth(requireClientSslAuth);
-            pipeline.addLast("ssl", new SslHandler(sslEngine));
-          }
-
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-          pipeline.addLast("encoder", new HttpResponseEncoder());
-          pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
-          pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-          pipeline.addLast("adapter", handlerAdapter);
-          ch.config().setAutoRead(false);
-        }
-      })
+      .childHandler(new NettyChannelInitializer(handlerAdapter, serverConfig, sslContext))
       .bind(buildSocketAddress(serverConfig))
       .sync()
       .channel();
