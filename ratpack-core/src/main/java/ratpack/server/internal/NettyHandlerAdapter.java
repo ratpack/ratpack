@@ -69,6 +69,12 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   }
 
   @Override
+  public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    ctx.read();
+    super.channelActive(ctx);
+  }
+
+  @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     if (msg instanceof HttpRequest) {
       newRequest(ctx, (HttpRequest) msg);
@@ -108,8 +114,10 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    RequestBody bodyReader = new RequestBody(HttpUtil.getContentLength(nettyRequest, -1), ctx);
-    ctx.attr(BODY_ACCUMULATOR_KEY).set(bodyReader);
+    RequestBody requestBody = canHaveBody(nettyRequest.method()) ? new RequestBody(HttpUtil.getContentLength(nettyRequest, -1), ctx) : null;
+    if (requestBody != null) {
+      ctx.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
+    }
 
     final Channel channel = ctx.channel();
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
@@ -124,13 +132,13 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       remoteAddress,
       socketAddress,
       serverRegistry.get(ServerConfig.class),
-      bodyReader
+      requestBody
     );
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
 
     ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 
@@ -138,7 +146,6 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       transmitted.set(true);
       ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
     };
-
 
     final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants,
@@ -152,7 +159,9 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
-      bodyReader.close();
+      if (requestBody != null) {
+        requestBody.close();
+      }
       channel.attr(BODY_ACCUMULATOR_KEY).remove();
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
@@ -223,6 +232,10 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     // Close the connection as soon as the error message is sent.
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+  }
+
+  private static boolean canHaveBody(HttpMethod method) {
+    return method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH;
   }
 
 }

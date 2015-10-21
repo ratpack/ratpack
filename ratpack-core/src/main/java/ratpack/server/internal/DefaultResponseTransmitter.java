@@ -27,6 +27,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.api.Nullable;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
@@ -53,11 +54,13 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
   private static final Runnable NOOP_RUNNABLE = () -> {
   };
+  private static final ChannelFutureListener CHANNEL_READ = f -> f.channel().read();
 
   private final AtomicBoolean transmitted;
   private final Channel channel;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
+  private final RequestBodyAccumulator requestBodyAccumulator;
   private final boolean isSsl;
 
   private List<Action<? super RequestOutcome>> outcomeListeners;
@@ -67,11 +70,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBodyAccumulator requestBodyAccumulator) {
     this.transmitted = transmitted;
     this.channel = channel;
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
+    this.requestBodyAccumulator = requestBodyAccumulator;
     this.isKeepAlive = HttpUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
@@ -81,7 +85,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
 
-      if (responseHeaders.contains(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.CLOSE, true)) {
+      if (requestBodyAccumulator != null && !requestBodyAccumulator.isComplete()) {
+        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+        isKeepAlive = false;
+      } else if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
         isKeepAlive = false;
       }
 
@@ -238,7 +245,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private void post(HttpResponseStatus responseStatus, ChannelFuture lastContentFuture) {
     if (channel.isOpen()) {
-      if (!isKeepAlive) {
+      if (isKeepAlive) {
+        lastContentFuture.addListener(CHANNEL_READ);
+      } else {
         lastContentFuture.addListener(ChannelFutureListener.CLOSE);
       }
       notifyListeners(responseStatus, lastContentFuture);

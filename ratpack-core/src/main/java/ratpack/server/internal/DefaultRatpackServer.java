@@ -252,6 +252,7 @@ public class DefaultRatpackServer implements RatpackServer {
           pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);
+          ch.config().setAutoRead(false);
         }
       })
       .bind(buildSocketAddress(serverConfig))
@@ -460,13 +461,18 @@ public class DefaultRatpackServer implements RatpackServer {
       }
     }
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+      ctx.read();
+      super.channelActive(ctx);
+    }
+
     ChannelHandler getDelegate() {
       return inner;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
-      ctx.channel().config().setAutoRead(false);
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
           Promise.<ChannelHandler>of(f -> {
             boolean rebuild = false;

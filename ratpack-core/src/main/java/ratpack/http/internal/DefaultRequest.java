@@ -19,12 +19,14 @@ package ratpack.http.internal;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import ratpack.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.func.Function;
@@ -64,7 +66,7 @@ public class DefaultRequest implements Request {
   private Set<Cookie> cookies;
 
   public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
-                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, RequestBodyReader bodyReader) {
+                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, @Nullable RequestBodyReader bodyReader) {
     this.headers = headers;
     this.bodyReader = bodyReader;
     this.method = DefaultHttpMethod.valueOf(method);
@@ -221,7 +223,11 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody(long maxContentLength, Block onTooLarge) {
-    return bodyReader.read(maxContentLength, onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    if (bodyReader == null) {
+      return Promise.value(new ByteBufBackedTypedData(Unpooled.EMPTY_BUFFER, getContentType()));
+    } else {
+      return bodyReader.read(maxContentLength, onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    }
   }
 
   @Override

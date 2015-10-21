@@ -40,7 +40,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
   }
 
   @Override
-  Subscriber<Integer> createSubscriber() {
+  Subscriber<ByteBuf> createSubscriber() {
     ChannelFuture channelFuture = mock(ChannelFuture)
 
     Channel channel = mock(Channel, RETURNS_DEEP_STUBS)
@@ -56,7 +56,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     HttpHeaders responseHeaders = mock(HttpHeaders)
 
 
-    new DefaultResponseTransmitter(new AtomicBoolean(), channel, nettyRequest, null, responseHeaders).transmitter(HttpResponseStatus.OK)
+    new DefaultResponseTransmitter(new AtomicBoolean(), channel, nettyRequest, null, responseHeaders, null).transmitter(HttpResponseStatus.OK)
   }
 
   @Override

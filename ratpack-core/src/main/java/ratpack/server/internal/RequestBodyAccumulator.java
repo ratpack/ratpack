@@ -22,5 +22,8 @@ public interface RequestBodyAccumulator extends AutoCloseable {
 
   void add(HttpContent httpContent);
 
+  boolean isComplete();
+
+  @Override
   void close();
 }

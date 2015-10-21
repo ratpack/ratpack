@@ -61,14 +61,17 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       byteBufs.add(byteBuf);
     }
     if (httpContent instanceof LastHttpContent) {
+      done = true;
       if (downstream != null) {
         complete(downstream);
-      } else {
-        done = true;
       }
     } else if (downstream != null) {
       ctx.read();
     }
+  }
+
+  public boolean isComplete() {
+    return done;
   }
 
   @Override
