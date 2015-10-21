@@ -28,8 +28,12 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
   @Timeout(30)
   def "can serve keep alive requests - dev = #dev, post = #post"() {
     when:
+    def threads = 4
+    def requests = 20
+
     serverConfig {
       development(dev)
+      it.threads(threads)
     }
     handlers {
       all {
@@ -41,8 +45,6 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
 
     then:
     def url = applicationUnderTest.address.toURL()
-    def threads = 4
-    def requests = 20
     def latch = new CountDownLatch(threads * requests)
     threads.times { i ->
       Thread.start {
