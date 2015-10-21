@@ -41,10 +41,12 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
 
     then:
     def url = applicationUnderTest.address.toURL()
-    def latch = new CountDownLatch(400)
-    4.times { i ->
+    def threads = 4
+    def requests = 20
+    def latch = new CountDownLatch(threads * requests)
+    threads.times { i ->
       Thread.start {
-        100.times {
+        requests.times {
           HttpURLConnection connection = url.openConnection()
           if (post) {
             connection.doOutput = true
