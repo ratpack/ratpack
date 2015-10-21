@@ -220,7 +220,12 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private boolean isIgnorableException(Throwable throwable) {
     // There really does not seem to be a better way of detecting this kind of exception
-    return throwable instanceof IOException && throwable.getMessage().endsWith("Connection reset by peer");
+    if (throwable instanceof IOException) {
+      String message = throwable.getMessage();
+      return message != null && message.endsWith("Connection reset by peer");
+    } else {
+      return false;
+    }
   }
 
   @SuppressWarnings("deprecation")
