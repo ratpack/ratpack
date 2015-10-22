@@ -46,8 +46,8 @@ repositories {
 }
 ```
 
-The `'io.ratpack.ratpack-java'` plugin applies the core Gradle [`'java'` plugin](http://www.gradle.org/docs/current/userguide/java_plugin.html).
-The `'io.ratpack.ratpack-groovy'` plugin applies the core Gradle [`'groovy'` plugin](http://www.gradle.org/docs/current/userguide/groovy_plugin.html).
+The `'io.ratpack.ratpack-java'` plugin applies the core Gradle [`'java'` plugin](https://docs.gradle.org/current/userguide/java_plugin.html).
+The `'io.ratpack.ratpack-groovy'` plugin applies the core Gradle [`'groovy'` plugin](https://docs.gradle.org/current/userguide/groovy_plugin.html).
 This means that you can start adding code and dependencies to your app like a standard Gradle based project (e.g. putting source in `src/main/[groovy|java]`).
 Note that the `'io.ratpack.ratpack-groovy'` plugin implicitly applies the `'io.ratpack.ratpack-java'` plugin.
 
@@ -94,7 +94,7 @@ All Ratpack jars are published to both [Bintray's JCenter](https://bintray.com/b
 
 ## The 'application' plugin
 
-Both the `'ratpack-java'` and `'ratpack-groovy'` plugins also apply the core Gradle [`'application'` plugin](http://www.gradle.org/docs/current/userguide/application_plugin.html).
+Both the `'ratpack-java'` and `'ratpack-groovy'` plugins also apply the core Gradle [`'application'` plugin](https://docs.gradle.org/current/userguide/application_plugin.html).
 This plugin provides the ability to create a standalone executable distribution of your software.
 This is the preferred deployment format for Ratpack applications.
 
@@ -185,7 +185,7 @@ See [Groovy](groovy.html) for more information about the contents of this file.
 ## Running the application
 
 The `'application'` plugin provides the `'run'` task for starting the Ratpack application.
-This is a task of the core Gradle [`JavaExec`](http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.JavaExec.html) type.
+This is a task of the core Gradle [`JavaExec`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html) type.
 The `'ratpack-java'` plugin configures this `'run'` task to launch with the system property `'ratpack.development'` set to `true`.
 
 If you wish to set extra system properties for development time execution, you can configure this task…

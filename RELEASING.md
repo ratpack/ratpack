@@ -59,7 +59,7 @@ When you've got the release announcement set, copy it to the description of the 
 1. Credentials for oss.jfrog.org
     1. This is your Bintray account - use the Bintray UI to ask for write permissions to the io.ratpack group in oss.jfrog.org
 1. GPG credentials/config
-    1. We use the Gradle Signing Plugin to sign the artifacts (we don't let Bintray do this) - See [the Gradle docs](http://www.gradle.org/docs/current/userguide/signing_plugin.html#N15692) for how to set this up
+    1. We use the Gradle Signing Plugin to sign the artifacts (we don't let Bintray do this) - See [the Gradle docs](https://docs.gradle.org/current/userguide/signing_plugin.html#N15692) for how to set this up
     1. One gotcha is forgetting to distribute your public key.  See [here](http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/#.U9rkY2MSS6N) for more info.  If you don't do this you will get problems when syncing to Maven central.
 1. oss.sonatype.org credentials
     1. The sync from Bintray to Central requires an account with oss.sonatype.org

@@ -18,7 +18,7 @@ The rest of this chapter outlines the requirements and necessary configuration f
 Ratpack applications can be built by any build system, but the Ratpack team recommends [Gradle](http://gradle.org).
 Heroku has native support for Gradle via the [Gradle buildpack](https://devcenter.heroku.com/articles/buildpacks), which works well with the Ratpack Gradle plugins.
 
-All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
+All Gradle projects should use the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
 If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
 
 ### Building

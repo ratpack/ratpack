@@ -48,7 +48,7 @@ We recommend the use of the [Gradle build system](http:///www.gradle.org) to bui
 Ratpack does not require Gradle; any build system can be used.
 
 > The following instructions assume you have already installed Gradle.
-> See the [Gradle User Guide](http://www.gradle.org/docs/current/userguide/installation.html) for installation instructions.
+> See the [Gradle User Guide](https://docs.gradle.org/current/userguide/installation.html) for installation instructions.
 
 The Ratpack project provides two Gradle plugins:
 
