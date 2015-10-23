@@ -299,4 +299,26 @@ public interface TestHttpClient {
    * @return the list of cookies attached to the given {@code path}
    */
   List<Cookie> getCookies(String path);
+
+  /**
+   * Executes a HTTP request.
+   * <p>
+   * The request method is defaulted to GET if not specfied via a {@link RequestSpec}
+   *
+   * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec(Action)} method
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the request.
+   */
+  ReceivedResponse request(Action<? super RequestSpec> requestAction);
+
+  /**
+   * Executes a HTTP request against a specific path.
+   * <p>
+   * The request method is defaulted to GET if not specfied via a {@link RequestSpec}
+   *
+   * @param path What path the request will be made against.
+   * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec(Action)} method
+   * @return The {@link ratpack.http.client.ReceivedResponse} from the request.
+   * @see {@link #request(Action)}
+   */
+  ReceivedResponse request(String path, Action<? super RequestSpec> requestAction);
 }
