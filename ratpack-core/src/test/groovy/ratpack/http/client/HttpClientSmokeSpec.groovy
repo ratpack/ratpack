@@ -25,6 +25,7 @@ import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
+import spock.lang.IgnoreIf
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -292,6 +293,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     response.statusCode == 500
   }
 
+  @IgnoreIf({InetAddress.localHost.isLoopbackAddress()})
   def "can set connect timeout"() {
     setup:
     def nonRoutableIp = '192.168.0.0'
@@ -551,4 +553,5 @@ BAR
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
   }
+
 }
