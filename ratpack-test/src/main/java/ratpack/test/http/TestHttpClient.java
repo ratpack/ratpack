@@ -305,7 +305,7 @@ public interface TestHttpClient {
    * <p>
    * The request method is defaulted to GET if not specified via a {@link RequestSpec}
    *
-   * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec(Action)} method
+   * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec} method
    * @return The {@link ratpack.http.client.ReceivedResponse} from the request.
    */
   ReceivedResponse request(Action<? super RequestSpec> requestAction);
@@ -316,9 +316,9 @@ public interface TestHttpClient {
    * The request method is defaulted to GET if not specified via a {@link RequestSpec}
    *
    * @param path What path the request will be made against.
-   * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec(Action)} method
+   * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec} method
    * @return The {@link ratpack.http.client.ReceivedResponse} from the request.
-   * @see {@link #request(Action)}
+   * @see #request
    */
   ReceivedResponse request(String path, Action<? super RequestSpec> requestAction);
 }
