@@ -303,7 +303,7 @@ public interface TestHttpClient {
   /**
    * Executes a HTTP request.
    * <p>
-   * The request method is defaulted to GET if not specfied via a {@link RequestSpec}
+   * The request method is defaulted to GET if not specified via a {@link RequestSpec}
    *
    * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec(Action)} method
    * @return The {@link ratpack.http.client.ReceivedResponse} from the request.
@@ -313,7 +313,7 @@ public interface TestHttpClient {
   /**
    * Executes a HTTP request against a specific path.
    * <p>
-   * The request method is defaulted to GET if not specfied via a {@link RequestSpec}
+   * The request method is defaulted to GET if not specified via a {@link RequestSpec}
    *
    * @param path What path the request will be made against.
    * @param requestAction an action to configure this request. Overrides an previous configuration from the {@link #requestSpec(Action)} method
