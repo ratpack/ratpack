@@ -233,6 +233,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
       response = client.request(uri, Duration.ofMinutes(60), requestSpec -> {
         final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
+        decorated.method("GET");
         defaultRequestConfig.execute(decorated);
         request.execute(decorated);
         requestAction.execute(decorated);
