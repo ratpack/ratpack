@@ -46,6 +46,7 @@ dependencies {
 }
 
 test {
+  dependsOn install
   dependsOn { apiModules*.install }
   onlyIf { !System.getenv('CI_GROOVY_VERSION') }
   allprojects {
