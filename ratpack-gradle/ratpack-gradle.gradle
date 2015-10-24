@@ -39,6 +39,7 @@ dependencies {
   compile localGroovy()
   compile gradleApi()
 
+  testCompile gradleTestKit()
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
     exclude module: "groovy-all", group: "org.codehaus.groovy"
   }

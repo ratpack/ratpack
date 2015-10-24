@@ -135,6 +135,7 @@ subprojects {
     allprojects {
       mustRunAfter tasks.withType(Checkstyle)
     }
+    environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir
   }
 
   if (project.path != ":ratpack-benchmark") {
