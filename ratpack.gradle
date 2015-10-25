@@ -135,7 +135,6 @@ subprojects {
     allprojects {
       mustRunAfter tasks.withType(Checkstyle)
     }
-    environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir
   }
 
   if (project.path != ":ratpack-benchmark") {
@@ -239,8 +238,8 @@ subprojects {
 
   tasks.withType(Test) {
     jvmArgs "-Xss320k"
-    minHeapSize "312m"
-    maxHeapSize "312m"
+    minHeapSize "120m"
+    maxHeapSize "280m"
 
     testLogging {
       exceptionFormat "full"
@@ -252,6 +251,8 @@ subprojects {
         systemProperty "cloudCi", "true"
       }
     }
+
+    environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir
   }
 }
 
