@@ -36,6 +36,8 @@ You can now start the app by running the following on the command line:
 groovy ratpack.groovy
 ```
 
+The server will be available via `http://localhost:5050/`.
+
 The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
 
@@ -107,6 +109,8 @@ public class Main {
 You can now start the application either by executing the `run` task with Gradle (i.e. `gradle run` on the command line),
 or by importing the project into your IDE and executing the `my.app.Main` class.
 
+When run, the server will be available via `http://localhost:5050/`.
+
 The [`handlers()` method](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) takes a function that receives a [`Chain`](api/ratpack/handling/Chain.html) object.
 The “Handler Chain API” is used to build the response handling strategy.
 
@@ -155,6 +159,8 @@ ratpack {
 
 You can now start the application either by executing the `run` task with Gradle (i.e. `gradle run` on the command line),
 or by importing the project into your IDE and executing the [`ratpack.groovy.GroovyRatpackMain`](api/ratpack/groovy/GroovyRatpackMain.html) class.
+
+When run, the server will be available via `http://localhost:5050/`.
 
 The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
