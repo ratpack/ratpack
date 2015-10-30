@@ -19,6 +19,7 @@ package ratpack.dropwizard.metrics
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistryListener
 import com.codahale.metrics.SharedMetricRegistries
+import com.codahale.metrics.Timer
 import com.codahale.metrics.annotation.Gauge
 import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
@@ -28,6 +29,10 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
 import ratpack.exec.Blocking
+import ratpack.exec.ExecInterceptor
+import ratpack.exec.Execution
+import ratpack.func.Block
+import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
@@ -611,4 +616,180 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       fourxxCounter.count == 2
     }
   }
+
+  def "can disable blocking metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), {
+        it.interceptor { it.enable(false) }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-requests", !null)
+    0 * reporter.onTimerAdded("foo.get-blocking", !null)
+  }
+
+  def "can disable request timing metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), {
+        it.handler { it.enable(false) }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-blocking", !null)
+    0 * reporter.onTimerAdded("foo.get-requests", !null)
+  }
+
+  def "can provide a custom blocking metrics interceptor"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), { config ->
+        config.interceptor { it.interceptor(new MyBlockingExecTimingInterceptor(SharedMetricRegistries.getOrCreate(DropwizardMetricsModule.RATPACK_METRIC_REGISTRY), config)) }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-requests", !null)
+    1 * reporter.onTimerAdded("this.is.blocking.foo", !null)
+  }
+
+  def "can provide a custom request timing metrics handler"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), { config ->
+        config.handler { it.handler(new MyRequestTimingHandler(SharedMetricRegistries.getOrCreate(DropwizardMetricsModule.RATPACK_METRIC_REGISTRY), config)) }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("this.is.my.timer.foo", !null)
+    1 * reporter.onTimerAdded("foo.get-blocking", !null)
+  }
+
+  /**
+   * Dummy BlockingExecTimingInterceptor class
+   */
+  private static class MyBlockingExecTimingInterceptor implements BlockingExecTimingInterceptor {
+
+    private MetricRegistry metricRegistry
+    private DropwizardMetricsConfig config
+
+    public MyBlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
+      this.metricRegistry = metricRegistry
+      this.config = config
+    }
+
+    @Override
+    public void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) throws Exception {
+      if (type == ExecInterceptor.ExecType.BLOCKING) {
+        String tag = 'this.is.blocking.foo'
+        Timer.Context timer = metricRegistry.timer(tag).time()
+        try {
+          executionSegment.execute()
+        } finally {
+          timer.stop()
+        }
+        return
+      }
+      executionSegment.execute()
+    }
+
+  }
+
+  /**
+   * Dummy RequestTimingInterceptor class
+   */
+  private class MyRequestTimingHandler implements RequestTimingHandler {
+
+    private final MetricRegistry metricRegistry
+    private final DropwizardMetricsConfig config
+
+    public MyRequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
+      this.metricRegistry = metricRegistry
+      this.config = config
+    }
+
+    @Override
+    public void handle(final Context context) throws Exception {
+      context.onClose { outcome ->
+        String timerName = 'this.is.my.timer.foo'
+        metricRegistry.timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS);
+      }
+      context.next()
+    }
+
+  }
+
+
 }

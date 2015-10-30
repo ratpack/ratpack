@@ -22,7 +22,7 @@ import ratpack.func.Block;
 /**
  * Intercepts execution segments of an execution, primarily for traceability and recording metrics.
  * <p>
- * Interceptors present the base registry will be implicitly applied to all executions.
+ * Interceptors present in the base registry will be implicitly applied to all executions.
  * Execution specific interceptors can be registered via the {@link ExecStarter#register(Action)} method when starting the execution.
  * The {@link Execution#addInterceptor(ExecInterceptor, Block)} method allows interceptors to be registered during an execution, for the rest of the execution.
  *

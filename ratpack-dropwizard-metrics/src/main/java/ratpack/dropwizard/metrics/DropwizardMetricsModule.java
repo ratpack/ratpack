@@ -100,7 +100,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * <h2>Metric Collection</h2>
  * <p>
  * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received and {@link Counter} metrics for response codes.
- * The module adds a {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not
+ * The module adds a {@link DefaultRequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not
  * take any framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is registered first
  * in the modules list to ensure that <b>all</b> handlers are included in the metric.
  * </p>
@@ -158,11 +158,10 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(MetricsBroadcaster.class).in(SINGLETON);
     bind(Startup.class);
 
-    bind(RequestTimingHandler.class);
-    bind(BlockingExecTimingInterceptor.class);
-
-    Provider<RequestTimingHandler> handlerProvider = getProvider(RequestTimingHandler.class);
-    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
+    bind(BlockingExecTimingInterceptor.class).toProvider(BlockingExecTimingInterceptorProvider.class).in(SINGLETON);
+    bind(RequestTimingHandler.class).toProvider(RequestTimingHandlerProvider.class).in(SINGLETON);
+    Provider<RequestTimingHandler> provider = getProvider(RequestTimingHandler.class);
+    Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(provider.get()));
   }
 
   private <T> T injected(T instance) {
