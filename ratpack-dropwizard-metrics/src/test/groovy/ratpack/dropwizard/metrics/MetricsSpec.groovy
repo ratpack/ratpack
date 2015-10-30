@@ -784,7 +784,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     public void handle(final Context context) throws Exception {
       context.onClose { outcome ->
         String timerName = 'this.is.my.timer.foo'
-        metricRegistry.timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS);
+        metricRegistry.timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS)
       }
       context.next()
     }

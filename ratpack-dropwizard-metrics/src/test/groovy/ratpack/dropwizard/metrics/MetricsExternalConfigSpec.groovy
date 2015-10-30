@@ -19,7 +19,6 @@ package ratpack.dropwizard.metrics
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.config.ConfigData
-import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.time.Duration
