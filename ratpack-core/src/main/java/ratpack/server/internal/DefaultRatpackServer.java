@@ -26,7 +26,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
@@ -46,8 +46,6 @@ import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Optional;
@@ -207,10 +205,10 @@ public class DefaultRatpackServer implements RatpackServer {
 
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
-    SSLContext sslContext = serverConfig.getSslContext();
-    boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
+    SslContext sslContext = serverConfig.getSslContext();
     this.useSsl = sslContext != null;
 
+    boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
     ServerBootstrap serverBootstrap = new ServerBootstrap();
 
     serverConfig.getConnectTimeoutMillis().ifPresent(i -> {
@@ -236,7 +234,7 @@ public class DefaultRatpackServer implements RatpackServer {
       .channel(ChannelImplDetector.getServerSocketChannelImpl())
       .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
       .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-      .childHandler(new NettyChannelInitializer(handlerAdapter, serverConfig, sslContext))
+      .childHandler(new NettyChannelInitializer(handlerAdapter, serverConfig))
       .bind(buildSocketAddress(serverConfig))
       .sync()
       .channel();

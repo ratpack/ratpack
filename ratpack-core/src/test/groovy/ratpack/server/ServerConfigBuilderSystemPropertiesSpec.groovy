@@ -21,7 +21,7 @@ import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
-import javax.net.ssl.SSLContext
+import io.netty.handler.ssl.SslContext;
 import java.nio.file.Paths
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {
@@ -186,13 +186,16 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def "set ssl context"() {
     given:
-    String keystoreFile = Paths.get(Resources.getResource('ratpack/launch/internal/keystore.jks').toURI()).toString()
-    String keystorePassword = 'password'
-    properties.setProperty('ratpack.server.ssl.keystoreFile', keystoreFile)
-    properties.setProperty('ratpack.server.ssl.keystorePassword', keystorePassword)
+    String certificateFile = Paths.get(Resources.getResource('ratpack/launch/internal/server.crt').toURI()).toString()
+    String privateKeyFile = Paths.get(Resources.getResource('ratpack/launch/internal/server.key.pk8').toURI()).toString()
+    String privateKeyPassword = "test"
+
+    properties.setProperty('ratpack.server.ssl.certificate', certificateFile)
+    properties.setProperty('ratpack.server.ssl.privateKey', privateKeyFile)
+    properties.setProperty('ratpack.server.ssl.privateKeyPassword', privateKeyPassword)
 
     when:
-    SSLContext sslContext = builder.sysProps().build().sslContext
+    SslContext sslContext = builder.sysProps().build().sslContext
 
     then:
     sslContext

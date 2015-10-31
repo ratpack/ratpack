@@ -18,13 +18,17 @@ package ratpack.config
 
 import ratpack.server.ServerConfig
 import ratpack.server.internal.ServerConfigData
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+
 
 class YamlConfigSpec extends BaseConfigSpec {
   def "supports yaml"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-    def keyStorePassword = "changeit"
-    createKeystore(keyStoreFile, keyStorePassword)
+
+    def ssc = new SelfSignedCertificate()
+    def certificate = ssc.certificate().toPath()
+    def privateKey = ssc.privateKey().toPath()
+
     def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
     configFile.text = """
     |---
@@ -40,8 +44,8 @@ class YamlConfigSpec extends BaseConfigSpec {
     |      - index.html
     |      - index.htm
     |  ssl:
-    |      keystoreFile: ${keyStoreFile.toString()}
-    |      keystorePassword: ${keyStorePassword}
+    |      certificate: ${certificate.toString()}
+    |      privateKey: ${privateKey.toString()}
     |...
     |""".stripMargin()
 
@@ -61,9 +65,11 @@ class YamlConfigSpec extends BaseConfigSpec {
 
   def "supports relative path yaml"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-    def keyStorePassword = "changeit"
-    createKeystore(keyStoreFile, keyStorePassword)
+
+    def ssc = new SelfSignedCertificate()
+    def certificate = ssc.certificate().toPath()
+    def privateKey = ssc.privateKey().toPath()
+
     def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
     configFile.text = """
     |---
@@ -78,8 +84,8 @@ class YamlConfigSpec extends BaseConfigSpec {
     |    - index.html
     |    - index.htm
     |ssl:
-    |    keystoreFile: ${keyStoreFile.toString()}
-    |    keystorePassword: ${keyStorePassword}
+    |    certificate: ${certificate.toString()}
+    |    privateKey: ${privateKey.toString()}
     |...
     |""".stripMargin()
 

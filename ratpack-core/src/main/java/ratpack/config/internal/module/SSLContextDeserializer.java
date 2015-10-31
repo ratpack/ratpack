@@ -23,20 +23,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.ssl.SSLContexts;
 import ratpack.util.Exceptions;
 
-import javax.net.ssl.SSLContext;
+import io.netty.handler.ssl.SslContext;
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
 
-public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
+public class SSLContextDeserializer extends JsonDeserializer<SslContext> {
   @Override
-  public SSLContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+  public SslContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectNode node = jp.readValueAsTree();
     try {
-      String keyStoreFile = node.path("keystoreFile").asText();
-      String keyStorePassword = node.path("keystorePassword").asText();
-      return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword);
-    } catch (GeneralSecurityException ex) {
+      String certificateFile = node.path("certificate").asText();
+      String keyFile = node.path("privateKey").asText();
+      String keyPassword = node.path("privateKeyPassword").asText();
+      return SSLContexts.create(Paths.get(certificateFile), Paths.get(keyFile), keyPassword);
+    } catch (SSLException ex) {
       throw Exceptions.uncheck(ex);
     }
   }

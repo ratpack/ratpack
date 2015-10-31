@@ -100,11 +100,14 @@ class ServerConfigBuilderEnvVarsSpec extends Specification {
 
   def "set ssl context"() {
     given:
-    String keystoreFile = Paths.get(Resources.getResource('ratpack/launch/internal/keystore.jks').toURI()).toString()
-    String keystorePassword = 'password'
+    String certificateFile = Paths.get(Resources.getResource('ratpack/launch/internal/server.crt').toURI()).toString()
+    String privateKeyFile = Paths.get(Resources.getResource('ratpack/launch/internal/server.key.pk8').toURI()).toString()
+    String privateKeyPassword = "test"
 
     expect:
-    build('RATPACK_SERVER__SSL__KEYSTORE_FILE': keystoreFile, 'RATPACK_SERVER__SSL__KEYSTORE_PASSWORD': keystorePassword).sslContext
+    build('RATPACK_SERVER__SSL__CERTIFICATE': certificateFile,
+          'RATPACK_SERVER__SSL__PRIVATE_KEY': privateKeyFile,
+          'RATPACK_SERVER__SSL__PRIVATE_KEY_PASSWORD': privateKeyPassword).sslContext
   }
 
   def "set connect timeout millis"() {

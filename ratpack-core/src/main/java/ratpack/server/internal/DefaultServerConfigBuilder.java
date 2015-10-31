@@ -34,7 +34,7 @@ import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
-import javax.net.ssl.SSLContext;
+import io.netty.handler.ssl.SslContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
@@ -131,7 +131,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
-  public ServerConfigBuilder ssl(SSLContext sslContext) {
+  public ServerConfigBuilder ssl(SslContext sslContext) {
     return addToServer(n -> n.putPOJO("ssl", sslContext));
   }
 
@@ -350,7 +350,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
         serverEnvironment.getPublicAddress(),
         baseDirSupplier
       ));
-      addDeserializer(SSLContext.class, new SSLContextDeserializer());
+      addDeserializer(SslContext.class, new SSLContextDeserializer());
     }
   }
 

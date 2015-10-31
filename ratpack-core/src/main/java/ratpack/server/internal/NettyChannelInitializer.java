@@ -21,49 +21,36 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
-// import io.netty.handler.codec.http.HttpRequest;
-// import io.netty.handler.codec.http.HttpRequestDecoder;
-// import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-
 import ratpack.server.ServerConfig;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 
 
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
-  final SSLContext sslContext;
+  final SslContext sslContext;
   final ChannelHandler handlerAdapter;
   final ServerConfig serverConfig;
 
-  public NettyChannelInitializer(ChannelHandler channelHandler, ServerConfig config, SSLContext sslContext) {
+  public NettyChannelInitializer(ChannelHandler channelHandler, ServerConfig config) {
     this.handlerAdapter = channelHandler;
-    this.sslContext = sslContext;
     this.serverConfig = config;
+    this.sslContext = config.getSslContext();
   }
 
   @Override
-  protected void initChannel(SocketChannel ch) throws Exception {
-    boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
-    ChannelPipeline pipeline = ch.pipeline();
+  protected void initChannel(SocketChannel ch) {
+    final ChannelPipeline p = ch.pipeline();
+    final HttpServerCodec httpCodec = new HttpServerCodec(4096, 8192, 8192, false);
 
     if (sslContext != null) {
-      SSLEngine sslEngine = sslContext.createSSLEngine();
-      sslEngine.setUseClientMode(false);
-      sslEngine.setNeedClientAuth(requireClientSslAuth);
-      pipeline.addLast("ssl", new SslHandler(sslEngine));
+      p.addLast(sslContext.newHandler(ch.alloc()));
     }
 
-    // pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-    // pipeline.addLast("encoder", new HttpResponseEncoder());
-    pipeline.addLast(new HttpServerCodec(4096, 8192, 8192, false));
-
-    pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
-    pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-    pipeline.addLast("adapter", handlerAdapter);
-
+    p.addLast(httpCodec);
+    p.addLast("deflater", new IgnorableHttpContentCompressor());
+    p.addLast("chunkedWriter", new ChunkedWriteHandler());
+    p.addLast("adapter", handlerAdapter);
     ch.config().setAutoRead(false);
   }
 }

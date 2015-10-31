@@ -31,7 +31,9 @@ import ratpack.server.ServerConfig;
 import ratpack.server.internal.ServerConfigData;
 import ratpack.server.internal.ServerEnvironment;
 
-import javax.net.ssl.SSLContext;
+import io.netty.handler.ssl.SslContext;
+
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -77,7 +79,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
       data.setMaxContentLength(serverNode.get("maxContentLength").asInt(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH));
     }
     if (serverNode.hasNonNull("ssl")) {
-      data.setSslContext(toValue(codec, serverNode.get("ssl"), SSLContext.class));
+      data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
     }
     if (serverNode.hasNonNull("requireClientSslAuth")) {
       data.setRequireClientSslAuth(serverNode.get("requireClientSslAuth").asBoolean(false));

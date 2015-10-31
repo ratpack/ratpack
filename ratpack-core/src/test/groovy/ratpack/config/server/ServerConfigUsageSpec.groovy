@@ -24,6 +24,9 @@ import ratpack.server.internal.ServerConfigData
 import java.nio.file.Path
 import java.security.KeyStore
 
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+
 class ServerConfigUsageSpec extends ConfigUsageSpec {
   @Rule
   TemporaryFolder temporaryFolder
@@ -45,9 +48,9 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
 
   def "can override all ServerConfig fields"() {
     given:
+    def ssc = new SelfSignedCertificate()
+
     def baseDir = temporaryFolder.newFolder().toPath()
-    def keyStorePassword = "changeit"
-    def keyStoreFile = createKeystore(keyStorePassword)
     def data = """
     |---
     |port: 1234
@@ -56,8 +59,8 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     |threads: 5
     |publicAddress: http://app.ratpack.com
     |ssl:
-    |  keystoreFile: ${keyStoreFile.toString()}
-    |  keystorePassword: ${keyStorePassword}
+    |  certificate: ${ssc.certificate().toString()}
+    |  privateKey: ${ssc.privateKey().toString()}
     |maxContentLength: 54321
     """.stripMargin()
 
@@ -73,13 +76,5 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     config.publicAddress == URI.create("http://app.ratpack.com")
     config.sslContext
     config.maxContentLength == 54321L
-  }
-
-  private Path createKeystore(String password) {
-    def path = temporaryFolder.newFile().toPath()
-    def keyStore = KeyStore.getInstance(KeyStore.defaultType)
-    keyStore.load(null, password.toCharArray())
-    path.withOutputStream { keyStore.store(it, password.toCharArray()) }
-    path
   }
 }

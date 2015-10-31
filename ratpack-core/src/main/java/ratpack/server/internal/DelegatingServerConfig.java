@@ -24,7 +24,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.ServerConfig;
 
-import javax.net.ssl.SSLContext;
+import io.netty.handler.ssl.SslContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Optional;
@@ -71,7 +71,7 @@ public class DelegatingServerConfig extends DelegatingConfigData implements Serv
 
   @Override
   @Nullable
-  public SSLContext getSslContext() {
+  public SslContext getSslContext() {
     return delegate.getSslContext();
   }
 
