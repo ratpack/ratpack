@@ -23,11 +23,11 @@ import java.util.Optional;
  */
 public class BlockingExecTimingInterceptorConfig {
     private boolean enabled = true;
-    private Optional<BlockingExecTimingInterceptor> interceptor = Optional.empty();
+    private Optional<Class<BlockingExecTimingInterceptor>> interceptor = Optional.empty();
 
     /**
      *
-     * @return
+     * @return whether or not recording blocking timing metrics is enabled.
      */
     public boolean isEnabled() {
         return enabled;
@@ -35,8 +35,8 @@ public class BlockingExecTimingInterceptorConfig {
 
     /**
      *
-     * @param enabled
-     * @return
+     * @param enabled whether or not to enable recording blocking timing metrics.
+     * @return this
      */
     public BlockingExecTimingInterceptorConfig enable(boolean enabled) {
         this.enabled = enabled;
@@ -45,18 +45,20 @@ public class BlockingExecTimingInterceptorConfig {
 
     /**
      *
-     * @return
+     * @return The blocking timing execution interceptor.
      */
-    public Optional<BlockingExecTimingInterceptor> getInterceptor() {
+    public Optional<Class<BlockingExecTimingInterceptor>> getInterceptor() {
         return interceptor;
     }
 
     /**
      * Provide custom blocking exec timing interceptor. This will replace
      * the default.
-     * @param interceptor
+     *
+     * @param interceptor The blocking timing execution interceptor.
+     * @return this
      */
-    public BlockingExecTimingInterceptorConfig interceptor(BlockingExecTimingInterceptor interceptor) {
+    public BlockingExecTimingInterceptorConfig interceptor(Class<BlockingExecTimingInterceptor> interceptor) {
         this.interceptor = Optional.of(interceptor);
         return this;
     }

@@ -18,7 +18,6 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.google.inject.Inject;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.Execution;
@@ -28,15 +27,10 @@ import ratpack.http.Request;
 import java.util.Map;
 import java.util.Optional;
 
-public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingInterceptor {
+public class DefaultBlockingExecTimingInterceptor extends BlockingExecTimingInterceptor {
 
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
-
-  @Inject
   public DefaultBlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    this.metricRegistry = metricRegistry;
-    this.config = config;
+    super(metricRegistry, config);
   }
 
   @Override
@@ -46,7 +40,7 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
       if (requestOpt.isPresent()) {
         Request request = requestOpt.get();
         String tag = buildBlockingTimerTag(request.getPath(), request.getMethod().getName());
-        Timer.Context timer = metricRegistry.timer(tag).time();
+        Timer.Context timer = getMetricRegistry().timer(tag).time();
         try {
           executionSegment.execute();
         } finally {
@@ -62,8 +56,8 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
   private String buildBlockingTimerTag(String requestPath, String requestMethod) {
     String tagName = requestPath.equals("") ? "root" : requestPath.replace("/", ".");
 
-    if (config.getRequestMetricGroups() != null) {
-      for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
+    if (getConfig().getRequestMetricGroups() != null) {
+      for (Map.Entry<String, String> metricGrouping : getConfig().getRequestMetricGroups().entrySet()) {
         if (requestPath.matches(metricGrouping.getValue())) {
           tagName = metricGrouping.getKey();
           break;

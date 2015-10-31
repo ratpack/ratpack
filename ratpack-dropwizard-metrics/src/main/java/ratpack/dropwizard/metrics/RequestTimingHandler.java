@@ -16,10 +16,40 @@
 
 package ratpack.dropwizard.metrics;
 
+import com.codahale.metrics.MetricRegistry;
 import ratpack.handling.Handler;
 
 /**
  *
  */
-public interface RequestTimingHandler extends Handler {
+public abstract class RequestTimingHandler implements Handler {
+
+    private MetricRegistry metricRegistry;
+    private DropwizardMetricsConfig config;
+
+    /**
+     *
+     * @param metricRegistry the metric registry
+     * @param config the config
+     */
+    public RequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
+        this.metricRegistry = metricRegistry;
+        this.config = config;
+    }
+
+    /**
+     *
+     * @return the metric registry
+     */
+    public MetricRegistry getMetricRegistry() {
+        return metricRegistry;
+    }
+
+    /**
+     *
+     * @return the config
+     */
+    public DropwizardMetricsConfig getConfig() {
+        return config;
+    }
 }

@@ -16,7 +16,6 @@
 package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Inject;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.RequestTimingHandler;
 import ratpack.handling.Context;
@@ -24,15 +23,10 @@ import ratpack.handling.Context;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultRequestTimingHandler implements RequestTimingHandler {
+public class DefaultRequestTimingHandler extends RequestTimingHandler {
 
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
-
-  @Inject
   public DefaultRequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    this.metricRegistry = metricRegistry;
-    this.config = config;
+    super(metricRegistry, config);
   }
 
   @Override
@@ -40,8 +34,8 @@ public class DefaultRequestTimingHandler implements RequestTimingHandler {
     context.onClose(outcome -> {
       String timerName = buildRequestTimerTag(outcome.getRequest().getPath(), outcome.getRequest().getMethod().getName());
       String responseCodeCounter = String.valueOf(outcome.getResponse().getStatus().getCode()).substring(0, 1) + "xx-responses";
-      metricRegistry.timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS);
-      metricRegistry.counter(responseCodeCounter).inc();
+      getMetricRegistry().timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS);
+      getMetricRegistry().counter(responseCodeCounter).inc();
     });
     context.next();
   }
@@ -49,8 +43,8 @@ public class DefaultRequestTimingHandler implements RequestTimingHandler {
   private String buildRequestTimerTag(String requestPath, String requestMethod) {
     String tagName = requestPath.equals("") ? "root" : requestPath.replace("/", ".");
 
-    if (config.getRequestMetricGroups() != null) {
-      for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
+    if (getConfig().getRequestMetricGroups() != null) {
+      for (Map.Entry<String, String> metricGrouping : getConfig().getRequestMetricGroups().entrySet()) {
         if (requestPath.matches(metricGrouping.getValue())) {
           tagName = metricGrouping.getKey();
           break;

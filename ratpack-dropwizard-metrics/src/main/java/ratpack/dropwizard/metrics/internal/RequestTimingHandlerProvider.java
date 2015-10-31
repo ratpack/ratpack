@@ -18,8 +18,8 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
-import ratpack.dropwizard.metrics.RequestTimingHandlerConfig;
 import ratpack.dropwizard.metrics.RequestTimingHandler;
+import ratpack.dropwizard.metrics.RequestTimingHandlerConfig;
 import ratpack.handling.Context;
 
 import javax.inject.Inject;
@@ -42,12 +42,23 @@ public class RequestTimingHandlerProvider implements Provider<RequestTimingHandl
 
     @Override
     public RequestTimingHandler get() {
-        RequestTimingHandler handler = Context::next;
+        RequestTimingHandler handler = new RequestTimingHandler(metricRegistry, config) {
+            @Override
+            public void handle(Context ctx) throws Exception {
+                ctx.next();
+            }
+        };
         Optional<RequestTimingHandlerConfig> o = config.getHandler();
         if (o.isPresent()) {
             RequestTimingHandlerConfig handlerConfig = o.get();
             if (handlerConfig.isEnabled()) {
-                handler = handlerConfig.getHandler().orElse(new DefaultRequestTimingHandler(metricRegistry, config));
+                handler = handlerConfig.getHandler().map(clazz -> {
+                    try {
+                        return clazz.getConstructor(MetricRegistry.class, DropwizardMetricsConfig.class).newInstance(metricRegistry, config);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }).orElse(new DefaultRequestTimingHandler(metricRegistry, config));
             }
         }
         return handler;

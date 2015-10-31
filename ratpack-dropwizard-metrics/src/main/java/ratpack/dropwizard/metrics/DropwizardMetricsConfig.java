@@ -280,7 +280,7 @@ public class DropwizardMetricsConfig {
 
   /**
    * Get the settings for the metrics handler config.
-   * @return
+   * @return the settings for the metrics handler config
    */
   public Optional<RequestTimingHandlerConfig> getHandler() {
     return handler;
@@ -296,8 +296,8 @@ public class DropwizardMetricsConfig {
 
   /**
    * Configure the custom request timing handler config.
-   * @param configure
-   * @return
+   * @param configure the configuration for the handler
+   * @return this
    */
   public DropwizardMetricsConfig handler(Action<? super RequestTimingHandlerConfig> configure) {
     try {
@@ -313,7 +313,7 @@ public class DropwizardMetricsConfig {
 
   /**
    * Get the settings for the metrics handler config.
-   * @return
+   * @return the blocking execution timing interceptor settings
    */
   public Optional<BlockingExecTimingInterceptorConfig> getInterceptor() {
     return interceptor;
@@ -329,8 +329,8 @@ public class DropwizardMetricsConfig {
 
   /**
    * Configure the custom blocking execution timing interceptor config.
-   * @param configure
-   * @return
+   * @param configure the configuration for the interceptor
+   * @return this
    */
   public DropwizardMetricsConfig interceptor(Action<? super BlockingExecTimingInterceptorConfig> configure) {
     try {

@@ -23,20 +23,20 @@ import java.util.Optional;
  */
 public class RequestTimingHandlerConfig {
     private boolean enabled = true;
-    private Optional<RequestTimingHandler> handler = Optional.empty();
+    private Optional<Class<RequestTimingHandler>> handler = Optional.empty();
 
     /**
-     * Get state of blocking exec timer.
-     * @return
+     *
+     * @return whether or not recording request timing metrics is enabled.
      */
     public boolean isEnabled() {
         return enabled;
     }
 
     /**
-     * Enable blocker exec timer.
-     * @param enabled
-     * @return
+     *
+     * @param enabled whether or not to enable recording request timing metrics.
+     * @return this
      */
     public RequestTimingHandlerConfig enable(boolean enabled) {
         this.enabled = enabled;
@@ -44,19 +44,21 @@ public class RequestTimingHandlerConfig {
     }
 
     /**
-     * Get custom provided request timing handler.
-     * @return
+     *
+     * @return The request timing handler.
      */
-    public Optional<RequestTimingHandler> getHandler() {
+    public Optional<Class<RequestTimingHandler>> getHandler() {
         return handler;
     }
 
     /**
      * Provide custom request timing interceptor. This will replace
      * the default.
-     * @param requestTimingHandler
+     *
+     * @param requestTimingHandler The request timing handler.
+     * @return this
      */
-    public RequestTimingHandlerConfig handler(RequestTimingHandler requestTimingHandler) {
+    public RequestTimingHandlerConfig handler(Class<RequestTimingHandler> requestTimingHandler) {
         this.handler = Optional.of(requestTimingHandler);
         return this;
     }

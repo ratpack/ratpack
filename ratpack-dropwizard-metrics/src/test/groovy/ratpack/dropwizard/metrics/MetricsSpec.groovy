@@ -683,7 +683,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       module new DropwizardMetricsModule(), { config ->
-        config.interceptor { it.interceptor(new MyBlockingExecTimingInterceptor(SharedMetricRegistries.getOrCreate(DropwizardMetricsModule.RATPACK_METRIC_REGISTRY), config)) }
+        config.interceptor { it.interceptor(MyBlockingExecTimingInterceptor) }
       }
     }
 
@@ -713,7 +713,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       module new DropwizardMetricsModule(), { config ->
-        config.handler { it.handler(new MyRequestTimingHandler(SharedMetricRegistries.getOrCreate(DropwizardMetricsModule.RATPACK_METRIC_REGISTRY), config)) }
+        config.handler { it.handler(MyRequestTimingHandler) }
       }
     }
 
@@ -740,14 +740,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   /**
    * Dummy BlockingExecTimingInterceptor class
    */
-  private static class MyBlockingExecTimingInterceptor implements BlockingExecTimingInterceptor {
-
-    private MetricRegistry metricRegistry
-    private DropwizardMetricsConfig config
+  public static class MyBlockingExecTimingInterceptor extends BlockingExecTimingInterceptor {
 
     public MyBlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-      this.metricRegistry = metricRegistry
-      this.config = config
+      super(metricRegistry, config)
     }
 
     @Override
@@ -770,14 +766,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   /**
    * Dummy RequestTimingInterceptor class
    */
-  private class MyRequestTimingHandler implements RequestTimingHandler {
-
-    private final MetricRegistry metricRegistry
-    private final DropwizardMetricsConfig config
+  public static class MyRequestTimingHandler extends RequestTimingHandler {
 
     public MyRequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-      this.metricRegistry = metricRegistry
-      this.config = config
+      super(metricRegistry, config)
     }
 
     @Override
