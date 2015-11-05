@@ -23,28 +23,38 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+import javax.net.ssl.SSLContext;
+
 import io.netty.handler.stream.ChunkedWriteHandler;
 import ratpack.server.ServerConfig;
 
 
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
-  final SslContext sslContext;
   final ChannelHandler handlerAdapter;
   final ServerConfig serverConfig;
 
   public NettyChannelInitializer(ChannelHandler channelHandler, ServerConfig config) {
     this.handlerAdapter = channelHandler;
     this.serverConfig = config;
-    this.sslContext = config.getSslContext();
   }
 
   @Override
   protected void initChannel(SocketChannel ch) {
     final ChannelPipeline p = ch.pipeline();
     final HttpServerCodec httpCodec = new HttpServerCodec(4096, 8192, 8192, false);
+    final SslContext sslCtx = config.getSsl();
 
-    if (sslContext != null) {
-      p.addLast(sslContext.newHandler(ch.alloc()));
+    if (sslCtx != null) {
+      p.addLast(sslCtx.newHandler(ch.alloc()));
+    } else {
+      final SslContext sslContext = config.getSslContext();
+      if (sslContext != null) {
+        final SSLEngine sslEngine = sslContext.createSSLEngine();
+        sslEngine.setUseClientMode(false);
+        sslEngine.setNeedClientAuth(requireClientSslAuth);
+
+        pipeline.addLast("ssl", new SslHandler(sslEngine));
+      }
     }
 
     p.addLast(httpCodec);

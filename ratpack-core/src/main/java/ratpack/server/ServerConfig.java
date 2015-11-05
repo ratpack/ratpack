@@ -153,7 +153,16 @@ public interface ServerConfig extends ConfigData {
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
   @Nullable
+  @Deprecated
   SslContext getSslContext();
+
+  /**
+   * The SSL context to use if the application will serve content over HTTPS.
+   *
+   * @return The SSL context or <code>null</code> if the application does not use SSL.
+   */
+  @Nullable
+  SslContext getSsl();
 
   /**
    * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}.

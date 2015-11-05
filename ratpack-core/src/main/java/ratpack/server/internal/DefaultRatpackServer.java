@@ -46,6 +46,7 @@ import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
 
+import javax.net.ssl.SSLContext;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Optional;
@@ -204,9 +205,15 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
+    SslContext sslCtx = serverConfig.getSsl();
 
-    SslContext sslContext = serverConfig.getSslContext();
-    this.useSsl = sslContext != null;
+    // Just for backward compatibility
+    if (sslCtx == null) {
+      SSLContext sslContext = serverConfig.getSslContext();
+      this.useSsl = sslContext != null;
+    } else {
+      this.useSsl = true;
+    }
 
     boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
     ServerBootstrap serverBootstrap = new ServerBootstrap();
