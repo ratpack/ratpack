@@ -36,6 +36,7 @@ import ratpack.render.NoSuchRendererException;
 import ratpack.server.ServerConfig;
 import ratpack.util.Types;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Date;
 
@@ -342,6 +343,29 @@ public interface Context extends Registry {
    * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
    */
   void redirect(int code, String location) throws NotInRegistryException;
+
+  /**
+   * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
+   *
+   * @param location the redirect location URL
+   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
+   * @since 1.2.0
+   */
+  default void redirect(URI location) throws NotInRegistryException {
+    redirect(location.toASCIIString());
+  }
+
+  /**
+   * Sends a redirect response location URL and status code (which should be in the 3xx range).
+   *
+   * @param code The status code of the redirect
+   * @param location the redirect location URL
+   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
+   * @since 1.2.0
+   */
+  default void redirect(int code, URI location) throws NotInRegistryException {
+    redirect(code, location.toASCIIString());
+  }
 
   /**
    * Convenience method for handling last-modified based HTTP caching.
