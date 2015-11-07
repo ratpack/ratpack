@@ -17,6 +17,7 @@
 package ratpack.websocket;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import ratpack.api.NonBlocking;
 
 public interface WebSocket {
@@ -30,9 +31,9 @@ public interface WebSocket {
   boolean isOpen();
 
   @NonBlocking
-  void send(String text);
+  ChannelFuture send(String text);
 
   @NonBlocking
-  void send(ByteBuf text);
+  ChannelFuture send(ByteBuf text);
 
 }
