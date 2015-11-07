@@ -80,3 +80,7 @@ pluginBundle {
     }
   }
 }
+
+test.doFirst {
+  maxParallelForks 1
+}
