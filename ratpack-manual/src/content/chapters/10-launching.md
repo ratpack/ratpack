@@ -102,6 +102,11 @@ A real main method would simply call `BaseDir.find()`, relying on whatever launc
 Ratpack accesses the base dir via the Java 7 [Path](http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) API,
 allowing transparent use of JAR contents as the file system.
 
+#### Port
+
+The [port(int)](api/ratpack/server/ServerConfigBuilder.html#port-int-) method allows setting the port used to connect to the server.
+If not configured, the default value is 5050.
+
 ### Registry
 
 A [`registry`](api/ratpack/registry/Registry.html) is a store of objects stored by type.
