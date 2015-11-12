@@ -48,8 +48,9 @@ public abstract class JacksonConfigSource implements ConfigSource {
   @Override
   public ObjectNode loadConfigData(ObjectMapper objectMapper, FileSystemBinding fileSystemBinding) throws Exception {
     try (InputStream inputStream = byteSource.openStream()) {
-      JsonParser parser = getFactory(objectMapper).createParser(inputStream);
-      return objectMapper.readTree(parser);
+      try (JsonParser parser = getFactory(objectMapper).createParser(inputStream)) {
+        return objectMapper.readTree(parser);
+      }
     }
   }
 

@@ -34,7 +34,12 @@ abstract class FunctionalSpec extends Specification {
   private static final String RATPACK_VERSION = FunctionalSpec.classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
   GradleRunner runner(String... args) {
-    GradleRunner.create().withProjectDir(dir.root).withTestKitDir(getTestKitDir()).withArguments(args.toList())
+    GradleRunner.create()
+      .withProjectDir(dir.root)
+      .withDebug(true) // always run inline to save memory, especially on CI
+      .forwardOutput()
+      .withTestKitDir(getTestKitDir())
+      .withArguments(args.toList())
   }
 
   BuildResult run(String... args) {

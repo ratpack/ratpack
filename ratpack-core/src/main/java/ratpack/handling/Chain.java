@@ -621,6 +621,9 @@ public interface Chain {
   }
 
   /**
+   * @param path the path to bind to
+   * @param handler a handler
+   * @return {@code this}
    * @since 1.1.0
    */
   default Chain options(String path, Class<? extends Handler> handler) {
@@ -644,6 +647,8 @@ public interface Chain {
   }
 
   /**
+   * @param handler a handler
+   * @return {code this}
    * @since 1.1.0
    */
   default Chain options(Class<? extends Handler> handler) {

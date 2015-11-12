@@ -317,3 +317,11 @@ gradle.taskGraph.afterTask {
     lock.unlock()
   }
 }
+
+task downloadDependencies << {
+  allprojects {
+    configurations.all {
+      it.files
+    }
+  }
+}

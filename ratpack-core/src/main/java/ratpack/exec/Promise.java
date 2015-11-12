@@ -342,6 +342,7 @@ public interface Promise<T> {
    * Use {@link #replace(Promise)}.
    *
    * @param next the promise to replace {@code this} with
+   * @param <O> the type of value provided by the replacement promise
    * @return a promise
    * @deprecated replaced by {@link #replace(Promise)} as of 1.1.0
    */
@@ -494,6 +495,7 @@ public interface Promise<T> {
    * }</pre>
    *
    * @param next the promise to replace {@code this} with
+   * @param <O> the type of the value of the replacement promise
    * @return a promise
    * @since 1.1.0
    */
