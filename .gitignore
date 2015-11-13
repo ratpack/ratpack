@@ -13,6 +13,9 @@ out/
 *.ipr
 *.iws
 *.idea
+.factorypath
+pom.xml
+target/
 db/
 starth2
 .gradletasknamecache
