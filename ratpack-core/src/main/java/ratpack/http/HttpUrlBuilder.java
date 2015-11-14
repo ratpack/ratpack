@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import ratpack.func.Action;
 import ratpack.http.internal.DefaultHttpUrlBuilder;
+import ratpack.util.MultiValueMap;
 
 import java.net.URI;
 import java.util.Map;
@@ -191,6 +192,19 @@ public interface HttpUrlBuilder {
    * @return this
    */
   HttpUrlBuilder params(Multimap<String, ?> params);
+
+  /**
+   * Add some query params to the URL.
+   * <p>
+   * The entries of the given multi value map are added as query params to the URL being built.
+   * <p>
+   * This method is additive with regard to the query params of this builder.
+   *
+   * @param params a multi value map of query params to add to the URL being built
+   * @return this
+   * @since 1.2.0
+   */
+  HttpUrlBuilder params(MultiValueMap<String, ?> params);
 
   /**
    * Builds the URI based on this builder's current state.

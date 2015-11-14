@@ -24,6 +24,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.net.UrlEscapers;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.http.HttpUrlBuilder;
+import ratpack.util.MultiValueMap;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.io.UnsupportedEncodingException;
@@ -164,6 +165,12 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   @Override
   public HttpUrlBuilder params(Multimap<String, ?> params) {
     this.params.putAll(params);
+    return this;
+  }
+
+  @Override
+  public HttpUrlBuilder params(MultiValueMap<String, ?> params) {
+    this.params.putAll(params.asMultimap());
     return this;
   }
 
