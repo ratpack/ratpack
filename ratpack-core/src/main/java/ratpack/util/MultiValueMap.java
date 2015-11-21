@@ -18,6 +18,7 @@ package ratpack.util;
 
 import com.google.common.collect.ListMultimap;
 import ratpack.api.Nullable;
+import ratpack.util.internal.DefaultMultiValueMapBuilder;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.util.List;
@@ -41,6 +42,11 @@ public interface MultiValueMap<K, V> extends Map<K, V> {
 
   static <K, V> MultiValueMap<K, V> empty() {
     return ImmutableDelegatingMultiValueMap.empty();
+  }
+
+
+  static <S, T> MultiValueMapBuilder<S, T> builder() {
+    return new DefaultMultiValueMapBuilder<>();
   }
 
   /**

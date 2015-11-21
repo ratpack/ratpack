@@ -163,6 +163,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   }
 
   @Override
+  @Deprecated
   public HttpUrlBuilder params(Multimap<String, ?> params) {
     this.params.putAll(params);
     return this;

@@ -26,6 +26,7 @@ import ratpack.http.client.RequestSpec;
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.internal.DefaultTestHttpClient;
+import ratpack.util.MultiValueMapBuilder;
 
 import java.util.List;
 
@@ -81,8 +82,18 @@ public interface TestHttpClient {
    *
    * @param params the params that will be used with the HttpUrlBuilder passed into {@link ratpack.http.HttpUrlBuilder#params(Action)}
    * @return this
+   * @deprecated since 1.2.0
+   * @see #withParams(Action)
    */
+  @Deprecated
   TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
+
+  /**
+   * @param params the params that will be used with the HttpUrlBuilder passed into {@link ratpack.http.HttpUrlBuilder#withParams(Action)}
+   * @return this
+   * @since 1.2.0
+   */
+  TestHttpClient withParams(Action<? super MultiValueMapBuilder<String, Object>> params);
 
   /**
    * Set the requestSpec back to a No Op default and clear the cookies.

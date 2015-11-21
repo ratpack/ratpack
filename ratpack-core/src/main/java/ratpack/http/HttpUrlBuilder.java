@@ -21,6 +21,7 @@ import com.google.common.collect.Multimap;
 import ratpack.func.Action;
 import ratpack.http.internal.DefaultHttpUrlBuilder;
 import ratpack.util.MultiValueMap;
+import ratpack.util.MultiValueMapBuilder;
 
 import java.net.URI;
 import java.util.Map;
@@ -164,9 +165,28 @@ public interface HttpUrlBuilder {
    * @param params an action that contributes query params
    * @return this
    * @throws Exception any thrown by {@code params}
+   * @deprecated since 1.2.0
+   * @see #withParams(Action)
    */
+  @Deprecated
   default HttpUrlBuilder params(Action<? super ImmutableMultimap.Builder<String, Object>> params) throws Exception {
     return params(Action.with(ImmutableMultimap.builder(), params).build());
+  }
+
+  /**
+   * Add some query params to the URL.
+   * <p>
+   * The given action will be supplied with a multi value map builder, to which it can contribute query params.
+   * <p>
+   * This method is additive with regard to the query params of this builder.
+   *
+   * @param params an action that contributes query params
+   * @return this
+   * @throws Exception any thrown by {@code params}
+   * @since 1.2.0
+   */
+  default HttpUrlBuilder withParams(Action<? super MultiValueMapBuilder<String, Object>> params) throws Exception {
+    return params(Action.with(MultiValueMap.builder(), params).build());
   }
 
   /**
@@ -190,7 +210,10 @@ public interface HttpUrlBuilder {
    *
    * @param params a multi map of query params to add to the URL being built
    * @return this
+   * @deprecated since 1.2.0
+   * @see #params(MultiValueMap)
    */
+  @Deprecated
   HttpUrlBuilder params(Multimap<String, ?> params);
 
   /**

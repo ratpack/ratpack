@@ -34,6 +34,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
+import ratpack.util.MultiValueMapBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +53,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private final Map<String, List<Cookie>> cookies = Maps.newLinkedHashMap();
 
   private Action<? super RequestSpec> request = Action.noop();
-  private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
+  private Action<? super MultiValueMapBuilder<String, Object>> params = Action.noop();
 
   private ReceivedResponse response;
 
@@ -73,7 +74,17 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
+  @Deprecated
   public TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params) {
+    return withParams(b -> {
+      ImmutableMultimap.Builder<String, Object> builder = new ImmutableMultimap.Builder<>();
+      params.execute(builder);
+      b.putAll(builder.build().asMap());
+    });
+  }
+
+  @Override
+  public TestHttpClient withParams(Action<? super MultiValueMapBuilder<String, Object>> params) {
     this.params = params;
     return this;
   }
@@ -229,7 +240,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
     try {
-      URI uri = builder(path).params(params).build();
+      URI uri = builder(path).withParams(params).build();
 
       response = client.request(uri, Duration.ofMinutes(60), requestSpec -> {
         final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
