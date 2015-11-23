@@ -40,12 +40,25 @@ import java.util.Map;
  */
 public interface MultiValueMap<K, V> extends Map<K, V> {
 
+  /**
+   * Creates an empty map.
+   *
+   * @param <K> the type of the map keys
+   * @param <V> the type of the map values
+   * @return an empty map.
+   */
   static <K, V> MultiValueMap<K, V> empty() {
     return ImmutableDelegatingMultiValueMap.empty();
   }
 
-
-  static <S, T> MultiValueMapBuilder<S, T> builder() {
+  /**
+   * Creates a map bulider.
+   *
+   * @param <K> tye type of the map keys
+   * @param <V> the type of the map values
+   * @return a map builder.
+   */
+  static <K, V> MultiValueMapBuilder<K, V> builder() {
     return new DefaultMultiValueMapBuilder<>();
   }
 
