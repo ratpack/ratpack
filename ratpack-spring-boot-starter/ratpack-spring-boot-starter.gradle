@@ -27,3 +27,5 @@ dependencies {
   compile project(":ratpack-spring-boot")
   compile "org.springframework.boot:spring-boot-starter:1.2.7.RELEASE"
 }
+
+configurations.testCompile.exclude module: 'log4j-slf4j-impl'

@@ -112,7 +112,7 @@ ext {
     "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter"
   ].collect { project(it) }
 
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
 
   localRepoUrl = "${buildDir.toURI()}/localrepo"
 }
