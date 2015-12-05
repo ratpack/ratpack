@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * All of the methods inherited from {@link Downstream} will throw an {@link IllegalStateException}
  * if a value, error or completion have already been signalled for this topic.
  *
- * <pre class="java">
+ * <pre class="java">{@code
  * import ratpack.test.exec.ExecHarness;
  * import ratpack.exec.Execution;
  * import ratpack.exec.util.Topic;
@@ -68,6 +68,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *     latch.await();
  *     assertEquals(1l, ref.get().longValue());
  *   }
+ * }
  * }</pre>
  *
  * @param <T>
