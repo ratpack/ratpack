@@ -168,7 +168,7 @@ The “Groovy Handler Chain DSL” is used to build the response handling strate
 Changes to the `ratpack.groovy` file are live during development.
 You can edit the file, and the changes will take effect on the next request.
 
-For further information on using Ratpack with Groovy, please the [Groovy](groovy.html) chapter.
+For further information on using Ratpack with Groovy, please see the [Groovy](groovy.html) chapter.
 
 ## Using Lazybones project templates
 
