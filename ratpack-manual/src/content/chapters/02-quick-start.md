@@ -41,8 +41,17 @@ The server will be available via `http://localhost:5050/`.
 The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
 
-Changes to the file are live during development.
+### Live changes
 You can edit the file, and the changes will take effect on the next request.
+
+It is possible during development. You can enable it, by edditing `ratpack.groovy`, and changing server configuration to development.
+
+```language-groovy enable-development-mode
+ratpack {
+    serverConfig { development(true) }
+    handlers {
+        ...
+```
 
 ## Using the Gradle plugin(s)
 
@@ -165,8 +174,7 @@ When run, the server will be available via `http://localhost:5050/`.
 The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
 
-Changes to the `ratpack.groovy` file are live during development.
-You can edit the file, and the changes will take effect on the next request.
+Changes to the `ratpack.groovy` file are live during development. Start appliaction with continuous option (i.e. `gradle --continuous run` on the command line). For more information read [running the appliaction](gradle.html#running_the_application) section. 
 
 For further information on using Ratpack with Groovy, please see the [Groovy](groovy.html) chapter.
 
