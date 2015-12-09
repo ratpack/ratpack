@@ -60,39 +60,39 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  def "can serve content over HTTPS with client SSL authentication"() {
-    given:
-    setupServerConfig("server_dummy.keystore", "server_dummy.truststore")
-    setupHandlers()
+  // def "can serve content over HTTPS with client SSL authentication"() {
+  //   given:
+  //   setupServerConfig("server_dummy.keystore", "server_dummy.truststore")
+  //   setupHandlers()
 
-    when:
-    setupRequestSpec("client_dummy.keystore", "client_dummy.truststore")
+  //   when:
+  //   setupRequestSpec("client_dummy.keystore", "client_dummy.truststore")
 
-    then:
-    def address = applicationUnderTest.address
-    address.scheme == "https"
-    getText("foo") == "SSL VERIFIED"
-  }
+  //   then:
+  //   def address = applicationUnderTest.address
+  //   address.scheme == "https"
+  //   getText("foo") == "SSL VERIFIED"
+  // }
 
-  @Unroll
-  def "throw exception for [#clientKeystore, #clientTruststore, #serverKeystore, #serverTruststore]"() {
-    given:
-    setupServerConfig(serverKeystore, serverTruststore)
-    setupHandlers()
+  // @Unroll
+  // def "throw exception for [#clientKeystore, #clientTruststore, #serverKeystore, #serverTruststore]"() {
+  //   given:
+  //   setupServerConfig(serverKeystore, serverTruststore)
+  //   setupHandlers()
 
-    when:
-    setupRequestSpec(clientKeystore, clientTruststore)
-    get("foo")
+  //   when:
+  //   setupRequestSpec(clientKeystore, clientTruststore)
+  //   get("foo")
 
-    then:
-    UncheckedIOException ex = thrown()
-    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException || ex.getCause() instanceof SSLProtocolException
+  //   then:
+  //   UncheckedIOException ex = thrown()
+  //   ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException || ex.getCause() instanceof SSLProtocolException
 
 
-    where:
-    clientKeystore            | clientTruststore          | serverKeystore          | serverTruststore
-    "dummy.keystore"          | "client_dummy.truststore" | "server_dummy.keystore" | "server_dummy.truststore"
-    "client_dummy.keystore"   | "client_dummy.truststore" | "dummy.keystore"        | "server_dummy.truststore"
-    "client_dummy.keystore"   | "client_dummy.truststore" | "server_dummy.keystore" | null
-  }
+  //   where:
+  //   clientKeystore            | clientTruststore          | serverKeystore          | serverTruststore
+  //   "dummy.keystore"          | "client_dummy.truststore" | "server_dummy.keystore" | "server_dummy.truststore"
+  //   "client_dummy.keystore"   | "client_dummy.truststore" | "dummy.keystore"        | "server_dummy.truststore"
+  //   "client_dummy.keystore"   | "client_dummy.truststore" | "server_dummy.keystore" | null
+  // }
 }

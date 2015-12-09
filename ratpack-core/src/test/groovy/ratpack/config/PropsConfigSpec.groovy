@@ -20,12 +20,17 @@ import ratpack.server.ServerConfig
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
 
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+
 class PropsConfigSpec extends BaseConfigSpec {
   def "supports properties"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-    def keyStorePassword = "changeit"
-    createKeystore(keyStoreFile, keyStorePassword)
+
+    def ssc = new SelfSignedCertificate()
+    def certificate = ssc.certificate().toPath()
+    def privateKey = ssc.privateKey().toPath()
+
     def configFile = tempFolder.newFile("file.properties").toPath()
     configFile.text = """
     |# This is a comment
@@ -37,8 +42,8 @@ class PropsConfigSpec extends BaseConfigSpec {
     |server.maxContentLength: 50000
     |server.indexFiles[0]: index.html
     |server.indexFiles[1]: index.htm
-    |server.ssl.keystoreFile: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
-    |server.ssl.keystorePassword: ${keyStorePassword}
+    |server.ssl.certificate: ${certificate.toString().replaceAll("\\\\", "/")}
+    |server.ssl.privateKey: ${privateKey.toString().replaceAll("\\\\", "/")}
     |""".stripMargin()
 
     when:
@@ -58,9 +63,11 @@ class PropsConfigSpec extends BaseConfigSpec {
   @SuppressWarnings(["UnnecessaryObjectReferences"])
   def "supports system properties"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-    def keyStorePassword = "changeit"
-    createKeystore(keyStoreFile, keyStorePassword)
+
+    def ssc = new SelfSignedCertificate()
+    def certificate = ssc.certificate().toPath()
+    def privateKey = ssc.privateKey().toPath()
+
     def properties = new Properties()
     properties.with {
       setProperty("ratpack.port", "8080")
@@ -71,8 +78,8 @@ class PropsConfigSpec extends BaseConfigSpec {
       setProperty("ratpack.server.maxContentLength", "50000")
       setProperty("ratpack.server.indexFiles[0]", "index.html")
       setProperty("ratpack.server.indexFiles[1]", "index.htm")
-      setProperty("ratpack.server.ssl.keystoreFile", keyStoreFile.toString())
-      setProperty("ratpack.server.ssl.keystorePassword", keyStorePassword)
+      setProperty("ratpack.server.ssl.certificate", certificate.toString())
+      setProperty("ratpack.server.ssl.privateKey", privateKey.toString())
     }
 
     when:

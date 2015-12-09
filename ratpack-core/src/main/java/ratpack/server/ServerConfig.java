@@ -27,7 +27,7 @@ import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Types;
 
-import javax.net.ssl.SSLContext;
+import io.netty.handler.ssl.SslContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Optional;
@@ -153,7 +153,16 @@ public interface ServerConfig extends ConfigData {
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
   @Nullable
-  SSLContext getSslContext();
+  @Deprecated
+  SslContext getSslContext();
+
+  /**
+   * The SSL context to use if the application will serve content over HTTPS.
+   *
+   * @return The SSL context or <code>null</code> if the application does not use SSL.
+   */
+  @Nullable
+  SslContext getSsl();
 
   /**
    * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}.

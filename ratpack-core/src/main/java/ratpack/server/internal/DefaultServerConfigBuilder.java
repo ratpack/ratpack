@@ -28,12 +28,14 @@ import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.config.internal.module.SSLContextDeserializer;
+import ratpack.config.internal.module.SslContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
+import io.netty.handler.ssl.SslContext;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
@@ -128,6 +130,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder writeSpinCount(int writeSpinCount) {
     return addToServer(n -> n.put("writeSpinCount", writeSpinCount));
+  }
+
+  @Override
+  public ServerConfigBuilder ssl(SslContext sslContext) {
+    return addToServer(n -> n.putPOJO("ssl", sslContext));
   }
 
   @Override
@@ -350,6 +357,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
         serverEnvironment.getPublicAddress(),
         baseDirSupplier
       ));
+      addDeserializer(SslContext.class, new SslContextDeserializer());
       addDeserializer(SSLContext.class, new SSLContextDeserializer());
     }
   }

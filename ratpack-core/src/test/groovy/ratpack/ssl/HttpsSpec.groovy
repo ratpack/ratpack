@@ -16,6 +16,7 @@
 
 package ratpack.ssl
 
+import com.google.common.io.Resources
 import org.junit.Rule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.ssl.client.NonValidatingSSLClientContext
@@ -39,8 +40,11 @@ class HttpsSpec extends RatpackGroovyDslSpec {
   @Unroll("#path yields #responseBody")
   def "can serve content over HTTPS"() {
     given:
+    def certificate = Resources.getResource('ratpack/launch/internal/server.crt')
+    def privateKey = Resources.getResource('ratpack/launch/internal/server.key.pk8')
+    def password = "test"
     serverConfig {
-      ssl SSLContexts.sslContext(HttpsSpec.getResource("dummy.keystore"), "password")
+      ssl SSLContexts.create(certificate, privateKey, password)
     }
 
     and:

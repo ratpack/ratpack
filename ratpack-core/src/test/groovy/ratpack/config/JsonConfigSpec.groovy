@@ -17,13 +17,16 @@
 package ratpack.config
 
 import ratpack.server.ServerConfig
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 class JsonConfigSpec extends BaseConfigSpec {
   def "supports json"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-    def keyStorePassword = "changeit"
-    createKeystore(keyStoreFile, keyStorePassword)
+
+    def ssc = new SelfSignedCertificate()
+    def certificate = ssc.certificate().toPath()
+    def privateKey = ssc.privateKey().toPath()
+
     def configFile = tempFolder.newFile("file.json").toPath()
     configFile.text =
       """
@@ -38,8 +41,8 @@ class JsonConfigSpec extends BaseConfigSpec {
       "timeResponses": true,
       "indexFiles": ["index.html", "index.htm"],
       "ssl": {
-          "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-          "keystorePassword": "${keyStorePassword}"
+          "certificate": "${certificate.toString().replaceAll("\\\\", "/")}",
+          "privateKey": "${privateKey.toString().replaceAll("\\\\", "/")}"
       }
     }
 }
@@ -61,9 +64,9 @@ class JsonConfigSpec extends BaseConfigSpec {
 
   def "supports relative path json"() {
     def baseDir = tempFolder.newFolder("baseDir").toPath()
-    def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
-    def keyStorePassword = "changeit"
-    createKeystore(keyStoreFile, keyStorePassword)
+    def ssc = new SelfSignedCertificate()
+    def certificate = ssc.certificate().toPath()
+    def privateKey = ssc.privateKey().toPath()
     def configFile = tempFolder.newFile("baseDir/file.json").toPath()
     configFile.text =
       """
@@ -78,8 +81,8 @@ class JsonConfigSpec extends BaseConfigSpec {
       "timeResponses": true,
       "indexFiles": ["index.html", "index.htm"],
       "ssl": {
-          "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-          "keystorePassword": "${keyStorePassword}"
+          "certificate": "${certificate.toString().replaceAll("\\\\", "/")}",
+          "privateKey": "${privateKey.toString().replaceAll("\\\\", "/")}"
       }
     }
 }

@@ -25,7 +25,7 @@ import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
-import javax.net.ssl.SSLContext;
+import io.netty.handler.ssl.SslContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
@@ -178,7 +178,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @see ratpack.ssl.SSLContexts
    * @see ServerConfig#getSslContext()
    */
-  ServerConfigBuilder ssl(SSLContext sslContext);
+  ServerConfigBuilder ssl(SslContext sslContext);
 
   /**
    * The server needs client SSL authentication.

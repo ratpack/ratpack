@@ -26,7 +26,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
@@ -47,7 +47,6 @@ import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Optional;
@@ -206,11 +205,17 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
+    SslContext sslCtx = serverConfig.getSsl();
 
-    SSLContext sslContext = serverConfig.getSslContext();
+    // Just for backward compatibility
+    if (sslCtx == null) {
+      SSLContext sslContext = serverConfig.getSslContext();
+      this.useSsl = sslContext != null;
+    } else {
+      this.useSsl = true;
+    }
+
     boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
-    this.useSsl = sslContext != null;
-
     ServerBootstrap serverBootstrap = new ServerBootstrap();
 
     serverConfig.getConnectTimeoutMillis().ifPresent(i -> {
@@ -236,25 +241,7 @@ public class DefaultRatpackServer implements RatpackServer {
       .channel(ChannelImplDetector.getServerSocketChannelImpl())
       .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
       .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-      .childHandler(new ChannelInitializer<SocketChannel>() {
-        @Override
-        protected void initChannel(SocketChannel ch) throws Exception {
-          ChannelPipeline pipeline = ch.pipeline();
-          if (sslContext != null) {
-            SSLEngine sslEngine = sslContext.createSSLEngine();
-            sslEngine.setUseClientMode(false);
-            sslEngine.setNeedClientAuth(requireClientSslAuth);
-            pipeline.addLast("ssl", new SslHandler(sslEngine));
-          }
-
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
-          pipeline.addLast("encoder", new HttpResponseEncoder());
-          pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
-          pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-          pipeline.addLast("adapter", handlerAdapter);
-          ch.config().setAutoRead(false);
-        }
-      })
+      .childHandler(new NettyChannelInitializer(handlerAdapter, serverConfig))
       .bind(buildSocketAddress(serverConfig))
       .sync()
       .channel();

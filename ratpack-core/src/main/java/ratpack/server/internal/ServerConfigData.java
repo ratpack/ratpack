@@ -19,6 +19,7 @@ package ratpack.server.internal;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 
+import io.netty.handler.ssl.SslContext;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
@@ -35,6 +36,7 @@ public class ServerConfigData {
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private SSLContext sslContext;
+  private SslContext sslCtx;
   private boolean requireClientSslAuth;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private Optional<Integer> connectTimeoutMillis = Optional.empty();
@@ -117,12 +119,21 @@ public class ServerConfigData {
     this.publicAddress = new URI(publicAddress);
   }
 
+  @Deprecated
   public SSLContext getSslContext() {
     return sslContext;
   }
 
+  public SslContext getSsl() {
+    return sslCtx;
+  }
+
   public void setSslContext(SSLContext sslContext) {
     this.sslContext = sslContext;
+  }
+
+  public void setSsl(SslContext sslContext) {
+    this.sslCtx = sslContext;
   }
 
   public boolean isRequireClientSslAuth() {

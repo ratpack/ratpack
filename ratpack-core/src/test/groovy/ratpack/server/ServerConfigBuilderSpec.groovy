@@ -19,7 +19,7 @@ package ratpack.server
 import ratpack.ssl.SSLContexts
 import spock.lang.Specification
 
-import javax.net.ssl.SSLContext
+import io.netty.handler.ssl.SslContext
 
 class ServerConfigBuilderSpec extends Specification {
 
@@ -135,10 +135,13 @@ class ServerConfigBuilderSpec extends Specification {
 
   def "set ssl context"() {
     given:
-    SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/launch/internal/keystore.jks'), 'password')
+    def certificate = ServerConfigBuilderSpec.classLoader.getResource("ratpack/launch/internal/server.crt")
+    def privateKey = ServerConfigBuilderSpec.classLoader.getResource("ratpack/launch/internal/server.key.pk8")
+    def password = "test"
+    SslContext context = SSLContexts.create(certificate, privateKey, password)
 
     when:
-    SSLContext sslContext = builder.ssl(context).build().sslContext
+    SslContext sslContext = builder.ssl(context).build().sslContext
 
     then:
     sslContext

@@ -16,180 +16,106 @@
 
 package ratpack.ssl;
 
-import javax.net.ssl.*;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import javax.net.ssl.SSLException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.Security;
 
 /**
- * Factory methods for initializing an {@link SSLContext}.
+ * Factory methods for initializing an {@link SslContext}.
  */
 public class SSLContexts {
 
   /**
-   * Creates an SSL context using a password-protected keystore file.
+   * Creates an SSL context using a password-protected private key.
    *
-   * @param keyStoreFile a <code>file://</code> URL referencing a keystore file
-   * @param password the password for the keystore file
+   * @param certificate a <code>file://</code> URL referencing a certificate chain file
+   * @param privateKey a <code>file://</code> URL referencing a private key file
+   * @param password the password for the private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
-   * @throws IOException if the url cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(URL keyStoreFile, String password) throws GeneralSecurityException, IOException {
-    try (InputStream stream = keyStoreFile.openStream()) {
-      return sslContext(stream, password);
-    }
+  public static SslContext create(URL certificate, URL privateKey, String password) throws SSLException, URISyntaxException {
+    return create(new File(certificate.toURI()), new File(privateKey.toURI()), password);
   }
 
   /**
-   * Creates an SSL context using password protected keystore as well as password protected truststore file.
+   * Creates an SSL context.
    *
-   * @param keyStoreFile a <code>file://</code> URL referencing a keystore file
-   * @param keyStorePassword the password for the keystore file
-   * @param trustStoreFile a <code>file://</code> URL referencing a truststore file
-   * @param trustStorePassword the password for the truststore file
+   * @param certificate a <code>file://</code> URL referencing a certificate chain file
+   * @param privateKey a <code>file://</code> URL referencing a private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if either the keystore or truststore is invalid, or the password is incorrect
-   * @throws IOException if any of the urls cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(URL keyStoreFile, String keyStorePassword, URL trustStoreFile, String trustStorePassword) throws GeneralSecurityException, IOException {
-    try (InputStream keyStoreStream = keyStoreFile.openStream(); InputStream trustStoreStream = trustStoreFile.openStream()) {
-      return sslContext(keyStoreStream, keyStorePassword, trustStoreStream, trustStorePassword);
-    }
+  public static SslContext create(URL certificate, URL privateKey) throws SSLException, URISyntaxException {
+    return create(new File(certificate.toURI()), new File(privateKey.toURI()));
   }
 
   /**
-   * Creates an SSL context using a password-protected keystore file.
+   * Creates an SSL context using a password-protected private key.
    *
-   * @param keyStoreFile a keystore file
-   * @param password the password for the keystore file
+   * @param certificate a <code>file://</code> URI referencing a certificate chain file
+   * @param privateKey a <code>file://</code> URI referencing a private key file
+   * @param password the password for the private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
-   * @throws IOException if the url cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(File keyStoreFile, String password) throws GeneralSecurityException, IOException {
-    try (InputStream stream = new FileInputStream(keyStoreFile)) {
-      return sslContext(stream, password);
-    }
+  public static SslContext create(URI certificate, URI privateKey, String password) throws SSLException{
+    return create(new File(certificate), new File(privateKey), password);
   }
 
   /**
-   * Creates an SSL context using password protected keystore as well as password protected truststore file.
+   * Creates an SSL context.
    *
-   * @param keyStoreFile a keystore file
-   * @param keyStorePassword the pasword for the keystore file
-   * @param trustStoreFile a truststore file
-   * @param trustStorePassword the password for the truststore file
+   * @param certificate a <code>file://</code> URI referencing a certificate chain file
+   * @param privateKey a <code>file://</code> URI referencing a private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if either the keystore or truststore is invalid, or the password is incorrect
-   * @throws IOException if any of the urls cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(File keyStoreFile, String keyStorePassword, File trustStoreFile, String trustStorePassword) throws GeneralSecurityException, IOException {
-    try (InputStream keyStoreStream = new FileInputStream(keyStoreFile); InputStream trustStoreStream = new FileInputStream(trustStoreFile)) {
-      return sslContext(keyStoreStream, keyStorePassword, trustStoreStream, trustStorePassword);
-    }
+  public static SslContext create(URI certificate, URI privateKey) throws SSLException{
+    return create(new File(certificate), new File(privateKey));
   }
 
   /**
-   * Creates an SSL context using a password-protected keystore file.
+   * Creates an SSL context using a password-protected private key.
    *
-   * @param keyStoreFile a keystore file
-   * @param password the password for the keystore file
+   * @param certificate a certificate file
+   * @param privateKey a private key file
+   * @param password the password for the private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
-   * @throws IOException if the url cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(Path keyStoreFile, String password) throws GeneralSecurityException, IOException {
-    try (InputStream stream = Files.newInputStream(keyStoreFile)) {
-      return sslContext(stream, password);
-    }
+  public static SslContext create(Path certificate, Path privateKey, String password) throws SSLException {
+    return create(certificate.toFile(), privateKey.toFile(), password);
   }
 
   /**
-   * Creates an SSL context using password protected keystore as well as password protected truststore file.
+   * Creates an SSL context.
    *
-   * @param keyStoreFile a keystore file
-   * @param keyStorePassword the password for the keystore file
-   * @param trustStoreFile a truststore file
-   * @param trustStorePassword the password for the truststore file
+   * @param certificate a certificate file
+   * @param privateKey a private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if either the keystore or the truststore is invalid, or the password is incorrect
-   * @throws IOException if any of the urls cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(Path keyStoreFile, String keyStorePassword, Path trustStoreFile, String trustStorePassword) throws GeneralSecurityException, IOException {
-    try (InputStream keyStoreStream = Files.newInputStream(keyStoreFile); InputStream trustStoreStream = Files.newInputStream(trustStoreFile)) {
-      return sslContext(keyStoreStream, keyStorePassword, trustStoreStream, trustStorePassword);
-    }
+  public static SslContext create(File certificate, File privateKey) throws SSLException {
+    return SslContextBuilder.forServer(certificate, privateKey).build();
   }
 
   /**
-   * Creates an SSL context using a password-protected keystore file.
+   * Creates an SSL context using a password-protected private key.
    *
-   * @param keyStoreStream an input stream reading a keystore file
-   * @param password the password for the keystore file
+   * @param certificate a certificate file
+   * @param privateKey a private key file
+   * @param password the password for the private key file
    * @return A newly created ssl context
-   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
-   * @throws IOException if the url cannot be read
+   * @throws SSLException in case of any ssl related error.
    */
-  public static SSLContext sslContext(InputStream keyStoreStream, String password) throws GeneralSecurityException, IOException {
-    return sslContext(keyStoreStream, password.toCharArray(), null, null);
-  }
-
-  /**
-   * Creates an SSL context using password protected keystore as well as password protected truststore file.
-   * <p>
-   * In SSL handshake the purpose of of keystore is to provide credentials, while the purpose of truststore is to verify credentials.
-   * <p>
-   * Trustore stores certificates from thrid parties that application trusts or certificates signed by CA that can be used to identify third party.
-   * Keystore stores private key and public key that are used to generate certificates exposed to clients or used in client SSL authentication.
-   *
-   * @param keyStoreStream an input stream reading keystore file
-   * @param keyStorePassword the password for the keystore file
-   * @param trustStoreStream an input stream reading truststore file
-   * @param trustStorePassword the password for the truststore file
-   * @return A newly created ssl context
-   * @throws GeneralSecurityException if either the keystore or the truststore is invalid, or the password is incorrect
-   * @throws IOException if any of the urls cannot be read
-   */
-  public static SSLContext sslContext(InputStream keyStoreStream, String keyStorePassword, InputStream trustStoreStream, String trustStorePassword) throws GeneralSecurityException, IOException {
-    return sslContext(keyStoreStream, keyStorePassword.toCharArray(), trustStoreStream, trustStorePassword.toCharArray());
-  }
-
-  private static SSLContext sslContext(InputStream keyStoreStream, char[] keyStorePassword, InputStream trustStoreStream, char[] trustStorePassword) throws GeneralSecurityException, IOException {
-    SSLContext sslContext = SSLContext.getInstance("TLS");
-
-    KeyManagerFactory keyManagerFactory = null;
-    TrustManagerFactory trustManagerFactory = null;
-
-    String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
-    if (algorithm == null) {
-      algorithm = "SunX509";
-    }
-
-    if (keyStoreStream != null) {
-      KeyStore keyStore = KeyStore.getInstance("JKS");
-      keyStore.load(keyStoreStream, keyStorePassword);
-      keyManagerFactory = KeyManagerFactory.getInstance(algorithm);
-      keyManagerFactory.init(keyStore, keyStorePassword);
-    }
-
-    if (trustStoreStream != null) {
-      KeyStore trustStore = KeyStore.getInstance("JKS");
-      trustStore.load(trustStoreStream, trustStorePassword);
-      trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
-      trustManagerFactory.init(trustStore);
-    }
-
-    sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null, trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
-
-    return sslContext;
+  public static SslContext create(File certificate, File privateKey, String password) throws SSLException {
+    return SslContextBuilder.forServer(certificate, privateKey, password).build();
   }
 
   private SSLContexts() {
