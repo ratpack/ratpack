@@ -482,7 +482,7 @@ public class DefaultRatpackServer implements RatpackServer {
             } else {
               Optional<ReloadInformant> reloadInformant = serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(serverRegistry) ? r : null);
               if (reloadInformant.isPresent()) {
-                LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
+                LOGGER.debug("reload requested by '" + reloadInformant.get() + "'");
                 rebuild = true;
               }
             }

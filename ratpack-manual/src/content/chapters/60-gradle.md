@@ -144,7 +144,7 @@ You can now have the build generate the fat-jar, by running…
 
 The [base dir](launching.html#base_dir) is effectively the root of the filesystem for the application.
 At build time, this is effectively the main set of resources for your application (i.e. `src/main/resources`).
-The Ratpack plugin adds adds a complimentary source of main resources, `src/ratpack`.
+The Ratpack plugin adds a complimentary source of main resources, `src/ratpack`.
 You can choose not to use this dir, using `src/main/resources` instead, or changing its location via the `ratpack.baseDir` property in the Gradle build.
 
 ```language-groovy gradle
@@ -177,7 +177,7 @@ See [Launching](launching.html) for more information.
 
 The `'ratpack-groovy'` plugin expects the main application definition to be located at either `ratpack.groovy` or `Ratpack.groovy` **within the base dir**.
 By default, it will effectively look in `src/main/resources` and `src/ratpack`.
-This file should *not* go in to `src/main/groovy` as the application manages compilation of this file.
+This file should *not* go into `src/main/groovy` as the application manages compilation of this file.
 Therefore, it needs to be on the classpath in source form (i.e. as a `.groovy` file) and not in compiled form.
 
 See [Groovy](groovy.html) for more information about the contents of this file.

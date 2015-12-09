@@ -62,13 +62,6 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
   }
 
-  public void stopServer() throws Exception {
-    if (running != null) {
-      running.stop();
-      running = null;
-    }
-  }
-
   private static class RatpackBacking implements Groovy.Ratpack {
     private final RatpackServerSpec server;
 

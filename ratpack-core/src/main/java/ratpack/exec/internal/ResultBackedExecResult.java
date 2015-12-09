@@ -16,23 +16,15 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Result;
 import ratpack.exec.ExecResult;
-import ratpack.registry.Registry;
+import ratpack.exec.Result;
 
 public class ResultBackedExecResult<T> implements ExecResult<T> {
 
   private final Result<T> result;
-  private final Registry registry;
 
-  public ResultBackedExecResult(Result<T> result, Registry registry) {
+  public ResultBackedExecResult(Result<T> result) {
     this.result = result;
-    this.registry = registry;
-  }
-
-  @Override
-  public Registry getRegistry() {
-    return registry;
   }
 
   @Override

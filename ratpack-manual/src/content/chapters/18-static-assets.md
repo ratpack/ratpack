@@ -20,7 +20,7 @@ public class Main {
 
 The above example will make all files within the `src/ratpack/assets` (or `${baseDir}/assets`) available to be served at the root URL unless another handler is previously matched in the chain. **Note:** This method used to be named `assets` and has since changed for clarity.
 
-The default `Handler` for serving static files can handle sending files with `ETag` headers based on date modified as well as serving gzip compressed files if the client accepts the gzip encoding. However, the current implementation will use CPU overhead to compress the stream on the fly and will even compress already compressed formats such as `PNG` or `JPG` images. It is still recommended (as is with any web application) to use a CDN to better optimize the transmission of static content to the browser as well as cache static assets.
+The default `Handler` for serving static files can handle sending files with `ETag` headers based on modification dates as well as serving gzip compressed files if the client accepts the gzip encoding. However, the current implementation will use CPU overhead to compress the stream on the fly and will even compress already compressed formats such as `PNG` or `JPG` images. It is still recommended (as is with any web application) to use a CDN to better optimize the transmission of static content to the browser as well as cache static assets.
 
 ## Sending from Handlers
 
