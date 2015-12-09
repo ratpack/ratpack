@@ -75,6 +75,7 @@ The following people have provided significant contributions.
 * [Ari Becker](https://github.com/solatic)
 * [James Lee](https://github.com/brucenunk)
 * [Bob wen](https://github.com/bobwenx)
+* [Rahul Somasunderam](https://github.com/rahulsom)
 
 ### Past project members
 
