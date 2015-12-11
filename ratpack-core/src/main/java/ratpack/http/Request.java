@@ -52,6 +52,9 @@ public interface Request extends MutableRegistry {
 
   /**
    * The HTTP protocol of the request.
+   * <p>
+   * e.g. {@code "HTTP/1.1}
+   *
    *
    * @return The HTTP protocol of the request.
    */

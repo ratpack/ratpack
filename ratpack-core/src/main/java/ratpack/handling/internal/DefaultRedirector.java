@@ -44,7 +44,7 @@ public class DefaultRedirector implements Redirector {
 
     PublicAddress publicAddress = ctx.get(PublicAddress.class);
     String generatedPath;
-    URI host = publicAddress.get(ctx);
+    URI host = publicAddress.get();
 
     if (ABSOLUTE_PATTERN.matcher(path).matches()) {
       //Rule 1 - Path is absolute
