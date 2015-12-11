@@ -442,7 +442,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   @ChannelHandler.Sharable
-  class ReloadHandler extends SimpleChannelInboundHandler<HttpRequest> {
+  class ReloadHandler extends ChannelInboundHandlerAdapter {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
@@ -450,7 +450,7 @@ public class DefaultRatpackServer implements RatpackServer {
     private ChannelHandler inner;
 
     public ReloadHandler(DefinitionBuild definition) {
-      super(false);
+      super();
       this.definitionBuild = definition;
       this.lastServerConfig = definitionBuild.getServerConfig();
       try {
@@ -472,14 +472,14 @@ public class DefaultRatpackServer implements RatpackServer {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
           Promise.<ChannelHandler>of(f -> {
             boolean rebuild = false;
 
             if (inner == null || definitionBuild.error != null) {
               rebuild = true;
-            } else {
+            } else if (msg instanceof HttpRequest) {
               Optional<ReloadInformant> reloadInformant = serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(serverRegistry) ? r : null);
               if (reloadInformant.isPresent()) {
                 LOGGER.debug("reload requested by '" + reloadInformant.get() + "'");
