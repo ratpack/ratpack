@@ -96,7 +96,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse head(String path) {
-    return sendRequest("HEAD", path);
+    return request(path, spec -> spec.method("HEAD"));
   }
 
   @Override
@@ -106,7 +106,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse options(String path) {
-    return sendRequest("OPTIONS", path);
+    return request(path, spec -> spec.method("OPTIONS"));
   }
 
   @Override
@@ -126,7 +126,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse get(String path) {
-    return sendRequest("GET", path);
+    return request(path, spec -> spec.method("GET"));
   }
 
   @Override
@@ -146,7 +146,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse post(String path) {
-    return sendRequest("POST", path);
+    return request(path, spec -> spec.method("POST"));
   }
 
   @Override
@@ -167,7 +167,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse put(String path) {
-    return sendRequest("PUT", path);
+    return request(path, spec -> spec.method("PUT"));
   }
 
   @Override
@@ -188,7 +188,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse patch(String path) {
-    return sendRequest("PATCH", path);
+    return request(path, spec -> spec.method("PATCH"));
   }
 
   @Override
@@ -208,7 +208,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse delete(String path) {
-    return sendRequest("DELETE", path);
+    return request(path, spec -> spec.method("DELETE"));
   }
 
   @Override
@@ -221,15 +221,22 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return delete(path).getBody().getText();
   }
 
-  private ReceivedResponse sendRequest(final String method, String path) {
+  @Override
+  public ReceivedResponse request(Action<? super RequestSpec> requestAction) {
+    return request("", requestAction);
+  }
+
+  @Override
+  public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
     try {
       URI uri = builder(path).params(params).build();
 
       response = client.request(uri, Duration.ofMinutes(60), requestSpec -> {
         final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
+        decorated.method("GET");
         defaultRequestConfig.execute(decorated);
         request.execute(decorated);
-        requestSpec.method(method);
+        requestAction.execute(decorated);
         int port = uri.getPort() > 0 ? uri.getPort() : 80;
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
       });
