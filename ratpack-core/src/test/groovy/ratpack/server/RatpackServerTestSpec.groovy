@@ -18,10 +18,15 @@ package ratpack.server
 
 import ratpack.func.Action
 import ratpack.handling.Handler
+import ratpack.http.client.RequestSpec
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Timeout
+
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 class RatpackServerTestSpec extends Specification {
 
@@ -227,5 +232,45 @@ class RatpackServerTestSpec extends Specification {
     http.getText("connectTimeoutMillis") == "1000"
     http.getText("maxMessagesPerRead") == "3"
     http.getText("writeSpinCount") == "10"
+  }
+
+  @Timeout(5)
+  def "handle concurrent requests while in development mode"() {
+    given:
+    int concurrentRequests = 2
+    server = RatpackServer.of ({
+      it
+        .serverConfig {
+          it.development(true)
+          it.port(0)
+        }
+        .handlers {
+          it.post {
+            it.render it.request.body.map { it.text }
+          }
+        }
+    } as Action<RatpackServerSpec>)
+
+    def pool = Executors.newFixedThreadPool(concurrentRequests)
+
+    when:
+    server.start()
+    def requests = (1..concurrentRequests).collect {
+      pool.submit ({
+        def client = TestHttpClient.testHttpClient(ApplicationUnderTest.of({ server }))
+        client.requestSpec { RequestSpec spec ->
+          spec.body.text("1" * 100)
+        }
+        return client.postText()
+      } as Callable<String>)
+    }
+
+    then:
+    requests.each {
+      assert it.get() == "1" * 100
+    }
+
+    cleanup:
+    pool.shutdown()
   }
 }
