@@ -40,7 +40,8 @@ include \
     "ratpack-hystrix",
     "ratpack-spring-boot",
     "ratpack-spring-boot-starter",
-    "ratpack-benchmark"
+    "ratpack-benchmark",
+    "ratpack-retrofit"
 
 include "perf"
 
