@@ -202,7 +202,7 @@ public interface HttpUrlBuilder {
    *
    * @param params a multi value map of query params to add to the URL being built
    * @return this
-   * @since 1.2.0
+   * @since 1.2
    */
   HttpUrlBuilder params(MultiValueMap<String, ?> params);
 

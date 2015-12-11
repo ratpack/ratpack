@@ -96,7 +96,7 @@ public class Streams {
    * @param promise the promise
    * @param <T> the element type of the promised iterable
    * @return a publisher for each element of the promised iterable
-   * @since 1.1.0
+   * @since 1.1
    */
   public static <T> TransformablePublisher<T> publish(Promise<? extends Iterable<T>> promise) {
     return new IterablePromisePublisher<>(promise);

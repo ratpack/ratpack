@@ -29,7 +29,7 @@ public interface PathBinding {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<PathBinding> TYPE = Types.token(PathBinding.class);
 

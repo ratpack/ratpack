@@ -609,7 +609,7 @@ public interface Chain {
    * @param path the relative path to match on
    * @param handler the handler to delegate to
    * @return this
-   * @since 1.1.0
+   * @since 1.1
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
@@ -624,7 +624,7 @@ public interface Chain {
    * @param path the path to bind to
    * @param handler a handler
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default Chain options(String path, Class<? extends Handler> handler) {
     return options(path, getRegistry().get(handler));
@@ -636,7 +636,7 @@ public interface Chain {
    *
    * @param handler the handler to delegate to
    * @return this
-   * @since 1.1.0
+   * @since 1.1
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
@@ -649,7 +649,7 @@ public interface Chain {
   /**
    * @param handler a handler
    * @return {code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default Chain options(Class<? extends Handler> handler) {
     return options(getRegistry().get(handler));
@@ -918,7 +918,7 @@ public interface Chain {
    * }</pre>
    *
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default Chain notFound() {
     return all(Handlers.notFound());

@@ -72,7 +72,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * }</pre>
  *
  * @param <T>
- * @since 2.1
+ * @since 1.2
  */
 public final class Topic<T> implements Downstream<T> {
 

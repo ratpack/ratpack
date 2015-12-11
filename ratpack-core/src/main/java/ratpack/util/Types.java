@@ -54,7 +54,7 @@ public abstract class Types {
    *
    * @param type the type
    * @return a type token for the given type
-   * @since 1.1.0
+   * @since 1.1
    */
   public static TypeToken<?> token(Type type) {
     return TypeCaching.typeToken(type);
@@ -68,7 +68,7 @@ public abstract class Types {
    * @param clazz the class
    * @param <T> the type
    * @return a type token for the given class
-   * @since 1.1.0
+   * @since 1.1
    */
   public static <T> TypeToken<T> token(Class<T> clazz) {
     return TypeCaching.typeToken(clazz);

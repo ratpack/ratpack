@@ -253,7 +253,7 @@ public abstract class Groovy {
      *
      * @param args args to make available to the script via the {@code args} variable
      * @return an application definition action
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Action<? super RatpackServerSpec> appWithArgs(String... args) {
       return appWithArgs(false, new String[]{DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1)}, args);
@@ -270,7 +270,7 @@ public abstract class Groovy {
      * @param script the script
      * @param args args to make available to the script via the {@code args} variable
      * @return an application definition action
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Action<? super RatpackServerSpec> appWithArgs(boolean compileStatic, Path script, String... args) {
       return b -> doApp(b, compileStatic, script.getParent(), script, args);
@@ -287,7 +287,7 @@ public abstract class Groovy {
      * @param scriptPaths the potential paths to the scripts (first existing is used)
      * @param args args to make available to the script via the {@code args} variable
      * @return an application definition action
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Action<? super RatpackServerSpec> appWithArgs(boolean compileStatic, String[] scriptPaths, String... args) {
       return b -> {
@@ -385,7 +385,7 @@ public abstract class Groovy {
      * @param scriptPath the path to the script
      * @param args args to make available to the script via the {@code args} variable
      * @return a handler definition function
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Function<Registry, Handler> handlersWithArgs(boolean compileStatic, String scriptPath, String... args) {
       checkGroovy();
@@ -453,7 +453,7 @@ public abstract class Groovy {
      * @param scriptPath the path to the script
      * @param args args to make available to the script via the {@code args} variable
      * @return a registry definition function
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Function<Registry, Registry> bindingsWithArgs(boolean compileStatic, String scriptPath, String... args) {
       checkGroovy();

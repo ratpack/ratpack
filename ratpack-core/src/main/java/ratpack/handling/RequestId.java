@@ -70,7 +70,7 @@ public interface RequestId extends CharSequence {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<RequestId> TYPE = Types.token(RequestId.class);
 
@@ -123,7 +123,7 @@ public interface RequestId extends CharSequence {
     /**
      * A type token for this type.
      *
-     * @since 1.1.0
+     * @since 1.1
      */
     TypeToken<Generator> TYPE = Types.token(Generator.class);
 

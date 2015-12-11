@@ -78,7 +78,7 @@ public interface Block {
    * Creates an {@link Action} from this block, where the argument is ignored.
    *
    * @return an action that executes this block
-   * @since 1.1.0
+   * @since 1.1
    */
   default Action<Object> action() {
     return t -> execute();

@@ -39,7 +39,7 @@ public interface Request extends MutableRegistry {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<Request> TYPE = Types.token(Request.class);
 
@@ -142,7 +142,7 @@ public interface Request extends MutableRegistry {
    *
    * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
    * @return the body of the request
-   * @since 1.1.0
+   * @since 1.1
    */
   Promise<TypedData> getBody(Block onTooLarge);
 
@@ -155,7 +155,7 @@ public interface Request extends MutableRegistry {
    *
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @return the body of the request.
-   * @since 1.1.0
+   * @since 1.1
    */
   Promise<TypedData> getBody(long maxContentLength);
 
@@ -171,7 +171,7 @@ public interface Request extends MutableRegistry {
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
    * @return the body of the request.
-   * @since 1.1.0
+   * @since 1.1
    */
   Promise<TypedData> getBody(long maxContentLength, Block onTooLarge);
 

@@ -95,7 +95,7 @@ public class RatpackPac4j {
    * Provides the set of Pac4j {@link Client clients}.
    *
    * @see #authenticator(String, ClientsProvider)
-   * @since 1.1.0
+   * @since 1.1
    */
   public interface ClientsProvider {
     Iterable<? extends Client<?, ?>> get(Context ctx);

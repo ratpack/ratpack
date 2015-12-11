@@ -236,7 +236,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   @Override
   ServerConfigBuilder args(String[] args);
@@ -247,7 +247,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param separator the separator of the key and value in each arg
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    * @see #args(String[])
    */
   @Override
@@ -264,7 +264,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param separator the separator between the key and the value
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    * @see #args(String[])
    */
   @Override

@@ -128,7 +128,7 @@ public interface TestHttpClient {
    *  A convenience method for doing a OPTIONS request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
    *
    * @return the response body as a String
-   * @since 1.1.0
+   * @since 1.1
    */
   String optionsText();
 
@@ -137,7 +137,7 @@ public interface TestHttpClient {
    *
    * @param path the path the request is made against
    * @return the response body as a String
-   * @since 1.1.0
+   * @since 1.1
    */
   String optionsText(String path);
 
@@ -310,7 +310,7 @@ public interface TestHttpClient {
    *
    * @param requestAction an action to configure this request
    * @return the response from the request
-   * @since 1.2.0
+   * @since 1.2
    */
   ReceivedResponse request(Action<? super RequestSpec> requestAction);
 
@@ -324,7 +324,7 @@ public interface TestHttpClient {
    * @param requestAction an action to configure this request
    * @return the response from the request
    * @see #request
-   * @since 1.2.0
+   * @since 1.2
    */
   ReceivedResponse request(String path, Action<? super RequestSpec> requestAction);
 }

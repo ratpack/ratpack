@@ -34,7 +34,7 @@ public interface ClientErrorHandler {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<ClientErrorHandler> TYPE = Types.token(ClientErrorHandler.class);
 
