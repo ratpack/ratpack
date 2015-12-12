@@ -46,7 +46,7 @@ if (project.path != ":ratpack-benchmark") {
   }
 }
 
-javadoc {
+tasks.withType(Javadoc) {
   options.encoding = "utf-8"
   options.docEncoding = "utf-8"
   options.charSet = "utf-8"
