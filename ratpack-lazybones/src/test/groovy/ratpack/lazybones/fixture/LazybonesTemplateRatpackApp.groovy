@@ -125,21 +125,25 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     Exception startException = null
     StringBuilder processText = new StringBuilder()
     Thread.start {
-      process.inputStream.eachLine { String line ->
-        println line
-        processText.append(line)
-        processText.append('\n')
-        if (latch.count) {
-          if (line.contains("Exception in thread \"main\"")) {
-            latch.countDown()
-            startException = new RuntimeException(line)
-          }
-          if (line.contains("Ratpack started for http://localhost:")) {
-            def matcher = (line =~ "http://localhost:(\\d+)")
-            port = matcher[0][1].toString().toInteger()
-            latch.countDown()
+      try {
+        process.inputStream.eachLine { String line ->
+          println line
+          processText.append(line)
+          processText.append('\n')
+          if (latch.count) {
+            if (line.contains("Exception in thread \"main\"")) {
+              latch.countDown()
+              startException = new RuntimeException(line)
+            }
+            if (line.contains("Ratpack started for http://localhost:")) {
+              def matcher = (line =~ "http://localhost:(\\d+)")
+              port = matcher[0][1].toString().toInteger()
+              latch.countDown()
+            }
           }
         }
+      } catch (IOException ignore) {
+        // can happen when process exits without emitting a whole line
       }
     }
 
