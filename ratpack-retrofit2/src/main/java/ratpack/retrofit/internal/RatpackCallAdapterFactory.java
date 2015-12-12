@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.retrofit;
+package ratpack.retrofit.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
-import ratpack.retrofit.internal.Utils;
 import retrofit.*;
 
 import java.io.IOException;

@@ -34,7 +34,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 
 
-class RatpackCallAdapterFactorySpec extends Specification {
+class RatpackRetrofitSpec extends Specification {
 
   interface Service {
     @GET("/") Promise<String> promiseBody()
@@ -55,10 +55,9 @@ class RatpackCallAdapterFactorySpec extends Specification {
         }
       }
     }
-    retrofit = new Retrofit.Builder()
+    retrofit = RatpackRetrofit.builder()
       .baseUrl(server.address.toString())
       .addConverterFactory(new StringConverterFactory())
-      .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE)
       .build()
     service = retrofit.create(Service)
   }
