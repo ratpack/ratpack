@@ -171,7 +171,7 @@ task downloadDependencies << {
   allprojects { p ->
     configurations.each { c ->
       println "Downloading dependencies for $p.path - $c.name"
-      it.files
+      c.files
     }
   }
 }
