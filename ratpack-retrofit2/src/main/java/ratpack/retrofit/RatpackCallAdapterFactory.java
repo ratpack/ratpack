@@ -20,10 +20,7 @@ import com.google.common.reflect.TypeToken;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.retrofit.internal.Utils;
-import retrofit.Call;
-import retrofit.CallAdapter;
-import retrofit.Response;
-import retrofit.Retrofit;
+import retrofit.*;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;

@@ -41,7 +41,7 @@ include \
     "ratpack-spring-boot",
     "ratpack-spring-boot-starter",
     "ratpack-benchmark",
-    "ratpack-retrofit"
+    "ratpack-retrofit2"
 
 include "perf"
 
