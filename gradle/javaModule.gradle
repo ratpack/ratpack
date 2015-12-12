@@ -52,7 +52,6 @@ tasks.withType(Javadoc) {
   options.charSet = "utf-8"
   exclude "**/internal/**"
 
-  options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
   options.addStringOption('Xdoclint:none', '-quiet')
 
   doFirst {
@@ -60,6 +59,10 @@ tasks.withType(Javadoc) {
       options.links(*project.apiLinks)
     }
   }
+}
+
+javadoc {
+  options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
 }
 
 task sourceJar(type: Jar) {

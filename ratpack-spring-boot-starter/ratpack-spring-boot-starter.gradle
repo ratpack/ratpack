@@ -27,6 +27,8 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter:1.2.7.RELEASE"
 }
 
+conf2ScopeMappings.addMapping(100, configurations.compile, "compile")
+
 task install(type: Upload) {
   repositories { mavenInstaller() }
   configuration = configurations.archives

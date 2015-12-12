@@ -30,6 +30,7 @@ buildscript {
   }
 }
 
+apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "org.gradle.groovy"
 apply plugin: 'com.github.johnrengelman.shadow'

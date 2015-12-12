@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.site.github;
+package ratpack.site.github
 
 class IssueSet {
     final List<Issue> issues
