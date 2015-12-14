@@ -118,7 +118,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * <h2>Metric Collection</h2>
  * <p>
  * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received and {@link Counter} metrics for response codes.
- * The module adds a request timer to the handler chain <b>before</b> any user handlers.  This means that response times do not
+ * The module adds a default {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not
  * take any framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is registered first
  * in the modules list to ensure that <b>all</b> handlers are included in the metric.
  * </p>
@@ -150,30 +150,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *     }
  *   }
  * }
- * }</pre
- * <p>
- * Providing custom implementations. Request handlers must extend RequestTimingHandler, and blocking interceptors must
- * extend BlockingExecTimingInterceptor:
- * </p>
- * <pre class="groovy-ratpack-dsl">{@code
- * import ratpack.dropwizard.metrics.DropwizardMetricsModule
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     module new DropwizardMetricsModule(), { config ->
- *       config.interceptor { it.interceptor(MyBlockingExecTimingInterceptor) }
- *       config.handler { it.handler(MyRequestTimingHandler) }
- *     }
- *   }
- *
- *   handlers {
- *     all {
- *       render ""
- *     }
- *   }
- * }
- * }</pre
+ * }</pre>
  * <p>
  * Additional custom metrics can be registered with the provided {@link MetricRegistry} instance
  * </p>
