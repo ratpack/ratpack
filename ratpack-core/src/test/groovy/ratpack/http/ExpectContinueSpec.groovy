@@ -20,32 +20,41 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ExpectContinueSpec extends RatpackGroovyDslSpec {
 
-  def "can handle expect continue"() {
+  def "can handle expect continue with no body"() {
     when:
     handlers {
-      get { render "ok" }
+      post { render "ok" }
     }
+
+    HttpURLConnection con = applicationUnderTest.address.toURL().openConnection()
+    con.setRequestMethod("POST")
+    con.setRequestProperty("Expect", "100-Continue")
+    con.doInput = true
+    con.doOutput = false
+    con.connect()
 
     then:
-    with(request { it.headers.add("Expect", "100-Continue") }) {
-      statusCode == 100
-      body.text == ""
-    }
-    text == "ok"
+    con.inputStream.text == "ok"
   }
 
-  def "can handle expect continue when client erroneously sends body"() {
+  def "can handle expect continue with body"() {
     when:
     handlers {
       post { render request.body.map { it.text } }
     }
 
-    then:
-    with(request { it.method("post").headers { it.add("Expect", "100-Continue") }.body.text("foo") }) {
-      statusCode == 100
-      body.text == ""
+    HttpURLConnection con = applicationUnderTest.address.toURL().openConnection()
+    con.setRequestMethod("POST")
+    con.setRequestProperty("Expect", "100-Continue")
+    con.doInput = true
+    con.doOutput = true
+    con.connect()
+    con.outputStream.withStream {
+      it << "foo".getBytes("UTF-8")
     }
-    request { it.method("post").body.text("foo") }.body.text == "foo"
+
+    then:
+    con.inputStream.text == "foo"
   }
 
 }

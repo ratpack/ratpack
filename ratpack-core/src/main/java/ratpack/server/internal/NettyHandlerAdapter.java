@@ -51,6 +51,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
   private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(RequestBodyAccumulator.class.getName());
+  private static final AttributeKey<HttpRequest> CONTINUATION_REQUEST = AttributeKey.valueOf("ratpack.continuation.request");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -76,9 +77,17 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    HttpRequest priorRequest = ctx.attr(CONTINUATION_REQUEST).getAndRemove();
     if (msg instanceof HttpRequest) {
-      newRequest(ctx, (HttpRequest) msg);
+      if (priorRequest != null) {
+        ctx.channel().close();
+      } else {
+        newRequest(ctx, (HttpRequest) msg);
+      }
     } else if (msg instanceof HttpContent) {
+      if (priorRequest != null) {
+        newRequest(ctx, priorRequest);
+      }
       RequestBodyAccumulator bodyAccumulator = ctx.attr(BODY_ACCUMULATOR_KEY).get();
       if (bodyAccumulator != null) {
         bodyAccumulator.add((HttpContent) msg);
@@ -102,14 +111,17 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       return;
     }
     if (HttpUtil.is100ContinueExpected(nettyRequest)) {
-      FullHttpResponse continueResponse = new DefaultFullHttpResponse(
-        HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
-      ChannelFutureListener listener = future -> {
+      HttpUtil.set100ContinueExpected(nettyRequest, false); // clear the expect header
+      ctx.attr(CONTINUATION_REQUEST).set(nettyRequest);
+
+      HttpResponse continueResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
+
+      ctx.writeAndFlush(continueResponse).addListener(future -> {
         if (!future.isSuccess()) {
           ctx.fireExceptionCaught(future.cause());
         }
-      };
-      ctx.writeAndFlush(continueResponse).addListener(listener);
+      });
+
       ctx.read();
       return;
     }
