@@ -127,7 +127,7 @@ evaluationDependsOnChildren()
 
 apply plugin: "jacoco"
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
-  def projects = subprojects.find { it.plugins.hasPlugin(JacocoPlugin) && it.file("src/test").exists() }
+  def projects = subprojects.findAll { it.plugins.hasPlugin(JacocoPlugin) && it.file("src/test").exists() }
 
   dependsOn projects*.test
 
