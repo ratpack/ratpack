@@ -40,7 +40,7 @@ public interface Response {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<Response> TYPE = Types.token(Response.class);
 
@@ -271,7 +271,7 @@ public interface Response {
    * This method simply calls {@code getHeaders().set("Connection", "close")}, which has the same effect.
    *
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default Response forceCloseConnection() {
     getHeaders().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);

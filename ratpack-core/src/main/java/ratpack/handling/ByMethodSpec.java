@@ -62,7 +62,7 @@ public interface ByMethodSpec {
    *
    * @param block the code to invoke if the request method matches
    * @return this
-   * @since 1.1.0
+   * @since 1.1
    */
   ByMethodSpec options(Block block);
 

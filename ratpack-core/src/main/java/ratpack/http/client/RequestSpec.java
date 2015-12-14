@@ -122,7 +122,7 @@ public interface RequestSpec {
    * <p>
    * This value defaults to 30 seconds.
    *
-   * @since 1.1.0
+   * @since 1.1
    * @param seconds the socket connection timeout in seconds
    * @see #connectTimeout(Duration)
    * @return {@code this}
@@ -136,7 +136,7 @@ public interface RequestSpec {
    * <p>
    * This value defaults to 30 seconds.
    *
-   * @since 1.1.0
+   * @since 1.1
    * @param duration the socket connection timeout
    * @return {@code this}
    */

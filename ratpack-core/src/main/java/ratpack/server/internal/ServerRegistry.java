@@ -59,6 +59,7 @@ import ratpack.sse.ServerSentEventStreamClient;
 
 import java.nio.file.Path;
 import java.time.Clock;
+import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
@@ -99,7 +100,10 @@ public abstract class ServerRegistry {
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(MimeTypes.class, new ActivationBackedMimeTypes())
-        .add(PublicAddress.class, serverConfig.getPublicAddress() == null ? new InferringPublicAddress(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME) : PublicAddress.of(serverConfig.getPublicAddress()))
+        .add(PublicAddress.class, Optional.ofNullable(serverConfig.getPublicAddress())
+          .map(PublicAddress::of)
+          .orElseGet(() -> PublicAddress.inferred(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+        )
         .add(Redirector.class, new DefaultRedirector())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
@@ -114,7 +118,7 @@ public abstract class ServerRegistry {
         .add(JsonParser.class, new JsonParser())
         .add(RatpackServer.class, ratpackServer)
         .add(ObjectMapper.class, new ObjectMapper())
-          // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
+        // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {
           ratpackServer.stop();
           return null;

@@ -88,24 +88,22 @@ import ratpack.func.Block;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     ExecResult<String> result = ExecHarness.yieldSingle(
+ *     ExecResult<Timer> result = ExecHarness.yieldSingle(
  *       r -> r.add(new ProcessingTimingInterceptor()), // add the interceptor to the registry
  *       e -> {
  *         Thread.sleep(100);
  *         return Blocking.get(() -> {
  *           Thread.sleep(100);
- *           return "foo";
+ *           return Execution.current().get(Timer.class);
  *         })
  *         .map(s -> {
  *           Thread.sleep(100);
- *           return s.toUpperCase();
+ *           return s;
  *         });
  *       }
  *     );
  *
- *     assertEquals("FOO", result.getValue());
- *
- *     Timer timer = result.getRegistry().get(Timer.class);
+ *     Timer timer = result.getValue();
  *     assertTrue(timer.getBlockingTime() >= 100);
  *     assertTrue(timer.getComputeTime() >= 200);
  *   }

@@ -98,7 +98,7 @@ public interface Predicate<T> {
   /**
    * A predicate that always returns {@code true}, regardless of the input object.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   Predicate<Object> TRUE = o -> true;
 
@@ -107,7 +107,7 @@ public interface Predicate<T> {
    *
    * @param <T> the type of input object
    * @return a predicate that always returns {@code true}
-   * @since 1.1.0
+   * @since 1.1
    */
   static <T> Predicate<T> alwaysTrue() {
     return Types.cast(TRUE);
@@ -116,7 +116,7 @@ public interface Predicate<T> {
   /**
    * A predicate that always returns {@code false}, regardless of the input object.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   Predicate<Object> FALSE = o -> false;
 
@@ -125,7 +125,7 @@ public interface Predicate<T> {
    *
    * @param <T> the type of input object
    * @return a predicate that always returns {@code false}
-   * @since 1.1.0
+   * @since 1.1
    */
   static <T> Predicate<T> alwaysFalse() {
     return Types.cast(FALSE);

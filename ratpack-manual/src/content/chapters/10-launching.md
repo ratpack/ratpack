@@ -57,7 +57,7 @@ This method searches for a resource on the classpath at the path `"/.ratpack"`.
 
 The contents of the marker file are entirely ignored.
 It is just used to find the enclosing directory, which will be used as the base dir.
-The file may within a JAR that is on the classpath, or within a directory that is on the classpath.
+The file may be within a JAR that is on the classpath, or within a directory that is on the classpath.
 
 The following example demonstrates using `BaseDir.find()` to discover the base dir from the classpath.
 
@@ -110,7 +110,7 @@ If not configured, the default value is 5050.
 ### Registry
 
 A [`registry`](api/ratpack/registry/Registry.html) is a store of objects stored by type.
-There may be many different registries within an application, but all applications are backed a “server registry”.
+There may be many different registries within an application, but all applications are backed by a “server registry”.
 A server registry is just the name given to the registry that backs the application and is defined at launch time.
 
 ### Handler

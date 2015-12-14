@@ -16,11 +16,12 @@
 
 package ratpack.site.crawl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * - Covert the scheme and host to lowercase (done by java.net.URL)
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
  * - Sort the query string params.
  * - Remove some query string params like "utm_*" and "*session*".
  */
+//CHECKSTYLE:OFF
 public class NormalizeURL {
   private final static Logger LOGGER = LoggerFactory.getLogger(NormalizeURL.class);
 
@@ -49,7 +51,7 @@ public class NormalizeURL {
 
     if (params != null) {
       // Some params are only relevant for user tracking, so remove the most commons ones.
-      for (Iterator<String> i = params.keySet().iterator(); i.hasNext(); ) {
+      for (Iterator<String> i = params.keySet().iterator(); i.hasNext();) {
         final String key = i.next();
         if (key.startsWith("utm_") || key.contains("session")) {
           i.remove();
@@ -159,3 +161,4 @@ public class NormalizeURL {
     }
   }
 }
+//CHECKSTYLE:ON

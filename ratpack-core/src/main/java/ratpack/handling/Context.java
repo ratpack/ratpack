@@ -77,7 +77,7 @@ public interface Context extends Registry {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<Context> TYPE = Types.token(Context.class);
 
@@ -349,7 +349,7 @@ public interface Context extends Registry {
    *
    * @param location the redirect location URL
    * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
-   * @since 1.2.0
+   * @since 1.2
    */
   default void redirect(URI location) throws NotInRegistryException {
     redirect(location.toASCIIString());
@@ -361,7 +361,7 @@ public interface Context extends Registry {
    * @param code The status code of the redirect
    * @param location the redirect location URL
    * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
-   * @since 1.2.0
+   * @since 1.2
    */
   default void redirect(int code, URI location) throws NotInRegistryException {
     redirect(code, location.toASCIIString());
@@ -588,7 +588,7 @@ public interface Context extends Registry {
    * <p>
    * This is a terminal handler operation.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   default void notFound() {
     clientError(404);

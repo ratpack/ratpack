@@ -178,7 +178,7 @@ public interface Promise<T> {
    * @param predicate the predicate to test against the error
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
-   * @since 1.1.0
+   * @since 1.1
    */
   default Promise<T> onError(Predicate<? super Throwable> predicate, Action<? super Throwable> errorHandler) {
     return transform(up -> down ->
@@ -240,7 +240,7 @@ public interface Promise<T> {
    * @param errorHandler the action to take if an error occurs
    * @param <E> the type of exception to handle with the given action
    * @return A promise for the successful result
-   * @since 1.1.0
+   * @since 1.1
    */
   default <E extends Throwable> Promise<T> onError(Class<E> errorType, Action<? super E> errorHandler) {
     return onError(errorType::isInstance, t -> errorHandler.execute(errorType.cast(t)));
@@ -392,7 +392,7 @@ public interface Promise<T> {
    * @param action the action to execute with the promised value
    * @return a promise for the original value
    * @see #nextOp(Function)
-   * @since 1.1.0
+   * @since 1.1
    */
   default Promise<T> next(@NonBlocking Action<? super T> action) {
     return nextOp(v ->
@@ -448,7 +448,7 @@ public interface Promise<T> {
    * @param function a function that returns an operation that acts on the promised value
    * @return a promise for the original value
    * @see #next(Action)
-   * @since 1.1.0
+   * @since 1.1
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
     return transform(up -> down -> up.connect(
@@ -497,7 +497,7 @@ public interface Promise<T> {
    * @param next the promise to replace {@code this} with
    * @param <O> the type of the value of the replacement promise
    * @return a promise
-   * @since 1.1.0
+   * @since 1.1
    */
   default <O> Promise<O> replace(Promise<O> next) {
     return flatMap(in -> next);

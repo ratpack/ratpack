@@ -164,7 +164,7 @@ public final class MDCInterceptor implements ExecInterceptor {
    *
    * @param init the initialisation action
    * @return an {@link MDCInterceptor}
-   * @since 1.1.0
+   * @since 1.1
    */
   public static MDCInterceptor withInit(Action<? super Execution> init) {
     return new MDCInterceptor(init);

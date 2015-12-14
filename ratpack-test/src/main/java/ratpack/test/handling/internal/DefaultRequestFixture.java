@@ -116,7 +116,8 @@ public class DefaultRequestFixture implements RequestFixture {
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
     ServerConfig serverConfig = registry.get(ServerConfig.class);
 
-    DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
+    DefaultRequest request = new DefaultRequest(
+      Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       serverConfig,

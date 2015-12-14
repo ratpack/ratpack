@@ -25,6 +25,8 @@ import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
+import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -292,6 +294,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     response.statusCode == 500
   }
 
+  @IgnoreIf({InetAddress.localHost.isLoopbackAddress()})
   def "can set connect timeout"() {
     setup:
     def nonRoutableIp = '192.168.0.0'
@@ -551,4 +554,142 @@ BAR
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
   }
+
+  @Unroll
+  def "can configure request method #method via request spec"() {
+    given:
+    handlers {
+      path("foo") {
+        byMethod {
+          get {
+            response.send "GET-foo"
+          }
+          put {
+            response.send "PUT-foo"
+          }
+          post {
+            response.send "POST-foo"
+          }
+          delete {
+            response.send "DELETE-foo"
+          }
+          patch {
+            response.send "PATCH-foo"
+          }
+        }
+      }
+      all {
+        byMethod {
+          get {
+            response.send "GET"
+          }
+          put {
+            response.send "PUT"
+          }
+          post {
+            response.send "POST"
+          }
+          delete {
+            response.send "DELETE"
+          }
+          patch {
+            response.send "PATCH"
+          }
+        }
+      }
+
+    }
+
+    when:
+    def response = request { spec ->
+      spec.method(method)
+    }
+    def pathResponse = request("foo") { spec ->
+      spec.method(method)
+    }
+
+    then:
+    response.status.code == 200
+    response.body.text == method
+
+    and:
+    pathResponse.status.code == 200
+    pathResponse.body.text == "${method}-foo"
+
+    where:
+    method << [ "GET", "PUT", "POST", "DELETE", "PATCH" ]
+  }
+
+  def "can configure request method OPTIONS via request spec"() {
+    given:
+    handlers {
+      path("foo") {
+        byMethod {
+          get {
+            response.send "GET-foo"
+          }
+        }
+      }
+      all {
+        byMethod {
+          get {
+            response.send "GET"
+          }
+          put {
+            response.send "PUT"
+          }
+          post {
+            response.send "POST"
+          }
+          delete {
+            response.send "DELETE"
+          }
+          patch {
+            response.send "PATCH"
+          }
+        }
+      }
+
+    }
+
+    when:
+    def response = request { spec ->
+      spec.method("OPTIONS")
+    }
+    def pathResponse = request("foo") { spec ->
+      spec.method("OPTIONS")
+    }
+
+    then:
+    response.status.code == 200
+    response.headers.get("ALLOW") == ["GET", "PUT", "POST", "DELETE", "PATCH"].join(",")
+
+    and:
+    pathResponse.status.code == 200
+    pathResponse.headers.get("ALLOW") == ["GET"].join(",")
+  }
+
+  def "can configure request method HEAD via request spec"() {
+    given:
+    handlers {
+      get {
+        response.send "GET"
+      }
+    }
+
+    when:
+    def response = request { spec ->
+      spec.method("HEAD")
+    }
+    def pathResponse = request("foo") { spec ->
+      spec.method("HEAD")
+    }
+
+    then:
+    response.status.code == 200
+
+    and:
+    pathResponse.status.code == 404
+  }
+
 }

@@ -86,12 +86,12 @@ class RatpackVersion {
   }
 
   @Override
-  public String toString() {
+  String toString() {
     return "RatpackVersion{" +
       "version='" + version + '\'' +
       ", githubNumber=" + githubNumber +
       ", due=" + due +
       ", released=" + released +
-      '}';
+      '}'
   }
 }

@@ -25,6 +25,7 @@ import ratpack.site.github.RatpackVersions
 import ratpack.test.MainClassApplicationUnderTest
 
 @CompileStatic
+@SuppressWarnings("ClassName")
 class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   RatpackSiteUnderTest() {

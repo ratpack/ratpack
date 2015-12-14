@@ -159,7 +159,7 @@ public interface ConfigDataBuilder {
    *
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default ConfigDataBuilder args(String[] args) {
     return args("=", args);
@@ -171,7 +171,7 @@ public interface ConfigDataBuilder {
    * @param separator the separator of the key and value in each arg
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default ConfigDataBuilder args(String separator, String[] args) {
     return args("", separator, args);
@@ -188,7 +188,7 @@ public interface ConfigDataBuilder {
    * @param separator the separator between the key and the value
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default ConfigDataBuilder args(String prefix, String separator, String[] args) {
     return add(new ArgsConfigSource(prefix, separator, args));

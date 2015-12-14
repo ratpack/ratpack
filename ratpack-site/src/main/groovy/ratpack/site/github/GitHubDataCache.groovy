@@ -72,18 +72,20 @@ class GitHubDataCache implements GitHubData {
     }
 
     boolean equals(o) {
-      if (this.is(o)) return true
-      if (getClass() != o.class) return false
+      if (this.is(o)) {
+        return true
+      }
+      if (getClass() != o.class) {
+        return false
+      }
 
       Key key = (Key) o
 
-      if (id != key.id) return false
-
-      return true
+      id == key.id
     }
 
     int hashCode() {
-      return id.hashCode()
+      id.hashCode()
     }
   }
 

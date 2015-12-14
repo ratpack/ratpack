@@ -33,7 +33,7 @@ public interface Redirector {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<Redirector> TYPE = Types.token(Redirector.class);
 

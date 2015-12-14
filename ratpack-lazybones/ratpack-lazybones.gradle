@@ -27,6 +27,11 @@ buildscript {
   }
 }
 
+apply from: "$rootDir/gradle/javaModule.gradle"
+apply plugin: "maven"
+apply from: "$rootDir/gradle/projectLocalRepo.gradle"
+apply plugin: "uk.co.cacoethes.lazybones-templates"
+
 dependencies {
   compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
 
@@ -34,9 +39,6 @@ dependencies {
   testCompile "org.apache.commons:commons-lang3:3.3.2"
   testCompile project(":ratpack-test-internal")
 }
-
-apply from: "$rootDir/gradle/javaModule.gradle"
-apply plugin: "uk.co.cacoethes.lazybones-templates"
 
 ext {
   generatedTestResourcesDir = file("$buildDir/generated-test-resources")

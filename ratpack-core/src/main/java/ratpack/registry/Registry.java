@@ -343,7 +343,7 @@ public interface Registry {
    * @param <T> the public type of the entry
    * @return a new single entry registry
    * @see RegistryBuilder#addLazy(Class, Supplier)
-   * @since 1.1.0
+   * @since 1.1
    */
   static <T> Registry singleLazy(Class<T> publicType, Supplier<? extends T> supplier) {
     return builder().addLazy(publicType, supplier).build();

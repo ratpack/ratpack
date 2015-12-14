@@ -59,21 +59,21 @@ public class CachingUpstream<T> implements Upstream<T> {
       upstream.connect(new Downstream<T>() {
         @Override
         public void error(Throwable throwable) {
-          result.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current()));
+          result.set(ExecResult.of(Result.<T>error(throwable)));
           doDrainInNewSegment();
           downstream.error(throwable);
         }
 
         @Override
         public void success(T value) {
-          result.set(new ResultBackedExecResult<>(Result.success(value), Execution.current()));
+          result.set(ExecResult.of(Result.success(value)));
           doDrainInNewSegment();
           downstream.success(value);
         }
 
         @Override
         public void complete() {
-          result.set(new CompleteExecResult<>(Execution.current()));
+          result.set(CompleteExecResult.get());
           doDrainInNewSegment();
           downstream.complete();
         }

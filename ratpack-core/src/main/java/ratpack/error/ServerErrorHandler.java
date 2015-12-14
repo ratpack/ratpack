@@ -33,7 +33,7 @@ public interface ServerErrorHandler {
   /**
    * A type token for this type.
    *
-   * @since 1.1.0
+   * @since 1.1
    */
   TypeToken<ServerErrorHandler> TYPE = Types.token(ServerErrorHandler.class);
 
