@@ -17,6 +17,7 @@
 package ratpack.guice
 
 import com.google.inject.AbstractModule
+import com.google.inject.Provides
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Provider
@@ -78,5 +79,42 @@ class BindingsSpecSpec extends RatpackGroovyDslSpec {
     getText("provider") == Type2Impl2.name
   }
 
+  def "can override Guice bindings"() {
+    given:
+    Guice.overrideBindings { BindingsSpec spec ->
+      spec.bindInstance(String, "foo")
+    }
+
+    when:
+    bindings {
+      bindInstance(String, "bar")
+
+      module new AbstractModule() {
+        @Override
+        protected void configure() {
+
+        }
+
+        @Provides
+        Wrapper wrapper(String string) {
+          new Wrapper(string: string)
+        }
+      }
+    }
+
+    handlers {
+      get { Wrapper wrapper ->
+        response.send wrapper.string
+      }
+    }
+
+    then:
+    getText() == "foo"
+
+  }
+
+  static class Wrapper {
+    String string
+  }
 
 }
