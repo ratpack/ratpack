@@ -26,19 +26,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A mechanism for creating one or more promises for values that will become available later.
+ * A logical value that will be available later, that promises can be created for.
  * <p>
- * A topic can be used to effectively listen for values, by creating promises that will
- * be fulfilled when the value becomes available later.
+ * A “promised” can be used by the producer of a value to notify an interested parties when the value becomes available.
+ * Zero or more promises can be created for the promised value via the {@link #promise()} method.
+ * {@code Promised} extends {@link Downstream}, which represents the <em>write</em> side of async values.
+ * To supply the promised value, simply call <b>exactly one</b> of the methods inherited from {@link Downstream}.
  * <p>
- * A topic can have zero or more listeners, but can only be fulfilled once.
- * All of the methods inherited from {@link Downstream} will throw an {@link IllegalStateException}
+ * A “promised” can have zero or more listeners, but can only be fulfilled once.
+ * All of the methods inherited from {@link Downstream} will throw an {@link AlreadySuppliedException}
  * if a value, error or completion have already been signalled for this topic.
  *
  * <pre class="java">{@code
  * import ratpack.test.exec.ExecHarness;
  * import ratpack.exec.Execution;
- * import ratpack.exec.util.Topic;
+ * import ratpack.exec.util.Promised;
  *
  * import java.util.concurrent.atomic.AtomicReference;
  * import java.util.concurrent.CountDownLatch;
@@ -51,7 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *     CountDownLatch latch = new CountDownLatch(1);
  *
  *     ExecHarness.runSingle(e -> {
- *       Topic<Long> topic = new Topic<>();
+ *       Promised<Long> topic = new Promised<>();
  *
  *       // create a listener
  *       Execution.fork().start(e1 ->
@@ -71,10 +73,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * }
  * }</pre>
  *
- * @param <T>
+ * @param <T> the type of value that is promised
  * @since 1.2
  */
-public final class Topic<T> implements Downstream<T> {
+public final class Promised<T> implements Downstream<T> {
 
   private final AtomicReference<ExecResult<? extends T>> ref = new AtomicReference<>();
   private final Queue<Downstream<? super T>> listeners = new ConcurrentLinkedQueue<>();
@@ -128,7 +130,7 @@ public final class Topic<T> implements Downstream<T> {
     if (ref.compareAndSet(null, result)) {
       drain();
     } else {
-      throw new IllegalStateException("topic has already been completed with " + ref.get());
+      throw new AlreadySuppliedException("promised has already been completed with " + ref.get());
     }
   }
 
@@ -142,6 +144,15 @@ public final class Topic<T> implements Downstream<T> {
     while (next != null) {
       next.accept(result);
       next = listeners.poll();
+    }
+  }
+
+  /**
+   * Thrown if an attempt is made to supply the value/result after it has already been supplied.
+   */
+  static class AlreadySuppliedException extends IllegalStateException {
+    private AlreadySuppliedException(String s) {
+      super(s);
     }
   }
 }

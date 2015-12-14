@@ -16,17 +16,15 @@
 
 package ratpack.exec.util
 
-import ratpack.exec.ExecResult
 import ratpack.exec.Execution
 import ratpack.exec.Promise
-import ratpack.exec.Result
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariables
 
-class TopicSpec extends Specification {
+class PromisedSpec extends Specification {
 
   @AutoCleanup
   def harness = ExecHarness.harness()
@@ -35,7 +33,7 @@ class TopicSpec extends Specification {
   def "can complete with success value"() {
     when:
     harness.run({
-      def v = new Topic()
+      def v = new Promised()
 
       Execution.fork().start { v.promise().then { blocking.a = it } }
       Execution.fork().start { v.promise().then { blocking.b = it } }
@@ -54,7 +52,7 @@ class TopicSpec extends Specification {
   def "can create promise after completed"() {
     when:
     harness.run({
-      def v = new Topic()
+      def v = new Promised()
       v.success(1)
 
       Execution.fork().start { v.promise().then { blocking.a = it } }
@@ -72,7 +70,7 @@ class TopicSpec extends Specification {
   def "can error"() {
     when:
     harness.run({
-      def v = new Topic()
+      def v = new Promised()
 
       Execution.fork().start { v.promise().onError { blocking.a = it }.then { blocking.a = it } }
       Execution.fork().start { v.promise().onError { blocking.b = it }.then { blocking.b = it } }
@@ -90,7 +88,7 @@ class TopicSpec extends Specification {
   def "can connect to promise"() {
     when:
     harness.run({
-      def v = new Topic()
+      def v = new Promised()
 
       Execution.fork().start { v.promise().then { blocking.a = it } }
       Execution.fork().start { v.promise().then { blocking.b = it } }
@@ -107,16 +105,15 @@ class TopicSpec extends Specification {
     blocking.c == 2
   }
 
-  def "throws when already fulfilled"() {
+  def "throws when already supplied"() {
     when:
     harness.run({
-      def v = new Topic()
+      def v = new Promised()
       v.success(1)
       v.success(2)
     } as Action)
 
     then:
-    def e = thrown IllegalStateException
-    e.message == "topic has already been completed with " + ExecResult.of(Result.success(1))
+    thrown Promised.AlreadySuppliedException
   }
 }
