@@ -16,14 +16,11 @@
 
 package ratpack.dropwizard.metrics;
 
-import java.util.Optional;
-
 /**
  *
  */
 public class RequestTimingHandlerConfig {
     private boolean enabled = true;
-    private Optional<Class<RequestTimingHandler>> handler = Optional.empty();
 
     /**
      *
@@ -43,23 +40,4 @@ public class RequestTimingHandlerConfig {
         return this;
     }
 
-    /**
-     *
-     * @return The request timing handler.
-     */
-    public Optional<Class<RequestTimingHandler>> getHandler() {
-        return handler;
-    }
-
-    /**
-     * Provide custom request timing interceptor. This will replace
-     * the default.
-     *
-     * @param requestTimingHandler The request timing handler.
-     * @return this
-     */
-    public RequestTimingHandlerConfig handler(Class<RequestTimingHandler> requestTimingHandler) {
-        this.handler = Optional.of(requestTimingHandler);
-        return this;
-    }
 }

@@ -42,24 +42,12 @@ public class RequestTimingHandlerProvider implements Provider<RequestTimingHandl
 
     @Override
     public RequestTimingHandler get() {
-        RequestTimingHandler handler = new RequestTimingHandler(metricRegistry, config) {
-            @Override
-            public void handle(Context ctx) throws Exception {
-                ctx.next();
-            }
-        };
+        RequestTimingHandler handler;
         Optional<RequestTimingHandlerConfig> o = config.getHandler();
-        if (o.isPresent()) {
-            RequestTimingHandlerConfig handlerConfig = o.get();
-            if (handlerConfig.isEnabled()) {
-                handler = handlerConfig.getHandler().map(clazz -> {
-                    try {
-                        return clazz.getConstructor(MetricRegistry.class, DropwizardMetricsConfig.class).newInstance(metricRegistry, config);
-                    } catch (Exception e) {
-                        return null;
-                    }
-                }).orElse(new DefaultRequestTimingHandler(metricRegistry, config));
-            }
+        if (o.isPresent() && o.get().isEnabled()) {
+            handler = new DefaultRequestTimingHandler(metricRegistry, config);
+        } else {
+            handler = Context::next;
         }
         return handler;
     }

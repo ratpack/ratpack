@@ -16,7 +16,14 @@
 
 package ratpack.dropwizard.metrics;
 
-import com.codahale.metrics.*;
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.CsvReporter;
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.graphite.GraphiteReporter;
@@ -27,7 +34,18 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
-import ratpack.dropwizard.metrics.internal.*;
+import ratpack.dropwizard.metrics.internal.BlockingExecTimingInterceptorProvider;
+import ratpack.dropwizard.metrics.internal.ConsoleReporterProvider;
+import ratpack.dropwizard.metrics.internal.CsvReporterProvider;
+import ratpack.dropwizard.metrics.internal.GaugeTypeListener;
+import ratpack.dropwizard.metrics.internal.GraphiteReporterProvider;
+import ratpack.dropwizard.metrics.internal.JmxReporterProvider;
+import ratpack.dropwizard.metrics.internal.MeteredMethodInterceptor;
+import ratpack.dropwizard.metrics.internal.MetricRegistryPeriodicPublisher;
+import ratpack.dropwizard.metrics.internal.MetricsBroadcaster;
+import ratpack.dropwizard.metrics.internal.RequestTimingHandlerProvider;
+import ratpack.dropwizard.metrics.internal.Slf4jReporterProvider;
+import ratpack.dropwizard.metrics.internal.TimedMethodInterceptor;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.server.Service;
@@ -210,9 +228,8 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(MetricsBroadcaster.class).in(SINGLETON);
     bind(Startup.class);
 
-    bind(RequestTimingHandler.class);
-    bind(BlockingExecTimingInterceptor.class);
-
+    bind(BlockingExecTimingInterceptor.class).toProvider(BlockingExecTimingInterceptorProvider.class).in(SINGLETON);
+    bind(RequestTimingHandler.class).toProvider(RequestTimingHandlerProvider.class);
     Provider<RequestTimingHandler> handlerProvider = getProvider(RequestTimingHandler.class);
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
   }

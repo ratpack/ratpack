@@ -16,37 +16,8 @@
 
 package ratpack.dropwizard.metrics;
 
-import com.codahale.metrics.MetricRegistry;
 import ratpack.exec.ExecInterceptor;
 
-public abstract class BlockingExecTimingInterceptor implements ExecInterceptor {
-
-    private MetricRegistry metricRegistry;
-    private DropwizardMetricsConfig config;
-
-    /**
-     *
-     * @param metricRegistry the metric registry
-     * @param config the config
-     */
-    public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-        this.metricRegistry = metricRegistry;
-        this.config = config;
-    }
-
-    /**
-     *
-     * @return the metric registry
-     */
-    public MetricRegistry getMetricRegistry() {
-        return metricRegistry;
-    }
-
-    /**
-     *
-     * @return the config
-     */
-    public DropwizardMetricsConfig getConfig() {
-        return config;
-    }
+@FunctionalInterface
+public interface BlockingExecTimingInterceptor extends ExecInterceptor {
 }

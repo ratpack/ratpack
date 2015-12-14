@@ -16,14 +16,11 @@
 
 package ratpack.dropwizard.metrics;
 
-import java.util.Optional;
-
 /**
  *
  */
 public class BlockingExecTimingInterceptorConfig {
     private boolean enabled = true;
-    private Optional<Class<BlockingExecTimingInterceptor>> interceptor = Optional.empty();
 
     /**
      *
@@ -40,26 +37,6 @@ public class BlockingExecTimingInterceptorConfig {
      */
     public BlockingExecTimingInterceptorConfig enable(boolean enabled) {
         this.enabled = enabled;
-        return this;
-    }
-
-    /**
-     *
-     * @return The blocking timing execution interceptor.
-     */
-    public Optional<Class<BlockingExecTimingInterceptor>> getInterceptor() {
-        return interceptor;
-    }
-
-    /**
-     * Provide custom blocking exec timing interceptor. This will replace
-     * the default.
-     *
-     * @param interceptor The blocking timing execution interceptor.
-     * @return this
-     */
-    public BlockingExecTimingInterceptorConfig interceptor(Class<BlockingExecTimingInterceptor> interceptor) {
-        this.interceptor = Optional.of(interceptor);
         return this;
     }
 

@@ -23,10 +23,35 @@ import ratpack.handling.Context;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultRequestTimingHandler extends RequestTimingHandler {
+public class DefaultRequestTimingHandler implements RequestTimingHandler {
 
+  private MetricRegistry metricRegistry;
+  private DropwizardMetricsConfig config;
+
+  /**
+   *
+   * @param metricRegistry the metric registry
+   * @param config the config
+   */
   public DefaultRequestTimingHandler(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    super(metricRegistry, config);
+    this.metricRegistry = metricRegistry;
+    this.config = config;
+  }
+
+  /**
+   *
+   * @return the metric registry
+   */
+  public MetricRegistry getMetricRegistry() {
+    return metricRegistry;
+  }
+
+  /**
+   *
+   * @return the config
+   */
+  public DropwizardMetricsConfig getConfig() {
+    return config;
   }
 
   @Override

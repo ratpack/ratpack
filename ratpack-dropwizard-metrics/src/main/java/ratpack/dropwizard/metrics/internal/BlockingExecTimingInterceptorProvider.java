@@ -20,8 +20,6 @@ import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptorConfig;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
-import ratpack.exec.Execution;
-import ratpack.func.Block;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -43,27 +41,12 @@ public class BlockingExecTimingInterceptorProvider implements Provider<BlockingE
 
     @Override
     public BlockingExecTimingInterceptor get() {
-        //default
-        BlockingExecTimingInterceptor execInterceptor = new BlockingExecTimingInterceptor(metricRegistry, config) {
-            @Override
-            public void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception {
-                executionSegment.execute();
-            }
-        };
+        BlockingExecTimingInterceptor execInterceptor;
         Optional<BlockingExecTimingInterceptorConfig> o = config.getInterceptor();
-        if (o.isPresent()) {
-            BlockingExecTimingInterceptorConfig interceptorConfig = o.get();
-            if (interceptorConfig.isEnabled()) {
-                execInterceptor = interceptorConfig.getInterceptor()
-                        .map(clazz -> {
-                            try {
-                                return clazz.getConstructor(MetricRegistry.class, DropwizardMetricsConfig.class).newInstance(metricRegistry, config);
-                            } catch (Exception e) {
-                                return null;
-                            }
-                        })
-                        .orElse(new DefaultBlockingExecTimingInterceptor(metricRegistry, config));
-            }
+        if (o.isPresent() && o.get().isEnabled()) {
+            execInterceptor = new DefaultBlockingExecTimingInterceptor(metricRegistry, config);
+        } else {
+            execInterceptor = (execution, execType, executionSegment) -> executionSegment.execute();
         }
         return execInterceptor;
     }

@@ -27,10 +27,35 @@ import ratpack.http.Request;
 import java.util.Map;
 import java.util.Optional;
 
-public class DefaultBlockingExecTimingInterceptor extends BlockingExecTimingInterceptor {
+public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingInterceptor {
 
+  private MetricRegistry metricRegistry;
+  private DropwizardMetricsConfig config;
+
+  /**
+   *
+   * @param metricRegistry the metric registry
+   * @param config the config
+   */
   public DefaultBlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    super(metricRegistry, config);
+    this.metricRegistry = metricRegistry;
+    this.config = config;
+  }
+
+  /**
+   *
+   * @return the metric registry
+   */
+  public MetricRegistry getMetricRegistry() {
+    return metricRegistry;
+  }
+
+  /**
+   *
+   * @return the config
+   */
+  public DropwizardMetricsConfig getConfig() {
+    return config;
   }
 
   @Override
