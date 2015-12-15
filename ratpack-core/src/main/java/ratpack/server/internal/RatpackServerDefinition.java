@@ -24,6 +24,8 @@ import ratpack.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 
+import java.util.Optional;
+
 public final class RatpackServerDefinition {
 
   private final ServerConfig serverConfig;
@@ -39,7 +41,8 @@ public final class RatpackServerDefinition {
   public static RatpackServerDefinition build(Action<? super RatpackServerSpec> config) throws Exception {
     SpecImpl spec = new SpecImpl();
     config.execute(spec);
-    return new RatpackServerDefinition(spec.serverConfig, spec.registry, spec.handler);
+    ServerConfig serverConfig = Optional.ofNullable(spec.serverConfig).orElseGet(() -> ServerConfig.builder().build());
+    return new RatpackServerDefinition(serverConfig, spec.registry, spec.handler);
   }
 
   public ServerConfig getServerConfig() {
@@ -55,7 +58,7 @@ public final class RatpackServerDefinition {
   }
 
   private static class SpecImpl implements RatpackServerSpec {
-    private ServerConfig serverConfig = ServerConfig.builder().build();
+    private ServerConfig serverConfig;
     private Function<? super Registry, ? extends Registry> registry = (r) -> Registry.empty();
     private Function<? super Registry, ? extends Handler> handler = (r) -> Handlers.notFound();
 

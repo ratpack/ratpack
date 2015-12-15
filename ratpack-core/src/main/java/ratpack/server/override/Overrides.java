@@ -48,7 +48,7 @@ public final class Overrides implements Registry {
   }
 
   public static Overrides get() {
-    return new Overrides(Optional.ofNullable(OVERRIDES.get()).map(Deque::poll).orElse(Registry.empty()));
+    return new Overrides(Optional.ofNullable(OVERRIDES.get()).map(Deque::peek).orElse(Registry.empty()));
   }
 
   @Override
