@@ -36,6 +36,7 @@ import ratpack.server.ServerConfigBuilder;
 import ratpack.server.override.ForceDevelopmentOverride;
 import ratpack.server.override.ForcePortOverride;
 import ratpack.server.override.Overrides;
+import ratpack.server.override.ServerConfigOverrides;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -340,6 +341,9 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   public ServerConfig build() {
     DefaultServerConfigBuilder copy = copy();
 
+    overrides.maybeGet(ServerConfigOverrides.class)
+      .ifPresent(c -> c.apply(copy));
+
     overrides.maybeGet(ForcePortOverride.class)
       .map(ForcePortOverride::getPort)
       .ifPresent(copy::port);
@@ -348,8 +352,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
       .map(ForceDevelopmentOverride::isDevelopment)
       .ifPresent(copy::development);
 
-    copy.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
-
+    copy.configDataBuilder.jacksonModules(new ConfigModule(copy.serverEnvironment, copy.baseDirSupplier));
     ConfigData configData = new DefaultConfigData(copy.configDataBuilder.getObjectMapper(), copy.getConfigSources(), MoreObjects.firstNonNull(copy.baseDirSupplier.baseDir, FileSystemBinding.root()));
     ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, copy.required);
     return new DefaultServerConfig(configData, requiredConfig);

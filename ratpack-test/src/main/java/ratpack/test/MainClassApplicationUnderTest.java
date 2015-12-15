@@ -17,6 +17,7 @@
 package ratpack.test;
 
 import ratpack.registry.Registry;
+import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
 import ratpack.server.override.ForceDevelopmentOverride;
@@ -39,14 +40,19 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
     return Registry.empty();
   }
 
+  protected void addOverrides(RegistrySpec spec) {
+
+  }
+
   @Override
   protected RatpackServer createServer() throws Exception {
     RatpackServer ratpackServer = ServerCapturer.capture(
-      Registry.of(r -> r
-        .add(ForcePortOverride.ephemeral())
-        .add(ForceDevelopmentOverride.of(true))
-        .add(UserRegistryOverrides.of(this::createOverrides))
-      ),
+      Registry.of(r -> {
+        r.add(ForcePortOverride.ephemeral())
+          .add(ForceDevelopmentOverride.of(true))
+          .add(UserRegistryOverrides.of(this::createOverrides));
+        addOverrides(r);
+      }),
       () -> {
         Method method;
         try {
