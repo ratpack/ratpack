@@ -33,6 +33,9 @@ import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
+import ratpack.server.override.ForceDevelopmentOverride;
+import ratpack.server.override.ForcePortOverride;
+import ratpack.server.override.Overrides;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -47,13 +50,28 @@ import java.util.function.Supplier;
 
 public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
-  private final ConfigDataBuilder configDataBuilder;
+  private final DefaultConfigDataBuilder configDataBuilder;
   private final Map<String, Class<?>> required = Maps.newHashMap();
   private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
+  private final ServerEnvironment serverEnvironment;
+  private final Overrides overrides;
 
-  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
-    configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
-    this.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
+  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Overrides overrides) {
+    this.overrides = overrides;
+    this.configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
+    this.serverEnvironment = serverEnvironment;
+  }
+
+  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, Class<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Overrides overrides) {
+    this.configDataBuilder = configDataBuilder.copy();
+    this.required.putAll(required);
+    this.baseDirSupplier.baseDir = baseDirSupplier.baseDir;
+    this.serverEnvironment = serverEnvironment;
+    this.overrides = overrides;
+  }
+
+  private DefaultServerConfigBuilder copy() {
+    return new DefaultServerConfigBuilder(configDataBuilder, required, baseDirSupplier, serverEnvironment, overrides);
   }
 
   @Override
@@ -68,13 +86,17 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   private ServerConfigBuilder addToServer(Consumer<? super ObjectNode> action) {
-    add((m, f) -> {
-      ObjectNode rootNode = new ObjectNode(getObjectMapper().getNodeFactory());
+    addToServer(configDataBuilder, action);
+    return this;
+  }
+
+  private static void addToServer(ConfigDataBuilder configDataBuilder, Consumer<? super ObjectNode> action) {
+    configDataBuilder.add((m, f) -> {
+      ObjectNode rootNode = new ObjectNode(configDataBuilder.getObjectMapper().getNodeFactory());
       ObjectNode server = rootNode.putObject("server");
       action.accept(server);
       return rootNode;
     });
-    return this;
   }
 
   @Override
@@ -316,8 +338,20 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfig build() {
-    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), getConfigSources(), MoreObjects.firstNonNull(baseDirSupplier.baseDir, FileSystemBinding.root()));
-    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
+    DefaultServerConfigBuilder copy = copy();
+
+    overrides.maybeGet(ForcePortOverride.class)
+      .map(ForcePortOverride::getPort)
+      .ifPresent(copy::port);
+
+    overrides.maybeGet(ForceDevelopmentOverride.class)
+      .map(ForceDevelopmentOverride::isDevelopment)
+      .ifPresent(copy::development);
+
+    copy.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
+
+    ConfigData configData = new DefaultConfigData(copy.configDataBuilder.getObjectMapper(), copy.getConfigSources(), MoreObjects.firstNonNull(copy.baseDirSupplier.baseDir, FileSystemBinding.root()));
+    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, copy.required);
     return new DefaultServerConfig(configData, requiredConfig);
   }
 

@@ -60,6 +60,17 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
     this.objectMapper = objectMapper;
   }
 
+  private DefaultConfigDataBuilder(ServerEnvironment serverEnvironment, ObjectMapper objectMapper, ImmutableList.Builder<ConfigSource> sources, Action<? super Throwable> errorHandler) {
+    this.serverEnvironment = serverEnvironment;
+    this.objectMapper = objectMapper;
+    this.sources.addAll(sources.build());
+    this.errorHandler = errorHandler;
+  }
+
+  public DefaultConfigDataBuilder copy() {
+    return new DefaultConfigDataBuilder(serverEnvironment, objectMapper, sources, errorHandler);
+  }
+
   @Override
   public ConfigDataBuilder json(String path) {
     return add((objectMapper, fileSystemBinding) -> new JsonConfigSource(fileSystemBinding.file(path)).loadConfigData(objectMapper, fileSystemBinding));
