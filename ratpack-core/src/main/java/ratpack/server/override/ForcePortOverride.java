@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package ratpack.registry.internal;
+package ratpack.server.override;
 
-import com.google.common.reflect.TypeToken;
-import ratpack.registry.Registry;
+public final class ForcePortOverride {
 
-import java.util.Optional;
+  private final int port;
 
-public interface DelegatingRegistry extends Registry {
-
-  Registry getDelegate();
-
-  @Override
-  default <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return getDelegate().maybeGet(type);
+  private ForcePortOverride(int port) {
+    this.port = port;
   }
 
-  @Override
-  default <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return getDelegate().getAll(type);
+  public static ForcePortOverride ephemeral() {
+    return of(0);
+  }
+
+  public static ForcePortOverride of(int port) {
+    return new ForcePortOverride(port);
+  }
+
+  public int getPort() {
+    return port;
   }
 
 }

@@ -50,7 +50,6 @@ import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.registry.internal.DelegatingRegistry;
 import ratpack.registry.internal.TypeCaching;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
@@ -168,11 +167,11 @@ public class DefaultContext implements Context {
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s
-          .add(Context.TYPE, context)
-          .add(Request.TYPE, requestConstants.request)
-          .add(Response.TYPE, requestConstants.response)
-          .add(PathBindingStorage.TYPE, context.pathBindings)
-          .addLazy(RequestId.TYPE, () -> registry.get(RequestId.Generator.TYPE).generate(requestConstants.request))
+        .add(Context.TYPE, context)
+        .add(Request.TYPE, requestConstants.request)
+        .add(Response.TYPE, requestConstants.response)
+        .add(PathBindingStorage.TYPE, context.pathBindings)
+        .addLazy(RequestId.TYPE, () -> registry.get(RequestId.Generator.TYPE).generate(requestConstants.request))
       )
       .eventLoop(eventLoop)
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
@@ -183,7 +182,7 @@ public class DefaultContext implements Context {
       });
   }
 
-  private static class ContextRegistry implements DelegatingRegistry {
+  private static class ContextRegistry implements Registry {
     private final DefaultContext context;
 
     public ContextRegistry(DefaultContext context) {
@@ -191,8 +190,13 @@ public class DefaultContext implements Context {
     }
 
     @Override
-    public Registry getDelegate() {
-      return context.getCurrentRegistry();
+    public <O> Optional<O> maybeGet(TypeToken<O> type) {
+      return context.getCurrentRegistry().maybeGet(type);
+    }
+
+    @Override
+    public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
+      return context.getCurrentRegistry().getAll(type);
     }
   }
 

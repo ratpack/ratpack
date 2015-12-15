@@ -42,6 +42,8 @@ import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.registry.Registry;
 import ratpack.server.*;
+import ratpack.server.override.Overrides;
+import ratpack.server.override.UserRegistryOverrides;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
@@ -82,12 +84,14 @@ public class DefaultRatpackServer implements RatpackServer {
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
   protected boolean useSsl;
-  private final ServerCapturer.Overrides overrides;
+  private final Overrides overrides;
   private Thread shutdownHookThread;
 
-  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
+  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory, Overrides overrides) throws Exception {
     this.definitionFactory = definitionFactory;
-    this.overrides = ServerCapturer.capture(this);
+    this.overrides = overrides;
+
+    ServerCapturer.capture(this);
   }
 
   @Override
@@ -141,38 +145,29 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private static class DefinitionBuild {
-    private final ServerCapturer.Overrides overrides;
+    private final Overrides overrides;
     private final RatpackServerDefinition definition;
     private final Throwable error;
     private final ServerConfig serverConfig;
     private final Function<? super Registry, ? extends Registry> userRegistryFactory;
 
-    public DefinitionBuild(ServerCapturer.Overrides overrides, RatpackServerDefinition definition, Throwable error) {
+    public DefinitionBuild(Overrides overrides, RatpackServerDefinition definition, Throwable error) {
       this.overrides = overrides;
       this.definition = definition;
       this.error = error;
-      this.serverConfig = new DelegatingServerConfig(definition.getServerConfig()) {
-        @Override
-        public int getPort() {
-          return overrides.getPort() < 0 ? super.getPort() : overrides.getPort();
-        }
+      this.serverConfig = definition.getServerConfig();
 
-        @Override
-        public boolean isDevelopment() {
-          return overrides.isDevelopment() == null ? super.isDevelopment() : overrides.isDevelopment();
-        }
-      };
-
-      Registry serverConfigOverrideRegistry = Registry.single(ServerConfig.class, serverConfig);
       this.userRegistryFactory = baseRegistry -> {
-        Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
-        Registry userRegistry = definition.getRegistry().apply(actualBaseRegistry);
-        Registry overrideRegistry = overrides.getRegistryFunction().apply(userRegistry);
-        return userRegistry.join(overrideRegistry);
+        Registry userRegistry = definition.getRegistry().apply(baseRegistry);
+        Registry userRegistryOverrides = overrides.maybeGet(UserRegistryOverrides.class)
+          .orElse(UserRegistryOverrides.none())
+          .build(userRegistry);
+
+        return userRegistry.join(userRegistryOverrides);
       };
     }
 
-    public ServerCapturer.Overrides getOverrides() {
+    public Overrides getOverrides() {
       return overrides;
     }
 
@@ -190,11 +185,13 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected DefinitionBuild buildUserDefinition() throws Exception {
-    try {
-      return new DefinitionBuild(overrides, RatpackServerDefinition.build(definitionFactory), null);
-    } catch (Exception e) {
-      return new DefinitionBuild(overrides, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
-    }
+    return Overrides.setFor(overrides, () -> {
+      try {
+        return new DefinitionBuild(overrides, RatpackServerDefinition.build(definitionFactory), null);
+      } catch (Exception e) {
+        return new DefinitionBuild(overrides, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
+      }
+    });
   }
 
   private ChannelHandler buildHandler(DefinitionBuild definitionBuild) throws Exception {
