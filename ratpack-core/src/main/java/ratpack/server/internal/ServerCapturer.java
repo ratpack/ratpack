@@ -34,7 +34,7 @@ public abstract class ServerCapturer {
 
   public static RatpackServer capture(Registry overrides, Block bootstrap) throws Exception {
     try {
-      return Overrides.setFor(overrides, () -> {
+      return Overrides.apply(overrides, () -> {
         bootstrap.execute();
         return SERVER_HOLDER.get();
       });

@@ -185,7 +185,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected DefinitionBuild buildUserDefinition() throws Exception {
-    return Overrides.setFor(overrides, () -> {
+    return Overrides.apply(overrides, () -> {
       try {
         return new DefinitionBuild(overrides, RatpackServerDefinition.build(definitionFactory), null);
       } catch (Exception e) {
@@ -286,7 +286,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
-    return ServerRegistry.serverRegistry(this, execController, serverConfig, userRegistryFactory);
+    return ServerRegistry.serverRegistry(this, overrides, execController, serverConfig, userRegistryFactory);
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
