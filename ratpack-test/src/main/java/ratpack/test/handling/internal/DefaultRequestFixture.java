@@ -46,6 +46,7 @@ import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.server.internal.ServerRegistry;
+import ratpack.server.override.Overrides;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -257,7 +258,7 @@ public class DefaultRequestFixture implements RequestFixture {
     return Exceptions.uncheck(() -> {
       ServerConfig serverConfig = serverConfigBuilder.build();
       DefaultExecController execController = new DefaultExecController(serverConfig.getThreads());
-      return ServerRegistry.serverRegistry(new TestServer(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
+      return ServerRegistry.serverRegistry(new TestServer(), Overrides.none(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
     });
   }
 

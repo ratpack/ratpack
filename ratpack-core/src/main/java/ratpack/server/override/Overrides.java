@@ -30,7 +30,7 @@ import java.util.Optional;
  * <p>
  * The overrides mechanism exists primarily to allow convenient overriding of behaviour at test time.
  * {@link ratpack.test.MainClassApplicationUnderTest} builds upon this mechanism.
- * It uses the {@link #setFor(Registry, Factory)} to register overrides, while starting up the application under test within the given function.
+ * It uses the {@link #apply(Registry, Factory)} to register overrides, while starting up the application under test within the given function.
  * <p>
  * Ratpack components are explicitly designed to be aware of overrides.
  * Such components obtain the overrides either via the {@link #get()} method, or via the server registry (e.g. Guice injection).
@@ -42,6 +42,38 @@ import java.util.Optional;
  * The consumers of these overrides simply obtain them from the override registry.
  * <p>
  * Note that this type is-a {@link Registry}.
+ *
+ * <pre class="java">{@code
+ * import ratpack.registry.Registry;
+ * import ratpack.server.ServerConfig;
+ * import ratpack.server.override.Overrides;
+ * import ratpack.server.override.ServerConfigOverrides;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import static groovy.util.GroovyTestCase.assertEquals;
+ * import static java.util.Collections.singletonMap;
+ *
+ * public class Example {
+ *   public static void main(String[] args) throws Exception {
+ *     Registry overrides = Registry.single(ServerConfigOverrides.of(s -> s
+ *       .props(singletonMap("foo", "overridden!"))
+ *     ));
+ *
+ *     Overrides.apply(overrides, () ->
+ *       EmbeddedApp.of(s -> s
+ *         .serverConfig(c -> c
+ *           .props(singletonMap("foo", "original"))
+ *         )
+ *         .handlers(c -> c
+ *           .get(ctx -> ctx.render(ctx.get(ServerConfig.class).get("/foo", String.class)))
+ *         )
+ *       )
+ *     ).test(testHttpClient ->
+ *       assertEquals("overridden!", testHttpClient.getText());
+ *     );
+ *   }
+ * }
+ * }</pre>
  *
  * @since 1.2
  */
@@ -59,7 +91,7 @@ public final class Overrides implements Registry {
   /**
    * Sets overrides that will be available during execution of the given function from this thread.
    * <p>
-   * The given registry will effectively be the value returned by {@link #get(I)} during the given function,
+   * The given registry will effectively be the value returned by {@link #get()} during the given function,
    * which is executed immediately.
    * <p>
    * The given overrides will only be returned from {@link #get()} if called from the same thread that is calling this method.
@@ -70,7 +102,7 @@ public final class Overrides implements Registry {
    * @return the result of the given function
    * @throws Exception any thrown by {@code during}
    */
-  public static <T> T setFor(Registry overrides, Factory<? extends T> during) throws Exception {
+  public static <T> T apply(Registry overrides, Factory<? extends T> during) throws Exception {
     Deque<Registry> queue = OVERRIDES.get();
     if (queue == null) {
       queue = Queues.newArrayDeque();
@@ -91,7 +123,7 @@ public final class Overrides implements Registry {
   /**
    * The currently imposed overrides.
    * <p>
-   * When called during a call to {@link #setFor(Registry, Factory)} from the same thread,
+   * When called during a call to {@link #apply(Registry, Factory)} from the same thread,
    * returns an overrides registry comprising the registry given to that method.
    * <p>
    * If no overrides have been imposed at call time, the returned registry is effectively empty.

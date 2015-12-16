@@ -55,6 +55,7 @@ import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
 import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.*;
+import ratpack.server.override.Overrides;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import java.nio.file.Path;
@@ -66,8 +67,8 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
-  public static Registry serverRegistry(RatpackServer ratpackServer, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
-    Registry baseRegistry = buildBaseRegistry(ratpackServer, execController, serverConfig);
+  public static Registry serverRegistry(RatpackServer ratpackServer, Overrides overrides, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+    Registry baseRegistry = buildBaseRegistry(ratpackServer, overrides, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
 
     execController.setInterceptors(ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class)));
@@ -87,7 +88,7 @@ public abstract class ServerRegistry {
     return userRegistry;
   }
 
-  public static Registry buildBaseRegistry(RatpackServer ratpackServer, ExecController execController, ServerConfig serverConfig) {
+  public static Registry buildBaseRegistry(RatpackServer ratpackServer, Overrides overrides, ExecController execController, ServerConfig serverConfig) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
 
     RegistryBuilder baseRegistryBuilder;
@@ -97,6 +98,7 @@ public abstract class ServerRegistry {
 
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
+        .add(Overrides.class, overrides)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(MimeTypes.class, new ActivationBackedMimeTypes())
