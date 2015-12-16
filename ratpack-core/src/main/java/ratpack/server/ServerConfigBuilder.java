@@ -24,6 +24,7 @@ import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.server.override.ServerConfigOverrides;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -38,6 +39,7 @@ import java.util.Properties;
  * Builds a {@link ServerConfig}.
  *
  * @see RatpackServerSpec#serverConfig(Action)
+ * @see ServerConfigOverrides
  */
 public interface ServerConfigBuilder extends ConfigDataBuilder {
 
@@ -459,6 +461,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * Builds the server config.
    *
    * @return a server config
+   * @see ServerConfigOverrides
    */
   @Override
   ServerConfig build();
