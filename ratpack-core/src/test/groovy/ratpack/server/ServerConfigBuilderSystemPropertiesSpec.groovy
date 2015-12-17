@@ -19,7 +19,7 @@ package ratpack.server
 import com.google.common.io.Resources
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
-import ratpack.server.override.Overrides
+import ratpack.override.Overrides
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext

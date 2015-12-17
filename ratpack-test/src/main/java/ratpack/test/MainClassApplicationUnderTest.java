@@ -16,17 +16,17 @@
 
 package ratpack.test;
 
+import com.google.common.collect.Lists;
+import ratpack.override.*;
+import ratpack.override.Override;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
-import ratpack.server.override.ForceDevelopmentOverride;
-import ratpack.server.override.ForcePortOverride;
-import ratpack.server.override.UserRegistryOverrides;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
@@ -40,19 +40,22 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
     return Registry.empty();
   }
 
-  protected void addOverrides(RegistrySpec spec) {
+  protected void addOverrides(List<Override> overrides) {
 
   }
 
-  @Override
+  @java.lang.Override
   protected RatpackServer createServer() throws Exception {
+    List<Override> overrides = Lists.newArrayList(
+      ForcePortOverride.ephemeral(),
+      ForceDevelopmentOverride.of(true),
+      UserRegistryOverrides.of(this::createOverrides)
+    );
+
+    addOverrides(overrides);
+
     RatpackServer ratpackServer = ServerCapturer.capture(
-      Registry.of(r -> {
-        r.add(ForcePortOverride.ephemeral())
-          .add(ForceDevelopmentOverride.of(true))
-          .add(UserRegistryOverrides.of(this::createOverrides));
-        addOverrides(r);
-      }),
+      Overrides.of(overrides),
       () -> {
         Method method;
         try {

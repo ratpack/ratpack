@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.server.override;
+package ratpack.override;
 
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  * @see Overrides
  * @since 1.2
  */
-public final class ServerConfigOverrides {
+public final class ServerConfigOverrides implements Override {
 
   private final Consumer<? super ServerConfigBuilder> action;
 

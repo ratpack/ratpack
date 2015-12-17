@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.server.override;
+package ratpack.override;
 
-public final class ForceDevelopmentOverride {
-
-  private final boolean development;
-
-  private ForceDevelopmentOverride(boolean development) {
-    this.development = development;
-  }
-
-  public static ForceDevelopmentOverride of(boolean development) {
-    return new ForceDevelopmentOverride(development);
-  }
-
-  public boolean isDevelopment() {
-    return development;
-  }
-
+/**
+ * A marker interface implemented by all types that are used to implement overrides.
+ *
+ * @see Overrides
+ * @since 1.2
+ */
+public interface Override {
 }

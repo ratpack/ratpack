@@ -20,7 +20,7 @@ import ratpack.groovy.Groovy
 import ratpack.registry.Registry
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServerCapturer
-import ratpack.server.override.ForcePortOverride
+import ratpack.override.ForcePortOverride
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec

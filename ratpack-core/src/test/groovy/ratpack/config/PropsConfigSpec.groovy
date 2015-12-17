@@ -19,7 +19,7 @@ package ratpack.config
 import ratpack.server.ServerConfig
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
-import ratpack.server.override.Overrides
+import ratpack.override.Overrides
 
 class PropsConfigSpec extends BaseConfigSpec {
   def "supports properties"() {

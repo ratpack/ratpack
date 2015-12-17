@@ -19,7 +19,7 @@ package ratpack.server;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.server.internal.DefaultRatpackServer;
-import ratpack.server.override.Overrides;
+import ratpack.override.Overrides;
 
 /**
  * The entry point for creating and starting a Ratpack application.
@@ -74,7 +74,7 @@ public interface RatpackServer {
    * @throws Exception any thrown by creating the server
    */
   static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
-    return new DefaultRatpackServer(definition, Overrides.get());
+    return new DefaultRatpackServer(definition, Overrides.current());
   }
 
   /**

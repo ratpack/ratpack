@@ -31,12 +31,12 @@ import ratpack.config.internal.module.SSLContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.override.ForceDevelopmentOverride;
+import ratpack.override.ForcePortOverride;
+import ratpack.override.Overrides;
+import ratpack.override.ServerConfigOverrides;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
-import ratpack.server.override.ForceDevelopmentOverride;
-import ratpack.server.override.ForcePortOverride;
-import ratpack.server.override.Overrides;
-import ratpack.server.override.ServerConfigOverrides;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -341,14 +341,14 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   public ServerConfig build() {
     DefaultServerConfigBuilder copy = copy();
 
-    overrides.maybeGet(ServerConfigOverrides.class)
+    overrides.get(ServerConfigOverrides.class)
       .ifPresent(c -> c.apply(copy));
 
-    overrides.maybeGet(ForcePortOverride.class)
+    overrides.get(ForcePortOverride.class)
       .map(ForcePortOverride::getPort)
       .ifPresent(copy::port);
 
-    overrides.maybeGet(ForceDevelopmentOverride.class)
+    overrides.get(ForceDevelopmentOverride.class)
       .map(ForceDevelopmentOverride::isDevelopment)
       .ifPresent(copy::development);
 

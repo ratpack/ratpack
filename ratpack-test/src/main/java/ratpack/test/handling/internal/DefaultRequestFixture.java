@@ -46,7 +46,7 @@ import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.server.internal.ServerRegistry;
-import ratpack.server.override.Overrides;
+import ratpack.override.Overrides;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;

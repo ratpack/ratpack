@@ -20,7 +20,7 @@ import ratpack.registry.Registry
 import ratpack.server.RatpackServer
 import ratpack.server.StartupFailureException
 import ratpack.server.internal.ServerCapturer
-import ratpack.server.override.ForcePortOverride
+import ratpack.override.ForcePortOverride
 
 class ScriptBackedServer implements RatpackServer {
 

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.server.override;
+package ratpack.override;
 
 import ratpack.func.Function;
 import ratpack.registry.Registry;
 
-public final class UserRegistryOverrides {
+public final class UserRegistryOverrides implements Override {
 
   private final Function<? super Registry, ? extends Registry> registryFunc;
 

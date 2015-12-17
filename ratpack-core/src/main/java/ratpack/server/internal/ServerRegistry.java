@@ -55,7 +55,7 @@ import ratpack.render.internal.PromiseRenderer;
 import ratpack.render.internal.PublisherRenderer;
 import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.*;
-import ratpack.server.override.Overrides;
+import ratpack.override.Overrides;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import java.nio.file.Path;

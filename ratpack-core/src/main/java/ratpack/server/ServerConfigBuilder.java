@@ -24,7 +24,7 @@ import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.server.override.ServerConfigOverrides;
+import ratpack.override.ServerConfigOverrides;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;

@@ -16,10 +16,10 @@
 
 package ratpack.test
 
-import ratpack.registry.RegistrySpec
+import ratpack.override.Override
+import ratpack.override.ServerConfigOverrides
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
-import ratpack.server.override.ServerConfigOverrides
 import spock.lang.Specification
 
 class MainClassApplicationUnderTestSpec extends Specification {
@@ -39,9 +39,9 @@ class MainClassApplicationUnderTestSpec extends Specification {
   def "can override config"() {
     when:
     def aut = new MainClassApplicationUnderTest(Main) {
-      @Override
-      protected void addOverrides(RegistrySpec spec) {
-        spec.add(ServerConfigOverrides.of { it.props(foo: "overridden") })
+      @java.lang.Override
+      protected void addOverrides(List<Override> overrides) {
+        overrides.add(ServerConfigOverrides.of { it.props(foo: "overridden") })
       }
     }
 

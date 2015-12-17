@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.server.override;
+package ratpack.override;
 
-public final class ForcePortOverride {
+public final class ForcePortOverride implements Override {
 
   private final int port;
 

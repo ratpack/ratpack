@@ -42,8 +42,8 @@ import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.registry.Registry;
 import ratpack.server.*;
-import ratpack.server.override.Overrides;
-import ratpack.server.override.UserRegistryOverrides;
+import ratpack.override.Overrides;
+import ratpack.override.UserRegistryOverrides;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
@@ -159,7 +159,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
       this.userRegistryFactory = baseRegistry -> {
         Registry userRegistry = definition.getRegistry().apply(baseRegistry);
-        Registry userRegistryOverrides = overrides.maybeGet(UserRegistryOverrides.class)
+        Registry userRegistryOverrides = overrides.get(UserRegistryOverrides.class)
           .orElse(UserRegistryOverrides.none())
           .build(userRegistry);
 

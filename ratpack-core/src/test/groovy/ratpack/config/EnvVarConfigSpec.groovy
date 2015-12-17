@@ -18,7 +18,7 @@ package ratpack.config
 
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
-import ratpack.server.override.Overrides
+import ratpack.override.Overrides
 import spock.lang.Unroll
 
 class EnvVarConfigSpec extends BaseConfigSpec {

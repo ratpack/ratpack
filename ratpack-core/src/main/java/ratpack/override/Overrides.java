@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.server.override;
+package ratpack.override;
 
 import com.google.common.collect.Queues;
-import com.google.common.reflect.TypeToken;
 import io.netty.util.concurrent.FastThreadLocal;
 import ratpack.func.Factory;
 import ratpack.registry.Registry;
+import ratpack.util.Exceptions;
 
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.Optional;
 
@@ -41,13 +42,11 @@ import java.util.Optional;
  * {@link ForcePortOverride} and {@link UserRegistryOverrides} are both examples of such overrides.
  * The consumers of these overrides simply obtain them from the override registry.
  * <p>
- * Note that this type is-a {@link Registry}.
  *
  * <pre class="java">{@code
- * import ratpack.registry.Registry;
  * import ratpack.server.ServerConfig;
- * import ratpack.server.override.Overrides;
- * import ratpack.server.override.ServerConfigOverrides;
+ * import ratpack.override.Overrides;
+ * import ratpack.override.ServerConfigOverrides;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import static groovy.util.GroovyTestCase.assertEquals;
@@ -55,7 +54,7 @@ import java.util.Optional;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
- *     Registry overrides = Registry.single(ServerConfigOverrides.of(s -> s
+ *     Overrides overrides = Overrides.of(ServerConfigOverrides.of(s -> s
  *       .props(singletonMap("foo", "overridden!"))
  *     ));
  *
@@ -69,7 +68,7 @@ import java.util.Optional;
  *         )
  *       )
  *     ).test(testHttpClient ->
- *       assertEquals("overridden!", testHttpClient.getText());
+ *       assertEquals("overridden!", testHttpClient.getText())
  *     );
  *   }
  * }
@@ -82,14 +81,14 @@ import java.util.Optional;
  * @since 1.2
  */
 @SuppressWarnings("JavadocReference")
-public final class Overrides implements Registry {
+public final class Overrides {
 
-  private static final FastThreadLocal<Deque<Registry>> OVERRIDES = new FastThreadLocal<>();
+  private static final FastThreadLocal<Deque<Overrides>> OVERRIDES = new FastThreadLocal<>();
 
-  private final Registry delegate;
+  private final Registry overrides;
 
-  private Overrides(Registry delegate) {
-    this.delegate = delegate;
+  private Overrides(Registry overrides) {
+    this.overrides = overrides;
   }
 
   /**
@@ -106,8 +105,8 @@ public final class Overrides implements Registry {
    * @return the result of the given function
    * @throws Exception any thrown by {@code during}
    */
-  public static <T> T apply(Registry overrides, Factory<? extends T> during) throws Exception {
-    Deque<Registry> queue = OVERRIDES.get();
+  public static <T> T apply(Overrides overrides, Factory<? extends T> during) throws Exception {
+    Deque<Overrides> queue = OVERRIDES.get();
     if (queue == null) {
       queue = Queues.newArrayDeque();
       OVERRIDES.set(queue);
@@ -134,10 +133,9 @@ public final class Overrides implements Registry {
    *
    * @return the currently imposed overrides
    */
-  public static Overrides get() {
+  public static Overrides current() {
     return Optional.ofNullable(OVERRIDES.get())
       .map(Deque::peek)
-      .map(Overrides::of)
       .orElseGet(Overrides::none);
   }
 
@@ -149,7 +147,7 @@ public final class Overrides implements Registry {
    * @return an empty overrides registry
    */
   public static Overrides none() {
-    return of(Registry.empty());
+    return of();
   }
 
   /**
@@ -159,23 +157,22 @@ public final class Overrides implements Registry {
    *
    * @return an overrides instance backed by the given registry
    */
-  public static Overrides of(Registry registry) {
-    return new Overrides(registry);
+  public static Overrides of(Override... overrides) {
+    return of(Arrays.asList(overrides));
   }
 
   /**
-   * {@inheritDoc}
+   * Creates an overrides instance backed by the given registry.
+   * <p>
+   * Possibly useful during testing.
+   *
+   * @return an overrides instance backed by the given registry
    */
-  @Override
-  public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return delegate.maybeGet(type);
+  public static Overrides of(Iterable<? extends Override> overrides) {
+    return new Overrides(Exceptions.uncheck(() -> Registry.of(r -> overrides.forEach(r::add))));
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return delegate.getAll(type);
+  public <T extends Override> Optional<T> get(Class<T> type) {
+    return overrides.maybeGet(type);
   }
 }
