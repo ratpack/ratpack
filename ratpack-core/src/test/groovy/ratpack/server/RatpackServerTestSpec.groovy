@@ -17,11 +17,18 @@
 package ratpack.server
 
 import ratpack.func.Action
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Handler
+import ratpack.http.client.RequestSpec
 import ratpack.test.ApplicationUnderTest
+import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Timeout
+
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 class RatpackServerTestSpec extends Specification {
 
@@ -30,7 +37,7 @@ class RatpackServerTestSpec extends Specification {
   def http = TestHttpClient.testHttpClient(ApplicationUnderTest.of({ server }))
 
   def cleanup() {
-    if (server.isRunning()) {
+    if (server?.isRunning()) {
       server.stop()
     }
   }
@@ -227,5 +234,38 @@ class RatpackServerTestSpec extends Specification {
     http.getText("connectTimeoutMillis") == "1000"
     http.getText("maxMessagesPerRead") == "3"
     http.getText("writeSpinCount") == "10"
+  }
+
+  @Timeout(5)
+  def "handle concurrent requests while in development mode"() {
+    given:
+    int concurrentRequests = 2
+    EmbeddedApp server = GroovyEmbeddedApp.of {
+      handlers {
+        post {
+          render request.body.map { it.text }
+        }
+      }
+    }
+
+    def pool = Executors.newFixedThreadPool(concurrentRequests)
+
+    when:
+    def requests = (1..concurrentRequests).collect {
+      pool.submit ({
+        server.httpClient.requestSpec { RequestSpec spec ->
+          spec.body.text("1" * 100)
+        }.postText()
+      } as Callable<String>)
+    }
+
+    then:
+    requests.each {
+      assert it.get() == "1" * 100
+    }
+
+    cleanup:
+    pool.shutdown()
+    server?.close()
   }
 }
