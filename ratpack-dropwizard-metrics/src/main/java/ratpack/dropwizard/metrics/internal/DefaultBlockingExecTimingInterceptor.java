@@ -18,10 +18,8 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
-import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Block;
 import ratpack.http.Request;
@@ -29,16 +27,35 @@ import ratpack.http.Request;
 import java.util.Map;
 import java.util.Optional;
 
-@Singleton
-public class BlockingExecTimingInterceptor implements ExecInterceptor {
+public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingInterceptor {
 
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
+  private MetricRegistry metricRegistry;
+  private DropwizardMetricsConfig config;
 
-  @Inject
-  public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
+  /**
+   *
+   * @param metricRegistry the metric registry
+   * @param config the config
+   */
+  public DefaultBlockingExecTimingInterceptor(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
     this.metricRegistry = metricRegistry;
     this.config = config;
+  }
+
+  /**
+   *
+   * @return the metric registry
+   */
+  public MetricRegistry getMetricRegistry() {
+    return metricRegistry;
+  }
+
+  /**
+   *
+   * @return the config
+   */
+  public DropwizardMetricsConfig getConfig() {
+    return config;
   }
 
   @Override
@@ -48,7 +65,7 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
       if (requestOpt.isPresent()) {
         Request request = requestOpt.get();
         String tag = buildBlockingTimerTag(request.getPath(), request.getMethod().getName());
-        Timer.Context timer = metricRegistry.timer(tag).time();
+        Timer.Context timer = getMetricRegistry().timer(tag).time();
         try {
           executionSegment.execute();
         } finally {
@@ -64,8 +81,8 @@ public class BlockingExecTimingInterceptor implements ExecInterceptor {
   private String buildBlockingTimerTag(String requestPath, String requestMethod) {
     String tagName = requestPath.equals("") ? "root" : requestPath.replace("/", ".");
 
-    if (config.getRequestMetricGroups() != null) {
-      for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
+    if (getConfig().getRequestMetricGroups() != null) {
+      for (Map.Entry<String, String> metricGrouping : getConfig().getRequestMetricGroups().entrySet()) {
         if (requestPath.matches(metricGrouping.getValue())) {
           tagName = metricGrouping.getKey();
           break;

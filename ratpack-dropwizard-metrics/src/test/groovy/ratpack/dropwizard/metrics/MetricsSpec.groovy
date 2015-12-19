@@ -611,4 +611,65 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       fourxxCounter.count == 2
     }
   }
+
+  def "can disable blocking metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), {
+        it.interceptor { it.enable(false) }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-requests", !null)
+    0 * reporter.onTimerAdded("foo.get-blocking", !null)
+  }
+
+  def "can disable request timing metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), {
+        it.handler { it.enable(false) }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-blocking", !null)
+    0 * reporter.onTimerAdded("foo.get-requests", !null)
+  }
+
 }

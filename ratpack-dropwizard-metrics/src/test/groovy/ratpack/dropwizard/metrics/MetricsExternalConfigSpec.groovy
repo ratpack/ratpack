@@ -127,4 +127,47 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     thrown UncheckedIOException
   }
 
+  def "can enable and disable request timing handler and blocking execution timing interceptor"() {
+    given:
+    def propsFile = tempFolder.newFile("application.properties").toPath()
+    propsFile.text = """
+    |metrics.handler.enabled=${value}
+    |metrics.interceptor.enabled=${value}
+    |""".stripMargin()
+
+    and:
+    def config = ConfigData.of { c -> c.props(propsFile) }
+
+    when:
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
+
+    then:
+    metricsConfig.handler.isPresent()
+    metricsConfig.handler.get().enabled == value
+    metricsConfig.interceptor.isPresent()
+    metricsConfig.interceptor.get().enabled == value
+
+    where:
+    value << [ true, false ]
+  }
+
+  def "appropriate defaults for request timing handler and blocking execution timing interceptor"() {
+    given:
+    def propsFile = tempFolder.newFile("application.properties").toPath()
+    propsFile.text = """
+    |""".stripMargin()
+
+    and:
+    def config = ConfigData.of { c -> c.props(propsFile) }
+
+    when:
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
+
+    then:
+    metricsConfig.handler.isPresent()
+    metricsConfig.handler.get().enabled
+    metricsConfig.interceptor.isPresent()
+    metricsConfig.interceptor.get().enabled
+  }
+
 }
