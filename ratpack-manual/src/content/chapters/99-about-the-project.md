@@ -76,6 +76,7 @@ The following people have provided significant contributions.
 * [James Lee](https://github.com/brucenunk)
 * [Bob wen](https://github.com/bobwenx)
 * [Edinson Padrón](https://github.com/epadronu)
+* [Dan Maas](https://github.com/drmaas)
 
 ### Past project members
 
