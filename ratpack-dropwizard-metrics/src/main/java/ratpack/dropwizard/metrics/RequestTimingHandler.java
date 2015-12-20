@@ -19,7 +19,7 @@ package ratpack.dropwizard.metrics;
 import ratpack.handling.Handler;
 
 /**
- *
+ * @since 1.2
  */
 @FunctionalInterface
 public interface RequestTimingHandler extends Handler {

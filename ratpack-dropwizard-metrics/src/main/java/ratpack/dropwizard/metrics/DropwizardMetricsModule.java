@@ -127,10 +127,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * spent on blocking io calls.
  * </p>
  * <p>
- * Both the request timing handler and the blocking execution timing interceptor can be disabled, or replaced with custom implementations.
- * </p>
- * <p>
- * Disabling the default handler and interceptor:
+ * Both the request timing handler and the blocking execution timing interceptor can be disabled:
  * </p>
  * <pre class="groovy-ratpack-dsl">{@code
  * import ratpack.dropwizard.metrics.DropwizardMetricsModule
@@ -138,10 +135,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  * ratpack {
  *   bindings {
- *     module new DropwizardMetricsModule(), {
- *       it.interceptor { it.enable(false) }
- *       it.handler { it.enable(false) }
-*      }
+ *     module new DropwizardMetricsModule(), { it.requestTimingMetrics(false).blockingTimingMetrics(false) }
  *   }
  *
  *   handlers {
@@ -206,7 +200,7 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(Startup.class);
 
     bind(BlockingExecTimingInterceptor.class).toProvider(BlockingExecTimingInterceptorProvider.class).in(SINGLETON);
-    bind(RequestTimingHandler.class).toProvider(RequestTimingHandlerProvider.class);
+    bind(RequestTimingHandler.class).toProvider(RequestTimingHandlerProvider.class).in(SINGLETON);
     Provider<RequestTimingHandler> handlerProvider = getProvider(RequestTimingHandler.class);
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
   }

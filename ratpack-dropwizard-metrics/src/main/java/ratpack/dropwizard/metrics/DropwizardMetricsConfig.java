@@ -26,13 +26,15 @@ import static ratpack.util.Exceptions.uncheck;
 
 /**
  * The configuration object for {@link DropwizardMetricsModule}.
- *
- * Turn on request timing handler and blocking execution timing interceptor by default.
+ * <p>
+ * Request timing metrics and blocking execution timing metrics are enabled by default.
  */
 public class DropwizardMetricsConfig {
   public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
   private boolean jvmMetrics;
+  private boolean requestTimingMetrics = true;
+  private boolean blockingTimingMetrics = true;
   private Map<String, String> requestMetricGroups;
   private Optional<JmxConfig> jmx = Optional.empty();
   private Optional<ConsoleConfig> console = Optional.empty();
@@ -40,8 +42,6 @@ public class DropwizardMetricsConfig {
   private Optional<CsvConfig> csv = Optional.empty();
   private Optional<Slf4jConfig> slf4j = Optional.empty();
   private Optional<GraphiteConfig> graphite = Optional.empty();
-  private Optional<RequestTimingHandlerConfig> handler = Optional.of(new RequestTimingHandlerConfig());
-  private Optional<BlockingExecTimingInterceptorConfig> interceptor = Optional.of(new BlockingExecTimingInterceptorConfig());
 
   /**
    * The state of jvm metrics collection.
@@ -54,11 +54,53 @@ public class DropwizardMetricsConfig {
 
   /**
    * The state of JVM metrics reporting.
-   * @param jvmMetrics True is JVM metrics are report. False otherwise
+   * @param jvmMetrics True if JVM metrics are to be reported. False otherwise
    * @return this
    */
   public DropwizardMetricsConfig jvmMetrics(boolean jvmMetrics) {
     this.jvmMetrics = jvmMetrics;
+    return this;
+  }
+
+  /**
+   * The state of request timing metrics.
+   *
+   * @return True if request timing metrics is enabled. False otherwise
+   * @since 1.2
+   */
+  public boolean isRequestTimingMetrics() {
+    return requestTimingMetrics;
+  }
+
+  /**
+   * The state of request timing metrics reporting.
+   * @param requestTimingMetrics True if request timing metrics are to be reported. False otherwise
+   * @return this
+   * @since 1.2
+   */
+  public DropwizardMetricsConfig requestTimingMetrics(boolean requestTimingMetrics) {
+    this.requestTimingMetrics = requestTimingMetrics;
+    return this;
+  }
+
+  /**
+   * The state of blocking timing metrics.
+   *
+   * @return True if blocking timing metrics is enabled. False otherwise
+   * @since 1.2
+   */
+  public boolean isBlockingTimingMetrics() {
+    return blockingTimingMetrics;
+  }
+
+  /**
+   * The state of blocking timing metrics reporting.
+   * @param blockingTimingMetrics True if blocking timing metrics are to be reported. False otherwise
+   * @return this
+   * @since 1.2
+   */
+  public DropwizardMetricsConfig blockingTimingMetrics(boolean blockingTimingMetrics) {
+    this.blockingTimingMetrics = blockingTimingMetrics;
     return this;
   }
 
@@ -271,72 +313,6 @@ public class DropwizardMetricsConfig {
       configure.execute(graphite.orElseGet(() -> {
         graphite = Optional.of(new GraphiteConfig());
         return graphite.get();
-      }));
-      return this;
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
-  }
-
-  /**
-   * Get the settings for the metrics handler config.
-   * @return the settings for the metrics handler config
-   */
-  public Optional<RequestTimingHandlerConfig> getHandler() {
-    return handler;
-  }
-
-  /**
-   * @see #handler(ratpack.func.Action)
-   * @return this
-   */
-  public DropwizardMetricsConfig handler() {
-    return handler(Action.noop());
-  }
-
-  /**
-   * Configure the custom request timing handler config.
-   * @param configure the configuration for the handler
-   * @return this
-   */
-  public DropwizardMetricsConfig handler(Action<? super RequestTimingHandlerConfig> configure) {
-    try {
-      configure.execute(handler.orElseGet(() -> {
-        handler = Optional.of(new RequestTimingHandlerConfig());
-        return handler.get();
-      }));
-      return this;
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
-  }
-
-  /**
-   * Get the settings for the metrics handler config.
-   * @return the blocking execution timing interceptor settings
-   */
-  public Optional<BlockingExecTimingInterceptorConfig> getInterceptor() {
-    return interceptor;
-  }
-
-  /**
-   * @see #interceptor(ratpack.func.Action)
-   * @return this
-   */
-  public DropwizardMetricsConfig interceptor() {
-    return interceptor(Action.noop());
-  }
-
-  /**
-   * Configure the custom blocking execution timing interceptor config.
-   * @param configure the configuration for the interceptor
-   * @return this
-   */
-  public DropwizardMetricsConfig interceptor(Action<? super BlockingExecTimingInterceptorConfig> configure) {
-    try {
-      configure.execute(interceptor.orElseGet(() -> {
-        interceptor = Optional.of(new BlockingExecTimingInterceptorConfig());
-        return interceptor.get();
       }));
       return this;
     } catch (Exception e) {

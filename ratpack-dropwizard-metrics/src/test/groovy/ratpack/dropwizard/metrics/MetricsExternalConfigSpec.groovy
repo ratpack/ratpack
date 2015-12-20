@@ -131,8 +131,8 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     given:
     def propsFile = tempFolder.newFile("application.properties").toPath()
     propsFile.text = """
-    |metrics.handler.enabled=${value}
-    |metrics.interceptor.enabled=${value}
+    |metrics.requestTimingMetrics=${value}
+    |metrics.blockingTimingMetrics=${value}
     |""".stripMargin()
 
     and:
@@ -142,10 +142,8 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
 
     then:
-    metricsConfig.handler.isPresent()
-    metricsConfig.handler.get().enabled == value
-    metricsConfig.interceptor.isPresent()
-    metricsConfig.interceptor.get().enabled == value
+    metricsConfig.isRequestTimingMetrics() == value
+    metricsConfig.isBlockingTimingMetrics() == value
 
     where:
     value << [ true, false ]
@@ -164,10 +162,8 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
 
     then:
-    metricsConfig.handler.isPresent()
-    metricsConfig.handler.get().enabled
-    metricsConfig.interceptor.isPresent()
-    metricsConfig.interceptor.get().enabled
+    metricsConfig.isRequestTimingMetrics()
+    metricsConfig.isBlockingTimingMetrics()
   }
 
 }

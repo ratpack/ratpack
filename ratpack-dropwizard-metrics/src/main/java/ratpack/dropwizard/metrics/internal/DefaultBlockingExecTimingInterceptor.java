@@ -42,22 +42,6 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
     this.config = config;
   }
 
-  /**
-   *
-   * @return the metric registry
-   */
-  public MetricRegistry getMetricRegistry() {
-    return metricRegistry;
-  }
-
-  /**
-   *
-   * @return the config
-   */
-  public DropwizardMetricsConfig getConfig() {
-    return config;
-  }
-
   @Override
   public void intercept(Execution execution, ExecType type, Block executionSegment) throws Exception {
     if (type == ExecType.BLOCKING) {
@@ -65,7 +49,7 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
       if (requestOpt.isPresent()) {
         Request request = requestOpt.get();
         String tag = buildBlockingTimerTag(request.getPath(), request.getMethod().getName());
-        Timer.Context timer = getMetricRegistry().timer(tag).time();
+        Timer.Context timer = metricRegistry.timer(tag).time();
         try {
           executionSegment.execute();
         } finally {
@@ -81,8 +65,8 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
   private String buildBlockingTimerTag(String requestPath, String requestMethod) {
     String tagName = requestPath.equals("") ? "root" : requestPath.replace("/", ".");
 
-    if (getConfig().getRequestMetricGroups() != null) {
-      for (Map.Entry<String, String> metricGrouping : getConfig().getRequestMetricGroups().entrySet()) {
+    if (config.getRequestMetricGroups() != null) {
+      for (Map.Entry<String, String> metricGrouping : config.getRequestMetricGroups().entrySet()) {
         if (requestPath.matches(metricGrouping.getValue())) {
           tagName = metricGrouping.getKey();
           break;

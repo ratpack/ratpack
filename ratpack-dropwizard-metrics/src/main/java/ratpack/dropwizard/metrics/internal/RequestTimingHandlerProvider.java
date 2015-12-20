@@ -19,36 +19,29 @@ package ratpack.dropwizard.metrics.internal;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.RequestTimingHandler;
-import ratpack.dropwizard.metrics.RequestTimingHandlerConfig;
 import ratpack.handling.Context;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.Optional;
 
 /**
  * Provide an instance of a request timing handler.
+ *
+ * @since 1.2
  */
 public class RequestTimingHandlerProvider implements Provider<RequestTimingHandler> {
 
-    private final MetricRegistry metricRegistry;
-    private final DropwizardMetricsConfig config;
+  private final MetricRegistry metricRegistry;
+  private final DropwizardMetricsConfig config;
 
-    @Inject
-    public RequestTimingHandlerProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-        this.metricRegistry = metricRegistry;
-        this.config = config;
-    }
+  @Inject
+  public RequestTimingHandlerProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
+    this.metricRegistry = metricRegistry;
+    this.config = config;
+  }
 
-    @Override
-    public RequestTimingHandler get() {
-        RequestTimingHandler handler;
-        Optional<RequestTimingHandlerConfig> o = config.getHandler();
-        if (o.isPresent() && o.get().isEnabled()) {
-            handler = new DefaultRequestTimingHandler(metricRegistry, config);
-        } else {
-            handler = Context::next;
-        }
-        return handler;
-    }
+  @Override
+  public RequestTimingHandler get() {
+    return config.isRequestTimingMetrics() ? new DefaultRequestTimingHandler(metricRegistry, config) : Context::next;
+  }
 }

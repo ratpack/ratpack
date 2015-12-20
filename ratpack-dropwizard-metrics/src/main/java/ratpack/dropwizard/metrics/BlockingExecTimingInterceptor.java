@@ -18,6 +18,9 @@ package ratpack.dropwizard.metrics;
 
 import ratpack.exec.ExecInterceptor;
 
+/**
+ * @since 1.2
+ */
 @FunctionalInterface
 public interface BlockingExecTimingInterceptor extends ExecInterceptor {
 }

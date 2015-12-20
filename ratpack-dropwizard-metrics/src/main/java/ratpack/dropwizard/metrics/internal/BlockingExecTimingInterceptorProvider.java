@@ -18,37 +18,31 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
-import ratpack.dropwizard.metrics.BlockingExecTimingInterceptorConfig;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.Optional;
 
 /**
  * Provide a timer for blocking executions.
+ *
+ * @since 1.2
  */
 public class BlockingExecTimingInterceptorProvider implements Provider<BlockingExecTimingInterceptor> {
 
-    private final MetricRegistry metricRegistry;
-    private final DropwizardMetricsConfig config;
+  private final MetricRegistry metricRegistry;
+  private final DropwizardMetricsConfig config;
+  private static final BlockingExecTimingInterceptor NOOP = (execution, execType, executionSegment) -> executionSegment.execute();
 
-    @Inject
-    public BlockingExecTimingInterceptorProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-        this.metricRegistry = metricRegistry;
-        this.config = config;
-    }
+  @Inject
+  public BlockingExecTimingInterceptorProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
+    this.metricRegistry = metricRegistry;
+    this.config = config;
+  }
 
-    @Override
-    public BlockingExecTimingInterceptor get() {
-        BlockingExecTimingInterceptor execInterceptor;
-        Optional<BlockingExecTimingInterceptorConfig> o = config.getInterceptor();
-        if (o.isPresent() && o.get().isEnabled()) {
-            execInterceptor = new DefaultBlockingExecTimingInterceptor(metricRegistry, config);
-        } else {
-            execInterceptor = (execution, execType, executionSegment) -> executionSegment.execute();
-        }
-        return execInterceptor;
-    }
+  @Override
+  public BlockingExecTimingInterceptor get() {
+    return config.isBlockingTimingMetrics() ? new DefaultBlockingExecTimingInterceptor(metricRegistry, config) : NOOP;
+  }
 
 }

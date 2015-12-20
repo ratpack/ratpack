@@ -617,9 +617,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      module new DropwizardMetricsModule(), {
-        it.interceptor { it.enable(false) }
-      }
+      module new DropwizardMetricsModule(), { it.blockingTimingMetrics(false) }
     }
 
     handlers { MetricRegistry metrics ->
@@ -647,9 +645,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     bindings {
-      module new DropwizardMetricsModule(), {
-        it.handler { it.enable(false) }
-      }
+      module new DropwizardMetricsModule(), { it.requestTimingMetrics(false) }
     }
 
     handlers { MetricRegistry metrics ->
