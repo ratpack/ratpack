@@ -22,7 +22,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import ratpack.func.Action;
 import ratpack.func.Block;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
  * A consumer of a single asynchronous value.
@@ -181,12 +181,12 @@ public interface Downstream<T> {
   }
 
   /**
-   * Sends the result of the future downstream.
+   * Sends the result of a CompletionStage downstream.
    *
-   * @param future the future to consume the value of
+   * @param completionStage the CompletionStage to consume the value of
    */
-  default void accept(CompletableFuture<? extends T> future) {
-    future.handle((value, failure) -> {
+  default void accept(CompletionStage<? extends T> completionStage) {
+    completionStage.handleAsync((value, failure) -> {
       if (failure == null) {
         success(value);
       } else {
@@ -194,7 +194,7 @@ public interface Downstream<T> {
       }
 
       return null;
-    });
+    }, Execution.current().getEventLoop());
   }
 
   /**
