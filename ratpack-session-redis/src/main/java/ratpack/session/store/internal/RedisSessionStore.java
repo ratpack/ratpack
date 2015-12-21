@@ -16,9 +16,6 @@
 
 package ratpack.session.store.internal;
 
-
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.inject.Inject;
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisURI;
@@ -48,21 +45,18 @@ public class RedisSessionStore implements SessionStore {
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
     return Promise.<Boolean>of(d ->
-        Futures.addCallback(connection.set(sessionId, sessionData), new FutureCallback<String>() {
-          @Override
-          public void onSuccess(String result) {
-            if (result != null && result.equalsIgnoreCase("OK")) {
-              d.success(true);
-            } else {
-              d.error(new RuntimeException("Failed to set session data"));
-            }
+      connection.set(sessionId, sessionData).handleAsync((value, failure) -> {
+        if (failure == null) {
+          if (value != null && value.equalsIgnoreCase("OK")) {
+            d.success(true);
+          } else {
+            d.error(new RuntimeException("Failed to set session data"));
           }
-
-          @Override
-          public void onFailure(Throwable t) {
-            d.error(new RuntimeException("Failed to set session data.", t));
-          }
-        }, Execution.current().getEventLoop())
+        } else {
+          d.error(new RuntimeException("Failed to set session data.", failure));
+        }
+        return null;
+      }, Execution.current().getEventLoop())
     ).operation();
   }
 
