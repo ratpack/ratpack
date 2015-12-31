@@ -18,12 +18,14 @@ package ratpack.pac4j.openid
 
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
+import ratpack.groovy.handling.GroovyChain
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
+import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
@@ -46,6 +48,17 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
+      prefix 'prefix', {
+        configurePac4j delegate
+      }
+
+      configurePac4j delegate
+    }
+
+  }
+
+  GroovyChain configurePac4j(GroovyChain chain) {
+    chain.with {
       all(RatpackPac4j.authenticator(new OpenIdTestClient(provider.port)))
       get("noauth") {
         def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
@@ -62,23 +75,27 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    chain
   }
+
+
 
   def "test noauth"() {
     when:
-    def response = client.get("noauth")
+    def response = client.get("prefix/noauth")
 
     then:
     response.body.text == "noauth:null:null"
   }
 
+  @Unroll('successful auth using prefix #prefix')
   def "test successful auth"() {
     setup:
     client.requestSpec { it.redirects(0) }
     provider.addResult(true, EMAIL)
 
     when:
-    def response1 = client.get("auth")
+    def response1 = client.get("${prefix}auth")
 
     then:
     response1.statusCode == FOUND.code()
@@ -101,7 +118,7 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
 
     then:
     response3.statusCode == FOUND.code()
-    response3.headers.get(LOCATION).contains("/auth")
+    response3.headers.get(LOCATION).contains("${prefix}auth")
 
     when:
     client.resetRequest()
@@ -118,10 +135,13 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
     client.requestSpec {
       it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
     }
-    def response5 = client.get("noauth")
+    def response5 = client.get("${prefix}noauth")
 
     then:
     response5.body.text == "noauth:null:null"
+
+    where:
+    prefix << ['', 'prefix/']
   }
 
   def "it should not redirect ajax requests"() {

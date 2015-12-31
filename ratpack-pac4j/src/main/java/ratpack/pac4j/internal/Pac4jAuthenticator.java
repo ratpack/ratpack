@@ -33,6 +33,7 @@ import ratpack.server.PublicAddress;
 import ratpack.session.SessionData;
 import ratpack.util.Types;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,13 +82,28 @@ public class Pac4jAuthenticator implements Handler {
   }
 
   public Clients createClients(Context ctx, PathBinding pathBinding) throws Exception {
-    String boundTo = pathBinding.getBoundTo();
-    PublicAddress publicAddress = ctx.get(PublicAddress.class);
-    String absoluteCallbackUrl = publicAddress.get() + boundTo + "/" + path;
+    String callback = createCallbackUrl(ctx.get(PublicAddress.class), pathBinding, path);
 
+    return new Clients(callback, getClientsFromProvider(ctx, clientsProvider));
+  }
+
+  private String createCallbackUrl(PublicAddress publicAddress, PathBinding pathBinding, String path) {
+    String boundTo = pathBinding.getBoundTo();
+    URI address = publicAddress.get();
+
+    if(!boundTo.isEmpty()) {
+      if (!(address.toString().endsWith("/") || boundTo.startsWith("/"))) {
+        boundTo = "/" + boundTo;
+      }
+    }
+
+    return address + boundTo + "/" + path;
+  }
+
+  @SuppressWarnings("rawtypes")
+  private List<Client> getClientsFromProvider(Context ctx, RatpackPac4j.ClientsProvider clientsProvider) {
     Iterable<? extends Client<?, ?>> result = clientsProvider.get(ctx);
 
-    @SuppressWarnings("rawtypes")
     List<Client> clients;
     if (result instanceof List) {
       clients = Types.cast(result);
@@ -95,7 +111,7 @@ public class Pac4jAuthenticator implements Handler {
       clients = ImmutableList.copyOf(result);
     }
 
-    return new Clients(absoluteCallbackUrl, clients);
+    return clients;
   }
 
   private <C extends Credentials, U extends UserProfile> UserProfile getProfile(WebContext webContext, Client<C, U> client) throws RequiresHttpAction {
