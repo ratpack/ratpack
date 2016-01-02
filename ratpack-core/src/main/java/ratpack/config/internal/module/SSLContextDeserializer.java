@@ -32,10 +32,33 @@ public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
   @Override
   public SSLContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectNode node = jp.readValueAsTree();
+
     try {
       String keyStoreFile = node.path("keystoreFile").asText();
       String keyStorePassword = node.path("keystorePassword").asText();
-      return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword);
+      String trustStoreFile = node.path("truststoreFile").asText();
+      String trustStorePassword = node.path("truststorePassword").asText();
+
+      if (keyStoreFile.isEmpty()) {
+        throw new IllegalStateException(
+          "keystoreFile must be set if any ssl properties are set"
+        );
+      } else if (keyStorePassword.isEmpty()) {
+        throw new IllegalStateException(
+          "keystorePassword must be set if any ssl properties are set"
+        );
+      } else if (!trustStoreFile.isEmpty() && trustStorePassword.isEmpty()) {
+        throw new IllegalStateException(
+          "truststorePassword must be specified when truststoreFile is specified"
+        );
+      }
+
+      if (trustStoreFile.isEmpty()) {
+        return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword);
+      } else {
+        return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword,
+                                      Paths.get(trustStoreFile), trustStorePassword);
+      }
     } catch (GeneralSecurityException ex) {
       throw Exceptions.uncheck(ex);
     }

@@ -24,6 +24,9 @@ class JsonConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def configFile = tempFolder.newFile("file.json").toPath()
     configFile.text =
       """
@@ -39,7 +42,9 @@ class JsonConfigSpec extends BaseConfigSpec {
       "indexFiles": ["index.html", "index.htm"],
       "ssl": {
           "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-          "keystorePassword": "${keyStorePassword}"
+          "keystorePassword": "${keyStorePassword}",
+          "truststoreFile": "${trustStoreFile.toString().replaceAll("\\\\", "/")}",
+          "truststorePassword": "${trustStorePassword}"
       }
     }
 }
@@ -64,6 +69,9 @@ class JsonConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def configFile = tempFolder.newFile("baseDir/file.json").toPath()
     configFile.text =
       """
@@ -79,7 +87,9 @@ class JsonConfigSpec extends BaseConfigSpec {
       "indexFiles": ["index.html", "index.htm"],
       "ssl": {
           "keystoreFile": "${keyStoreFile.toString().replaceAll("\\\\", "/")}",
-          "keystorePassword": "${keyStorePassword}"
+          "keystorePassword": "${keyStorePassword}",
+          "truststoreFile": "${trustStoreFile.toString().replaceAll("\\\\", "/")}",
+          "truststorePassword": "${trustStorePassword}"
       }
     }
 }

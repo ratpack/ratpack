@@ -42,16 +42,21 @@ class EnvVarConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def envData = [
-      RATPACK_SERVER__PORT                  : "8080",
-      RATPACK_SERVER__ADDRESS               : "localhost",
-      RATPACK_SERVER__DEVELOPMENT           : "true",
-      RATPACK_SERVER__THREADS               : "3",
-      RATPACK_SERVER__PUBLIC_ADDRESS        : "http://localhost:8080",
-      RATPACK_SERVER__MAX_CONTENT_LENGTH    : "50000",
-      RATPACK_SERVER__TIME_RESPONSES        : "true",
-      RATPACK_SERVER__SSL__KEYSTORE_FILE    : keyStoreFile.toString(),
-      RATPACK_SERVER__SSL__KEYSTORE_PASSWORD: keyStorePassword,
+      RATPACK_SERVER__PORT                    : "8080",
+      RATPACK_SERVER__ADDRESS                 : "localhost",
+      RATPACK_SERVER__DEVELOPMENT             : "true",
+      RATPACK_SERVER__THREADS                 : "3",
+      RATPACK_SERVER__PUBLIC_ADDRESS          : "http://localhost:8080",
+      RATPACK_SERVER__MAX_CONTENT_LENGTH      : "50000",
+      RATPACK_SERVER__TIME_RESPONSES          : "true",
+      RATPACK_SERVER__SSL__KEYSTORE_FILE      : keyStoreFile.toString(),
+      RATPACK_SERVER__SSL__KEYSTORE_PASSWORD  : keyStorePassword,
+      RATPACK_SERVER__SSL__TRUSTSTORE_FILE    : trustStoreFile.toString(),
+      RATPACK_SERVER__SSL__TRUSTSTORE_PASSWORD: trustStorePassword
     ]
 
     when:
