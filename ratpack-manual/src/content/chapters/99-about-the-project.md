@@ -77,6 +77,7 @@ The following people have provided significant contributions.
 * [Bob wen](https://github.com/bobwenx)
 * [Edinson Padrón](https://github.com/epadronu)
 * [Dan Maas](https://github.com/drmaas)
+* [Gus Power](https://github.com/guspower)
 
 ### Past project members
 

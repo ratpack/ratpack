@@ -106,9 +106,21 @@ public interface PublicAddress {
    *
    * @param ctx the handling context at the time the public address is needed
    * @return a URL builder
+   * @deprecated since 1.2, use {@link #builder()}
    */
-  default HttpUrlBuilder builder(Context ctx) {
-    return HttpUrlBuilder.base(get(ctx));
+  @Deprecated
+  default HttpUrlBuilder builder(@SuppressWarnings("UnusedParameters") Context ctx) {
+    return builder();
+  }
+
+  /**
+   * Creates a URL builder using the public address as the base.
+   *
+   * @return a URL builder
+   * @since 1.2
+   */
+  default HttpUrlBuilder builder() {
+    return HttpUrlBuilder.base(get());
   }
 
   /**
@@ -118,9 +130,23 @@ public interface PublicAddress {
    * @param action the additions to the public address
    * @return the built url
    * @throws Exception any thrown by {@code action}
+   * @deprecated since 1.2, use {@link #get(Action)}
    */
-  default URI get(Context ctx, Action<? super HttpUrlBuilder> action) throws Exception {
-    return action.with(builder(ctx)).build();
+  @Deprecated
+  default URI get(@SuppressWarnings("UnusedParameters") Context ctx, Action<? super HttpUrlBuilder> action) throws Exception {
+    return action.with(builder()).build();
+  }
+
+  /**
+   * Creates a URL by building a URL based on the public address.
+   *
+   * @param action the additions to the public address
+   * @return the built url
+   * @throws Exception any thrown by {@code action}
+   * @since 1.2
+   */
+  default URI get(Action<? super HttpUrlBuilder> action) throws Exception {
+    return action.with(builder()).build();
   }
 
   /**
@@ -129,9 +155,22 @@ public interface PublicAddress {
    * @param ctx the handling context at the time the public address is needed
    * @param path the path to append to the public address
    * @return the public address with the given path appended
+   * @deprecated since 1.2, use {@link #get(String)}
    */
-  default URI get(Context ctx, String path) {
-    return builder(ctx).path(path).build();
+  @Deprecated
+  default URI get(@SuppressWarnings("UnusedParameters") Context ctx, String path) {
+    return builder().path(path).build();
+  }
+
+  /**
+   * Creates a URL by appending the given <i>path</i> to the public address
+   *
+   * @param path the path to append to the public address
+   * @return the public address with the given path appended
+   * @since 1.2
+   */
+  default URI get(String path) {
+    return builder().path(path).build();
   }
 
 }

@@ -117,6 +117,12 @@ class HttpUrlBuilderSpec extends Specification {
     build { params new ImmutableDelegatingMultiValueMap([a: ["b", "c"]]) } == "http://localhost?a=b&a=c"
   }
 
+  def "can append already encoded path"() {
+    expect:
+    build { path "foo%2Fbar" } == "http://localhost/foo%252Fbar"
+    build { encodedPath "foo%2Fbar" } == "http://localhost/foo%2Fbar"
+  }
+
   @Unroll
   def "round trip - #string"() {
     expect:

@@ -83,7 +83,7 @@ public class Pac4jAuthenticator implements Handler {
   public Clients createClients(Context ctx, PathBinding pathBinding) throws Exception {
     String boundTo = pathBinding.getBoundTo();
     PublicAddress publicAddress = ctx.get(PublicAddress.class);
-    String absoluteCallbackUrl = publicAddress.get() + boundTo + "/" + path;
+    String absoluteCallbackUrl = publicAddress.get(b -> b.maybeEncodedPath(boundTo).maybeEncodedPath(path)).toASCIIString();
 
     Iterable<? extends Client<?, ?>> result = clientsProvider.get(ctx);
 

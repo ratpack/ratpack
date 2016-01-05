@@ -50,7 +50,7 @@ import java.net.URI;
  *           .get("simpleGet", ctx -> {
  *             PublicAddress address = ctx.get(PublicAddress.class);         //find local ip address
  *             HttpClient httpClient = ctx.get(HttpClient.class);            //get httpClient
- *             URI uri = address.get(ctx, "httpClientGet");
+ *             URI uri = address.get("httpClientGet");
  *
  *             httpClient.get(uri).then(response -> {
  *                 ctx.render(response.getBody().getText());  //Render the response from the httpClient GET request
@@ -60,7 +60,7 @@ import java.net.URI;
  *           .get("simplePost", ctx -> {
  *             PublicAddress address = ctx.get(PublicAddress.class);  //find local ip address
  *             HttpClient httpClient = ctx.get(HttpClient.class);     //get httpClient
- *             URI uri = address.get(ctx, "httpClientPost");
+ *             URI uri = address.get("httpClientPost");
  *
  *             httpClient.post(uri, action ->
  *               action.body(body ->
