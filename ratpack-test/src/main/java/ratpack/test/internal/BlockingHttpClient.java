@@ -19,8 +19,9 @@ package ratpack.test.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import ratpack.exec.Downstream;
 import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
+import ratpack.exec.ExecResult;
 import ratpack.exec.Result;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
@@ -37,19 +38,57 @@ import java.time.Duration;
 import java.time.temporal.TemporalUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockingHttpClient {
 
   public ReceivedResponse request(URI uri, Duration duration, Action<? super RequestSpec> action) throws Throwable {
-    try (ExecController execController = new DefaultExecController(2)) {
-      final RequestAction requestAction = new RequestAction(uri, action);
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<ExecResult<ReceivedResponse>> result = new AtomicReference<>();
 
+    try (ExecController execController = new DefaultExecController(2)) {
       execController.fork()
-        .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>error(throwable)))
-        .start(requestAction::execute);
+        .onComplete(e -> {
+        })
+        .start(e -> {
+          HttpClient.httpClient(UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
+            .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
+            .map(response -> {
+              TypedData responseBody = response.getBody();
+              ByteBuf responseBodyBuffer = responseBody.getBuffer();
+              responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
+              
+              return new DefaultReceivedResponse(
+                response.getStatus(),
+                response.getHeaders(),
+                new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
+              );
+            })
+            .connect(
+              new Downstream<DefaultReceivedResponse>() {
+                @Override
+                public void success(DefaultReceivedResponse value) {
+                  result.set(ExecResult.of(Result.success(value)));
+                  latch.countDown();
+                }
+
+                @Override
+                public void error(Throwable throwable) {
+                  result.set(ExecResult.of(Result.error(throwable)));
+                  latch.countDown();
+                }
+
+                @Override
+                public void complete() {
+                  result.set(ExecResult.complete());
+                  latch.countDown();
+                }
+              }
+            );
+        });
 
       try {
-        if (!requestAction.latch.await(duration.toNanos(), TimeUnit.NANOSECONDS)) {
+        if (!latch.await(duration.toNanos(), TimeUnit.NANOSECONDS)) {
           TemporalUnit unit = duration.getUnits().get(0);
           throw new IllegalStateException("Request to " + uri + " took more than " + duration.get(unit) + " " + unit.toString() + " to complete");
         }
@@ -57,42 +96,7 @@ public class BlockingHttpClient {
         throw Exceptions.uncheck(e);
       }
 
-      return requestAction.result.getValueOrThrow();
-    }
-  }
-
-  private static class RequestAction implements Action<Execution> {
-    private final URI uri;
-    private final Action<? super RequestSpec> action;
-
-    private final CountDownLatch latch = new CountDownLatch(1);
-    private Result<ReceivedResponse> result;
-
-    private RequestAction(URI uri, Action<? super RequestSpec> action) {
-      this.uri = uri;
-      this.action = action;
-    }
-
-    private void setResult(Result<ReceivedResponse> result) {
-      this.result = result;
-      latch.countDown();
-    }
-
-    @Override
-    public void execute(Execution execution) throws Exception {
-      HttpClient.httpClient(UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
-        .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
-        .then(response -> {
-          TypedData responseBody = response.getBody();
-          ByteBuf responseBodyBuffer = responseBody.getBuffer();
-          responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
-          ReceivedResponse copiedResponse = new DefaultReceivedResponse(
-            response.getStatus(),
-            response.getHeaders(),
-            new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
-          );
-          setResult(Result.success(copiedResponse));
-        });
+      return result.get().getValueOrThrow();
     }
   }
 
