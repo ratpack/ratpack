@@ -22,7 +22,7 @@ import io.netty.util.AsciiString;
 
 import java.nio.ByteBuffer;
 
-public class AsciiStringByteBufRedisCodec extends RedisCodec<AsciiString, ByteBuf> {
+public class AsciiStringByteBufRedisCodec implements RedisCodec<AsciiString, ByteBuf> {
 
   @Override
   public AsciiString decodeKey(ByteBuffer bytes) {
@@ -35,14 +35,12 @@ public class AsciiStringByteBufRedisCodec extends RedisCodec<AsciiString, ByteBu
   }
 
   @Override
-  public byte[] encodeKey(AsciiString key) {
-    return key.array();
+  public ByteBuffer encodeKey(AsciiString key) {
+    return ByteBuffer.wrap(key.array());
   }
 
   @Override
-  public byte[] encodeValue(ByteBuf value) {
-    byte[] bytes = new byte[value.readableBytes()];
-    value.readBytes(bytes);
-    return bytes;
+  public ByteBuffer encodeValue(ByteBuf value) {
+    return value.nioBuffer();
   }
 }
