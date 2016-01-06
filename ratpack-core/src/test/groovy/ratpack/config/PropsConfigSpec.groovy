@@ -19,7 +19,7 @@ package ratpack.config
 import ratpack.server.ServerConfig
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
-import ratpack.override.Overrides
+import ratpack.impose.Impositions
 
 class PropsConfigSpec extends BaseConfigSpec {
   def "supports properties"() {
@@ -77,7 +77,7 @@ class PropsConfigSpec extends BaseConfigSpec {
     }
 
     when:
-    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties), Overrides.none()).sysProps().baseDir(baseDir).build()
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties), Impositions.none()).sysProps().baseDir(baseDir).build()
 
     then:
     serverConfig.baseDir.file == baseDir

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.override;
+package ratpack.impose;
 
-public final class ForceDevelopmentOverride implements Override {
+public final class ForceDevelopmentImposition implements Imposition {
 
   private final boolean development;
 
-  private ForceDevelopmentOverride(boolean development) {
+  private ForceDevelopmentImposition(boolean development) {
     this.development = development;
   }
 
-  public static ForceDevelopmentOverride of(boolean development) {
-    return new ForceDevelopmentOverride(development);
+  public static ForceDevelopmentImposition of(boolean development) {
+    return new ForceDevelopmentImposition(development);
   }
 
   public boolean isDevelopment() {

@@ -40,10 +40,10 @@ import ratpack.func.BiAction;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
+import ratpack.impose.Impositions;
 import ratpack.registry.Registry;
 import ratpack.server.*;
-import ratpack.override.Overrides;
-import ratpack.override.UserRegistryOverrides;
+import ratpack.impose.UserRegistryImposition;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
@@ -84,12 +84,12 @@ public class DefaultRatpackServer implements RatpackServer {
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
   protected boolean useSsl;
-  private final Overrides overrides;
+  private final Impositions impositions;
   private Thread shutdownHookThread;
 
-  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory, Overrides overrides) throws Exception {
+  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory, Impositions impositions) throws Exception {
     this.definitionFactory = definitionFactory;
-    this.overrides = overrides;
+    this.impositions = impositions;
 
     ServerCapturer.capture(this);
   }
@@ -145,30 +145,30 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private static class DefinitionBuild {
-    private final Overrides overrides;
+    private final Impositions impositions;
     private final RatpackServerDefinition definition;
     private final Throwable error;
     private final ServerConfig serverConfig;
     private final Function<? super Registry, ? extends Registry> userRegistryFactory;
 
-    public DefinitionBuild(Overrides overrides, RatpackServerDefinition definition, Throwable error) {
-      this.overrides = overrides;
+    public DefinitionBuild(Impositions impositions, RatpackServerDefinition definition, Throwable error) {
+      this.impositions = impositions;
       this.definition = definition;
       this.error = error;
       this.serverConfig = definition.getServerConfig();
 
       this.userRegistryFactory = baseRegistry -> {
         Registry userRegistry = definition.getRegistry().apply(baseRegistry);
-        Registry userRegistryOverrides = overrides.get(UserRegistryOverrides.class)
-          .orElse(UserRegistryOverrides.none())
+        Registry userRegistryOverrides = impositions.get(UserRegistryImposition.class)
+          .orElse(UserRegistryImposition.none())
           .build(userRegistry);
 
         return userRegistry.join(userRegistryOverrides);
       };
     }
 
-    public Overrides getOverrides() {
-      return overrides;
+    public Impositions getImpositions() {
+      return impositions;
     }
 
     public ServerConfig getServerConfig() {
@@ -185,11 +185,11 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected DefinitionBuild buildUserDefinition() throws Exception {
-    return Overrides.apply(overrides, () -> {
+    return Impositions.impose(impositions, () -> {
       try {
-        return new DefinitionBuild(overrides, RatpackServerDefinition.build(definitionFactory), null);
+        return new DefinitionBuild(impositions, RatpackServerDefinition.build(definitionFactory), null);
       } catch (Exception e) {
-        return new DefinitionBuild(overrides, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
+        return new DefinitionBuild(impositions, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
       }
     });
   }
@@ -286,7 +286,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
-    return ServerRegistry.serverRegistry(this, overrides, execController, serverConfig, userRegistryFactory);
+    return ServerRegistry.serverRegistry(this, impositions, execController, serverConfig, userRegistryFactory);
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {

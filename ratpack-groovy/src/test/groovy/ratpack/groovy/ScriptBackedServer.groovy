@@ -16,11 +16,11 @@
 
 package ratpack.groovy
 
-import ratpack.registry.Registry
+import ratpack.impose.ForcePortImposition
+import ratpack.impose.Impositions
 import ratpack.server.RatpackServer
 import ratpack.server.StartupFailureException
 import ratpack.server.internal.ServerCapturer
-import ratpack.override.ForcePortOverride
 
 class ScriptBackedServer implements RatpackServer {
 
@@ -35,7 +35,7 @@ class ScriptBackedServer implements RatpackServer {
 
   @Override
   void start() throws StartupFailureException {
-    nestedServer = ServerCapturer.capture(Registry.single(ForcePortOverride.ephemeral())) { -> starter.run() }
+    nestedServer = ServerCapturer.capture(Impositions.of(ForcePortImposition.ephemeral())) { -> starter.run() }
 
     def stopAt = System.currentTimeMillis() + 10000
     while (System.currentTimeMillis() < stopAt && (nestedServer == null || !nestedServer.running)) {

@@ -17,8 +17,7 @@
 package ratpack.test;
 
 import com.google.common.collect.Lists;
-import ratpack.override.*;
-import ratpack.override.Override;
+import ratpack.impose.*;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
@@ -40,22 +39,22 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
     return Registry.empty();
   }
 
-  protected void addOverrides(List<Override> overrides) {
+  protected void addImpositions(List<Imposition> impositions) {
 
   }
 
-  @java.lang.Override
+  @Override
   protected RatpackServer createServer() throws Exception {
-    List<Override> overrides = Lists.newArrayList(
-      ForcePortOverride.ephemeral(),
-      ForceDevelopmentOverride.of(true),
-      UserRegistryOverrides.of(this::createOverrides)
+    List<Imposition> impositions = Lists.newArrayList(
+      ForcePortImposition.ephemeral(),
+      ForceDevelopmentImposition.of(true),
+      UserRegistryImposition.of(this::createOverrides)
     );
 
-    addOverrides(overrides);
+    addImpositions(impositions);
 
     RatpackServer ratpackServer = ServerCapturer.capture(
-      Overrides.of(overrides),
+      Impositions.of(impositions),
       () -> {
         Method method;
         try {

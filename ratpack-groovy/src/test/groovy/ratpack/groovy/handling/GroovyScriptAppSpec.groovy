@@ -17,10 +17,10 @@
 package ratpack.groovy.handling
 
 import ratpack.groovy.Groovy
-import ratpack.registry.Registry
+import ratpack.impose.ForcePortImposition
+import ratpack.impose.Impositions
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServerCapturer
-import ratpack.override.ForcePortOverride
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -37,7 +37,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        ServerCapturer.capture(Registry.single(ForcePortOverride.ephemeral())) {
+        ServerCapturer.capture(Impositions.of(ForcePortImposition.ephemeral())) {
           RatpackServer.of(Groovy.Script.appWithArgs(compileStatic, ratpackFile.canonicalFile.toPath(), args))
         }
       }

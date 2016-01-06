@@ -14,26 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.override;
+package ratpack.impose;
 
-public final class ForcePortOverride implements Override {
-
-  private final int port;
-
-  private ForcePortOverride(int port) {
-    this.port = port;
-  }
-
-  public static ForcePortOverride ephemeral() {
-    return of(0);
-  }
-
-  public static ForcePortOverride of(int port) {
-    return new ForcePortOverride(port);
-  }
-
-  public int getPort() {
-    return port;
-  }
-
+/**
+ * A marker interface for all types used as an imposition.
+ *
+ * @see Impositions
+ * @since 1.2
+ */
+public interface Imposition {
 }

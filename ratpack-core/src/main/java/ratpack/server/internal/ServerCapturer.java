@@ -17,7 +17,7 @@
 package ratpack.server.internal;
 
 import ratpack.func.Block;
-import ratpack.override.Overrides;
+import ratpack.impose.Impositions;
 import ratpack.server.RatpackServer;
 
 public abstract class ServerCapturer {
@@ -28,12 +28,12 @@ public abstract class ServerCapturer {
   }
 
   public static RatpackServer capture(Block bootstrap) throws Exception {
-    return capture(Overrides.none(), bootstrap);
+    return capture(Impositions.none(), bootstrap);
   }
 
-  public static RatpackServer capture(Overrides overrides, Block bootstrap) throws Exception {
+  public static RatpackServer capture(Impositions impositions, Block bootstrap) throws Exception {
     try {
-      return Overrides.apply(overrides, () -> {
+      return Impositions.impose(impositions, () -> {
         bootstrap.execute();
         return SERVER_HOLDER.get();
       });

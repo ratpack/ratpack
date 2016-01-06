@@ -32,6 +32,7 @@ import ratpack.form.internal.FormParser
 import ratpack.guice.Guice
 import ratpack.handling.Redirector
 import ratpack.http.client.HttpClient
+import ratpack.impose.Impositions
 import ratpack.render.Renderable
 import ratpack.render.Renderer
 import ratpack.server.PublicAddress
@@ -51,7 +52,7 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     def ratpackServer = Mock(RatpackServer)
     def execController = new DefaultExecController(4)
     def serverConfig = ServerConfig.builder().build()
-    def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, execController, serverConfig, Guice.registry {})
+    def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, Impositions.none(), execController, serverConfig, Guice.registry {})
     def injector = baseRegistry.get(Injector)
 
     then:

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.override;
+package ratpack.impose;
 
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -24,23 +24,23 @@ import java.util.function.Consumer;
 /**
  * An override object for imposing server configuration.
  * <p>
- * This type works with the {@link Overrides} mechanism.
+ * This type works with the {@link Impositions} mechanism.
  * It allows arbitrary {@link ServerConfig} to be overridden.
  * <p>
  * Every {@link ServerConfigBuilder} is override aware.
  * The overrides are captured when the builder is created.
  * <p>
- * If a {@code ServerConfigOverrides} is present, its function will be applied to the builder during {@link ServerConfigBuilder#build()}.
- * Note that the {@link ForceDevelopmentOverride} and {@link ForcePortOverride} are applied <b>after</b> this override.
+ * If a {@code ServerConfigImposition} is present, its function will be applied to the builder during {@link ServerConfigBuilder#build()}.
+ * Note that the {@link ForceDevelopmentImposition} and {@link ForcePortImposition} are applied <b>after</b> this override.
  *
- * @see Overrides
+ * @see Impositions
  * @since 1.2
  */
-public final class ServerConfigOverrides implements Override {
+public final class ServerConfigImposition implements Imposition {
 
   private final Consumer<? super ServerConfigBuilder> action;
 
-  private ServerConfigOverrides(Consumer<? super ServerConfigBuilder> action) {
+  private ServerConfigImposition(Consumer<? super ServerConfigBuilder> action) {
     this.action = action;
   }
 
@@ -50,8 +50,8 @@ public final class ServerConfigOverrides implements Override {
    * @param overrides the overrides
    * @return an overrides object, for the overrides registry
    */
-  public static ServerConfigOverrides of(Consumer<? super ServerConfigBuilder> overrides) {
-    return new ServerConfigOverrides(overrides);
+  public static ServerConfigImposition of(Consumer<? super ServerConfigBuilder> overrides) {
+    return new ServerConfigImposition(overrides);
   }
 
   /**

@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package ratpack.override;
+package ratpack.impose;
 
 import ratpack.func.Function;
 import ratpack.registry.Registry;
 
-public final class UserRegistryOverrides implements Override {
+public final class UserRegistryImposition implements Imposition {
 
   private final Function<? super Registry, ? extends Registry> registryFunc;
 
-  private UserRegistryOverrides(Function<? super Registry, ? extends Registry> registryFunc) {
+  private UserRegistryImposition(Function<? super Registry, ? extends Registry> registryFunc) {
     this.registryFunc = registryFunc;
   }
 
-  public static UserRegistryOverrides none() {
+  public static UserRegistryImposition none() {
     return of(Registry.empty());
   }
 
-  public static UserRegistryOverrides of(Registry registry) {
+  public static UserRegistryImposition of(Registry registry) {
     return of(Function.constant(registry));
   }
 
-  public static UserRegistryOverrides of(Function<? super Registry, ? extends Registry> registry) {
-    return new UserRegistryOverrides(registry);
+  public static UserRegistryImposition of(Function<? super Registry, ? extends Registry> registry) {
+    return new UserRegistryImposition(registry);
   }
 
   public Registry build(Registry input) throws Exception {

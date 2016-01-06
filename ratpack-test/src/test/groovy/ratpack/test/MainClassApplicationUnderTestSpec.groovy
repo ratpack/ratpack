@@ -16,8 +16,8 @@
 
 package ratpack.test
 
-import ratpack.override.Override
-import ratpack.override.ServerConfigOverrides
+import ratpack.impose.Imposition
+import ratpack.impose.ServerConfigImposition
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import spock.lang.Specification
@@ -39,9 +39,9 @@ class MainClassApplicationUnderTestSpec extends Specification {
   def "can override config"() {
     when:
     def aut = new MainClassApplicationUnderTest(Main) {
-      @java.lang.Override
-      protected void addOverrides(List<Override> overrides) {
-        overrides.add(ServerConfigOverrides.of { it.props(foo: "overridden") })
+      @Override
+      protected void addImpositions(List<Imposition> overrides) {
+        overrides.add(ServerConfigImposition.of { it.props(foo: "overridden") })
       }
     }
 

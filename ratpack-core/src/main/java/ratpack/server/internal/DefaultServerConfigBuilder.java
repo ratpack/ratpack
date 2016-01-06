@@ -31,10 +31,9 @@ import ratpack.config.internal.module.SSLContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
-import ratpack.override.ForceDevelopmentOverride;
-import ratpack.override.ForcePortOverride;
-import ratpack.override.Overrides;
-import ratpack.override.ServerConfigOverrides;
+import ratpack.impose.*;
+import ratpack.impose.ForceDevelopmentImposition;
+import ratpack.impose.ForcePortImposition;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
@@ -55,24 +54,24 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   private final Map<String, Class<?>> required = Maps.newHashMap();
   private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
   private final ServerEnvironment serverEnvironment;
-  private final Overrides overrides;
+  private final Impositions impositions;
 
-  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Overrides overrides) {
-    this.overrides = overrides;
+  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Impositions impositions) {
+    this.impositions = impositions;
     this.configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
     this.serverEnvironment = serverEnvironment;
   }
 
-  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, Class<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Overrides overrides) {
+  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, Class<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Impositions impositions) {
     this.configDataBuilder = configDataBuilder.copy();
     this.required.putAll(required);
     this.baseDirSupplier.baseDir = baseDirSupplier.baseDir;
     this.serverEnvironment = serverEnvironment;
-    this.overrides = overrides;
+    this.impositions = impositions;
   }
 
   private DefaultServerConfigBuilder copy() {
-    return new DefaultServerConfigBuilder(configDataBuilder, required, baseDirSupplier, serverEnvironment, overrides);
+    return new DefaultServerConfigBuilder(configDataBuilder, required, baseDirSupplier, serverEnvironment, impositions);
   }
 
   @Override
@@ -341,15 +340,15 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   public ServerConfig build() {
     DefaultServerConfigBuilder copy = copy();
 
-    overrides.get(ServerConfigOverrides.class)
+    impositions.get(ServerConfigImposition.class)
       .ifPresent(c -> c.apply(copy));
 
-    overrides.get(ForcePortOverride.class)
-      .map(ForcePortOverride::getPort)
+    impositions.get(ForcePortImposition.class)
+      .map(ForcePortImposition::getPort)
       .ifPresent(copy::port);
 
-    overrides.get(ForceDevelopmentOverride.class)
-      .map(ForceDevelopmentOverride::isDevelopment)
+    impositions.get(ForceDevelopmentImposition.class)
+      .map(ForceDevelopmentImposition::isDevelopment)
       .ifPresent(copy::development);
 
     copy.configDataBuilder.jacksonModules(new ConfigModule(copy.serverEnvironment, copy.baseDirSupplier));
