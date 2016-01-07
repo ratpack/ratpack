@@ -16,10 +16,10 @@
 
 package ratpack.manual.snippets.fixture;
 
-import ratpack.manual.snippets.TestCodeSnippet;
-import ratpack.manual.snippets.executer.SnippetExecuter;
 import ratpack.impose.ForcePortImposition;
 import ratpack.impose.Impositions;
+import ratpack.manual.snippets.TestCodeSnippet;
+import ratpack.manual.snippets.executer.SnippetExecuter;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
 
@@ -38,7 +38,9 @@ public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
   @Override
   public void execute(TestCodeSnippet snippet) throws Exception {
-    withServer(ServerCapturer.capture(Impositions.of(ForcePortImposition.ephemeral()), () -> executer.execute(snippet)));
+    withServer(ServerCapturer.capture(
+      Impositions.of(i -> i.add(ForcePortImposition.ephemeral())), () -> executer.execute(snippet))
+    );
   }
 
   protected abstract void withServer(RatpackServer server) throws Exception;

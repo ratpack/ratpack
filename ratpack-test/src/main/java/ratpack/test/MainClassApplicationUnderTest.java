@@ -16,7 +16,6 @@
 
 package ratpack.test;
 
-import com.google.common.collect.Lists;
 import ratpack.impose.*;
 import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
@@ -25,7 +24,6 @@ import ratpack.server.internal.ServerCapturer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
 
 public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
@@ -39,22 +37,19 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
     return Registry.empty();
   }
 
-  protected void addImpositions(List<Imposition> impositions) {
+  protected void addImpositions(ImpositionsSpec impositions) {
 
   }
 
   @Override
   protected RatpackServer createServer() throws Exception {
-    List<Imposition> impositions = Lists.newArrayList(
-      ForcePortImposition.ephemeral(),
-      ForceDevelopmentImposition.of(true),
-      UserRegistryImposition.of(this::createOverrides)
-    );
-
-    addImpositions(impositions);
-
     RatpackServer ratpackServer = ServerCapturer.capture(
-      Impositions.of(impositions),
+      Impositions.of(i -> {
+        i.add(ForcePortImposition.ephemeral());
+        i.add(ForceDevelopmentImposition.of(true));
+        i.add(UserRegistryImposition.of(this::createOverrides));
+        addImpositions(i);
+      }),
       () -> {
         Method method;
         try {

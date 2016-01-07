@@ -35,7 +35,7 @@ class ScriptBackedServer implements RatpackServer {
 
   @Override
   void start() throws StartupFailureException {
-    nestedServer = ServerCapturer.capture(Impositions.of(ForcePortImposition.ephemeral())) { -> starter.run() }
+    nestedServer = ServerCapturer.capture(Impositions.of { it.add(ForcePortImposition.ephemeral()) }, { -> starter.run() })
 
     def stopAt = System.currentTimeMillis() + 10000
     while (System.currentTimeMillis() < stopAt && (nestedServer == null || !nestedServer.running)) {

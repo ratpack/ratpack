@@ -33,7 +33,7 @@ public abstract class ServerCapturer {
 
   public static RatpackServer capture(Impositions impositions, Block bootstrap) throws Exception {
     try {
-      return Impositions.impose(impositions, () -> {
+      return impositions.impose(() -> {
         bootstrap.execute();
         return SERVER_HOLDER.get();
       });

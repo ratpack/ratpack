@@ -16,14 +16,16 @@
 
 package ratpack.impose;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import io.netty.util.concurrent.FastThreadLocal;
+import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.registry.Registry;
 import ratpack.util.Exceptions;
 
-import java.util.Arrays;
 import java.util.Deque;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -54,9 +56,9 @@ import java.util.Optional;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
- *     Impositions.of(ServerConfigImposition.of(s -> s
- *       .props(singletonMap("foo", "imposed!"))
- *     )).impose(() ->
+ *     Impositions.of(i ->
+ *       i.add(ServerConfigImposition.of(s -> s .props(singletonMap("foo", "imposed!"))))
+ *     ).impose(() ->
  *       EmbeddedApp.of(s -> s
  *         .serverConfig(c -> c
  *           .props(singletonMap("foo", "original"))
@@ -157,7 +159,7 @@ public final class Impositions {
    * @return an empty set of impositions
    */
   public static Impositions none() {
-    return of();
+    return Exceptions.uncheck(() -> of(Action.noop()));
   }
 
   /**
@@ -167,19 +169,16 @@ public final class Impositions {
    *
    * @return an impositions instance of the given imposition objects
    */
-  public static Impositions of(Imposition... impositions) {
-    return of(Arrays.asList(impositions));
-  }
-
-  /**
-   * Creates an impositions instance of the given imposition objects.
-   * <p>
-   * Possibly useful during testing.
-   *
-   * @return an impositions instance of the given imposition objects
-   */
-  public static Impositions of(Iterable<? extends Imposition> impositions) {
-    return new Impositions(Exceptions.uncheck(() -> Registry.of(r -> impositions.forEach(r::add))));
+  public static Impositions of(Action<? super ImpositionsSpec> consumer) throws Exception {
+    Map<Class<? extends Imposition>, Imposition> map = Maps.newHashMap();
+    consumer.execute(new ImpositionsSpec() {
+      @Override
+      public ImpositionsSpec add(Imposition imposition) {
+        map.put(imposition.getClass(), imposition);
+        return this;
+      }
+    });
+    return new Impositions(Registry.of(r -> map.values().forEach(r::add)));
   }
 
   /**
@@ -188,7 +187,7 @@ public final class Impositions {
    * @param type the type of imposition
    * @param <T> the type of imposition
    * @return the impositions of the given type
-     */
+   */
   public <T extends Imposition> Optional<T> get(Class<T> type) {
     return impositions.maybeGet(type);
   }

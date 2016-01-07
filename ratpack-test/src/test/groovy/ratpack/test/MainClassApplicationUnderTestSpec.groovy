@@ -16,7 +16,7 @@
 
 package ratpack.test
 
-import ratpack.impose.Imposition
+import ratpack.impose.ImpositionsSpec
 import ratpack.impose.ServerConfigImposition
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
@@ -40,8 +40,8 @@ class MainClassApplicationUnderTestSpec extends Specification {
     when:
     def aut = new MainClassApplicationUnderTest(Main) {
       @Override
-      protected void addImpositions(List<Imposition> overrides) {
-        overrides.add(ServerConfigImposition.of { it.props(foo: "overridden") })
+      protected void addImpositions(ImpositionsSpec impositions) {
+        impositions.add(ServerConfigImposition.of { it.props(foo: "overridden") })
       }
     }
 
