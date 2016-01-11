@@ -61,6 +61,7 @@ class IoUtilsSpec extends Specification {
 
     cleanup:
     fs?.close()
+    byteBuf?.release()
     folder.writable = true
   }
 

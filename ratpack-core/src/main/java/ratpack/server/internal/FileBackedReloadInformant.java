@@ -16,8 +16,6 @@
 
 package ratpack.server.internal;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.registry.Registry;
 import ratpack.server.ReloadInformant;
 import ratpack.util.internal.IoUtils;
@@ -36,7 +34,7 @@ public class FileBackedReloadInformant implements ReloadInformant {
   private final Path file;
   private final Lock lock = new ReentrantLock();
   private final AtomicReference<FileTime> lastModifiedHolder = new AtomicReference<>(null);
-  private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
+  private final AtomicReference<String> contentHolder = new AtomicReference<>();
 
   public FileBackedReloadInformant(Path file) {
     this.file = file;
@@ -47,10 +45,10 @@ public class FileBackedReloadInformant implements ReloadInformant {
     lock.lock();
     try {
       FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      ByteBuf bytes = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file);
+      String content = IoUtils.read(file);
 
       this.lastModifiedHolder.set(lastModifiedTime);
-      this.contentHolder.set(bytes);
+      this.contentHolder.set(content);
     } catch (Exception e) {
       throw uncheck(e);
     } finally {
@@ -93,13 +91,13 @@ public class FileBackedReloadInformant implements ReloadInformant {
   private boolean isBytesAreSame() throws IOException {
     lock.lock();
     try {
-      ByteBuf existing = contentHolder.get();
+      String existing = contentHolder.get();
       //noinspection SimplifiableIfStatement
       if (existing == null) {
         return false;
       }
 
-      return IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file).equals(existing);
+      return IoUtils.read(file).equals(existing);
     } finally {
       lock.unlock();
     }

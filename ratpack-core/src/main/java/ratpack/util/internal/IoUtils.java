@@ -19,6 +19,7 @@ package ratpack.util.internal;
 import com.google.common.primitives.Ints;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,10 @@ public abstract class IoUtils {
       byteBuf.writeBytes(in, size);
       return byteBuf;
     }
+  }
+
+  public static String read(Path path) throws IOException {
+      return new String(Files.readAllBytes(path), CharsetUtil.UTF_8);
   }
 
 }
