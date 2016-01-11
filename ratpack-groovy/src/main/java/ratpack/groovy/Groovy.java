@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
@@ -307,7 +306,7 @@ public abstract class Groovy {
     }
 
     private static void doApp(RatpackServerSpec definition, boolean compileStatic, Path baseDir, Path scriptFile, String... args) throws Exception {
-      String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+      String script = IoUtils.read(scriptFile);
 
       RatpackDslClosures closures = new RatpackDslScriptCapture(compileStatic, args, RatpackDslBacking::new).apply(scriptFile, script);
       definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.builder().baseDir(baseDir), baseDir), closures.getServerConfig()));
@@ -459,7 +458,7 @@ public abstract class Groovy {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
-        String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+        String script = IoUtils.read(scriptFile);
         Closure<?> bindingsClosure = new RatpackDslScriptCapture(compileStatic, args, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
         return Guice.registry(bindingsSpec -> {
           bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));

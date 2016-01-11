@@ -16,8 +16,6 @@
 
 package ratpack.reload.internal;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.func.Factory;
 import ratpack.util.internal.IoUtils;
 
@@ -42,12 +40,12 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private final Releaser<T> releaser;
 
   private final AtomicReference<FileTime> lastModifiedHolder = new AtomicReference<>(null);
-  private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
+  private final AtomicReference<String> contentHolder = new AtomicReference<>();
   private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
   public interface Producer<T> {
-    T produce(Path file, ByteBuf bytes) throws Exception;
+    T produce(Path file, String content) throws Exception;
   }
 
   public interface Releaser<T> {
@@ -113,13 +111,13 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private boolean isBytesAreSame() throws IOException {
     lock.lock();
     try {
-      ByteBuf existing = contentHolder.get();
+      String existing = contentHolder.get();
       //noinspection SimplifiableIfStatement
       if (existing == null) {
         return false;
       }
 
-      return IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file).equals(existing);
+      return IoUtils.read(file).equals(existing);
     } finally {
       lock.unlock();
     }
@@ -133,9 +131,9 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     lock.lock();
     try {
       FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      ByteBuf bytes = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, file);
+      String content = IoUtils.read(file);
 
-      if (lastModifiedTime.equals(lastModifiedHolder.get()) && bytes.equals(contentHolder.get())) {
+      if (lastModifiedTime.equals(lastModifiedHolder.get()) && content.equals(contentHolder.get())) {
         return;
       }
 
@@ -143,10 +141,10 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
       if (previous != null) {
         releaser.release(previous);
       }
-      delegateHolder.set(producer.produce(file, bytes));
+      delegateHolder.set(producer.produce(file, content));
 
       this.lastModifiedHolder.set(lastModifiedTime);
-      this.contentHolder.set(bytes);
+      this.contentHolder.set(content);
     } finally {
       lock.unlock();
     }
