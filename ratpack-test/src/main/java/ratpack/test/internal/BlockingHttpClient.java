@@ -17,7 +17,6 @@
 package ratpack.test.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.exec.Downstream;
 import ratpack.exec.ExecController;
@@ -40,6 +39,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.netty.buffer.Unpooled.copiedBuffer;
+import static io.netty.buffer.Unpooled.unreleasableBuffer;
+
 public class BlockingHttpClient {
 
   public ReceivedResponse request(URI uri, Duration duration, Action<? super RequestSpec> action) throws Throwable {
@@ -55,8 +57,7 @@ public class BlockingHttpClient {
             .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
             .map(response -> {
               TypedData responseBody = response.getBody();
-              ByteBuf responseBodyBuffer = responseBody.getBuffer();
-              responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
+              ByteBuf responseBodyBuffer = unreleasableBuffer(copiedBuffer(responseBody.getBuffer()));
               
               return new DefaultReceivedResponse(
                 response.getStatus(),
