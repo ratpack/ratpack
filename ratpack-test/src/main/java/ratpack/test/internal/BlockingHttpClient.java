@@ -50,19 +50,18 @@ public class BlockingHttpClient {
 
     try (ExecController execController = new DefaultExecController(2)) {
       execController.fork()
-        .onComplete(e -> {
-        })
-        .start(e -> {
-          HttpClient.httpClient(UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE)
+        .start(e ->
+          HttpClient.httpClient(new UnpooledByteBufAllocator(false), Integer.MAX_VALUE)
             .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
             .map(response -> {
               TypedData responseBody = response.getBody();
-              ByteBuf responseBodyBuffer = unreleasableBuffer(copiedBuffer(responseBody.getBuffer()));
-              
+              ByteBuf responseBuffer = responseBody.getBuffer();
+              ByteBuf heapResponseBodyBuffer = unreleasableBuffer(responseBuffer.isDirect() ? copiedBuffer(responseBuffer) : responseBuffer);
+
               return new DefaultReceivedResponse(
                 response.getStatus(),
                 response.getHeaders(),
-                new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
+                new ByteBufBackedTypedData(heapResponseBodyBuffer, responseBody.getContentType())
               );
             })
             .connect(
@@ -85,9 +84,8 @@ public class BlockingHttpClient {
                   latch.countDown();
                 }
               }
-            );
-        });
-
+            )
+        );
       try {
         if (!latch.await(duration.toNanos(), TimeUnit.NANOSECONDS)) {
           TemporalUnit unit = duration.getUnits().get(0);
