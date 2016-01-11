@@ -33,7 +33,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.impose.*;
 import ratpack.impose.ForceDevelopmentImposition;
-import ratpack.impose.ForcePortImposition;
+import ratpack.impose.ForceServerListenPortImposition;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
@@ -343,8 +343,8 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     impositions.get(ServerConfigImposition.class)
       .ifPresent(c -> c.apply(copy));
 
-    impositions.get(ForcePortImposition.class)
-      .map(ForcePortImposition::getPort)
+    impositions.get(ForceServerListenPortImposition.class)
+      .map(ForceServerListenPortImposition::getPort)
       .ifPresent(copy::port);
 
     impositions.get(ForceDevelopmentImposition.class)

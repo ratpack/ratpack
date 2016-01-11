@@ -16,12 +16,10 @@
 
 package ratpack.impose;
 
-import ratpack.func.Action;
-
 /**
  * Used to specify a set of impositions.
  *
- * @see Impositions#of(Action)
+ * @see Impositions#of(ratpack.func.Action)
  * @since 1.2
  */
 public interface ImpositionsSpec {

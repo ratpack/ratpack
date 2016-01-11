@@ -16,6 +16,21 @@
 
 package ratpack.impose;
 
+import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
+
+/**
+ * Forces whether to start the application in {@link ServerConfig#isDevelopment()} mode or not.
+ * <p>
+ * This imposition is used by {@link ServerConfigBuilder}.
+ * If present, the imposed value will be used regardless of any previously specified setting on the builder.
+ * <p>
+ * Note, this can be used to force development mode or force not development mode.
+ * Though, it is more commonly used for the former.
+ *
+ * @see Impositions
+ * @since 1.2
+ */
 public final class ForceDevelopmentImposition implements Imposition {
 
   private final boolean development;
@@ -24,10 +39,21 @@ public final class ForceDevelopmentImposition implements Imposition {
     this.development = development;
   }
 
+  /**
+   * Creates a new imposition of the specified value.
+   *
+   * @param development the value to impose
+   * @return a newly created imposition
+   */
   public static ForceDevelopmentImposition of(boolean development) {
     return new ForceDevelopmentImposition(development);
   }
 
+  /**
+   * The value to impose.
+   *
+   * @return the value to impose
+   */
   public boolean isDevelopment() {
     return development;
   }

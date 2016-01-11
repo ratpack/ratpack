@@ -41,7 +41,7 @@ import java.util.Optional;
  * If you do need access to the impositions, prefer obtaining it from the server registry over {@link #current()} as this method is thread sensitive.
  * <p>
  * Actual impositions are implemented as specific classes, known to the consumer.
- * {@link ForcePortImposition} and {@link UserRegistryImposition} are both examples of such.
+ * {@link ForceServerListenPortImposition} and {@link UserRegistryImposition} are both examples of such.
  * The consumers of these impositions simply obtain them from the impositions registry.
  * <p>
  *
@@ -75,7 +75,7 @@ import java.util.Optional;
  * }</pre>
  *
  * @see ServerConfigImposition
- * @see ForcePortImposition
+ * @see ForceServerListenPortImposition
  * @see ForceDevelopmentImposition
  * @see UserRegistryImposition
  * @since 1.2

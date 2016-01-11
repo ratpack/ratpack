@@ -45,7 +45,7 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
   protected RatpackServer createServer() throws Exception {
     RatpackServer ratpackServer = ServerCapturer.capture(
       Impositions.of(i -> {
-        i.add(ForcePortImposition.ephemeral());
+        i.add(ForceServerListenPortImposition.ephemeral());
         i.add(ForceDevelopmentImposition.of(true));
         i.add(UserRegistryImposition.of(this::createOverrides));
         addImpositions(i);

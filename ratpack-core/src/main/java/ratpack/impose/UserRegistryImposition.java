@@ -18,7 +18,17 @@ package ratpack.impose;
 
 import ratpack.func.Function;
 import ratpack.registry.Registry;
+import ratpack.server.RatpackServerSpec;
 
+/**
+ * Imposes an extra registry to be joined with the user registry when starting an application.
+ * <p>
+ * If present, the imposed registry will be joined with the user registry specified by {@link RatpackServerSpec#registry(Function)}.
+ * This effectively allows adding extra things to the registry.
+ *
+ * @see Impositions
+ * @since 1.2
+ */
 public final class UserRegistryImposition implements Imposition {
 
   private final Function<? super Registry, ? extends Registry> registryFunc;
@@ -27,19 +37,50 @@ public final class UserRegistryImposition implements Imposition {
     this.registryFunc = registryFunc;
   }
 
+  /**
+   * Creates an imposition of an empty registry.
+   * <p>
+   * This is equivalent to their being no imposition at all.
+   *
+   * @return a empty user registry imposition
+   */
   public static UserRegistryImposition none() {
     return of(Registry.empty());
   }
 
+  /**
+   * Creates an imposition of the given registry.
+   *
+   * @param registry the registry to join with the user registry
+   * @return an imposition of the given registry
+   */
   public static UserRegistryImposition of(Registry registry) {
     return of(Function.constant(registry));
   }
 
+  /**
+   * Creates an imposition of registry returned by the given function.
+   * <p>
+   * The given function receives the user registry as input.
+   * The function should not return a registry that has been joined with the input.
+   * The user registry is given as input to allow retrieval from the registry.
+   *
+   * @param registry a function that receives the user registry and returns a registry of additions to it
+   * @return an imposition of the given registry
+   */
   public static UserRegistryImposition of(Function<? super Registry, ? extends Registry> registry) {
     return new UserRegistryImposition(registry);
   }
 
-  public Registry build(Registry input) throws Exception {
-    return registryFunc.apply(input);
+  /**
+   * Returns the registry of additions, taking the original user registry as the argument
+   *
+   * @param userRegistry the user registry
+   * @return a registry to join on to the user registry
+   * @throws Exception any
+   */
+  public Registry build(Registry userRegistry) throws Exception {
+    return registryFunc.apply(userRegistry);
   }
+
 }

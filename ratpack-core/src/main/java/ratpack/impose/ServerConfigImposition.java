@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * The overrides are captured when the builder is created.
  * <p>
  * If a {@code ServerConfigImposition} is present, its function will be applied to the builder during {@link ServerConfigBuilder#build()}.
- * Note that the {@link ForceDevelopmentImposition} and {@link ForcePortImposition} are applied <b>after</b> this override.
+ * Note that the {@link ForceDevelopmentImposition} and {@link ForceServerListenPortImposition} are applied <b>after</b> this override.
  *
  * @see Impositions
  * @since 1.2

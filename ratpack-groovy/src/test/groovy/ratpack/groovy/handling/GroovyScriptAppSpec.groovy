@@ -18,7 +18,7 @@ package ratpack.groovy.handling
 
 import ratpack.func.Block
 import ratpack.groovy.Groovy
-import ratpack.impose.ForcePortImposition
+import ratpack.impose.ForceServerListenPortImposition
 import ratpack.impose.Impositions
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServerCapturer
@@ -38,7 +38,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        ServerCapturer.capture(Impositions.of { it.add ForcePortImposition.ephemeral() }, {
+        ServerCapturer.capture(Impositions.of { it.add ForceServerListenPortImposition.ephemeral() }, {
           RatpackServer.of(Groovy.Script.appWithArgs(compileStatic, ratpackFile.canonicalFile.toPath(), args))
         } as Block)
       }
