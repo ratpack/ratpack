@@ -120,16 +120,17 @@ public class WebSocketEngine {
               WebSocketFrame frame = (WebSocketFrame) msg;
               if (frame instanceof CloseWebSocketFrame) {
                 open.set(false);
-                handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(future1 -> handler.onClose(new DefaultWebSocketClose<>(true, openResult)));
+                handshaker.close(channel, (CloseWebSocketFrame) frame).addListener(future1 -> handler.onClose(new DefaultWebSocketClose<>(true, openResult)));
                 return;
               }
               if (frame instanceof PingWebSocketFrame) {
-                channel.write(new PongWebSocketFrame(frame.content().retain()));
+                channel.write(new PongWebSocketFrame(frame.content()));
                 return;
               }
               if (frame instanceof TextWebSocketFrame) {
                 TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
                 handler.onMessage(new DefaultWebSocketMessage<>(webSocket, textWebSocketFrame.text(), openResult));
+                frame.release();
               }
             }
           }
