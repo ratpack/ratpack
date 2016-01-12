@@ -17,7 +17,6 @@
 package ratpack.server.internal;
 
 import ratpack.func.Block;
-import ratpack.impose.Impositions;
 import ratpack.server.RatpackServer;
 
 public abstract class ServerCapturer {
@@ -28,15 +27,9 @@ public abstract class ServerCapturer {
   }
 
   public static RatpackServer capture(Block bootstrap) throws Exception {
-    return capture(Impositions.none(), bootstrap);
-  }
-
-  public static RatpackServer capture(Impositions impositions, Block bootstrap) throws Exception {
     try {
-      return impositions.impose(() -> {
-        bootstrap.execute();
-        return SERVER_HOLDER.get();
-      });
+      bootstrap.execute();
+      return SERVER_HOLDER.get();
     } finally {
       SERVER_HOLDER.remove();
     }

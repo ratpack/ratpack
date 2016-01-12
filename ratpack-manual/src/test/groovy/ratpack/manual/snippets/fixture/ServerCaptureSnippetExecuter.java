@@ -38,8 +38,9 @@ public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
   @Override
   public void execute(TestCodeSnippet snippet) throws Exception {
-    withServer(ServerCapturer.capture(
-      Impositions.of(i -> i.add(ForceServerListenPortImposition.ephemeral())), () -> executer.execute(snippet))
+    withServer(
+      Impositions.of(i -> i.add(ForceServerListenPortImposition.ephemeral()))
+        .impose(() -> ServerCapturer.capture(() -> executer.execute(snippet)))
     );
   }
 

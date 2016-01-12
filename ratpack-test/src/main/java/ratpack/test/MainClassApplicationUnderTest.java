@@ -16,8 +16,6 @@
 
 package ratpack.test;
 
-import ratpack.impose.*;
-import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.internal.ServerCapturer;
 
@@ -33,42 +31,27 @@ public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderT
     this.mainClass = mainClass;
   }
 
-  protected Registry createOverrides(Registry serverRegistry) throws Exception {
-    return Registry.empty();
-  }
-
-  protected void addImpositions(ImpositionsSpec impositions) {
-
-  }
-
   @Override
   protected RatpackServer createServer() throws Exception {
-    RatpackServer ratpackServer = ServerCapturer.capture(
-      Impositions.of(i -> {
-        i.add(ForceServerListenPortImposition.ephemeral());
-        i.add(ForceDevelopmentImposition.of(true));
-        i.add(UserRegistryImposition.of(this::createOverrides));
-        addImpositions(i);
-      }),
-      () -> {
-        Method method;
-        try {
-          method = mainClass.getDeclaredMethod("main", String[].class);
-        } catch (NoSuchMethodException e) {
-          throw new IllegalStateException("Class" + mainClass.getName() + " does not have a main(String...) class");
-        }
+    RatpackServer ratpackServer = ServerCapturer.capture(() -> {
+      Method method;
+      try {
+        method = mainClass.getDeclaredMethod("main", String[].class);
+      } catch (NoSuchMethodException e) {
+        throw new IllegalStateException("Class" + mainClass.getName() + " does not have a main(String...) class");
+      }
 
-        if (!Modifier.isStatic(method.getModifiers())) {
-          throw new IllegalStateException(mainClass.getName() + ".main() must be static");
-        }
+      if (!Modifier.isStatic(method.getModifiers())) {
+        throw new IllegalStateException(mainClass.getName() + ".main() must be static");
+      }
 
-        try {
-          method.invoke(null, new Object[]{new String[]{}});
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-          throw new IllegalStateException("Could not invoke " + mainClass.getName() + ".main()", e);
-        }
+      try {
+        method.invoke(null, new Object[]{new String[]{}});
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        throw new IllegalStateException("Could not invoke " + mainClass.getName() + ".main()", e);
+      }
 
-      });
+    });
 
     if (ratpackServer == null) {
       throw new IllegalStateException(mainClass.getName() + ".main() did not start a Ratpack server");
