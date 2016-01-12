@@ -20,11 +20,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import org.codehaus.groovy.control.CompilationFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.groovy.script.internal.ScriptEngine;
 
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TextTemplateCompiler {
 

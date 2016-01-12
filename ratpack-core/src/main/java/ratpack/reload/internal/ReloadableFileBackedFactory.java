@@ -17,9 +17,10 @@
 package ratpack.reload.internal;
 
 import ratpack.func.Factory;
-import ratpack.util.internal.IoUtils;
+import ratpack.util.internal.Paths2;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -108,30 +109,15 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     return delegateHolder.get();
   }
 
-  private boolean isBytesAreSame() throws IOException {
-    lock.lock();
-    try {
-      String existing = contentHolder.get();
-      //noinspection SimplifiableIfStatement
-      if (existing == null) {
-        return false;
-      }
-
-      return IoUtils.read(file).equals(existing);
-    } finally {
-      lock.unlock();
-    }
-  }
-
   private boolean refreshNeeded() throws IOException {
-    return !Files.getLastModifiedTime(file).equals(lastModifiedHolder.get()) || !isBytesAreSame();
+    return !Files.getLastModifiedTime(file).equals(lastModifiedHolder.get());
   }
 
   private void refresh() throws Exception {
     lock.lock();
     try {
       FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      String content = IoUtils.read(file);
+      String content = Paths2.readText(file, StandardCharsets.UTF_8);
 
       if (lastModifiedTime.equals(lastModifiedHolder.get()) && content.equals(contentHolder.get())) {
         return;

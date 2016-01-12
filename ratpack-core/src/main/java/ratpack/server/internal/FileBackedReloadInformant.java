@@ -18,41 +18,30 @@ package ratpack.server.internal;
 
 import ratpack.registry.Registry;
 import ratpack.server.ReloadInformant;
-import ratpack.util.internal.IoUtils;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static ratpack.util.Exceptions.uncheck;
 
 public class FileBackedReloadInformant implements ReloadInformant {
   private final Path file;
-  private final Lock lock = new ReentrantLock();
   private final AtomicReference<FileTime> lastModifiedHolder = new AtomicReference<>(null);
-  private final AtomicReference<String> contentHolder = new AtomicReference<>();
 
   public FileBackedReloadInformant(Path file) {
     this.file = file;
-    load();
+    probe();
   }
 
-  private void load() {
-    lock.lock();
+  private boolean probe() {
     try {
-      FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-      String content = IoUtils.read(file);
-
-      this.lastModifiedHolder.set(lastModifiedTime);
-      this.contentHolder.set(content);
+      FileTime nowLastModified = Files.getLastModifiedTime(file);
+      FileTime previousLastModified = lastModifiedHolder.getAndSet(nowLastModified);
+      return !nowLastModified.equals(previousLastModified);
     } catch (Exception e) {
       throw uncheck(e);
-    } finally {
-      lock.unlock();
     }
   }
 
@@ -73,7 +62,7 @@ public class FileBackedReloadInformant implements ReloadInformant {
     }
 
     try {
-      return reloadNeeded();
+      return probe();
     } catch (Exception e) {
       throw uncheck(e);
     }
@@ -84,22 +73,4 @@ public class FileBackedReloadInformant implements ReloadInformant {
     return "file-backed reload informant: " + file.toString();
   }
 
-  private boolean reloadNeeded() throws IOException {
-    return !isBytesAreSame();
-  }
-
-  private boolean isBytesAreSame() throws IOException {
-    lock.lock();
-    try {
-      String existing = contentHolder.get();
-      //noinspection SimplifiableIfStatement
-      if (existing == null) {
-        return false;
-      }
-
-      return IoUtils.read(file).equals(existing);
-    } finally {
-      lock.unlock();
-    }
-  }
 }

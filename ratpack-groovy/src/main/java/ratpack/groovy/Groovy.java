@@ -49,9 +49,10 @@ import ratpack.registry.Registry;
 import ratpack.server.*;
 import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.FileBackedReloadInformant;
-import ratpack.util.internal.IoUtils;
+import ratpack.util.internal.Paths2;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -306,7 +307,7 @@ public abstract class Groovy {
     }
 
     private static void doApp(RatpackServerSpec definition, boolean compileStatic, Path baseDir, Path scriptFile, String... args) throws Exception {
-      String script = IoUtils.read(scriptFile);
+      String script = Paths2.readText(scriptFile, StandardCharsets.UTF_8);
 
       RatpackDslClosures closures = new RatpackDslScriptCapture(compileStatic, args, RatpackDslBacking::new).apply(scriptFile, script);
       definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.builder().baseDir(baseDir), baseDir), closures.getServerConfig()));
@@ -458,7 +459,7 @@ public abstract class Groovy {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
-        String script = IoUtils.read(scriptFile);
+        String script = Paths2.readText(scriptFile, StandardCharsets.UTF_8);
         Closure<?> bindingsClosure = new RatpackDslScriptCapture(compileStatic, args, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
         return Guice.registry(bindingsSpec -> {
           bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));
