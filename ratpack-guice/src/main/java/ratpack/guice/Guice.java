@@ -233,7 +233,7 @@ public abstract class Guice {
       List<Module> imposedModules = Lists.newLinkedList();
 
       BindingsSpec imposedBindings = new DefaultBindingsSpec(serverConfig, imposedBinderActions, imposedModules);
-      imposition.apply(imposedBindings);
+      imposition.getBindings().execute(imposedBindings);
       imposedModules.add(new AdHocModule(imposedBinderActions));
       Module imposedModule = imposedModules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
 

@@ -16,6 +16,8 @@
 
 package ratpack.test;
 
+import ratpack.impose.*;
+import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 
 import java.net.URI;
@@ -29,12 +31,36 @@ public abstract class ServerBackedApplicationUnderTest implements CloseableAppli
 
   protected abstract RatpackServer createServer() throws Exception;
 
+  protected Impositions createImpositions() throws Exception {
+    return Impositions.of(i -> {
+      addDefaultImpositions(i);
+      addImpositions(i);
+    });
+  }
+
+  protected void addDefaultImpositions(ImpositionsSpec impositionsSpec) {
+    impositionsSpec.add(ForceServerListenPortImposition.ephemeral());
+    impositionsSpec.add(ForceDevelopmentImposition.of(true));
+    impositionsSpec.add(UserRegistryImposition.of(this::createOverrides));
+  }
+
+  protected void addImpositions(ImpositionsSpec impositions) {
+
+  }
+
+  protected Registry createOverrides(Registry serverRegistry) throws Exception {
+    return Registry.empty();
+  }
+
   @Override
   public URI getAddress() {
     if (server == null) {
       try {
-        server = createServer();
-        server.start();
+        server = createImpositions().impose(() -> {
+          RatpackServer server = createServer();
+          server.start();
+          return server;
+        });
       } catch (Exception e) {
         throw uncheck(e);
       }

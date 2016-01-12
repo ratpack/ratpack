@@ -150,7 +150,7 @@ public final class Promised<T> implements Downstream<T> {
   /**
    * Thrown if an attempt is made to supply the value/result after it has already been supplied.
    */
-  static class AlreadySuppliedException extends IllegalStateException {
+  public static class AlreadySuppliedException extends IllegalStateException {
     private AlreadySuppliedException(String s) {
       super(s);
     }

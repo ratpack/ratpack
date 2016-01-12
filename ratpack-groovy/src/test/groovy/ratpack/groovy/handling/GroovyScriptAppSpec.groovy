@@ -16,12 +16,10 @@
 
 package ratpack.groovy.handling
 
-import ratpack.func.Block
 import ratpack.groovy.Groovy
 import ratpack.impose.ForceServerListenPortImposition
 import ratpack.impose.Impositions
 import ratpack.server.RatpackServer
-import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -38,9 +36,9 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        ServerCapturer.capture(Impositions.of { it.add ForceServerListenPortImposition.ephemeral() }, {
+        Impositions.of { it.add ForceServerListenPortImposition.ephemeral() }.impose {
           RatpackServer.of(Groovy.Script.appWithArgs(compileStatic, ratpackFile.canonicalFile.toPath(), args))
-        } as Block)
+        }
       }
     }
   }
