@@ -31,6 +31,9 @@ import ratpack.config.internal.module.SSLContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.impose.*;
+import ratpack.impose.ForceDevelopmentImposition;
+import ratpack.impose.ForceServerListenPortImposition;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
@@ -47,13 +50,28 @@ import java.util.function.Supplier;
 
 public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
-  private final ConfigDataBuilder configDataBuilder;
+  private final DefaultConfigDataBuilder configDataBuilder;
   private final Map<String, Class<?>> required = Maps.newHashMap();
   private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
+  private final ServerEnvironment serverEnvironment;
+  private final Impositions impositions;
 
-  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
-    configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
-    this.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
+  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Impositions impositions) {
+    this.impositions = impositions;
+    this.configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
+    this.serverEnvironment = serverEnvironment;
+  }
+
+  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, Class<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Impositions impositions) {
+    this.configDataBuilder = configDataBuilder.copy();
+    this.required.putAll(required);
+    this.baseDirSupplier.baseDir = baseDirSupplier.baseDir;
+    this.serverEnvironment = serverEnvironment;
+    this.impositions = impositions;
+  }
+
+  private DefaultServerConfigBuilder copy() {
+    return new DefaultServerConfigBuilder(configDataBuilder, required, baseDirSupplier, serverEnvironment, impositions);
   }
 
   @Override
@@ -68,13 +86,17 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   private ServerConfigBuilder addToServer(Consumer<? super ObjectNode> action) {
-    add((m, f) -> {
-      ObjectNode rootNode = new ObjectNode(getObjectMapper().getNodeFactory());
+    addToServer(configDataBuilder, action);
+    return this;
+  }
+
+  private static void addToServer(ConfigDataBuilder configDataBuilder, Consumer<? super ObjectNode> action) {
+    configDataBuilder.add((m, f) -> {
+      ObjectNode rootNode = new ObjectNode(configDataBuilder.getObjectMapper().getNodeFactory());
       ObjectNode server = rootNode.putObject("server");
       action.accept(server);
       return rootNode;
     });
-    return this;
   }
 
   @Override
@@ -316,8 +338,22 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfig build() {
-    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), getConfigSources(), MoreObjects.firstNonNull(baseDirSupplier.baseDir, FileSystemBinding.root()));
-    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
+    DefaultServerConfigBuilder copy = copy();
+
+    impositions.get(ServerConfigImposition.class)
+      .ifPresent(c -> c.apply(copy));
+
+    impositions.get(ForceServerListenPortImposition.class)
+      .map(ForceServerListenPortImposition::getPort)
+      .ifPresent(copy::port);
+
+    impositions.get(ForceDevelopmentImposition.class)
+      .map(ForceDevelopmentImposition::isDevelopment)
+      .ifPresent(copy::development);
+
+    copy.configDataBuilder.jacksonModules(new ConfigModule(copy.serverEnvironment, copy.baseDirSupplier));
+    ConfigData configData = new DefaultConfigData(copy.configDataBuilder.getObjectMapper(), copy.getConfigSources(), MoreObjects.firstNonNull(copy.baseDirSupplier.baseDir, FileSystemBinding.root()));
+    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, copy.required);
     return new DefaultServerConfig(configData, requiredConfig);
   }
 

@@ -23,6 +23,7 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.impose.Impositions;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Types;
@@ -78,7 +79,7 @@ public interface ServerConfig extends ConfigData {
   }
 
   static ServerConfigBuilder builder() {
-    return new DefaultServerConfigBuilder(ServerEnvironment.env());
+    return new DefaultServerConfigBuilder(ServerEnvironment.env(), Impositions.current());
   }
 
   static ServerConfig of(Action<? super ServerConfigBuilder> action) throws Exception {

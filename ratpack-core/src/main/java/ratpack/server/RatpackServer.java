@@ -18,6 +18,7 @@ package ratpack.server;
 
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.impose.Impositions;
 import ratpack.server.internal.DefaultRatpackServer;
 
 /**
@@ -73,7 +74,7 @@ public interface RatpackServer {
    * @throws Exception any thrown by creating the server
    */
   static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
-    return new DefaultRatpackServer(definition);
+    return new DefaultRatpackServer(definition, Impositions.current());
   }
 
   /**

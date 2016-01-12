@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.registry.internal;
+package ratpack.guice;
 
-import com.google.common.reflect.TypeToken;
-import ratpack.registry.Registry;
+import ratpack.func.Action;
+import ratpack.impose.Imposition;
 
-import java.util.Optional;
+public final class BindingsImposition implements Imposition {
+  private final Action<? super BindingsSpec> action;
 
-public interface DelegatingRegistry extends Registry {
-
-  Registry getDelegate();
-
-  @Override
-  default <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return getDelegate().maybeGet(type);
+  public BindingsImposition(Action<? super BindingsSpec> action) {
+    this.action = action;
   }
 
-  @Override
-  default <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return getDelegate().getAll(type);
+  public void apply(BindingsSpec bindingsSpec) throws Exception {
+    action.execute(bindingsSpec);
+  }
+
+  public static BindingsImposition of(Action<? super BindingsSpec> action) {
+    return new BindingsImposition(action);
   }
 
 }

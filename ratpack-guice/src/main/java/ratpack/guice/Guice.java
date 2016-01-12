@@ -28,11 +28,12 @@ import ratpack.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
+import ratpack.impose.Impositions;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.util.Exceptions.uncheck;
@@ -225,11 +226,23 @@ public abstract class Guice {
     modules.add(new AdHocModule(binderActions));
     modules.add(new ConfigModule(serverConfig.getRequiredConfig()));
 
-    Module masterModule = modules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
-    Injector injector = injectorFactory.apply(masterModule);
+    Optional<BindingsImposition> bindingsImposition = Impositions.current().get(BindingsImposition.class);
+    if (bindingsImposition.isPresent()) {
+      BindingsImposition imposition = bindingsImposition.get();
+      List<Action<? super Binder>> imposedBinderActions = Lists.newLinkedList();
+      List<Module> imposedModules = Lists.newLinkedList();
 
-    Collections.reverse(modules);
-    return injector;
+      BindingsSpec imposedBindings = new DefaultBindingsSpec(serverConfig, imposedBinderActions, imposedModules);
+      imposition.apply(imposedBindings);
+      imposedModules.add(new AdHocModule(imposedBinderActions));
+      Module imposedModule = imposedModules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
+
+      modules.add(imposedModule);
+    }
+
+    Module masterModule = modules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
+
+    return injectorFactory.apply(masterModule);
   }
 
   private static class AdHocModule implements Module {
