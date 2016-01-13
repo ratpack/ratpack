@@ -22,6 +22,7 @@ import io.netty.util.HashedWheelTimer;
 
 public class TimerExposingRedisClient extends RedisClient {
 
+  @SuppressWarnings("deprecation")
   public TimerExposingRedisClient(RedisURI redisURI) {
     super(redisURI);
   }

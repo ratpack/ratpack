@@ -17,8 +17,8 @@
 package ratpack.session.store.internal;
 
 import com.google.inject.Inject;
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.AsciiString;
@@ -35,7 +35,7 @@ public class RedisSessionStore implements SessionStore {
   private final RedisSessionModule.Config config;
 
   private TimerExposingRedisClient redisClient;
-  private RedisAsyncConnection<AsciiString, ByteBuf> connection;
+  private RedisAsyncCommands<AsciiString, ByteBuf> connection;
 
   @Inject
   public RedisSessionStore(RedisSessionModule.Config config) {
@@ -91,7 +91,7 @@ public class RedisSessionStore implements SessionStore {
   @Override
   public void onStart(StartEvent event) throws Exception {
     redisClient = new TimerExposingRedisClient(getRedisURI());
-    connection = redisClient.connectAsync(new AsciiStringByteBufRedisCodec());
+    connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 
   @Override
