@@ -17,9 +17,8 @@
 package ratpack.pac4j.cookiesession
 
 import org.pac4j.core.profile.UserProfile
-import org.pac4j.http.client.FormClient
-import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
-import org.pac4j.http.profile.UsernameProfileCreator
+import org.pac4j.http.client.indirect.FormClient
+import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
 import org.slf4j.Logger
 import ratpack.handling.RequestId
 import ratpack.handling.RequestLogger
@@ -40,7 +39,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      all(RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+      all(RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator())))
       get("noauth") {
         def userProfile = maybeGet(UserProfile).orElse(null)
         response.send "noauth:" + userProfile?.attributes?.username
@@ -136,7 +135,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       all RequestLogger.ncsa(logger)
-      all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()))
+      all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator()))
       prefix("foo") {
         all(RatpackPac4j.requireAuth(FormClient))
         get {
