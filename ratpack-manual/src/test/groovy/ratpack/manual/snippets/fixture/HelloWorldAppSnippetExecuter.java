@@ -18,6 +18,7 @@ package ratpack.manual.snippets.fixture;
 
 import ratpack.manual.snippets.executer.SnippetExecuter;
 import ratpack.server.RatpackServer;
+import ratpack.test.ServerBackedApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +32,7 @@ public class HelloWorldAppSnippetExecuter extends ServerCaptureSnippetExecuter {
   @Override
   protected void withServer(RatpackServer server) throws Exception {
     try {
-      TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
+      TestHttpClient httpClient = TestHttpClient.testHttpClient(ServerBackedApplicationUnderTest.of(server));
       assertEquals("Hello World!", httpClient.getText());
       assertEquals("Hello Thing!", httpClient.getText("Thing"));
     } finally {

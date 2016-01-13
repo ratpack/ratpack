@@ -20,10 +20,8 @@ import com.google.common.collect.ImmutableMultimap;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.internal.DefaultTestHttpClient;
 
@@ -57,19 +55,10 @@ public interface TestHttpClient {
     return new DefaultTestHttpClient(applicationUnderTest, Action.noopIfNull(requestConfigurer));
   }
 
-  static TestHttpClient testHttpClient(RatpackServer server) {
-    return testHttpClient(() -> server);
-  }
-
-  static TestHttpClient testHttpClient(Factory<? extends RatpackServer> server) {
-    return new DefaultTestHttpClient(ApplicationUnderTest.of(server), Action.noop());
-  }
-
   /**
    * @return the application requests are being made against
    */
   ApplicationUnderTest getApplicationUnderTest();
-
 
   /**
    * @param requestAction an {@link ratpack.func.Action} that will act on the {@link ratpack.http.client.RequestSpec} this is used to configure details of the next request

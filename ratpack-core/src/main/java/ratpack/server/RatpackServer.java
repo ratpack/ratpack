@@ -29,7 +29,7 @@ import ratpack.server.internal.DefaultRatpackServer;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
  *
- * import ratpack.test.ApplicationUnderTest;
+ * import ratpack.test.ServerBackedApplicationUnderTest;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -44,7 +44,7 @@ import ratpack.server.internal.DefaultRatpackServer;
  *     );
  *
  *     // this method starts the server, via server.start() and then calls server.stop()
- *     ApplicationUnderTest.of(server).test(httpClient -> {
+ *     ServerBackedApplicationUnderTest.of(server).test(httpClient -> {
  *       assertEquals("foo 1", httpClient.getText("a"));
  *       assertEquals("foo 2", httpClient.getText("b"));
  *     });

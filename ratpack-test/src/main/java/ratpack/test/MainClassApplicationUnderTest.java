@@ -23,14 +23,59 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+/**
+ * An application under test fixture that can be used to test a server started by a “main” method.
+ *
+ * <pre class="java">{@code
+ * import ratpack.server.RatpackServer;
+ * import ratpack.test.MainClassApplicationUnderTest;
+ *
+ * import static org.junit.Assert.assertEquals;
+ *
+ * public class Example {
+ *
+ *   public static class App {
+ *     public static void main(String[] args) throws Exception {
+ *       RatpackServer.start(s -> s
+ *         .handlers(c -> c
+ *           .get(ctx -> ctx.render("Hello world!"))
+ *         )
+ *       );
+ *     }
+ *   }
+ *
+ *   public static void main(String[] args) throws Exception {
+ *     new MainClassApplicationUnderTest(App.class).test(testHttpClient ->
+ *       assertEquals("Hello world!", testHttpClient.getText())
+ *     );
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * Note that this type implements {@link CloseableApplicationUnderTest}, and should be closed when no longer needed.
+ *
+ * @see #addImpositions(ratpack.impose.ImpositionsSpec)
+ * @see ServerBackedApplicationUnderTest
+ */
 public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
   private final Class<?> mainClass;
 
+  /**
+   * Creates a new app under test, based on the given main class.
+   *
+   * @param mainClass a class who's main method starts a Ratpack server
+   */
   public MainClassApplicationUnderTest(Class<?> mainClass) {
     this.mainClass = mainClass;
   }
 
+  /**
+   * Starts the Ratpack server by invoking the {@code public static void main(String[])} method of the “main class” backing this object.
+   *
+   * @return the Ratpack server created by the main method
+   * @throws Exception if the main method cannot be invoked
+   */
   @Override
   protected RatpackServer createServer() throws Exception {
     RatpackServer ratpackServer = ServerCapturer.capture(() -> {

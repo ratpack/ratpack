@@ -20,7 +20,7 @@ import ratpack.func.Action
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Handler
 import ratpack.http.client.RequestSpec
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
@@ -34,7 +34,7 @@ class RatpackServerTestSpec extends Specification {
 
   @AutoCleanup("stop")
   RatpackServer server
-  def http = TestHttpClient.testHttpClient(ApplicationUnderTest.of({ server }))
+  def http = TestHttpClient.testHttpClient(ServerBackedApplicationUnderTest.of { server })
 
   def cleanup() {
     if (server?.isRunning()) {
@@ -214,17 +214,17 @@ class RatpackServerTestSpec extends Specification {
 
   def "netty configuration is applied"() {
     given:
-    server = RatpackServer.of ({
+    server = RatpackServer.of({
       it
         .serverConfig(ServerConfig.embedded()
-          .connectTimeoutMillis(1000)
-          .maxMessagesPerRead(3)
-          .writeSpinCount(10))
+        .connectTimeoutMillis(1000)
+        .maxMessagesPerRead(3)
+        .writeSpinCount(10))
         .handlers {
-          it.path("connectTimeoutMillis") { it.render it.directChannelAccess.channel.config().connectTimeoutMillis.toString() }
-          it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().recvByteBufAllocator.newHandle().guess().toString() }
-          it.path("writeSpinCount") { it.render it.directChannelAccess.channel.config().writeSpinCount.toString() }
-        }
+        it.path("connectTimeoutMillis") { it.render it.directChannelAccess.channel.config().connectTimeoutMillis.toString() }
+        it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().recvByteBufAllocator.newHandle().guess().toString() }
+        it.path("writeSpinCount") { it.render it.directChannelAccess.channel.config().writeSpinCount.toString() }
+      }
     } as Action<RatpackServerSpec>)
 
     when:
@@ -252,7 +252,7 @@ class RatpackServerTestSpec extends Specification {
 
     when:
     def requests = (1..concurrentRequests).collect {
-      pool.submit ({
+      pool.submit({
         server.httpClient.requestSpec { RequestSpec spec ->
           spec.body.text("1" * 100)
         }.postText()
