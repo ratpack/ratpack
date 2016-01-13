@@ -45,6 +45,7 @@ public class RatpackWebContext implements WebContext {
   private final Form form;
 
   private String responseContent = "";
+  private String contentType = "";
 
   public RatpackWebContext(Context ctx, TypedData body, SessionData session) {
     this.context = ctx;
@@ -136,11 +137,6 @@ public class RatpackWebContext implements WebContext {
   @Override
   public void setResponseHeader(String name, String value) {
     response.getHeaders().set(name, value);
-  }
-
-  @Override
-  public void setResponseCharacterEncoding(String encoding) {
-    response.contentType(encoding);
   }
 
   @Override
