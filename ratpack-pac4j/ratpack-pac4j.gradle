@@ -27,6 +27,10 @@ configurations {
   }
 }
 
+repositories {
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+
 dependencies {
   compile project(":ratpack-session")
   compile("org.pac4j:pac4j-core:${commonVersions.pac4j}") {
