@@ -21,8 +21,8 @@ import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.util.AsciiString;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.session.SessionId;
 import ratpack.session.SessionCookieConfig;
+import ratpack.session.SessionId;
 import ratpack.session.SessionIdGenerator;
 
 import java.time.Duration;
@@ -37,6 +37,7 @@ public class CookieBasedSessionId implements SessionId {
 
   private AsciiString assignedCookieId;
   private Optional<AsciiString> cookieSessionId;
+  private boolean terminated;
 
   public CookieBasedSessionId(Request request, Response response, SessionIdGenerator sessionIdGenerator, SessionCookieConfig cookieConfig) {
     this.request = request;
@@ -59,16 +60,18 @@ public class CookieBasedSessionId implements SessionId {
 
   private Optional<AsciiString> getCookieSessionId() {
     if (cookieSessionId == null) {
-      Cookie match = null;
-
-      for (Cookie cookie : request.getCookies()) {
-        if (cookie.name().equals(cookieConfig.getIdName())) {
-          match = cookie;
-          break;
+      if (terminated) {
+        return Optional.empty();
+      } else {
+        Cookie match = null;
+        for (Cookie cookie : request.getCookies()) {
+          if (cookie.name().equals(cookieConfig.getIdName())) {
+            match = cookie;
+            break;
+          }
         }
+        cookieSessionId = match == null ? Optional.empty() : Optional.of(AsciiString.of(match.value()));
       }
-
-      cookieSessionId = match == null ? Optional.empty() : Optional.of(AsciiString.of(match.value()));
     }
 
     return cookieSessionId;
@@ -107,6 +110,7 @@ public class CookieBasedSessionId implements SessionId {
 
   @Override
   public void terminate() {
+    terminated = true;
     setCookie("", Duration.ZERO);
     cookieSessionId = null;
     assignedCookieId = null;
