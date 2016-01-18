@@ -1,6 +1,6 @@
 # Static Assets
 
-Ratpack provides a convenient [Action<Chain>](api/ratpack/handling/Chain.html) helper for serving static files relative to Ratpack's [FileSystemBinding](api/ratpack/file/FileSystemBinding.html). One can turn on serving of static files simply by adding the `files` helper to the chain. 
+Ratpack provides a convenient [Action<Chain>](api/ratpack/handling/Chain.html) helper for serving static files relative to Ratpack's [FileSystemBinding](api/ratpack/file/FileSystemBinding.html). One can turn on serving of static files simply by adding the `files` helper to the chain.
 
 ```language-java assets
 package my.app;
@@ -32,7 +32,7 @@ For applications that require more advanced handling of static assets. There is 
 
 ### Installing Asset-Pipeline
 
-It is important to first note that asset-pipeline requires the use of groovy and guice modules currently. Simply add both the gradle plugin and the ratpack module to your `build.gradle` file: 
+It is important to first note that asset-pipeline requires the use of groovy and guice modules currently. Simply add both the gradle plugin and the ratpack module to your `build.gradle` file:
 
 ```language-groovy gradle
 buildscript {
@@ -41,9 +41,9 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.3.8"
+    classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.6.4"
     //Example additional LESS support
-    //classpath "com.bertramlabs.plugins:less-asset-pipeline:2.3.0"
+    //classpath "com.bertramlabs.plugins:less-asset-pipeline:2.6.4"
   }
 }
 
@@ -52,9 +52,9 @@ apply plugin: "asset-pipeline"
 
 dependencies {
     compile ratpack.dependency("guice")
-    compile "com.bertramlabs.plugins:ratpack-asset-pipeline:2.3.8"
+    compile "com.bertramlabs.plugins:ratpack-asset-pipeline:2.6.4"
     //Example additional LESS support
-    //provided "com.bertramlabs.plugins:less-asset-pipeline:2.3.0"
+    //provided "com.bertramlabs.plugins:less-asset-pipeline:2.6.4"
 }
 ```
 
@@ -65,7 +65,7 @@ import asset.pipeline.ratpack.AssetPipelineModule
 
 ratpack {
   bindings {
-    ConfigData configData = ConfigData.of().sysProps().build()
+    ConfigData configData = ConfigData.of { it.sysProps().build() }
     moduleConfig(new AssetPipelineModule(), configData.get(AssetPipelineModule.Config))
   }
 }
@@ -79,11 +79,11 @@ import asset.pipeline.ratpack.AssetPipelineHandler
 
 ratpack {
   bindings {
-    ConfigData configData = ConfigData.of().sysProps().build()
+    ConfigData configData = ConfigData.of { it.sysProps().build() }
     moduleConfig(new AssetPipelineModule(), configData.get(AssetPipelineModule.Config))
   }
   handlers {
-  	    all(new AssetPipelineHandler("/"))
+  	    all(new AssetPipelineHandler())
   }
 }
 ```
