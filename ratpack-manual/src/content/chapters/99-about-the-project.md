@@ -78,6 +78,7 @@ The following people have provided significant contributions.
 * [Edinson Padrón](https://github.com/epadronu)
 * [Dan Maas](https://github.com/drmaas)
 * [Gus Power](https://github.com/guspower)
+* [Rahul Somasunderam](https://github.com/rahulsom)
 
 ### Past project members
 
