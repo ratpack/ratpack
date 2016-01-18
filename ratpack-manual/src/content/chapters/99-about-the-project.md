@@ -79,6 +79,7 @@ The following people have provided significant contributions.
 * [Dan Maas](https://github.com/drmaas)
 * [Gus Power](https://github.com/guspower)
 * [Rahul Somasunderam](https://github.com/rahulsom)
+* [Spencer Allain](https://github.com/merscwog)
 
 ### Past project members
 
