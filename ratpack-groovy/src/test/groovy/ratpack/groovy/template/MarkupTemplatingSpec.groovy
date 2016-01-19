@@ -24,6 +24,18 @@ import static ratpack.groovy.Groovy.groovyMarkupTemplate
 
 class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
+  def contextClassLoader = new GroovyClassLoader()
+  def originalContextClassLoader
+
+  def setup() {
+    originalContextClassLoader = Thread.currentThread().contextClassLoader
+    Thread.currentThread().contextClassLoader = contextClassLoader
+  }
+
+  def cleanup() {
+    Thread.currentThread().contextClassLoader = originalContextClassLoader
+  }
+
   def "can render template"() {
     given:
     write "templates/foo.gtpl", "yield 'a '; yield value; yield ' b '; 3.times {  yield ' a ' }"
@@ -356,4 +368,32 @@ class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
     get("dir/t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
   }
 
+  def "templates can access context loader classes"() {
+    given:
+    bindings {
+      module(MarkupTemplateModule)
+    }
+    contextClassLoader.parseClass """
+      package com
+
+      class Foo {
+        static value = "foo"
+      }
+    """, "Foo.groovy"
+
+    write "templates/t.gtpl", """
+      import com.Foo
+      p Foo.value
+    """
+
+    when:
+    handlers {
+      get {
+        render groovyMarkupTemplate("t.gtpl", request.queryParams.type)
+      }
+    }
+
+    then:
+    text == "<p>foo</p>"
+  }
 }
