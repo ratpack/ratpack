@@ -138,9 +138,8 @@ public class RatpackPac4j {
    *
    * <pre class="java">{@code
    * import org.pac4j.core.profile.UserProfile;
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.pac4j.RatpackPac4j;
    * import ratpack.session.SessionModule;
@@ -153,9 +152,9 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .prefix("require-auth", a -> a
-   *                 .all(RatpackPac4j.requireAuth(BasicAuthClient.class))
+   *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
    *             )
    *             .get(ctx -> ctx.render("no auth required"))
@@ -188,9 +187,8 @@ public class RatpackPac4j {
    * As such, like {@link #requireAuth(Class)}, this can only be used downstream of the {@link #authenticator(Client[])} handler.
    *
    * <pre class="java">{@code
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.pac4j.RatpackPac4j;
@@ -206,8 +204,8 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
-   *             .get("auth", ctx -> RatpackPac4j.login(ctx, BasicAuthClient.class).then(p -> ctx.redirect("/")))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("auth", ctx -> RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
    *                 RatpackPac4j.userProfile(ctx)
    *                   .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
@@ -253,9 +251,8 @@ public class RatpackPac4j {
    * <pre class="java">{@code
    * import io.netty.handler.codec.http.HttpHeaderNames;
    * import org.pac4j.core.profile.UserProfile;
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.pac4j.RatpackPac4j;
@@ -272,9 +269,9 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .prefix("auth", a -> a
-   *                 .all(RatpackPac4j.requireAuth(BasicAuthClient.class))
+   *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> {
    *                   ctx.render("Hello " + ctx.get(UserProfile.class).getId());
    *                 })
@@ -359,9 +356,8 @@ public class RatpackPac4j {
    * The returned operation simply removes the profile from the session, regardless of whether it's actually there or not.
    *
    * <pre class="java">{@code
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.pac4j.RatpackPac4j;
@@ -377,8 +373,8 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
-   *             .get("auth", ctx -> RatpackPac4j.login(ctx, BasicAuthClient.class).then(p -> ctx.redirect("/")))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("auth", ctx -> RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
    *                 RatpackPac4j.userProfile(ctx)
    *                   .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
@@ -450,7 +446,7 @@ public class RatpackPac4j {
     internalWebContext(ctx).then(webContext -> {
       webContext.getSession().set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
       try {
-        client.redirect(webContext, true, request.isAjaxRequest());
+        client.redirect(webContext, true);
       } catch (Exception e) {
         if (e instanceof RequiresHttpAction) {
           webContext.sendResponse((RequiresHttpAction) e);

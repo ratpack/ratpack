@@ -17,9 +17,8 @@
 package ratpack.pac4j
 
 import org.pac4j.core.profile.UserProfile
-import org.pac4j.http.client.BasicAuthClient
-import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator
-import org.pac4j.http.profile.UsernameProfileCreator
+import org.pac4j.http.client.indirect.IndirectBasicAuthClient
+import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -34,9 +33,9 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       module SessionModule
     }
     handlers {
-      all RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator()))
+      all RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
       prefix('require-auth') {
-        all RatpackPac4j.requireAuth(BasicAuthClient)
+        all RatpackPac4j.requireAuth(IndirectBasicAuthClient)
         get {
           render "Hello " + get(UserProfile).getId()
         }
