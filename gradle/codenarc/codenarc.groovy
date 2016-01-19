@@ -403,7 +403,7 @@ ruleset {
   UnnecessaryModOne
   UnnecessaryNullCheck
   UnnecessaryNullCheckBeforeInstanceOf
-  UnnecessaryObjectReferences
+//  UnnecessaryObjectReferences
   UnnecessaryOverridingMethod
 //  UnnecessaryPackageReference
   UnnecessaryParenthesesForMethodCallWithClosure

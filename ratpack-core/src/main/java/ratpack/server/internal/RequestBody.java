@@ -19,8 +19,7 @@ package ratpack.server.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.*;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
@@ -33,6 +32,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private final List<ByteBuf> byteBufs = new ArrayList<>();
   private final long advertisedLength;
+  private final HttpRequest request;
   private final ChannelHandlerContext ctx;
 
   private boolean read;
@@ -43,8 +43,9 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private Downstream<? super ByteBuf> downstream;
   private ByteBuf compositeBuffer;
 
-  public RequestBody(long advertisedLength, ChannelHandlerContext ctx) {
+  public RequestBody(long advertisedLength, HttpRequest request, ChannelHandlerContext ctx) {
     this.advertisedLength = advertisedLength;
+    this.request = request;
     this.ctx = ctx;
   }
 
@@ -128,6 +129,16 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       } else {
         this.maxContentLength = maxContentLength;
         this.downstream = downstream;
+        if (HttpUtil.is100ContinueExpected(request)) {
+          HttpResponse continueResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
+
+          ctx.writeAndFlush(continueResponse).addListener(future -> {
+            if (!future.isSuccess()) {
+              ctx.fireExceptionCaught(future.cause());
+            }
+          });
+        }
+
         ctx.read();
       }
     });

@@ -57,4 +57,45 @@ class ExpectContinueSpec extends RatpackGroovyDslSpec {
     con.inputStream.text == "foo"
   }
 
+  def "doesn't consume body if body not read"() {
+    when:
+    handlers {
+      post { redirect "/read" }
+      post("read") { request.body.then { render "ok" } }
+    }
+
+
+    def bytes = ("a" * 1024 * 10).bytes
+    def input = new ByteArrayInputStream(bytes)
+
+    HttpURLConnection con = applicationUnderTest.address.toURL().openConnection()
+    con.requestMethod = "POST"
+    con.setRequestProperty("Expect", "100-Continue")
+    con.fixedLengthStreamingMode = bytes.length
+    con.doInput = true
+    con.doOutput = true
+    con.instanceFollowRedirects = false
+    con.connect()
+
+    con.outputStream << input
+
+    then:
+    thrown ProtocolException // server didn't ok to continue
+    con.responseCode == 302
+
+    when:
+    con = new URL(con.getHeaderField("Location")).openConnection() as HttpURLConnection
+    con.setRequestMethod("POST")
+    con.setRequestProperty("Expect", "100-Continue")
+    con.fixedLengthStreamingMode = bytes.length
+    con.doInput = true
+    con.doOutput = true
+    con.instanceFollowRedirects = false
+    con.connect()
+    con.outputStream << input
+
+    then:
+    con.inputStream.text == "ok"
+  }
+
 }
