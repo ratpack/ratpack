@@ -131,6 +131,52 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     assert result.contains("EXECUTION TIMEOUT")
   }
 
+  def "render unhealthy check with exception stack trace"() {
+    when:
+    bindings {
+      bindInstance(HealthCheck, HealthCheck.of("bar") {
+        Promise.of { f ->
+          f.success(HealthCheck.Result.unhealthy("Custom exception message", new RuntimeException("Exception message")))
+        }
+      })
+    }
+    handlers {
+      register {
+      }
+      get("health-checks", new HealthCheckHandler())
+    }
+
+    then:
+    def result = getText("health-checks")
+    assert result.startsWith("bar")
+    assert result.contains("UNHEALTHY")
+    assert result.contains("Custom exception message")
+    assert result.contains("Exception message")
+  }
+
+  def "render unhealthy check with formatted message"() {
+    when:
+    bindings {
+      bindInstance(HealthCheck, HealthCheck.of("bar") {
+        Promise.of { f ->
+          f.success(HealthCheck.Result.unhealthy("First value is: %s, second value is: %s", "eggs", "ham"))
+        }
+      })
+    }
+    handlers {
+      register {
+      }
+      get("health-checks", new HealthCheckHandler())
+    }
+
+    then:
+    def result = getText("health-checks")
+    assert result.startsWith("bar")
+    assert result.contains("UNHEALTHY")
+    assert result.contains("First value is: eggs, second value is: ham")
+  }
+
+
   def "render unhealthy check while promise itself throwing exception"() {
     when:
     bindings {

@@ -80,6 +80,8 @@ The following people have provided significant contributions.
 * [Gus Power](https://github.com/guspower)
 * [Rahul Somasunderam](https://github.com/rahulsom)
 * [Spencer Allain](https://github.com/merscwog)
+* [Phill Barber] (https://github.com/phillbarber)
+* [Sebastien Bonnet] (https://github.com/sebbonnet)
 
 ### Past project members
 
