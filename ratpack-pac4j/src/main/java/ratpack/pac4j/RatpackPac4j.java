@@ -231,6 +231,7 @@ public class RatpackPac4j {
    * @param authorizers the authorizers to check authorizations
    * @return a handler
    */
+  @SafeVarargs
   public static Handler security(Class<? extends Client<?, ?>> clientType, Authorizer<UserProfile>... authorizers) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
       {
