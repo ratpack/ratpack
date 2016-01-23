@@ -1,86 +1,75 @@
 # Testing Ratpack applications
 
-Ratpack provides testing support, both at the functional and unit level.
-The `ratpack-test` library contains the core support, and `ratpack-groovy-test` provides convenient Groovy extensions.
+Testing is a first class citizen in Ratpack.
+The `ratpack-test` library contains the core support, and `ratpack-groovy-test` provides some Groovy sugar to these types.
 
-Note: The `ratpack` and `ratpack-groovy` Gradle plugins auto configure these libraries to be added to the test classpath.
+> The `ratpack` and `ratpack-groovy` Gradle plugins add these libraries implicitly to the test compile classpath.
+
+The Ratpack test support is agnostic of the test framework in use.
+Any framework can potential be used.
+
+Many Ratpack users use the [Spock testing framework](http://spockframework.org).
+While Spock requires writing tests in Groovy, it can effortlessly be used to effectively test Java code.
 
 ## Unit testing
 
-The primary integration point between Ratpack and your code is the [`Handler`](api/ratpack/handling/Handler.html) contract.
-Ratpack provides the [`RequestFixture.handle()`](api/ratpack/test/handling/RequestFixture.html#handle-ratpack.handling.Handler-ratpack.func.Action-) and
-[`GroovyRequestFixture.handle()`](api/ratpack/groovy/test/handling/GroovyRequestFixture.html#handle-ratpack.handling.Handler-groovy.lang.Closure-) for contriving the invocation of a handler.
-As the routing of requests is also implemented via handlers in Ratpack, this can also be used to test the routing.
+### RequestFixture
 
-Ratpack doesn't couple to any particular test framework.
-It only provides some utilities that you can use from whatever test framework you choose.
-However, we strongly recommend using the Groovy based [Spock Framework](http://www.spockframework.org), even if your application is implemented in Java.
+The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle-ratpack.handling.Handler-ratpack.func.Action-) class
+facilitates creating a mocked request environment, ostensibly for testing [`Handler`](api/ratpack/handling/Handler.html) implementations.
+However, it is also common to use an ad-hoc handler with a request fixture that integrates with other components (e.g. [`Parser`](api/ratpack/parse/Parser.html) implementations).
 
-There is no special setup or teardown required for unit testing Ratpack applications, as by definition they require no server infrastructure.
+> Note: the [`GroovyRequestFixture`](api/ratpack/groovy/test/handling/GroovyRequestFixture.html) class provides Groovy sugar for working with request fixtures.
+ 
+### ExecHarness
+
+The [`ExecHarness`](api/ratpack/test/exec/ExecHarness.html) fixture facilitates testing code that leverages Ratpack's execution mechanisms outside of an application.
+If you need to unit test code that uses [`Promise`](api/ratpack/exec/Promise.html), an exec harness is what you need.
+
+## Integration testing
+
+Ratpack integration tests are tests that test a subset of application components, via the HTTP interface.
+ 
+The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) fixture facilitates constructing an ad-hoc application that responds to real HTTP requests.
+In the context of integration testing, it is typically used to glue together a specific combination of application components to test.
+
+As it constructs a real Ratpack application, it can also be used for testing implementations of Ratpack extension points such as [`Renderer`](api/ratpack/render/Renderer.html), [`Parser`](api/ratpack/parse/Parser.html) and [`ConfigurableModule`](api/ratpack/guice/ConfigurableModule.html).
+
+The `EmbeddedApp` fixture manages starting and stopping the application, as well as providing a [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) that makes requests of the embedded application.
+
+Importantly, embedded apps must be closed when they are no longer needed in order to free resources.
+The `EmbeddedApp` type implements the [`java.io.AutoCloseable`](https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html) interface, who's `close()` method can be used to stop the server.
+This can often be combined with the “after test” lifecycle event of the testing framework being used, such as JUnit's `@After` methods.
+
+> Note: the `EmbeddedApp` fixture can also be used “standalone” for creating mocked HTTP services when testing other types of, non Ratpack, applications.  
 
 ## Functional testing
-Functional testing for Ratpack is built up around the [ApplicationUnderTest](api/ratpack/test/ApplicationUnderTest.html).
 
-This interface provides the address of the running application. Implementations of this interface will take care of starting the server for you.
+Ratpack functional tests are tests that test an entire application, via the HTTP interface.
 
-### TestHttpClient
+For Ratpack apps that are defined as a Java main class, the [`MainClassApplicationUnderTest`](api/ratpack/test/MainClassApplicationUnderTest.html) fixture can be used.
+For Ratpack app that are defined as a Groovy script, the [`GroovyRatpackMainApplicationUnderTest`](api/ratpack/groovy/test/GroovyRatpackMainApplicationUnderTest.html) fixture can be used.
 
-Ratpack provides [TestHttpClient](api/ratpack/test/http/TestHttpClient.html) in `ratpack-groovy-test`, this is a client that makes it very simple to test status codes and responses.
+If you have a custom entry point, the [`ServerBackedApplicationUnderTest`](api/ratpack/test/ServerBackedApplicationUnderTest.html) abstract super class can be extended for your needs.
 
-Note below we use @Delegate so we just need to call `get()` in the when block instead of `client.get()`.
+These fixtures manage starting and stopping the application, as well as providing a [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) that makes requests of the embedded application.
 
-```language-groovy tested
+Importantly, applications under test must be closed when they are no longer needed in order to free resources.
+The `CloseableApplicationUnderTest` type implements the [`java.io.AutoCloseable`](https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html) interface, who's `close()` method can be used to stop the server.
+This can often be combined with the “after test” lifecycle event of the testing framework being used, such as JUnit's `@After` methods. 
 
-import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
-import ratpack.test.http.TestHttpClient
-import ratpack.test.ServerBackedApplicationUnderTest
+### Impositions
+ 
+Ratpack provides a mechanism for augmenting applications under test for testability, known as [`impositions`](api/ratpack/impose/Impositions.html).
 
-class SiteSmokeSpec {
+Typically, impositions are specified by sub-classing [`MainClassApplicationUnderTest`](api/ratpack/test/MainClassApplicationUnderTest.html) or similar, and overriding the 
+[`addImpositions(ImpositionsSpec)`](api/ratpack/test/ServerBackedApplicationUnderTest.html#addImpositions-ratpack.impose.ImpositionsSpec-) method.
+ 
+### Browser testing
 
-  ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
-  @Delegate TestHttpClient client = TestHttpClient.testHttpClient(aut)
+Browser testing works similarly to what has been previously named as functional testing here, except that usage of Ratpack's `TestHttpClient` is replaced with browser automation.
+This typically involves using [`MainClassApplicationUnderTest`](api/ratpack/test/MainClassApplicationUnderTest.html) to start and stop the app, 
+and to provide the application under test's address via the [`getAddress()`](api/ratpack/test/ApplicationUnderTest.html#getAddress--) method.
 
-  def "Check Site Index"() {
-    get("index.html")
-
-
-    assert response.statusCode == 200
-    assert response.body.text.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
-
-  }
-
-  def "Check Site Root"() {
-    get()
-
-    assert response.statusCode == 200
-    assert response.body.text.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
-  }
-
-  def cleanup() {
-    aut.stop()
-  }
-
-}
-``` 
-
-### Geb
-
-[Geb](http://www.gebish.org/) can also be used we just need to set up the correct base URL and make sure the test app is shut down.
-
-To set the correct base URL we will use the ServerBackedApplicationUnderTest instance to get the address and give that to the Geb browser instance.
-
-For shutting down the app we will call stop in the cleanup function.
-
-An example of a Geb based test is available [here](https://github.com/ratpack/ratpack/blob/master/ratpack-site/src/browserTest/groovy/ratpack/site/SiteBrowserSmokeSpec.groovy).
-
-### Application subsets, modules and extensions
-
-The [`ratpack.test.embed`](api/ratpack/test/embed/package-summary.html) package (provided by the `ratpack-test` library) provides the [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) type.
-These can be used to functionally test features in isolation, by creating small Ratpack apps within test cases and is actually the basis for how Ratpack itself is tested.
-This approach is most commonly used for functionally testing reusable Ratpack components (e.g. [Guice modules](guice.html)) but can also be used for functionally testing a subset of an application.
-
-The [`ratpack.groovy.test.embed`](api/ratpack/groovy/test/embed/package-summary.html) package (provided by the `ratpack-groovy-test` library) provides the [`GroovyEmbeddedApp`](api/ratpack/groovy/test/embed/GroovyEmbeddedApp.html) Groovy specialization.
-This is the preferred implementation to use as it provides Guice support, flexibility and is easy to use.
-
-The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) type extends the [`ApplicationUnderTest`](api/ratpack/test/ApplicationUnderTest.html) type.
-This makes them convenient to use with the [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) mechanism provided by the `ratpack-groovy-test` library.
+Ratpack users commonly use [Geb](http://www.gebish.org/) for browser tests as its expressive style and synergy with [Spock](http://spockframework.org) suit well. 
+An example of a Ratpack/Geb based test for the `ratpack.io` site is [available for reference](https://github.com/ratpack/ratpack/blob/master/ratpack-site/src/browserTest/groovy/ratpack/site/SiteBrowserSmokeSpec.groovy).
