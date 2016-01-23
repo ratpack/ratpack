@@ -40,7 +40,7 @@ public class RatpackServerProxy {
     }
   }
 
-  public static RatpackServerProxy capture(ClassLoader classLoader, String mainClassName, String[] args) {
+  public static RatpackServerProxy capture(ClassLoader classLoader, final String mainClassName, final String[] appArgs) {
     Class<?> mainClass;
     try {
       mainClass = classLoader.loadClass(mainClassName);
@@ -79,11 +79,12 @@ public class RatpackServerProxy {
       throw new RuntimeException("Could not find capture() on ServerCapturer");
     }
 
+    final Method finalMain = main;
     Object block = Proxy.newProxyInstance(classLoader, new Class[]{blockType}, new InvocationHandler() {
       @Override
       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
-          main.invoke(null, new Object[]{args});
+          finalMain.invoke(null, new Object[]{appArgs});
         } catch (Exception e) {
           throw new RuntimeException("failed to invoke main(String...) on class: " + mainClassName, e);
         }
