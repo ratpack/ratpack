@@ -82,6 +82,7 @@ The following people have provided significant contributions.
 * [Spencer Allain](https://github.com/merscwog)
 * [Phill Barber] (https://github.com/phillbarber)
 * [Sebastien Bonnet] (https://github.com/sebbonnet)
+* [Alex Edwards](https://github.com/set321go)
 
 ### Past project members
 
