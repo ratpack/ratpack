@@ -41,4 +41,9 @@ public class DefaultStatus implements Status {
   public HttpResponseStatus getNettyStatus() {
     return status;
   }
+
+  @Override
+  public String toString() {
+    return status.code() + ":" + status.reasonPhrase();
+  }
 }
