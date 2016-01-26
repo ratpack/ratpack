@@ -50,7 +50,7 @@ import ratpack.impose.Impositions;
  *
  *   public static void main(String[] args) throws Exception {
  *     new MainClassApplicationUnderTest(App.class) {
- *       {@code @}Override
+ *       {@literal @}Override
  *       protected void addImpositions(ImpositionsSpec impositions) {
  *         impositions.add(BindingsImposition.of(r ->
  *           r.bindInstance(String.class, "bar")
