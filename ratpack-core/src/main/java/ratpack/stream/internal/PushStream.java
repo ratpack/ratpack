@@ -18,10 +18,10 @@ package ratpack.stream.internal;
 
 public interface PushStream<T> {
 
-  public void push(T item);
+  void push(T item);
 
-  public void complete();
+  void complete();
 
-  public void error(Throwable throwable);
+  void error(Throwable throwable);
 
 }

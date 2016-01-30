@@ -19,6 +19,7 @@ package ratpack.http.internal;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -36,6 +37,8 @@ import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.RequestBodyReader;
+import ratpack.stream.TransformablePublisher;
+import ratpack.stream.internal.EmptyPublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -227,6 +230,20 @@ public class DefaultRequest implements Request {
       return Promise.value(new ByteBufBackedTypedData(Unpooled.EMPTY_BUFFER, getContentType()));
     } else {
       return bodyReader.read(maxContentLength, onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    }
+  }
+
+  @Override
+  public TransformablePublisher<? extends ByteBuf> getBodyStream() {
+    return getBodyStream(serverConfig.getMaxContentLength());
+  }
+
+  @Override
+  public TransformablePublisher<? extends ByteBuf> getBodyStream(long maxContentLength) {
+    if (bodyReader == null) {
+      return EmptyPublisher.instance();
+    } else {
+      return bodyReader.readStream(maxContentLength);
     }
   }
 

@@ -18,12 +18,14 @@ package ratpack.http;
 
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
+import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
 
@@ -177,6 +179,10 @@ public interface Request extends MutableRegistry {
    * @since 1.1
    */
   Promise<TypedData> getBody(long maxContentLength, Block onTooLarge);
+
+  TransformablePublisher<? extends ByteBuf> getBodyStream();
+
+  TransformablePublisher<? extends ByteBuf> getBodyStream(long maxContentLength);
 
   /**
    * The request headers.
