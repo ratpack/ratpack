@@ -17,6 +17,7 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecution;
@@ -386,6 +387,10 @@ public class Streams {
    */
   public static <T> TransformablePublisher<T> buffer(Publisher<T> publisher) {
     return new BufferingPublisher<>(publisher);
+  }
+
+  public static <T> TransformablePublisher<T> buffer(Action<? super T> disposer, Function<? super BufferedWriteStream<T>, Subscription> function) {
+    return new PartialBufferingPublisher<>(disposer, function);
   }
 
   /**

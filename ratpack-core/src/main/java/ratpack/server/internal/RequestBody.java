@@ -20,8 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
@@ -29,7 +28,6 @@ import ratpack.http.RequestBodyAlreadyReadException;
 import ratpack.http.RequestBodyTooLargeException;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
-import ratpack.stream.internal.SubscriptionSupport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +44,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private boolean done;
   private long maxContentLength = -1;
   private Block onTooLarge;
-  private int length;
+  private long length;
   private Downstream<? super ByteBuf> downstream;
   private ByteBuf compositeBuffer;
 
@@ -135,58 +133,65 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
-    return Streams.bindExec(new Publisher<ByteBuf>() {
-      @Override
-      public void subscribe(Subscriber<? super ByteBuf> s) {
+    return Streams.bindExec(Streams.<ByteBuf>buffer(ByteBuf::release, write -> {
         if (read) {
-          s.onError(new RequestBodyAlreadyReadException());
+          throw new RequestBodyAlreadyReadException();
         }
+
         read = true;
         RequestBody.this.maxContentLength = maxContentLength;
 
         if (advertisedLength > maxContentLength || length > maxContentLength) {
           close();
-          s.onError(new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length)));
-          return;
+          throw new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length));
         }
 
-        s.onSubscribe(new SubscriptionSupport<ByteBuf>(s) {
-          {
-            start();
+        ctx.channel().config().setAutoRead(false);
+
+        return new Subscription() {
+          @Override
+          public void request(long n) {
+            if (onAdd == null) {
+              ByteBuf alreadyReceived = composeReceived();
+              if (alreadyReceived.readableBytes() > 0) {
+                write.item(alreadyReceived);
+              }
+              if (done) {
+                write.complete();
+                return;
+              } else {
+                onAdd = httpContent -> {
+                  if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
+                    ByteBuf byteBuf = httpContent.content();
+                    length += byteBuf.readableBytes();
+                    if (maxContentLength > 0 && maxContentLength < length) {
+                      close();
+                      write.error(new RequestBodyTooLargeException(maxContentLength, length));
+                      return;
+                    }
+
+                    write.item(byteBuf);
+                  }
+                  if (httpContent instanceof LastHttpContent) {
+                    done = true;
+                    write.complete();
+                  } else if (write.getRequested() > 0) {
+                    ctx.channel().read();
+                  }
+                };
+              }
+            }
+
+            ctx.channel().read();
           }
 
           @Override
-          protected void doRequest(long n) {
-            ByteBuf alreadyReceived = composeReceived();
-            if (alreadyReceived.readableBytes() > 0) {
-              onNext(alreadyReceived);
-            }
-            if (done) {
-              onComplete();
-            } else {
-              onAdd = httpContent -> {
-                if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
-                  ByteBuf byteBuf = httpContent.content();
-                  length += byteBuf.readableBytes();
-                  if (maxContentLength > 0 && maxContentLength < length) {
-                    close();
-                    onError(new RequestBodyTooLargeException(maxContentLength, length));
-                    return;
-                  }
+          public void cancel() {
 
-                  onNext(byteBuf);
-                }
-                if (httpContent instanceof LastHttpContent) {
-                  done = true;
-                  onComplete();
-                }
-              };
-            }
-            ctx.channel().config().setAutoRead(true);
           }
-        });
-      }
-    }).buffer();
+        };
+      })
+    );
   }
 
   @Override
