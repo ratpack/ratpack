@@ -150,6 +150,8 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         ctx.channel().config().setAutoRead(false);
 
         return new Subscription() {
+          boolean autoRead;
+
           @Override
           public void request(long n) {
             if (onAdd == null) {
@@ -175,20 +177,26 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                   }
                   if (httpContent instanceof LastHttpContent) {
                     done = true;
+                    ctx.channel().config().setAutoRead(false);
                     write.complete();
-                  } else if (write.getRequested() > 0) {
+                  } else if (!autoRead && write.getRequested() > 0) {
                     ctx.channel().read();
                   }
                 };
               }
             }
 
-            ctx.channel().read();
+            if (n == Long.MAX_VALUE) {
+              ctx.channel().config().setAutoRead(true);
+              autoRead = true;
+            } else {
+              ctx.channel().read();
+            }
           }
 
           @Override
           public void cancel() {
-
+            close();
           }
         };
       })
