@@ -137,6 +137,17 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder maxContentLength(int maxContentLength);
 
   /**
+   * The maximum size of read chunks of request/response bodies.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_CHUNK_SIZE}.
+   *
+   * @param maxChunkSize the maximum size of read chunks of request/response bodies
+   * @return {@code this}
+   * @see ServerConfig#getMaxChunkSize()
+   */
+  ServerConfigBuilder maxChunkSize(int maxChunkSize);
+
+  /**
    * The connect timeout of the channel.
    *
    * @param connectTimeoutMillis the connect timeout in milliseconds

@@ -70,6 +70,15 @@ public interface ServerConfig extends ConfigData {
   int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
+   * The default maximum chunk size to use when reading request/response bodies.
+   * <p>
+   * Defaults to {@value}.
+   *
+   * @see #getMaxChunkSize()
+   */
+  int DEFAULT_MAX_CHUNK_SIZE = 8192;
+
+  /**
    * Creates a builder configured for development mode and an ephemeral port.
    *
    * @return a server config builder
@@ -212,6 +221,22 @@ public interface ServerConfig extends ConfigData {
    * @return whether or not the base dir of the application has been set.
    */
   boolean isHasBaseDir();
+
+  /**
+   * The maximum chunk size to use when reading request (server) or response (client) bodies.
+   * <p>
+   * This value is used to determine the size of chunks to emit when consuming request/response bodies.
+   * This generally only has an impact when consuming the body as a stream.
+   * A lower value will reduce memory pressure by requiring less memory at one time,
+   * but at the expense of throughput.
+   * <p>
+   * Defaults to {@link #DEFAULT_MAX_CHUNK_SIZE}.
+   * This value is suitable for most applications.
+   * If your application deals with very large bodies, you may want to increase it.
+   *
+   * @return the maximum chunk size
+   */
+  int getMaxChunkSize();
 
   /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.

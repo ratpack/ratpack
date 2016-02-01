@@ -41,6 +41,7 @@ public class ServerConfigData {
   private Optional<Integer> maxMessagesPerRead = Optional.empty();
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
+  private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
 
   public ServerConfigData(FileSystemBinding baseDir, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -151,6 +152,14 @@ public class ServerConfigData {
 
   public void setWriteSpinCount(int writeSpinCount) {
     this.writeSpinCount = Optional.of(writeSpinCount);
+  }
+
+  public int getMaxChunkSize() {
+    return maxChunkSize;
+  }
+
+  public void setMaxChunkSize(int maxChunkSize) {
+    this.maxChunkSize = maxChunkSize;
   }
 
   public FileSystemBinding getBaseDir() {
