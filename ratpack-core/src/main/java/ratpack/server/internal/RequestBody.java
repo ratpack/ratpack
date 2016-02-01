@@ -28,6 +28,7 @@ import ratpack.http.RequestBodyAlreadyReadException;
 import ratpack.http.RequestBodyTooLargeException;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.stream.internal.PartialBufferingPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +134,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
-    return Streams.bindExec(Streams.<ByteBuf>buffer(ByteBuf::release, write -> {
+    return Streams.bindExec(new PartialBufferingPublisher<>(ByteBuf::release, write -> {
         if (read) {
           throw new RequestBodyAlreadyReadException();
         }
