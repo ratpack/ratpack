@@ -67,14 +67,14 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     handlers {
       all(RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator())))
       prefix("notauthz") {
-        all(RatpackPac4j.security(FormClient, { WebContext context, UserProfile profile -> false } as Authorizer))
+        all(RatpackPac4j.secure(FormClient, { WebContext context, UserProfile profile -> false } as Authorizer))
         get {
           def userProfile = maybeGet(UserProfile).orElse(null)
           response.send "notauthz:" + userProfile?.attributes?.username
         }
       }
       prefix("authz") {
-        all(RatpackPac4j.security(FormClient, { WebContext context, UserProfile profile -> true } as Authorizer,
+        all(RatpackPac4j.secure(FormClient, { WebContext context, UserProfile profile -> true } as Authorizer,
           { WebContext context, UserProfile profile -> true } as Authorizer))
         get {
           def userProfile = maybeGet(UserProfile).orElse(null)

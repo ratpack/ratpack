@@ -56,7 +56,7 @@ import java.util.Optional;
  * The {@link #requireAuth(Class)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
  * <p>
- * The {@link #security(Class, Authorizer[])} method provides a handler that acts like a filter, ensuring that the user is authenticated and
+ * The {@link #secure(Class, Authorizer[])} method provides a handler that acts like a filter, ensuring that the user is authenticated and
  * that authorizations (defined by {@link Authorizer}) are checked for all requests.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
@@ -178,7 +178,7 @@ public class RatpackPac4j {
    * @return a handler
    */
   public static Handler requireAuth(Class<? extends Client<?, ?>> clientType) {
-    return security(clientType, (Authorizer<UserProfile>[]) null);
+    return secure(clientType, (Authorizer<UserProfile>[]) null);
   }
 
   /**
@@ -232,7 +232,7 @@ public class RatpackPac4j {
    * @return a handler
    */
   @SafeVarargs
-  public static Handler security(Class<? extends Client<?, ?>> clientType, Authorizer<UserProfile>... authorizers) {
+  public static Handler secure(Class<? extends Client<?, ?>> clientType, Authorizer<UserProfile>... authorizers) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
       {
         if (authorizers != null) {
