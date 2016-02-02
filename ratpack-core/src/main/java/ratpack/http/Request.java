@@ -216,7 +216,7 @@ public interface Request extends MutableRegistry {
    * import org.apache.commons.lang3.RandomStringUtils;
    * import org.reactivestreams.Subscriber;
    * import org.reactivestreams.Subscription;
-   * import org.testng.Assert;
+   * import org.junit.Assert;
    * import ratpack.exec.Promise;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.test.embed.EmbeddedApp;
