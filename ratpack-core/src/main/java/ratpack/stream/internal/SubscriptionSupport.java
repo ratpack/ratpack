@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-abstract class SubscriptionSupport<T> implements Subscription {
+public abstract class SubscriptionSupport<T> implements Subscription {
 
   private Subscriber<? super T> subscriber;
 

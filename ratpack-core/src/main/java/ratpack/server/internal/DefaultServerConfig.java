@@ -96,6 +96,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
+  public int getMaxChunkSize() {
+    return serverConfigData.getMaxChunkSize();
+  }
+
+  @Override
   public FileSystemBinding getBaseDir() throws NoBaseDirException {
     return baseDir.orElseThrow(() -> new NoBaseDirException("No base dir has been set"));
   }

@@ -31,9 +31,10 @@ import ratpack.config.internal.module.SSLContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
-import ratpack.impose.*;
 import ratpack.impose.ForceDevelopmentImposition;
 import ratpack.impose.ForceServerListenPortImposition;
+import ratpack.impose.Impositions;
+import ratpack.impose.ServerConfigImposition;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
@@ -130,6 +131,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder maxContentLength(int maxContentLength) {
     return addToServer(n -> n.put("maxContentLength", maxContentLength));
+  }
+
+  @Override
+  public ServerConfigBuilder maxChunkSize(int maxChunkSize) {
+    return addToServer(n -> n.put("maxChunkSize", maxChunkSize));
   }
 
   @Override

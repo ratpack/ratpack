@@ -61,18 +61,14 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         if (requestedUpstream.compareAndSet(false, true)) {
           if (n == Long.MAX_VALUE) {
             publisher.subscribe(new PassThruSubscriber());
-            upstreamSubscription.get().request(n);
           } else {
             bufferingSubscriber = new BufferingSubscriber();
             publisher.subscribe(bufferingSubscriber);
-            upstreamSubscription.get().request(Long.MAX_VALUE);
             bufferingSubscriber.wanted.addAndGet(n);
             bufferingSubscriber.tryDrain();
           }
         } else {
-          if (bufferingSubscriber == null) {
-            upstreamSubscription.get().request(n);
-          } else if (!bufferingSubscriber.open.get()) {
+          if (bufferingSubscriber != null && !bufferingSubscriber.open.get()) {
             if (bufferingSubscriber.wanted.addAndGet(n) >= 0) {
               bufferingSubscriber.open.set(true);
             }
@@ -98,6 +94,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
       @Override
       public void onSubscribe(org.reactivestreams.Subscription s) {
         upstreamSubscription.set(s);
+        s.request(Long.MAX_VALUE);
       }
 
       @Override
@@ -128,6 +125,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
           s.cancel();
         }
         upstreamSubscription.set(s);
+        s.request(Long.MAX_VALUE);
       }
 
       @Override

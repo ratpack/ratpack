@@ -80,7 +80,7 @@ public class RatpackServerProxy {
     }
 
     final Method finalMain = main;
-    Object block = Proxy.newProxyInstance(classLoader, new Class[]{blockType}, new InvocationHandler() {
+    Object block = Proxy.newProxyInstance(classLoader, new Class<?>[]{blockType}, new InvocationHandler() {
       @Override
       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {

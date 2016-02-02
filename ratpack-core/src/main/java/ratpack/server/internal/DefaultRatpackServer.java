@@ -41,9 +41,9 @@ import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
 import ratpack.impose.Impositions;
+import ratpack.impose.UserRegistryImposition;
 import ratpack.registry.Registry;
 import ratpack.server.*;
-import ratpack.impose.UserRegistryImposition;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
@@ -244,7 +244,7 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
+          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, serverConfig.getMaxChunkSize(), false));
           pipeline.addLast("encoder", new HttpResponseEncoder());
           pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());

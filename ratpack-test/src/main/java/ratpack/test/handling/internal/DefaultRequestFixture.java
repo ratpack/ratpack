@@ -30,12 +30,14 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.impose.Impositions;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
@@ -45,8 +47,10 @@ import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
+import ratpack.server.internal.RequestBodyReader;
 import ratpack.server.internal.ServerRegistry;
-import ratpack.impose.Impositions;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -122,9 +126,24 @@ public class DefaultRequestFixture implements RequestFixture {
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       serverConfig,
-      (maxContentLength, onTooLarge) ->
-        Promise.value(requestBody)
-          .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action())
+      new RequestBodyReader() {
+        @Override
+        public Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
+          return Promise.value(requestBody)
+            .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());
+        }
+
+        @Override
+        public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
+          return Streams.<ByteBuf>yield(r -> {
+            if (r.getRequestNum() > 0) {
+              return null;
+            } else {
+              return requestBody;
+            }
+          });
+        }
+      }
     );
 
     if (pathBinding != null) {

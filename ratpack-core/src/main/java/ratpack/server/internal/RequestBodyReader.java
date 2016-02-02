@@ -19,9 +19,12 @@ package ratpack.server.internal;
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
+import ratpack.stream.TransformablePublisher;
 
 public interface RequestBodyReader {
 
-  Promise<ByteBuf> read(long maxContentLength, Block onTooLarge);
+  Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge);
+
+  TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength);
 
 }

@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import ratpack.func.Action;
 import ratpack.func.Block;
 
+import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -216,5 +217,24 @@ public interface Downstream<T> {
     }, Execution.current().getEventLoop());
   }
 
+  /**
+   * Creates a JDK {@link CompletionHandler} that connects to this downstream.
+   *
+   * @return a completion handler
+   * @since 1.2
+   */
+  default <I extends T, A> CompletionHandler<I, A> completionHandler() {
+    return new CompletionHandler<I, A>() {
+      @Override
+      public void completed(I result, A attachment) {
+        success(result);
+      }
+
+      @Override
+      public void failed(Throwable exc, A attachment) {
+        error(exc);
+      }
+    };
+  }
 
 }

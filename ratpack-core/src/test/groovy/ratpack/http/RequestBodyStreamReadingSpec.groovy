@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,21 @@
 
 package ratpack.http
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import org.apache.commons.lang3.RandomStringUtils
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
+import ratpack.handling.Context
 import ratpack.http.client.RequestSpec
 import ratpack.registry.Registry
+import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.test.internal.SimpleErrorHandler
 
-class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
+import java.nio.charset.StandardCharsets
+
+class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
 
   def "can not read body"() {
     when:
@@ -34,9 +42,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
         render "ok"
       }
       post("read") {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+        response.sendStream request.bodyStream
       }
     }
 
@@ -57,9 +63,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
         redirect "read"
       }
       post("read") {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+        response.sendStream request.bodyStream
       }
     }
 
@@ -75,24 +79,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
-      }
-    }
-
-    then:
-    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
-    postText() == "foo"
-  }
-
-  def "can get request body as bytes"() {
-    when:
-    handlers {
-      post {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+        response.sendStream request.bodyStream
       }
     }
 
@@ -105,8 +92,8 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        Blocking.get { "foo " }.flatMap { request.body }.then { body ->
-          response.send new String(body.bytes, "utf8")
+        Blocking.get { "foo " }.map { request.bodyStream }.then { body ->
+          response.sendStream body
         }
       }
     }
@@ -133,14 +120,12 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
   def "can get large request body as bytes"() {
     given:
-    def string = "a" * 1024 * 9
+    def string = "a" * 1024 * 300
 
     when:
     handlers {
       post {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+        response.sendStream request.bodyStream
       }
     }
 
@@ -155,16 +140,14 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        request.body.then { body ->
-          response.send body.bytes.length.toString()
-        }
+        response.sendStream request.bodyStream
       }
     }
 
     then:
-    getText() == "0"
-    postText() == "0"
-    putText() == "0"
+    getText() == ""
+    postText() == ""
+    putText() == ""
   }
 
   def "respect max content length"() {
@@ -173,10 +156,8 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
       maxContentLength 16
     }
     handlers {
-      post {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+      post { ctx ->
+        request.bodyStream.subscribe(new BufferThenSendSubscriber(context))
       }
     }
 
@@ -195,14 +176,10 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post {
-        request.body.then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+        request.bodyStream.subscribe(new BufferThenSendSubscriber(context))
       }
       post("allow") {
-        request.getBody(16 * 8).then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
+        request.getBodyStream(16 * 8).subscribe(new BufferThenSendSubscriber(context))
       }
     }
 
@@ -218,8 +195,8 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        request.body.then { body ->
-          next(Registry.single(String, new String(body.bytes, "utf8")))
+        Streams.toList(request.bodyStream).map { Unpooled.unmodifiableBuffer(it as ByteBuf[]) }.then { body ->
+          next(Registry.single(String, body.toString(StandardCharsets.UTF_8)))
         }
       }
       post {
@@ -227,7 +204,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
       }
       post("again") {
         request.body.then { body ->
-          response.send get(String) + new String(body.bytes, "utf8")
+          request.bodyStream.subscribe(new BufferThenSendSubscriber(context))
         }
       }
     }
@@ -242,8 +219,28 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
   def "can eagerly release body"() {
     when:
     handlers {
-      post {
-        request.body.then { it.buffer.release(); render "ok" }
+      post { ctx ->
+        request.bodyStream.subscribe(new Subscriber<ByteBuf>() {
+          @Override
+          void onSubscribe(Subscription s) {
+            s.request(Long.MAX_VALUE)
+          }
+
+          @Override
+          void onNext(ByteBuf byteBuf) {
+            byteBuf.release()
+          }
+
+          @Override
+          void onError(Throwable t) {
+
+          }
+
+          @Override
+          void onComplete() {
+            ctx.render "ok"
+          }
+        })
       }
     }
 
@@ -254,84 +251,13 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     postText() == "ok"
   }
 
-  def "can't read body twice"() {
-    when:
-    bindings {
-      bind SimpleErrorHandler
-    }
-    handlers {
-      post {
-        request.body.then { 1 }
-        request.body.then { render "ok" }
-      }
-    }
-
-    then:
-    requestSpec { it.body.text("foo") }
-    postText() == "ratpack.http.RequestBodyAlreadyReadException: the request body has already been read"
-  }
-
-  def "can take custom action on request body too large"() {
-    when:
-    serverConfig {
-      maxContentLength 16
-    }
-    handlers {
-      post { ctx ->
-        request.getBody({ ctx.render("foo") }).then { body ->
-          response.send new String(body.bytes, "utf8")
-        }
-      }
-    }
-
-    then:
-    requestSpec { RequestSpec requestSpec -> requestSpec.body.text("bar".multiply(16)) }
-    with(post()) {
-      statusCode == 200
-      body.text == "foo"
-      headers.connection == "close"
-    }
-  }
-
-  def "request body is not eagerly read"() {
-    given:
-    def body = "a" * (4096 * 10)
-    handlers {
-      post { ctx ->
-        ctx.render(directChannelAccess.channel.id().asShortText())
-      }
-    }
-
-    when:
-    HttpURLConnection connection = applicationUnderTest.address.toURL().openConnection()
-    connection.setRequestMethod("POST")
-    connection.doOutput = true
-    connection.outputStream << body
-    def channelId1 = connection.inputStream.text
-
-    then:
-    connection.getHeaderField("Connection") == "close"
-
-    when:
-    connection = applicationUnderTest.address.toURL().openConnection()
-    connection.setRequestMethod("POST")
-    connection.doOutput = true
-    connection.outputStream << body
-    def channelId2 = connection.inputStream.text
-
-    then:
-    connection.getHeaderField("Connection") == "close"
-
-    and:
-    channelId1 != channelId2
-  }
-
   def "can read large request body over same connection"() {
     given:
     def body = "a" * (4096 * 10)
     handlers {
       post {
-        request.body.then {
+        request.bodyStream.toList().then {
+          it*.release()
           context.render(directChannelAccess.channel.id().asShortText())
         }
       }
@@ -359,5 +285,94 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
     and:
     channelId1 == channelId2
+  }
+
+  def "can stream large request body to disk"() {
+    given:
+    def string = RandomStringUtils.random(1024 * 1024 * 2)
+    def file = baseDir.path("out.txt").toFile()
+    file.createNewFile()
+
+    when:
+    handlers {
+      post { ctx ->
+        request.getBodyStream(string.bytes.length).subscribe(new Subscriber<ByteBuf>() {
+          OutputStream out
+          Subscription subscription
+
+          @Override
+          void onSubscribe(Subscription s) {
+            subscription = s
+            out = file.newOutputStream()
+            s.request(1)
+          }
+
+          @Override
+          void onNext(ByteBuf byteBuf) {
+            Blocking.op {
+              try {
+                byteBuf.getBytes(0, out, byteBuf.readableBytes())
+              } finally {
+                byteBuf.release()
+              }
+            } then {
+              subscription.request 1
+            }
+          }
+
+          @Override
+          void onError(Throwable t) {
+            out.close()
+            ctx.error(t)
+          }
+
+          @Override
+          void onComplete() {
+            out.close()
+            ctx.render "ok"
+          }
+        })
+      }
+    }
+
+    then:
+    requestSpec { it.body.text string }
+    postText() == "ok"
+    file.text == string
+  }
+
+  class BufferThenSendSubscriber implements Subscriber<ByteBuf> {
+
+    private final List<ByteBuf> byteBufs = []
+    private final Context context
+
+    BufferThenSendSubscriber(Context context) {
+      this.context = context
+    }
+
+    @Override
+    void onSubscribe(Subscription s) {
+      s.request(Long.MAX_VALUE)
+    }
+
+    @Override
+    void onNext(ByteBuf byteBuf) {
+      byteBufs << byteBuf
+    }
+
+    @Override
+    void onError(Throwable t) {
+      byteBufs*.release()
+      if (t instanceof RequestBodyTooLargeException) {
+        context.clientError(413)
+      } else {
+        context.error(t)
+      }
+    }
+
+    @Override
+    void onComplete() {
+      context.response.send(Unpooled.unmodifiableBuffer(byteBufs as ByteBuf[]))
+    }
   }
 }
