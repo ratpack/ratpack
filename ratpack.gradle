@@ -73,7 +73,7 @@ task bintrayPublish << {
 
 allprojects {
   group = "io.ratpack"
-  version = "1.2.0-RC-1"
+  version = "1.2.0-SNAPSHOT"
 
   apply plugin: "base"
   apply plugin: "idea"
