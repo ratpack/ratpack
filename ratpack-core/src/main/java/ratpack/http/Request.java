@@ -20,11 +20,14 @@ import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.cookie.Cookie;
+import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
+import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
+import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
@@ -180,8 +183,132 @@ public interface Request extends MutableRegistry {
    */
   Promise<TypedData> getBody(long maxContentLength, Block onTooLarge);
 
+  /**
+   * Allows reading the body as a stream, with back pressure.
+   * <p>
+   * Similar to {@link #getBodyStream(long)}, except uses {@link ServerConfig#getMaxContentLength()} as the max content length.
+   *
+   * @return a publisher of the request body
+   * @see #getBodyStream(long)
+   * @since 1.2
+   */
   TransformablePublisher<? extends ByteBuf> getBodyStream();
 
+  /**
+   * Allows reading the body as a stream, with back pressure.
+   * <p>
+   * The returned publisher emits the body as {@link ByteBuf}s.
+   * The subscriber <b>MUST</b> {@code release()} each emitted byte buf.
+   * Failing to do so will leak memory.
+   * <p>
+   * If the request body is larger than the given {@code maxContentLength}, a {@link RequestBodyTooLargeException} will be emitted.
+   * If the request body has already been read, a {@link RequestBodyAlreadyReadException} will be emitted.
+   * <p>
+   * The returned publisher is bound to the calling execution via {@link Streams#bindExec(Publisher)}.
+   * If your subscriber's onNext(), onComplete() or onError() methods are asynchronous they <b>MUST</b> use {@link Promise},
+   * {@link Blocking} or similar execution control constructs.
+   * <p>
+   * The following demonstrates how to use this method to stream the request body to a file, using asynchronous IO.
+   *
+   * <pre class="java">
+   * import com.google.common.io.Files;
+   * import io.netty.buffer.ByteBuf;
+   * import org.apache.commons.lang3.RandomStringUtils;
+   * import org.reactivestreams.Subscriber;
+   * import org.reactivestreams.Subscription;
+   * import org.testng.Assert;
+   * import ratpack.exec.Promise;
+   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.test.embed.EmbeddedApp;
+   * import ratpack.test.embed.EphemeralBaseDir;
+   *
+   * import java.io.IOException;
+   * import java.nio.channels.AsynchronousFileChannel;
+   * import java.nio.charset.StandardCharsets;
+   * import java.nio.file.Path;
+   * import java.nio.file.StandardOpenOption;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     EphemeralBaseDir.tmpDir().use(dir -> {
+   *       String string = RandomStringUtils.random(1024 * 1024);
+   *       int length = string.getBytes(StandardCharsets.UTF_8).length;
+   *
+   *       Path file = dir.path("out.txt");
+   *
+   *       EmbeddedApp.fromHandler(ctx ->
+   *         ctx.getRequest().getBodyStream(length).subscribe(new Subscriber<ByteBuf>() {
+   *
+   *           private Subscription subscription;
+   *           private AsynchronousFileChannel out;
+   *           long written;
+   *
+   *           {@literal @}Override
+   *           public void onSubscribe(Subscription s) {
+   *             subscription = s;
+   *             try {
+   *               this.out = AsynchronousFileChannel.open(
+   *                 file, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
+   *               );
+   *               subscription.request(1);
+   *             } catch (IOException e) {
+   *               subscription.cancel();
+   *               ctx.error(e);
+   *             }
+   *           }
+   *
+   *           {@literal @}Override
+   *           public void onNext(ByteBuf byteBuf) {
+   *             Promise.<Integer>of(down ->
+   *               out.write(byteBuf.nioBuffer(), written, null, down.completionHandler())
+   *             ).onError(error -> {
+   *               byteBuf.release();
+   *               subscription.cancel();
+   *               out.close();
+   *               ctx.error(error);
+   *             }).then(bytesWritten -> {
+   *               byteBuf.release();
+   *               written += bytesWritten;
+   *               subscription.request(1);
+   *             });
+   *           }
+   *
+   *           {@literal @}Override
+   *           public void onError(Throwable t) {
+   *             ctx.error(t);
+   *             try {
+   *               out.close();
+   *             } catch (IOException ignore) {
+   *               // ignore
+   *             }
+   *           }
+   *
+   *           {@literal @}Override
+   *           public void onComplete() {
+   *             try {
+   *               out.close();
+   *             } catch (IOException ignore) {
+   *               // ignore
+   *             }
+   *             ctx.render("ok");
+   *           }
+   *         })
+   *       ).test(http -> {
+   *         ReceivedResponse response = http.request(requestSpec -> requestSpec.method("POST").getBody().text(string));
+   *         Assert.assertEquals(response.getBody().getText(), "ok");
+   *
+   *         String fileContents = Files.toString(file.toFile(), StandardCharsets.UTF_8);
+   *         Assert.assertEquals(fileContents, string);
+   *       });
+   *     });
+   *   }
+   * }
+   * </pre>
+   *
+   * @return a publisher of the request body
+   * @see #getBodyStream(long)
+   * @since 1.2
+   */
   TransformablePublisher<? extends ByteBuf> getBodyStream(long maxContentLength);
 
   /**

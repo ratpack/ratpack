@@ -223,15 +223,15 @@ public interface Downstream<T> {
    * @return a completion handler
    * @since 1.2
    */
-  default CompletionHandler<T, Void> completionHandler() {
-    return new CompletionHandler<T, Void>() {
+  default <I extends T, A> CompletionHandler<I, A> completionHandler() {
+    return new CompletionHandler<I, A>() {
       @Override
-      public void completed(T result, Void attachment) {
+      public void completed(I result, A attachment) {
         success(result);
       }
 
       @Override
-      public void failed(Throwable exc, Void attachment) {
+      public void failed(Throwable exc, A attachment) {
         error(exc);
       }
     };
