@@ -17,6 +17,7 @@
 package ratpack.pac4j;
 
 import com.google.common.collect.ImmutableList;
+import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.context.WebContext;
@@ -40,6 +41,7 @@ import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.util.Types;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -53,6 +55,9 @@ import java.util.Optional;
  * <p>
  * The {@link #requireAuth(Class)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
+ * <p>
+ * The {@link #security(Class, Authorizer[])} method provides a handler that acts like a filter, ensuring that the user is authenticated and
+ * that authorizations (defined by {@link Authorizer}) are checked for all requests.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
  */
@@ -173,8 +178,75 @@ public class RatpackPac4j {
    * @return a handler
    */
   public static Handler requireAuth(Class<? extends Client<?, ?>> clientType) {
+    return security(clientType, (Authorizer<UserProfile>[]) null);
+  }
+
+  /**
+   * A security filter which handles authentication and authorizations.
+   * <p>
+   * This handler can be used to ensure that a user profile is available (authenticated user) and that all authorizations have been checked for all downstream handlers.
+   * If there is no user profile present in the session (i.e. user not logged in), authentication will be initiated based on the given client type (i.e. redirect to the {@link #authenticator(Client[])} handler).
+   * If there is a {@link UserProfile}, authorizations are checked based on the provided {@link Authorizer}: if the validation fails, a 403 error page is returned, otherwise we delegate downstream (the user profile is pushed into the context registry).
+   * <p>
+   * This handler requires a {@link Clients} instance available in the context registry.
+   * As such, this handler should be downstream of the {@link #authenticator(Client[])} handler.
+   *
+   * <pre class="java">{@code
+   * import org.pac4j.core.profile.UserProfile;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
+   * import ratpack.guice.Guice;
+   * import ratpack.pac4j.RatpackPac4j;
+   * import ratpack.session.SessionModule;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(s -> s
+   *       .registry(Guice.registry(b -> b.module(SessionModule.class)))
+   *       .handlers(c -> c
+   *         .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *         .prefix("require-authz", a -> a
+   *           .all(RatpackPac4j.security(IndirectBasicAuthClient.class, (ctx, profile) -> { return "user".equals(profile.getId()); }))
+   *           .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
+   *         )
+   *         .get("logout", ctx -> RatpackPac4j.logout(ctx).then(() -> ctx.redirect("/")))
+   *         .get(ctx -> ctx.render("no auth required"))
+   *       )
+   *     ).test(httpClient -> {
+   *       httpClient.requestSpec(r -> r.redirects(1));
+   *       assertEquals("no auth required", httpClient.getText());
+   *       assertEquals(401, httpClient.get("require-authz").getStatusCode());
+   *       assertEquals(403, httpClient.requestSpec(r -> r.basicAuth("u", "u")).get("require-authz").getStatusCode());
+   *       httpClient.get("logout");
+   *       assertEquals("Hello user", httpClient.requestSpec(r -> r.basicAuth("user", "user")).getText("require-authz"));
+   *     });
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param clientType the client type to use to authenticate with if required
+   * @param authorizers the authorizers to check authorizations
+   * @return a handler
+   */
+  @SafeVarargs
+  public static Handler security(Class<? extends Client<?, ?>> clientType, Authorizer<UserProfile>... authorizers) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
-        ctx.next(Registry.single(userProfile))
+      {
+        if (authorizers != null) {
+          internalWebContext(ctx).then(webContext -> {
+            if (Arrays.stream(authorizers).allMatch(a -> a == null || a.isAuthorized(webContext, userProfile))) {
+              ctx.next(Registry.single(userProfile));
+            } else {
+              ctx.clientError(403);
+            }
+          });
+        } else {
+          ctx.next(Registry.single(userProfile));
+        }
+      }
     );
   }
 
