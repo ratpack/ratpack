@@ -54,7 +54,7 @@ ext {
     "1.2.0-RC-1"
   ]
 
-  if (!isHeroku || !isCi) {
+  if (!isHeroku && !isCi) {
     println "Only including latest manual in site due to this being a development build."
     manualVersions = [manualVersions.last()]
   }
