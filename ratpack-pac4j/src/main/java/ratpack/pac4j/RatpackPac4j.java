@@ -209,7 +209,7 @@ public class RatpackPac4j {
    *       .handlers(c -> c
    *         .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *         .prefix("require-authz", a -> a
-   *           .all(RatpackPac4j.security(IndirectBasicAuthClient.class, (ctx, profile) -> { return "user".equals(profile.getId()); }))
+   *           .all(RatpackPac4j.secure(IndirectBasicAuthClient.class, (ctx, profile) -> { return "user".equals(profile.getId()); }))
    *           .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
    *         )
    *         .get("logout", ctx -> RatpackPac4j.logout(ctx).then(() -> ctx.redirect("/")))
