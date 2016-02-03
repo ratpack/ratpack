@@ -155,7 +155,7 @@ public abstract class ServerBackedApplicationUnderTest implements CloseableAppli
    *
    *   public static void main(String[] args) throws Exception {
    *     new MainClassApplicationUnderTest(App.class) {
-   *       {@code @}Override
+   *       {@literal @}Override
    *       protected void addImpositions(ImpositionsSpec impositions) {
    *         impositions.add(ServerConfigImposition.of(c ->
    *           c.props(singletonMap("string", "bar"))
