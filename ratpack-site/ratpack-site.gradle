@@ -55,7 +55,7 @@ ext {
   ]
 
   if (!isHeroku || !isCi) {
-    manualVersions = [manualVersions.last()]
+//    manualVersions = [manualVersions.last()]
   }
 }
 
