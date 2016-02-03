@@ -17,6 +17,7 @@
 package ratpack.site.github;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -27,12 +28,14 @@ import javax.inject.Singleton;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static com.google.common.collect.Iterables.*;
 
 @Singleton
 public class RatpackVersions {
 
+  public static final Pattern FINAL_VERSION_PATTERN = Pattern.compile("\\d+\\.\\d+\\.\\d+");
   private final GitHubData gitHubData;
 
   @Inject
@@ -73,6 +76,7 @@ public class RatpackVersions {
     });
   }
 
+  @SuppressWarnings("StaticPseudoFunctionalStyleMethod")
   public static class All {
 
     private final List<RatpackVersion> released;
@@ -92,7 +96,7 @@ public class RatpackVersions {
     }
 
     public RatpackVersion getCurrent() {
-      return getFirst(released, null);
+      return Iterables.find(released, v -> FINAL_VERSION_PATTERN.matcher(v.getVersion()).matches());
     }
 
     public boolean isReleased(final String version) {
