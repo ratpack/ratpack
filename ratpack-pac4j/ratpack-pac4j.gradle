@@ -54,7 +54,5 @@ dependencies {
 }
 
 ext.apiLinks = [
-  "http://docs.oracle.com/javase/8/docs/api/",
-  "http://google-guice.googlecode.com/git/javadoc/",
-  "http://www.javadoc.io/doc/org.pac4j/pac4j-http/${commonVersions.pac4j}"
+  "http://www.pac4j.org/apidocs/pac4j"
 ]
