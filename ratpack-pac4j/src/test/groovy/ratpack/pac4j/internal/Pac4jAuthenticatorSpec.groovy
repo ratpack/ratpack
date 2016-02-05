@@ -24,8 +24,6 @@ import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.guice.Guice
 import ratpack.handling.Context
 import ratpack.pac4j.RatpackPac4j
 import ratpack.path.PathBinding
@@ -33,12 +31,12 @@ import ratpack.server.PublicAddress
 import ratpack.server.internal.ConstantPublicAddress
 import ratpack.session.SessionModule
 import ratpack.test.exec.ExecHarness
-import spock.lang.Specification
+import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
-class Pac4jAuthenticatorSpec extends Specification {
+class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
 
   @Unroll
   void "can create clients with callback url given [#path], [#boundTo] and [#uri]"() {
@@ -93,27 +91,25 @@ class Pac4jAuthenticatorSpec extends Specification {
     def client = new IndirectBasicAuthClient(authenticator, AuthenticatorProfileCreator.INSTANCE)
 
     and:
-    def app = GroovyEmbeddedApp.of {
-      registry(Guice.registry({ b ->
-        b.module(SessionModule)
-      }))
-      handlers {
-        all(RatpackPac4j.authenticator(client))
-        get("auth") {
-          RatpackPac4j.login(context, IndirectBasicAuthClient).then {
-            redirect "/"
-          }
+    bindings {
+      module(SessionModule)
+    }
+    handlers {
+      all(RatpackPac4j.authenticator(client))
+      get("auth") {
+        RatpackPac4j.login(context, IndirectBasicAuthClient).then {
+          redirect "/"
         }
-        get {
-          RatpackPac4j.userProfile(context)
-            .route { o -> o.present } { render "ok" }
-            .then { render "not ok" }
-        }
+      }
+      get {
+        RatpackPac4j.userProfile(context)
+          .route { o -> o.present } { render "ok" }
+          .then { render "not ok" }
       }
     }
 
     when:
-    def resp = app.httpClient.requestSpec({ r -> r.basicAuth("u", "p") }).get("auth")
+    def resp = requestSpec({ r -> r.basicAuth("u", "p") }).get("auth")
 
     then:
     resp.body.text == "ok"
