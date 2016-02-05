@@ -64,10 +64,11 @@ public class Pac4jAuthenticator implements Handler {
         ).map(
           Types::<Client<Credentials, UserProfile>>cast
         ).flatMap(client ->
-          Blocking.get(() ->
-            Optional.of(getProfile(webContext, client))
-          )
-        ).map(v -> {
+          getProfile(webContext, client)
+        ).map(profile -> {
+          if (profile != null) {
+            sessionData.set(Pac4jSessionKeys.USER_PROFILE, profile);
+          }
           Optional<String> originalUrl = sessionData.get(Pac4jSessionKeys.REQUESTED_URL);
           sessionData.remove(Pac4jSessionKeys.REQUESTED_URL);
           return originalUrl;
@@ -109,8 +110,10 @@ public class Pac4jAuthenticator implements Handler {
   }
 
   private <C extends Credentials, U extends UserProfile> Promise<U> getProfile(WebContext webContext, Client<C, U> client) throws RequiresHttpAction {
-    C credentials = client.getCredentials(webContext);
-    return Promise.value(client.getUserProfile(credentials, webContext));
+    return Blocking.get(() -> {
+      C credentials = client.getCredentials(webContext);
+      return client.getUserProfile(credentials, webContext);
+    });
   }
 
 }

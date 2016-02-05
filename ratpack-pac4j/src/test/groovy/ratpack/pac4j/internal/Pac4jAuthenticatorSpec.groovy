@@ -23,8 +23,10 @@ import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
 import org.pac4j.http.credentials.UsernamePasswordCredentials
 import org.pac4j.http.credentials.authenticator.UsernamePasswordAuthenticator
+import org.pac4j.http.profile.HttpProfile
 import org.pac4j.http.profile.UsernameProfileCreator
 import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
+import org.pac4j.http.profile.creator.ProfileCreator
 import ratpack.exec.Execution
 import ratpack.func.Action
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
@@ -88,11 +90,11 @@ class Pac4jAuthenticatorSpec extends Specification {
     "customAuthenticationPath" | uri("https://some.host")     | "app"        | "https://some.host/app/customAuthenticationPath"
   }
 
-  @Ignore
   void "authenticator should execute in blocking thread"() {
     given:
     def client = new IndirectBasicAuthClient(
       { UsernamePasswordCredentials credentials ->
+        credentials.userProfile = new HttpProfile(id: credentials.username)
         if (!Execution.isBlockingThread()) {
           throw new CredentialsException("!")
         }
