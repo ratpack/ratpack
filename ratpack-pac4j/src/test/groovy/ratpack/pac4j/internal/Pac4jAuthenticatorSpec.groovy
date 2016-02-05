@@ -16,17 +16,32 @@
 
 package ratpack.pac4j.internal
 
+import org.pac4j.core.exception.CredentialsException
+import org.pac4j.http.client.indirect.IndirectBasicAuthClient
+import org.pac4j.http.credentials.UsernamePasswordCredentials
+import org.pac4j.http.credentials.authenticator.UsernamePasswordAuthenticator
+import org.pac4j.http.profile.HttpProfile
+import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
+import ratpack.exec.Execution
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.guice.Guice
 import ratpack.handling.Context
 import ratpack.pac4j.RatpackPac4j
 import ratpack.path.PathBinding
 import ratpack.server.PublicAddress
 import ratpack.server.internal.ConstantPublicAddress
+import ratpack.session.SessionModule
+import ratpack.test.exec.ExecHarness
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
 class Pac4jAuthenticatorSpec extends Specification {
+
+  @AutoCleanup
+  ExecHarness execHarness = ExecHarness.harness()
 
   @Unroll("can create clients with callback url given [#path], [#boundTo] and [#uri]")
   void "can create clients with callback url given context and path binding"() {
@@ -45,7 +60,7 @@ class Pac4jAuthenticatorSpec extends Specification {
     def authenticator = new Pac4jAuthenticator(path, clientsProvider)
 
     when:
-    def actual = authenticator.createClients(context, pathBinding)
+    def actual = execHarness.yieldSingle { authenticator.createClients(context, pathBinding) }.value
 
     then:
     expected == actual.callbackUrl
@@ -63,6 +78,45 @@ class Pac4jAuthenticatorSpec extends Specification {
     DEFAULT_AUTHENTICATOR_PATH | uri("http://some.host:1234") | "app%2Fpath" | "http://some.host:1234/app%2Fpath/$DEFAULT_AUTHENTICATOR_PATH"
     "customAuthenticationPath" | uri("https://some.host")     | ""           | "https://some.host/customAuthenticationPath"
     "customAuthenticationPath" | uri("https://some.host")     | "app"        | "https://some.host/app/customAuthenticationPath"
+  }
+
+  void "authenticator should execute in blocking thread"() {
+    given:
+    def client = new IndirectBasicAuthClient(
+      { UsernamePasswordCredentials credentials ->
+        credentials.userProfile = new HttpProfile(id: credentials.username)
+        if (!Execution.isBlockingThread()) {
+          throw new CredentialsException("!")
+        }
+      } as UsernamePasswordAuthenticator,
+      AuthenticatorProfileCreator.INSTANCE
+    )
+
+    and:
+    def app = GroovyEmbeddedApp.of {
+      registry(Guice.registry({ b ->
+        b.module(SessionModule)
+      }))
+      handlers {
+        all(RatpackPac4j.authenticator(client))
+        get("auth") {
+          RatpackPac4j.login(context, IndirectBasicAuthClient).then {
+            redirect "/"
+          }
+        }
+        get {
+          RatpackPac4j.userProfile(context)
+            .route { o -> o.present } { render "ok" }
+            .then { render "not ok" }
+        }
+      }
+    }
+
+    when:
+    def resp = app.httpClient.requestSpec({ r -> r.basicAuth("u", "p" )}).get("auth")
+
+    then:
+    resp.body.text == "ok"
   }
 
   private static URI uri(String url) {
