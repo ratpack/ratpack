@@ -41,8 +41,10 @@ import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.util.Types;
 
-import java.util.Arrays;
 import java.util.Optional;
+
+import static com.google.common.collect.Iterables.all;
+import static java.util.Arrays.asList;
 
 /**
  * Provides integration with the <a href="http://www.pac4j.org">Pac4j library</a> for authentication and authorization.
@@ -232,12 +234,13 @@ public class RatpackPac4j {
    * @return a handler
    */
   @SafeVarargs
+  @SuppressWarnings("varargs")
   public static Handler secure(Class<? extends Client<?, ?>> clientType, Authorizer<UserProfile>... authorizers) {
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
       {
         if (authorizers != null) {
           internalWebContext(ctx).then(webContext -> {
-            if (Arrays.stream(authorizers).allMatch(a -> a == null || a.isAuthorized(webContext, userProfile))) {
+            if (all(asList(authorizers), a -> a == null || a.isAuthorized(webContext, userProfile))) {
               ctx.next(Registry.single(userProfile));
             } else {
               ctx.clientError(403);
@@ -409,16 +412,16 @@ public class RatpackPac4j {
    */
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
     return Promise.of(f ->
-        toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
-            ctx.get(Session.class)
-              .get(Pac4jSessionKeys.USER_PROFILE)
-              .then(p -> {
-                if (p.isPresent()) {
-                  ctx.getRequest().add(UserId.class, UserId.of(p.get().getId()));
-                }
-                toProfile(type, f, p, () -> f.success(Optional.<T>empty()));
-              })
-        )
+      toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
+        ctx.get(Session.class)
+          .get(Pac4jSessionKeys.USER_PROFILE)
+          .then(p -> {
+            if (p.isPresent()) {
+              ctx.getRequest().add(UserId.class, UserId.of(p.get().getId()));
+            }
+            toProfile(type, f, p, () -> f.success(Optional.<T>empty()));
+          })
+      )
     );
   }
 
