@@ -16,7 +16,6 @@
 
 package ratpack.pac4j.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
@@ -90,7 +89,6 @@ public class Pac4jAuthenticator implements Handler {
     }
   }
 
-  @VisibleForTesting
   private Promise<Clients> createClients(Context ctx, PathBinding pathBinding) throws Exception {
     String boundTo = pathBinding.getBoundTo();
     PublicAddress publicAddress = ctx.get(PublicAddress.class);
