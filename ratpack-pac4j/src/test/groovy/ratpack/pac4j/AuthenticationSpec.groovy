@@ -16,7 +16,6 @@
 package ratpack.pac4j
 
 import org.pac4j.core.authorization.Authorizer
-import org.pac4j.core.context.WebContext
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
@@ -67,15 +66,14 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     handlers {
       all(RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator())))
       prefix("notauthz") {
-        all(RatpackPac4j.secure(FormClient, { WebContext context, UserProfile profile -> false } as Authorizer))
+        all(RatpackPac4j.requireAuth(FormClient, { ctx, p -> false } as Authorizer))
         get {
           def userProfile = maybeGet(UserProfile).orElse(null)
           response.send "notauthz:" + userProfile?.attributes?.username
         }
       }
       prefix("authz") {
-        all(RatpackPac4j.secure(FormClient, { WebContext context, UserProfile profile -> true } as Authorizer,
-          { WebContext context, UserProfile profile -> true } as Authorizer))
+        all(RatpackPac4j.requireAuth(FormClient, { ctx, p -> true } as Authorizer, { ctx, p -> true } as Authorizer))
         get {
           def userProfile = maybeGet(UserProfile).orElse(null)
           response.send "authz:" + userProfile?.attributes?.username
@@ -87,13 +85,13 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=foo&password=foo&client_name=FormClient")
     def resp1 = get("notauthz")
 
-    then: "the requested page is not authorized"
+    then:
     resp1.statusCode == 403
 
-    when: "request a page that requires authentication and authorization"
+    when:
     def resp2 = get("authz")
 
-    then: "the requested page is authorized"
+    then:
     resp2.statusCode == 200
   }
 }
