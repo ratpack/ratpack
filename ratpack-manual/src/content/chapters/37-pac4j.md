@@ -21,7 +21,7 @@ When an authenticated user is required within your application, the user will be
 
 There are two ways to require authentication:
 
-1. [`RatpackPac4j.requireAuth()`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-) - a handler implementation that acts as a “filter”
+1. [`RatpackPac4j.requireAuth()`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-org.pac4j.core.authorization.Authorizer...-) - a handler implementation that acts as a “filter”
 1. [`RatpackPac4j.login()`](api/ratpack/pac4j/RatpackPac4j.html#login-ratpack.handling.Context-java.lang.Class-) - method that initiates login if required (to be used within a handler implementation)
 
 The [`RatpackPac4j.userProfile()`](api/ratpack/pac4j/RatpackPac4j.html#userProfile-ratpack.handling.Context-) method can be used to obtain the user profile if the user is logged in, without requiring authentication.
