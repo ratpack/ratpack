@@ -18,11 +18,12 @@ package ratpack.pac4j.internal
 
 import org.pac4j.core.exception.CredentialsException
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
-import org.pac4j.http.credentials.UsernamePasswordCredentials
 import org.pac4j.http.credentials.authenticator.UsernamePasswordAuthenticator
 import org.pac4j.http.profile.HttpProfile
 import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
+import ratpack.exec.Blocking
 import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.guice.Guice
 import ratpack.handling.Context
@@ -39,8 +40,8 @@ import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
 class Pac4jAuthenticatorSpec extends Specification {
 
-  @Unroll("can create clients with callback url given [#path], [#boundTo] and [#uri]")
-  void "can create clients with callback url given context and path binding"() {
+  @Unroll
+  void "can create clients with callback url given [#path], [#boundTo] and [#uri]"() {
     given:
     def context = Mock(Context) {
       _ * get(PublicAddress) >> new ConstantPublicAddress(uri)
@@ -56,7 +57,7 @@ class Pac4jAuthenticatorSpec extends Specification {
     def authenticator = new Pac4jAuthenticator(path, clientsProvider)
 
     when:
-    def actual = ExecHarness.yieldSingle { authenticator.createClients(context, pathBinding) }.value
+    def actual = ExecHarness.yieldSingle { authenticator.createClients(context, pathBinding) }.valueOrThrow
 
     then:
     expected == actual.callbackUrl
@@ -78,15 +79,18 @@ class Pac4jAuthenticatorSpec extends Specification {
 
   void "authenticator should execute in blocking thread"() {
     given:
-    def client = new IndirectBasicAuthClient(
-      { UsernamePasswordCredentials credentials ->
-        credentials.userProfile = new HttpProfile(id: credentials.username)
-        if (!Execution.isBlockingThread()) {
-          throw new CredentialsException("!")
-        }
-      } as UsernamePasswordAuthenticator,
-      AuthenticatorProfileCreator.INSTANCE
-    )
+    def authenticator = { credentials ->
+      credentials.userProfile = new HttpProfile(id: credentials.username)
+      if (!Execution.isBlockingThread()) {
+        throw new CredentialsException("!")
+      }
+
+      // Can use async API if necessary
+      Blocking.on(Promise.of { down ->
+        Thread.start { down.success(1) }
+      })
+    } as UsernamePasswordAuthenticator
+    def client = new IndirectBasicAuthClient(authenticator, AuthenticatorProfileCreator.INSTANCE)
 
     and:
     def app = GroovyEmbeddedApp.of {
