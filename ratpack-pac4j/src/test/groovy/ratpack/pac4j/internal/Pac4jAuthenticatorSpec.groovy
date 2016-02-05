@@ -16,25 +16,16 @@
 
 package ratpack.pac4j.internal
 
-import org.pac4j.core.client.Client
 import org.pac4j.core.exception.CredentialsException
-import org.pac4j.core.profile.UserProfile
-import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
 import org.pac4j.http.credentials.UsernamePasswordCredentials
 import org.pac4j.http.credentials.authenticator.UsernamePasswordAuthenticator
 import org.pac4j.http.profile.HttpProfile
-import org.pac4j.http.profile.UsernameProfileCreator
 import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
-import org.pac4j.http.profile.creator.ProfileCreator
 import ratpack.exec.Execution
-import ratpack.func.Action
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.groovy.test.handling.GroovyRequestFixture
-import ratpack.guice.BindingsSpec
 import ratpack.guice.Guice
 import ratpack.handling.Context
-import ratpack.http.client.RequestSpec
 import ratpack.pac4j.RatpackPac4j
 import ratpack.path.PathBinding
 import ratpack.server.PublicAddress
@@ -42,7 +33,6 @@ import ratpack.server.internal.ConstantPublicAddress
 import ratpack.session.SessionModule
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
