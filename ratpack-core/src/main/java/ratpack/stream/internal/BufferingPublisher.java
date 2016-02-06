@@ -185,6 +185,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
                 downstream.onNext(item);
                 if (wantedValue != Long.MAX_VALUE) {
                   isDemand = wanted.decrementAndGet() > 0;
+                  isDisposing = disposing.get();
                 }
               }
             }
