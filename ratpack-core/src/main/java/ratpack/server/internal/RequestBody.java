@@ -100,11 +100,15 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         compositeBuffer.release();
       }
     }
+  }
+
+  public void forceCloseConnection() {
+    close();
     ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().forceCloseConnection();
   }
 
   private void tooLarge(Downstream<? super ByteBuf> downstream) {
-    close();
+    forceCloseConnection();
     try {
       onTooLarge.execute();
       downstream.complete();
@@ -143,7 +147,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         RequestBody.this.maxContentLength = maxContentLength;
 
         if (advertisedLength > maxContentLength || length > maxContentLength) {
-          close();
+          forceCloseConnection();
           throw new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length));
         }
 
@@ -168,7 +172,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                     ByteBuf byteBuf = httpContent.content();
                     length += byteBuf.readableBytes();
                     if (maxContentLength > 0 && maxContentLength < length) {
-                      close();
+                      forceCloseConnection();
                       write.error(new RequestBodyTooLargeException(maxContentLength, length));
                       return;
                     }
@@ -196,7 +200,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
           @Override
           public void cancel() {
-            close();
+            forceCloseConnection();
           }
         };
       })
