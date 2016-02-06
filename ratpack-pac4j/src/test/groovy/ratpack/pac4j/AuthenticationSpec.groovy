@@ -168,4 +168,74 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       r.basicAuth('user', 'user')
     }.get('forbidden').statusCode == 403
   }
+
+  def "request body with indirect auth"() {
+    given:
+    serverConfig {
+      development true
+    }
+    bindings {
+      module SessionModule
+    }
+    handlers {
+      all RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
+      prefix("auth-post") {
+        all RatpackPac4j.requireAuth(IndirectBasicAuthClient)
+        post { ctx ->
+          def user = get(UserProfile)
+          ctx.request.body.then { body ->
+            response.status(201)
+            render user.id + " posted " + body.text
+          }
+        }
+      }
+    }
+    httpClient.requestSpec { r ->
+      r.redirects 1
+    }
+
+    expect:
+    requestSpec { r ->
+      r.basicAuth("user", "user")
+      r.body.type("text/plain").text("kthxbye")
+    }.post("auth-post")
+
+    response.statusCode == 201
+    response.body.text == "user posted kthxbye"
+  }
+
+  def "request body with direct auth"() {
+    given:
+    serverConfig {
+      development true
+    }
+    bindings {
+      module SessionModule
+    }
+    handlers {
+      all RatpackPac4j.authenticator(new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
+      prefix("auth-post") {
+        all RatpackPac4j.requireAuth(DirectBasicAuthClient)
+        post { ctx ->
+          def user = get(UserProfile)
+          ctx.request.body.then { body ->
+            response.status(201)
+            render user.getId() + " posted " + body.text
+          }
+        }
+      }
+    }
+    httpClient.requestSpec { r ->
+      r.redirects 0
+    }
+
+    expect:
+    requestSpec { r ->
+      r.basicAuth("user", "user")
+      r.body.type("text/plain").text("kthxbye")
+    }.post("auth-post")
+
+    response.statusCode == 201
+    response.body.text == "user posted kthxbye"
+  }
 }
