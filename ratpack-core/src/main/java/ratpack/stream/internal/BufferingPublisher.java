@@ -170,7 +170,6 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
               if (item == ON_COMPLETE) {
                 disposing.set(true);
                 isDisposing = true;
-
                 downstream.onComplete();
               } else if (item == ON_ERROR) {
                 assert error != null;
@@ -227,7 +226,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         } else {
           long outstanding = nowWanted - buffer.size();
           if (outstanding > 0) {
-            upstreamSubscription.request(n);
+            upstreamSubscription.request(outstanding);
           }
         }
       }
