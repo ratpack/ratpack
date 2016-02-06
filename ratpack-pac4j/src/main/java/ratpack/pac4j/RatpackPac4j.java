@@ -21,7 +21,6 @@ import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.client.DirectClient;
-import org.pac4j.core.client.IndirectClient;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
@@ -274,14 +273,19 @@ public class RatpackPac4j {
   public static Promise<UserProfile> login(Context ctx, Class<? extends Client<?, ?>> clientType) {
     return userProfile(ctx)
       .flatMap(p -> {
-        if (!p.isPresent() && DirectClient.class.isAssignableFrom(clientType)) {
+        if (!p.isPresent() && !supportsRedirect(clientType)) {
           return performDirectAuthentication(ctx, clientType);
         } else {
           return Promise.value(p);
         }
       })
-      .route(p -> !p.isPresent() && DirectClient.class.isAssignableFrom(clientType), p -> ctx.clientError(401))
-      .route(p -> !p.isPresent() && IndirectClient.class.isAssignableFrom(clientType), p -> initiateAuthentication(ctx, clientType))
+      .route(p -> !p.isPresent(), p -> {
+        if (supportsRedirect(clientType)) {
+          initiateAuthentication(ctx, clientType);
+        } else {
+          ctx.clientError(401);
+        }
+      })
       .map(Optional::get);
   }
 
@@ -524,5 +528,9 @@ public class RatpackPac4j {
     C credentials = client.getCredentials(webContext);
     UserProfile userProfile = client.getUserProfile(credentials, webContext);
     return Optional.ofNullable(userProfile);
+  }
+
+  private static boolean supportsRedirect(Class<? extends Client<?, ?>> clientType) {
+    return !DirectClient.class.isAssignableFrom(clientType);
   }
 }
