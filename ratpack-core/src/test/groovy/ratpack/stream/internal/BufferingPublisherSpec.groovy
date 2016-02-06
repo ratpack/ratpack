@@ -159,6 +159,20 @@ class BufferingPublisherSpec extends Specification {
     subscriber.received == [1]
   }
 
+  def "any written after cancel are disposed of"() {
+    when:
+    p.subscribe(subscriber)
+    subscriber.subscription.request(3)
+    writeStream.item(1)
+    subscriber.subscription.cancel()
+    writeStream.item(2)
+
+    then:
+    disposed.toList() == [2]
+    subscriber.error == null
+    subscriber.received == [1]
+  }
+
   @Timeout(60)
   def "can write/buffer/request/drain async"() {
     given:

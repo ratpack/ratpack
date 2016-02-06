@@ -16,10 +16,9 @@
 
 package ratpack.stream.internal;
 
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.stream.TransformablePublisher;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,66 +26,45 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Note, this publisher does not respect back pressure.
- * Must be used in conjunction with a throttling strategy.
- */
-public class PeriodicPublisher<T> implements TransformablePublisher<T> {
-  private final ScheduledExecutorService executorService;
-  private final Function<? super Integer, ? extends T> producer;
-  private final Duration duration;
-
+public class PeriodicPublisher<T> extends BufferingPublisher<T> {
   public PeriodicPublisher(ScheduledExecutorService executorService, Function<? super Integer, ? extends T> producer, Duration duration) {
-    this.executorService = executorService;
-    this.producer = producer;
-    this.duration = duration;
+    super(Action.noop(), write -> {
+      return new Subscription() {
+        private final AtomicInteger counter = new AtomicInteger(0);
+        private volatile ScheduledFuture<?> future;
+
+        @Override
+        public void request(long n) {
+          if (future == null) {
+            future = executorService.scheduleWithFixedDelay(() -> {
+              int i = counter.getAndIncrement();
+              T value;
+              try {
+                value = producer.apply(i);
+              } catch (Exception e) {
+                write.error(e);
+                cancel();
+                return;
+              }
+
+              if (value == null) {
+                write.complete();
+                cancel();
+              } else {
+                write.item(value);
+              }
+            }, 0, duration.toNanos(), TimeUnit.NANOSECONDS);
+          }
+        }
+
+        @Override
+        public void cancel() {
+          if (future != null) {
+            future.cancel(false);
+          }
+        }
+      };
+    });
   }
 
-  @Override
-  public void subscribe(final Subscriber<? super T> s) {
-    s.onSubscribe(new PeriodicSubscription(s));
-  }
-
-  private class PeriodicSubscription implements Subscription {
-    private final AtomicInteger counter;
-    private final ScheduledFuture<?> future;
-    private Subscriber<? super T> s;
-
-    public PeriodicSubscription(Subscriber<? super T> subscription) {
-      this.s = subscription;
-      counter = new AtomicInteger(0);
-      future = executorService.scheduleWithFixedDelay(this::run, 0, duration.toNanos(), TimeUnit.NANOSECONDS);
-    }
-
-    private void run() {
-      int i = counter.getAndIncrement();
-      T value;
-      try {
-        value = producer.apply(i);
-      } catch (Exception e) {
-        s.onError(e);
-        cancel();
-        return;
-      }
-
-      if (value == null) {
-        s.onComplete();
-        cancel();
-      } else {
-        s.onNext(value);
-      }
-    }
-
-    @Override
-    public void request(long n) {
-
-    }
-
-    @Override
-    public void cancel() {
-      future.cancel(false);
-      s = null;
-    }
-
-  }
 }

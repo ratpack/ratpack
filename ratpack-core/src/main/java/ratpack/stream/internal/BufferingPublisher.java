@@ -25,6 +25,8 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.stream.TransformablePublisher;
 
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -135,17 +137,15 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
   }
 
   private class BufferingSubscription implements Subscription {
-    private Subscription upstreamSubscription;
-    private final Subscriber<? super T> downstream;
-
-    private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
+    private final Deque<T> buffer = new ConcurrentLinkedDeque<>();
 
     private final AtomicLong wanted = new AtomicLong();
     private final AtomicBoolean draining = new AtomicBoolean();
-    private final AtomicBoolean disposing = new AtomicBoolean();
     private final AtomicBoolean open = new AtomicBoolean();
 
-    private Throwable error;
+    private Subscription upstreamSubscription;
+    private volatile Subscriber<? super T> downstream;
+    private volatile Throwable error;
 
     private BufferedWriteStream<T> writeStream;
 
@@ -158,42 +158,46 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     private void tryDrain() {
       if (draining.compareAndSet(false, true)) {
-        boolean isDisposing = disposing.get();
-        long wantedValue = wanted.get();
-        boolean isDemand = wantedValue > 0;
         try {
-          while (isDisposing || isDemand) {
-            T item = buffer.poll();
-            if (item == null) {
-              break;
-            } else {
-              if (item == ON_COMPLETE) {
-                disposing.set(true);
-                isDisposing = true;
+          T item = buffer.poll();
+          while (item != null) {
+            if (item == ON_COMPLETE) {
+              if (downstream != null) {
                 downstream.onComplete();
-              } else if (item == ON_ERROR) {
+                downstream = null;
+              }
+            } else if (item == ON_ERROR) {
+              if (downstream != null) {
                 assert error != null;
-                assert isDisposing;
                 downstream.onError(error);
-              } else if (isDisposing) {
+                downstream = null;
+              }
+            } else {
+              if (downstream == null || error != null) {
                 try {
                   disposer.execute(item);
                 } catch (Exception e) {
                   LOGGER.warn("exception raised disposing of " + item + " - will be ignored", e);
                 }
               } else {
-                downstream.onNext(item);
-                if (wantedValue != Long.MAX_VALUE) {
-                  isDemand = wanted.decrementAndGet() > 0;
-                  isDisposing = disposing.get();
+                if (wanted.get() > 0) {
+                  downstream.onNext(item);
+                  if (wanted.decrementAndGet() == 0) {
+                    break;
+                  }
+                } else {
+                  buffer.push(item);
+                  break;
                 }
               }
             }
+            item = buffer.poll();
           }
         } finally {
           draining.set(false);
         }
-        if (buffer.peek() != null && wanted.get() > 0) {
+        T peek = buffer.peek();
+        if (peek != null && (wanted.get() > 0 || peek == ON_COMPLETE || peek == ON_ERROR)) {
           tryDrain();
         }
       }
@@ -201,7 +205,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     public void request(long n) {
-      if (disposing.get()) {
+      if (downstream == null) {
         return;
       }
       if (n < 1) {
@@ -236,7 +240,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     public void cancel() {
-      disposing.set(true);
+      downstream = null;
       if (upstreamSubscription != null) {
         upstreamSubscription.cancel();
       }
@@ -256,7 +260,6 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         @SuppressWarnings("unchecked")
         @Override
         public void error(Throwable throwable) {
-          disposing.set(true);
           error = throwable;
           buffer.add((T) ON_ERROR);
           if (open.get()) {
