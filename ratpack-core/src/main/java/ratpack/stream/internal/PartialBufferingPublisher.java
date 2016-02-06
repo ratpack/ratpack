@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.stream.BufferedWriteStream;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.ConcurrentLinkedQueue;

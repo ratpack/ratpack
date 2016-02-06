@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.stream;
+package ratpack.stream.internal;
 
+import ratpack.stream.WriteStream;
+
+/**
+ * Note: should become a public type in 1.3, along with a public factory for {@link PartialBufferingPublisher}.
+ * @param <T> element type
+ */
 public interface BufferedWriteStream<T> extends WriteStream<T> {
 
   long getRequested();
