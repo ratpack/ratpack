@@ -74,13 +74,6 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
           render "Hello " + get(UserProfile).getId()
         }
       }
-      prefix("forbidden") {
-        all(RatpackPac4j.requireAuth(DirectBasicAuthClient, { ctx, p -> false } as Authorizer))
-        get {
-          def userProfile = maybeGet(UserProfile).orElse(null)
-          response.send "forbidden:" + userProfile?.attributes?.username
-        }
-      }
       get {
         render "no auth required"
       }
@@ -95,9 +88,6 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     requestSpec { r ->
       r.basicAuth('user', 'user')
     }.getText('require-auth') == 'Hello user'
-    requestSpec { r ->
-      r.basicAuth('user', 'user')
-    }.get('forbidden').statusCode == 403
   }
 
   def "check authorizations"() {
@@ -136,5 +126,46 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
 
     then:
     resp2.statusCode == 200
+  }
+
+  def "check authorization with direct auth"() {
+    given:
+    serverConfig {
+      development true
+    }
+    bindings {
+      module SessionModule
+    }
+    handlers {
+      all RatpackPac4j.authenticator(new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
+      prefix("allowed") {
+        all RatpackPac4j.requireAuth(DirectBasicAuthClient, { ctx, p -> true } as Authorizer)
+        get {
+          render "Hello " + get(UserProfile).getId()
+        }
+      }
+      prefix("forbidden") {
+        all RatpackPac4j.requireAuth(DirectBasicAuthClient, { ctx, p -> false } as Authorizer)
+        get {
+          render "You're not allowed here " + get(UserProfile).getId()
+        }
+      }
+    }
+    httpClient.requestSpec { r ->
+      r.redirects 0
+    }
+
+    expect:
+    get('allowed').statusCode == 401
+    requestSpec { r ->
+      r.basicAuth('user', 'user')
+    }.getText('allowed') == 'Hello user'
+
+    and:
+    resetRequest()
+    get('forbidden').statusCode == 401
+    requestSpec { r ->
+      r.basicAuth('user', 'user')
+    }.get('forbidden').statusCode == 403
   }
 }
