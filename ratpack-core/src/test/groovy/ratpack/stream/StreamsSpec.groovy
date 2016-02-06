@@ -41,54 +41,6 @@ class StreamsSpec extends Specification {
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()
 
-  def "can buffer publisher"() {
-    given:
-    def sent = []
-    def received = []
-    boolean complete
-    Subscription subscription
-
-    def stream = (1..10).publish().wiretap {
-      if (it.data) {
-        sent << it.item
-      }
-    }.buffer()
-
-    stream.subscribe(new Subscriber<Integer>() {
-      @Override
-      void onSubscribe(Subscription s) {
-        subscription = s
-      }
-
-      @Override
-      void onNext(Integer integer) {
-        received << integer
-      }
-
-      @Override
-      void onError(Throwable t) {
-        received << t
-      }
-
-      @Override
-      void onComplete() {
-        complete = true
-      }
-    })
-
-    expect:
-    sent.size() == 0
-    received.isEmpty()
-    subscription.request(2)
-    sent.size() == 10
-    received.size() == 2
-    subscription.request(2)
-    received.size() == 4
-    subscription.request(10)
-    received.size() == 10
-    complete
-  }
-
   def "can firehose with buffering publisher"() {
     when:
     def p = (1..100).publish()
@@ -98,7 +50,6 @@ class StreamsSpec extends Specification {
     then:
     s.received == (1..100).toList()
   }
-
 
   def "can periodically produce"() {
     given:

@@ -338,17 +338,6 @@ public class Streams {
    * @return the input stream transformed
    */
   public static <T, O> TransformablePublisher<O> streamMap(Publisher<T> input, Function<? super WriteStream<O>, ? extends WriteStream<? super T>> mapper) {
-    /*
-       Implementation note: we need a smarter buffering strategy here.
-
-       We'll need to translate demand in a smart way as the arity of the outgoing stream may be different.
-       If the downstream requests, say 5 items, which the mapper then receives and translates into only 3 items
-       we'll need to ask for more from the upstream to meet the downstream demand.
-
-       We get around this now by always opening up the firehose to upstream, but this means we are nullifying back pressure and buffering in memory.
-
-       https://github.com/ratpack/ratpack/issues/515
-    */
     return new StreamMapPublisher<>(input, mapper).buffer();
   }
 
@@ -370,22 +359,22 @@ public class Streams {
   }
 
   /**
-   * Returns a publisher that allows the given publisher to emit as fast as it can, while applying flow control downstream.
+   * Returns a publisher that allows the given publisher to without respecting demand.
    * <p>
-   * When the return publisher is subscribed to, a subscription will be made to the given publisher with a request for {@link Long#MAX_VALUE} items.
-   * This effectively allows the given publisher to emit each item as soon as it can.
-   * The return publisher will manage the back pressure by holding excess items from the given publisher in memory until the downstream subscriber is ready for them.
+   * The given publisher may violate the Reactive Streams contract in that it may emit more items than have been requested.
+   * Any excess will be buffered until there is more demand.
+   * All requests for items from the subscriber will be satisfied from the buffer first.
+   * If a request is made at any time for more items than are currently in the buffer,
+   * a request for the unmet demand will be made of the given publisher.
    * <p>
-   * This is a simple, naive, flow control mechanism.
-   * If the given producer emits far faster than the downstream subscriber requests, the intermediate queue will grow large and consume substantial memory.
-   * However, it is useful or adapting non-infinite publishers that cannot meaningfully respect back pressure.
+   * If the given producer emits far faster than the downstream subscriber requests, the intermediate queue will grow large and consume memory.
    *
    * @param publisher a data source
    * @param <T> the type of item
-   * @return a publisher that applies respects back pressure, effectively throttling the given publisher
+   * @return a publisher that buffers items emitted by the given publisher that were not requested
    */
   public static <T> TransformablePublisher<T> buffer(Publisher<T> publisher) {
-    return new BufferingPublisher<>(publisher);
+    return new BufferingPublisher<>(Action.noop(), publisher);
   }
 
   /**

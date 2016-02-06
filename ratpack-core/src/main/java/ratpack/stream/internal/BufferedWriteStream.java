@@ -19,13 +19,23 @@ package ratpack.stream.internal;
 import ratpack.stream.WriteStream;
 
 /**
- * Note: should become a public type in 1.3, along with a public factory for {@link PartialBufferingPublisher}.
+ * Note: should become a public type in 1.3, along with a public factory for {@link BufferingPublisher}.
  * @param <T> element type
  */
 public interface BufferedWriteStream<T> extends WriteStream<T> {
 
+  /**
+   * The number of the outstanding requested items that the subscriber has asked for.
+   *
+   * @return
+   */
   long getRequested();
 
+  /**
+   * How many items have been emitted but not yet requested
+   *
+   * @return
+   */
   long getBuffered();
 
 }
