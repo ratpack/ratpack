@@ -20,10 +20,14 @@ import com.google.common.collect.ImmutableList;
 import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
+import org.pac4j.core.client.DirectClient;
+import org.pac4j.core.client.IndirectClient;
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.exec.Blocking;
 import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
@@ -269,7 +273,15 @@ public class RatpackPac4j {
    */
   public static Promise<UserProfile> login(Context ctx, Class<? extends Client<?, ?>> clientType) {
     return userProfile(ctx)
-      .route(p -> !p.isPresent(), p -> initiateAuthentication(ctx, clientType))
+      .flatMap(p -> {
+        if (!p.isPresent() && DirectClient.class.isAssignableFrom(clientType)) {
+          return performDirectAuthentication(ctx, clientType);
+        } else {
+          return Promise.value(p);
+        }
+      })
+      .route(p -> !p.isPresent() && DirectClient.class.isAssignableFrom(clientType), p -> ctx.clientError(401))
+      .route(p -> !p.isPresent() && IndirectClient.class.isAssignableFrom(clientType), p -> initiateAuthentication(ctx, clientType))
       .map(Optional::get);
   }
 
@@ -495,5 +507,22 @@ public class RatpackPac4j {
 
       webContext.sendResponse();
     });
+  }
+
+  private static Promise<Optional<UserProfile>> performDirectAuthentication(Context ctx, Class<? extends Client<?, ?>> clientType) {
+    return internalWebContext(ctx).flatMap(webContext ->
+      Blocking
+        .get(() -> {
+          Clients clients = ctx.get(Clients.class);
+          Client<?, ?> client = clients.findClient(clientType);
+          return userProfileFromCredentials(client, webContext);
+        })
+    );
+  }
+
+  private static <C extends Credentials, U extends UserProfile> Optional<UserProfile> userProfileFromCredentials(Client<C, U> client, RatpackWebContext webContext) throws RequiresHttpAction {
+    C credentials = client.getCredentials(webContext);
+    UserProfile userProfile = client.getUserProfile(credentials, webContext);
+    return Optional.ofNullable(userProfile);
   }
 }

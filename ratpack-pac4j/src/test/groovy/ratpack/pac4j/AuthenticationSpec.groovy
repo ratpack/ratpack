@@ -17,6 +17,7 @@ package ratpack.pac4j
 
 import org.pac4j.core.authorization.Authorizer
 import org.pac4j.core.profile.UserProfile
+import org.pac4j.http.client.direct.DirectBasicAuthClient
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
@@ -55,6 +56,48 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     requestSpec { r ->
       r.basicAuth('user', 'user')
     }.getText('require-auth') == 'Hello user'
+  }
+
+  def "secure handlers with direct auth"() {
+    given:
+    serverConfig {
+      development true
+    }
+    bindings {
+      module SessionModule
+    }
+    handlers {
+      all RatpackPac4j.authenticator(new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
+      prefix('require-auth') {
+        all RatpackPac4j.requireAuth(DirectBasicAuthClient)
+        get {
+          render "Hello " + get(UserProfile).getId()
+        }
+      }
+      prefix("forbidden") {
+        all(RatpackPac4j.requireAuth(DirectBasicAuthClient, { ctx, p -> false } as Authorizer))
+        get {
+          def userProfile = maybeGet(UserProfile).orElse(null)
+          response.send "forbidden:" + userProfile?.attributes?.username
+        }
+      }
+      get {
+        render "no auth required"
+      }
+    }
+    httpClient.requestSpec { r ->
+      r.redirects 0
+    }
+
+    expect:
+    getText() == 'no auth required'
+    get('require-auth').statusCode == 401
+    requestSpec { r ->
+      r.basicAuth('user', 'user')
+    }.getText('require-auth') == 'Hello user'
+    requestSpec { r ->
+      r.basicAuth('user', 'user')
+    }.get('forbidden').statusCode == 403
   }
 
   def "check authorizations"() {
