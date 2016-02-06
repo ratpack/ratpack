@@ -50,7 +50,13 @@ artifactory {
   contextUrl = 'http://oss.jfrog.org'
 }
 
-artifactoryPublish {
+artifactoryPublish { task ->
+  gradle.taskGraph.whenReady { taskGraph ->
+    def startParameter = project.gradle.startParameter
+    if (taskGraph.hasTask(task) && startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
+      throw new IllegalStateException("cannot run " + task + " with --parallel and --max-workers > 1")
+    }
+  }
   skip true
 }
 
