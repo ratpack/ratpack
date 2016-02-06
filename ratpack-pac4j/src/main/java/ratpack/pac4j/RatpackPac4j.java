@@ -56,11 +56,8 @@ import static java.util.Arrays.asList;
  * The {@link #authenticator(Client[])} method provides a handler that implements the authentication process,
  * and is required in all apps wanting to use authentication.
  * <p>
- * The {@link #requireAuth(Class)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
+ * The {@link #requireAuth(Class, Authorizer...)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
- * <p>
- * The {@link #secure(Class, Authorizer[])} method provides a handler that acts like a filter, ensuring that the user is authenticated and
- * that authorizations (defined by {@link Authorizer}) are checked for all requests.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
  */
@@ -123,7 +120,7 @@ public class RatpackPac4j {
    * The user will then be redirected back to the URL that initiated the authentication.
    * <p>
    * If the path does not match, the handler will push an instance of {@link Clients} into the context registry and pass control downstream.
-   * The {@link Clients} instance will be retrieved downstream by any {@link #requireAuth(Class)} handler (or use of {@link #login(Context, Class)}.
+   * The {@link Clients} instance will be retrieved downstream by any {@link #requireAuth(Class, Authorizer...)} handler (or use of {@link #login(Context, Class)}.
    *
    * @param path the path to bind the authenticator to (relative to the current request path binding)
    * @param clientsProvider the provider of authentication clients
@@ -363,7 +360,7 @@ public class RatpackPac4j {
    * the returned promise will be a failure with a {@link ClassCastException}.
    * <p>
    * This method should be used if the user <i>may</i> have been authenticated.
-   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class)} handler,
+   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class, Authorizer...)} handler,
    * as the auth handler puts the profile into the context registry for easy retrieval.
    * <p>
    * This method returns a promise as it will attempt to load the profile from the session if it
