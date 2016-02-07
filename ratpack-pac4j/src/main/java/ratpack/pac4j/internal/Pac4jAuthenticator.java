@@ -56,7 +56,7 @@ public class Pac4jAuthenticator implements Handler {
     String pastBinding = pathBinding.getPastBinding();
 
     if (pastBinding.equals(path)) {
-      RatpackPac4j.webContext(ctx).map(Types::<RatpackWebContext>cast).flatMap(webContext -> {
+      RatpackWebContext.from(ctx, true).flatMap(webContext -> {
         SessionData sessionData = webContext.getSession();
         return createClients(ctx, pathBinding).map(clients ->
           clients.findClient(webContext)

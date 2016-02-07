@@ -21,7 +21,6 @@ import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.client.DirectClient;
-import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
@@ -201,13 +200,13 @@ public class RatpackPac4j {
    */
   @SafeVarargs
   @SuppressWarnings("varargs")
-  public static Handler requireAuth(Class<? extends Client<?, ?>> clientType, Authorizer<UserProfile>... authorizers) {
-    List<Authorizer<UserProfile>> authorizerList = asList(authorizers);
+  public static <C extends Credentials, U extends UserProfile> Handler requireAuth(Class<? extends Client<C, U>> clientType, Authorizer<? super U>... authorizers) {
+    List<Authorizer<? super U>> authorizerList = asList(authorizers);
     return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile -> {
       if (authorizerList.isEmpty()) {
         ctx.next(Registry.single(userProfile));
       } else {
-        internalWebContext(ctx).then(webContext -> {
+        RatpackWebContext.from(ctx, false).then(webContext -> {
           if (all(authorizerList, a -> a == null || a.isAuthorized(webContext, userProfile))) {
             ctx.next(Registry.single(userProfile));
           } else {
@@ -270,23 +269,25 @@ public class RatpackPac4j {
    * @param clientType the client type to authenticate with
    * @return a promise for the user profile, fulfilled if logged in
    */
-  public static Promise<UserProfile> login(Context ctx, Class<? extends Client<?, ?>> clientType) {
-    return userProfile(ctx)
-      .flatMap(p -> {
-        if (!p.isPresent() && !supportsRedirect(clientType)) {
-          return performDirectAuthentication(ctx, clientType);
-        } else {
-          return Promise.value(p);
-        }
-      })
-      .route(p -> !p.isPresent(), p -> {
-        if (supportsRedirect(clientType)) {
-          initiateAuthentication(ctx, clientType);
-        } else {
-          ctx.clientError(401);
-        }
-      })
-      .map(Optional::get);
+  public static <C extends Credentials, U extends UserProfile> Promise<U> login(Context ctx, Class<? extends Client<C, U>> clientType) {
+    if (isDirect(clientType)) {
+      return userProfile(ctx)
+        .flatMap(p -> {
+          if (p.isPresent()) {
+            Optional<U> cast = Types.cast(p);
+            return Promise.value(cast);
+          } else {
+            return performDirectAuthentication(ctx, clientType);
+          }
+        })
+        .route(p -> !p.isPresent(), p -> ctx.clientError(401))
+        .map(Optional::get);
+    } else {
+      return userProfile(ctx)
+        .route(p -> !p.isPresent(), p -> initiateAuthentication(ctx, clientType))
+        .map(Optional::get)
+        .map(Types::<U>cast);
+    }
   }
 
   /**
@@ -462,22 +463,6 @@ public class RatpackPac4j {
       .remove(Pac4jSessionKeys.USER_PROFILE);
   }
 
-  /**
-   * Creates a Pac4j {@link WebContext} implementation based on Ratpack's context.
-   *
-   * @param ctx the Ratpack context
-   * @return a Pac4j web context
-   */
-  public static Promise<WebContext> webContext(Context ctx) {
-    return internalWebContext(ctx).map(Types::<WebContext>cast);
-  }
-
-  private static Promise<RatpackWebContext> internalWebContext(Context ctx) {
-    return ctx.getRequest().getBody()
-      .right(ctx.get(Session.class).getData())
-      .map(p -> new RatpackWebContext(ctx, p.getLeft(), p.getRight()));
-  }
-
   private static <T extends UserProfile> void toProfile(Class<T> type, Downstream<? super Optional<T>> downstream, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
     if (userProfileOptional.isPresent()) {
       final UserProfile userProfile = userProfileOptional.get();
@@ -496,7 +481,7 @@ public class RatpackPac4j {
     Clients clients = ctx.get(Clients.class);
     Client<?, ?> client = clients.findClient(clientType);
 
-    internalWebContext(ctx).then(webContext -> {
+    RatpackWebContext.from(ctx, false).then(webContext -> {
       webContext.getSession().set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
       try {
         client.redirect(webContext, true);
@@ -513,24 +498,23 @@ public class RatpackPac4j {
     });
   }
 
-  private static Promise<Optional<UserProfile>> performDirectAuthentication(Context ctx, Class<? extends Client<?, ?>> clientType) {
-    return internalWebContext(ctx).flatMap(webContext ->
-      Blocking
-        .get(() -> {
-          Clients clients = ctx.get(Clients.class);
-          Client<?, ?> client = clients.findClient(clientType);
-          return userProfileFromCredentials(client, webContext);
-        })
+  private static <C extends Credentials, U extends UserProfile> Promise<Optional<U>> performDirectAuthentication(Context ctx, Class<? extends Client<C, U>> clientType) {
+    return RatpackWebContext.from(ctx, false).flatMap(webContext ->
+      Blocking.get(() -> {
+        Clients clients = ctx.get(Clients.class);
+        Client<C, U> client = clients.findClient(clientType);
+        return userProfileFromCredentials(client, webContext);
+      })
     );
   }
 
-  private static <C extends Credentials, U extends UserProfile> Optional<UserProfile> userProfileFromCredentials(Client<C, U> client, RatpackWebContext webContext) throws RequiresHttpAction {
+  private static <C extends Credentials, U extends UserProfile> Optional<U> userProfileFromCredentials(Client<C, U> client, RatpackWebContext webContext) throws RequiresHttpAction {
     C credentials = client.getCredentials(webContext);
-    UserProfile userProfile = client.getUserProfile(credentials, webContext);
+    U userProfile = client.getUserProfile(credentials, webContext);
     return Optional.ofNullable(userProfile);
   }
 
-  private static boolean supportsRedirect(Class<? extends Client<?, ?>> clientType) {
-    return !DirectClient.class.isAssignableFrom(clientType);
+  private static boolean isDirect(Class<? extends Client<?, ?>> clientType) {
+    return DirectClient.class.isAssignableFrom(clientType);
   }
 }

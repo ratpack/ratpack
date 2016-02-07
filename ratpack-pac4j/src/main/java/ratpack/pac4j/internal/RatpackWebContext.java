@@ -24,12 +24,14 @@ import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
+import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.form.internal.DefaultForm;
 import ratpack.form.internal.FormDecoder;
 import ratpack.handling.Context;
 import ratpack.http.*;
 import ratpack.server.PublicAddress;
+import ratpack.session.Session;
 import ratpack.session.SessionData;
 import ratpack.util.MultiValueMap;
 
@@ -57,6 +59,17 @@ public class RatpackWebContext implements WebContext {
       this.form = FormDecoder.parseForm(ctx, body, MultiValueMap.empty());
     } else {
       this.form = new DefaultForm(MultiValueMap.empty(), MultiValueMap.empty());
+    }
+  }
+
+  public static Promise<RatpackWebContext> from(Context ctx, boolean bodyBacked) {
+    Promise<SessionData> sessionDataPromise = ctx.get(Session.class).getData();
+    if (bodyBacked) {
+      return ctx.getRequest().getBody().flatMap(body ->
+        sessionDataPromise.map(sessionData -> new RatpackWebContext(ctx, body, sessionData))
+      );
+    } else {
+      return sessionDataPromise.map(sessionData -> new RatpackWebContext(ctx, null, sessionData));
     }
   }
 
@@ -187,7 +200,7 @@ public class RatpackWebContext implements WebContext {
   public Collection<Cookie> getRequestCookies() {
     final List<Cookie> newCookies = new ArrayList<>();
     final Set<io.netty.handler.codec.http.cookie.Cookie> cookies = request.getCookies();
-    for (final io.netty.handler.codec.http.cookie.Cookie cookie: cookies) {
+    for (final io.netty.handler.codec.http.cookie.Cookie cookie : cookies) {
       final Cookie newCookie = new Cookie(cookie.name(), cookie.value());
       newCookie.setDomain(cookie.domain());
       newCookie.setPath(cookie.path());
@@ -225,7 +238,7 @@ public class RatpackWebContext implements WebContext {
 
   private static boolean isFormAvailable(Request request, TypedData body) {
     HttpMethod method = request.getMethod();
-    return body.getContentType().isForm() && (method.isPost() || method.isPut());
+    return body != null && body.getContentType().isForm() && (method.isPost() || method.isPut());
   }
 
   private Map<String, List<String>> combineMaps(MultiValueMap<String, String> first, MultiValueMap<String, String> second) {
