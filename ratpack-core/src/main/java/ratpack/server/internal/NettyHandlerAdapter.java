@@ -102,7 +102,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    RequestBody requestBody = canHaveBody(nettyRequest.method()) ? new RequestBody(HttpUtil.getContentLength(nettyRequest, -1), nettyRequest, ctx) : null;
+    RequestBody requestBody = canHaveBody(nettyRequest.method()) ? new RequestBody(HttpUtil.getContentLength(nettyRequest, -1L), nettyRequest, ctx) : null;
     if (requestBody != null) {
       ctx.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
     }

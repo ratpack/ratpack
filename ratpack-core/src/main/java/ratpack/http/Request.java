@@ -349,6 +349,41 @@ public interface Request extends MutableRegistry {
   boolean isAjaxRequest();
 
   /**
+   * Whether this request contains a {@code Expect: 100-Continue} header.
+   * <p>
+   * You do not need to send the {@code 100 Continue} status response.
+   * It will be automatically sent when the body is read via {@link #getBody()} or {@link #getBodyStream(long)} (or variants).
+   * Ratpack will not emit a {@code 417 Expectation Failed} response if the body is not read.
+   * The response specified by the handling code will not be altered, as per normal.
+   * <p>
+   * If the header is present for the request, this method will return {@code true} before and after the {@code 100 Continue} response has been sent.
+   *
+   * @return whether this request includes the {@code Expect: 100-Continue} header
+   * @since 1.2
+   */
+  boolean isExpectsContinue();
+
+  /**
+   * Whether this request contains a {@code Transfer-Encoding: chunked} header.
+   * <p>
+   * See <a href="https://en.wikipedia.org/wiki/Chunked_transfer_encoding">https://en.wikipedia.org/wiki/Chunked_transfer_encoding</a>.
+   *
+   * @return whether this request contains a {@code Transfer-Encoding: chunked} header
+   * @since 1.2
+   */
+  boolean isChunkedTransfer();
+
+  /**
+   * The advertised content length of the request body.
+   * <p>
+   * Will return {@code -1} if no {@code Content-Length} header is present, or is not valid long value.
+   *
+   * @return the advertised content length of the request body.
+   * @since 1.2
+   */
+  long getContentLength();
+
+  /**
    * The timestamp for when this request was received.
    * Specifically, this is the timestamp of creation of the request object.
    *

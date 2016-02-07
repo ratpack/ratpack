@@ -17,14 +17,12 @@
 package ratpack.http.internal;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import ratpack.api.Nullable;
@@ -33,6 +31,7 @@ import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
+import ratpack.http.HttpMethod;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.server.ServerConfig;
@@ -255,6 +254,21 @@ public class DefaultRequest implements Request {
   @Override
   public MediaType getContentType() {
     return DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE));
+  }
+
+  @Override
+  public boolean isExpectsContinue() {
+    return Iterables.any(headers.getAll(HttpHeaderNames.EXPECT), HttpHeaderValues.CONTINUE::contentEqualsIgnoreCase);
+  }
+
+  @Override
+  public boolean isChunkedTransfer() {
+    return Iterables.any(headers.getAll(HttpHeaderNames.TRANSFER_ENCODING), HttpHeaderValues.CHUNKED::contentEqualsIgnoreCase);
+  }
+
+  @Override
+  public long getContentLength() {
+    return bodyReader == null ? -1L : bodyReader.getContentLength();
   }
 
   @Override

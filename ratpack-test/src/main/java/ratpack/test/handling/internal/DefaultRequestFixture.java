@@ -128,6 +128,11 @@ public class DefaultRequestFixture implements RequestFixture {
       serverConfig,
       new RequestBodyReader() {
         @Override
+        public long getContentLength() {
+          return requestBody.readableBytes();
+        }
+
+        @Override
         public Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
           return Promise.value(requestBody)
             .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());

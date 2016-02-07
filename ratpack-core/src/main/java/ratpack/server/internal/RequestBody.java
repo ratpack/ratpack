@@ -208,6 +208,11 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
+  public long getContentLength() {
+    return advertisedLength;
+  }
+
+  @Override
   public Promise<ByteBuf> read(long maxContentLength, Block onTooLarge) {
     return Promise.<ByteBuf>of(downstream -> {
       if (read) {

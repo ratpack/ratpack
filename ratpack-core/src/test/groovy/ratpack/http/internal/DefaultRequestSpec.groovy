@@ -103,6 +103,11 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
 
   static class NoRequestBodyReader implements RequestBodyReader {
     @Override
+    long getContentLength() {
+      -1
+    }
+
+    @Override
     Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
       throw new UnsupportedOperationException()
     }

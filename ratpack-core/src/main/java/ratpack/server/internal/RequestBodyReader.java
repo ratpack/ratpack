@@ -23,6 +23,8 @@ import ratpack.stream.TransformablePublisher;
 
 public interface RequestBodyReader {
 
+  long getContentLength();
+
   Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge);
 
   TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength);
