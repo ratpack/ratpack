@@ -45,7 +45,6 @@ public class RatpackWebContext implements WebContext {
   private final Form form;
 
   private String responseContent = "";
-  private String contentType = "";
 
   public RatpackWebContext(Context ctx, TypedData body, SessionData session) {
     this.context = ctx;
@@ -187,7 +186,7 @@ public class RatpackWebContext implements WebContext {
   public Collection<Cookie> getRequestCookies() {
     final List<Cookie> newCookies = new ArrayList<>();
     final Set<io.netty.handler.codec.http.cookie.Cookie> cookies = request.getCookies();
-    for (final io.netty.handler.codec.http.cookie.Cookie cookie: cookies) {
+    for (final io.netty.handler.codec.http.cookie.Cookie cookie : cookies) {
       final Cookie newCookie = new Cookie(cookie.name(), cookie.value());
       newCookie.setDomain(cookie.domain());
       newCookie.setPath(cookie.path());
