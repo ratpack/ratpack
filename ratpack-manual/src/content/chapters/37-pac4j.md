@@ -1,9 +1,9 @@
 # Pac4j
 
-The `ratpack-pac4j` extension provides authentication support via integration with [pac4j](https://github.com/pac4j/pac4j).
+The `ratpack-pac4j` extension provides authentication and authorization support via integration with [pac4j](https://github.com/pac4j/pac4j).
 
-The pac4j library is an authentication engine which abstracts over different authentication protocols such as OAuth, CAS, OpenID (Connect), SAML, Google App Engine and HTTP (form and basic auth).
-It is also possible to use custom authentication mechanisms (e.g. database backed). 
+The pac4j library is a security engine which abstracts over different authentication protocols such as OAuth, CAS, OpenID (Connect), SAML, Google App Engine and HTTP (form and basic auth) as well as custom authentication mechanisms (e.g. database backed).
+It also supports various authorization mechanisms: roles / permissions checks, CSRF token, security headers, etc.
 
 The [`RatpackPac4j`](api/ratpack/pac4j/RatpackPac4j.html) class provides the entirety of the integration.
 This class provides static methods that provide handler implementations along with other finer grained constructs for use within your handler implementations.
@@ -15,13 +15,18 @@ The `ratpack-pac4j` library requires the `ratpack-session` module, and use of th
 
 Each authentication mechanism in `pac4j` is defined as a [Client](https://github.com/pac4j/pac4j/blob/master/pac4j-core/src/main/java/org/pac4j/core/client/Client.java).
 For example, Pac4j provides the [FacebookClient](http://www.pac4j.org/apidocs/pac4j/org/pac4j/oauth/client/FacebookClient.html) type that implements the Facebook authentication protocol.
-Your application must expose an “authenticator” endpoint, that given a user and an intended “client”, authenticates the user.
+An indirect client is for UI authentication while a direct client is for web services authentication.
+Here is the list of all available [clients](https://github.com/pac4j/pac4j/wiki/Clients).
+
+In case of an indirect client (where the login process requires the user to be redirected to an external identity and then redirected back to the application), your application must expose an “authenticator” endpoint to finish the authentication process (given the information provided by the remote identity provider).
 The [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-org.pac4j.core.client.Client...-) provides a handler implementation to act as this endpoint.
-When an authenticated user is required within your application, the user will be redirected to the “authenticator”.
+This is not required for a direct client (like basic auth or JWT authentication).
 
-There are two ways to require authentication:
+Authorizations can be checked via authorizers, which can apply both on the authenticated user profile or on the current web context. Here is the list of all available [authorizers](https://github.com/pac4j/pac4j/wiki/Authorizers).
 
-1. [`RatpackPac4j.requireAuth()`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-org.pac4j.core.authorization.Authorizer...-) - a handler implementation that acts as a “filter”
+There are two ways to require authentication(/authorizations):
+
+1. [`RatpackPac4j.requireAuth()`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-org.pac4j.core.authorization.Authorizer...-) - a handler implementation that acts as a “filter” (both for authentication and authorizations)
 1. [`RatpackPac4j.login()`](api/ratpack/pac4j/RatpackPac4j.html#login-ratpack.handling.Context-java.lang.Class-) - method that initiates login if required (to be used within a handler implementation)
 
 The [`RatpackPac4j.userProfile()`](api/ratpack/pac4j/RatpackPac4j.html#userProfile-ratpack.handling.Context-) method can be used to obtain the user profile if the user is logged in, without requiring authentication.
