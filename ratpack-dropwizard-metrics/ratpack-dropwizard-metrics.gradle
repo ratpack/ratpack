@@ -28,5 +28,6 @@ dependencies {
   compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.dropwizardMetrics}"
   compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.dropwizardMetrics}"
   compile "io.dropwizard.metrics:metrics-graphite:${commonVersions.dropwizardMetrics}"
+  compile "io.reactivex:rxjava:$commonVersions.rxjava"
 }
 
