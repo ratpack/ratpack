@@ -21,12 +21,23 @@ import ratpack.func.Function;
 import ratpack.func.Block;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.internal.ClosureUtil;
+import ratpack.util.Exceptions;
+import ratpack.util.internal.Paths2;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 public class RatpackDslClosures {
 
   private Closure<?> handlers;
   private Closure<?> bindings;
   private Closure<?> serverConfig;
+
+  public RatpackDslClosures() {
+    this.handlers = Closure.IDENTITY;
+    this.bindings = Closure.IDENTITY;
+    this.serverConfig = Closure.IDENTITY;
+  }
 
   public Closure<?> getHandlers() {
     return handlers;
@@ -41,15 +52,25 @@ public class RatpackDslClosures {
   }
 
   public void setHandlers(Closure<?> handlers) {
-    this.handlers = handlers;
+    this.handlers = this.handlers.leftShift(handlers);
   }
 
   public void setBindings(Closure<?> bindings) {
-    this.bindings = bindings;
+    this.bindings = this.bindings.leftShift(bindings);
   }
 
   public void setServerConfig(Closure<?> serverConfig) {
-    this.serverConfig = serverConfig;
+    this.serverConfig = this.serverConfig.leftShift(serverConfig);
+  }
+
+  public void include(Path path) {
+    Exceptions.uncheck(() -> {
+      String script = Paths2.readText(path, StandardCharsets.UTF_8);
+      RatpackDslClosures closures = new RatpackDslScriptCapture(false, new String[]{}, RatpackDslBacking::new).apply(path, script);
+      this.setServerConfig(closures.getServerConfig());
+      this.setBindings(closures.getBindings());
+      this.setHandlers(closures.getHandlers());
+    });
   }
 
   public static RatpackDslClosures capture(Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function, Block action) throws Exception {
