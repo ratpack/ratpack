@@ -19,6 +19,8 @@ package ratpack.groovy.internal.capture;
 import groovy.lang.Closure;
 import ratpack.groovy.Groovy;
 
+import java.nio.file.Path;
+
 public class RatpackDslBacking implements Groovy.Ratpack {
 
   private final RatpackDslClosures closures;
@@ -40,6 +42,11 @@ public class RatpackDslBacking implements Groovy.Ratpack {
   @Override
   public void serverConfig(Closure<?> configurer) {
     closures.setServerConfig(configurer);
+  }
+
+  @Override
+  public void include(Path path) {
+    closures.include(path);
   }
 
 }

@@ -85,5 +85,10 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
       ClosureUtil.configureDelegateFirst(builder, configurer);
       server.serverConfig(builder);
     }
+
+    @Override
+    public void include(Path path) {
+      throw new UnsupportedOperationException("Script includes are not supported in this runtime.");
+    }
   }
 }

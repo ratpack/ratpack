@@ -141,6 +141,18 @@ public abstract class Groovy {
      */
     void serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
+    /**
+     * Evaluates the path provided using the Ratpack DSL and applies the configuration to this server.
+     * <p>
+     * The path specified is evaluated against {@link Ratpack}.
+     * The path is applied inline to the parent configuration.
+     * That is, settings configured in the path will override settings configured prior to calling {@code include()}
+     * and settings configured after calling {@code include} will override the settings configured in the path.
+     *
+     * @param path The absolute path to the external Groovy DSL to included into the server.
+     */
+    void include(Path path);
+
   }
 
   /**
