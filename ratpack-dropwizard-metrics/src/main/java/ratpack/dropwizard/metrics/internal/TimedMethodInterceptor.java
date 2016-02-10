@@ -25,7 +25,6 @@ import ratpack.exec.Promise;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
-import rx.Observable;
 
 /**
  * An implementation of MethodInterceptor that collects {@link com.codahale.metrics.Timer} metrics for any method
@@ -43,9 +42,7 @@ public class TimedMethodInterceptor implements MethodInterceptor {
     Object result;
     try {
       result = invocation.proceed();
-      if (result instanceof Observable<?>) {
-        result = ((Observable) result).finallyDo(timer::stop);
-      } else if (result instanceof Promise<?>) {
+      if (result instanceof Promise<?>) {
         ((Promise<?>) result).result(v -> timer.stop());
       } else {
         timer.stop();
