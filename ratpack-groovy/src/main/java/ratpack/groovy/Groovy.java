@@ -153,6 +153,14 @@ public abstract class Groovy {
      */
     void include(Path path);
 
+    /**
+     * Evaluates the path provided using the Ratpack DSL and applies the configuration to this server.
+     *
+     * @param path The absolute path to the external Groovy DSL to included into the server.
+     * @see #include(Path)
+     */
+    void include(String path);
+
   }
 
   /**
