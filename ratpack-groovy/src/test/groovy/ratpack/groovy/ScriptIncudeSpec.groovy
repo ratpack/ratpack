@@ -126,6 +126,37 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
     getText("integer") == "50"
   }
 
+  def "includes overloading"() {
+    when:
+    File include = getAdditionalFile("include.groovy") << """
+      import static ${Groovy.name}.ratpack
+      ratpack {
+        handlers {
+          get {
+            response.send "included:\${get(String)}"
+          }
+        }
+      }
+    """
+
+    script """
+      ratpack {
+        bindings {
+          bindInstance String, "foo"
+        }
+        include "${include.path}"
+        handlers {
+          get {
+            response.send "main:\${get(String)}"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "main:foo"
+  }
+
   protected File getAdditionalFile(String fileName) {
     if (!additionalFiles.containsKey(fileName)) {
       additionalFiles[fileName] = temporaryFolder.newFile(fileName)
