@@ -77,44 +77,6 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     text == "bar"
   }
 
-  def "can include additional files"() {
-    when:
-    File include = temporaryFolder.newFile("include.groovy") << """
-      import static ${Groovy.name}.ratpack
-      ratpack {
-        bindings {
-          bindInstance Integer, 50
-        }
-        handlers {
-          get("integer") {
-            response.send get(Integer).toString()
-          }
-        }
-      }
-    """
-
-    script """
-      import java.nio.file.Paths
-      ratpack {
-        bindings {
-          bindInstance String, "foo"
-        }
-        include Paths.get("${include.path}")
-        handlers {
-          get {
-            response.send "\${get(String)}:\${get(Integer)}"
-          }
-        }
-      }
-    """
-
-    then:
-    text == "foo:50"
-
-    and:
-    getText("integer") == "50"
-  }
-
   def "types in API are correct"() {
     when:
     script """
