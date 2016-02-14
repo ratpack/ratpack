@@ -62,12 +62,11 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
     """
 
     script """
-      import java.nio.file.Paths
       ratpack {
         bindings {
           bindInstance String, "foo"
         }
-        include Paths.get("${include.path}")
+        include "${include.path}"
         handlers {
           get {
             response.send "\${get(String)}:\${get(Integer)}"
@@ -96,9 +95,8 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
 
     File include = getAdditionalFile("include.groovy") << """
       import static ${Groovy.name}.ratpack
-      import java.nio.file.Paths
       ratpack {
-        include Paths.get("${nestedInclude.path}")
+        include "${nestedInclude.path}"
         handlers {
           get("integer") {
             response.send get(Integer).toString()
@@ -108,12 +106,11 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
     """
 
     script """
-      import java.nio.file.Paths
       ratpack {
         bindings {
           bindInstance String, "foo"
         }
-        include Paths.get("${include.path}")
+        include "${include.path}"
         handlers {
           get {
             response.send "\${get(String)}:\${get(Integer)}"
