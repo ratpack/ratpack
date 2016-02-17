@@ -23,8 +23,6 @@ import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
-import java.nio.file.Paths
-
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
