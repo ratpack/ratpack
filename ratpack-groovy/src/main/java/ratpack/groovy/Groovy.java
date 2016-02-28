@@ -151,6 +151,7 @@ public abstract class Groovy {
      * Settings from the parent configuration that are applied after the {@code include}, will be applied after the child configurations.
      *
      * @param path The absolute path to the external Groovy DSL to included into the server.
+     * @since 1.3
      */
     void include(Path path);
 
@@ -161,6 +162,7 @@ public abstract class Groovy {
      *
      * @param path The absolute path to the external Groovy DSL to included into the server.
      * @see #include(Path)
+     * @since 1.3
      */
     void include(String path);
 
