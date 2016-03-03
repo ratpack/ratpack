@@ -82,6 +82,43 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
     getText("integer") == "50"
   }
 
+  def "can include additional files relative to script"() {
+    when:
+    getAdditionalFile("include.groovy") << """
+      import static ${Groovy.name}.ratpack
+      ratpack {
+        bindings {
+          bindInstance Integer, 50
+        }
+        handlers {
+          get("integer") {
+            response.send get(Integer).toString()
+          }
+        }
+      }
+    """
+
+    script """
+      ratpack {
+        bindings {
+          bindInstance String, "foo"
+        }
+        include "include.groovy"
+        handlers {
+          get {
+            response.send "\${get(String)}:\${get(Integer)}"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo:50"
+
+    and:
+    getText("integer") == "50"
+  }
+
   def "can include nested files"() {
     when:
     File nestedInclude = getAdditionalFile("nestedInclude.groovy") << """
@@ -111,6 +148,50 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
           bindInstance String, "foo"
         }
         include "${include.path}"
+        handlers {
+          get {
+            response.send "\${get(String)}:\${get(Integer)}"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "foo:50"
+
+    and:
+    getText("integer") == "50"
+  }
+
+  def "can include relative nested files"() {
+    when:
+    getAdditionalFile("nested/include.groovy") << """
+      import static ${Groovy.name}.ratpack
+      ratpack {
+        include "child/include.groovy"
+        handlers {
+          get("integer") {
+            response.send get(Integer).toString()
+          }
+        }
+      }
+    """
+
+    getAdditionalFile("nested/child/include.groovy") << """
+      import static ${Groovy.name}.ratpack
+      ratpack {
+        bindings {
+          bindInstance Integer, 50
+        }
+      }
+    """
+
+    script """
+      ratpack {
+        bindings {
+          bindInstance String, "foo"
+        }
+        include "nested/include.groovy"
         handlers {
           get {
             response.send "\${get(String)}:\${get(Integer)}"
@@ -159,6 +240,17 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
 
   protected File getAdditionalFile(String fileName) {
     if (!additionalFiles.containsKey(fileName)) {
+      def tokens = fileName.split(File.separator)
+      if (tokens.length > 1) {
+        try {
+          temporaryFolder.newFolder((String[]) tokens[0..-2].toArray())
+        } catch (IOException e) {
+          if (!e.message.contains('already exists')) {
+            throw e
+          }
+        }
+
+      }
       additionalFiles[fileName] = temporaryFolder.newFile(fileName)
     }
     return additionalFiles[fileName]

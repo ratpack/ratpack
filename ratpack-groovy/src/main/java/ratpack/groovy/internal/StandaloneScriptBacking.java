@@ -73,7 +73,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     @Override
     public void execute(RatpackServerSpec server) throws Exception {
-      RatpackDslClosures closures = new RatpackDslClosures();
+      RatpackDslClosures closures = new RatpackDslClosures(null);
       RatpackDslBacking backing = new RatpackDslBacking(closures);
       ClosureUtil.configureDelegateFirst(backing, closure);
       server.registry(Guice.registry(ClosureUtil.delegatingAction(closures.getBindings())));

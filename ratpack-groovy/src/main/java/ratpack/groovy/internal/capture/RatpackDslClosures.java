@@ -32,11 +32,13 @@ public class RatpackDslClosures {
   private Closure<?> handlers;
   private Closure<?> bindings;
   private Closure<?> serverConfig;
+  private Path rootScript;
 
-  public RatpackDslClosures() {
+  public RatpackDslClosures(Path rootScript) {
     this.handlers = Closure.IDENTITY;
     this.bindings = Closure.IDENTITY;
     this.serverConfig = Closure.IDENTITY;
+    this.rootScript = rootScript;
   }
 
   public Closure<?> getHandlers() {
@@ -65,16 +67,20 @@ public class RatpackDslClosures {
 
   public void include(Path path) {
     Exceptions.uncheck(() -> {
-      String script = Paths2.readText(path, StandardCharsets.UTF_8);
-      RatpackDslClosures closures = new RatpackDslScriptCapture(false, new String[]{}, RatpackDslBacking::new).apply(path, script);
+      Path resolvedPath = path;
+      if (rootScript != null && !path.isAbsolute()) {
+        resolvedPath = rootScript.resolveSibling(path);
+      }
+      String script = Paths2.readText(resolvedPath, StandardCharsets.UTF_8);
+      RatpackDslClosures closures = new RatpackDslScriptCapture(false, new String[]{}, RatpackDslBacking::new).apply(resolvedPath, script);
       this.setServerConfig(closures.getServerConfig());
       this.setBindings(closures.getBindings());
       this.setHandlers(closures.getHandlers());
     });
   }
 
-  public static RatpackDslClosures capture(Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function, Block action) throws Exception {
-    RatpackDslClosures closures = new RatpackDslClosures();
+  public static RatpackDslClosures capture(Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function, Path script, Block action) throws Exception {
+    RatpackDslClosures closures = new RatpackDslClosures(script);
     Groovy.Ratpack receiver = function.apply(closures);
     RatpackScriptBacking.withBacking(closure -> ClosureUtil.configureDelegateFirst(receiver, closure), action);
     return closures;

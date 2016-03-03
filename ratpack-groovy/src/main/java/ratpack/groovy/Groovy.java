@@ -149,6 +149,8 @@ public abstract class Groovy {
      * For {@link Ratpack#bindings(Closure)}, the configuration is appended.
      * For {@link Ratpack#handlers} and {@link Ratpack#serverConfig(Closure)}, the configuration is merged.
      * Settings from the parent configuration that are applied after the {@code include}, will be applied after the child configurations.
+     * <p>
+     * If the {@code path} is a relative path, then it will be resolved against the location of the parent script file that is including it.
      *
      * @param path The absolute path to the external Groovy DSL to included into the server.
      * @since 1.3
