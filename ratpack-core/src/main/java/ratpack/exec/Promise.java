@@ -23,6 +23,7 @@ import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.func.*;
 
+import java.time.Duration;
 import java.util.Objects;
 
 import static ratpack.func.Action.ignoreArg;
@@ -182,22 +183,22 @@ public interface Promise<T> {
    */
   default Promise<T> onError(Predicate<? super Throwable> predicate, Action<? super Throwable> errorHandler) {
     return transform(up -> down ->
-        up.connect(down.onError(throwable -> {
-          if (predicate.apply(throwable)) {
-            try {
-              errorHandler.execute(throwable);
-            } catch (Throwable e) {
-              if (e != throwable) {
-                e.addSuppressed(throwable);
-              }
-              down.error(e);
-              return;
+      up.connect(down.onError(throwable -> {
+        if (predicate.apply(throwable)) {
+          try {
+            errorHandler.execute(throwable);
+          } catch (Throwable e) {
+            if (e != throwable) {
+              e.addSuppressed(throwable);
             }
-            down.complete();
-          } else {
-            down.error(throwable);
+            down.error(e);
+            return;
           }
-        }))
+          down.complete();
+        } else {
+          down.error(throwable);
+        }
+      }))
     );
   }
 
@@ -298,14 +299,14 @@ public interface Promise<T> {
    */
   default <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
     return transform(up -> down -> up.connect(
-        down.<T>onSuccess(value -> {
-          try {
-            O apply = transformer.apply(value);
-            down.success(apply);
-          } catch (Throwable e) {
-            down.error(e);
-          }
-        })
+      down.<T>onSuccess(value -> {
+        try {
+          O apply = transformer.apply(value);
+          down.success(apply);
+        } catch (Throwable e) {
+          down.error(e);
+        }
+      })
       )
     );
   }
@@ -396,9 +397,9 @@ public interface Promise<T> {
    */
   default Promise<T> next(@NonBlocking Action<? super T> action) {
     return nextOp(v ->
-        Operation.of(() ->
-            action.execute(v)
-        )
+      Operation.of(() ->
+        action.execute(v)
+      )
     );
   }
 
@@ -452,13 +453,13 @@ public interface Promise<T> {
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
     return transform(up -> down -> up.connect(
-        down.<T>onSuccess(value ->
-            function.apply(value)
-              .onError(down::error)
-              .then(() ->
-                  down.success(value)
-              )
-        )
+      down.<T>onSuccess(value ->
+        function.apply(value)
+          .onError(down::error)
+          .then(() ->
+            down.success(value)
+          )
+      )
       )
     );
   }
@@ -572,14 +573,14 @@ public interface Promise<T> {
    */
   default Promise<T> mapError(Function<? super Throwable, ? extends T> transformer) {
     return transform(up -> down ->
-        up.connect(down.onError(throwable -> {
-          try {
-            T transformed = transformer.apply(throwable);
-            down.success(transformed);
-          } catch (Throwable t) {
-            down.error(t);
-          }
-        }))
+      up.connect(down.onError(throwable -> {
+        try {
+          T transformed = transformer.apply(throwable);
+          down.success(transformed);
+        } catch (Throwable t) {
+          down.error(t);
+        }
+      }))
     );
   }
 
@@ -751,13 +752,13 @@ public interface Promise<T> {
    */
   default <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {
     return transform(up -> down ->
-        up.connect(down.<T>onSuccess(value -> {
-          try {
-            transformer.apply(value).onError(down::error).then(down::success);
-          } catch (Throwable e) {
-            down.error(e);
-          }
-        }))
+      up.connect(down.<T>onSuccess(value -> {
+        try {
+          transformer.apply(value).onError(down::error).then(down::success);
+        } catch (Throwable e) {
+          down.error(e);
+        }
+      }))
     );
   }
 
@@ -837,26 +838,26 @@ public interface Promise<T> {
    */
   default Promise<T> route(Predicate<? super T> predicate, Action<? super T> action) {
     return transform(up -> down ->
-        up.connect(down.<T>onSuccess(value -> {
-          boolean apply;
+      up.connect(down.<T>onSuccess(value -> {
+        boolean apply;
+        try {
+          apply = predicate.apply(value);
+        } catch (Throwable e) {
+          down.error(e);
+          return;
+        }
+
+        if (apply) {
           try {
-            apply = predicate.apply(value);
+            action.execute(value);
+            down.complete();
           } catch (Throwable e) {
             down.error(e);
-            return;
           }
-
-          if (apply) {
-            try {
-              action.execute(value);
-              down.complete();
-            } catch (Throwable e) {
-              down.error(e);
-            }
-          } else {
-            down.success(value);
-          }
-        }))
+        } else {
+          down.success(value);
+        }
+      }))
     );
   }
 
@@ -943,11 +944,11 @@ public interface Promise<T> {
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
     return transform(up -> down ->
-        Promise.of(innerDown ->
-            releaser.execute((Runnable) () -> innerDown.success(true))
-        ).then(v ->
-            up.connect(down)
-        )
+      Promise.of(innerDown ->
+        releaser.execute((Runnable) () -> innerDown.success(true))
+      ).then(v ->
+        up.connect(down)
+      )
     );
   }
 
@@ -1028,16 +1029,16 @@ public interface Promise<T> {
    */
   default Promise<T> wiretap(Action<? super Result<T>> listener) {
     return transform(up -> down ->
-        up.connect(down.<T>onSuccess(value -> {
-          try {
-            listener.execute(Result.success(value));
-          } catch (Throwable t) {
-            down.error(t);
-            return;
-          }
+      up.connect(down.<T>onSuccess(value -> {
+        try {
+          listener.execute(Result.success(value));
+        } catch (Throwable t) {
+          down.error(t);
+          return;
+        }
 
-          down.success(value);
-        }))
+        down.success(value);
+      }))
     );
   }
 
@@ -1102,6 +1103,62 @@ public interface Promise<T> {
    */
   default Promise<T> throttled(Throttle throttle) {
     return throttle.throttle(this);
+  }
+
+  /**
+   * Emits the time taken from when the promise is subscribed to to when the result is available.
+   * <p>
+   * The given {@code action} is called regardless of whether the promise is successful or not.
+   * <p>
+   * If the promise fails and this method throws an exception, the original exception will propagate with the thrown exception suppressed.
+   * If the promise succeeds and this method throws an exception, the thrown exception will propagate.
+   *
+   * @param action a callback for the time
+   * @since 1.3
+   * @return effectively {@code this}
+   */
+  default Promise<T> time(Action<? super Duration> action) {
+    return transform(up -> down -> {
+      long start = System.nanoTime();
+      up.connect(new Downstream<T>() {
+        private Duration duration() {
+          // protect against clock skew causing negative durations
+          return Duration.ofNanos(Math.max(0, System.nanoTime() - start));
+        }
+
+        @Override
+        public void success(T value) {
+          try {
+            action.execute(duration());
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          down.success(value);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            action.execute(duration());
+          } catch (Throwable t) {
+            throwable.addSuppressed(t);
+          }
+          down.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          try {
+            action.execute(duration());
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          down.complete();
+        }
+      });
+    });
   }
 
   static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
