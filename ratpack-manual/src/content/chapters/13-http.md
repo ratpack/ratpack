@@ -12,6 +12,15 @@ For example, they both provide a `getHeaders()` method that returns a model of t
 The [`Request`](api/ratpack/http/Request.html) exposes other metadata attributes such as the [HTTP method](api/ratpack/http/Request.html#getMethod--),
 the [URI](api/ratpack/http/Request.html#getUri--) and a key/value model of the [query string parameters](api/ratpack/http/Request.html#getQueryParams--) among other things.
 
+## Redirecting
+
+The context object provides options for responding with redirects. These methods all delegate to a [Redirector](api/ratpack/handling/Redirector.html), by default Ratpack provides a Redircetor that acts in the following ways:
+
+  * An absolute URL will be used as the location.
+  * A protocol relative URL will use the protocol of the incoming request, ex: `\\example.com\foo`.
+  * A starting slash will have the URL provided by the [PublicAddress.get()](api/ratpack/server/PublicAddress.html#get--) method prepended. 
+  * A relative url will have the URL provided by [PublicAddress.get()](api/ratpack/server/PublicAddress.html#get--) and then the parent path of the request prepended. 
+
 ## Reading the request
 
 The body of the request is available via [`Request.getBody()`](api/ratpack/http/Request.html#getBody--).

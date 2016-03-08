@@ -16,6 +16,7 @@
 package ratpack.handling
 
 import io.netty.handler.codec.http.HttpResponseStatus
+import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -144,5 +145,45 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     response.statusCode == HttpResponseStatus.OK.code()
     response.body.text == 'Ratpack'
   }
+
+
+  def "Protocol relative url"() {
+    when:
+
+    handlers {
+      get {
+        redirect("//google.com/")
+      }
+    }
+
+    then:
+    def resp = get("")
+    resp.statusCode == 302
+    resp.headers.get("Location") == "http://google.com/"
+  }
+
+
+  def "Protocol relative url with x-forwarded-proto"() {
+    when:
+
+    handlers {
+      get {
+        redirect("//google.com/")
+      }
+    }
+
+    and:
+    requestSpec{ RequestSpec requestSpec ->
+      requestSpec.headers { MutableHeaders headers ->
+        headers.set("x-forwarded-proto", "https")
+      }
+    }
+
+    then:
+    def resp = get("")
+    resp.statusCode == 302
+    resp.headers.get("Location") == "https://google.com/"
+  }
+
 
 }
