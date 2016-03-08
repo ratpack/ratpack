@@ -25,6 +25,7 @@ import ratpack.exec.Promise;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An implementation of MethodInterceptor that collects {@link com.codahale.metrics.Timer} metrics for any method
@@ -38,17 +39,20 @@ public class TimedMethodInterceptor implements MethodInterceptor {
   @Override
   public Object invoke(MethodInvocation invocation) throws Throwable {
     String timerTag = buildTimerTag(invocation.getMethod().getAnnotation(Timed.class), invocation.getMethod());
-    final Timer.Context timer = metricRegistry.timer(timerTag).time();
+    final Timer timer = metricRegistry.timer(timerTag);
+    final Timer.Context timerContext = timer.time();
     Object result;
     try {
       result = invocation.proceed();
       if (result instanceof Promise<?>) {
-        ((Promise<?>) result).result(v -> timer.stop());
+        ((Promise<?>) result).time(duration ->
+                timer.update(duration.getNano(), TimeUnit.NANOSECONDS)
+        );
       } else {
-        timer.stop();
+        timerContext.stop();
       }
     } catch (Exception e) {
-      timer.stop();
+      timerContext.stop();
       throw e;
     }
     return result;
