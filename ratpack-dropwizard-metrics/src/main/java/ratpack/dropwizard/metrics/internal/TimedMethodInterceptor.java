@@ -45,7 +45,7 @@ public class TimedMethodInterceptor implements MethodInterceptor {
     try {
       result = invocation.proceed();
       if (result instanceof Promise<?>) {
-        ((Promise<?>) result).time(duration ->
+        result = ((Promise<?>) result).time(duration ->
                 timer.update(duration.getNano(), TimeUnit.NANOSECONDS)
         );
       } else {
