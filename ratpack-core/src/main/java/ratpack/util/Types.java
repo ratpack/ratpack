@@ -128,7 +128,8 @@ public abstract class Types {
   }
 
   /**
-   * Creates a type token for a promise of of the given type.
+   * Creates a type token for a promise of the given type.
+   *
    * <pre class="java">{@code
    * import ratpack.util.Types;
    * import ratpack.exec.Promise;
@@ -157,6 +158,5 @@ public abstract class Types {
     }.where(new TypeParameter<T>() {
     }, type);
   }
-
 
 }

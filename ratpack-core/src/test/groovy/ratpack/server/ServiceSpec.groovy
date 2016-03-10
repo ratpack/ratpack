@@ -16,25 +16,37 @@
 
 package ratpack.server
 
-import ratpack.exec.Blocking
+import ratpack.exec.Operation
+import ratpack.func.Predicate
+import ratpack.service.ServiceDependencies
 import ratpack.test.internal.RatpackGroovyDslSpec
+
+import java.util.concurrent.CyclicBarrier
 
 class ServiceSpec extends RatpackGroovyDslSpec {
 
-  def events = []
+  List<String> events = [].asSynchronized()
 
   class RecordingService implements Service {
 
     String prefix = ""
+    Runnable onStart
+    Runnable onStop
 
     @Override
     void onStart(StartEvent event) throws Exception {
-      Blocking.get { "${prefix}start".toString() }.then { events << it }
+      events << "${prefix ? prefix + "-" : ""}start".toString()
+      if (onStart) {
+        Operation.of { onStart.run() }.then()
+      }
     }
 
     @Override
     void onStop(StopEvent event) throws Exception {
-      Blocking.get { "${prefix}stop".toString() }.then { events << it }
+      events << "${prefix ? prefix + "-" : ""}stop".toString()
+      if (onStop) {
+        Operation.of { onStop.run() }.then()
+      }
     }
   }
 
@@ -59,14 +71,17 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     events == ["start", "stop"]
   }
 
-  def "services are executed in order returned by the registry"() {
+  def "services initialised in dependency order"() {
     when:
     serverConfig {
-      threads 1
+      threads 3
     }
     bindings {
-      multiBindInstance new RecordingService(prefix: "2 ")
-      multiBindInstance new RecordingService(prefix: "1 ")
+      multiBindInstance new RecordingService(prefix: "1")
+      multiBindInstance new RecordingService(prefix: "2")
+      multiBindInstance new RecordingService(prefix: "3")
+      multiBindInstance dependsOn("2", "1")
+      multiBindInstance dependsOn("3", "2")
     }
     handlers {
       get {
@@ -75,26 +90,57 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == ["1 start", "2 start"].toString()
+    text == ["1-start", "2-start", "3-start"].toString()
 
     when:
     server.stop()
 
     then:
-    events == ["1 start", "2 start", "2 stop", "1 stop"]
+    events == ["1-start", "2-start", "3-start", "3-stop", "2-stop", "1-stop"]
+  }
+
+  def "all dependencies are satisfied before starting a service"() {
+    when:
+    serverConfig {
+      threads 3
+    }
+    bindings {
+      multiBindInstance new RecordingService(prefix: "1")
+      multiBindInstance new RecordingService(prefix: "2")
+      multiBindInstance new RecordingService(prefix: "3")
+      multiBindInstance dependsOn("3", "2")
+      multiBindInstance dependsOn("3", "1")
+    }
+    handlers {
+      get {
+        render events.toString()
+      }
+    }
+
+    then:
+    get()
+    events[0] in ["2-start", "1-start"]
+    events[1] in ["2-start", "1-start"]
+    events[2] in ["3-start"]
+
+    when:
+    server.stop()
+
+    then:
+    events[3] == "3-stop"
+    events[4] in ["2-stop", "1-stop"]
+    events[5] in ["2-stop", "1-stop"]
   }
 
   def "startup stops when the first service errors"() {
     when:
     serverConfig { development(false) }
     bindings {
-      multiBindInstance new RecordingService(prefix: "2 ")
-      bindInstance(new Service() {
-        @Override
-        void onStart(StartEvent event) throws Exception {
-          throw new Exception("!")
-        }
-      })
+      multiBindInstance new RecordingService(prefix: "1")
+      multiBindInstance new RecordingService(prefix: "2", onStart: { throw new Exception("!") })
+      multiBindInstance new RecordingService(prefix: "3")
+      multiBindInstance dependsOn("2", "1")
+      multiBindInstance dependsOn("3", "2")
     }
     handlers {
       get {
@@ -108,39 +154,38 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     then:
     def e = thrown StartupFailureException
     e.cause.message == "!"
-    events == ["2 stop"] // no other services started
+    events == ["1-start", "2-start", "1-stop"]
   }
 
-  def "startup stops when the first service errors async"() {
+  def "services are initialised in parallel"() {
     when:
-    serverConfig { development(false) }
-    bindings {
-      multiBindInstance new RecordingService(prefix: "2 ")
-      bindInstance(new Service() {
-        @Override
-        void onStart(StartEvent event) throws Exception {
-          Blocking.get { throw new Exception("!") }.then {}
-        }
-
-        @Override
-        void onStop(StopEvent event) throws Exception {
-          events << "error-stop"
-        }
-      })
+    def barrier = new CyclicBarrier(3)
+    serverConfig {
+      threads 3
     }
-    handlers {
-      get {
-        render events.toString()
-      }
+    bindings {
+      multiBindInstance new RecordingService(onStart: { barrier.await() }, onStop: { barrier.await() })
+      multiBindInstance new RecordingService(onStart: { barrier.await() }, onStop: { barrier.await() })
+      multiBindInstance new RecordingService(onStart: { barrier.await() }, onStop: { barrier.await() })
     }
 
     and:
     server.start()
+    server.stop()
 
     then:
-    def e = thrown StartupFailureException
-    e.cause.message == "!"
-    events == ["2 stop", "error-stop"] // no other services started
+    events.size() == 6
   }
 
+  static ServiceDependencies dependsOn(String dependentPrefix, String dependencyPrefix) {
+    dependsOn(
+      { it instanceof RecordingService && it.prefix == dependentPrefix },
+      { it instanceof RecordingService && it.prefix == dependencyPrefix }
+    )
+  }
+
+  static ServiceDependencies dependsOn(Predicate<? super Service> dependents, Predicate<? super Service> dependencies) {
+    return { it.dependsOn(dependents, dependencies) }
+  }
 }
+
