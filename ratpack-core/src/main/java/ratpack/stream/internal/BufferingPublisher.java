@@ -31,7 +31,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
@@ -65,7 +64,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
     private final Publisher<T> publisher;
     private final BufferedWriteStream<T> write;
 
-    private final AtomicReference<Subscription> upstreamRef = new AtomicReference<>();
+    private volatile Subscription upstream;
 
     private final AtomicBoolean connected = new AtomicBoolean();
     private final AtomicBoolean draining = new AtomicBoolean();
@@ -94,14 +93,14 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
     private void drain() {
       if (draining.compareAndSet(false, true)) {
         try {
-          Subscription upstream = upstreamRef.get();
-          if (upstream != null) {
+          Subscription upstreamRead = upstream;
+          if (upstreamRead != null) {
             Object signal = signals.poll();
             while (signal != null) {
               if (signal == CANCEL) {
-                upstream.cancel();
+                upstreamRead.cancel();
               } else {
-                upstream.request((long) signal);
+                upstreamRead.request((long) signal);
               }
               signal = signals.poll();
             }
@@ -109,7 +108,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         } finally {
           draining.set(false);
         }
-        if (!signals.isEmpty() && upstreamRef.get() != null) {
+        if (!signals.isEmpty() && upstream != null) {
           drain();
         }
       }
@@ -117,7 +116,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     public void onSubscribe(Subscription s) {
-      upstreamRef.set(s);
+      upstream = s;
       drain();
     }
 

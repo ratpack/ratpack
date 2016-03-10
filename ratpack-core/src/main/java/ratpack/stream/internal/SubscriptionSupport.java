@@ -118,7 +118,7 @@ public abstract class SubscriptionSupport<T> implements Subscription {
   private void drain() {
     if (inOnMethod.compareAndSet(false, true)) {
       try {
-        for (; ; ) {
+        for (;;) {
           Throwable error = this.error.get();
           if (error != null) {
             subscriber.onError(error);
