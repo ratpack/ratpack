@@ -16,12 +16,29 @@
 
 package ratpack.service;
 
+import ratpack.server.Service;
+
 import java.lang.annotation.*;
 
+/**
+ * Declares the other service types that services of the annotated type depend on.
+ * <p>
+ * This annotation is only effective when present on {@link Service} types.
+ *
+ * @see ServiceDependencies
+ * @since 1.3
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
 public @interface DependsOn {
+
+  /**
+   * The types of services that services of the annotated type depend on.
+   *
+   * @return the types of services that services of the annotated type depend on.
+   */
   Class<?>[] value();
+
 }
