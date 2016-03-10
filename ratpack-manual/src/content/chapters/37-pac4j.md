@@ -14,7 +14,7 @@ The `ratpack-pac4j` library requires the `ratpack-session` library, and use of t
 ## Usage
 
 Each authentication mechanism in `pac4j` is defined as a “client”.
-For example, pac4j provides the [FacebookClient](http://www.pac4j.org/apidocs/pac4j/org/pac4j/oauth/client/FacebookClient.html) type that implements the Facebook authentication protocol.
+For example, pac4j provides the [FacebookClient](http://www.pac4j.org/apidocs/pac4j/@pac4j-version@/org/pac4j/oauth/client/FacebookClient.html) type that implements the Facebook authentication protocol.
 Please see [pac4j's documentation on clients](https://github.com/pac4j/pac4j/wiki/Clients) for more information.
 
 The [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-org.pac4j.core.client.Client...-) method provides a handler that defines the clients for an application.
