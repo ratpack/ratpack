@@ -16,10 +16,8 @@
 
 package ratpack.service.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.base.Joiner;
+import com.google.common.collect.*;
 import org.slf4j.Logger;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
@@ -153,7 +151,12 @@ public class ServicesGraph {
   }
 
   private void onCycle() {
-    failureRef.set(new StartupFailureException("cycle detected"));
+    String joinedServiceNames = FluentIterable.from(nodes)
+      .filter(Node::notStarted)
+      .transform(n -> n.service.getName())
+      .join(Joiner.on(", "));
+
+    failureRef.set(new StartupFailureException("dependency cycle detected involving the following services: [" + joinedServiceNames + "]"));
     startLatch.countDown();
   }
 
@@ -223,6 +226,10 @@ public class ServicesGraph {
 
     public Node(Service service) {
       this.service = service;
+    }
+
+    public boolean notStarted() {
+      return !started;
     }
 
     public void addDependency(Node node) {
