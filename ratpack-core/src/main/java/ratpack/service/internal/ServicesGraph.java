@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
+import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.Operation;
 import ratpack.func.Predicate;
@@ -41,7 +42,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-// TODO: there is no cycle detection yet.
 public class ServicesGraph {
 
   public static final Logger LOGGER = DefaultRatpackServer.LOGGER;
@@ -49,6 +49,7 @@ public class ServicesGraph {
   private final List<Node> nodes;
   private final AtomicInteger toStartCount = new AtomicInteger();
   private final AtomicInteger toStopCount = new AtomicInteger();
+  private final AtomicInteger running = new AtomicInteger();
 
   private final CountDownLatch startLatch = new CountDownLatch(1);
   private final CountDownLatch stopLatch = new CountDownLatch(1);
@@ -96,11 +97,16 @@ public class ServicesGraph {
         startLatch.countDown();
       } else {
         LOGGER.info("Initializing " + nodes.size() + " services...");
-        nodes.forEach(n -> {
-          if (n.dependencies.isEmpty()) {
-            n.start(startEvent);
+        boolean startedAny = false;
+        for (Node node : nodes) {
+          if (node.dependencies.isEmpty()) {
+            node.start(startEvent);
+            startedAny = true;
           }
-        });
+        }
+        if (!startedAny) {
+          onCycle();
+        }
       }
     }
 
@@ -131,30 +137,48 @@ public class ServicesGraph {
     }
   }
 
-  private void serviceDidStart(StartEvent startEvent) {
+  private void serviceDidStart(Node node, StartEvent startEvent) {
     if (toStartCount.decrementAndGet() == 0) {
       if (startupFailed) {
-        doStop(new DefaultEvent(startEvent.getRegistry(), false));
-        StartupFailureException exception = null;
-        for (Node node : nodes) {
-          if (node.startError != null) {
-            StartupFailureException nodeException = new StartupFailureException("Service '" + node.service.getName() + "' failed to start", node.startError);
-            if (exception == null) {
-              exception = nodeException;
-            } else {
-              exception.addSuppressed(nodeException);
-            }
-          }
-        }
+        StartupFailureException exception = processFailure(startEvent);
         failureRef.set(exception);
       }
       startLatch.countDown();
+    } else {
+      node.dependents.forEach(n -> n.dependencyStarted(startEvent));
+      if (running.decrementAndGet() == 0 && toStartCount.get() > 0) {
+        onCycle();
+      }
     }
   }
 
-  private void serviceDidStop() {
+  private void onCycle() {
+    failureRef.set(new StartupFailureException("cycle detected"));
+    startLatch.countDown();
+  }
+
+  @Nullable
+  private StartupFailureException processFailure(StartEvent startEvent) {
+    doStop(new DefaultEvent(startEvent.getRegistry(), false));
+    StartupFailureException exception = null;
+    for (Node node : nodes) {
+      if (node.startError != null) {
+        StartupFailureException nodeException = new StartupFailureException("Service '" + node.service.getName() + "' failed to start", node.startError);
+        if (exception == null) {
+          exception = nodeException;
+        } else {
+          exception.addSuppressed(nodeException);
+        }
+      }
+    }
+    return exception;
+  }
+
+  private void serviceDidStop(Node node, StopEvent stopEvent) {
     if (toStopCount.decrementAndGet() == 0) {
       stopLatch.countDown();
+    } else {
+      node.dependencies.forEach(n -> n.dependentStopped(stopEvent));
     }
   }
 
@@ -225,11 +249,11 @@ public class ServicesGraph {
 
     public void start(StartEvent startEvent) {
       if (startupFailed) {
-        serviceDidStart(startEvent);
-        dependents.forEach(n -> n.dependencyStarted(startEvent));
+        serviceDidStart(this, startEvent);
         return;
       }
 
+      running.incrementAndGet();
       execController.fork()
         .onComplete(e -> {
           if (startError == null) {
@@ -237,8 +261,7 @@ public class ServicesGraph {
           } else {
             startupFailed = true;
           }
-          dependents.forEach(n -> n.dependencyStarted(startEvent));
-          serviceDidStart(startEvent);
+          serviceDidStart(this, startEvent);
         })
         .onError(e ->
           startError = e
@@ -248,17 +271,15 @@ public class ServicesGraph {
 
     public void stop(StopEvent stopEvent) {
       if (!started) {
-        serviceDidStop();
-        dependencies.forEach(n -> n.dependentStopped(stopEvent));
+        serviceDidStop(this, stopEvent);
         return;
       }
 
       started = false;
       execController.fork()
-        .onComplete(e -> {
-          dependencies.forEach(n -> n.dependentStopped(stopEvent));
-          serviceDidStop();
-        })
+        .onComplete(e ->
+          serviceDidStop(this, stopEvent)
+        )
         .onError(e ->
           LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", e)
         )
