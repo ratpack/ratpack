@@ -31,7 +31,7 @@ import ratpack.server.StartupFailureException;
 import ratpack.server.StopEvent;
 import ratpack.server.internal.DefaultEvent;
 import ratpack.server.internal.DefaultRatpackServer;
-import ratpack.service.Dependencies;
+import ratpack.service.DependsOn;
 import ratpack.service.ServiceDependencies;
 import ratpack.service.ServiceDependenciesSpec;
 
@@ -73,12 +73,12 @@ public class ServicesGraph {
       dependencies.define(specBacking);
     }
     for (Node node : nodes) {
-      Dependencies dependencies = node.service.getClass().getAnnotation(Dependencies.class);
-      if (dependencies != null) {
+      DependsOn dependsOn = node.service.getClass().getAnnotation(DependsOn.class);
+      if (dependsOn != null) {
         specBacking.dependsOn(
           s -> node.service.getClass().isInstance(s),
           s -> {
-            for (Class<?> dependencyType : dependencies.value()) {
+            for (Class<?> dependencyType : dependsOn.value()) {
               if (dependencyType.isInstance(s)) {
                 return true;
               }
