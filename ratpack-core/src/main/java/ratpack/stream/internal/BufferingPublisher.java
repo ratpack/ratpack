@@ -16,6 +16,7 @@
 
 package ratpack.stream.internal;
 
+import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -26,8 +27,8 @@ import ratpack.func.Function;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.Deque;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -68,7 +69,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     private final AtomicBoolean connected = new AtomicBoolean();
     private final AtomicBoolean draining = new AtomicBoolean();
-    private final ConcurrentLinkedQueue<Object> signals = new ConcurrentLinkedQueue<>();
+    private final Queue<Object> signals = PlatformDependent.newMpscQueue();
 
     public ConnectingSubscriber(Publisher<T> publisher, BufferedWriteStream<T> write) {
       this.publisher = publisher;

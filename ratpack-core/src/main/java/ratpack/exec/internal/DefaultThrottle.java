@@ -16,6 +16,7 @@
 
 package ratpack.exec.internal;
 
+import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;

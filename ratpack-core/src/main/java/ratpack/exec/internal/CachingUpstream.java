@@ -16,10 +16,10 @@
 
 package ratpack.exec.internal;
 
+import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.*;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,7 +27,7 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private Upstream<? extends T> upstream;
   private final AtomicBoolean fired = new AtomicBoolean();
-  private final Queue<Downstream<? super ExecResult<? extends T>>> waiting = new ConcurrentLinkedQueue<>();
+  private final Queue<Downstream<? super ExecResult<? extends T>>> waiting = PlatformDependent.newMpscQueue();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<ExecResult<? extends T>> result = new AtomicReference<>();
 

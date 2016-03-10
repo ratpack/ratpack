@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import io.netty.util.concurrent.FastThreadLocal;
+import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -38,7 +39,6 @@ import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -111,29 +111,29 @@ public class DefaultExecution implements Execution {
 
   public static <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
     return Streams.transformable(subscriber -> require().delimitStream(continuation ->
-        publisher.subscribe(new Subscriber<T>() {
-          @Override
-          public void onSubscribe(final Subscription subscription) {
-            continuation.event(() ->
-                subscriber.onSubscribe(subscription)
-            );
-          }
+      publisher.subscribe(new Subscriber<T>() {
+        @Override
+        public void onSubscribe(final Subscription subscription) {
+          continuation.event(() ->
+            subscriber.onSubscribe(subscription)
+          );
+        }
 
-          @Override
-          public void onNext(final T element) {
-            continuation.event(() -> subscriber.onNext(element));
-          }
+        @Override
+        public void onNext(final T element) {
+          continuation.event(() -> subscriber.onNext(element));
+        }
 
-          @Override
-          public void onComplete() {
-            continuation.complete(subscriber::onComplete);
-          }
+        @Override
+        public void onComplete() {
+          continuation.complete(subscriber::onComplete);
+        }
 
-          @Override
-          public void onError(final Throwable cause) {
-            continuation.complete(() -> subscriber.onError(cause));
-          }
-        })
+        @Override
+        public void onError(final Throwable cause) {
+          continuation.complete(() -> subscriber.onError(cause));
+        }
+      })
     ));
   }
 
@@ -456,7 +456,7 @@ public class DefaultExecution implements Execution {
 
   private class MultiEventExecStream extends ExecStream implements ContinuationStream {
     final ExecStream parent;
-    final Queue<Queue<Block>> events = new ConcurrentLinkedQueue<>();
+    final Queue<Queue<Block>> events = PlatformDependent.newMpscQueue();
     Block complete;
 
     public MultiEventExecStream(ExecStream parent, Action<? super ContinuationStream> initial) {
