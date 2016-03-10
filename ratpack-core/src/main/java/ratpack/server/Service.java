@@ -18,6 +18,8 @@ package ratpack.server;
 
 import ratpack.api.NonBlocking;
 import ratpack.exec.Blocking;
+import ratpack.service.DependsOn;
+import ratpack.service.ServiceDependencies;
 
 /**
  * A service participates in the application lifecycle.
@@ -69,12 +71,9 @@ import ratpack.exec.Blocking;
  * }
  * }</pre>
  *
- * <h3>Execution order</h3>
+ * <h3>Ordering</h3>
  * <p>
- * Services are notified of start events in the order returned by the {@link ratpack.registry.Registry#getAll} method.
- * They are notified in reverse order for stop events.
- * The order in that services are returned from the server registry is dependent on the registry implementation.
- * Generally, most implementations return objects in the order in which they are added to the registry.
+ * Services can be ordered by the {@link DependsOn} and {@link ServiceDependencies} mechanisms.
  *
  * <h3>Async services</h3>
  * <p>
@@ -132,7 +131,7 @@ import ratpack.exec.Blocking;
  * Even in such a case, it is generally better to decouple the business-logic type service from Ratpack (i.e. this interface) and have a
  * {@link Service} implementation that drives the business-logic service.
  *
- * <h3>Dependencies</h3>
+ * <h3>Accessing the server registry</h3>
  * <p>
  * The event objects given to the start/stop methods provide access to the server registry.
  * This can be used, for example, to get hold of a database connection that was added to the server registry as part of the server definition.

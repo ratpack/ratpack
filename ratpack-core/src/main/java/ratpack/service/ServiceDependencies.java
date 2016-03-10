@@ -16,8 +16,30 @@
 
 package ratpack.service;
 
+/**
+ * An object that specifies dependencies between services.
+ * <p>
+ * This is the programmatic and more flexible version of the {@link DependsOn} annotation.
+ * <p>
+ * When starting a server, Ratpack will extract all instances of {@link ServiceDependencies} from the server registry.
+ * Each will be called with a spec that they can use to define the dependencies between services.
+ * <p>
+ * Ratpack will ensure that services that are dependencies are started before their dependent services.
+ * If any depended on service fails to start, the dependent service will not be started.
+ * When stopping the server, all services that depend on a given service are stopped before it.
+ *
+ * @see DependsOn
+ * @see ServiceDependenciesSpec
+ * @since 1.3
+ */
 public interface ServiceDependencies {
 
-  void define(ServiceDependenciesSpec spec);
+  /**
+   * Declares service depenencies via the given spec.
+   *
+   * @param spec the spec of service dependencies
+   * @throws Exception any
+   */
+  void define(ServiceDependenciesSpec spec) throws Exception;
 
 }

@@ -16,20 +16,40 @@
 
 package ratpack.service;
 
-import ratpack.func.Action;
 import ratpack.func.Predicate;
 import ratpack.server.Service;
 
+/**
+ * Allows declaring which services depend on which services.
+ *
+ * @see ServiceDependencies
+ * @since 1.3
+ */
 public interface ServiceDependenciesSpec {
 
+  /**
+   * Specifies that all services that match the {@code dependents} predicate are dependent on all services that match the {@code dependencies} predicate.
+   *
+   * @param dependents the criteria for dependent services
+   * @param dependencies the criteria for services they depend on
+   * @return {@code this}
+   * @throws Exception any thrown by either predicate
+   */
   ServiceDependenciesSpec dependsOn(Predicate<? super Service> dependents, Predicate<? super Service> dependencies) throws Exception;
 
+  /**
+   * A convenience form of {@link #dependsOn(Predicate, Predicate)} where the predicates are based on compatibility with the given types.
+   * <p>
+   * All services that are type compatible with the {@code dependents} type,
+   * will be considered dependents of all services that are type compatible with the {@code dependencies} type.
+   *
+   * @param dependents the type of dependent services
+   * @param dependencies the type of the services they depend on
+   * @return {@code this}
+   * @throws Exception any
+   */
   default ServiceDependenciesSpec dependsOn(Class<?> dependents, Class<?> dependencies) throws Exception {
     return dependsOn(dependents::isInstance, dependencies::isInstance);
-  }
-
-  static Action<? super ServiceDependenciesSpec> action(Action<? super ServiceDependenciesSpec> action) {
-    return action;
   }
 
 }
