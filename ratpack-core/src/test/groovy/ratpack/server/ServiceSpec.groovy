@@ -177,6 +177,41 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     events.size() == 6
   }
 
+  def "detects cycles where none can start"() {
+    when:
+    serverConfig {
+      threads 3
+    }
+    bindings {
+      multiBindInstance new RecordingService(prefix: "1")
+      multiBindInstance new RecordingService(prefix: "2")
+      multiBindInstance dependsOn("1", "2")
+      multiBindInstance dependsOn("2", "1")
+    }
+    server.start()
+
+    then:
+    thrown StartupFailureException
+  }
+
+  def "detects cycles where some can start"() {
+    when:
+    serverConfig {
+      threads 3
+    }
+    bindings {
+      multiBindInstance new RecordingService(prefix: "1")
+      multiBindInstance new RecordingService(prefix: "2")
+      multiBindInstance new RecordingService(prefix: "3")
+      multiBindInstance dependsOn("1", "2")
+      multiBindInstance dependsOn("2", "1")
+    }
+    server.start()
+
+    then:
+    thrown StartupFailureException
+  }
+
   static ServiceDependencies dependsOn(String dependentPrefix, String dependencyPrefix) {
     dependsOn(
       { it instanceof RecordingService && it.prefix == dependentPrefix },
