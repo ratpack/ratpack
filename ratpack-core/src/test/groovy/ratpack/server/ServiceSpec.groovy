@@ -18,6 +18,7 @@ package ratpack.server
 
 import ratpack.exec.Operation
 import ratpack.func.Predicate
+import ratpack.service.DependsOn
 import ratpack.service.ServiceDependencies
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -209,7 +210,54 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     server.start()
 
     then:
+    events == ["3-start"]
     thrown StartupFailureException
+  }
+
+  class S1 extends RecordingService {
+    S1() {
+      prefix = "1"
+    }
+  }
+
+  @DependsOn(S1)
+  class S2 extends RecordingService {
+    S2() {
+      prefix = "2"
+    }
+  }
+
+  @DependsOn(S2)
+  class S3 extends RecordingService {
+    S3() {
+      prefix = "3"
+    }
+  }
+
+  def "can declare dependencies via annotation"() {
+    when:
+    serverConfig {
+      threads 3
+    }
+    bindings {
+      multiBindInstance new S1()
+      multiBindInstance new S2()
+      multiBindInstance new S3()
+    }
+    handlers {
+      get {
+        render events.toString()
+      }
+    }
+
+    then:
+    text == ["1-start", "2-start", "3-start"].toString()
+
+    when:
+    server.stop()
+
+    then:
+    events == ["1-start", "2-start", "3-start", "3-stop", "2-stop", "1-stop"]
   }
 
   static ServiceDependencies dependsOn(String dependentPrefix, String dependencyPrefix) {
