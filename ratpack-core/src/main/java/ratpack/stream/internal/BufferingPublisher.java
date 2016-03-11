@@ -77,11 +77,12 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     public void request(long n) {
+      signals.add(n);
       if (connected.compareAndSet(false, true)) {
         publisher.subscribe(this);
+      } else {
+        drain();
       }
-      signals.add(n);
-      drain();
     }
 
     @Override
@@ -141,9 +142,9 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     private final AtomicLong wanted = new AtomicLong();
     private final AtomicBoolean draining = new AtomicBoolean();
-    private final AtomicBoolean open = new AtomicBoolean();
+    private volatile boolean open;
 
-    private Subscription upstreamSubscription;
+    private volatile Subscription upstreamSubscription;
     private volatile Subscriber<? super T> downstream;
     private volatile Throwable error;
 
@@ -152,11 +153,11 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
     public BufferingSubscription(Subscriber<? super T> downstream) {
       this.downstream = downstream;
       downstream.onSubscribe(this);
-      open.set(true);
-      tryDrain();
+      open = true;
+      drain();
     }
 
-    private void tryDrain() {
+    private void drain() {
       if (draining.compareAndSet(false, true)) {
         try {
           T item = buffer.poll();
@@ -198,7 +199,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         }
         T peek = buffer.peek();
         if (peek != null && (wanted.get() > 0 || peek == ON_COMPLETE || peek == ON_ERROR)) {
-          tryDrain();
+          drain();
         }
       }
     }
@@ -235,7 +236,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
           }
         }
       }
-      tryDrain();
+      drain();
     }
 
     @Override
@@ -244,7 +245,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
       if (upstreamSubscription != null) {
         upstreamSubscription.cancel();
       }
-      tryDrain();
+      drain();
     }
 
     private BufferedWriteStream<T> nonPassThruWriteStream() {
@@ -252,8 +253,8 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         @Override
         public void item(T item) {
           buffer.add(item);
-          if (open.get()) {
-            tryDrain();
+          if (open) {
+            drain();
           }
         }
 
@@ -262,8 +263,8 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         public void error(Throwable throwable) {
           error = throwable;
           buffer.add((T) ON_ERROR);
-          if (open.get()) {
-            tryDrain();
+          if (open) {
+            drain();
           }
         }
 
@@ -271,8 +272,8 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
         @Override
         public void complete() {
           buffer.add((T) ON_COMPLETE);
-          if (open.get()) {
-            tryDrain();
+          if (open) {
+            drain();
           }
         }
 
@@ -300,7 +301,6 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
           downstream.onError(throwable);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void complete() {
           downstream.onComplete();

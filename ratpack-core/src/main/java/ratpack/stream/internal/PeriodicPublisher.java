@@ -22,46 +22,51 @@ import ratpack.func.Function;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PeriodicPublisher<T> extends BufferingPublisher<T> {
   public PeriodicPublisher(ScheduledExecutorService executorService, Function<? super Integer, ? extends T> producer, Duration duration) {
     super(Action.noop(), write -> {
       return new Subscription() {
-        private final AtomicInteger counter = new AtomicInteger(0);
-        private volatile ScheduledFuture<?> future;
+        private volatile int counter;
+        private volatile boolean started;
+        private volatile boolean cancelled;
+
+        class Task implements Runnable {
+          @Override
+          public void run() {
+            T value;
+            try {
+              value = producer.apply(counter++);
+            } catch (Exception e) {
+              cancelled = true;
+              write.error(e);
+              return;
+            }
+
+            if (value == null) {
+              cancelled = true;
+              write.complete();
+            } else {
+              if (!cancelled) {
+                write.item(value);
+                executorService.schedule(this, duration.toNanos(), TimeUnit.NANOSECONDS);
+              }
+            }
+          }
+        }
 
         @Override
         public void request(long n) {
-          if (future == null) {
-            future = executorService.scheduleWithFixedDelay(() -> {
-              int i = counter.getAndIncrement();
-              T value;
-              try {
-                value = producer.apply(i);
-              } catch (Exception e) {
-                write.error(e);
-                cancel();
-                return;
-              }
-
-              if (value == null) {
-                write.complete();
-                cancel();
-              } else {
-                write.item(value);
-              }
-            }, 0, duration.toNanos(), TimeUnit.NANOSECONDS);
+          if (!started) {
+            started = true;
+            new Task().run();
           }
         }
 
         @Override
         public void cancel() {
-          if (future != null) {
-            future.cancel(false);
-          }
+          cancelled = true;
         }
       };
     });
