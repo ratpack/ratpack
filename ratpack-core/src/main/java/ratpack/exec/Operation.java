@@ -122,14 +122,6 @@ public interface Operation {
     ).operation();
   }
 
-  /**
-   *
-   * @since 1.3
-   */
-  default void result(Action<? super Optional<? extends Throwable>> action) {
-    onError(e -> action.execute(Optional.of(e))).then(() -> action.execute(Optional.<Throwable>empty()));
-  }
-
   static Operation noop() {
     return of(Block.noop());
   }
