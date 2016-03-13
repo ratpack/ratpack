@@ -38,6 +38,11 @@ dependencies {
     exclude group: "com.google.inject", module: "guice"
   }
 
+  testCompile("org.pac4j:pac4j-jwt:${commonVersions.pac4j}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.google.inject", module: "guice"
+  }
+
   testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"

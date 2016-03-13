@@ -18,9 +18,13 @@ package ratpack.pac4j
 import org.pac4j.core.authorization.Authorizer
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.direct.DirectBasicAuthClient
+import org.pac4j.http.client.direct.ParameterClient
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
+import org.pac4j.http.profile.HttpProfile
+import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
+import org.pac4j.jwt.profile.JwtGenerator
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -237,5 +241,47 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
 
     response.statusCode == 201
     response.body.text == "user posted kthxbye"
+  }
+
+  def "check authorization with jwt parameter"() {
+    given:
+    def secret = "12345678901234567890123456789012"
+    def generator = new JwtGenerator(secret, false)
+    def profile = new HttpProfile()
+    profile.addAttribute("name", "user")
+    def jwt = generator.generate(profile)
+    def paramName = "jwt"
+
+    serverConfig {
+      development true
+    }
+    bindings {
+      module SessionModule
+    }
+    handlers {
+      def parameterClient = new ParameterClient(paramName, new JwtAuthenticator(secret))
+      parameterClient.supportGetRequest = true
+
+      all RatpackPac4j.authenticator(parameterClient)
+      prefix('require-auth') {
+        all RatpackPac4j.requireAuth(ParameterClient)
+        get {
+          render "Hello " + get(UserProfile).getAttribute("name")
+        }
+      }
+      get {
+        render "no auth required"
+      }
+    }
+    httpClient.requestSpec { r ->
+      r.redirects 0
+    }
+
+    expect:
+    getText() == 'no auth required'
+    get('require-auth').statusCode == 401
+    params { it.put(paramName, jwt) }
+
+    getText('require-auth') == 'Hello user'
   }
 }
