@@ -21,17 +21,17 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
+import ratpack.func.Action
 import ratpack.func.Function
+import ratpack.stream.internal.BufferingPublisher
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingDeque
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 
 import static ratpack.stream.Streams.*
 import static ratpack.test.exec.ExecHarness.yieldSingle
@@ -52,67 +52,31 @@ class StreamsSpec extends Specification {
   }
 
   def "can periodically produce"() {
-    given:
-    Runnable runnable = null
-    def future = Mock(ScheduledFuture)
-    def executor = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
-        runnable = it[0]
-        future
-      }
-    }
+    expect:
+    harness.yield {
+      periodically(harness.controller.executor, Duration.ofMillis(500), { it < 5 ? it : null }).toList()
+    }.value == [0, 1, 2, 3, 4]
+  }
 
+  def "can cancel periodic producer"() {
     when:
-    def queue = new LinkedBlockingDeque()
-    boolean complete
-    Subscription subscription
-
-    def stream = executor.periodically(Duration.ofSeconds(5)) { it < 5 ? it : null }
-
-    stream.subscribe(new Subscriber<Integer>() {
-      @Override
-      void onSubscribe(Subscription s) {
-        subscription = s
+    def s = new CollectingSubscriber()
+    def latch = new CountDownLatch(1)
+    periodically(harness.controller.executor, Duration.ofMillis(1), {
+      if (it == 500) {
+        latch.countDown()
       }
-
-      @Override
-      void onNext(Integer integer) {
-        queue.put(integer)
-      }
-
-      @Override
-      void onError(Throwable t) {
-        queue.put(t)
-      }
-
-      @Override
-      void onComplete() {
-        complete = true
-      }
-    })
+      it
+    }).subscribe(s)
+    s.subscription.request(Long.MAX_VALUE)
+    latch.await()
+    s.subscription.cancel()
+    sleep 100
+    def size = s.received.size()
+    sleep 100
 
     then:
-    !future.isCancelled()
-    runnable == null
-    subscription.request(1)
-    runnable.run()
-    runnable.run()
-    runnable.run()
-    queue.toList() == [0]
-    subscription.request(1)
-    queue.toList() == [0, 1]
-    subscription.request(2)
-    queue.toList() == [0, 1, 2]
-    runnable.run()
-    runnable.run()
-    runnable.run()
-    queue.toList() == [0, 1, 2, 3]
-    subscription.request(10)
-    queue.toList() == [0, 1, 2, 3, 4]
-    complete
-
-    then:
-    1 * future.cancel(_)
+    size == s.received.size()
   }
 
   def "yielding publisher"() {
@@ -192,14 +156,23 @@ class StreamsSpec extends Specification {
 
   def "can multicast with back pressure"() {
     given:
-    Runnable runnable = null
-    def future = Mock(ScheduledFuture)
-    def executor = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
-        runnable = it[0]
-        future
+    WriteStream write
+    def cancelled
+    def requests = []
+    def publisher = new BufferingPublisher<Integer>(Action.noop(), {
+      write = it
+      new Subscription() {
+        @Override
+        void request(long n) {
+          requests << n
+        }
+
+        @Override
+        void cancel() {
+          cancelled = true
+        }
       }
-    }
+    } as Function)
 
     def sent = []
     def fooReceived = []
@@ -209,7 +182,7 @@ class StreamsSpec extends Specification {
     Subscription fooSubscription
     Subscription barSubscription
 
-    def stream = executor.periodically(Duration.ofSeconds(5)) { it < 10 ? it : null }.wiretap {
+    def stream = publisher.wiretap {
       if (it.data) {
         sent << it.item
       }
@@ -261,8 +234,6 @@ class StreamsSpec extends Specification {
     })
 
     then:
-    !future.isCancelled()
-    runnable == null
     sent.size() == 0
     fooReceived.isEmpty()
     barReceived.isEmpty()
@@ -274,9 +245,9 @@ class StreamsSpec extends Specification {
     fooReceived.size() == 0
 
     when:
-    runnable.run()
-    runnable.run()
-    runnable.run()
+    write.item(1)
+    write.item(1)
+    write.item(1)
 
     then:
     sent.size() == 3
@@ -289,9 +260,9 @@ class StreamsSpec extends Specification {
     barReceived.size() == 0 //bar has missed the first 3 because they happened before it started requesting
 
     when:
-    runnable.run()
-    runnable.run()
-    runnable.run()
+    write.item(1)
+    write.item(1)
+    write.item(1)
 
     then:
     sent.size() == 6
@@ -299,11 +270,11 @@ class StreamsSpec extends Specification {
     fooReceived.size() == 1
 
     when:
-    runnable.run()
-    runnable.run()
-    runnable.run()
-    runnable.run()
-    runnable.run()
+    write.item(1)
+    write.item(1)
+    write.item(1)
+    write.item(1)
+    write.complete()
 
     then:
     sent.size() == 10
@@ -370,20 +341,25 @@ class StreamsSpec extends Specification {
 
   def "can fan out with back pressure"() {
     given:
-    Runnable runnable = null
-    def future = Mock(ScheduledFuture)
-    def executor = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
-        runnable = it[0]
-        future
+    WriteStream write
+    def publisher = new BufferingPublisher<Integer>(Action.noop(), {
+      write = it
+      new Subscription() {
+        @Override
+        void request(long n) {
+        }
+
+        @Override
+        void cancel() {
+        }
       }
-    }
+    } as Function)
 
     def queue = new LinkedBlockingDeque()
     boolean complete
     Subscription subscription
 
-    def stream = executor.periodically(Duration.ofSeconds(5)) { it < 3 ? [0, 1, 2, 3] : null }
+    def stream = publisher
     stream = fanOut(stream)
 
     stream.subscribe(new Subscriber<Integer>() {
@@ -415,7 +391,7 @@ class StreamsSpec extends Specification {
     queue.toList() == []
 
     when:
-    runnable.run()
+    write.item([0, 1, 2, 3])
 
     then:
     queue.toList() == [0]
@@ -433,9 +409,9 @@ class StreamsSpec extends Specification {
     queue.toList() == [0, 1, 2, 3]
 
     when:
-    runnable.run()
-    runnable.run()
-    runnable.run()
+    write.item([0, 1, 2, 3])
+    write.item([0, 1, 2, 3])
+    write.complete()
 
     then:
     queue.toList() == [0, 1, 2, 3]
@@ -456,95 +432,78 @@ class StreamsSpec extends Specification {
 
   def "can merge publishers into a single stream"() {
     given:
-    Runnable runnable1 = null
-    Runnable runnable2 = null
+    WriteStream write1
+    def publisher1 = new BufferingPublisher<Integer>(Action.noop(), {
+      write1 = it
+      new Subscription() {
+        @Override
+        void request(long n) {
+        }
 
-    def future = Mock(ScheduledFuture)
-    def executor1 = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
-        runnable1 = it[0]
-        future
+        @Override
+        void cancel() {
+        }
       }
-    }
-    def executor2 = Mock(ScheduledExecutorService) {
-      scheduleWithFixedDelay(_, 0, Duration.ofSeconds(5).toNanos(), TimeUnit.NANOSECONDS) >> {
-        runnable2 = it[0]
-        future
+    } as Function)
+    WriteStream write2
+    def publisher2 = new BufferingPublisher<Integer>(Action.noop(), {
+      write2 = it
+      new Subscription() {
+        @Override
+        void request(long n) {
+        }
+
+        @Override
+        void cancel() {
+        }
       }
-    }
+    } as Function)
 
-    def queue = new LinkedBlockingDeque()
-    boolean complete = false
-    Subscription subscription
-
-    def stream1 = executor1.periodically(Duration.ofSeconds(5)) { it < 3 ? it + 1 : null }
-    def stream2 = executor2.periodically(Duration.ofSeconds(5)) { it < 3 ? it + 11 : null }
-    def stream = merge(stream1, stream2)
-
-    stream.subscribe(new Subscriber<Integer>() {
-      @Override
-      void onSubscribe(Subscription s) {
-        subscription = s
-      }
-
-      @Override
-      void onNext(Integer integer) {
-        queue.put(integer)
-      }
-
-      @Override
-      void onError(Throwable t) {
-        queue.put(t)
-      }
-
-      @Override
-      void onComplete() {
-        complete = true
-      }
-    })
+    def stream = merge(publisher1, publisher2)
+    def s1 = CollectingSubscriber.subscribe(stream)
 
     when:
-    subscription.request(1)
+    s1.subscription.request(1)
 
     then:
-    queue.toList() == []
+    s1.received.isEmpty()
 
     when:
-    runnable1.run()
+    write1.item(1)
 
     then:
-    queue.toList() == [1]
+    s1.received == [1]
 
     when:
-    subscription.request(2)
+    s1.subscription.request(2)
 
     then:
-    queue.toList() == [1]
+    s1.received == [1]
 
     when:
-    runnable2.run()
-    runnable2.run()
-    runnable1.run()
-    runnable1.run()
-    runnable1.run()
+    write2.item(11)
+    write2.item(12)
+    write1.item(2)
+    write1.item(3)
+    write1.complete()
 
     then:
-    queue.toList() == [1, 11, 12]
+    s1.received == [1, 11, 12]
 
     when:
-    subscription.request(10)
+    s1.subscription.request(10)
 
     then:
-    queue.toList() == [1, 11, 12, 2, 3]
-    complete == false
+    s1.received == [1, 11, 12, 2, 3]
+    !s1.complete
 
     when:
-    runnable2.run()
-    runnable2.run()
+    write2.item(13)
+    write2.complete()
 
     then:
-    queue.toList() == [1, 11, 12, 2, 3, 13]
-    complete == true
+    s1.received == [1, 11, 12, 2, 3, 13]
+    s1.complete
   }
 
   def "can convert stream to promise"() {
