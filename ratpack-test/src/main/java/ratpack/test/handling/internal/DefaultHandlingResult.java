@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Subscriber;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ import ratpack.test.handling.UnexpectedHandlerException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -58,6 +60,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
   private DefaultContext.RequestConstants requestConstants;
   private Headers headers;
+  private Set<Cookie> cookies;
   private byte[] body = new byte[0];
   private Status status;
   private boolean calledNext;
@@ -154,6 +157,7 @@ public class DefaultHandlingResult implements HandlingResult {
       throw uncheck(e); // what to do here?
     } finally {
       status = response.getStatus();
+      cookies = response.getCookies();
     }
   }
 
@@ -181,6 +185,15 @@ public class DefaultHandlingResult implements HandlingResult {
     } else {
       return null;
     }
+  }
+
+  @Override
+  public Set<Cookie> getCookies() {
+    Throwable throwable = results.getThrowable();
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
+    return cookies;
   }
 
   @Nullable

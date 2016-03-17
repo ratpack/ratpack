@@ -71,6 +71,7 @@ class HandlerUnitTestingSpec extends Specification {
     calledNext
     !sentResponse
     sentFile == null
+    cookies.empty
   }
 
   def "can test handler that sends string"() {
@@ -84,6 +85,7 @@ class HandlerUnitTestingSpec extends Specification {
     sentResponse
     sentFile == null
     headers.get("content-type") == "text/plain;charset=UTF-8"
+    cookies.empty
   }
 
   def "can test handler that sends bytes"() {
@@ -97,6 +99,7 @@ class HandlerUnitTestingSpec extends Specification {
     sentResponse
     headers.get("content-type") == "application/octet-stream"
     sentFile == null
+    cookies.empty
   }
 
   def "can test handler that sends file"() {
@@ -110,6 +113,7 @@ class HandlerUnitTestingSpec extends Specification {
     !sentResponse
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain"
+    cookies.empty
   }
 
   def "can test handler that sends file calls onClose"() {
@@ -126,11 +130,36 @@ class HandlerUnitTestingSpec extends Specification {
     then:
     bodyText == null
     bodyBytes == null
+    cookies.empty
     !calledNext
     !sentResponse
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain"
     onCloseCalledWrapper.get()
+  }
+
+  def "can test handler that sets cookies"() {
+    when:
+    handle handler
+
+    then:
+    !bodyText
+    !bodyBytes
+    sentFile == null
+    def cookie = cookies.first()
+    [cookie.name(), cookie.value()] == ['foo', 'bar']
+
+    where:
+    handler << [
+      {
+        response.cookie('foo', 'bar')
+        next()
+      },
+      {
+        response.cookie('foo', 'bar')
+        response.send()
+      }
+    ]
   }
 
   def "can register things"() {

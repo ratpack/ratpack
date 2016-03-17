@@ -16,12 +16,14 @@
 
 package ratpack.test.handling;
 
+import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.api.Nullable;
 import ratpack.http.Headers;
 import ratpack.http.Status;
 import ratpack.registry.Registry;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * Represents the result of testing one or more handlers.
@@ -51,6 +53,15 @@ public interface HandlingResult {
    */
   @Nullable
   String getBodyText();
+
+  /**
+   * The cookies to be set by client, as a Set.
+   * <p>
+   *
+   * @return the cookies from the response object.
+   */
+  @Nullable
+  Set<Cookie> getCookies();
 
   /**
    * The client error raised if any, unless a custom client error handler is in use.
