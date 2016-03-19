@@ -135,7 +135,7 @@ public class SiteMain {
 
             .prefix("manual", c1 -> c1
                 .fileSystem("manual", c2 -> c2
-                    .get(ctx -> ctx.redirect(301, "manual/current"))
+                    .get(ctx -> ctx.redirect(301, "/manual/current"))
                     .prefix(":label", c3 -> c3
                         .all(ctx -> {
                           String label = ctx.getPathTokens().get("label");
