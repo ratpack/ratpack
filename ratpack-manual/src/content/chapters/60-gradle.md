@@ -120,7 +120,7 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
   }
 }
 
@@ -235,7 +235,7 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.2"
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.3"
   }
 }
 

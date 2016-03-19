@@ -91,7 +91,7 @@ abstract class FunctionalSpec extends Specification {
         }
         repositories { jcenter() }
         dependencies {
-          classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+          classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
           classpath 'io.ratpack:ratpack-gradle:${RATPACK_VERSION}'
         }
       }
