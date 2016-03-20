@@ -79,7 +79,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         }
       });
     } else {
-      Promise.<ExecResult<? extends T>>of(innerDownstream -> {
+      Promise.<ExecResult<? extends T>>async(innerDownstream -> {
         ExecResult<? extends T> result = this.result.get();
         if (result == null) {
           waiting.add(innerDownstream);

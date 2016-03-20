@@ -288,7 +288,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { ExecController execController ->
-        Promise.of { f ->
+        Promise.async { f ->
           execController.executor.execute {
             Observable.error(error).subscribe(new Subscriber() {
               @Override

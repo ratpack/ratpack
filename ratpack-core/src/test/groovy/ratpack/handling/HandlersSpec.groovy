@@ -62,7 +62,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { ExecController execController ->
-        Promise.of { f ->
+        Promise.async { f ->
           Execution.fork().start {
             f.success("ok")
           }

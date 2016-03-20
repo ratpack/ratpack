@@ -259,7 +259,7 @@ public interface Request extends MutableRegistry {
    *
    *           {@literal @}Override
    *           public void onNext(ByteBuf byteBuf) {
-   *             Promise.<Integer>of(down ->
+   *             Promise.<Integer>async(down ->
    *               out.write(byteBuf.nioBuffer(), written, null, down.completionHandler())
    *             ).onError(error -> {
    *               byteBuf.release();

@@ -95,7 +95,7 @@ class PromisedSpec extends Specification {
       Execution.fork().start { v.promise().then { blocking.c = it } }
 
       Execution.fork().start {
-        Promise.of { it.success(2) }.transform { it.connect(v) }
+        Promise.async { it.success(2) }.transform { it.connect(v) }
       }
     } as Action)
 

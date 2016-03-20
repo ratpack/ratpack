@@ -530,7 +530,7 @@ public class Streams {
    * @return a promise for the publisher's single item
    */
   public static <T> Promise<T> toPromise(Publisher<T> publisher) {
-    return Promise.of(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
+    return Promise.async(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
   }
 
   /**
@@ -541,7 +541,7 @@ public class Streams {
    * @return a promise for the streams contents as a list
    */
   public static <T> Promise<List<T>> toList(Publisher<T> publisher) {
-    return Promise.of(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
+    return Promise.async(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
   }
 
   public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {

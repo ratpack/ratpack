@@ -35,7 +35,7 @@ class ThrottleSpec extends Specification {
   def "can use unlimited throttle"() {
     def t = Throttle.unlimited()
     def v = execHarness.yield {
-      Promise.of { it.success("foo") }.throttled(t)
+      Promise.async { it.success("foo") }.throttled(t)
     }
 
     expect:
@@ -46,7 +46,7 @@ class ThrottleSpec extends Specification {
   def "can use throttle"() {
     def t = Throttle.ofSize(1)
     def v = execHarness.yield {
-      Promise.of { it.success("foo") }.throttled(t)
+      Promise.async { it.success("foo") }.throttled(t)
     }
 
     expect:
@@ -66,7 +66,7 @@ class ThrottleSpec extends Specification {
     jobs.times {
       execHarness.fork().onComplete { latch.countDown() }.start {
         def exec = it
-        Promise.of { q << it }.throttled(t).result {
+        Promise.async { q << it }.throttled(t).result {
           assert Execution.current().is(exec)
           e << it
         }
@@ -121,7 +121,7 @@ class ThrottleSpec extends Specification {
     def l = []
     execHarness.run {
       6.times { i ->
-        Promise.of { it.success(i) }.throttled(t).then {
+        Promise.async { it.success(i) }.throttled(t).then {
           l << it
         }
       }

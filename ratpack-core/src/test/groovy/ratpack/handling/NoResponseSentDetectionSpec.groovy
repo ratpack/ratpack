@@ -45,7 +45,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         // Missing .then() to actually subscribe to the promise
-        Promise.of { it.success("foo") }
+        Promise.async { it.success("foo") }
       }
     }
 

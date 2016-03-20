@@ -35,7 +35,7 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
       get { ctx ->
         def s = Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
-          Promise.of { f ->
+          Promise.async { f ->
             ctx.get(ExecController).executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
           }
         }
@@ -58,7 +58,7 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
       get { ctx ->
         def s = Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
-          Promise.of { f ->
+          Promise.async { f ->
             def c = new CollectingSubscriber({
               f.success(it.value.get(0))
             }, { it.request(10) })

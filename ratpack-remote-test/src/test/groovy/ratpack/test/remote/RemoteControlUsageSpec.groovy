@@ -112,7 +112,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def "can block on promises"() {
     expect:
-    remoteControl.exec { Blocking.on(Promise.of { f -> Thread.start { f.success(1) } }) } == 1
+    remoteControl.exec { Blocking.on(Promise.async { f -> Thread.start { f.success(1) } }) } == 1
   }
 
 }

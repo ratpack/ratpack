@@ -43,7 +43,7 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     handlers {
       get { ExecController execController, ByteBufAllocator byteBufAllocator ->
         requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), execution, byteBufAllocator)
-        Promise.of(requestAction).then {
+        Promise.async(requestAction).then {
           execution.onComplete {
             latch.countDown()
           }

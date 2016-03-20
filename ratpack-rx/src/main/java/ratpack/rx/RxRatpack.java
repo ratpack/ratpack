@@ -278,7 +278,7 @@ public abstract class RxRatpack {
    * @throws UnmanagedThreadException if called outside of an execution
    */
   public static <T> Promise<List<T>> promise(Observable<T> observable) throws UnmanagedThreadException {
-    return Promise.of(f -> observable.toList().subscribe(f::success, f::error));
+    return Promise.async(f -> observable.toList().subscribe(f::success, f::error));
   }
 
   /**
@@ -408,7 +408,7 @@ public abstract class RxRatpack {
    * @see #promiseSingle(Observable.OnSubscribe)
    */
   public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
-    return Promise.of(f -> observable.single().subscribe(f::success, f::error));
+    return Promise.async(f -> observable.single().subscribe(f::success, f::error));
   }
 
   /**

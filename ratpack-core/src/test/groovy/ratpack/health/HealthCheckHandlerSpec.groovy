@@ -33,7 +33,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     String getName() { return "foo" }
 
     Promise<HealthCheck.Result> check(Registry registry) throws Exception {
-      return Promise.of { f ->
+      return Promise.async { f ->
         f.success(HealthCheck.Result.healthy())
       }
     }
@@ -43,7 +43,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     String getName() { return "bar" }
 
     Promise<HealthCheck.Result> check(Registry registry) throws Exception {
-      return Promise.of { f ->
+      return Promise.async { f ->
         f.success(HealthCheck.Result.healthy())
       }
     }
@@ -53,7 +53,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     String getName() { return "foo" }
 
     Promise<HealthCheck.Result> check(Registry registry) throws Exception {
-      return Promise.of { f ->
+      return Promise.async { f ->
         f.success(HealthCheck.Result.unhealthy("EXECUTION TIMEOUT"))
       }
     }
@@ -83,7 +83,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     String getName() { return this.name }
 
     Promise<HealthCheck.Result> check(Registry registry) throws Exception {
-      return Promise.of { f ->
+      return Promise.async { f ->
         if (waitingFor) {
           waitingFor.await()
         }
@@ -135,7 +135,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       bindInstance(HealthCheck, HealthCheck.of("bar") {
-        Promise.of { f ->
+        Promise.async { f ->
           f.success(HealthCheck.Result.unhealthy("Custom exception message", new RuntimeException("Exception message")))
         }
       })
@@ -158,7 +158,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       bindInstance(HealthCheck, HealthCheck.of("bar") {
-        Promise.of { f ->
+        Promise.async { f ->
           f.success(HealthCheck.Result.unhealthy("First value is: %s, second value is: %s", "eggs", "ham"))
         }
       })
@@ -181,7 +181,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       bindInstance(HealthCheck, HealthCheck.of("bar") {
-        Promise.of { f ->
+        Promise.async { f ->
           throw new Exception("EXCEPTION FROM PROMISE")
         }
       })
@@ -239,12 +239,12 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       register {
         add HealthCheck.of("baz") {
-          Promise.of { f ->
+          Promise.async { f ->
             f.success(HealthCheck.Result.healthy())
           }
         }
         add HealthCheck.of("quux") {
-          Promise.of { f ->
+          Promise.async { f ->
             f.success(HealthCheck.Result.healthy())
           }
         }
@@ -277,13 +277,13 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       register {
         add HealthCheck.of("baz") {
-          Promise.of { f ->
+          Promise.async { f ->
             latch.await()
             f.success(HealthCheck.Result.healthy())
           }
         }
         add HealthCheck.of("quux") {
-          Promise.of { f ->
+          Promise.async { f ->
             latch.countDown()
             f.success(HealthCheck.Result.healthy())
           }
@@ -310,7 +310,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       register {
         add HealthCheck.of("foo") {
-          Promise.of { f ->
+          Promise.async { f ->
             f.success(HealthCheck.Result.unhealthy("Unhealthy"))
           }
         }
@@ -335,12 +335,12 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       register {
         add HealthCheck.of("baz") { ec ->
-          Promise.of { f ->
+          Promise.async { f ->
             f.success(HealthCheck.Result.unhealthy("Unhealthy"))
           }
         }
         add HealthCheck.of("quux") { ec ->
-          Promise.of { f ->
+          Promise.async { f ->
             f.success(HealthCheck.Result.healthy())
           }
         }
@@ -382,7 +382,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
           }
         })
         add HealthCheck.of("baz") {
-          Promise.of { f ->
+          Promise.async { f ->
             f.success(HealthCheck.Result.unhealthy("Unhealthy"))
           }
         }

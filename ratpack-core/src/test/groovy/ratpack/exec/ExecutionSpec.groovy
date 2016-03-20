@@ -56,7 +56,7 @@ class ExecutionSpec extends Specification {
   def "exception thrown after promise prevents promise from running"() {
     when:
     exec({ e ->
-      Promise.of { f ->
+      Promise.async { f ->
         events << "action"
         e.fork().start {
           f.success(1)
@@ -131,7 +131,7 @@ class ExecutionSpec extends Specification {
 
     when:
     exec { e1 ->
-      Promise.of { f ->
+      Promise.async { f ->
         Thread.start {
           sleep 100
           f.success "1"
@@ -139,7 +139,7 @@ class ExecutionSpec extends Specification {
       } then {
         events << it
       }
-      Promise.of { f ->
+      Promise.async { f ->
         Thread.start {
           f.success "2"
         }
@@ -319,7 +319,7 @@ class ExecutionSpec extends Specification {
   def "can complete future"() {
     when:
     exec({ e ->
-      Promise.of {
+      Promise.async {
         it.accept(CompletableFuture.supplyAsync({ "foo" }, e.controller.executor))
       } then {
         events << it
@@ -333,7 +333,7 @@ class ExecutionSpec extends Specification {
   def "can complete ListenableFuture"() {
     when:
     exec({ c ->
-      Promise.of {
+      Promise.async {
         it.accept(Futures.immediateFuture("foo"))
       } then {
         events << it
@@ -347,7 +347,7 @@ class ExecutionSpec extends Specification {
   def "can error from ListenableFuture"() {
     when:
     exec({ c ->
-      Promise.<String>of {  f ->
+      Promise.<String>async { f ->
         f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
       } onError {
         events << "error"
@@ -364,8 +364,8 @@ class ExecutionSpec extends Specification {
   def "can nest promises"() {
     when:
     exec({ e ->
-      Promise.of { f1 ->
-        Promise.of { f -> f.success("foo") }.result { r -> f1.accept(r) }
+      Promise.async { f1 ->
+        Promise.async { f -> f.success("foo") }.result { r -> f1.accept(r) }
       } then {
         events << it
       }

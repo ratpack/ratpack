@@ -180,7 +180,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     public AnnotatedMetricService triggerTimer3() { this }
 
     @Timed(name = 'foo.timer.promise', absolute = true)
-    public Promise<String> triggerTimerPromise() { Promise.ofLazy{sleep(50); "resultPromise"} }
+    public Promise<String> triggerTimerPromise() { Promise.sync{sleep(50); "resultPromise"} }
 
     @Timed(name = 'foo.timer.sync', absolute=true)
     public String triggerTimerSync() {sleep(50); "resultSync"}

@@ -44,7 +44,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
-    return Promise.<Boolean>of(d ->
+    return Promise.<Boolean>async(d ->
       connection.set(sessionId, sessionData).handleAsync((value, failure) -> {
         if (failure == null) {
           if (value != null && value.equalsIgnoreCase("OK")) {
@@ -62,7 +62,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return Promise.<ByteBuf>of(downstream -> {
+    return Promise.<ByteBuf>async(downstream -> {
       downstream.accept(connection.get(sessionId));
     }).map(byteBuf -> {
       if (byteBuf == null) {
@@ -75,7 +75,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Operation remove(AsciiString sessionId) {
-    return Promise.<Long>of(d -> d.accept(connection.del(sessionId))).operation();
+    return Promise.<Long>async(d -> d.accept(connection.del(sessionId))).operation();
   }
 
   @Override

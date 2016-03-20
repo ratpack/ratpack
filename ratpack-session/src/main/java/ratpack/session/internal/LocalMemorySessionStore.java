@@ -47,7 +47,7 @@ public class LocalMemorySessionStore implements SessionStore {
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return Promise.ofLazy(() -> {
+    return Promise.sync(() -> {
       maybeCleanup();
       ByteBuf value = cache.getIfPresent(sessionId);
       if (value != null) {
@@ -60,7 +60,7 @@ public class LocalMemorySessionStore implements SessionStore {
 
   @Override
   public Promise<Long> size() {
-    return Promise.ofLazy(cache::size);
+    return Promise.sync(cache::size);
   }
 
   @Override

@@ -45,7 +45,7 @@ public class RatpackVersions {
 
   public Promise<All> getAll() {
     // TODO need better support in Ratpack for this kind of thing
-    return Promise.of(f -> {
+    return Promise.async(f -> {
       AtomicInteger counter = new AtomicInteger(2);
       Object[] versions = new Object[2];
 

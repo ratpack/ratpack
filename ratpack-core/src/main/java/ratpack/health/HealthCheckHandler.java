@@ -230,7 +230,7 @@ public class HealthCheckHandler implements Handler {
       return Promise.value(new HealthCheckResults(ImmutableSortedMap.of()));
     }
 
-    return Promise.<Map<String, HealthCheck.Result>>of(f -> {
+    return Promise.<Map<String, HealthCheck.Result>>async(f -> {
       AtomicInteger counter = new AtomicInteger();
       Map<String, HealthCheck.Result> results = Maps.newConcurrentMap();
       while (iterator.hasNext()) {

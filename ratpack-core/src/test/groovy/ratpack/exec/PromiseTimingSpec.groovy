@@ -31,7 +31,7 @@ class PromiseTimingSpec extends Specification {
     expect:
     Duration time
     execHarness.yield {
-      Promise.ofLazy { sleep(500); 1 }.next { sleep(500) }.time { time = it }
+      Promise.sync { sleep(500); 1 }.next { sleep(500) }.time { time = it }
     }
     time.seconds >= 1
   }
@@ -40,7 +40,7 @@ class PromiseTimingSpec extends Specification {
     expect:
     Duration time
     execHarness.yield {
-      Promise.ofLazy { sleep(500); throw new NullPointerException() }.next { sleep(500) }.time { time = it }
+      Promise.sync { sleep(500); throw new NullPointerException() }.next { sleep(500) }.time { time = it }
     }
     time.toMillis() >= 500
   }
@@ -49,7 +49,7 @@ class PromiseTimingSpec extends Specification {
     expect:
     Duration time
     execHarness.yield {
-      Promise.of { sleep(500); it.complete() }.next { sleep(500) }.time { time = it }
+      Promise.async { sleep(500); it.complete() }.next { sleep(500) }.time { time = it }
     }
     time.toMillis() >= 500
   }
@@ -58,7 +58,7 @@ class PromiseTimingSpec extends Specification {
     expect:
     Duration time
     execHarness.yield {
-      Promise.ofLazy { sleep(500); 1 }.next { sleep(500) }.onYield { sleep(500) }.time { time = it }
+      Promise.sync { sleep(500); 1 }.next { sleep(500) }.onYield { sleep(500) }.time { time = it }
     }
     time.toMillis() >= 1500
   }

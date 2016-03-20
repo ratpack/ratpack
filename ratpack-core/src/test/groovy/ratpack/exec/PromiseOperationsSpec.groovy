@@ -81,7 +81,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .map {}
         .onError { events << it }
@@ -98,7 +98,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .flatMap { Blocking.get { "foo" } }
         .onError { events << it }
@@ -115,7 +115,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .onError { events << it }
         .map {}
@@ -151,7 +151,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .mapError { throw new RuntimeException(it.message + "-changed") }
         .map {}
@@ -211,7 +211,7 @@ class PromiseOperationsSpec extends Specification {
       Blocking.get {
         "foo"
       } flatMap {
-        Promise.of { f -> Thread.start { f.success("foo") } }
+        Promise.async { f -> Thread.start { f.success("foo") } }
       } then {
         events << it
       }
@@ -225,7 +225,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     def runner = new BlockingVariable<Runnable>()
     execHarness.controller.fork().onComplete { latch.countDown() }.start {
-      Promise.of { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
+      Promise.async { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
         events << it
       }
     }
@@ -246,7 +246,7 @@ class PromiseOperationsSpec extends Specification {
     def runner = new BlockingVariable<Runnable>(200)
     execHarness.controller.fork().onComplete { latch.countDown() }.start {
       Promise.value("foo").defer { runner.set(it) }.then {
-        Promise.of { it.success("foo") }.then {
+        Promise.async { it.success("foo") }.then {
           events << "inner"
         }
       }
@@ -366,7 +366,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     exec {
       Promise.value("foo").next { v ->
-        Promise.of { d -> Thread.start { d.success(v) } }.then { v2 ->
+        Promise.async { d -> Thread.start { d.success(v) } }.then { v2 ->
           events << "one"
         }
       }.then { v ->

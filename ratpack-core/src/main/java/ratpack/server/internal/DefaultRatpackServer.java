@@ -471,7 +471,7 @@ public class DefaultRatpackServer implements RatpackServer {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
-          Promise.<ChannelHandler>of(f -> {
+          Promise.<ChannelHandler>async(f -> {
             boolean rebuild = false;
 
             if (inner == null || definitionBuild.error != null) {

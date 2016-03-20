@@ -40,7 +40,7 @@ public interface ExecStarter {
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     String value = ExecHarness.<String>yieldSingle(e -> Promise.of(d ->
+   *     String value = ExecHarness.<String>yieldSingle(e -> Promise.async(d ->
    *         Execution.fork()
    *           .onError(t -> d.success("global error handler"))
    *           .start(e1 ->

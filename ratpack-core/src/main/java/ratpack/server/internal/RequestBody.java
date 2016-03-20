@@ -214,7 +214,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public Promise<ByteBuf> read(long maxContentLength, Block onTooLarge) {
-    return Promise.<ByteBuf>of(downstream -> {
+    return Promise.<ByteBuf>async(downstream -> {
       if (read) {
         downstream.error(new RequestBodyAlreadyReadException());
         return;

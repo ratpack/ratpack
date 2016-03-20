@@ -80,7 +80,7 @@ public class ClientSideSessionStore implements SessionStore {
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return Promise.ofLazy(() -> {
+    return Promise.sync(() -> {
       if (!isValid()) {
         invalidateCookies(getCookies(config.getSessionCookieName()));
         return Unpooled.buffer(0, 0);

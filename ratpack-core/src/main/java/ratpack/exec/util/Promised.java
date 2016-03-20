@@ -87,7 +87,7 @@ public final class Promised<T> implements Downstream<T> {
    * @return a new promise for the eventual value
    */
   public Promise<T> promise() {
-    return Promise.of(downstream -> {
+    return Promise.async(downstream -> {
       ExecResult<? extends T> result = ref.get();
       if (result == null) {
         listeners.add(downstream);

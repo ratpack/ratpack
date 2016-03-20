@@ -42,7 +42,7 @@ import java.util.function.Supplier;
  * An execution segment has exclusive access to a thread.
  * All executions start with the segment given to the {@link ExecStarter#start(Action)} method.
  * If the initial execution segment does not use any asynchronous APIs, the execution will be comprised of that single segment.
- * When an asynchronous API is used, via {@link Promise#of(Upstream)}, the resumption of work when the result becomes available is within a new execution segment.
+ * When an asynchronous API is used, via {@link Promise#async(Upstream)}, the resumption of work when the result becomes available is within a new execution segment.
  * During any execution segment, the {@link Execution#current()} method will return the current execution, giving global access to the execution object.
  * <p>
  * Segments of an execution are never executed concurrently.

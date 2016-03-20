@@ -22,8 +22,6 @@ import ratpack.func.Block
 import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.exec.Promise.of as promise
-
 class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
 
   class ExceptionThrowingInterceptor implements ExecInterceptor {
@@ -61,7 +59,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        promise { downstream ->
+        async { downstream ->
           downstream.error(e)
         } then {
           response.send("This should never be reached")
@@ -81,7 +79,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        promise {
+        async {
           throw e
         } then {
           response.send("This should never be reached")
@@ -133,7 +131,7 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
       }
 
       get {
-        promise { downstream ->
+        async { downstream ->
           downstream.success("This should never be reached")
         } then { String string ->
           response.send(string)

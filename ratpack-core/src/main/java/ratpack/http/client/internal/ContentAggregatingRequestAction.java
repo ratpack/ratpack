@@ -40,18 +40,18 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
   }
 
   @Override
-  protected void addResponseHandlers(ChannelPipeline p, Downstream<? super ReceivedResponse> fulfiller) {
+  protected void addResponseHandlers(ChannelPipeline p, Downstream<? super ReceivedResponse> downstream) {
     p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
     p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
       @Override
       public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        success(fulfiller, toReceivedResponse(msg));
+        success(downstream, toReceivedResponse(msg));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
-        error(fulfiller, cause);
+        error(downstream, cause);
       }
     });
   }

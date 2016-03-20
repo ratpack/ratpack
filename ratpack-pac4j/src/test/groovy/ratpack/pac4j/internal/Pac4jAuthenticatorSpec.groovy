@@ -84,7 +84,7 @@ class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
       }
 
       // Can use async API if necessary
-      Blocking.on(Promise.of { down ->
+      Blocking.on(Promise.async { down ->
         Thread.start { down.success(1) }
       })
     } as UsernamePasswordAuthenticator

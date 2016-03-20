@@ -37,7 +37,7 @@ import static ratpack.func.Action.ignoreArg;
  * Such operations are implemented via the {@link #transform(Function)} method.
  * Each operation returns a new promise object, not the original promise object.
  * <p>
- * To create a promise, use the {@link Promise#of(Upstream)} method (or one of the variants such as {@link Promise#ofLazy(Factory)}.
+ * To create a promise, use the {@link Promise#async(Upstream)} method (or one of the variants such as {@link Promise#sync(Factory)}.
  * To test code that uses promises, use the {@link ratpack.test.exec.ExecHarness}.
  * <p>
  * The promise is not “activated” until the {@link #then(Action)} method is called.
@@ -54,57 +54,183 @@ import static ratpack.func.Action.ignoreArg;
 public interface Promise<T> {
 
   /**
-   * Creates a promise for value that will be available later.
+   * Creates a promise for value that will be produced asynchronously.
    * <p>
-   * This method can be used to integrate with APIs that produce values asynchronously.
-   * The {@link Upstream#connect(Downstream)} method will be invoked every time the value is requested.
+   * The {@link Upstream#connect(Downstream)} method of the given upstream will be invoked every time the value is requested.
    * This method should propagate the value (or error) to the given downstream object when it is available.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       Promise.<String>async(down ->
+   *         new Thread(() -> {
+   *           down.success("foo");
+   *         }).start()
+   *       )
+   *     ).getValueOrThrow();
+   *
+   *     assertEquals(value, "foo");
+   *   }
+   * }
+   * }</pre>
    *
    * @param upstream the producer of the value
    * @param <T> the type of promised value
    * @return a promise for the asynchronously created value
+   * @see Upstream
+   * @see #sync(Factory)
+   * @see #value(Object)
+   * @see #error(Throwable)
+   * @since 1.3
    */
-  static <T> Promise<T> of(Upstream<T> upstream) {
+  static <T> Promise<T> async(Upstream<T> upstream) {
     return new DefaultPromise<>(DefaultExecution.upstream(upstream));
   }
 
   /**
-   * Creates a promise for the given value.
+   * Creates a promise for value, synchronously, produced by the given factory.
    * <p>
-   * This method can be used when a promise is called for, but the value is immediately available.
+   * The given factory will be invoked every time that the value is requested.
+   * If the factory throws an exception, the promise will convey that exception.
    *
-   * @param t the promised value
-   * @param <T> the type of promised value
-   * @return a promise for the given item
-   */
-  static <T> Promise<T> value(T t) {
-    return of(f -> f.success(t));
-  }
-
-  /**
-   * Creates a promise for value produced by the given factory.
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       Promise.sync(() -> "foo")
+   *     ).getValueOrThrow();
+   *
+   *     assertEquals(value, "foo");
+   *   }
+   * }
+   * }</pre>
+   *
    * <p>
-   * This method can be used when a promise is called for, and the value is available synchronously as the result of a function.
+   * This method is often used to when a method needs to return a promise, but can produce its value synchronously.
    *
    * @param factory the producer of the value
    * @param <T> the type of promised value
    * @return a promise for the result of the factory
+   * @see #async(Upstream)
+   * @see #value(Object)
+   * @see #error(Throwable)
+   * @since 1.3
    */
-  static <T> Promise<T> ofLazy(Factory<T> factory) {
-    return of(f -> f.success(factory.create()));
+  static <T> Promise<T> sync(Factory<T> factory) {
+    return async(down -> {
+      T t;
+      try {
+        t = factory.create();
+      } catch (Exception e) {
+        down.error(e);
+        return;
+      }
+      down.success(t);
+    });
+  }
+
+  /**
+   * Creates a promise for the given item.
+   * <p>
+   * The given item will be used every time that the value is requested.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       Promise.value("foo")
+   *     ).getValueOrThrow();
+   *
+   *     assertEquals(value, "foo");
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param t the promised value
+   * @param <T> the type of promised value
+   * @return a promise for the given item
+   * @see #async(Upstream)
+   * @see #sync(Factory)
+   * @see #error(Throwable)
+   */
+  static <T> Promise<T> value(T t) {
+    return async(down -> down.success(t));
   }
 
   /**
    * Creates a failed promise with the given error.
    * <p>
-   * This method can be used when a promise is called for, but the failure is immediately available.
+   * The given error will be used every time that the value is requested.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertSame;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     Exception exception = new Exception();
+   *     Throwable error = ExecHarness.yieldSingle(e ->
+   *       Promise.error(exception)
+   *     ).getThrowable();
+   *
+   *     assertSame(exception, error);
+   *   }
+   * }
+   * }</pre>
    *
    * @param t the error
    * @param <T> the type of promised value
    * @return a failed promise
+   * @see #async(Upstream)
+   * @see #sync(Factory)
+   * @see #value(Object)
    */
   static <T> Promise<T> error(Throwable t) {
-    return of(f -> f.error(t));
+    return async(down -> down.error(t));
+  }
+
+  /**
+   * Deprecated.
+   *
+   * @param upstream the producer of the value
+   * @param <T> the type of promised value
+   * @return a promise for the asynchronously created value
+   * @deprecated replaced by {@link #async(Upstream)}
+   */
+  @Deprecated
+  static <T> Promise<T> of(Upstream<T> upstream) {
+    return async(upstream);
+  }
+
+  /**
+   * Deprecated.
+   *
+   * @param factory the producer of the value
+   * @param <T> the type of promised value
+   * @return a promise for the result of the factory
+   * @deprecated replaced by {@link #sync(Factory)}}
+   */
+  @Deprecated
+  static <T> Promise<T> ofLazy(Factory<T> factory) {
+    return sync(factory);
   }
 
   /**
@@ -887,7 +1013,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       AtomicLong counter = new AtomicLong();
-   *       Promise<Long> uncached = Promise.of(f -> f.success(counter.getAndIncrement()));
+   *       Promise<Long> uncached = Promise.async(f -> f.success(counter.getAndIncrement()));
    *
    *       uncached.then(i -> assertEquals(0l, i.longValue()));
    *       uncached.then(i -> assertEquals(1l, i.longValue()));
@@ -916,7 +1042,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       Throwable error = new Exception("bang!");
-   *       Promise<Object> cached = Promise.of(f -> f.error(error)).cache();
+   *       Promise<Object> cached = Promise.error(error).cache();
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
@@ -944,7 +1070,7 @@ public interface Promise<T> {
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
     return transform(up -> down ->
-      Promise.of(innerDown ->
+      Promise.async(innerDown ->
         releaser.execute((Runnable) () -> innerDown.success(true))
       ).then(v ->
         up.connect(down)
@@ -968,9 +1094,9 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *         Promise.<String>of(f -> {
+   *         Promise.<String>sync(() -> {
    *           events.add("promise");
-   *           f.success("foo");
+   *           return "foo";
    *         })
    *           .onYield(() -> events.add("onYield"))
    *           .then(v -> events.add("then"))
@@ -1011,9 +1137,9 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *         Promise.<String>of(f -> {
+   *         Promise.<String>sync(() -> {
    *           events.add("promise");
-   *           f.success("foo");
+   *           return "foo";
    *         })
    *           .wiretap(r -> events.add("wiretap: " + r.getValue()))
    *           .then(v -> events.add("then"))
@@ -1073,19 +1199,19 @@ public interface Promise<T> {
    *       Throttle throttle = Throttle.ofSize(maxAtOnce);
    *
    *       // Launch numJobs forked executions, and return the maximum number that were executing at any given time
-   *       return Promise.of(outerFulfiller -> {
+   *       return Promise.async(downstream -> {
    *         for (int i = 0; i < numJobs; i++) {
    *           Execution.fork().start(forkedExec ->
-   *             Promise.<Integer>of(innerFulfiller -> {
+   *             Promise.sync(() -> {
    *               int activeNow = active.incrementAndGet();
    *               int maxConcurrentVal = maxConcurrent.updateAndGet(m -> Math.max(m, activeNow));
    *               active.decrementAndGet();
-   *               innerFulfiller.success(maxConcurrentVal);
+   *               return maxConcurrentVal;
    *             })
    *             .throttled(throttle) // limit concurrency
    *             .then(max -> {
    *               if (done.incrementAndGet() == numJobs) {
-   *                 outerFulfiller.success(max);
+   *                 downstream.success(max);
    *               }
    *             })
    *           );

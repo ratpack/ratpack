@@ -46,11 +46,11 @@ class ExecHarnessSpec extends Specification {
     }
 
     public Promise<Void> fail() {
-      Promise.of { it.error(new RuntimeException("!!!")) }
+      Promise.async { it.error(new RuntimeException("!!!")) }
     }
 
     public <T> Promise<T> promise(T value) {
-      Promise.of { f ->
+      Promise.async { f ->
         api.returnAsync(value) {
           f.success(it)
         }

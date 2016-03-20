@@ -390,7 +390,7 @@ public class RatpackPac4j {
    * @see #userProfile(Context)
    */
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
-    return Promise.of(f ->
+    return Promise.async(f ->
       toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
         ctx.get(Session.class)
           .get(Pac4jSessionKeys.USER_PROFILE)
