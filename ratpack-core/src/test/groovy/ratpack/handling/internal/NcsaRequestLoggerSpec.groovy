@@ -16,8 +16,12 @@
 
 package ratpack.handling.internal
 
+import org.apache.logging.log4j.junit.LoggerContextRule
+import org.apache.logging.log4j.test.appender.ListAppender
+import org.apache.logging.slf4j.Log4jLogger
+import org.junit.ClassRule
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,6 +34,9 @@ class NcsaRequestLoggerSpec extends Specification {
 
   private static final Long TEST_TIMESTAMP = 1458250293458L
   private static final String INFO_LOGGER_NAME = 'ratpack.request.info'
+  private static final String WARN_LOGGER_NAME = 'ratpack.request.warn'
+  private static final String WARN_5XX_LOGGER_NAME = 'ratpack.request.warn.5xx'
+  private static final String ERROR_LOGGER_NAME = 'ratpack.request.error'
 
   @Shared
   private Locale originalDefaultLocale
@@ -37,14 +44,33 @@ class NcsaRequestLoggerSpec extends Specification {
   @Shared
   private TimeZone originalDefaultTimeZone
 
+  @ClassRule
+  @Shared
+  public LoggerContextRule loggerContextRule = new LoggerContextRule('classpath:ratpack/handling/internal/logging.xml')
+
+  @Shared
+  private ListAppender requestListAppender
+
+  @Shared
+  private ListAppender serverErrorRequestListAppender
+
+  @Shared
+  private ListAppender errorRequestListAppender
+
   def setupSpec() {
     // save original state of locale and timezone
     originalDefaultLocale = Locale.getDefault()
     originalDefaultTimeZone = TimeZone.getDefault()
+
+    // init appenders
+    requestListAppender = loggerContextRule.getListAppender('requestList')
+    serverErrorRequestListAppender = loggerContextRule.getListAppender('serverErrorRequestList')
+    errorRequestListAppender = loggerContextRule.getListAppender('errorRequestList')
   }
 
   def setup() {
     restoreOriginalLocaleAndTimeZone()
+    clearAllListAppenders()
   }
 
   def cleanupSpec() {
@@ -76,13 +102,79 @@ class NcsaRequestLoggerSpec extends Specification {
     Instant.ofEpochMilli(TEST_TIMESTAMP) | Locale.GERMANY | 'Europe/Berlin'    || '17/Mar/2016:22:31:33 +0100'
   }
 
+  /*
+   * This test is not related to NcsaRequestLogger at all.
+   * It just validates that the testing logger configuration behaves as expected.
+   * Which it doesn't. But anyway...
+   */
+  def 'logger configuration sanity checks'() {
+    setup:
+    def infoLogger = retrieveLogger(INFO_LOGGER_NAME)
+    def warnLogger = retrieveLogger(WARN_LOGGER_NAME)
+    def warn5xxLogger = retrieveLogger(WARN_5XX_LOGGER_NAME)
+    def errorLogger = retrieveLogger(ERROR_LOGGER_NAME)
+    def m4 = MarkerFactory.getMarker(NcsaRequestLogger.STATUS_4XX_MARKER_NAME)
+    def m5 = MarkerFactory.getMarker(NcsaRequestLogger.STATUS_5XX_MARKER_NAME)
+
+    expect:
+    infoLogger.isWarnEnabled()
+    infoLogger.isInfoEnabled()
+    !infoLogger.isDebugEnabled()
+    infoLogger.isWarnEnabled(m5)
+    infoLogger.isWarnEnabled(m4)
+
+    warnLogger.isWarnEnabled()
+    !warnLogger.isInfoEnabled()
+    !warnLogger.isDebugEnabled()
+    warnLogger.isWarnEnabled(m5)
+    warnLogger.isWarnEnabled(m4)
+
+    warn5xxLogger.isWarnEnabled()
+    !warn5xxLogger.isInfoEnabled()
+    !warn5xxLogger.isDebugEnabled()
+    warn5xxLogger.isWarnEnabled(m5)
+
+    // http://stackoverflow.com/questions/22966475/log4j2-marker-and-isenabled
+    // https://issues.apache.org/jira/browse/LOG4J2-601
+    //
+    // log4j2 isXxxEnabled(Marker) methods are essentially broken since they
+    // only work if the MarkerFilters are defined at the Configuration level
+    //
+    // The actual logging calls will work as expected, though.
+
+    // !warn5xxLogger.isWarnEnabled(m4)
+    // ^^^ this should work but doesn't ^^^
+
+    !errorLogger.isWarnEnabled()
+    !errorLogger.isInfoEnabled()
+    !errorLogger.isDebugEnabled()
+    !errorLogger.isWarnEnabled(m5)
+    !errorLogger.isWarnEnabled(m4)
+  }
+
+  def 'missing logger causes correct exception in constructor'() {
+    when:
+    new NcsaRequestLogger(null)
+
+    then:
+    NullPointerException ex = thrown()
+    ex.message == 'logger must not be null!'
+  }
+
   // helper methods below
-  private static Logger retrieveLogger(String loggerName) {
-    return LoggerFactory.getLogger(loggerName)
+  private Logger retrieveLogger(String loggerName) {
+    final org.apache.logging.log4j.core.Logger log4jLogger = loggerContextRule.getLogger(loggerName)
+    return new Log4jLogger(log4jLogger, loggerName)
   }
 
   private void restoreOriginalLocaleAndTimeZone() {
     Locale.setDefault(originalDefaultLocale)
     TimeZone.setDefault(originalDefaultTimeZone)
+  }
+
+  private void clearAllListAppenders() {
+    requestListAppender.clear()
+    serverErrorRequestListAppender.clear()
+    errorRequestListAppender.clear()
   }
 }
