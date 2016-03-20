@@ -17,6 +17,8 @@
 package ratpack.handling
 
 import org.slf4j.Logger
+import org.slf4j.Marker
+import org.slf4j.helpers.MessageFormatter
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
@@ -28,8 +30,8 @@ class RequestLogSpec extends RatpackGroovyDslSpec {
     def messages = []
     def latch = new CountDownLatch(2)
     def logger = Mock(Logger) {
-      _ * isInfoEnabled() >> true
-      2 * info(_) >> { String m -> messages << m; latch.countDown() }
+      _ * isInfoEnabled(_ as Marker) >> true
+      2 * info(_ as Marker, _ as String, _ as Object[] ) >> { Marker marker, String msgPattern, Object[] params -> messages << MessageFormatter.arrayFormat(msgPattern, params).message; latch.countDown() }
     }
 
     given:
