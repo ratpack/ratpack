@@ -72,7 +72,7 @@ ext {
       dependencies.create("rubygems:compass:1.0.3"),
       dependencies.create("rubygems:chunky_png:1.2.9", {
         force = true
-      }),
+      })
     ]
   ]
 }
