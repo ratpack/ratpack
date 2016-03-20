@@ -16,14 +16,7 @@
 
 package ratpack.dropwizard.metrics;
 
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.CsvReporter;
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.ScheduledReporter;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.codahale.metrics.Slf4jReporter;
+import com.codahale.metrics.*;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.graphite.GraphiteReporter;
@@ -34,18 +27,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
-import ratpack.dropwizard.metrics.internal.BlockingExecTimingInterceptorProvider;
-import ratpack.dropwizard.metrics.internal.ConsoleReporterProvider;
-import ratpack.dropwizard.metrics.internal.CsvReporterProvider;
-import ratpack.dropwizard.metrics.internal.GaugeTypeListener;
-import ratpack.dropwizard.metrics.internal.GraphiteReporterProvider;
-import ratpack.dropwizard.metrics.internal.JmxReporterProvider;
-import ratpack.dropwizard.metrics.internal.MeteredMethodInterceptor;
-import ratpack.dropwizard.metrics.internal.MetricRegistryPeriodicPublisher;
-import ratpack.dropwizard.metrics.internal.MetricsBroadcaster;
-import ratpack.dropwizard.metrics.internal.RequestTimingHandlerProvider;
-import ratpack.dropwizard.metrics.internal.Slf4jReporterProvider;
-import ratpack.dropwizard.metrics.internal.TimedMethodInterceptor;
+import ratpack.dropwizard.metrics.internal.*;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.server.Service;
@@ -63,7 +45,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * To use it one has to register the module and enable the required functionality by chaining the various configuration
  * options.  For example, to enable the capturing and reporting of metrics to {@link DropwizardMetricsConfig#jmx(ratpack.func.Action)}
  * one would write: (Groovy DSL)
- * </p>
+ *
  * <pre class="groovy-ratpack-dsl">
  * import ratpack.dropwizard.metrics.DropwizardMetricsModule
  * import static ratpack.groovy.Groovy.ratpack
@@ -74,10 +56,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *   }
  * }
  * </pre>
+ *
  * <p>
- * To enable the capturing and reporting of metrics to JMX and the console, one would
- * write: (Groovy DSL)
- * </p>
+ * To enable the capturing and reporting of metrics to JMX and the console, one would write: (Groovy DSL)
+ *
  * <pre class="groovy-ratpack-dsl">
  * import ratpack.dropwizard.metrics.DropwizardMetricsModule
  * import static ratpack.groovy.Groovy.ratpack
@@ -90,6 +72,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * </pre>
  *
  * <h2>External Configuration</h2>
+ * <p>
  * The module can also be configured via external configuration using the
  * <a href="http://www.ratpack.io/manual/current/api/ratpack/config/ConfigData.html" target="_blank">ratpack-config</a> extension.
  * For example, to enable the capturing and reporting of metrics to jmx via an external property file which can be overridden with
@@ -121,14 +104,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * The module adds a default {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not
  * take any framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is registered first
  * in the modules list to ensure that <b>all</b> handlers are included in the metric.
- * </p>
  * <p>
  * The module also adds a default {@link BlockingExecTimingInterceptor} to the execution path. This will add timers that will account for time
  * spent on blocking io calls.
- * </p>
  * <p>
  * Both the request timing handler and the blocking execution timing interceptor can be disabled:
- * </p>
+ *
  * <pre class="groovy-ratpack-dsl">{@code
  * import ratpack.dropwizard.metrics.DropwizardMetricsModule
  * import static ratpack.groovy.Groovy.ratpack
@@ -145,12 +126,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *   }
  * }
  * }</pre>
+ *
  * <p>
  * Additional custom metrics can be registered with the provided {@link MetricRegistry} instance
- * </p>
  * <p>
  * Example custom metrics: (Groovy DSL)
- * </p>
+ *
  * <pre class="groovy-ratpack-dsl">{@code
  * import ratpack.dropwizard.metrics.DropwizardMetricsModule
  * import com.codahale.metrics.MetricRegistry
@@ -169,10 +150,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *   }
  * }
  * }</pre>
+ *
  * <p>
  * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge})
  * to any Guice injected classes.
- * </p>
  *
  * @see <a href="https://dropwizard.github.io/metrics/3.1.0/manual/" target="_blank">Dropwizard Metrics</a>
  */
