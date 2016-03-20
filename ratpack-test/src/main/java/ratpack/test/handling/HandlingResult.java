@@ -55,10 +55,13 @@ public interface HandlingResult {
   String getBodyText();
 
   /**
-   * The cookies to be set by client, as a Set.
+   * The cookies to be set as part of the response.
    * <p>
+   * Cookies are set during request processing via the {@link ratpack.http.Response#cookie(String, String)} method,
+   * or via directly modifying {@link ratpack.http.Response#getCookies()}.
    *
-   * @return the cookies from the response object.
+   * @return the cookies to be set as part of the response
+   * @since 1.3
    */
   @Nullable
   Set<Cookie> getCookies();

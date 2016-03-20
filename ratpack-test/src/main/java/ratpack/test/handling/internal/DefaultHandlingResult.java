@@ -189,10 +189,6 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public Set<Cookie> getCookies() {
-    Throwable throwable = results.getThrowable();
-    if (throwable != null) {
-      throw new UnexpectedHandlerException(throwable);
-    }
     return cookies;
   }
 
