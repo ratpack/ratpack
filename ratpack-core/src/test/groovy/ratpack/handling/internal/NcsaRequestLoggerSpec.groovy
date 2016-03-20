@@ -16,12 +16,30 @@
 
 package ratpack.handling.internal
 
+import io.netty.handler.codec.http.DefaultHttpHeaders
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.handler.codec.http.HttpVersion
 import org.apache.logging.log4j.junit.LoggerContextRule
 import org.apache.logging.log4j.test.appender.ListAppender
 import org.apache.logging.slf4j.Log4jLogger
 import org.junit.ClassRule
 import org.slf4j.Logger
 import org.slf4j.MarkerFactory
+import ratpack.handling.RequestId
+import ratpack.handling.RequestOutcome
+import ratpack.handling.UserId
+import ratpack.http.MutableHeaders
+import ratpack.http.Request
+import ratpack.http.SentResponse
+import ratpack.http.Status
+import ratpack.http.internal.DefaultRequest
+import ratpack.http.internal.DefaultSentResponse
+import ratpack.http.internal.DefaultStatus
+import ratpack.http.internal.HttpHeaderConstants
+import ratpack.http.internal.NettyHeadersBackedMutableHeaders
+import ratpack.registry.MutableRegistry
+import ratpack.registry.internal.SimpleMutableRegistry
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -176,5 +194,43 @@ class NcsaRequestLoggerSpec extends Specification {
     requestListAppender.clear()
     serverErrorRequestListAppender.clear()
     errorRequestListAppender.clear()
+  }
+
+  private static RequestOutcome createRequestOutcome(String host, String user, long timestamp, String httpMethod, String path, String httpVersion, int statusCode, long responseSize, String requestId) {
+    Instant instant = Instant.ofEpochMilli(timestamp)
+    InetSocketAddress remoteSocket = InetSocketAddress.createUnresolved(host, 0)
+
+    // prepare request
+    Request request = new DefaultRequest(
+      instant,                          // timestamp
+      null,                             // headers
+      HttpMethod.valueOf(httpMethod),   // method
+      HttpVersion.valueOf(httpVersion), // protocol
+      '/' + path,                       // rawUri
+      remoteSocket,                     // remoteSocket
+      null,                             // localSocket
+      null,                             // serverConfig
+      null                              // bodyReader
+    )
+
+    MutableRegistry registry = new SimpleMutableRegistry()
+    if (user) {
+      registry.add(UserId, new DefaultUserId(user))
+    }
+    if (requestId) {
+      registry.add(RequestId, new DefaultRequestId(requestId))
+    }
+
+    DefaultRequest.setDelegateRegistry(request, registry)
+
+    // prepare response
+    Status status = new DefaultStatus(HttpResponseStatus.valueOf(statusCode))
+    MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders())
+    if (responseSize >= 0) {
+      responseHeaders.add(HttpHeaderConstants.CONTENT_LENGTH, String.valueOf(responseSize))
+    }
+    SentResponse sentResponse = new DefaultSentResponse(responseHeaders, status)
+
+    return new DefaultRequestOutcome(request, sentResponse, instant)
   }
 }
