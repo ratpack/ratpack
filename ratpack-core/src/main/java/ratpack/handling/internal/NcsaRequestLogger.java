@@ -36,7 +36,7 @@ import java.util.Optional;
 
 public class NcsaRequestLogger implements RequestLogger {
 
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter
+  private final DateTimeFormatter formatter = DateTimeFormatter
     .ofPattern("dd/MMM/yyyy:HH:mm:ss Z")
     .withZone(ZoneId.systemDefault());
 
@@ -88,11 +88,20 @@ public class NcsaRequestLogger implements RequestLogger {
       client.getHostText(),
       rfc1413Ident,
       userId.orElse("-"),
-      FORMATTER.format(timestamp),
+      formatter.format(timestamp),
       method.getName(),
       uri,
       httpProtocol,
       status.getCode(),
       responseSize);
   }
+
+  /*
+   * Left package-private so formatter can be tested separately.
+   * Not static so testing with different locales/timezones is possible.
+   */
+  String getTimestampString(Instant instant) {
+    return formatter.format(instant);
+  }
+
 }
