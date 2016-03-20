@@ -39,7 +39,6 @@ import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.RequestId;
-import ratpack.handling.internal.DefaultRedirector;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
@@ -106,7 +105,7 @@ public abstract class ServerRegistry {
           .map(PublicAddress::of)
           .orElseGet(() -> PublicAddress.inferred(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
         )
-        .add(Redirector.class, new DefaultRedirector())
+        .add(Redirector.TYPE, Redirector.standard())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
         .add(Renderer.typeOf(Path.class), new FileRenderer())

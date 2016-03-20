@@ -162,13 +162,13 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void redirect(String location) throws NotInRegistryException {
-    delegate.redirect(location);
+  public void redirect(Object to) throws NotInRegistryException {
+    delegate.redirect(to);
   }
 
   @Override
-  public void redirect(int code, String location) throws NotInRegistryException {
-    delegate.redirect(code, location);
+  public void redirect(int code, Object to) throws NotInRegistryException {
+    delegate.redirect(code, to);
   }
 
   @Override

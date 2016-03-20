@@ -14,12 +14,18 @@ the [URI](api/ratpack/http/Request.html#getUri--) and a key/value model of the [
 
 ## Redirecting
 
-The context object provides options for responding with redirects. These methods all delegate to a [Redirector](api/ratpack/handling/Redirector.html), by default Ratpack provides a Redircetor that acts in the following ways:
+The [`redirect(int, Object)`](api/ratpack/handling/Context.html#redirect-int-java.lang.Object-) context method supports issuing redirects.
+This method obtains the [`Redirector`](api/ratpack/handling/Redirector.html) from the context registry and forwards the arguments.
 
-  * An absolute URL will be used as the location.
-  * A protocol relative URL will use the protocol of the incoming request, ex: `\\example.com\foo`.
-  * A starting slash will have the URL provided by the [PublicAddress.get()](api/ratpack/server/PublicAddress.html#get--) method prepended. 
-  * A relative url will have the URL provided by [PublicAddress.get()](api/ratpack/server/PublicAddress.html#get--) and then the parent path of the request prepended. 
+Ratpack provides a [default implementation](api/ratpack/handling/Redirector.html#standard--) that supports: 
+
+1. Literal URL values
+2. Protocol relative URL values
+3. Absolute paths within the current application
+4. Relative paths within the current application
+
+Most applications do not need to provide a custom `Redirector` implementation, as the default behaviour is sufficient.
+One reason to provide a custom redirector implementation would be to interpret domain objects as locations to redirect to.
 
 ## Reading the request
 

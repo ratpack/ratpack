@@ -29,9 +29,21 @@ public class DefaultRedirector implements Redirector {
 
   private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
 
-  public void redirect(Context context, String location, int code) {
+  public static final Redirector INSTANCE = new DefaultRedirector();
+
+  private DefaultRedirector() {
+  }
+
+  @Override
+  public void redirect(Context context, int code, Object to) {
+    String stringValue;
+    if (to instanceof URI) {
+      stringValue = ((URI) to).toASCIIString();
+    } else {
+      stringValue = to.toString();
+    }
     context.getResponse().status(code);
-    String normalizedLocation = generateRedirectLocation(context, context.getRequest(), location);
+    String normalizedLocation = generateRedirectLocation(context, context.getRequest(), stringValue);
     context.getResponse().getHeaders().set(HttpHeaderConstants.LOCATION, normalizedLocation);
     context.getResponse().send();
   }

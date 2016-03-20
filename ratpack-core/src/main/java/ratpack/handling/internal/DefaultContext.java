@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
@@ -368,13 +367,13 @@ public class DefaultContext implements Context {
     return requestConstants;
   }
 
-  public void redirect(String location) {
-    redirect(HttpResponseStatus.FOUND.code(), location);
+  public void redirect(Object to) {
+    redirect(302, to);
   }
 
-  public void redirect(int code, String location) {
+  public void redirect(int code, Object to) {
     Redirector redirector = joinedRegistry.get(Redirector.TYPE);
-    redirector.redirect(this, location, code);
+    redirector.redirect(this, code, to);
   }
 
   @Override

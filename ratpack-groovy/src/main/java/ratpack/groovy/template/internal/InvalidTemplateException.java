@@ -16,9 +16,7 @@
 
 package ratpack.groovy.template.internal;
 
-import ratpack.error.ContextualException;
-
-public class InvalidTemplateException extends RuntimeException implements ContextualException {
+public class InvalidTemplateException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 

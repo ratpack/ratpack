@@ -328,44 +328,84 @@ public interface Context extends Registry {
   void render(Object object) throws NoSuchRendererException;
 
   /**
-   * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
+   * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
+   * <p>
+   * This method is effectively deprecated and will be removed in Ratpack 2.0.
+   * Note, this method simply delegates to {@link #redirect(Object)} which is the replacement.
+   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
    *
-   * @param location the redirect location URL
-   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
+   * @param to the location to redirect to
+   * @see #redirect(Object)
    */
-  void redirect(String location) throws NotInRegistryException;
-
-  /**
-   * Sends a redirect response location URL and status code (which should be in the 3xx range).
-   *
-   * @param code The status code of the redirect
-   * @param location the redirect location URL
-   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
-   */
-  void redirect(int code, String location) throws NotInRegistryException;
-
-  /**
-   * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
-   *
-   * @param location the redirect location URL
-   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
-   * @since 1.2
-   */
-  default void redirect(URI location) throws NotInRegistryException {
-    redirect(location.toASCIIString());
+  default void redirect(String to) {
+    redirect((Object) to);
   }
 
   /**
-   * Sends a redirect response location URL and status code (which should be in the 3xx range).
+   * Sends a redirect response to the given location, and with the given status code.
+   * <p>
+   * This method is effectively deprecated and will be removed in Ratpack 2.0.
+   * Note, this method simply delegates to {@link #redirect(int, Object)} which is the replacement.
+   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
    *
-   * @param code The status code of the redirect
-   * @param location the redirect location URL
-   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
+   * @param code the redirect response status code
+   * @param to the location to redirect to
+   * @see #redirect(int, Object)
+   */
+  default void redirect(int code, String to) {
+    redirect(code, (Object) to);
+  }
+
+  /**
+   * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
+   * <p>
+   * This method is effectively deprecated and will be removed in Ratpack 2.0.
+   * Note, this method simply delegates to {@link #redirect(Object)} which is the replacement.
+   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
+   *
+   * @param to the location to redirect to
+   * @see #redirect(Object)
    * @since 1.2
    */
-  default void redirect(int code, URI location) throws NotInRegistryException {
-    redirect(code, location.toASCIIString());
+  default void redirect(URI to) {
+    redirect((Object) to);
   }
+
+  /**
+   * Sends a redirect response to the given location, and with the given status code.
+   * <p>
+   * This method is effectively deprecated and will be removed in Ratpack 2.0.
+   * Note, this method simply delegates to {@link #redirect(int, Object)} which is the replacement.
+   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
+   *
+   * @param code the redirect response status code
+   * @param to the location to redirect to
+   * @see #redirect(int, Object)
+   */
+  default void redirect(int code, URI to) {
+    redirect(code, to.toASCIIString());
+  }
+
+  /**
+   * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
+   *
+   * @param to the location to redirect to
+   * @see #redirect(int, Object)
+   * @since 1.3
+   */
+  void redirect(Object to);
+
+  /**
+   * Sends a redirect response to the given location, and with the given status code.
+   * <p>
+   * This method retrieves the {@link Redirector} from the registry, and forwards the given arguments along with {@code this} context.
+   *
+   * @param code The status code of the redirect
+   * @param to the redirect location URL
+   * @see Redirector
+   * @since 1.3
+   */
+  void redirect(int code, Object to);
 
   /**
    * Convenience method for handling last-modified based HTTP caching.
