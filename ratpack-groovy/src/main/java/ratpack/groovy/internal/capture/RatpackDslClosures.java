@@ -33,14 +33,14 @@ public class RatpackDslClosures {
   private Closure<?> handlers;
   private Closure<?> bindings;
   private Closure<?> serverConfig;
-  private Path rootScript;
+  private Path thisScript;
   private boolean closed;
 
-  public RatpackDslClosures(Path rootScript) {
+  public RatpackDslClosures(Path thisScript) {
     this.handlers = Closure.IDENTITY;
     this.bindings = Closure.IDENTITY;
     this.serverConfig = Closure.IDENTITY;
-    this.rootScript = rootScript;
+    this.thisScript = thisScript;
   }
 
   public Closure<?> getHandlers() {
@@ -74,8 +74,8 @@ public class RatpackDslClosures {
     assertAtTopLevelOfRatpackDsl("include");
     Exceptions.uncheck(() -> {
       Path resolvedPath = path;
-      if (rootScript != null && !path.isAbsolute()) {
-        resolvedPath = rootScript.resolveSibling(path);
+      if (thisScript != null && !path.isAbsolute()) {
+        resolvedPath = thisScript.resolveSibling(path);
       }
       String script = Paths2.readText(resolvedPath, StandardCharsets.UTF_8);
       RatpackDslClosures closures = new RatpackDslScriptCapture(false, new String[]{}, RatpackDslBacking::new).apply(resolvedPath, script);
