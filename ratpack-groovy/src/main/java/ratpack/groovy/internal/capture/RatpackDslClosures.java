@@ -17,8 +17,9 @@
 package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
-import ratpack.func.Function;
+import org.codehaus.groovy.runtime.ComposedClosure;
 import ratpack.func.Block;
+import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.util.Exceptions;
@@ -54,15 +55,15 @@ public class RatpackDslClosures {
   }
 
   public void setHandlers(Closure<?> handlers) {
-    this.handlers = this.handlers.leftShift(handlers);
+    this.handlers = new ComposedClosure<>(this.handlers, handlers);
   }
 
   public void setBindings(Closure<?> bindings) {
-    this.bindings = this.bindings.leftShift(bindings);
+    this.bindings = new ComposedClosure<>(this.bindings, bindings);
   }
 
   public void setServerConfig(Closure<?> serverConfig) {
-    this.serverConfig = this.serverConfig.leftShift(serverConfig);
+    this.serverConfig = new ComposedClosure<>(this.serverConfig, serverConfig);
   }
 
   public void include(Path path) {
