@@ -34,6 +34,7 @@ public class RatpackDslClosures {
   private Closure<?> bindings;
   private Closure<?> serverConfig;
   private Path rootScript;
+  private boolean closed;
 
   public RatpackDslClosures(Path rootScript) {
     this.handlers = Closure.IDENTITY;
@@ -55,18 +56,22 @@ public class RatpackDslClosures {
   }
 
   public void setHandlers(Closure<?> handlers) {
+    assertAtTopLevelOfRatpackDsl("handlers");
     this.handlers = new ComposedClosure<>(this.handlers, handlers);
   }
 
   public void setBindings(Closure<?> bindings) {
+    assertAtTopLevelOfRatpackDsl("bindings");
     this.bindings = new ComposedClosure<>(this.bindings, bindings);
   }
 
   public void setServerConfig(Closure<?> serverConfig) {
+    assertAtTopLevelOfRatpackDsl("serverConfig");
     this.serverConfig = new ComposedClosure<>(this.serverConfig, serverConfig);
   }
 
   public void include(Path path) {
+    assertAtTopLevelOfRatpackDsl("include");
     Exceptions.uncheck(() -> {
       Path resolvedPath = path;
       if (rootScript != null && !path.isAbsolute()) {
@@ -80,10 +85,17 @@ public class RatpackDslClosures {
     });
   }
 
+  private void assertAtTopLevelOfRatpackDsl(String methodName) {
+    if (closed) {
+      throw new IllegalStateException(methodName + " {} DSL method can only be used at the top level of the ratpack {} block");
+    }
+  }
+
   public static RatpackDslClosures capture(Function<? super RatpackDslClosures, ? extends Groovy.Ratpack> function, Path script, Block action) throws Exception {
     RatpackDslClosures closures = new RatpackDslClosures(script);
     Groovy.Ratpack receiver = function.apply(closures);
     RatpackScriptBacking.withBacking(closure -> ClosureUtil.configureDelegateFirst(receiver, closure), action);
+    closures.closed = true;
     return closures;
   }
 

@@ -22,7 +22,7 @@ import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 
-class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
+class ScriptIncludeSpec extends RatpackGroovyScriptAppSpec {
 
   protected Map<String, File> additionalFiles = [:]
 
@@ -236,6 +236,22 @@ class ScriptIncudeSpec extends RatpackGroovyScriptAppSpec {
 
     then:
     text == "main:foo"
+  }
+
+  def "cannot use include method from anywhere but top level"() {
+    when:
+    script """
+      ratpack {
+        handlers {
+          include "foo"
+        }
+      }
+    """
+    getText()
+
+    then:
+    def e = thrown IllegalStateException
+    e.message == "include {} DSL method can only be used at the top level of the ratpack {} block"
   }
 
   protected File getAdditionalFile(String fileName) {
