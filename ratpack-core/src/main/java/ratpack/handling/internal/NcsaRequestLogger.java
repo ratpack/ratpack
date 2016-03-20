@@ -32,13 +32,15 @@ import ratpack.util.Types;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Optional;
 
 public class NcsaRequestLogger implements RequestLogger {
 
   private final DateTimeFormatter formatter = DateTimeFormatter
     .ofPattern("dd/MMM/yyyy:HH:mm:ss Z")
-    .withZone(ZoneId.systemDefault());
+    .withZone(ZoneId.systemDefault())
+    .withLocale(Locale.ENGLISH);
 
   private final Logger logger;
 
