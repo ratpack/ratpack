@@ -43,6 +43,7 @@ import ratpack.server.ServerConfig;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -207,8 +208,10 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   }
 
   private boolean isIgnorableException(Throwable throwable) {
-    // There really does not seem to be a better way of detecting this kind of exception
-    if (throwable instanceof IOException) {
+    if (throwable instanceof ClosedChannelException) {
+      return true;
+    } else if (throwable instanceof IOException) {
+      // There really does not seem to be a better way of detecting this kind of exception
       String message = throwable.getMessage();
       return message != null && message.endsWith("Connection reset by peer");
     } else {
