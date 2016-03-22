@@ -17,7 +17,6 @@
 package ratpack.health;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
@@ -31,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -232,19 +232,19 @@ public class HealthCheckHandler implements Handler {
 
     return Promise.<Map<String, HealthCheck.Result>>async(f -> {
       AtomicInteger counter = new AtomicInteger();
-      Map<String, HealthCheck.Result> results = Maps.newConcurrentMap();
+      Map<String, HealthCheck.Result> results = new ConcurrentHashMap<>();
       while (iterator.hasNext()) {
         counter.incrementAndGet();
         HealthCheck healthCheck = iterator.next();
         Execution.fork().start(e ->
-            execute(registry, healthCheck)
-              .throttled(throttle)
-              .then(r -> {
-                results.put(healthCheck.getName(), r);
-                if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
-                  f.success(results);
-                }
-              })
+          execute(registry, healthCheck)
+            .throttled(throttle)
+            .then(r -> {
+              results.put(healthCheck.getName(), r);
+              if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
+                f.success(results);
+              }
+            })
         );
       }
     })
