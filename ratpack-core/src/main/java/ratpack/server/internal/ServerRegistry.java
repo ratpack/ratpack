@@ -126,7 +126,7 @@ public abstract class ServerRegistry {
         }))
         .add(HttpClient.class, HttpClient.httpClient(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(PooledByteBufAllocator.DEFAULT))
-        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
+        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());
 
       addConfigObjects(serverConfig, baseRegistryBuilder);

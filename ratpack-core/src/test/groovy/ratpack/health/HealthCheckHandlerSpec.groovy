@@ -108,9 +108,10 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    def result = getText("health-checks")
-    assert result.startsWith("foo")
-    assert result.contains("HEALTHY")
+    def result = get("health-checks")
+    result.body.text.startsWith("foo")
+    result.body.text.contains("HEALTHY")
+    result.statusCode == 200
   }
 
   def "render unhealthy check"() {
@@ -125,10 +126,11 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    def result = getText("health-checks")
-    assert result.startsWith("foo")
-    assert result.contains("UNHEALTHY")
-    assert result.contains("EXECUTION TIMEOUT")
+    def result = get("health-checks")
+    result.body.text.startsWith("foo")
+    result.body.text.contains("UNHEALTHY")
+    result.body.text.contains("EXECUTION TIMEOUT")
+    result.statusCode == 500
   }
 
   def "render unhealthy check with exception stack trace"() {
@@ -227,7 +229,10 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    assert getText("health-checks").isEmpty()
+    with(get("health-checks")) {
+      body.text.empty
+      statusCode == 200
+    }
   }
 
   def "render healthy check results for more health checks"() {
@@ -257,16 +262,16 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
 
     then:
     def result = getText("health-checks")
-    String[] results = result.split("\n")
-    assert results.length == 4
-    assert results[0].startsWith("bar")
-    assert results[0].contains("HEALTHY")
-    assert results[1].startsWith("baz")
-    assert results[1].contains("HEALTHY")
-    assert results[2].startsWith("foo")
-    assert results[2].contains("HEALTHY")
-    assert results[3].startsWith("quux")
-    assert results[3].contains("HEALTHY")
+    def results = result.split("\n")
+    results.length == 4
+    results[0].startsWith("bar")
+    results[0].contains("HEALTHY")
+    results[1].startsWith("baz")
+    results[1].contains("HEALTHY")
+    results[2].startsWith("foo")
+    results[2].contains("HEALTHY")
+    results[3].startsWith("quux")
+    results[3].contains("HEALTHY")
   }
 
   def "health checks run in parallel"() {
@@ -295,10 +300,10 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     then:
     def result = getText("health-checks")
     String[] results = result.split("\n")
-    assert results[0].startsWith("baz")
-    assert results[0].contains("HEALTHY")
-    assert results[1].startsWith("quux")
-    assert results[1].contains("HEALTHY")
+    results[0].startsWith("baz")
+    results[0].contains("HEALTHY")
+    results[1].startsWith("quux")
+    results[1].contains("HEALTHY")
   }
 
   def "duplicated health checks renders only once"() {
@@ -321,9 +326,9 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     then:
     def result = getText("health-checks")
     String[] results = result.split("\n")
-    assert results.size() == 1
-    assert results[0].startsWith("foo")
-    assert results[0].contains("HEALTHY")
+    results.size() == 1
+    results[0].startsWith("foo")
+    results[0].contains("HEALTHY")
   }
 
   def "render health check by token if more health checks in registry"() {
@@ -351,16 +356,16 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     then:
     def result = getText("health-checks/foo")
     String[] results = result.split("\n")
-    assert results.length == 1
-    assert results[0].startsWith("foo")
-    assert results[0].contains("HEALTHY")
+    results.length == 1
+    results[0].startsWith("foo")
+    results[0].contains("HEALTHY")
 
     then:
     def result2 = getText("health-checks/baz")
     String[] results2 = result2.split("\n")
-    assert results.length == 1
-    assert results2[0].startsWith("baz")
-    assert results2[0].contains("UNHEALTHY")
+    results.length == 1
+    results2[0].startsWith("baz")
+    results2[0].contains("UNHEALTHY")
   }
 
   def "render json health check results for custom renderer"() {
@@ -395,12 +400,12 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
       spec.headers.add("Accept", "application/json")
     }
     def result = get("health-checks")
-    assert result.body.contentType.toString() == MediaType.APPLICATION_JSON
-    def results = json.parse(result.body.inputStream)
-    assert results.foo.healthy == true
-    assert results.bar.healthy == true
-    assert results.baz.healthy == false
-    assert results.baz.message == "Unhealthy"
+    result.body.contentType.toString() == MediaType.APPLICATION_JSON
+    Map<String, Map<String, ?>> results = json.parse(result.body.inputStream)
+    results.foo.healthy == true
+    results.bar.healthy == true
+    results.baz.healthy == false
+    results.baz.message == "Unhealthy"
   }
 
 }
