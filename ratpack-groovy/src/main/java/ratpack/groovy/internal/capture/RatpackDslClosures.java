@@ -57,17 +57,17 @@ public class RatpackDslClosures {
 
   public void setHandlers(Closure<?> handlers) {
     assertAtTopLevelOfRatpackDsl("handlers");
-    this.handlers = new ComposedClosure<>(this.handlers, handlers);
+    this.handlers = new ComposedClosure<>(handlers, this.handlers);
   }
 
   public void setBindings(Closure<?> bindings) {
     assertAtTopLevelOfRatpackDsl("bindings");
-    this.bindings = new ComposedClosure<>(this.bindings, bindings);
+    this.bindings = new ComposedClosure<>(bindings, this.bindings);
   }
 
   public void setServerConfig(Closure<?> serverConfig) {
     assertAtTopLevelOfRatpackDsl("serverConfig");
-    this.serverConfig = new ComposedClosure<>(this.serverConfig, serverConfig);
+    this.serverConfig = new ComposedClosure<>(serverConfig, this.serverConfig);
   }
 
   public void include(Path path) {
