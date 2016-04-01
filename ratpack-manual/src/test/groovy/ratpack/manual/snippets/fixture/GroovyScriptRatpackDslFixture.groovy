@@ -29,7 +29,7 @@ class GroovyScriptRatpackDslFixture extends GroovyScriptFixture {
 
   @Override
   void around(Block action) throws Exception {
-    def closures = RatpackDslClosures.capture({ new RatpackDslBacking(it) }, action)
+    def closures = RatpackDslClosures.capture({ new RatpackDslBacking(it) }, null, action)
     RatpackServer.start {
       it.serverConfig(ServerConfig.embedded())
       it.registry(Guice.registry {
