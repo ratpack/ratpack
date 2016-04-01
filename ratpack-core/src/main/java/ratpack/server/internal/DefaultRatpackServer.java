@@ -44,6 +44,7 @@ import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ReloadInformant;
 import ratpack.server.ServerConfig;
+import ratpack.service.internal.DefaultEvent;
 import ratpack.service.internal.ServicesGraph;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;

@@ -55,6 +55,7 @@ import ratpack.server.internal.DefaultRatpackServer;
  * Server objects are thread safe in that every instance method is {@code synchronized}.
  *
  * @see RatpackServerSpec
+ * @see ratpack.service.Service
  * @see #of(Action)
  */
 public interface RatpackServer {

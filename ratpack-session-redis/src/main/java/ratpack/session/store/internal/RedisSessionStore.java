@@ -25,8 +25,6 @@ import io.netty.util.AsciiString;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
 import ratpack.session.SessionStore;
 import ratpack.session.store.RedisSessionModule;
 
@@ -89,13 +87,13 @@ public class RedisSessionStore implements SessionStore {
   }
 
   @Override
-  public void onStart(StartEvent event) throws Exception {
+  public void onStart(@SuppressWarnings("deprecation") ratpack.server.StartEvent event) throws Exception {
     redisClient = new TimerExposingRedisClient(getRedisURI());
     connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 
   @Override
-  public void onStop(StopEvent event) throws Exception {
+  public void onStop(@SuppressWarnings("deprecation") ratpack.server.StopEvent event) throws Exception {
     if (redisClient != null) {
       try {
         redisClient.getTimer().stop();

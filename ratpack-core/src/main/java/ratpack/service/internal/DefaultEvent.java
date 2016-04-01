@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package ratpack.service;
+package ratpack.service.internal;
 
-import java.lang.annotation.*;
+import ratpack.registry.Registry;
+import ratpack.service.StartEvent;
+import ratpack.service.StopEvent;
 
-/**
- * Declares the other service types that services of the annotated type depend on.
- * <p>
- * This annotation is only effective when present on {@link Service} types.
- *
- * @see ServiceDependencies
- * @since 1.3
- */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Inherited
-public @interface DependsOn {
+@SuppressWarnings("deprecation")
+public class DefaultEvent implements StartEvent, StopEvent, ratpack.server.StartEvent, ratpack.server.StopEvent {
 
-  /**
-   * The types of services that services of the annotated type depend on.
-   *
-   * @return the types of services that services of the annotated type depend on.
-   */
-  Class<?>[] value();
+  private final Registry registry;
+  private final boolean reload;
+
+  public DefaultEvent(Registry registry, boolean reload) {
+    this.registry = registry;
+    this.reload = reload;
+  }
+
+  @Override
+  public Registry getRegistry() {
+    return registry;
+  }
+
+  @Override
+  public boolean isReload() {
+    return reload;
+  }
 
 }

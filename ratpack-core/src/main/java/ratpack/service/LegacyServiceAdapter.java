@@ -16,27 +16,27 @@
 
 package ratpack.service;
 
-import java.lang.annotation.*;
+import ratpack.func.Predicate;
 
 /**
- * Declares the other service types that services of the annotated type depend on.
+ * An adapter from {@link ratpack.server.Service} to {@link ratpack.service.Service}.
  * <p>
- * This annotation is only effective when present on {@link Service} types.
+ * When using {@link ServiceDependenciesSpec#dependsOn(Predicate, Predicate)}, legacy services will be wrapped in this type.
+ * <p>
+ * This class is scheduled to be removed in 2.x, along with {@link ratpack.server.Service}.
  *
- * @see ServiceDependencies
+ * @deprecated since 1.3
  * @since 1.3
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Inherited
-public @interface DependsOn {
+@Deprecated
+public interface LegacyServiceAdapter {
 
   /**
-   * The types of services that services of the annotated type depend on.
+   * The legacy service being adapted.
    *
-   * @return the types of services that services of the annotated type depend on.
+   * @return the legacy service being adapted
    */
-  Class<?>[] value();
+  @SuppressWarnings("deprecation")
+  ratpack.server.Service getAdapted();
 
 }

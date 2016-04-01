@@ -24,15 +24,9 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Operation;
 import ratpack.func.Predicate;
 import ratpack.registry.Registry;
-import ratpack.server.Service;
-import ratpack.server.StartEvent;
 import ratpack.server.StartupFailureException;
-import ratpack.server.StopEvent;
-import ratpack.server.internal.DefaultEvent;
 import ratpack.server.internal.DefaultRatpackServer;
-import ratpack.service.DependsOn;
-import ratpack.service.ServiceDependencies;
-import ratpack.service.ServiceDependenciesSpec;
+import ratpack.service.*;
 
 import java.util.List;
 import java.util.Set;
@@ -57,7 +51,10 @@ public class ServicesGraph {
   private volatile boolean startupFailed;
 
   public ServicesGraph(Registry registry) throws Exception {
-    this.nodes = ImmutableList.copyOf(Iterables.transform(registry.getAll(Service.class), Node::new));
+    this.nodes = ImmutableList.<Node>builder()
+      .addAll(Iterables.transform(registry.getAll(Service.class), Node::new))
+      .addAll(adaptLegacy(registry))
+      .build();
     this.toStartCount.set(nodes.size());
     this.toStopCount.set(nodes.size());
     this.execController = registry.get(ExecController.class);
@@ -65,17 +62,29 @@ public class ServicesGraph {
     defineDependencies(registry);
   }
 
+  private Iterable<Node> adaptLegacy(Registry registry) {
+    @SuppressWarnings("deprecation") Class<ratpack.server.Service> type = ratpack.server.Service.class;
+    return Iterables.transform(registry.getAll(type), s -> new Node(new DefaultLegacyServiceAdapter(s)));
+  }
 
   private void defineDependencies(Registry registry) throws Exception {
     SpecBacking specBacking = new SpecBacking();
     for (ServiceDependencies dependencies : registry.getAll(ServiceDependencies.class)) {
       dependencies.define(specBacking);
     }
+    List<Node> legacyNodes = Lists.newArrayList();
     for (Node node : nodes) {
-      DependsOn dependsOn = node.service.getClass().getAnnotation(DependsOn.class);
+      if (node.isLegacy()) {
+        for (Node legacyNode : legacyNodes) {
+          node.addDependency(legacyNode);
+          legacyNode.addDependent(node);
+        }
+        legacyNodes.add(node);
+      }
+      DependsOn dependsOn = node.getDependsOn();
       if (dependsOn != null) {
         specBacking.dependsOn(
-          s -> node.service.getClass().isInstance(s),
+          s -> node.getImplClass().isInstance(s),
           s -> {
             for (Class<?> dependencyType : dependsOn.value()) {
               if (dependencyType.isInstance(s)) {
@@ -228,6 +237,18 @@ public class ServicesGraph {
       this.service = service;
     }
 
+    public DependsOn getDependsOn() {
+      return getImplClass().getAnnotation(DependsOn.class);
+    }
+
+    private Class<?> getImplClass() {
+      return isLegacy() ? ((DefaultLegacyServiceAdapter) service).getAdapted().getClass() : service.getClass();
+    }
+
+    private boolean isLegacy() {
+      return service instanceof DefaultLegacyServiceAdapter;
+    }
+
     public boolean notStarted() {
       return !started;
     }
@@ -294,4 +315,15 @@ public class ServicesGraph {
     }
 
   }
+
+  @SuppressWarnings("deprecation")
+  public static boolean isOfType(Service service, Class<?> type) {
+    if (service instanceof LegacyServiceAdapter) {
+      ratpack.server.Service legacyService = ((LegacyServiceAdapter) service).getAdapted();
+      return type.isInstance(legacyService);
+    } else {
+      return type.isInstance(service);
+    }
+  }
+
 }

@@ -16,27 +16,28 @@
 
 package ratpack.service;
 
-import java.lang.annotation.*;
+import ratpack.registry.Registry;
 
 /**
- * Declares the other service types that services of the annotated type depend on.
- * <p>
- * This annotation is only effective when present on {@link Service} types.
+ * A stop event.
  *
- * @see ServiceDependencies
+ * @see Service#onStop(StopEvent)
  * @since 1.3
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Inherited
-public @interface DependsOn {
+public interface StopEvent {
 
   /**
-   * The types of services that services of the annotated type depend on.
+   * The server registry.
    *
-   * @return the types of services that services of the annotated type depend on.
+   * @return the server registry
    */
-  Class<?>[] value();
+  Registry getRegistry();
+
+  /**
+   * If the server is stopping in response to a reload (during development), as opposed to for the first time.
+   *
+   * @return if the server is stopping in response to a reload
+   */
+  boolean isReload();
 
 }

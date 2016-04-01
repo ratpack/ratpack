@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.server
+package ratpack.service
 
 import ratpack.exec.Operation
 import ratpack.func.Predicate
-import ratpack.service.DependsOn
-import ratpack.service.ServiceDependencies
+import ratpack.server.StartupFailureException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CyclicBarrier
@@ -267,7 +266,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     )
   }
 
-  static ServiceDependencies dependsOn(Predicate<? super Service> dependents, Predicate<? super Service> dependencies) {
+  static ServiceDependencies dependsOn(Predicate<?> dependents, Predicate<?> dependencies) {
     return { it.dependsOn(dependents, dependencies) }
   }
 }

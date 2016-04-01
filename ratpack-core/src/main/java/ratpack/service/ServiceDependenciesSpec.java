@@ -17,7 +17,8 @@
 package ratpack.service;
 
 import ratpack.func.Predicate;
-import ratpack.server.Service;
+
+import static ratpack.service.internal.ServicesGraph.isOfType;
 
 /**
  * Allows declaring which services depend on which services.
@@ -42,6 +43,9 @@ public interface ServiceDependenciesSpec {
    * <p>
    * All services that are type compatible with the {@code dependents} type,
    * will be considered dependents of all services that are type compatible with the {@code dependencies} type.
+   * <p>
+   * Note that this method is {@link LegacyServiceAdapter} aware.
+   * Adapted services are unpacked, and their real type (i.e. {@link ratpack.server.Service} implementation type) is used.
    *
    * @param dependents the type of dependent services
    * @param dependencies the type of the services they depend on
@@ -49,7 +53,7 @@ public interface ServiceDependenciesSpec {
    * @throws Exception any
    */
   default ServiceDependenciesSpec dependsOn(Class<?> dependents, Class<?> dependencies) throws Exception {
-    return dependsOn(dependents::isInstance, dependencies::isInstance);
+    return dependsOn(s -> isOfType(s, dependents), s -> isOfType(s, dependencies));
   }
 
 }

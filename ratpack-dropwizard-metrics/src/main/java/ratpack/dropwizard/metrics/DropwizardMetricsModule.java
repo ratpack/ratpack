@@ -30,9 +30,9 @@ import com.google.inject.multibindings.Multibinder;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
-import ratpack.server.Service;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
+import ratpack.service.Service;
+import ratpack.service.StartEvent;
+import ratpack.service.StopEvent;
 
 import javax.inject.Inject;
 

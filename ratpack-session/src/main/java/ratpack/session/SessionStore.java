@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.AsciiString;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.server.Service;
 
 /**
  * A persistent store of session data.
@@ -49,8 +48,6 @@ import ratpack.server.Service;
  * import ratpack.exec.Blocking;
  * import ratpack.guice.ConfigurableModule;
  * import ratpack.guice.Guice;
- * import ratpack.server.StartEvent;
- * import ratpack.server.StopEvent;
  * import ratpack.session.Session;
  * import ratpack.session.SessionModule;
  * import ratpack.session.SessionStore;
@@ -77,14 +74,14 @@ import ratpack.server.Service;
  *     }
  *
  *     {@literal @}Override
- *     public void onStart(StartEvent event) throws Exception {
+ *     public void onStart({@literal @}SuppressWarnings("deprecation") ratpack.server.StartEvent event) throws Exception {
  *       Blocking.op(() -> {
  *         assert dir.mkdirs() || dir.exists();
  *       }).then();
  *     }
  *
  *     {@literal @}Override
- *     public void onStop(StopEvent event) throws Exception {
+ *     public void onStop({@literal @}SuppressWarnings("deprecation") ratpack.server.StopEvent event) throws Exception {
  *       Blocking.op(() -> {
  *         Arrays.asList(dir.listFiles()).forEach(File::delete);
  *         dir.delete();
@@ -172,7 +169,8 @@ import ratpack.server.Service;
  *
  * @see SessionModule
  */
-public interface SessionStore extends Service {
+@SuppressWarnings("deprecation")
+public interface SessionStore extends ratpack.server.Service {
 
   /**
    * Writes the session data for the given id.
