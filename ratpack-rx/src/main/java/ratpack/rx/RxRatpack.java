@@ -309,7 +309,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> results = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").x(RxRatpack::promise)
+   *       new AsyncService().observe("foo").extend(RxRatpack::promise)
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo"), results);
@@ -437,7 +437,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").x(RxRatpack::promiseSingle)
+   *       new AsyncService().observe("foo").extend(RxRatpack::promiseSingle)
    *     ).getValue();
    *
    *     assertEquals("foo", result);
@@ -456,7 +456,7 @@ public abstract class RxRatpack {
    * public class Example {
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       Observable.<String>empty().singleOrDefault("foo").x(RxRatpack::promiseSingle)
+   *       Observable.<String>empty().singleOrDefault("foo").extend(RxRatpack::promiseSingle)
    *     ).getValue();
    *     assertEquals("foo", result);
    *   }
@@ -550,7 +550,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> result = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").x(RxRatpack::publisher).toList()
+   *       new AsyncService().observe("foo").extend(RxRatpack::publisher).toList()
    *     ).getValue();
    *     assertEquals("foo", result.get(0));
    *   }
