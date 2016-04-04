@@ -120,6 +120,7 @@ public class ServicesGraph {
     startLatch.await();
     StartupFailureException startupFailureException = failureRef.get();
     if (startupFailureException != null) {
+      stopLatch.await();
       throw startupFailureException;
     }
   }

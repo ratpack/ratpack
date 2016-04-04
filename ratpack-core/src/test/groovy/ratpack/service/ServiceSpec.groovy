@@ -142,13 +142,6 @@ class ServiceSpec extends RatpackGroovyDslSpec {
       multiBindInstance dependsOn("2", "1")
       multiBindInstance dependsOn("3", "2")
     }
-    handlers {
-      get {
-        render events.toString()
-      }
-    }
-
-    and:
     server.start()
 
     then:
