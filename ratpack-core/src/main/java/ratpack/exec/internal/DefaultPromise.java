@@ -21,6 +21,7 @@ import ratpack.exec.ExecutionException;
 import ratpack.exec.Promise;
 import ratpack.exec.Upstream;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.util.Exceptions;
 
@@ -74,11 +75,7 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   private void throwError(Throwable throwable) {
-    DefaultExecution.require().delimit(h ->
-        h.resume(() -> {
-          throw Exceptions.toException(throwable);
-        })
-    );
+    DefaultExecution.require().delimit(Action.throwException(), h -> h.resume(Block.throwException(throwable)));
   }
 
   @Override

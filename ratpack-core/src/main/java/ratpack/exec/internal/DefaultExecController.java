@@ -164,7 +164,7 @@ public class DefaultExecController implements ExecControllerInternal {
         if (eventLoop.inEventLoop() && DefaultExecution.get() == null) {
           try {
             new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete);
-          } catch (Exception e) {
+          } catch (Throwable e) {
             throw new InternalError("could not start execution", e);
           }
         } else {

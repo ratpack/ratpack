@@ -35,7 +35,6 @@ import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.RegistrySpec;
 import ratpack.registry.internal.SimpleMutableRegistry;
-import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
@@ -110,7 +109,7 @@ public class DefaultExecution implements Execution {
   }
 
   public static <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return Streams.transformable(subscriber -> require().delimitStream(continuation ->
+    return subscriber -> require().delimitStream(subscriber::onError, continuation ->
       publisher.subscribe(new Subscriber<T>() {
         @Override
         public void onSubscribe(final Subscription subscription) {
@@ -134,13 +133,13 @@ public class DefaultExecution implements Execution {
           continuation.complete(() -> subscriber.onError(cause));
         }
       })
-    ));
+    );
   }
 
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
     return downstream -> {
       final AtomicBoolean fired = new AtomicBoolean();
-      require().delimit(continuation -> {
+      require().delimit(downstream::error, continuation -> {
           try {
             upstream.connect(new Downstream<T>() {
               @Override
@@ -186,13 +185,13 @@ public class DefaultExecution implements Execution {
     return eventLoop;
   }
 
-  public void delimit(Action<? super Continuation> segment) {
-    execStream.enqueue(() -> execStream = new SingleEventExecStream(execStream, segment));
+  public void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+    execStream.enqueue(() -> execStream = new SingleEventExecStream(execStream, onError, segment));
     drain();
   }
 
-  public void delimitStream(Action<? super ContinuationStream> segment) {
-    execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, segment));
+  public void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+    execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
     drain();
   }
 
@@ -242,22 +241,13 @@ public class DefaultExecution implements Execution {
   }
 
   private void exec() {
-    try {
-      boolean didExec = execStream.exec();
-      while (didExec) {
-        didExec = execStream.exec();
-      }
-    } catch (Throwable segmentError) {
-      execStream = new InitialExecStream();
+    while (true) {
       try {
-        onError.execute(segmentError);
-        boolean didExec = execStream.exec();
-        while (didExec) {
-          didExec = execStream.exec();
+        if (!(execStream.exec())) {
+          break;
         }
-      } catch (Throwable errorHandlerError) {
-        LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
-        execStream = TerminalExecStream.INSTANCE;
+      } catch (Throwable segmentError) {
+        execStream.error(segmentError);
       }
     }
 
@@ -327,7 +317,9 @@ public class DefaultExecution implements Execution {
   public abstract static class ExecStream {
     abstract boolean exec() throws Exception;
 
-    abstract void enqueue(Block segment);
+    abstract void enqueue(Block block);
+
+    abstract void error(Throwable throwable);
   }
 
   private static class TerminalExecStream extends ExecStream {
@@ -346,14 +338,16 @@ public class DefaultExecution implements Execution {
     void enqueue(Block segment) {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
+
+    @Override
+    void error(Throwable throwable) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
   }
 
   private class InitialExecStream extends ExecStream {
     Action<? super Execution> initial;
     Queue<Block> segments;
-
-    public InitialExecStream() {
-    }
 
     public InitialExecStream(Action<? super Execution> initial) {
       this.initial = initial;
@@ -389,18 +383,34 @@ public class DefaultExecution implements Execution {
       }
       segments.add(segment);
     }
+
+    @Override
+    void error(Throwable throwable) {
+      initial = null;
+      if (segments != null) {
+        segments.clear();
+      }
+      try {
+        onError.execute(throwable);
+      } catch (Throwable errorHandlerError) {
+        LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
+        execStream = TerminalExecStream.INSTANCE;
+      }
+    }
   }
 
   private class SingleEventExecStream extends ExecStream implements Continuation {
     final ExecStream parent;
 
+    private final Action<? super Throwable> onError;
     Action<? super Continuation> initial;
     Block resume;
     boolean resumed;
     Queue<Block> segments;
 
-    public SingleEventExecStream(ExecStream parent, Action<? super Continuation> initial) {
+    public SingleEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super Continuation> initial) {
       this.parent = parent;
+      this.onError = onError;
       this.initial = initial;
     }
 
@@ -445,22 +455,36 @@ public class DefaultExecution implements Execution {
       segments.add(segment);
     }
 
-
     public void resume(Block action) {
       resumed = true;
       resume = action;
       drain();
     }
 
+    @Override
+    void error(Throwable throwable) {
+      execStream = parent;
+      if (resumed && resume == null) {
+        execStream.error(throwable);
+      } else {
+        try {
+          onError.execute(throwable);
+        } catch (Throwable e) {
+          execStream.error(e);
+        }
+      }
+    }
   }
 
   private class MultiEventExecStream extends ExecStream implements ContinuationStream {
     final ExecStream parent;
+    private final Action<? super Throwable> onError;
     final Queue<Queue<Block>> events = PlatformDependent.newMpscQueue();
     Block complete;
 
-    public MultiEventExecStream(ExecStream parent, Action<? super ContinuationStream> initial) {
+    public MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
       this.parent = parent;
+      this.onError = onError;
       event(() -> initial.execute(this));
     }
 
@@ -501,6 +525,16 @@ public class DefaultExecution implements Execution {
     @Override
     void enqueue(Block segment) {
       events.peek().add(segment);
+    }
+
+    @Override
+    void error(Throwable throwable) {
+      execStream = parent;
+      try {
+        onError.execute(throwable);
+      } catch (Exception e) {
+        execStream.error(e);
+      }
     }
   }
 }

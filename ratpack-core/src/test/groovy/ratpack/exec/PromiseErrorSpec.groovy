@@ -48,7 +48,9 @@ class PromiseErrorSpec extends Specification {
     when:
     exec {
       Promise.error(new IllegalArgumentException("!"))
-        .onError { throw new NullPointerException("!") }
+        .onError {
+        throw new NullPointerException("!")
+      }
         .then {
         events << "then"
       }
