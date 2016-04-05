@@ -202,7 +202,7 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     server.start()
 
     then:
-    events == ["3-start"]
+    events == ["3-start", "3-stop"]
     thrown StartupFailureException
   }
 

@@ -31,6 +31,7 @@ import ratpack.service.*;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,7 +42,7 @@ public class ServicesGraph {
   private final List<Node> nodes;
   private final AtomicInteger toStartCount = new AtomicInteger();
   private final AtomicInteger toStopCount = new AtomicInteger();
-  private final AtomicInteger running = new AtomicInteger();
+  private final AtomicInteger runningCount = new AtomicInteger();
 
   private final CountDownLatch startLatch = new CountDownLatch(1);
   private final CountDownLatch stopLatch = new CountDownLatch(1);
@@ -138,7 +139,7 @@ public class ServicesGraph {
     } else {
       LOGGER.info("Stopping " + nodes.size() + " services...");
       nodes.forEach(n -> {
-        if (n.dependents.isEmpty()) {
+        if (n.dependentsToStopCount.get() == 0) {
           n.stop(stopEvent);
         }
       });
@@ -156,7 +157,7 @@ public class ServicesGraph {
       startLatch.countDown();
     } else {
       node.dependents.forEach(n -> n.dependencyStarted(startEvent));
-      if (running.decrementAndGet() == 0 && toStartCount.get() > 0) {
+      if (runningCount.decrementAndGet() == 0 && toStartCount.get() > 0) {
         onCycle();
       }
     }
@@ -232,7 +233,9 @@ public class ServicesGraph {
     private final Set<Node> dependencies = Sets.newHashSet();
     private final AtomicInteger dependenciesToStartCount = new AtomicInteger();
 
-    private volatile boolean started;
+    private final AtomicBoolean started = new AtomicBoolean();
+    private final AtomicBoolean stopped = new AtomicBoolean();
+    private volatile boolean running;
     private volatile Throwable startError;
 
     public Node(Service service) {
@@ -252,7 +255,7 @@ public class ServicesGraph {
     }
 
     public boolean notStarted() {
-      return !started;
+      return !started.get();
     }
 
     public void addDependency(Node node) {
@@ -281,44 +284,44 @@ public class ServicesGraph {
     }
 
     public void start(StartEvent startEvent) {
-      if (startupFailed) {
-        serviceDidStart(this, startEvent);
-        return;
-      }
-
-      running.incrementAndGet();
-      execController.fork()
-        .onComplete(e -> {
-          if (startError == null) {
-            started = true;
-          } else {
-            startupFailed = true;
-          }
+      if (started.compareAndSet(false, true)) {
+        if (startupFailed) {
           serviceDidStart(this, startEvent);
-        })
-        .onError(e ->
-          startError = e
-        )
-        .start(e -> Operation.of(() -> service.onStart(startEvent)).then());
+          return;
+        }
+
+        runningCount.incrementAndGet();
+        execController.fork()
+          .onComplete(e -> {
+            if (startError == null) {
+              running = true;
+            }
+            serviceDidStart(this, startEvent);
+          })
+          .onError(e -> {
+            startError = e;
+            startupFailed = true;
+          })
+          .start(e -> Operation.of(() -> service.onStart(startEvent)).then());
+      }
     }
 
     public void stop(StopEvent stopEvent) {
-      if (!started) {
-        serviceDidStop(this, stopEvent);
-        return;
+      if (stopped.compareAndSet(false, true)) {
+        if (running) {
+          execController.fork()
+            .onComplete(e ->
+              serviceDidStop(this, stopEvent)
+            )
+            .onError(e ->
+              LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", e)
+            )
+            .start(e -> Operation.of(() -> service.onStop(stopEvent)).then());
+        } else {
+          serviceDidStop(this, stopEvent);
+        }
       }
-
-      started = false;
-      execController.fork()
-        .onComplete(e ->
-          serviceDidStop(this, stopEvent)
-        )
-        .onError(e ->
-          LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", e)
-        )
-        .start(e -> Operation.of(() -> service.onStop(stopEvent)).then());
     }
-
   }
 
   @SuppressWarnings("deprecation")
