@@ -120,7 +120,7 @@ public class ServicesGraph {
     startLatch.await();
     StartupFailureException startupFailureException = failureRef.get();
     if (startupFailureException != null) {
-      stopLatch.await();
+      stop(new DefaultEvent(startEvent.getRegistry(), false));
       throw startupFailureException;
     }
   }
@@ -146,9 +146,11 @@ public class ServicesGraph {
   }
 
   private void serviceDidStart(Node node, StartEvent startEvent) {
+    node.dependencies.forEach(Node::dependentStarted);
+
     if (toStartCount.decrementAndGet() == 0) {
       if (startupFailed) {
-        StartupFailureException exception = processFailure(startEvent);
+        StartupFailureException exception = processFailure();
         failureRef.set(exception);
       }
       startLatch.countDown();
@@ -171,8 +173,7 @@ public class ServicesGraph {
   }
 
   @Nullable
-  private StartupFailureException processFailure(StartEvent startEvent) {
-    doStop(new DefaultEvent(startEvent.getRegistry(), false));
+  private StartupFailureException processFailure() {
     StartupFailureException exception = null;
     for (Node node : nodes) {
       if (node.startError != null) {
@@ -261,7 +262,6 @@ public class ServicesGraph {
 
     public void addDependent(Node node) {
       dependents.add(node);
-      dependentsToStopCount.incrementAndGet();
     }
 
     public void dependencyStarted(StartEvent startEvent) {
@@ -270,8 +270,12 @@ public class ServicesGraph {
       }
     }
 
+    public void dependentStarted() {
+      dependentsToStopCount.incrementAndGet();
+    }
+
     public void dependentStopped(StopEvent stopEvent) {
-      if (dependentsToStopCount.decrementAndGet() == 0) {
+      if (dependentsToStopCount.decrementAndGet() <= 0) {
         stop(stopEvent);
       }
     }

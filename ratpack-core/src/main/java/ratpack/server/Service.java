@@ -39,7 +39,7 @@ import ratpack.api.NonBlocking;
 public interface Service {
 
   /**
-   * {@see ratpack.service.Service#getName()}
+   * See {@link ratpack.service.Service#getName()}.
    *
    * @return the name of this service, used for display purposes
    */
@@ -48,7 +48,7 @@ public interface Service {
   }
 
   /**
-   * {@see ratpack.service.Service#onStart(ratpack.service.StartEvent)}
+   * See {@link ratpack.service.Service#onStart(ratpack.service.StartEvent)}.
    *
    * @param event meta information about the startup event
    * @throws Exception any
@@ -57,7 +57,7 @@ public interface Service {
   default void onStart(StartEvent event) throws Exception { }
 
   /**
-   * {@see ratpack.service.Service#onStop(ratpack.service.StopEvent)}
+   * See {@link ratpack.service.Service#onStop(ratpack.service.StopEvent)}.
    *
    * @param event meta information about the stop event
    * @throws Exception any
