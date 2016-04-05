@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package ratpack.server.internal;
+package ratpack.service;
 
 import ratpack.registry.Registry;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
 
-public class DefaultEvent implements StartEvent, StopEvent {
+/**
+ * A start event.
+ *
+ * @see Service#onStart(StartEvent)
+ * @since 1.3
+ */
+public interface StartEvent {
 
-  private final Registry registry;
-  private final boolean reload;
+  /**
+   * The server registry.
+   *
+   * @return the server registry
+   */
+  Registry getRegistry();
 
-  public DefaultEvent(Registry registry, boolean reload) {
-    this.registry = registry;
-    this.reload = reload;
-  }
-
-  @Override
-  public Registry getRegistry() {
-    return registry;
-  }
-
-  @Override
-  public boolean isReload() {
-    return reload;
-  }
+  /**
+   * If the server is starting in response to a reload (during development), as opposed to for the first time.
+   *
+   * @return if the server is starting in response to a reload
+   */
+  boolean isReload();
 
 }

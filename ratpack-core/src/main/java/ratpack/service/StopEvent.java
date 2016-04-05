@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 
-package ratpack.hikari;
+package ratpack.service;
 
-import com.zaxxer.hikari.HikariDataSource;
+import ratpack.registry.Registry;
 
-@SuppressWarnings("deprecation")
-public class HikariService implements ratpack.server.Service {
+/**
+ * A stop event.
+ *
+ * @see Service#onStop(StopEvent)
+ * @since 1.3
+ */
+public interface StopEvent {
 
-  private final HikariDataSource dataSource;
+  /**
+   * The server registry.
+   *
+   * @return the server registry
+   */
+  Registry getRegistry();
 
-  public HikariService(HikariDataSource dataSource) {
-    this.dataSource = dataSource;
-  }
+  /**
+   * If the server is stopping in response to a reload (during development), as opposed to for the first time.
+   *
+   * @return if the server is stopping in response to a reload
+   */
+  boolean isReload();
 
-  public HikariDataSource getDataSource() {
-    return dataSource;
-  }
-
-  @Override
-  public void onStop(ratpack.server.StopEvent event) throws Exception {
-    dataSource.close();
-  }
 }

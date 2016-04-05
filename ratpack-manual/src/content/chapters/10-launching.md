@@ -120,5 +120,8 @@ Handlers are composable, and very few applications are actually comprised of onl
 The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
 that uses the [`Chain`](api/ratpack/handling/Chain.html) DSL to create the composite handler.
 
-### Hooking into the application lifecycle
-The [`service`](api/ratpack/server/Service.html) interface is used to hook into the applications lifecycle.
+### Start and stop actions
+
+The [`Service`](api/ratpack/service/Service.html) interface allows hooking in to the application lifecycle.
+Before accepting any requests, Ratpack will notify all services and allow them to perform any initialization.
+Conversely, when the application stops, Ratpack will notify all services and allow them to perform any cleanup or termination. 

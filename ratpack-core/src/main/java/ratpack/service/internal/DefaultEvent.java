@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package ratpack.hikari;
+package ratpack.service.internal;
 
-import com.zaxxer.hikari.HikariDataSource;
+import ratpack.registry.Registry;
+import ratpack.service.StartEvent;
+import ratpack.service.StopEvent;
 
 @SuppressWarnings("deprecation")
-public class HikariService implements ratpack.server.Service {
+public class DefaultEvent implements StartEvent, StopEvent, ratpack.server.StartEvent, ratpack.server.StopEvent {
 
-  private final HikariDataSource dataSource;
+  private final Registry registry;
+  private final boolean reload;
 
-  public HikariService(HikariDataSource dataSource) {
-    this.dataSource = dataSource;
-  }
-
-  public HikariDataSource getDataSource() {
-    return dataSource;
+  public DefaultEvent(Registry registry, boolean reload) {
+    this.registry = registry;
+    this.reload = reload;
   }
 
   @Override
-  public void onStop(ratpack.server.StopEvent event) throws Exception {
-    dataSource.close();
+  public Registry getRegistry() {
+    return registry;
   }
+
+  @Override
+  public boolean isReload() {
+    return reload;
+  }
+
 }

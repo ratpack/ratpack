@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package ratpack.server;
+package ratpack.service;
 
-import ratpack.registry.Registry;
+import ratpack.func.Predicate;
 
 /**
- * Deprecated, replaced by {@link ratpack.service.StartEvent}.
+ * An adapter from {@link ratpack.server.Service} to {@link ratpack.service.Service}.
+ * <p>
+ * When using {@link ServiceDependenciesSpec#dependsOn(Predicate, Predicate)}, legacy services will be wrapped in this type.
+ * <p>
+ * This class is scheduled to be removed in 2.x, along with {@link ratpack.server.Service}.
  *
- * @see ratpack.service.StartEvent
  * @deprecated since 1.3
+ * @since 1.3
  */
 @Deprecated
-public interface StartEvent {
+public interface LegacyServiceAdapter {
 
   /**
-   * The server registry.
+   * The legacy service being adapted.
    *
-   * @return the server registry
+   * @return the legacy service being adapted
    */
-  Registry getRegistry();
-
-  /**
-   * If the server is starting in response to a reload (during development), as opposed to for the first time.
-   *
-   * @return if the server is starting in response to a reload
-   */
-  boolean isReload();
+  @SuppressWarnings("deprecation")
+  ratpack.server.Service getAdapted();
 
 }
