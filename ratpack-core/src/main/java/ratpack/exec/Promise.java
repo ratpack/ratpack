@@ -251,7 +251,7 @@ public interface Promise<T> {
    *
    * @param downstream the downstream consumer
    */
-  void connect(Downstream<T> downstream);
+  void connect(Downstream<? super T> downstream);
 
   /**
    * Apply a custom transform to this promise.
@@ -705,6 +705,87 @@ public interface Promise<T> {
           down.success(transformed);
         } catch (Throwable t) {
           down.error(t);
+        }
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Function)}, except that it will only apply if the error is of the given type.
+   * If the error is not of the given type, it will not be transformed and will propagate as normal.
+   *
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.3
+   */
+  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> transformer) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        if (type.isInstance(throwable)) {
+          T transformed;
+          try {
+            transformed = transformer.apply(throwable);
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          down.success(transformed);
+        } else {
+          down.error(throwable);
+        }
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Function)}, except that it allows async transformation.
+   *
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.3
+   */
+  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> transformer) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        Promise<T> transformed;
+        try {
+          transformed = transformer.apply(throwable);
+        } catch (Throwable t) {
+          down.error(t);
+          return;
+        }
+        transformed.connect(down);
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Class, Function)}, except that it allows async transformation.
+   *
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.3
+   */
+  default <E extends Throwable> Promise<T> flatMapError(Class<E> type, Function<? super E, ? extends Promise<T>> function) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        if (type.isInstance(throwable)) {
+          Promise<T> transformed;
+          try {
+            transformed = function.apply(type.cast(throwable));
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          transformed.connect(down);
+        } else {
+          down.error(throwable);
         }
       }))
     );

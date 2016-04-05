@@ -59,12 +59,12 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
-  public void connect(Downstream<T> downstream) {
+  public void connect(Downstream<? super T> downstream) {
     ThreadBinding.requireComputeThread("Promise.connect() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
     doConnect(downstream);
   }
 
-  public void doConnect(Downstream<T> downstream) {
+  public void doConnect(Downstream<? super T> downstream) {
     try {
       upstream.connect(downstream);
     } catch (ExecutionException e) {
