@@ -33,7 +33,7 @@ import java.lang.annotation.*;
  * import java.util.List;
  *
  * import static java.util.Arrays.asList;
- * import static org.testng.AssertJUnit.assertEquals;
+ * import static org.junit.Assert.assertEquals;
  *
  * public class Example {
  *

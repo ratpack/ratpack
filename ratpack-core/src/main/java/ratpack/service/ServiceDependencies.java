@@ -27,6 +27,18 @@ package ratpack.service;
  * If a depended on service fails to start, the dependent service will not be started.
  * <p>
  * <pre class="java">{@code
+ * import ratpack.server.RatpackServer;
+ * import ratpack.service.Service;
+ * import ratpack.service.ServiceDependencies;
+ * import ratpack.service.StartEvent;
+ * import ratpack.service.StopEvent;
+ *
+ * import java.util.ArrayList;
+ * import java.util.List;
+ *
+ * import static java.util.Arrays.asList;
+ * import static org.junit.Assert.assertEquals;
+ *
  * public class Example {
  *
  *   private static final List<String> EVENTS = new ArrayList<>();
