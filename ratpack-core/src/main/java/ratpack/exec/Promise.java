@@ -720,13 +720,13 @@ public interface Promise<T> {
    * @return a promise
    * @since 1.3
    */
-  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> transformer) {
+  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> function) {
     return transform(up -> down ->
       up.connect(down.onError(throwable -> {
         if (type.isInstance(throwable)) {
           T transformed;
           try {
-            transformed = transformer.apply(throwable);
+            transformed = function.apply(throwable);
           } catch (Throwable t) {
             down.error(t);
             return;
@@ -748,12 +748,12 @@ public interface Promise<T> {
    * @return a promise
    * @since 1.3
    */
-  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> transformer) {
+  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> function) {
     return transform(up -> down ->
       up.connect(down.onError(throwable -> {
         Promise<T> transformed;
         try {
-          transformed = transformer.apply(throwable);
+          transformed = function.apply(throwable);
         } catch (Throwable t) {
           down.error(t);
           return;

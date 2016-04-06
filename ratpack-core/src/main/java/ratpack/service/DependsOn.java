@@ -22,6 +22,65 @@ import java.lang.annotation.*;
  * Declares the other service types that services of the annotated type depend on.
  * <p>
  * This annotation is only effective when present on {@link Service} types.
+ * <pre class="java">{@code
+ * import ratpack.server.RatpackServer;
+ * import ratpack.service.DependsOn;
+ * import ratpack.service.Service;
+ * import ratpack.service.StartEvent;
+ * import ratpack.service.StopEvent;
+ *
+ * import java.util.ArrayList;
+ * import java.util.List;
+ *
+ * import static java.util.Arrays.asList;
+ * import static org.testng.AssertJUnit.assertEquals;
+ *
+ * public class Example {
+ *
+ *   private static final List<String> EVENTS = new ArrayList<>();
+ *
+ *   private static class ServiceOne implements Service {
+ *     {@literal @}Override
+ *     public void onStart(StartEvent event) throws Exception {
+ *       EVENTS.add("one-start");
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void onStop(StopEvent event) throws Exception {
+ *       EVENTS.add("one-stop");
+ *     }
+ *   }
+ *
+ *   {@literal @}DependsOn(ServiceOne.class)
+ *   private static class ServiceTwo implements Service {
+ *     {@literal @}Override
+ *     public void onStart(StartEvent event) throws Exception {
+ *       EVENTS.add("two-start");
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void onStop(StopEvent event) throws Exception {
+ *       EVENTS.add("two-stop");
+ *     }
+ *   }
+ *
+ *   public static void main(String[] args) throws Exception {
+ *     RatpackServer server = RatpackServer.of(s -> s
+ *       .registryOf(r -> r
+ *         // note: order of registration is irrelevant here
+ *         .add(new ServiceOne())
+ *         .add(new ServiceTwo())
+ *       )
+ *     );
+ *
+ *     server.start();
+ *     assertEquals(asList("one-start", "two-start"), EVENTS);
+ *
+ *     server.stop();
+ *     assertEquals(asList("one-start", "two-start", "two-stop", "one-stop"), EVENTS);
+ *   }
+ * }
+ * }</pre>
  *
  * @see ServiceDependencies
  * @since 1.3

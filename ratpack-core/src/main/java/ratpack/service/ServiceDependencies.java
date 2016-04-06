@@ -17,16 +17,66 @@
 package ratpack.service;
 
 /**
- * An object that specifies dependencies between services.
- * <p>
- * This is the programmatic and more flexible version of the {@link DependsOn} annotation.
+ * Specifies dependencies between services.
  * <p>
  * When starting a server, Ratpack will extract all instances of {@link ServiceDependencies} from the server registry.
- * Each will be called with a spec that they can use to define the dependencies between services.
+ * Each will be called with a {@link ServiceDependenciesSpec spec} that they can use to define the dependencies between services.
  * <p>
- * Ratpack will ensure that services that are dependencies are started before their dependent services.
- * If any depended on service fails to start, the dependent service will not be started.
- * When stopping the server, all services that depend on a given service are stopped before it.
+ * Services are guaranteed to start after and stop before their dependencies.
+ * Services that do not have a dependency relationship may start and stop concurrently.
+ * If a depended on service fails to start, the dependent service will not be started.
+ * <p>
+ * <pre class="java">{@code
+ * public class Example {
+ *
+ *   private static final List<String> EVENTS = new ArrayList<>();
+ *
+ *   private static class MyService implements Service {
+ *
+ *     private final String label;
+ *
+ *     public MyService(String label) {
+ *       this.label = label;
+ *     }
+ *
+ *     public String getLabel() {
+ *       return label;
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void onStart(StartEvent event) throws Exception {
+ *       EVENTS.add(label + "-start");
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void onStop(StopEvent event) throws Exception {
+ *       EVENTS.add(label + "-stop");
+ *     }
+ *   }
+ *
+ *   public static void main(String[] args) throws Exception {
+ *     RatpackServer server = RatpackServer.of(s -> s
+ *       .registryOf(r -> r
+ *         .add(new MyService("one"))
+ *         .add(new MyService("two"))
+ *         // service two depends on service one
+ *         .add(ServiceDependencies.class, d -> d.dependsOn(
+ *           MyService.class, service -> service.getLabel().equals("two"),
+ *           MyService.class, service -> service.getLabel().equals("one")
+ *         ))
+ *       )
+ *     );
+ *
+ *     server.start();
+ *     assertEquals(asList("one-start", "two-start"), EVENTS);
+ *
+ *     server.stop();
+ *     assertEquals(asList("one-start", "two-start", "two-stop", "one-stop"), EVENTS);
+ *   }
+ * }
+ * }</pre>
+ * <p>
+ * If dependencies between services can be declared purely via types, consider using the {@link DependsOn} annotation instead which is more concise yet equivalent.
  *
  * @see DependsOn
  * @see ServiceDependenciesSpec

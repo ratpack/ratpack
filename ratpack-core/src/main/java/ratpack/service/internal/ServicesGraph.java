@@ -334,4 +334,12 @@ public class ServicesGraph {
     }
   }
 
+  public static Object unpackIfLegacy(Service service) {
+    if (service instanceof LegacyServiceAdapter) {
+      return ((LegacyServiceAdapter) service).getAdapted();
+    } else {
+      return service;
+    }
+  }
+
 }
