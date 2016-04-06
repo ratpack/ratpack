@@ -96,7 +96,9 @@
         <module name="MethodName">
             <property name="format" value="^[a-z_][a-zA-Z0-9_]*$"/>
         </module>
-        <module name="MethodTypeParameterName"/>
+        <module name="MethodTypeParameterName">
+          <property name="format" value="^[A-Z0-9]+$"/>
+        </module>
         <module name="PackageName">
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
         </module>
