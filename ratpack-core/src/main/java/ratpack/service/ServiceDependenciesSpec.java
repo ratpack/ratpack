@@ -50,12 +50,12 @@ public interface ServiceDependenciesSpec {
    *
    * @param dependents the criteria for dependent services
    * @param dependencies the criteria for services they depend on
-   * @param <S1> the type of dependent services
-   * @param <S2> the type of services they depend on
+   * @param <DEPENDENTS> the type of dependent services
+   * @param <DEPENDENCIES> the type of services they depend on
    * @return {@code this}
    * @throws Exception any thrown by either predicate
    */
-  default <S1, S2> ServiceDependenciesSpec dependsOn(Class<S1> dependentsType, Predicate<? super S1> dependents, Class<S2> dependenciesType, Predicate<? super S2> dependencies) throws Exception {
+  default <DEPENDENTS, DEPENDENCIES> ServiceDependenciesSpec dependsOn(Class<DEPENDENTS> dependentsType, Predicate<? super DEPENDENTS> dependents, Class<DEPENDENCIES> dependenciesType, Predicate<? super DEPENDENCIES> dependencies) throws Exception {
     return dependsOn(
       s -> isOfType(s, dependentsType) && dependents.apply(dependentsType.cast(unpackIfLegacy(s))),
       s -> isOfType(s, dependenciesType) && dependencies.apply(dependenciesType.cast(unpackIfLegacy(s)))
