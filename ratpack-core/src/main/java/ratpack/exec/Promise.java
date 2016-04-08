@@ -1313,6 +1313,108 @@ public interface Promise<T> {
   }
 
   /**
+   * Closes the given closeable when the value or error propagates to this point.
+   * <p>
+   * This can be used to simulate a try/finally synchronous construct.
+   * It is typically used to close some resource after an asynchronous operation.
+   *
+   * <pre class="java">{@code
+   * import org.junit.Assert;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * public class Example {
+   *   static class MyResource implements AutoCloseable {
+   *     final boolean inError;
+   *     boolean closed;
+   *
+   *     public MyResource(boolean inError) {
+   *       this.inError = inError;
+   *     }
+   *
+   *     @Override
+   *     public void close() {
+   *       closed = true;
+   *     }
+   *   }
+   *
+   *   static Promise<String> resourceUsingMethod(MyResource resource) {
+   *     return Promise.sync(() -> {
+   *       if (resource.inError) {
+   *         throw new Exception("error!");
+   *       } else {
+   *         return "ok!";
+   *       }
+   *     });
+   *   }
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     ExecHarness.runSingle(e -> {
+   *       MyResource myResource = new MyResource(false);
+   *       resourceUsingMethod(myResource)
+   *         .close(myResource)
+   *         .then(value -> Assert.assertTrue(myResource.closed));
+   *     });
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       MyResource myResource = new MyResource(true);
+   *       resourceUsingMethod(myResource)
+   *         .close(myResource)
+   *         .onError(error -> Assert.assertTrue(myResource.closed))
+   *         .then(value -> {
+   *           throw new UnsupportedOperationException("should not reach here!");
+   *         });
+   *     });
+   *
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The general pattern is to open the resource, and then pass it to some method/closure that works with it and returns a promise.
+   * This method is then called on the returned promise to cleanup the resource.
+   *
+   * @param closeable the closeable to close
+   * @since 1.3
+   */
+  default Promise<T> close(AutoCloseable closeable) {
+    return transform(up -> down ->
+      up.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.success(value);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+            throwable.addSuppressed(e);
+          }
+          down.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.complete();
+        }
+      })
+    );
+  }
+
+  /**
    * Emits the time taken from when the promise is subscribed to to when the result is available.
    * <p>
    * The given {@code action} is called regardless of whether the promise is successful or not.
