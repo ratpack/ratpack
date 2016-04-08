@@ -1332,7 +1332,7 @@ public interface Promise<T> {
    *       this.inError = inError;
    *     }
    *
-   *     @Override
+   *     {@literal @}Override
    *     public void close() {
    *       closed = true;
    *     }
