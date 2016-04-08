@@ -334,6 +334,7 @@ public class ServicesGraph {
     }
   }
 
+  @SuppressWarnings("deprecation")
   public static Object unpackIfLegacy(Service service) {
     if (service instanceof LegacyServiceAdapter) {
       return ((LegacyServiceAdapter) service).getAdapted();
