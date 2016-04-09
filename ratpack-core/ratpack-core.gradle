@@ -29,7 +29,8 @@ ext.apiLinks = [
     "http://fasterxml.github.io/jackson-datatype-jdk7/javadoc/2.5",
     "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.5",
     "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.5",
-    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.5"
+    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.5",
+    "http://www.javadoc.io/doc/com.github.ben-manes.caffeine/caffeine/${commonVersions.caffeine}"
 ]
 
 dependencies {
@@ -39,6 +40,7 @@ dependencies {
   compile "com.google.guava:guava:$commonVersions.guava"
   compile commonDependencies.slf4j
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
+  compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"
   runtime 'com.jcraft:jzlib:1.1.3'
 
   compile 'org.javassist:javassist:3.19.0-GA'

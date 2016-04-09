@@ -108,7 +108,7 @@ public abstract class ServerRegistry {
         .add(Redirector.TYPE, Redirector.standard())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
-        .add(Renderer.typeOf(Path.class), new FileRenderer())
+        .add(Renderer.typeOf(Path.class), new FileRenderer(!serverConfig.isDevelopment()))
         .add(Renderer.typeOf(promiseRenderer.getType()), promiseRenderer)
         .add(Renderer.typeOf(publisherRenderer.getType()), publisherRenderer)
         .add(Renderer.typeOf(Renderable.class), new RenderableRenderer())

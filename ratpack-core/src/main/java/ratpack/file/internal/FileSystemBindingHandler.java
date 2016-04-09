@@ -16,6 +16,8 @@
 
 package ratpack.file.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
@@ -23,9 +25,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainHandler;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
-import ratpack.util.internal.BoundedConcurrentHashMap;
 
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 public class FileSystemBindingHandler implements Handler {
@@ -33,7 +33,7 @@ public class FileSystemBindingHandler implements Handler {
   private final String path;
   private final Handler[] handler;
 
-  private final static ConcurrentMap<FileSystemBinding, Registry> CACHE = new BoundedConcurrentHashMap<>(1024, Runtime.getRuntime().availableProcessors());
+  private final static Cache<FileSystemBinding, Registry> CACHE = Caffeine.newBuilder().build();
 
   public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
     if (serverConfig.isHasBaseDir()) {
@@ -52,7 +52,7 @@ public class FileSystemBindingHandler implements Handler {
     if (binding == null) {
       context.clientError(404);
     } else {
-      context.insert(CACHE.computeIfAbsent(binding, FileSystemBindingHandler::registry), handler);
+      context.insert(CACHE.get(binding, FileSystemBindingHandler::registry), handler);
     }
   }
 

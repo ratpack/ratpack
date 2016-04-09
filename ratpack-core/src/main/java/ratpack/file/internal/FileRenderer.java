@@ -16,6 +16,8 @@
 
 package ratpack.file.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.exec.Blocking;
 import ratpack.file.MimeTypes;
@@ -25,27 +27,31 @@ import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
-import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Exceptions;
-import ratpack.util.internal.BoundedConcurrentHashMap;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class FileRenderer extends RendererSupport<Path> {
 
-  private static final boolean CACHEABLE = !ServerEnvironment.env().isDevelopment();
-  private static final ConcurrentMap<Path, Optional<BasicFileAttributes>> CACHE = new BoundedConcurrentHashMap<>(10000, Runtime.getRuntime().availableProcessors());
+  private final boolean cacheMetadata;
+
+  public FileRenderer(boolean cacheMetadata) {
+    this.cacheMetadata = cacheMetadata;
+  }
+
+  private static final Cache<Path, Optional<BasicFileAttributes>> CACHE = Caffeine.newBuilder()
+    .maximumSize(10000)
+    .build();
 
   @Override
   public void render(Context context, Path targetFile) throws Exception {
-    readAttributes(targetFile, attributes -> {
+    readAttributes(targetFile, cacheMetadata, attributes -> {
       if (attributes == null || !attributes.isRegularFile()) {
         context.clientError(404);
       } else {
@@ -90,9 +96,9 @@ public class FileRenderer extends RendererSupport<Path> {
     };
   }
 
-  public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
-    if (CACHEABLE) {
-      Optional<BasicFileAttributes> basicFileAttributes = CACHE.get(file);
+  public static void readAttributes(Path file, boolean cacheMetadata, Action<? super BasicFileAttributes> then) throws Exception {
+    if (cacheMetadata) {
+      Optional<BasicFileAttributes> basicFileAttributes = CACHE.getIfPresent(file);
       if (basicFileAttributes == null) {
         Blocking.get(getter(file)).then(a -> {
           CACHE.put(file, Optional.ofNullable(a));
