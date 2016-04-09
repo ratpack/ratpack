@@ -17,6 +17,7 @@
 package ratpack.http
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.DefaultFullHttpRequest
 import io.netty.handler.codec.http.HttpRequest
@@ -106,7 +107,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -141,7 +142,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -175,7 +176,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -209,7 +210,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }

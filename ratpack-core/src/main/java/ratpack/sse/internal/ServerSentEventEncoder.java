@@ -42,7 +42,7 @@ public class ServerSentEventEncoder {
     ByteBuf buffer = bufferAllocator.buffer();
 
     OutputStream outputStream = new ByteBufOutputStream(buffer);
-    Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.getEncoder(UTF_8));
+    Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.encoder(UTF_8));
 
     String eventType = event.getEvent();
     if (eventType != null) {

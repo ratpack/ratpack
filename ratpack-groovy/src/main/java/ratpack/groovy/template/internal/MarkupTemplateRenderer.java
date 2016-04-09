@@ -57,7 +57,7 @@ public class MarkupTemplateRenderer extends RendererSupport<MarkupTemplate> {
       ByteBuf byteBuf = byteBufAllocator.directBuffer();
       try {
         OutputStream outputStream = new ByteBufOutputStream(byteBuf);
-        Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.getEncoder(StandardCharsets.UTF_8));
+        Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.encoder(StandardCharsets.UTF_8));
         boundTemplate.writeTo(writer);
       } catch (Exception e) {
         byteBuf.release();

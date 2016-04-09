@@ -294,7 +294,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     response.statusCode == 500
   }
 
-  @IgnoreIf({InetAddress.localHost.isLoopbackAddress()})
+  @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
   def "can set connect timeout"() {
     setup:
     def nonRoutableIp = '192.168.0.0'
@@ -451,27 +451,16 @@ BAR
   def "can decompress a compressed response"() {
     given:
     requestSpec {
-      it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
       }
     }
 
     and:
-    otherApp {
-      get("foo") {
-        response.send("bar")
-      }
-    }
-
-    and:
     handlers {
-      get { HttpClient httpClient ->
-        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
-          rs.headers.set("accept-encoding", "compress, gzip")
-        } then { ReceivedResponse receivedResponse ->
-          receivedResponse.forwardTo(response)
-        }
+      get {
+        assert request.headers.get("Accept-Encoding") == "gzip"
+        render "bar"
       }
     }
 
@@ -479,7 +468,7 @@ BAR
     def response = get()
 
     then:
-    response.headers.get(CONTENT_ENCODING) == null
+    response.headers.get(CONTENT_ENCODING) == null // client unpacks the header
     response.body.text == "bar"
   }
 
@@ -522,7 +511,6 @@ BAR
   def "can decompress a streamed compressed response"() {
     given:
     requestSpec {
-      it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
       }
@@ -617,7 +605,7 @@ BAR
     pathResponse.body.text == "${method}-foo"
 
     where:
-    method << [ "GET", "PUT", "POST", "DELETE", "PATCH" ]
+    method << ["GET", "PUT", "POST", "DELETE", "PATCH"]
   }
 
   def "can configure request method OPTIONS via request spec"() {
