@@ -105,7 +105,7 @@ tasks.withType(Test) {
 }
 
 jacoco {
-  toolVersion = "0.7.2.201409121644"
+  toolVersion = "0.7.6.201602180812"
 }
 
 task codeQuality {
