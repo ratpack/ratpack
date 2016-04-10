@@ -27,7 +27,6 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.Subscriber
 import rx.exceptions.OnErrorNotImplementedException
-import rx.functions.Action0
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -200,22 +199,6 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
-  def "on complete cannot throw"() {
-    given:
-    def e = new Exception("!")
-
-    when:
-    handlers {
-      get {
-        Observable.just("foo").subscribe({}, { error(it as Exception) }, { throw e } as Action0)
-      }
-    }
-
-    then:
-    get()
-    noExceptionThrown()
-  }
-
   def "downstream handler can error"() {
     given:
     def e = new Exception("!")
@@ -366,7 +349,8 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-      noExceptionThrown()
+    get()
+    errorHandler.errors == [e]
   }
 
 }

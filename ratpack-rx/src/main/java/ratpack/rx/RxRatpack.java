@@ -29,6 +29,7 @@ import rx.RxReactiveStreams;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
+import rx.plugins.RxJavaErrorHandler;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
@@ -102,6 +103,16 @@ public abstract class RxRatpack {
       }
     }
 
+    ErrorHandler ourErrorHandler = new ErrorHandler();
+    try {
+      plugins.registerErrorHandler(ourErrorHandler);
+    } catch (IllegalStateException e) {
+      RxJavaErrorHandler existingErrorHandler = plugins.getErrorHandler();
+      if (!(existingErrorHandler instanceof ErrorHandler)) {
+        throw new IllegalStateException("Cannot install RxJava integration because another error handler (" + existingErrorHandler.getClass() + ") is already installed");
+      }
+    }
+
     try {
       plugins.registerSchedulersHook(new DefaultSchedulers());
     } catch (IllegalStateException e) {
@@ -146,10 +157,10 @@ public abstract class RxRatpack {
    */
   public static <T> Observable<T> observe(Promise<T> promise) {
     return Observable.create(subscriber ->
-        promise.onError(subscriber::onError).then(value -> {
-          subscriber.onNext(value);
-          subscriber.onCompleted();
-        })
+      promise.onError(subscriber::onError).then(value -> {
+        subscriber.onNext(value);
+        subscriber.onCompleted();
+      })
     );
   }
 
@@ -725,6 +736,13 @@ public abstract class RxRatpack {
     return scheduler(ExecController.require());
   }
 
+  private static class ErrorHandler extends RxJavaErrorHandler {
+    @Override
+    public void handleError(Throwable e) {
+      Promise.error(e).then(Action.noop());
+    }
+  }
+
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
     @Override
@@ -733,6 +751,7 @@ public abstract class RxRatpack {
         .map(e -> executionBackedOnSubscribe(onSubscribe))
         .orElse(onSubscribe);
     }
+
 
     private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe) {
       return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
