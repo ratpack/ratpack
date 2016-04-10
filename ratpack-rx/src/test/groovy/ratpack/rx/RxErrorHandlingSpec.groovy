@@ -200,7 +200,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
-  def "on complete can throw"() {
+  def "on complete cannot throw"() {
     given:
     def e = new Exception("!")
 
@@ -213,7 +213,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     get()
-    thrownException == e
+    noExceptionThrown()
   }
 
   def "downstream handler can error"() {
@@ -338,7 +338,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
-  def "exception thrown by oncomplete throwns"() {
+  def "exception thrown by oncomplete is not re-thrown"() {
     given:
     def e = new Exception("!")
 
@@ -366,7 +366,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException == e
+      noExceptionThrown()
   }
 
 }
