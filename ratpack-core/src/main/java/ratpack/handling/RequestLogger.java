@@ -19,7 +19,8 @@ package ratpack.handling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
-import ratpack.handling.internal.NcsaRequestLogger;
+import ratpack.handling.internal.logging.NcsaRequestLogFormatter;
+import ratpack.handling.internal.logging.Slf4JInfoRequestLogger;
 
 /**
  * A handler that logs information about the request.
@@ -49,6 +50,7 @@ import ratpack.handling.internal.NcsaRequestLogger;
  * }</pre>
  *
  * @see #ncsa()
+ * @see #of(Action)
  * @see RequestId
  * @see UserId
  */
@@ -108,18 +110,31 @@ public interface RequestLogger extends Handler {
   }
 
   /**
-   * Logs in the NCSA Common Log format.
+   * Logs to the given logger, using {@link #ncsaFormatter()}.
+   * <p>
+   * All requests will be logged at {@code INFO} level.
+   * For more fine grained logging control, use {@link #of(Action)}
    *
-   * The format for the request log is "host rfc931 username date:time request statuscode bytes" as defined by the NCSA Common (access logs) format (see link).
+   * @param logger the logger to log to
+   * @return a new request logger
+   */
+  static RequestLogger ncsa(Logger logger) {
+    return new Slf4JInfoRequestLogger(logger, ncsaFormatter());
+  }
+
+  /**
+   * The NCSA Common Log format.
+   *
+   * The format is "host rfc931 username date:time request statuscode bytes" as defined by the NCSA Common (access logs) format (see link).
    * However, if the {@link RequestId} is additionally being added to requests, the value of the request Id will be appended to the end of the request log in the form: id=requestId
    * The resulting format is thus: "host rfc931 username date:time request statuscode bytes id=requestId"
    *
-   * @param logger the logger to log to, at INFO level
-   * @return a new request logger
    * @see <a href="http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common">NCSA Common Log format documentation.</a>
+   * @return a request formatter for the NCSA Common Log format
+   * @since 1.3
    */
-  static RequestLogger ncsa(Logger logger) {
-    return new NcsaRequestLogger(logger);
+  static Formatter ncsaFormatter() {
+    return NcsaRequestLogFormatter.INSTANCE;
   }
 
   /**
@@ -140,6 +155,30 @@ public interface RequestLogger extends Handler {
   default void handle(Context ctx) {
     ctx.onClose(this::log);
     ctx.next();
+  }
+
+  /**
+   * Generates a formatted log line for a request.
+   * <p>
+   * Ratpack provides the {@link #ncsaFormatter()}.
+   * This can be used in conjunction with the {@link #of(Action)} method, for fine grained control of how and when requests are logged.
+   * Implementations should generally inspect the request outcome to determine if it needs to be logged,
+   * and only calling the formatter if a log line is actually needed.
+   *
+   * @since 1.3
+   * @see #of(Action)
+   * @see #ncsaFormatter()
+   */
+  interface Formatter {
+
+    /**
+     * Generates a line of logging, representing the given outcome.
+     *
+     * @param requestOutcome the request outcome
+     * @return the log line
+     */
+    String format(RequestOutcome requestOutcome);
+
   }
 
 }
