@@ -289,8 +289,9 @@ public class DefaultSession implements Session {
           return;
         }
       }
-      entries.remove(key);
-      markDirty();
+      if (entries.remove(key) != null) {
+        markDirty();
+      }
     }
 
     @Override
