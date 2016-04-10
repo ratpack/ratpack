@@ -17,7 +17,9 @@
 package ratpack.session.internal;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufInputStream;
@@ -55,6 +57,16 @@ public class DefaultSession implements Session {
 
     private static final long serialVersionUID = 2;
 
+    public static final Ordering<SessionKey<?>> KEY_NAME_ORDERING = Ordering.natural()
+      .<SessionKey<?>>onResultOf(SessionKey::getName)
+      .nullsFirst();
+
+    public static final Ordering<SessionKey<?>> KEY_TYPE_ORDERING = Ordering.natural()
+      .<SessionKey<?>>onResultOf(k -> k.getType() == null ? null : k.getType().getName())
+      .nullsFirst();
+
+    private static final Comparator<SessionKey<?>> COMPARATOR = KEY_NAME_ORDERING.compound(KEY_TYPE_ORDERING);
+
     private Map<SessionKey<?>, byte[]> entries;
 
     public SerializedForm() {
@@ -65,7 +77,10 @@ public class DefaultSession implements Session {
       out.writeShort(1); // schema version
 
       out.writeShort(entries.size());
-      for (Map.Entry<SessionKey<?>, byte[]> entry : entries.entrySet()) {
+
+      Map<SessionKey<?>, byte[]> sorted = ImmutableSortedMap.copyOf(entries, COMPARATOR);
+
+      for (Map.Entry<SessionKey<?>, byte[]> entry : sorted.entrySet()) {
         String name = entry.getKey().getName();
         if (name == null) {
           out.writeBoolean(false);
@@ -96,7 +111,7 @@ public class DefaultSession implements Session {
 
       short num = in.readShort();
       entries = new HashMap<>(num);
-      for (short i = 0; i < num; i++) {
+      for (short i = 0; i < num; ++i) {
         String name = in.readBoolean() ? in.readUTF() : null;
 
         Class<Object> type;
@@ -111,6 +126,7 @@ public class DefaultSession implements Session {
         int bytesLength = in.readInt();
         byte[] bytes = new byte[bytesLength];
         in.read(bytes);
+        assert in.read(bytes) == bytesLength;
 
         entries.put(new DefaultSessionKey<>(name, type), bytes);
       }

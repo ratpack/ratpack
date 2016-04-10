@@ -24,19 +24,20 @@ public class JavaBuiltinSessionSerializer implements JavaSessionSerializer {
 
   @Override
   public <T> void serialize(Class<T> type, T value, OutputStream outputStream) throws IOException {
-    ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-    objectOutputStream.writeObject(value);
-    objectOutputStream.flush();
+    try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream)) {
+      objectOutputStream.writeObject(value);
+    }
   }
 
   @Override
   public <T> T deserialize(Class<T> type, InputStream in) throws IOException, ClassNotFoundException {
-    ObjectInputStream objectInputStream = new ObjectInputStream(in);
-    Object value = objectInputStream.readObject();
-    if (type.isInstance(value)) {
-      return type.cast(value);
-    } else {
-      throw new ClassCastException("Expected to read object of type " + type.getName() + " from string, but got: " + value.getClass().getName());
+    try (ObjectInputStream objectInputStream = new ObjectInputStream(in)) {
+      Object value = objectInputStream.readObject();
+      if (type.isInstance(value)) {
+        return type.cast(value);
+      } else {
+        throw new ClassCastException("Expected to read object of type " + type.getName() + " from string, but got: " + value.getClass().getName());
+      }
     }
   }
 }
