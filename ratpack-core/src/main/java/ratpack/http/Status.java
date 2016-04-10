@@ -65,6 +65,56 @@ public interface Status {
   String getMessage();
 
   /**
+   * If {@link #getCode()} is >= 100 and < 200.
+   *
+   * @return {@code true} if {@link #getCode()} is >= 100 and < 200, else {@code false}
+   * @since 1.3
+   */
+  default boolean is1xx() {
+    return getCode() >= 100 && getCode() < 200;
+  }
+
+  /**
+   * If {@link #getCode()} is >= 200 and < 300.
+   *
+   * @return {@code true} if {@link #getCode()} is >= 200 and < 300, else {@code false}
+   * @since 1.3
+   */
+  default boolean is2xx() {
+    return getCode() >= 200 && getCode() < 300;
+  }
+
+  /**
+   * If {@link #getCode()} is >= 300 and < 400.
+   *
+   * @return {@code true} if {@link #getCode()} is >= 300 and < 400, else {@code false}
+   * @since 1.3
+   */
+  default boolean is3xx() {
+    return getCode() >= 300 && getCode() < 400;
+  }
+
+  /**
+   * If {@link #getCode()} is >= 400 and < 500.
+   *
+   * @return {@code true} if {@link #getCode()} is >= 400 and < 500, else {@code false}
+   * @since 1.3
+   */
+  default boolean is4xx() {
+    return getCode() >= 400 && getCode() < 500;
+  }
+
+  /**
+   * If {@link #getCode()} is >= 500 and < 600.
+   *
+   * @return {@code true} if {@link #getCode()} is >= 500 and < 600, else {@code false}
+   * @since 1.3
+   */
+  default boolean is5xx() {
+    return getCode() >= 500 && getCode() < 600;
+  }
+
+  /**
    * The status as Netty's type.
    * <p>
    * Used internally.
