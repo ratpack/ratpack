@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 public interface Crypto {
-  ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator);
+  ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator) throws Exception;
 
-  ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator);
+  ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator) throws Exception;
 }

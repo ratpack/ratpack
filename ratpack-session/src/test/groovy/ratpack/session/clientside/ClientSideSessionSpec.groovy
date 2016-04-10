@@ -19,6 +19,7 @@ package ratpack.session.clientside
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
+import ratpack.server.ServerConfig
 import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
@@ -32,8 +33,21 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
   }
 
+  String key
+  String token
+
   def setup() {
-    modules << new ClientSideSessionModule()
+    modules << new ClientSideSessionModule() {
+      @Override
+      protected void defaultConfig(ServerConfig serverConfig, ClientSideSessionConfig config) {
+        if (key != null) {
+          config.setSecretKey(key)
+        }
+        if (token != null) {
+          config.setSecretToken(token)
+        }
+      }
+    }
     supportsSize = false
   }
 
@@ -329,5 +343,62 @@ class ClientSideSessionSpec extends SessionSpec {
       "DESede/ECB/NoPadding",
       "DESede/ECB/PKCS5Padding"
     ]
+  }
+
+  def "changing the signing token invalidates the session"() {
+    when:
+    handlers {
+      get { Session session ->
+        render session.get("value").map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+          render pathTokens.value
+        }
+      }
+    }
+
+    then:
+    getText("set/bar") == "bar"
+    text == "bar"
+
+    when:
+    token = "abcdefghi"
+    server.reload()
+
+    then:
+    text == "null"
+  }
+
+  def "changing the encryption key invalidates the session"() {
+    when:
+    key = "secretsecretsecr"
+    handlers {
+      get { Session session ->
+        render session.get("value").flatMapError {
+          session.terminate().flatMap { session.get("value") }
+        }.map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+          render pathTokens.value
+        }
+      }
+    }
+
+    then:
+    getText("set/bar") == "bar"
+    text == "bar"
+
+    when:
+    key = "secretsecretsecx"
+    server.reload()
+
+    then:
+    text == "null"
   }
 }
