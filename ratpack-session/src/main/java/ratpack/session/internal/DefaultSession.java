@@ -58,12 +58,12 @@ public class DefaultSession implements Session {
     private static final long serialVersionUID = 2;
 
     public static final Ordering<SessionKey<?>> KEY_NAME_ORDERING = Ordering.natural()
-      .<SessionKey<?>>onResultOf(SessionKey::getName)
-      .nullsFirst();
+      .nullsFirst()
+      .<SessionKey<?>>onResultOf(SessionKey::getName);
 
     public static final Ordering<SessionKey<?>> KEY_TYPE_ORDERING = Ordering.natural()
-      .<SessionKey<?>>onResultOf(k -> k.getType() == null ? null : k.getType().getName())
-      .nullsFirst();
+      .nullsFirst()
+      .<SessionKey<?>>onResultOf(k -> k.getType() == null ? null : k.getType().getName());
 
     private static final Comparator<SessionKey<?>> COMPARATOR = KEY_NAME_ORDERING.compound(KEY_TYPE_ORDERING);
 
@@ -125,8 +125,10 @@ public class DefaultSession implements Session {
 
         int bytesLength = in.readInt();
         byte[] bytes = new byte[bytesLength];
-        in.read(bytes);
-        assert in.read(bytes) == bytesLength;
+        int read = in.read(bytes);
+        while (read < bytesLength) {
+          read += in.read(bytes, read, bytesLength - read);
+        }
 
         entries.put(new DefaultSessionKey<>(name, type), bytes);
       }
