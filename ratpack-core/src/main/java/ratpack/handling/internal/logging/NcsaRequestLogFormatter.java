@@ -47,7 +47,7 @@ public class NcsaRequestLogFormatter implements RequestLogger.Formatter {
     Request request = outcome.getRequest();
     SentResponse response = outcome.getResponse();
 
-    builder.append(request.getRemoteAddress());
+    builder.append(request.getRemoteAddress().getHostText());
     builder.append(" - ");
 
     builder.append(request.maybeGet(UserId.class).map(Object::toString).orElse("-"));
@@ -58,7 +58,7 @@ public class NcsaRequestLogFormatter implements RequestLogger.Formatter {
     builder.append("] \"");
 
     builder.append(request.getMethod().getName());
-    builder.append(" /");
+    builder.append(" ");
 
     builder.append(request.getRawUri());
     builder.append(" ");
