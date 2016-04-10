@@ -743,6 +743,13 @@ public interface GroovyChain extends Chain {
     );
   }
 
+  default GroovyChain when(
+          @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+          Class<? extends Action<? super Chain>> action
+  ) throws Exception {
+    return when(test, getRegistry().get(action));
+  }
+
   @Override
   default GroovyChain onlyIf(Predicate<? super Context> test, Handler handler) {
     return from(Chain.super.onlyIf(test, handler));
@@ -780,6 +787,13 @@ public interface GroovyChain extends Chain {
       },
       handler
     );
+  }
+
+  default GroovyChain onlyIf(
+          @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+          Class<? extends Handler> handler
+  ) {
+    return onlyIf(test, getRegistry().get(handler));
   }
 
   /**
