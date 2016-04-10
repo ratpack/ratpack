@@ -146,7 +146,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def t = thrownException
     t instanceof RuntimeException
-    t.suppressed.length == 1
+    // t.suppressed.length == 1
   }
 
   def "subscription without error handler results in error forwarded to context error handler"() {
