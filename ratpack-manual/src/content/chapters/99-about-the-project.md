@@ -83,6 +83,7 @@ The following people have provided significant contributions.
 * [Phill Barber] (https://github.com/phillbarber)
 * [Sebastien Bonnet] (https://github.com/sebbonnet)
 * [Alex Edwards](https://github.com/set321go)
+* [Ho Yan Leung](https://github.com/hyleung)
 
 ### Past project members
 
