@@ -63,7 +63,7 @@ public interface SessionData {
    * @return the value for the given key
    * @see #require(SessionKey)
    */
-  default <T> Optional<T> get(SessionKey<T> key) {
+  default <T> Optional<T> get(SessionKey<T> key) throws Exception {
     return get(key, getDefaultSerializer());
   }
 
@@ -76,7 +76,7 @@ public interface SessionData {
    * @return the value for the given key
    * @see #require(SessionKey, SessionSerializer)
    */
-  <T> Optional<T> get(SessionKey<T> key, SessionSerializer serializer);
+  <T> Optional<T> get(SessionKey<T> key, SessionSerializer serializer) throws Exception;
 
   /**
    * Read the object with the given name, using the {@link #getDefaultSerializer() default serializer}.
@@ -87,7 +87,7 @@ public interface SessionData {
    * @return the value for the given key
    * @see #require(String)
    */
-  default Optional<?> get(String name) {
+  default Optional<?> get(String name) throws Exception {
     return get(SessionKey.of(name));
   }
 
@@ -101,7 +101,7 @@ public interface SessionData {
    * @return the value for the given key
    * @see #require(String, SessionSerializer)
    */
-  default Optional<?> get(String name, SessionSerializer serializer) {
+  default Optional<?> get(String name, SessionSerializer serializer) throws Exception {
     return get(SessionKey.of(name), serializer);
   }
 
@@ -113,7 +113,7 @@ public interface SessionData {
    * @return the value for the given key
    * @see #require(Class)
    */
-  default <T> Optional<T> get(Class<T> type) {
+  default <T> Optional<T> get(Class<T> type) throws Exception {
     return get(SessionKey.of(type));
   }
 
@@ -126,7 +126,7 @@ public interface SessionData {
    * @return the value for the given key
    * @see #require(Class, SessionSerializer)
    */
-  default <T> Optional<T> get(Class<T> type, SessionSerializer serializer) {
+  default <T> Optional<T> get(Class<T> type, SessionSerializer serializer) throws Exception {
     return get(SessionKey.of(type), serializer);
   }
 
@@ -137,7 +137,7 @@ public interface SessionData {
    * @param <T> the type
    * @return the value for the given key
    */
-  default <T> T require(SessionKey<T> key) {
+  default <T> T require(SessionKey<T> key) throws Exception {
     return require(key, getDefaultSerializer());
   }
 
@@ -149,7 +149,7 @@ public interface SessionData {
    * @param <T> the type
    * @return the value for the given key
    */
-  default <T> T require(SessionKey<T> key, SessionSerializer serializer) {
+  default <T> T require(SessionKey<T> key, SessionSerializer serializer) throws Exception {
     return get(key, serializer).orElseThrow(() -> new NoSuchElementException("No object for " + key + " in session"));
   }
 
@@ -160,7 +160,7 @@ public interface SessionData {
    * @param <T> the type
    * @return the value for the given key
    */
-  default <T> T require(Class<T> type) {
+  default <T> T require(Class<T> type) throws Exception {
     return require(SessionKey.of(type));
   }
 
@@ -172,7 +172,7 @@ public interface SessionData {
    * @param <T> the type
    * @return the value for the given key
    */
-  default <T> T require(Class<T> type, SessionSerializer serializer) {
+  default <T> T require(Class<T> type, SessionSerializer serializer) throws Exception {
     return require(SessionKey.of(type), serializer);
   }
 
@@ -184,7 +184,7 @@ public interface SessionData {
    * @param name the object name
    * @return the value for the given key
    */
-  default Object require(String name) {
+  default Object require(String name) throws Exception {
     return require(SessionKey.of(name));
   }
 
@@ -197,7 +197,7 @@ public interface SessionData {
    * @param serializer the serializer
    * @return the value for the given key
    */
-  default Object require(String name, SessionSerializer serializer) {
+  default Object require(String name, SessionSerializer serializer) throws Exception {
     return require(SessionKey.of(name), serializer);
   }
 
@@ -208,7 +208,7 @@ public interface SessionData {
    * @param value the value
    * @param <T> the type
    */
-  default <T> void set(SessionKey<T> key, T value) {
+  default <T> void set(SessionKey<T> key, T value) throws Exception {
     set(key, value, getDefaultSerializer());
   }
 
@@ -220,7 +220,7 @@ public interface SessionData {
    * @param serializer the serializer
    * @param <T> the type
    */
-  <T> void set(SessionKey<T> key, T value, SessionSerializer serializer);
+  <T> void set(SessionKey<T> key, T value, SessionSerializer serializer) throws Exception;
 
   /**
    * Sets the value for the given type, using the {@link #getDefaultSerializer() default serializer}.
@@ -229,7 +229,7 @@ public interface SessionData {
    * @param value the value
    * @param <T> the type
    */
-  default <T> void set(Class<T> type, T value) {
+  default <T> void set(Class<T> type, T value) throws Exception {
     set(SessionKey.of(type), value);
   }
 
@@ -241,7 +241,7 @@ public interface SessionData {
    * @param serializer the serializer
    * @param <T> the type
    */
-  default <T> void set(Class<T> type, T value, SessionSerializer serializer) {
+  default <T> void set(Class<T> type, T value, SessionSerializer serializer) throws Exception {
     set(SessionKey.of(type), value, serializer);
   }
 
@@ -252,7 +252,7 @@ public interface SessionData {
    * @param value the value
    * @param <T> the type
    */
-  default <T> void set(String name, T value) {
+  default <T> void set(String name, T value) throws Exception {
     set(SessionKey.ofType(name, value), value, getDefaultSerializer());
   }
 
@@ -264,7 +264,7 @@ public interface SessionData {
    * @param serializer the serializer
    * @param <T> the type
    */
-  default <T> void set(String name, T value, SessionSerializer serializer) {
+  default <T> void set(String name, T value, SessionSerializer serializer) throws Exception {
     set(SessionKey.ofType(name, value), value, serializer);
   }
 
@@ -274,7 +274,7 @@ public interface SessionData {
    * @param value the value
    * @param <T> the type
    */
-  default <T> void set(T value) {
+  default <T> void set(T value) throws Exception {
     set(SessionKey.ofType(value), value, getDefaultSerializer());
   }
 
@@ -285,7 +285,7 @@ public interface SessionData {
    * @param serializer the serializer
    * @param <T> the type
    */
-  default <T> void set(T value, SessionSerializer serializer) {
+  default <T> void set(T value, SessionSerializer serializer) throws Exception {
     set(SessionKey.ofType(value), value, serializer);
   }
 

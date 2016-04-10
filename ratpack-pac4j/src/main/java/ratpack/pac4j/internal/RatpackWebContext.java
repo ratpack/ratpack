@@ -33,6 +33,7 @@ import ratpack.http.*;
 import ratpack.server.PublicAddress;
 import ratpack.session.Session;
 import ratpack.session.SessionData;
+import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
@@ -112,13 +113,13 @@ public class RatpackWebContext implements WebContext {
     if (value == null) {
       session.remove(name);
     } else {
-      session.set(name, value, session.getJavaSerializer());
+      Exceptions.uncheck(() -> session.set(name, value, session.getJavaSerializer()));
     }
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return session.get(name, session.getJavaSerializer()).orElse(null);
+    return Exceptions.uncheck(() -> session.get(name, session.getJavaSerializer()).orElse(null));
   }
 
   @Override

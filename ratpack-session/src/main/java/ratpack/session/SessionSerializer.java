@@ -36,9 +36,9 @@ public interface SessionSerializer {
    * @param value the value to serialize
    * @param out the destination for the bytes
    * @param <T> the type of the object
-   * @throws IOException any thrown by {@code out}
+   * @throws Exception if the value could not be serialized
    */
-  <T> void serialize(Class<T> type, T value, OutputStream out) throws IOException;
+  <T> void serialize(Class<T> type, T value, OutputStream out) throws Exception;
 
   /**
    * Reads the bytes of the given input stream, creating a new object.
@@ -48,7 +48,8 @@ public interface SessionSerializer {
    * @param <T> the type of the object
    * @return the object
    * @throws IOException any thrown by {@code in}
+   * @throws Exception the the value could not be deserialized
    */
-  <T> T deserialize(Class<T> type, InputStream in) throws IOException;
+  <T> T deserialize(Class<T> type, InputStream in) throws Exception;
 
 }
