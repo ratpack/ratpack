@@ -59,4 +59,23 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
     getText("bar") == "true"
   }
 
+  def "can use a closure and a chain action class with when"() {
+    when:
+    bindings {
+      bind(TestChainAction)
+    }
+    handlers {
+      when({ delegate instanceof GroovyContext }, TestChainAction)
+    }
+
+    then:
+    text == "from chain action class"
+  }
+
+  static class TestChainAction extends GroovyChainAction {
+    void execute() throws Exception {
+      get { render "from chain action class" }
+    }
+  }
+
 }
