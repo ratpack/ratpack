@@ -41,7 +41,6 @@ dependencies {
   compile commonDependencies.slf4j
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
   compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"
-  runtime 'com.jcraft:jzlib:1.1.3'
 
   compile 'org.javassist:javassist:3.19.0-GA'
 
