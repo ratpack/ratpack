@@ -20,20 +20,18 @@ import org.slf4j.Logger;
 import ratpack.handling.RequestLogger;
 import ratpack.handling.RequestOutcome;
 
-public class Slf4JInfoRequestLogger implements RequestLogger {
+public class Slf4JInfoRequestLoggerRouter implements RequestLogger.Router {
 
   private final Logger logger;
-  private final Formatter formatter;
 
-  public Slf4JInfoRequestLogger(Logger logger, Formatter formatter) {
+  public Slf4JInfoRequestLoggerRouter(Logger logger) {
     this.logger = logger;
-    this.formatter = formatter;
   }
 
   @Override
-  public void log(RequestOutcome outcome) throws Exception {
+  public void log(RequestOutcome requestOutcome, String pattern, Object[] args) {
     if (logger.isInfoEnabled()) {
-      logger.info(formatter.format(outcome));
+      logger.info(pattern, args);
     }
   }
 

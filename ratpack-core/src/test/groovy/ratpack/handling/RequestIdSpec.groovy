@@ -16,7 +16,7 @@
 
 package ratpack.handling
 
-import org.slf4j.Logger
+import org.slf4j.helpers.MessageFormatter
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -61,9 +61,8 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
   def "request log includes request id"() {
     given:
     def msgQueue = new ArrayBlockingQueue<String>(2)
-    def logger = Mock(Logger) {
-      isInfoEnabled() >> true
-      info(_ as String) >> { String msg -> msgQueue << msg }
+    def router = Mock(RequestLogger.Router) {
+      log(_, _, _) >> { msgQueue.add(MessageFormatter.arrayFormat(it[1], it[2]).message) }
     }
 
     int count = 0
@@ -73,7 +72,7 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
       } as RequestId.Generator
     }
     handlers {
-      all RequestLogger.ncsa(logger)
+      all RequestLogger.ncsaFormat().to(router)
       path("foo") {
         render get(RequestId)
       }

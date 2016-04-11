@@ -18,9 +18,10 @@ package ratpack.handling;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 import ratpack.func.Action;
-import ratpack.handling.internal.logging.NcsaRequestLogFormatter;
-import ratpack.handling.internal.logging.Slf4JInfoRequestLogger;
+import ratpack.handling.internal.logging.NcsaRequestLogFormat;
+import ratpack.handling.internal.logging.Slf4JInfoRequestLoggerRouter;
 
 /**
  * A handler that logs information about the request.
@@ -110,7 +111,7 @@ public interface RequestLogger extends Handler {
   }
 
   /**
-   * Logs to the given logger, using {@link #ncsaFormatter()}.
+   * Logs to the given logger, using {@link #ncsaFormat()}.
    * <p>
    * All requests will be logged at {@code INFO} level.
    * For more fine grained logging control, use {@link #of(Action)}
@@ -119,7 +120,7 @@ public interface RequestLogger extends Handler {
    * @return a new request logger
    */
   static RequestLogger ncsa(Logger logger) {
-    return new Slf4JInfoRequestLogger(logger, ncsaFormatter());
+    return ncsaFormat().to(new Slf4JInfoRequestLoggerRouter(logger));
   }
 
   /**
@@ -133,8 +134,8 @@ public interface RequestLogger extends Handler {
    * @return a request formatter for the NCSA Common Log format
    * @since 1.3
    */
-  static Formatter ncsaFormatter() {
-    return NcsaRequestLogFormatter.INSTANCE;
+  static Format ncsaFormat() {
+    return NcsaRequestLogFormat.INSTANCE;
   }
 
   /**
@@ -160,24 +161,63 @@ public interface RequestLogger extends Handler {
   /**
    * Generates a formatted log line for a request.
    * <p>
-   * Ratpack provides the {@link #ncsaFormatter()}.
+   * Ratpack provides the {@link #ncsaFormat()}.
    * This can be used in conjunction with the {@link #of(Action)} method, for fine grained control of how and when requests are logged.
    * Implementations should generally inspect the request outcome to determine if it needs to be logged,
    * and only calling the formatter if a log line is actually needed.
    *
    * @since 1.3
    * @see #of(Action)
-   * @see #ncsaFormatter()
+   * @see #ncsaFormat()
    */
-  interface Formatter {
+  interface Format {
 
     /**
-     * Generates a line of logging, representing the given outcome.
+     * Creates a logger that formats the the request and delegates to the given {@code router}.
+     *
+     * @param router the destination for the log message
+     * @return a request logger
+     */
+    default RequestLogger to(Router router) {
+      return of(requestOutcome -> log(requestOutcome, router));
+    }
+
+    /**
+     * The formatting function.
+     * <p>
+     * Implementations should assemble a pattern and args set, and delegate to the given {@code router}.
+     *
+     * @param requestOutcome the request outcome to log
+     * @param router the destination of the logging information
+     */
+    void log(RequestOutcome requestOutcome, Router router);
+
+  }
+
+  /**
+   * A receiver of “formatted” log messages.
+   * <p>
+   * Implementations can make decisions on how and if the logging should occur.
+   * For example, implementations may decide to log 5xx type outcomes differently to other outcomes.
+   *
+   * @since 1.3
+   */
+  interface Router {
+
+    /**
+     * Logs the outcome.
+     * <p>
+     * The pattern and args are in “slf4j format”.
+     * That is, they can be passed directly to a method such as {@link Logger#info(String, Object...)}.
+     * <p>
+     * If the final destination is not an Slf4j logger, {@link MessageFormatter#arrayFormat(String, Object[])}
+     * can be used to generate a string.
      *
      * @param requestOutcome the request outcome
-     * @return the log line
+     * @param pattern the message pattern
+     * @param args the message values
      */
-    String format(RequestOutcome requestOutcome);
+    void log(RequestOutcome requestOutcome, String pattern, Object[] args);
 
   }
 

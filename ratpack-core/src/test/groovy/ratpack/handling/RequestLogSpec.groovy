@@ -16,7 +16,7 @@
 
 package ratpack.handling
 
-import org.slf4j.Logger
+import org.slf4j.helpers.MessageFormatter
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
@@ -27,14 +27,13 @@ class RequestLogSpec extends RatpackGroovyDslSpec {
   def "add request logging"() {
     def messages = []
     def latch = new CountDownLatch(2)
-    def logger = Mock(Logger) {
-      _ * isInfoEnabled() >> true
-      2 * info(_) >> { String m -> messages << m; latch.countDown() }
+    def router = Mock(RequestLogger.Router) {
+      2 * log(_, _, _) >> { messages << MessageFormatter.arrayFormat(it[1], it[2]); latch.countDown() }
     }
 
     given:
     handlers {
-      all RequestLogger.ncsa(logger)
+      all RequestLogger.ncsaFormat().to(router)
       path("foo") {
         render "ok"
       }
