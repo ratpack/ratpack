@@ -283,6 +283,16 @@ class PromiseOperationsSpec extends Specification {
     events == ["yield", "blocking", "wiretap", "foo", "complete"]
   }
 
+  def "wiretap receives failure results"() {
+    when:
+    exec { e ->
+      Promise.error(new Exception("!")).wiretap { r -> events.add(r.throwable.message) }.then {}
+    }
+
+    then:
+    events == ["!", "complete"]
+  }
+
   def "can use blocking map"() {
     when:
     exec {

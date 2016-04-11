@@ -1236,16 +1236,33 @@ public interface Promise<T> {
    */
   default Promise<T> wiretap(Action<? super Result<T>> listener) {
     return transform(up -> down ->
-      up.connect(down.<T>onSuccess(value -> {
-        try {
-          listener.execute(Result.success(value));
-        } catch (Throwable t) {
-          down.error(t);
-          return;
+      up.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          try {
+            listener.execute(Result.success(value));
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.success(value);
         }
 
-        down.success(value);
-      }))
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            listener.execute(Result.<T>error(throwable));
+          } catch (Exception e) {
+            throwable.addSuppressed(e);
+          }
+          down.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          down.complete();
+        }
+      })
     );
   }
 
