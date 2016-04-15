@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
+import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.file.FileSystemBinding;
@@ -35,7 +36,9 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigData> {
@@ -84,6 +87,20 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("requireClientSslAuth")) {
       data.setRequireClientSslAuth(serverNode.get("requireClientSslAuth").asBoolean(false));
+    }
+    if (serverNode.hasNonNull("methodsCanHaveBody")) {
+      JsonNode node = serverNode.get("methodsCanHaveBody");
+      if (node.isArray()) {
+        Set<HttpMethod> methods = new HashSet<HttpMethod>();
+        node.elements().forEachRemaining(elm -> {
+          try {
+            methods.add(toValue(codec, elm, HttpMethod.class));
+          } catch (JsonProcessingException jsonEx) {
+            LOGGER.error("Failed processing method that can have a body.", jsonEx);
+          }
+        });
+        data.setMethodsCanHaveBody(methods);
+      }
     }
     if (serverNode.hasNonNull("baseDir")) {
       throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");

@@ -18,12 +18,14 @@ package ratpack.server.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
+import io.netty.handler.codec.http.HttpMethod;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
@@ -46,6 +48,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -166,6 +169,16 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth) {
     return addToServer(n -> n.put("requireClientSslAuth", requireClientSslAuth));
+  }
+
+  @Override
+  public ServerConfigBuilder couldHaveBody(Set<HttpMethod> httpMethods) {
+    return addToServer(n -> {
+      ArrayNode arrayNode = n.putArray("methodsCanHaveBody");
+      for(HttpMethod httpMethod : httpMethods){
+        arrayNode.addPOJO(httpMethod);
+      }
+    });
   }
 
   @Override
