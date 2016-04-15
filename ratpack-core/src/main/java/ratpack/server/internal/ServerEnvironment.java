@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.server.ServerConfig;
 
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -90,7 +91,9 @@ public class ServerEnvironment {
         () -> {
           String command = properties.getProperty(SUN_JAVA_COMMAND, "");
           return command.startsWith(GROOVY_MAIN) ? "true" : null;
-        })
+        },
+        () -> isDebuggerAttached() ? "true" : null
+      )
     );
   }
 
@@ -99,6 +102,10 @@ public class ServerEnvironment {
       () -> parseUri("'ratpack.publicAddress' system property", properties.getProperty("ratpack.publicAddress")),
       () -> parseUri("'RATPACK_PUBLIC_ADDRESS' env var", env.get("RATPACK_PUBLIC_ADDRESS"))
     );
+  }
+
+  private static boolean isDebuggerAttached() {
+    return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
   }
 
   private static URI parseUri(String description, String value) {
