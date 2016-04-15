@@ -130,7 +130,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     result.body.text.startsWith("foo")
     result.body.text.contains("UNHEALTHY")
     result.body.text.contains("EXECUTION TIMEOUT")
-    result.statusCode == 500
+    result.statusCode == 503
   }
 
   def "render unhealthy check with exception stack trace"() {

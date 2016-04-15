@@ -69,6 +69,6 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
       throw e;
     }
 
-    context.getResponse().status(unhealthy ? 500 : 200).send(buffer);
+    context.getResponse().status(unhealthy ? 503 : 200).send(buffer);
   }
 }
