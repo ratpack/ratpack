@@ -91,6 +91,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The handler creates a {@link HealthCheckResults} object with the results of running the health checks and {@link Context#render(Object) renders} it.
  * Ratpack provides a default renderer for {@link HealthCheckResults} objects, that renders results as plain text one per line with the format:
  * <pre>{@code name : HEALTHY|UNHEALTHY [message] [exception]}</pre>
+ * <p>If any result is unhealthy, a {@code 503} status will be emitted, else {@code 200}.</p>
  * <p>
  * To change the output format, simply add your own renderer for this type to the registry.
  *
