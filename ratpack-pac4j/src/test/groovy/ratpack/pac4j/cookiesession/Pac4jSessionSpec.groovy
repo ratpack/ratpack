@@ -19,6 +19,7 @@ package ratpack.pac4j.cookiesession
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
+import org.slf4j.Logger
 import ratpack.handling.RequestId
 import ratpack.handling.RequestLogger
 import ratpack.pac4j.RatpackPac4j
@@ -62,75 +63,78 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
     def resp1 = get("auth")
 
-    then:
+    then: "the request is redirected to login page"
     resp1.statusCode == FOUND.code()
     resp1.headers.get(LOCATION).contains("/login")
 
-    when:
+    when: "follow the redirect"
     def resp2 = get(resp1.headers.get(LOCATION))
 
-    then:
+    then: "the response is redirected to login form"
     resp2.statusCode == OK.code()
     resp2.body.text == "login:null"
 
-    when:
+    when: "send authorization request"
     def resp3 = get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=foo&password=foo&client_name=FormClient")
 
-    then:
+    then: "the response is redirected to auth page"
     resp3.statusCode == FOUND.code()
     resp3.headers.get(LOCATION).contains("/auth")
 
-    when:
+    when: "following the redirect"
     def resp4 = get(resp3.headers.get(LOCATION))
 
-    then:
+    then: "the requested page is returned"
     resp4.statusCode == OK.code()
     resp4.body.text == "auth:foo"
 
-    when:
+    when: "request the auth page again"
     def resp5 = get("auth")
 
-    then:
+    then: "the requested page is returned"
     resp5.statusCode == OK.code()
     resp5.body.text == "auth:foo"
 
-    when:
+    when: "after reseting all the cookies"
     resetRequest()
     requestSpec {
       it.redirects(0)
     }
     def resp6 = get("auth")
 
-    then:
+    then: "authorization is required"
     resp6.statusCode == FOUND.code()
     resp6.headers.get(LOCATION).contains("login")
 
-    when:
+    when: "follow the redirect"
     def resp7 = get(resp6.headers.get(LOCATION))
     resp7.statusCode == OK.code()
     resp7.body.text == "login:null"
     def resp8 = get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=bar&password=bar&client_name=FormClient")
 
-    then:
+    then: "the requested page is returned with new login"
     resp8.statusCode == FOUND.code()
     resp8.headers.get(LOCATION).contains("auth")
 
-    when:
+    when: "following the redirect"
     def resp9 = get(resp8.headers.get(LOCATION))
 
-    then:
+    then: "the requested page is returned"
     resp9.statusCode == OK.code()
     resp9.body.text == "auth:bar"
   }
 
   def "log user id in request log"() {
+    def logger = Mock(Logger) {
+      isInfoEnabled() >> true
+    }
+
     given:
-    def router = Mock(RequestLogger.Router)
     bindings {
       module SessionModule
     }
     handlers {
-      all RequestLogger.ncsaFormat().to(router)
+      all RequestLogger.ncsa(logger)
       all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator()))
       prefix("foo") {
         all(RatpackPac4j.requireAuth(FormClient))
@@ -144,35 +148,37 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when:
+    when: "request a page that requires authentication"
     requestSpec {
       it.redirects(0)
     }
     def resp1 = get("foo")
 
-    then:
+    then: "the request is redirected to login page"
     resp1.statusCode == FOUND.code()
     resp1.headers.get(LOCATION).contains("/login")
 
-    when:
+    when: "follow the redirect"
     def resp2 = get(resp1.headers.get(LOCATION))
 
-    then:
+    then: "the response is redirected to login form"
     resp2.statusCode == OK.code()
     resp2.body.text == "login:null"
 
-    when:
+    when: "send authorization request"
     def resp3 = get("$RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH?username=foo&password=foo&client_name=FormClient")
 
-    then:
+    then: "the response is redirected to auth page"
     resp3.statusCode == FOUND.code()
     resp3.headers.get(LOCATION).contains("/foo")
 
-    when:
+    when: "following the redirect"
     def resp4 = get(resp3.headers.get(LOCATION))
 
-    then:
+    then: "the requested page is returned"
     resp4.statusCode == OK.code()
-    1 * router.log(_, _, { it[2] == "foo" })
+
+    then: 'the request is logged with the user id'
+    1 * logger.info({ it ==~ /(?s).*127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/ })
   }
 }
