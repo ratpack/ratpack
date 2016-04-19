@@ -386,6 +386,7 @@ public class DefaultRatpackServer implements RatpackServer {
       try {
         this.inner = buildAdapter(definitionBuild);
       } catch (Exception e) {
+        LOGGER.warn("An error occurred during startup. This will be ignored due to being in development mode.", e);
         this.inner = null;
         serverRegistry = buildServerRegistry(lastServerConfig, r -> r);
       }
@@ -404,8 +405,8 @@ public class DefaultRatpackServer implements RatpackServer {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
-          Promise.<ChannelHandler>async(f -> {
-            boolean rebuild = false;
+        Promise.<ChannelHandler>async(f -> {
+          boolean rebuild = false;
 
           if (inner == null || definitionBuild.error != null) {
             rebuild = true;
