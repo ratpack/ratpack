@@ -242,7 +242,7 @@ public interface Promise<T> {
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
-   *     Set<Promise<String>> promises = IntStream
+   *     Set<Promise<? extends String>> promises = IntStream
    *      .rangeClosed(0,9)
    *      .mapToObj(Integer::toString)
    *      .map(i -> Promise.value("Promise " + i))
