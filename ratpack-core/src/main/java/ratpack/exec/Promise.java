@@ -16,15 +16,24 @@
 
 package ratpack.exec;
 
+import com.google.common.collect.Sets;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
-import ratpack.func.*;
+import ratpack.func.Action;
+import ratpack.func.Block;
+import ratpack.func.Factory;
+import ratpack.func.Function;
+import ratpack.func.Pair;
+import ratpack.func.Predicate;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.func.Action.ignoreArg;
 
@@ -205,6 +214,54 @@ public interface Promise<T> {
    */
   static <T> Promise<T> error(Throwable t) {
     return async(down -> down.error(t));
+  }
+
+  /**
+   * Creates a new promise that is completed when all of the source promises have completed.
+   * <p>
+   * Each source promise is executed in its own {@link Execution}, with it's result added to
+   * the returned promise when it completes.
+   *
+   * <p>
+   * The result of each source promise is returned as
+   * a {@link Result}, which will contain either the successful value or the error.
+   *
+   * @param promises the set of promises to execute, each in its own execution
+   * @param <T> the type of promised value
+   * @return a promise for a set of results that is completed when all source promises have completed
+   * @see #async(Upstream)
+   * @see Execution#fork()
+   */
+  static <T> Promise<Set<Result<T>>> forkEach(Set<Promise<T>> promises) {
+    return Promise.<Set<Result<T>>> async(d -> {
+      Set<Result<T>> all = Sets.newConcurrentHashSet();
+      AtomicInteger remaining = new AtomicInteger(promises.size());
+      AtomicBoolean error = new AtomicBoolean();
+      Action<Execution> onComplete = e -> {
+        if (remaining.decrementAndGet() == 0) {
+          d.success(all);
+        }
+      };
+      Action<Throwable> onError = t -> {
+        if (error.compareAndSet(false, true)) {
+          d.error(t);
+        }
+      };
+      promises.stream().forEach(p ->
+        Execution.fork()
+          .onError(onError)
+          .onComplete(onComplete)
+          .start((e) ->
+            p.result(r -> {
+              if (r.isSuccess()) {
+                all.add(Result.success(r.getValue()));
+              } else {
+                all.add(Result.error(r.getThrowable()));
+              }
+            })
+        )
+      );
+    });
   }
 
   /**
