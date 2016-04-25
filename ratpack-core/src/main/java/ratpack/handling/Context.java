@@ -441,7 +441,7 @@ public interface Context extends Registry {
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T> Promise<T> parse(Class<T> type);
 
@@ -466,7 +466,7 @@ public interface Context extends Registry {
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T> Promise<T> parse(TypeToken<T> type);
 
@@ -477,7 +477,7 @@ public interface Context extends Registry {
    * @param options The parse options
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T, O> Promise<T> parse(Class<T> type, O options);
 
@@ -488,7 +488,7 @@ public interface Context extends Registry {
    * @param options The parse options
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T, O> Promise<T> parse(TypeToken<T> type, O options);
 
@@ -537,7 +537,7 @@ public interface Context extends Registry {
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> the type of the parse options object
-   * @return The parsed object
+   * @return a promise for the parsed object
    * @see #parse(Class)
    * @see #parse(Class, Object)
    * @see ratpack.parse.Parser
@@ -556,7 +556,7 @@ public interface Context extends Registry {
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> The type of the parse options object
-   * @return The parsed object
+   * @return a promise for the parsed object
    * @see #parse(Parse)
    * @throws Exception any thrown by the parser
    */
