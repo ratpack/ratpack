@@ -226,6 +226,40 @@ public interface Promise<T> {
    * The result of each source promise is returned as
    * a {@link Result}, which will contain either the successful value or the error.
    *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Result;
+   * import ratpack.test.exec.ExecHarness;
+
+   * import java.util.Collections;
+   * import java.util.List;
+   * import java.util.Set;
+   * import java.util.stream.Collectors;
+   * import java.util.stream.IntStream;
+
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     Set<Promise<String>> promises = IntStream
+   *      .rangeClosed(0,9)
+   *      .mapToObj(Integer::toString)
+   *      .map(i -> Promise.value("Promise " + i))
+   *      .collect(Collectors.toSet());
+   *
+   *     ExecResult<Set<Result<String>>> execResult = ExecHarness.yieldSingle((e) -> Promise.forkEach(promises));
+   *     List<String> values = execResult.getValue().stream().map(Result::getValue).collect(Collectors.toList());
+   *     Collections.sort(values);
+   *
+   *     assertEquals(values.size(), promises.size());
+   *     for (int i = 0; i < promises.size(); i++) {
+   *      assertEquals(values.get(i), "Promise " + i);
+   *     }
+   *   }
+   * }
+   * }</pre>
+   *
    * @param promises the set of promises to execute, each in its own execution
    * @param <T> the type of promised value
    * @return a promise for a set of results that is completed when all source promises have completed
@@ -233,7 +267,7 @@ public interface Promise<T> {
    * @see Execution#fork()
    */
   static <T> Promise<Set<Result<T>>> forkEach(Set<Promise<T>> promises) {
-    return Promise.<Set<Result<T>>> async(d -> {
+    return Promise.<Set<Result<T>>>async(d -> {
       Set<Result<T>> all = Sets.newConcurrentHashSet();
       AtomicInteger remaining = new AtomicInteger(promises.size());
       AtomicBoolean error = new AtomicBoolean();
