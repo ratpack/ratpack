@@ -266,7 +266,7 @@ public interface Promise<T> {
    * @see #async(Upstream)
    * @see Execution#fork()
    */
-  static <T> Promise<Set<Result<T>>> forkEach(Set<Promise<T>> promises) {
+  static <T> Promise<Set<Result<T>>> forkEach(Set<Promise<? extends T>> promises) {
     return Promise.<Set<Result<T>>>async(d -> {
       Set<Result<T>> all = Sets.newConcurrentHashSet();
       AtomicInteger remaining = new AtomicInteger(promises.size());
