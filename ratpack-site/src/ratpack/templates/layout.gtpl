@@ -16,6 +16,7 @@ head {
   link(rel: 'author', href: '/assets/humans.txt')
   link(rel: 'stylesheet', href: assets['normalize/normalize.css'])
   link(rel: 'stylesheet', href: assets['ratpack.css'])
+  link(rel: 'stylesheet', href: assets['fonts.css'])
 
   script(src: assets['modernizr/modernizr.js']) {}
   script(src: assets['prism/prism.js']) {}
@@ -91,7 +92,6 @@ ga('send', 'pageview');
 '''
   }
 
-  link(rel: 'stylesheet', href: assets['fonts.css'])
 }
 
 yieldUnescaped '</html>'
