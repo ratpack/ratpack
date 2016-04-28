@@ -62,7 +62,7 @@ public class DefaultCrypto implements Crypto {
     }
 
     ByteBuf encMessage = allocator.buffer(encMessageLength);
-    ByteBuffer nioBuffer = encMessage.internalNioBuffer(0, encMessageLength);
+    ByteBuffer nioBuffer = encMessage.nioBuffer(0, encMessageLength);
     cipher.doFinal(paddedMessage == null ? message.nioBuffer() : paddedMessage.nioBuffer(), nioBuffer);
     encMessage.writerIndex(encMessageLength);
 
@@ -86,18 +86,16 @@ public class DefaultCrypto implements Crypto {
 
     if (isInitializationVectorRequired) {
       int ivByteLength = message.readByte();
-      ByteBuf ivBytes = message.readBytes(ivByteLength);
-      IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes.array());
-      ivBytes.release();
-
-      cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+      byte[] iv = new byte[ivByteLength];
+      message.readBytes(iv);
+      cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, new IvParameterSpec(iv));
     } else {
       cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
     }
 
     int messageLength = message.readableBytes();
     ByteBuf decMessage = allocator.buffer(cipher.getOutputSize(messageLength));
-    int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), decMessage.internalNioBuffer(0, messageLength));
+    int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), decMessage.nioBuffer(0, messageLength));
     for (int i = count - 1; i >= 0; i--) {
       if (decMessage.getByte(i) == 0x00) {
         count--;
