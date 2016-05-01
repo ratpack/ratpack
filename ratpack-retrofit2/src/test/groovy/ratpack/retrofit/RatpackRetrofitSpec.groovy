@@ -16,17 +16,20 @@
 
 package ratpack.retrofit
 
-import com.squareup.okhttp.MediaType
-import com.squareup.okhttp.RequestBody
-import com.squareup.okhttp.ResponseBody
+import io.netty.buffer.UnpooledByteBufAllocator
+import okhttp3.MediaType
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.http.client.internal.DefaultHttpClient
+import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
-import retrofit.Converter
-import retrofit.Response
-import retrofit.Retrofit
-import retrofit.http.GET
+import retrofit2.Converter
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.http.GET
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
@@ -55,9 +58,11 @@ class RatpackRetrofitSpec extends Specification {
         }
       }
     }
-    retrofit = RatpackRetrofit.builder()
-      .baseUrl(server.address.toString())
-      .addConverterFactory(new StringConverterFactory())
+    retrofit = RatpackRetrofit.builder(new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH))
+      .uri(server.address)
+      .configure { Retrofit.Builder b ->
+        b.addConverterFactory(new StringConverterFactory())
+      }
       .build()
     service = retrofit.create(Service)
   }
@@ -85,7 +90,7 @@ class RatpackRetrofitSpec extends Specification {
 
   static class StringConverterFactory extends Converter.Factory {
     @Override
-    public Converter<ResponseBody, ?> fromResponseBody(Type type, Annotation[] annotations) {
+    Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
       return new Converter<ResponseBody, String>() {
         @Override public String convert(ResponseBody value) throws IOException {
           return value.string();
@@ -93,8 +98,8 @@ class RatpackRetrofitSpec extends Specification {
       };
     }
 
-    @Override public Converter<?, RequestBody> toRequestBody(Type type,
-                                                                    Annotation[] annotations) {
+    @Override
+    Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
       return new Converter<String, RequestBody>() {
         @Override public RequestBody convert(String value) throws IOException {
           return RequestBody.create(MediaType.parse("text/plain"), value);

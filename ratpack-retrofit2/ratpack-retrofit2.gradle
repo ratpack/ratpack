@@ -18,5 +18,5 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(':ratpack-core')
-  compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
+  compile 'com.squareup.retrofit2:retrofit:2.0.2'
 }
