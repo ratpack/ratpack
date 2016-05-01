@@ -17,20 +17,16 @@
 package ratpack.retrofit.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
-import retrofit.*;
+import retrofit2.*;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-public class RatpackCallAdapterFactory implements CallAdapter.Factory {
+public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
   public static final RatpackCallAdapterFactory INSTANCE = new RatpackCallAdapterFactory();
-
-  private RatpackCallAdapterFactory() {}
 
   @Override
   public CallAdapter<?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
@@ -76,13 +72,17 @@ public class RatpackCallAdapterFactory implements CallAdapter.Factory {
 
     @Override
     public <R> Promise<Response<?>> adapt(Call<R> call) {
-      return Promise.of(downstream ->
-        Blocking.exec(() -> {
-          try {
-            Response<R> response = call.execute();
+      return Promise.async(downstream ->
+        call.enqueue(new Callback<R>() {
+
+          @Override
+          public void onResponse(Call<R> call, Response<R> response) {
             downstream.success(response);
-          } catch (IOException io) {
-            downstream.error(io);
+          }
+
+          @Override
+          public void onFailure(Call<R> call, Throwable t) {
+            downstream.error(t);
           }
         })
       );
@@ -103,13 +103,19 @@ public class RatpackCallAdapterFactory implements CallAdapter.Factory {
 
     @Override
     public <R> Promise<?> adapt(Call<R> call) {
-      return Promise.of(downstream ->
-        Blocking.exec(() -> {
-          try {
-            Response<R> response = call.execute();
+      return Promise.async(downstream ->
+        call.enqueue(new Callback<R>() {
+
+          @Override
+          public void onResponse(Call<R> call, Response<R> response) {
+            System.out.println("Calling onResponse");
             downstream.success(response.body());
-          } catch (IOException io) {
-            downstream.error(io);
+          }
+
+          @Override
+          public void onFailure(Call<R> call, Throwable t) {
+            System.out.println("Calling onError");
+            downstream.error(t);
           }
         })
       );
