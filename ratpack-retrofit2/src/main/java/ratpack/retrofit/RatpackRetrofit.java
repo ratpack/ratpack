@@ -24,6 +24,7 @@ import ratpack.retrofit.internal.RatpackCallFactory;
 import ratpack.util.Exceptions;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import java.net.URI;
 
@@ -54,8 +55,7 @@ import java.net.URI;
  *           HttpClient httpClient = ctx.get(HttpClient.class);
  *           HelloService service = RatpackRetrofit.builder(httpClient)
  *             .uri(address.get())
- *             .retrofit()
- *             .create(HelloService.class);
+ *             .build(HelloService.class);
  *
  *           ctx.render service.hello();
  *         })
@@ -84,7 +84,7 @@ public class RatpackRetrofit {
     return new Builder(httpClient);
   }
 
-  static class Builder {
+  public static class Builder {
 
     private HttpClient httpClient;
     private Action<? super Retrofit.Builder> builderAction = Action.noop();
@@ -143,7 +143,8 @@ public class RatpackRetrofit {
       Preconditions.checkNotNull(uri, "Must provide the base uri.");
       Retrofit.Builder builder = new Retrofit.Builder()
         .callFactory(new RatpackCallFactory(httpClient))
-        .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE);
+        .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE)
+        .addConverterFactory(ScalarsConverterFactory.create());
       builder.baseUrl(uri.toString());
       Exceptions.uncheck(() -> builderAction.execute(builder));
       return builder.build();
