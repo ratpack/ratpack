@@ -255,7 +255,7 @@ Now, the chain wouldn't be very useful if it just handled a list of handlers, ca
 * [`host(String, Action<Chain>)`](api/ratpack/handling/Chain.html#host-java.lang.String-ratpack.func.Action-) inserts another chain when a request has a specific Host header value.
 * [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/handling/Chain.html#when-ratpack.func.Predicate-ratpack.func.Action-) will insert a chain when a programmatic behavior is met. 
 
-### Regsitry
+### Registry
 
 TODO (A technical defition can be found on the [`Chain`](api/ratpack/handling/Chain.html) javadocs)
 
