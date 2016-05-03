@@ -20,5 +20,7 @@ description = "Integration with the Retrofit2 library - http://square.github.io/
 
 dependencies {
   compile project(':ratpack-core')
-  compile 'com.squareup.retrofit2:retrofit:2.0.2'
+  compile "com.squareup.retrofit2:retrofit:${commonVersions.retrofit}"
+  compile "com.squareup.retrofit2:converter-scalars:${commonVersions.retrofit}"
+  compile "com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}"
 }

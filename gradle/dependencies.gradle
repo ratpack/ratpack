@@ -33,7 +33,8 @@ ext {
     reactiveStreams: "1.0.0",
     guice: "4.0",
     springBoot: "1.3.0.RELEASE",
-    caffeine: "2.2.6"
+    caffeine: "2.2.6",
+    retrofit: "2.0.2",
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
