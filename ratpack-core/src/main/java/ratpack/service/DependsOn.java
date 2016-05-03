@@ -23,6 +23,7 @@ import java.lang.annotation.*;
  * <p>
  * This annotation is only effective when present on {@link Service} types.
  * <pre class="java">{@code
+ * import ratpack.server.ServerConfig;
  * import ratpack.server.RatpackServer;
  * import ratpack.service.DependsOn;
  * import ratpack.service.Service;
@@ -66,6 +67,7 @@ import java.lang.annotation.*;
  *
  *   public static void main(String[] args) throws Exception {
  *     RatpackServer server = RatpackServer.of(s -> s
+ *       .serverConfig(ServerConfig.embedded())
  *       .registryOf(r -> r
  *         // note: order of registration is irrelevant here
  *         .add(new ServiceOne())
