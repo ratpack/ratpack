@@ -21,6 +21,9 @@ import retrofit2.Response;
 
 import java.io.IOException;
 
+/**
+ * Exception throw from Retrofit clients when using simple types instead of {@link Response} and the request is not successful.
+ */
 public class RatpackRetrofitCallException extends Exception {
 
   public RatpackRetrofitCallException(Call<?> call, String error) {
