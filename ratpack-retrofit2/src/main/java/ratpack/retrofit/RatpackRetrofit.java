@@ -35,37 +35,39 @@ import java.net.URI;
  * Using this adapter allows for defining the interfaces to return {@link ratpack.exec.Promise} types which will be fulfilled by Ratpack's http client.
  *
  * <pre class="java">{@code
- * import retrofit2.http.BODY;
+ * import ratpack.exec.Promise;
+ * import ratpack.http.client.HttpClient;
+ * import ratpack.retrofit.RatpackRetrofit;
+ * import ratpack.server.PublicAddress;
+ * import ratpack.test.embed.EmbeddedApp;
  * import retrofit2.http.GET;
- * import retrofit2.http.POST;
+ *
+ * import static org.junit.Assert.*;
  *
  * public class ExampleRetrofitClient {
  *
  *   public interface HelloService {
  *
- *     {@literal @}GET("/hello") Promise<String> hello();
+ *     {@literal @}GET("hello") Promise<String> hello();
  *   }
  *
  *   public static void main(String... args) throws Exception {
  *
  *     EmbeddedApp.fromHandlers(chain -> {
- *       chain
- *         .get(ctx -> {
+ *         chain.get(ctx -> {
  *           PublicAddress address = ctx.get(PublicAddress.class);
  *           HttpClient httpClient = ctx.get(HttpClient.class);
  *           HelloService service = RatpackRetrofit.builder(httpClient)
  *             .uri(address.get())
  *             .build(HelloService.class);
  *
- *           ctx.render service.hello();
- *         })
- *         .get("hello", ctx -> {
- *           ctx.render("hello")
- *         })
+ *           ctx.render(service.hello());
+ *         });
+ *         chain.get("hello", ctx -> ctx.render("hello"));
  *       }
  *     ).test(testHttpClient -> {
  *       assertEquals("hello", testHttpClient.getText());
- *     }
+ *     });
  *   }
  * }
  * }</pre>
