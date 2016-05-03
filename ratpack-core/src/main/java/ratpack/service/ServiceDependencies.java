@@ -27,6 +27,7 @@ package ratpack.service;
  * If a depended on service fails to start, the dependent service will not be started.
  * <p>
  * <pre class="java">{@code
+ * import ratpack.server.ServerConfig;
  * import ratpack.server.RatpackServer;
  * import ratpack.service.Service;
  * import ratpack.service.ServiceDependencies;
@@ -68,6 +69,7 @@ package ratpack.service;
  *
  *   public static void main(String[] args) throws Exception {
  *     RatpackServer server = RatpackServer.of(s -> s
+ *       .serverConfig(ServerConfig.embedded())
  *       .registryOf(r -> r
  *         .add(new MyService("one"))
  *         .add(new MyService("two"))
