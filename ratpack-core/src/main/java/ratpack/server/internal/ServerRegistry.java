@@ -42,6 +42,8 @@ import ratpack.handling.RequestId;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClientFactory;
+import ratpack.http.client.internal.DefaultHttpClientFactory;
 import ratpack.impose.Impositions;
 import ratpack.jackson.JsonRender;
 import ratpack.jackson.internal.JsonParser;
@@ -125,6 +127,7 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, HttpClient.httpClient(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
+        .add(HttpClientFactory.class, new DefaultHttpClientFactory(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(PooledByteBufAllocator.DEFAULT))
         .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());

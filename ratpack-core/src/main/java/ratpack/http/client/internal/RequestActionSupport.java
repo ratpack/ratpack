@@ -33,6 +33,7 @@ import ratpack.func.Function;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
+import ratpack.http.client.HttpClientRequestInterceptor;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
@@ -41,6 +42,7 @@ import ratpack.util.internal.ChannelImplDetector;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -65,7 +67,22 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
   protected final Execution execution;
   protected final ByteBufAllocator byteBufAllocator;
 
-  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int redirectCounter) {
+  private final Optional<HttpClientRequestInterceptor> requestInterceptor;
+
+  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer,
+                              URI uri,
+                              Execution execution,
+                              ByteBufAllocator byteBufAllocator,
+                              int redirectCounter) {
+    this(requestConfigurer, uri, execution, byteBufAllocator, redirectCounter, Optional.empty());
+  }
+
+  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer,
+                              URI uri,
+                              Execution execution,
+                              ByteBufAllocator byteBufAllocator,
+                              int redirectCounter,
+                              Optional<HttpClientRequestInterceptor> requestInterceptor) {
     this.execution = execution;
     this.requestConfigurer = requestConfigurer;
     this.byteBufAllocator = byteBufAllocator;
@@ -74,6 +91,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
     this.requestParams = new RequestParams();
     this.headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
     this.requestSpecBacking = new RequestSpecBacking(headers, uri, byteBufAllocator, requestParams);
+    this.requestInterceptor = requestInterceptor;
 
     try {
       requestConfigurer.execute(requestSpecBacking.asSpec());
@@ -206,6 +224,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
       if (connectFuture.isSuccess()) {
         String fullPath = getFullPath(uri);
         FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
+
         if (headers.get(HttpHeaderConstants.HOST) == null) {
           HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
           headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
@@ -221,6 +240,11 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
 
         ChannelFuture writeFuture = connectFuture.channel().writeAndFlush(request);
         writeFuture.addListener(f2 -> {
+          //invoke the request interceptor
+          requestInterceptor
+            .ifPresent(c -> c.intercept(new ImmutableSentRequest(request.method().name(),
+              request.uri(),
+              new NettyHeadersBackedHeaders(requestHeaders))));
           if (!writeFuture.isSuccess()) {
             writeFuture.channel().close();
             error(downstream, writeFuture.cause());
