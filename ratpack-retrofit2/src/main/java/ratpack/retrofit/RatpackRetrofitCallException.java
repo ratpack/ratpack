@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.retrofit;
 
-description = "Integration with the Retrofit2 library - http://square.github.io/retrofit"
+import retrofit2.Call;
+import retrofit2.Response;
 
-dependencies {
-  compile project(':ratpack-core')
-  compile 'com.squareup.retrofit2:retrofit:2.0.2'
+import java.io.IOException;
+
+public class RatpackRetrofitCallException extends Exception {
+
+  public RatpackRetrofitCallException(Call<?> call, String error) {
+    super(call.request().url().toString() + ": " + error);
+  }
+
+  public static RatpackRetrofitCallException cause(Call<?> call, Response<?> response) throws IOException {
+    return new RatpackRetrofitCallException(call, response.errorBody().string());
+  }
 }

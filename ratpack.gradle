@@ -110,7 +110,7 @@ ext {
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
     "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
     "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter"
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2"
   ].collect { project(it) }
 
   noCodeModules = [

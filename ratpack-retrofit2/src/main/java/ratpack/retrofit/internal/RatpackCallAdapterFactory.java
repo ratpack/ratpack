@@ -18,6 +18,8 @@ package ratpack.retrofit.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
+import ratpack.retrofit.RatpackRetrofitCallException;
+import ratpack.util.Exceptions;
 import retrofit2.*;
 
 import java.lang.annotation.Annotation;
@@ -108,13 +110,17 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
           @Override
           public void onResponse(Call<R> call, Response<R> response) {
-            System.out.println("Calling onResponse");
-            downstream.success(response.body());
+            if (response.isSuccessful()) {
+              downstream.success(response.body());
+            } else {
+              Exceptions.uncheck(() ->
+                downstream.error(RatpackRetrofitCallException.cause(call, response))
+              );
+            }
           }
 
           @Override
           public void onFailure(Call<R> call, Throwable t) {
-            System.out.println("Calling onError");
             downstream.error(t);
           }
         })

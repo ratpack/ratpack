@@ -58,12 +58,12 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
 
     @Override
     public Response execute() throws IOException {
-      throw new UnsupportedOperationException("Not implemented for Ratpack");
+      throw new UnsupportedOperationException("execute() not implemented for Ratpack");
     }
 
     @Override
     public void enqueue(okhttp3.Callback responseCallback) {
-      final Call $this = this;
+      final Call thisCall = this;
       client.request(request.url().uri(), spec -> {
         spec.method(request.method());
         spec.headers(h -> {
@@ -78,6 +78,12 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
             b.stream(buffer::writeTo);
             b.type(request.body().contentType().toString());
           });
+        }
+      }).onError(t -> {
+        if (t instanceof IOException) {
+          responseCallback.onFailure(thisCall, (IOException) t);
+        } else {
+          responseCallback.onFailure(thisCall, new IOException(t));
         }
       }).then(r -> {
         Response.Builder builder = new Response.Builder();
@@ -96,9 +102,7 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
 
             @Override
             public BufferedSource source() {
-              Buffer buffer = new Buffer();
-                buffer.write(r.getBody().getBytes());
-              return buffer;
+              return new Buffer().write(r.getBody().getBytes());
             }
           });
         for (Map.Entry<String, Collection<String>> entry : r.getHeaders().asMultiValueMap().asMultimap().asMap().entrySet()) {
@@ -107,13 +111,13 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
           }
         }
         builder.protocol(Protocol.HTTP_1_1);
-        responseCallback.onResponse($this, builder.build());
+        responseCallback.onResponse(thisCall, builder.build());
       });
     }
 
     @Override
     public void cancel() {
-
+      throw new UnsupportedOperationException("cancel() not implemented for Ratpack");
     }
 
     @Override
