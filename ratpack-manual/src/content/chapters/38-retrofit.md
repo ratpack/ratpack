@@ -118,4 +118,59 @@ public class Example {
 }
 ```
 
+## Using Retrofit Converters
+
+By default, `ratpack-retrofit2` registers the [`ScalarsConverterFactory`](http://square.github.io/retrofit/2.x/converter-scalars/retrofit2/converter/scalars/ScalarsConverterFactory.html).
+This allows for API responses to be converted into Java `String`, primitives and their box types.
+
+If the remote API is responding in JSON, then the [`JacksonConverterFactory`](http://square.github.io/retrofit/2.x/converter-jackson/retrofit2/converter/jackson/JacksonConverterFactory.html) must be registered.
+
+```language-java
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ratpack.exec.Promise;
+import ratpack.http.client.HttpClient;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.retrofit.RatpackRetrofit;
+import ratpack.server.PublicAddress;
+import ratpack.test.embed.EmbeddedApp;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.Retrofit;
+
+import java.util.List;
+
+import static ratpack.jackson.Jackson.json;
+import static org.junit.Assert.*;
+
+  
+public class Example {
+
+  public static interface NameApi {
+    @GET("names") Promise<List<String>> names();
+  }
+
+  public static void main(String... args) throws Exception {
+    EmbeddedApp.of(s -> s
+      .handlers(chain -> {
+        chain.get(ctx -> {
+          PublicAddress address = ctx.get(PublicAddress.class);
+          HttpClient httpClient = ctx.get(HttpClient.class);
+          
+          NameApi api = RatpackRetrofit.builder(httpClient)
+            .configure(b -> b.addConverterFactory(JacksonConverterFactory.create(ctx.get(ObjectMapper.class))))
+            .uri(address.get())
+            .build(NameApi.class);
+            
+          api.names().then(nameList -> ctx.render(json(nameList)));  
+        });
+        chain.get("names", ctx -> ctx.render(json(new String[]{"John", "Jane"})));
+      })
+    ).test(httpClient -> {
+      assertEquals("[\"John\",\"Jane\"]", httpClient.getText());
+    });
+  }
+}
+```
+
+
 
