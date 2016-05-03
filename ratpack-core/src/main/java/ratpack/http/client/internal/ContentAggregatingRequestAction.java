@@ -25,18 +25,31 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
+import ratpack.http.client.HttpClientRequestInterceptor;
+import ratpack.http.client.HttpClientResponseInterceptor;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
 import java.net.URI;
+import java.util.Optional;
 
 class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
 
   private final int maxContentLengthBytes;
+  private final Optional<HttpClientRequestInterceptor> requestInterceptor;
+  private final Optional<HttpClientResponseInterceptor> responseInterceptor;
 
-  public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, int redirectCount) {
-    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount);
+  public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer,
+                                         URI uri, Execution execution,
+                                         ByteBufAllocator byteBufAllocator,
+                                         int maxContentLengthBytes,
+                                         int redirectCount,
+                                         Optional<HttpClientRequestInterceptor> requestInterceptor,
+                                         Optional<HttpClientResponseInterceptor> responseInterceptor) {
+    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount, requestInterceptor);
     this.maxContentLengthBytes = maxContentLengthBytes;
+    this.requestInterceptor = requestInterceptor;
+    this.responseInterceptor = responseInterceptor;
   }
 
   @Override
@@ -45,7 +58,10 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
     p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
       @Override
       public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        success(downstream, toReceivedResponse(msg));
+        ReceivedResponse response = toReceivedResponse(msg);
+        responseInterceptor
+          .ifPresent(c -> c.intercept(response));
+        success(downstream, response);
       }
 
       @Override
@@ -58,7 +74,14 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
   @Override
   protected RequestActionSupport<ReceivedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentAggregatingRequestAction(redirectRequestConfig, locationUrl, execution, byteBufAllocator, maxContentLengthBytes, redirectCount);
+    return new ContentAggregatingRequestAction(redirectRequestConfig,
+                                                locationUrl,
+                                                execution,
+                                                byteBufAllocator,
+                                                maxContentLengthBytes,
+                                                redirectCount,
+                                                requestInterceptor,
+                                                responseInterceptor);
   }
 
 }

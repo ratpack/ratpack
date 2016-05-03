@@ -20,21 +20,34 @@ import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.ReceivedResponse;
-import ratpack.http.client.RequestSpec;
-import ratpack.http.client.StreamedResponse;
+import ratpack.http.client.*;
 
 import java.net.URI;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class DefaultHttpClient implements HttpClient {
-
   private final ByteBufAllocator byteBufAllocator;
   private final int maxContentLengthBytes;
+  private final Supplier<Optional<HttpClientRequestInterceptor>> requestInterceptor;
+  private final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor;
 
-  public DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
+  public DefaultHttpClient(final ByteBufAllocator byteBufAllocator,
+                           final int maxContentLengthBytes,
+                           final Supplier<Optional<HttpClientRequestInterceptor>> requestInterceptor,
+                           final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLengthBytes = maxContentLengthBytes;
+    this.requestInterceptor = requestInterceptor;
+    this.responseInterceptor = responseInterceptor;
+  }
+
+  public DefaultHttpClient(final ByteBufAllocator byteBufAllocator,
+                           final int maxContentLengthBytes) {
+    this(byteBufAllocator,
+          maxContentLengthBytes,
+          () -> Execution.current().maybeGet(HttpClientRequestInterceptor.class),
+          () -> Execution.current().maybeGet(HttpClientResponseInterceptor.class));
   }
 
   @Override
@@ -56,7 +69,17 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(f -> new ContentAggregatingRequestAction(requestConfigurer, uri, Execution.current(), byteBufAllocator, maxContentLengthBytes, 0).connect(f));
+
+    Execution execution = Execution.current();
+
+    return Promise.async(f -> new ContentAggregatingRequestAction(requestConfigurer,
+      uri,
+      execution,
+      byteBufAllocator,
+      maxContentLengthBytes,
+      0,
+      requestInterceptor.get(),
+      responseInterceptor.get()).connect(f));
   }
 
   @Override
