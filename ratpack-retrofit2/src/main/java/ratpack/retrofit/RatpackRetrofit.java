@@ -22,6 +22,7 @@ import ratpack.http.client.HttpClient;
 import ratpack.retrofit.internal.RatpackCallAdapterFactory;
 import ratpack.retrofit.internal.RatpackCallFactory;
 import ratpack.util.Exceptions;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
 
 import java.net.URI;
@@ -53,7 +54,7 @@ import java.net.URI;
  *           HttpClient httpClient = ctx.get(HttpClient.class);
  *           HelloService service = RatpackRetrofit.builder(httpClient)
  *             .uri(address.get())
- *             .build()
+ *             .retrofit()
  *             .create(HelloService.class);
  *
  *           ctx.render service.hello();
@@ -72,6 +73,13 @@ import java.net.URI;
  */
 public class RatpackRetrofit {
 
+  /**
+   * Create a new builder for creating Retrofit implementations.
+   *
+   * @param httpClient the http client for Retrofit to use to make requests.
+   *
+   * @return a builder
+   */
   public static Builder builder(HttpClient httpClient) {
     return new Builder(httpClient);
   }
@@ -83,37 +91,75 @@ public class RatpackRetrofit {
     private URI uri;
 
     public Builder(HttpClient httpClient) {
-      Preconditions.checkNotNull(httpClient);
       this.httpClient = httpClient;
     }
 
+    /**
+     * Configure the underlying {@link retrofit2.Retrofit.Builder} instance.
+     * <p>
+     * This is used to customize the behavior of Retrofit.
+     *
+     * @param builderAction the actions to apply to the Retrofit builder
+     * @return this
+     * @see Converter.Factory
+     * @see retrofit2.CallAdapter.Factory
+     */
     public Builder configure(Action<? super Retrofit.Builder> builderAction) {
       this.builderAction = builderAction;
       return this;
     }
 
-    public Builder client(HttpClient client) {
-      Preconditions.checkNotNull(client);
-      this.httpClient = client;
-      return this;
-    }
-
+    /**
+     * Sets the base URI for all requests issued by Retrofit clients created by this builder.
+     * <p>
+     * This must be specified.
+     * @param uri The base URI for http requests
+     * @return this
+     */
     public Builder uri(URI uri) {
       this.uri = uri;
       return this;
     }
 
+    /**
+     * Sets the base URI for all requests issued by Retrofit clients created by this builder.
+     * <p>
+     * This must be specified.
+     * @param uri The base URI for http requests
+     * @return this
+     */
     public Builder uri(String uri) {
       return Exceptions.uncheck(() -> uri(new URI(uri)));
     }
 
-    public Retrofit build() throws Exception {
+    /**
+     * Creates the underlying {@link Retrofit} instance and configures it to interface with {@link HttpClient} and {@link ratpack.exec.Promise}.
+     * <p>
+     * The resulting Retrofit instance can be re-used to generate multiple client interfaces which share the same base URI.
+     * @return the Retrofit instance to create client interfaces
+     */
+    public Retrofit retrofit() {
+      Preconditions.checkNotNull(httpClient, "Must provide a HttpClient instance.");
+      Preconditions.checkNotNull(uri, "Must provide the base uri.");
       Retrofit.Builder builder = new Retrofit.Builder()
         .callFactory(new RatpackCallFactory(httpClient))
         .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE);
       builder.baseUrl(uri.toString());
-      builderAction.execute(builder);
+      Exceptions.uncheck(() -> builderAction.execute(builder));
       return builder.build();
+    }
+
+    /**
+     * Uses this builder to create a Retrofit client implemention.
+     * <p>
+     * This is the short form of calling {@code builder.retrofit().build(service)}.
+     *
+     * @param service the client interface to generate.
+     * @param <T> the type of the client interface.
+     * @return a generated instance of the client interface.
+     */
+    public <T> T build(Class<T> service) {
+      return retrofit().create(service);
     }
   }
 

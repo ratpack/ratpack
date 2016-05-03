@@ -49,7 +49,6 @@ class RatpackRetrofitSpec extends Specification {
     @GET("/error") Promise<Response<String>> errorResponse()
   }
 
-  Retrofit retrofit
   Service service
   HttpClient client
 
@@ -71,13 +70,12 @@ class RatpackRetrofitSpec extends Specification {
       }
     }
     client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
-    retrofit = RatpackRetrofit.builder(client)
+    service = RatpackRetrofit.builder(client)
       .uri(server.address)
       .configure { Retrofit.Builder b ->
         b.addConverterFactory(new StringConverterFactory())
       }
-      .build()
-    service = retrofit.create(Service)
+      .build(Service)
   }
 
   def "successful request body"() {
@@ -127,13 +125,12 @@ class RatpackRetrofitSpec extends Specification {
 
   def "exception thrown on connection exceptions"() {
     given:
-    retrofit = RatpackRetrofit.builder(client)
+    service = RatpackRetrofit.builder(client)
       .uri("http://localhost:8080")
       .configure { Retrofit.Builder b ->
       b.addConverterFactory(new StringConverterFactory())
     }
-    .build()
-    service = retrofit.create(Service)
+    .build(Service)
 
     when:
     ExecHarness.yieldSingle {
