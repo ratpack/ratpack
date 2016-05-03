@@ -32,6 +32,8 @@ import ratpack.util.internal.ChannelImplDetector;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class DefaultHttpClient implements HttpClientInternal {
 
@@ -97,11 +99,29 @@ public class DefaultHttpClient implements HttpClientInternal {
   private final int poolSize;
   private final Duration readTimeout;
 
+  private final Supplier<Iterable<? extends HttpClientRequestInterceptor>> requestInterceptor;
+  private final Supplier<Iterable<? extends HttpClientResponseInterceptor>> responseInterceptor;
+  private final Supplier<Optional<RequestSpecConfigurer>> requestConfigurer;
+
   private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout) {
+    this(byteBufAllocator, maxContentLength, poolSize, readTimeout,
+      () -> Execution.current().getAll(HttpClientRequestInterceptor.class),
+      () -> Execution.current().getAll(HttpClientResponseInterceptor.class),
+      () -> Execution.current().maybeGet(RequestSpecConfigurer.class));
+  }
+
+
+  DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout,
+                            final Supplier<Iterable<? extends HttpClientRequestInterceptor>> requestInterceptor,
+                            final Supplier<Iterable<? extends HttpClientResponseInterceptor>> responseInterceptor,
+                            final Supplier<Optional<RequestSpecConfigurer>> requestConfigurer) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLength = maxContentLength;
     this.poolSize = poolSize;
     this.readTimeout = readTimeout;
+    this.requestInterceptor = requestInterceptor;
+    this.responseInterceptor = responseInterceptor;
+    this.requestConfigurer = requestConfigurer;
   }
 
   @Override
@@ -194,7 +214,14 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer).connect(downstream));
+    RequestSpecConfigurer configurer = this.requestConfigurer
+      .get()
+      .orElse(requestSpec -> Action.noop());
+    return Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(),
+      requestConfigurer.prepend(configurer::configure),
+      new HttpClientRequestInterceptorChain(requestInterceptor.get()),
+      new HttpClientResponseInterceptorChain(responseInterceptor.get())
+      ).connect(downstream));
   }
 
   @Override

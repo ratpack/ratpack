@@ -42,6 +42,8 @@ import ratpack.handling.RequestId;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClientBuilder;
+import ratpack.http.client.internal.DefaultHttpClientBuilder;
 import ratpack.impose.Impositions;
 import ratpack.jackson.internal.JsonParser;
 import ratpack.jackson.internal.JsonRenderer;
@@ -52,6 +54,7 @@ import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
@@ -123,6 +126,7 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, httpClient)
+        .add(HttpClientBuilder.class, new DefaultHttpClientBuilder(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength(), 0, Duration.ofSeconds(30)))
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
         .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE);

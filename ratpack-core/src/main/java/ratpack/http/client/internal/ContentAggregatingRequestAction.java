@@ -35,15 +35,21 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
   private static final String AGGREGATOR_HANDLER_NAME = "aggregator";
   private static final String RESPONSE_HANDLER_NAME = "response";
+  private final HttpClientRequestInterceptorChain requestInterceptorChain;
+  private final HttpClientResponseInterceptorChain responseInterceptorChain;
 
   ContentAggregatingRequestAction(
     URI uri,
     HttpClientInternal client,
     int redirectCount,
     Execution execution,
-    Action<? super RequestSpec> requestConfigurer
+    Action<? super RequestSpec> requestConfigurer,
+    HttpClientRequestInterceptorChain requestInterceptorChain,
+    HttpClientResponseInterceptorChain responseInterceptorChain
   ) {
-    super(uri, client, redirectCount, execution, requestConfigurer);
+    super(uri, client, redirectCount, execution, requestConfigurer, requestInterceptorChain);
+    this.requestInterceptorChain = requestInterceptorChain;
+    this.responseInterceptorChain = responseInterceptorChain;
   }
 
   @Override
@@ -69,6 +75,8 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
             content.release();
           }
         });
+        ReceivedResponse receivedResponse = toReceivedResponse(response, content);
+        responseInterceptorChain.intercept(receivedResponse);
         success(downstream, toReceivedResponse(response, content));
       }
 
@@ -82,7 +90,8 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
   @Override
   protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
-    return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
+    return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig, requestInterceptorChain,
+      responseInterceptorChain);
   }
 
 }
