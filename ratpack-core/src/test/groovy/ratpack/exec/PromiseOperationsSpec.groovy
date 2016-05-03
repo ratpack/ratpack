@@ -420,4 +420,61 @@ class PromiseOperationsSpec extends Specification {
     events == ["one", "foo", "two", "three", "oof", "four", "five", "complete"]
   }
 
+  def "exception thrown in promise consumer is routed to execution error handler"() {
+    given:
+    def ex = new Exception("!")
+
+    when:
+    exec ({
+      Promise.value("foo").onError {
+        events << "unexpected"
+      }.then {
+        throw ex
+      }
+    }, {
+      events << it
+    }
+    )
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "unchecked exception thrown in promise consumer is routed to execution error handler"() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec ({
+      Promise.value("foo").onError {
+        events << "unexpected"
+      }.then {
+        throw ex
+      }
+    }, {
+      events << it
+    })
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "error thrown in promise consumer is routed to execution error handler"() {
+    given:
+    def ex = new Error("!")
+
+    when:
+    exec ({
+      Promise.value("foo").onError {
+        events << "unexpected"
+      }.then {
+        throw ex
+      }
+    }, {
+      events << it
+    })
+
+    then:
+    events == [ex, "complete"]
+  }
 }

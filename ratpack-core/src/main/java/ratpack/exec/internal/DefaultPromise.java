@@ -41,7 +41,7 @@ public class DefaultPromise<T> implements Promise<T> {
       public void success(T value) {
         try {
           then.execute(value);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           throwError(e);
         }
       }
