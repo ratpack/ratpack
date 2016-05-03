@@ -22,6 +22,7 @@ import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.http.client.HttpClient
 import ratpack.http.client.internal.DefaultHttpClient
 import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
@@ -40,12 +41,17 @@ import java.lang.reflect.Type
 class RatpackRetrofitSpec extends Specification {
 
   interface Service {
-    @GET("/") Promise<String> promiseBody()
-    @GET("/") Promise<Response<String>> promiseResponse()
+    @GET("/") Promise<String> root()
+    @GET("/") Promise<Response<String>> rootResponse()
+    @GET("/foo") Promise<String> foo()
+    @GET("/foo") Promise<Response<String>> fooResponse()
+    @GET("/error") Promise<String> error()
+    @GET("/error") Promise<Response<String>> errorResponse()
   }
 
   Retrofit retrofit
   Service service
+  HttpClient client
 
   @AutoCleanup
   EmbeddedApp server
@@ -56,9 +62,16 @@ class RatpackRetrofitSpec extends Specification {
         get {
           render "OK"
         }
+        get("foo") {
+          render "foo"
+        }
+        get("error") {
+          response.status(500).send()
+        }
       }
     }
-    retrofit = RatpackRetrofit.builder(new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH))
+    client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
+    retrofit = RatpackRetrofit.builder(client)
       .uri(server.address)
       .configure { Retrofit.Builder b ->
         b.addConverterFactory(new StringConverterFactory())
@@ -70,7 +83,7 @@ class RatpackRetrofitSpec extends Specification {
   def "successful request body"() {
     when:
     def value = ExecHarness.yieldSingle {
-      service.promiseBody()
+      service.root()
     }.valueOrThrow
 
     then:
@@ -80,12 +93,56 @@ class RatpackRetrofitSpec extends Specification {
   def "successful request response"() {
     when:
     Response<String> value = ExecHarness.yieldSingle {
-      service.promiseResponse()
+      service.fooResponse()
     }.valueOrThrow
 
     then:
     value.code() == 200
-    value.body() == "OK"
+    value.body() == "foo"
+  }
+
+  def "simple type adapter throws exception on non successful response"() {
+    when:
+    ExecHarness.yieldSingle {
+      service.error()
+    }.valueOrThrow
+
+    then:
+    thrown(RatpackRetrofitCallException)
+
+  }
+
+  def "response type adapter does not throw on non successful response"() {
+
+    when:
+    Response<String> response = ExecHarness.yieldSingle {
+      service.errorResponse()
+    }.valueOrThrow
+
+    then:
+    noExceptionThrown()
+
+    !response.isSuccessful()
+  }
+
+  def "exception thrown on connection exceptions"() {
+    given:
+    retrofit = RatpackRetrofit.builder(client)
+      .uri("http://localhost:8080")
+      .configure { Retrofit.Builder b ->
+      b.addConverterFactory(new StringConverterFactory())
+    }
+    .build()
+    service = retrofit.create(Service)
+
+    when:
+    ExecHarness.yieldSingle {
+      service.rootResponse()
+    }.valueOrThrow
+
+    then:
+    thrown(ConnectException)
+
   }
 
   static class StringConverterFactory extends Converter.Factory {
@@ -93,18 +150,18 @@ class RatpackRetrofitSpec extends Specification {
     Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
       return new Converter<ResponseBody, String>() {
         @Override public String convert(ResponseBody value) throws IOException {
-          return value.string();
+          return value.string()
         }
-      };
+      }
     }
 
     @Override
     Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
       return new Converter<String, RequestBody>() {
         @Override public RequestBody convert(String value) throws IOException {
-          return RequestBody.create(MediaType.parse("text/plain"), value);
+          return RequestBody.create(MediaType.parse("text/plain"), value)
         }
-      };
+      }
     }
   }
 }
