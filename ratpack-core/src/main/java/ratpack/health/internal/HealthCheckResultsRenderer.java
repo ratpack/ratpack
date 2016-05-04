@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
 import ratpack.health.HealthCheck;
 import ratpack.health.HealthCheckResults;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
 
 import java.io.BufferedOutputStream;
@@ -69,6 +70,9 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
       throw e;
     }
 
-    context.getResponse().status(unhealthy ? 503 : 200).send(buffer);
+    context.getResponse()
+      .contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8)
+      .status(unhealthy ? 503 : 200)
+      .send(buffer);
   }
 }
