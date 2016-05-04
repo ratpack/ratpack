@@ -78,8 +78,8 @@ public class DefaultExecController implements ExecControllerInternal {
   }
 
   public void close() {
-    eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     blockingExecutor.shutdown();
+    eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
   }
 
   @Override
