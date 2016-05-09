@@ -421,7 +421,7 @@ public class DefaultExecution implements Execution {
           if (resume == null) {
             if (resumed) {
               execStream = parent;
-              return execStream.exec();
+              return true;
             } else {
               return false;
             }
@@ -434,7 +434,7 @@ public class DefaultExecution implements Execution {
           Block segment = segments.poll();
           if (segment == null) {
             execStream = parent;
-            return execStream.exec();
+            return true;
           } else {
             segment.execute();
             return true;
@@ -465,7 +465,7 @@ public class DefaultExecution implements Execution {
     void error(Throwable throwable) {
       execStream = parent;
       if (resumed && resume == null) {
-        execStream.error(throwable);
+        parent.error(throwable);
       } else {
         try {
           onError.execute(throwable);
@@ -514,7 +514,7 @@ public class DefaultExecution implements Execution {
           }
         } else {
           events.poll();
-          return exec();
+          return true;
         }
       } else {
         nextSegment.execute();

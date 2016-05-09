@@ -74,7 +74,7 @@ public class DefaultPromise<T> implements Promise<T> {
     }
   }
 
-  private void throwError(Throwable throwable) {
+  public static void throwError(Throwable throwable) {
     DefaultExecution.require().delimit(Action.throwException(), h -> h.resume(Block.throwException(throwable)));
   }
 

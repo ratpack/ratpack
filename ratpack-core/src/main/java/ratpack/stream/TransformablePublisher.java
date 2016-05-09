@@ -19,6 +19,7 @@ package ratpack.stream;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
+import ratpack.func.BiFunction;
 import ratpack.func.Function;
 import ratpack.func.Predicate;
 
@@ -192,6 +193,29 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    */
   default TransformablePublisher<T> filter(Predicate<? super T> filter) {
     return Streams.filter(this, filter);
+  }
+
+  /**
+   * See {@link Streams#bindExec(Publisher)}
+   *
+   * @return a publisher bound to the current execution
+   * @since 1.4
+   */
+  default TransformablePublisher<T> bindExec() {
+    return Streams.bindExec(this);
+  }
+
+  /**
+   * Reduces the stream to a single value, by applying the given function successively.
+   *
+   * @param seed the initial value
+   * @param reducer the reducing function
+   * @param <R> the type of result
+   * @return a promise for the reduced value
+   * @since 1.4
+   */
+  default <R> Promise<R> reduce(R seed, BiFunction<R, T, R> reducer) {
+    return Streams.reduce(this, seed, reducer);
   }
 
 }
