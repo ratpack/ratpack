@@ -47,7 +47,7 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
             it.requestNum < elements ? elements : null
           }
 
-          Streams.bindExec(stream).flatMap { n ->
+          stream.bindExec().flatMap { n ->
             Blocking.get { n * 2 }
           }.subscribe(s)
         }

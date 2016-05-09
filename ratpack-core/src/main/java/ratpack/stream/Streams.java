@@ -17,10 +17,13 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
+import ratpack.func.BiFunction;
 import ratpack.func.Function;
 import ratpack.func.Predicate;
 import ratpack.registry.Registry;
@@ -30,6 +33,7 @@ import ratpack.util.Types;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Some lightweight utilities for working with <a href="http://www.reactive-streams.org/">reactive streams</a>.
@@ -542,6 +546,56 @@ public class Streams {
    */
   public static <T> Promise<List<T>> toList(Publisher<T> publisher) {
     return Promise.async(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
+  }
+
+  /**
+   * Reduces the stream to a single value, by applying the given function successively.
+   *
+   * @param publisher the publisher to reduce
+   * @param seed the initial value
+   * @param reducer the reducing function
+   * @param <R> the type of result
+   * @return a promise for the reduced value
+   * @since 1.4
+   */
+  public static <T, R> Promise<R> reduce(Publisher<T> publisher, R seed, BiFunction<R, T, R> reducer) {
+    return Promise.async(d ->
+      publisher.subscribe(new Subscriber<T>() {
+        private Subscription subscription;
+        private volatile R value = seed;
+        private AtomicInteger count = new AtomicInteger();
+
+        @Override
+        public void onSubscribe(Subscription s) {
+          subscription = s;
+          s.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(T t) {
+          count.incrementAndGet();
+          try {
+            value = reducer.apply(value, t);
+          } catch (Throwable e) {
+            subscription.cancel();
+            d.error(e);
+          }
+          System.out.println(count.decrementAndGet());
+        }
+
+        @Override
+        public void onError(Throwable t) {
+          d.error(t);
+        }
+
+        @Override
+        public void onComplete() {
+          System.out.println(value);
+
+          d.success(value);
+        }
+      })
+    );
   }
 
   public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {

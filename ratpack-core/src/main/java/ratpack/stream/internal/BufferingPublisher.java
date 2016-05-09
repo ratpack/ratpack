@@ -148,7 +148,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
     private volatile Subscriber<? super T> downstream;
     private volatile Throwable error;
 
-    private BufferedWriteStream<T> writeStream;
+    private final BufferedWriteStream<T> writeStream = new WriteStream();
 
     public BufferingSubscription(Subscriber<? super T> downstream) {
       this.downstream = downstream;
@@ -216,7 +216,6 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
       if (upstreamSubscription == null) {
         try {
-          writeStream = n == Long.MAX_VALUE ? passThruWriteStream() : nonPassThruWriteStream();
           upstreamSubscription = function.apply(writeStream);
         } catch (Exception e) {
           writeStream.error(e);
@@ -248,74 +247,43 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
       drain();
     }
 
-    private BufferedWriteStream<T> nonPassThruWriteStream() {
-      return new BufferedWriteStream<T>() {
-        @Override
-        public void item(T item) {
-          buffer.add(item);
-          if (open) {
-            drain();
-          }
+    class WriteStream implements BufferedWriteStream<T> {
+      @Override
+      public void item(T item) {
+        buffer.add(item);
+        if (open) {
+          drain();
         }
+      }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public void error(Throwable throwable) {
-          error = throwable;
-          buffer.add((T) ON_ERROR);
-          if (open) {
-            drain();
-          }
+      @SuppressWarnings("unchecked")
+      @Override
+      public void error(Throwable throwable) {
+        error = throwable;
+        buffer.add((T) ON_ERROR);
+        if (open) {
+          drain();
         }
+      }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public void complete() {
-          buffer.add((T) ON_COMPLETE);
-          if (open) {
-            drain();
-          }
+      @SuppressWarnings("unchecked")
+      @Override
+      public void complete() {
+        buffer.add((T) ON_COMPLETE);
+        if (open) {
+          drain();
         }
+      }
 
-        @Override
-        public long getRequested() {
-          return wanted.get();
-        }
+      @Override
+      public long getRequested() {
+        return wanted.get();
+      }
 
-        @Override
-        public long getBuffered() {
-          return buffer.size();
-        }
-      };
-    }
-
-    private BufferedWriteStream<T> passThruWriteStream() {
-      return new BufferedWriteStream<T>() {
-        @Override
-        public void item(T item) {
-          downstream.onNext(item);
-        }
-
-        @Override
-        public void error(Throwable throwable) {
-          downstream.onError(throwable);
-        }
-
-        @Override
-        public void complete() {
-          downstream.onComplete();
-        }
-
-        @Override
-        public long getRequested() {
-          return Long.MAX_VALUE;
-        }
-
-        @Override
-        public long getBuffered() {
-          return 0L;
-        }
-      };
+      @Override
+      public long getBuffered() {
+        return buffer.size();
+      }
     }
 
   }
