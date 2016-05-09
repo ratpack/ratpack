@@ -27,7 +27,7 @@ class BatchSpec extends Specification {
   ExecHarness exec = ExecHarness.harness()
   def random = new Random()
 
-  def "process parallel batch"() {
+  def "parallel yieldAll all success"() {
     given:
     List<Promise<String>> promises = (1..9).collect { i ->
       Blocking.get { sleep(random.nextInt(100)); "Promise $i" }
@@ -40,6 +40,21 @@ class BatchSpec extends Specification {
 
     then:
     result.collect { it.valueOrThrow } == (1..9).collect { "Promise ${it}".toString() }
+  }
+
+  def "parallel yield all success"() {
+    given:
+    List<Promise<String>> promises = (1..9).collect { i ->
+      Blocking.get { sleep(random.nextInt(100)); "Promise $i" }
+    }
+
+    when:
+    List<String> result = exec.yieldSingle { e ->
+      Batch.of(promises).parallel().yield()
+    }.valueOrThrow
+
+    then:
+    result == (1..9).collect { "Promise ${it}".toString() }
   }
 
 }

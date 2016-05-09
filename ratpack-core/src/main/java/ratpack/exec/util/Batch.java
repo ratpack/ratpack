@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A mechanism for processing batches of jobs as {@link Promise promises}.
@@ -80,6 +81,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @param <T> the type of item in the batch
  * @since 1.4
  * @see #yieldAll()
+ * @see #publisher()
  */
 public final class Batch<T> {
 
@@ -159,6 +161,88 @@ public final class Batch<T> {
     }
 
     return execInit == null ? serialYieldAll(jobs) : parallelYieldAll(jobs, execInit);
+  }
+
+  /**
+   * Processes the batch jobs, return {@link Result} objects for each.
+   * <p>
+   * Processing will be halted as soon as the first error occurs.
+   * If processing in parallel, subsequent errors may also occur.
+   * Such errors will be {@link Throwable#addSuppressed(Throwable)} suppressed by the first error.
+   * <p>
+   * The order of the returned list corresponds to the original job order.
+   * That is, it is guaranteed that the 2nd item in the list was the 2nd job specified.
+   * It does not reflect the order in which jobs completed.
+   *
+   * @return a promise for the result of each job
+   */
+  public Promise<List<? extends T>> yield() {
+    List<Promise<T>> jobs = Lists.newArrayList(this.jobs);
+    if (jobs.isEmpty()) {
+      return Promise.value(Collections.emptyList());
+    }
+
+    return execInit == null ? serialYield(jobs) : parallelYield(jobs, execInit);
+  }
+
+  private static <T> Promise<List<? extends T>> parallelYield(List<Promise<T>> jobs, Action<? super Execution> execInit) {
+    List<T> results = Types.cast(jobs);
+    AtomicInteger counter = new AtomicInteger(jobs.size());
+    AtomicReference<Throwable> error = new AtomicReference<>();
+    return Promise.async(d -> {
+      for (int i = 0; i < jobs.size(); ++i) {
+        final int finalI = i;
+        Execution.fork()
+          .onStart(execInit)
+          .onComplete(e -> {
+            if (counter.decrementAndGet() == 0) {
+              Throwable t = error.get();
+              if (t == null) {
+                d.success(results);
+              } else {
+                d.error(t);
+              }
+            }
+          })
+          .start(e -> {
+            //noinspection ThrowableResultOfMethodCallIgnored
+            if (error.get() == null) {
+              jobs.get(finalI).result(t -> {
+                if (t.isError()) {
+                  if (!error.compareAndSet(null, t.getThrowable())) {
+                    //noinspection ThrowableResultOfMethodCallIgnored
+                    error.get().addSuppressed(t.getThrowable());
+                  }
+                } else {
+                  results.set(finalI, t.getValue());
+                }
+              });
+            }
+          });
+      }
+    });
+  }
+
+  private static <T> Promise<List<? extends T>> serialYield(List<Promise<T>> jobs) {
+    List<T> results = Types.cast(jobs);
+    int lastIndex = results.size() - 1;
+    return Promise.async(d ->
+      yieldJob(jobs, 0, new BiAction<Integer, ExecResult<T>>() {
+        @Override
+        public void execute(Integer i, ExecResult<T> t) throws Exception {
+          if (t.isError()) {
+            d.error(t.getThrowable());
+          } else {
+            results.set(i, t.getValue());
+            if (i < lastIndex) {
+              yieldJob(jobs, i + 1, this);
+            } else {
+              d.success(results);
+            }
+          }
+        }
+      })
+    );
   }
 
   /**
@@ -260,6 +344,7 @@ public final class Batch<T> {
     return Promise.async(d -> {
       for (int i = 0; i < jobs.size(); ++i) {
         final int finalI = i;
+        //noinspection CodeBlock2Expr
         Execution.fork()
           .onStart(init)
           .onComplete(e -> {
