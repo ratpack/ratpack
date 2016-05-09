@@ -42,8 +42,8 @@ public class RatpackVersions {
   public Promise<All> getAll() {
     return Batch.of(gitHubData.getReleasedVersions(), gitHubData.getUnreleasedVersions())
       .parallel()
-      .yieldAll()
-      .map(r -> new All(r.get(0).getValueOrThrow(), r.get(1).getValueOrThrow()));
+      .yield()
+      .map(r -> new All(r.get(0), r.get(1)));
   }
 
   @SuppressWarnings("StaticPseudoFunctionalStyleMethod")
