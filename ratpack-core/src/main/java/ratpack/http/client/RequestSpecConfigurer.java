@@ -16,17 +16,14 @@
 package ratpack.http.client;
 
 /**
- * Interface for {@link HttpClient} factory implementations.
+ * Functional interface for request configurer functions.
  */
-public interface HttpClientFactory {
+@FunctionalInterface
+public interface RequestSpecConfigurer {
   /**
-   * Create an {@link HttpClient} instance, with the specified interceptors.
+   * Configure the request.
    *
-   * @param requestInterceptor the request interceptor
-   * @param responseInterceptor the response interceptor
-   *
-   * @return the http client
+   * @param requestSpec the request spec.
    */
-  HttpClient create(HttpClientRequestInterceptor requestInterceptor,
-                    HttpClientResponseInterceptor responseInterceptor);
+  void configure(RequestSpec requestSpec);
 }

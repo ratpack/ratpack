@@ -53,7 +53,7 @@ class HttpClientInterceptorSpec extends HttpClientSpec {
   }
 
   @Unroll
-  def "can intercept #method request and response with client factory"() {
+  def "can intercept #method request and response with client builder"() {
     given:
     otherApp {
       get("foo") { ctx ->
@@ -66,8 +66,11 @@ class HttpClientInterceptorSpec extends HttpClientSpec {
 
     handlers {
       get { ctx ->
-        def factory = ctx.get(HttpClientFactory)
-        def httpClient = factory.create(requestInterceptor, responseInterceptor)
+        def factory = ctx.get(HttpClientBuilder)
+        def httpClient = factory
+          .requestInterceptor(requestInterceptor)
+          .responseInterceptor(responseInterceptor)
+          .build()
         httpClient.get(otherAppUrl("foo")) {
         } then { ReceivedResponse response ->
           render response.body.text
@@ -78,6 +81,62 @@ class HttpClientInterceptorSpec extends HttpClientSpec {
     then:
     1 * requestInterceptor.intercept(_ as SentRequest)
     1 * responseInterceptor.intercept(_ as ReceivedResponse)
+    where:
+    method << ["GET", "PUT", "POST", "DELETE", "PATCH"]
+  }
+  @Unroll
+  def "can confgure #method"() {
+    given:
+    otherApp {
+      get("foo") { ctx ->
+        render "bar"
+      }
+    }
+    def requestConfigurer = Mock(RequestSpecConfigurer)
+    when:
+
+    handlers {
+      get { ctx ->
+        ctx.execution.add(RequestSpecConfigurer, requestConfigurer)
+        def httpClient = ctx.get(HttpClient)
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+    text
+    then:
+    1 * requestConfigurer.configure(_ as RequestSpec)
+    where:
+    method << ["GET", "PUT", "POST", "DELETE", "PATCH"]
+  }
+  @Unroll
+  def "can configure #method request via builder"() {
+    given:
+    otherApp {
+      get("foo") { ctx ->
+        render "bar"
+      }
+    }
+    def requestConfigurer = Mock(RequestSpecConfigurer)
+    when:
+
+    handlers {
+      get { ctx ->
+        def factory = ctx.get(HttpClientBuilder)
+        def httpClient = factory
+          .requestSpecConfigurer(requestConfigurer)
+          .build()
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+    text
+    then:
+    1 * requestConfigurer.configure(_ as RequestSpec)
     where:
     method << ["GET", "PUT", "POST", "DELETE", "PATCH"]
   }
