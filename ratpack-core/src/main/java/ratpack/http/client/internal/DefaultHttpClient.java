@@ -31,15 +31,18 @@ public class DefaultHttpClient implements HttpClient {
   private final int maxContentLengthBytes;
   private final Supplier<Optional<HttpClientRequestInterceptor>> requestInterceptor;
   private final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor;
+  private final Supplier<Optional<RequestSpecConfigurer>> requestConfigurer;
 
   public DefaultHttpClient(final ByteBufAllocator byteBufAllocator,
                            final int maxContentLengthBytes,
                            final Supplier<Optional<HttpClientRequestInterceptor>> requestInterceptor,
-                           final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor) {
+                           final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor,
+                           final Supplier<Optional<RequestSpecConfigurer>> requestConfigurer) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLengthBytes = maxContentLengthBytes;
     this.requestInterceptor = requestInterceptor;
     this.responseInterceptor = responseInterceptor;
+    this.requestConfigurer = requestConfigurer;
   }
 
   public DefaultHttpClient(final ByteBufAllocator byteBufAllocator,
@@ -47,7 +50,8 @@ public class DefaultHttpClient implements HttpClient {
     this(byteBufAllocator,
           maxContentLengthBytes,
           () -> Execution.current().maybeGet(HttpClientRequestInterceptor.class),
-          () -> Execution.current().maybeGet(HttpClientResponseInterceptor.class));
+          () -> Execution.current().maybeGet(HttpClientResponseInterceptor.class),
+          () -> Execution.current().maybeGet(RequestSpecConfigurer.class));
   }
 
   @Override
@@ -69,10 +73,12 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-
     Execution execution = Execution.current();
-
-    return Promise.async(f -> new ContentAggregatingRequestAction(requestConfigurer,
+    RequestSpecConfigurer configurer = this.requestConfigurer
+      .get()
+      .orElse(requestSpec -> Action.noop());
+    return Promise.async(f -> new ContentAggregatingRequestAction(
+      requestConfigurer.prepend(configurer::configure),
       uri,
       execution,
       byteBufAllocator,
