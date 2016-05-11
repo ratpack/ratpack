@@ -17,24 +17,26 @@
 package ratpack.exec.util
 
 import ratpack.exec.Blocking
-import ratpack.exec.ExecResult
-import ratpack.exec.Promise
+import ratpack.exec.Execution
 import ratpack.test.exec.ExecHarness
+import spock.lang.AutoCleanup
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicInteger
 
 class BatchSpec extends Specification {
 
+  @AutoCleanup
   ExecHarness exec = ExecHarness.harness()
-  def random = new Random()
 
   def "parallel yieldAll all success"() {
     given:
-    List<Promise<String>> promises = (1..9).collect { i ->
-      Blocking.get { sleep(random.nextInt(100)); "Promise $i" }
+    def promises = (1..9).collect { i ->
+      Blocking.get { "Promise $i" }
     }
 
     when:
-    List<ExecResult<String>> result = exec.yieldSingle { e ->
+    def result = exec.yieldSingle { e ->
       Batch.of(promises).parallel().yieldAll()
     }.valueOrThrow
 
@@ -44,17 +46,70 @@ class BatchSpec extends Specification {
 
   def "parallel yield all success"() {
     given:
-    List<Promise<String>> promises = (1..9).collect { i ->
-      Blocking.get { sleep(random.nextInt(100)); "Promise $i" }
+    def promises = (1..9).collect { i ->
+      Blocking.get { "Promise $i" }
     }
 
     when:
-    List<String> result = exec.yieldSingle { e ->
+    def result = exec.yieldSingle { e ->
       Batch.of(promises).parallel().yield()
     }.valueOrThrow
 
     then:
     result == (1..9).collect { "Promise ${it}".toString() }
+  }
+
+  def "yield failure parallel"() {
+    given:
+    def promises = (0..9).collect { i ->
+      Blocking.get {
+        def v = Execution.current().get(Integer)
+        if (v > 5) {
+          throw new RuntimeException("!")
+        } else {
+          "Promise $v"
+        }
+      }
+    }
+
+    when:
+    def i = new AtomicInteger()
+    def t = exec.yieldSingle { e ->
+      Batch.of(promises).parallel {
+        it.add(Integer, i.getAndIncrement())
+      }.yield()
+    }.throwable
+
+    then:
+    t instanceof RuntimeException
+    t.suppressed.length == 3
+  }
+
+  def "yield all failure parallel"() {
+    given:
+    def promises = (0..9).collect { i ->
+      Blocking.get {
+        def v = Execution.current().get(Integer)
+        if (v > 5) {
+          throw new RuntimeException("!")
+        } else {
+          "Promise $v"
+        }
+      }
+    }
+
+    when:
+    def i = new AtomicInteger()
+    def t = exec.yieldSingle { e ->
+      Batch.of(promises).parallel {
+        it.add(Integer, i.getAndIncrement())
+      }.yieldAll()
+    }.valueOrThrow
+
+    then:
+    t.size() == 10
+    t[0..5].each { it.success }
+    t[6..9].each { it.error }
   }
 
 }

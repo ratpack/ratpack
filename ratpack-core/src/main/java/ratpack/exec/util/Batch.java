@@ -138,6 +138,8 @@ public final class Batch<T> {
    * The given action will be called with each execution before processing the promise.
    * This can be used to seed the execution registry.
    * <p>
+   * The given action will be invoked from the execution in question, and will be executed in parallel.
+   * <p>
    * This method does not initiate processing.
    * It returns a new batch object, that is configured to process in parallel.
    *
