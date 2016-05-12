@@ -18,6 +18,7 @@ package ratpack.exec.util
 
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -46,9 +47,7 @@ class BatchSpec extends Specification {
 
   def "parallel yield all success"() {
     given:
-    def promises = (1..9).collect { i ->
-      Blocking.get { "Promise $i" }
-    }
+    def promises = (1..9).collect { i -> Blocking.get { "Promise $i" } }
 
     when:
     def result = exec.yieldSingle { e ->
@@ -110,6 +109,36 @@ class BatchSpec extends Specification {
     t.size() == 10
     t[0..5].each { it.success }
     t[6..9].each { it.error }
+  }
+
+  def "consume parallel publisher"() {
+    when:
+    def promises = (1..9).collect { i -> Blocking.get { "Promise $i" } }
+    def p = Batch.of(promises).parallel().publisher()
+
+    then:
+    def l = exec.yield { p.toList() }.valueOrThrow
+    l.sort(false) == (1..9).collect { "Promise $it" }
+  }
+
+  def "consume publisher"() {
+    when:
+    def promises = (1..9).collect { i -> Blocking.get { "Promise $i" } }
+    def p = Batch.of(promises).publisher()
+
+    then:
+    def l = exec.yield { p.toList() }.valueOrThrow
+    l == (1..9).collect { "Promise $it" }
+  }
+
+  def "consume parallel publisher error"() {
+    when:
+    def promises = (1..9).collect { i -> i < 2 ? Promise.error(new RuntimeException("1")) : Promise.value(i) }
+    def p = Batch.of(promises).parallel().publisher()
+    exec.yield { p.toList() }.valueOrThrow
+
+    then:
+    thrown RuntimeException
   }
 
 }
