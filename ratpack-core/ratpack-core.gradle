@@ -25,11 +25,10 @@ ext.apiLinks = [
     "http://docs.oracle.com/javase/8/docs/api/",
     "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc/",
     "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams}-javadoc/",
-    "http://fasterxml.github.io/jackson-databind/javadoc/2.5/",
-    "http://fasterxml.github.io/jackson-datatype-jdk7/javadoc/2.5",
-    "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.5",
-    "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.5",
-    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.5",
+    "http://fasterxml.github.io/jackson-databind/javadoc/2.7/",
+    "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.7",
+    "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.7",
+    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.7",
     "http://www.javadoc.io/doc/com.github.ben-manes.caffeine/caffeine/${commonVersions.caffeine}"
 ]
 
@@ -47,7 +46,6 @@ dependencies {
   compile commonDependencies.jackson
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk7:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
