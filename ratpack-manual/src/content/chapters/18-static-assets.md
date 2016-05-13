@@ -10,8 +10,9 @@ import ratpack.server.RatpackServer;
 public class Main {
   public static void main(String... args) throws Exception {
     RatpackServer.start(server -> server
+      .serverConfig(d -> d.baseDir(BaseDir.find()))
       .handlers(chain -> chain
-        .files("assets")
+        .files(f -> f.dir("assets"))
       )
     );
   }
