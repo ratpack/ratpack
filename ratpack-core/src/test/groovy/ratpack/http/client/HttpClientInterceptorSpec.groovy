@@ -53,6 +53,43 @@ class HttpClientInterceptorSpec extends HttpClientSpec {
   }
 
   @Unroll
+  def "can intercept #method request and response with multiple bindings"() {
+    given:
+    otherApp {
+      get("foo") { ctx ->
+        render "bar"
+      }
+    }
+    def requestInterceptorA = Mock(HttpClientRequestInterceptor)
+    def requestInterceptorB = Mock(HttpClientRequestInterceptor)
+    def responseInterceptorA = Mock(HttpClientResponseInterceptor)
+    def responseInterceptorB = Mock(HttpClientResponseInterceptor)
+    when:
+
+    handlers {
+      get { ctx ->
+        ctx.execution.add(HttpClientRequestInterceptor, requestInterceptorA)
+        ctx.execution.add(HttpClientResponseInterceptor, responseInterceptorA)
+        ctx.execution.add(HttpClientRequestInterceptor, requestInterceptorB)
+        ctx.execution.add(HttpClientResponseInterceptor, responseInterceptorB)
+        def httpClient = ctx.get(HttpClient)
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+    text
+    then:
+    1 * requestInterceptorA.intercept(_ as SentRequest)
+    1 * responseInterceptorA.intercept(_ as ReceivedResponse)
+    1 * requestInterceptorB.intercept(_ as SentRequest)
+    1 * responseInterceptorB.intercept(_ as ReceivedResponse)
+    where:
+    method << ["GET", "PUT", "POST", "DELETE", "PATCH"]
+  }
+
+  @Unroll
   def "can intercept #method request and response with client builder"() {
     given:
     otherApp {

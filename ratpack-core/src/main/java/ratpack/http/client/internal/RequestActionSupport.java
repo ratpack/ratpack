@@ -42,7 +42,7 @@ import ratpack.util.internal.ChannelImplDetector;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
-import java.util.Optional;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -67,14 +67,15 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
   protected final Execution execution;
   protected final ByteBufAllocator byteBufAllocator;
 
-  private final Optional<HttpClientRequestInterceptor> requestInterceptor;
+  private final Iterable<? extends HttpClientRequestInterceptor> requestInterceptor;
 
   public RequestActionSupport(Action<? super RequestSpec> requestConfigurer,
                               URI uri,
                               Execution execution,
                               ByteBufAllocator byteBufAllocator,
                               int redirectCounter) {
-    this(requestConfigurer, uri, execution, byteBufAllocator, redirectCounter, Optional.empty());
+    this(requestConfigurer, uri, execution, byteBufAllocator, redirectCounter, Collections
+      .emptyList());
   }
 
   public RequestActionSupport(Action<? super RequestSpec> requestConfigurer,
@@ -82,7 +83,7 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
                               Execution execution,
                               ByteBufAllocator byteBufAllocator,
                               int redirectCounter,
-                              Optional<HttpClientRequestInterceptor> requestInterceptor) {
+                              Iterable<? extends HttpClientRequestInterceptor> requestInterceptor) {
     this.execution = execution;
     this.requestConfigurer = requestConfigurer;
     this.byteBufAllocator = byteBufAllocator;
@@ -241,10 +242,9 @@ abstract class RequestActionSupport<T> implements RequestAction<T> {
         ChannelFuture writeFuture = connectFuture.channel().writeAndFlush(request);
         writeFuture.addListener(f2 -> {
           //invoke the request interceptor
-          requestInterceptor
-            .ifPresent(c -> c.intercept(new ImmutableSentRequest(request.method().name(),
-              request.uri(),
-              new NettyHeadersBackedHeaders(requestHeaders))));
+          requestInterceptor.forEach(c -> c.intercept(new ImmutableSentRequest(request.method().name(),
+            request.uri(),
+            new NettyHeadersBackedHeaders(requestHeaders))));
           if (!writeFuture.isSuccess()) {
             writeFuture.channel().close();
             error(downstream, writeFuture.cause());

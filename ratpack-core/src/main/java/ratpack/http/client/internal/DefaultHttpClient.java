@@ -29,14 +29,14 @@ import java.util.function.Supplier;
 public class DefaultHttpClient implements HttpClient {
   private final ByteBufAllocator byteBufAllocator;
   private final int maxContentLengthBytes;
-  private final Supplier<Optional<HttpClientRequestInterceptor>> requestInterceptor;
-  private final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor;
+  private final Supplier<Iterable<? extends HttpClientRequestInterceptor>> requestInterceptor;
+  private final Supplier<Iterable<? extends HttpClientResponseInterceptor>> responseInterceptor;
   private final Supplier<Optional<RequestSpecConfigurer>> requestConfigurer;
 
   public DefaultHttpClient(final ByteBufAllocator byteBufAllocator,
                            final int maxContentLengthBytes,
-                           final Supplier<Optional<HttpClientRequestInterceptor>> requestInterceptor,
-                           final Supplier<Optional<HttpClientResponseInterceptor>> responseInterceptor,
+                           final Supplier<Iterable<? extends HttpClientRequestInterceptor>> requestInterceptor,
+                           final Supplier<Iterable<? extends HttpClientResponseInterceptor>> responseInterceptor,
                            final Supplier<Optional<RequestSpecConfigurer>> requestConfigurer) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLengthBytes = maxContentLengthBytes;
@@ -49,8 +49,8 @@ public class DefaultHttpClient implements HttpClient {
                            final int maxContentLengthBytes) {
     this(byteBufAllocator,
           maxContentLengthBytes,
-          () -> Execution.current().maybeGet(HttpClientRequestInterceptor.class),
-          () -> Execution.current().maybeGet(HttpClientResponseInterceptor.class),
+          () -> Execution.current().getAll(HttpClientRequestInterceptor.class),
+          () -> Execution.current().getAll(HttpClientResponseInterceptor.class),
           () -> Execution.current().maybeGet(RequestSpecConfigurer.class));
   }
 
@@ -77,6 +77,7 @@ public class DefaultHttpClient implements HttpClient {
     RequestSpecConfigurer configurer = this.requestConfigurer
       .get()
       .orElse(requestSpec -> Action.noop());
+
     return Promise.async(f -> new ContentAggregatingRequestAction(
       requestConfigurer.prepend(configurer::configure),
       uri,

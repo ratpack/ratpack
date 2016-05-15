@@ -31,21 +31,20 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
 import java.net.URI;
-import java.util.Optional;
 
 class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
 
   private final int maxContentLengthBytes;
-  private final Optional<HttpClientRequestInterceptor> requestInterceptor;
-  private final Optional<HttpClientResponseInterceptor> responseInterceptor;
+  private final Iterable<? extends HttpClientRequestInterceptor> requestInterceptor;
+  private final Iterable<? extends HttpClientResponseInterceptor> responseInterceptor;
 
   public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer,
                                          URI uri, Execution execution,
                                          ByteBufAllocator byteBufAllocator,
                                          int maxContentLengthBytes,
                                          int redirectCount,
-                                         Optional<HttpClientRequestInterceptor> requestInterceptor,
-                                         Optional<HttpClientResponseInterceptor> responseInterceptor) {
+                                         Iterable<? extends HttpClientRequestInterceptor> requestInterceptor,
+                                         Iterable<? extends HttpClientResponseInterceptor> responseInterceptor) {
     super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount, requestInterceptor);
     this.maxContentLengthBytes = maxContentLengthBytes;
     this.requestInterceptor = requestInterceptor;
@@ -59,8 +58,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       @Override
       public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
         ReceivedResponse response = toReceivedResponse(msg);
-        responseInterceptor
-          .ifPresent(c -> c.intercept(response));
+        responseInterceptor.forEach(c -> c.intercept(response));
         success(downstream, response);
       }
 
