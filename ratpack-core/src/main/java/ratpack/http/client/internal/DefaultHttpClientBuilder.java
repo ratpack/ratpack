@@ -18,6 +18,7 @@ package ratpack.http.client.internal;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.http.client.*;
 
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -39,20 +40,20 @@ public class DefaultHttpClientBuilder implements HttpClientBuilder {
     this.maxContentLengthBytes = maxContentLengthBytes;
   }
 
-  private Optional<HttpClientRequestInterceptor> requestInterceptor = Optional.empty();
-  private Optional<HttpClientResponseInterceptor> responseInterceptor = Optional.empty();
+  private Iterable<? extends HttpClientRequestInterceptor> requestInterceptor = Collections.emptyList();
+  private Iterable<? extends HttpClientResponseInterceptor> responseInterceptor = Collections.emptyList();
   private Optional<RequestSpecConfigurer> requestConfigurer = Optional.empty();
 
   @Override
   public HttpClientBuilder requestInterceptor(final HttpClientRequestInterceptor
                                                   requestInterceptor) {
-    this.requestInterceptor = Optional.of(requestInterceptor);
+    this.requestInterceptor = Collections.singleton(requestInterceptor);
     return this;
   }
 
   @Override
   public HttpClientBuilder responseInterceptor(final HttpClientResponseInterceptor responseInterceptor) {
-    this.responseInterceptor = Optional.of(responseInterceptor);
+    this.responseInterceptor = Collections.singleton(responseInterceptor);
     return this;
   }
 
