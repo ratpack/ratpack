@@ -57,6 +57,37 @@ public interface PathBinding {
   String getPastBinding();
 
   /**
+   * Describes the kind of path that this binder binds to.
+   *
+   * <pre class="java">{@code
+   * import ratpack.path.PathBinding;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.fromHandlers(c -> c
+   *       .prefix(":foo/:bar?", c1 -> c1
+   *         .get("baz", ctx -> ctx.render(ctx.get(PathBinding.class).getSpec()))
+   *       )
+   *     ).test(httpClient -> {
+   *       assertEquals(":foo/:bar?/baz", httpClient.getText("/a/b/baz"));
+   *       assertEquals(":foo/:bar?/baz", httpClient.getText("/c/d/baz"));
+   *     });
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The spec is effectively the cumulative pattern strings used to define what to bind to.
+   *
+   * @return the kind of path that this binder binds to
+   * @since 1.4
+   */
+  String getSpec();
+
+  /**
    * Any tokens that the binding has extracted from the path.
    * <p>
    * The definition of how tokens are extracted is implementation specific. Except that tokens are never

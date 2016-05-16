@@ -24,34 +24,14 @@ public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
   private final String pastBinding;
+  private final String description;
 
   private final PathTokens tokens;
   private final PathTokens allTokens;
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    DefaultPathBinding that = (DefaultPathBinding) o;
-
-    return binding.equals(that.binding) && pastBinding.equals(that.pastBinding) && allTokens.equals(that.allTokens);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = binding.hashCode();
-    result = 31 * result + pastBinding.hashCode();
-    result = 31 * result + allTokens.hashCode();
-    return result;
-  }
-
-  public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
+  public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent, String description) {
     this.binding = binding;
+    this.description = parent instanceof RootPathBinding ? description : parent.getSpec() + "/" + description;
     this.tokens = DefaultPathTokens.of(tokens);
     this.allTokens = parent.getAllTokens().isEmpty() ? this.tokens : DefaultPathTokens.of(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
 
@@ -66,18 +46,53 @@ public class DefaultPathBinding implements PathBinding {
     }
   }
 
+  @Override
+  public String getSpec() {
+    return description;
+  }
+
+  @Override
   public String getPastBinding() {
     return pastBinding;
   }
 
+  @Override
   public String getBoundTo() {
     return binding;
   }
 
+  @Override
   public PathTokens getTokens() {
     return tokens;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultPathBinding that = (DefaultPathBinding) o;
+
+    return binding.equals(that.binding)
+      && pastBinding.equals(that.pastBinding)
+      && description.equals(that.description)
+      && allTokens.equals(that.allTokens);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = binding.hashCode();
+    result = 31 * result + pastBinding.hashCode();
+    result = 31 * result + description.hashCode();
+    result = 31 * result + allTokens.hashCode();
+    return result;
+  }
+
+  @Override
   public PathTokens getAllTokens() {
     return allTokens;
   }
