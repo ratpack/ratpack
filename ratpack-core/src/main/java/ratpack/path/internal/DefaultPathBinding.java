@@ -27,6 +27,7 @@ public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
   private final String pastBinding;
+  private final PathBinding parent;
   private final String description;
 
   private final PathTokens tokens;
@@ -34,7 +35,8 @@ public class DefaultPathBinding implements PathBinding {
 
   public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent, String description) {
     this.binding = binding;
-    this.description = parent instanceof RootPathBinding ? description : parent.getSpec() + "/" + description;
+    this.parent = parent;
+    this.description = description;
     this.tokens = DefaultPathTokens.of(tokens);
     this.allTokens = mergeTokens(this.tokens, parent.getAllTokens());
     String bindingWithSlash = binding.concat("/");
@@ -62,7 +64,7 @@ public class DefaultPathBinding implements PathBinding {
 
   @Override
   public String getSpec() {
-    return description;
+    return parent instanceof RootPathBinding ? description : parent.getSpec() + "/" + description;
   }
 
   @Override
