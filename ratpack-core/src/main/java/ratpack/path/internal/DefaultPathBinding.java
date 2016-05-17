@@ -63,8 +63,8 @@ public class DefaultPathBinding implements PathBinding {
   }
 
   @Override
-  public String getSpec() {
-    return parent instanceof RootPathBinding ? description : parent.getSpec() + "/" + description;
+  public String getDescription() {
+    return parent instanceof RootPathBinding ? description : parent.getDescription() + "/" + description;
   }
 
   @Override

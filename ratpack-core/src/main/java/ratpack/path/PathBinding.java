@@ -70,7 +70,7 @@ public interface PathBinding {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.fromHandlers(c -> c
    *       .prefix(":foo/:bar?", c1 -> c1
-   *         .get("baz", ctx -> ctx.render(ctx.get(PathBinding.class).getSpec()))
+   *         .get("baz", ctx -> ctx.render(ctx.get(PathBinding.class).getDescription()))
    *       )
    *     ).test(httpClient -> {
    *       assertEquals(":foo/:bar?/baz", httpClient.getText("/a/b/baz"));
@@ -85,7 +85,7 @@ public interface PathBinding {
    * @return the kind of path that this binder binds to
    * @since 1.4
    */
-  String getSpec();
+  String getDescription();
 
   /**
    * Any tokens that the binding has extracted from the path.

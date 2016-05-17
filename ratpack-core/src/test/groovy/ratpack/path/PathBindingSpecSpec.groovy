@@ -25,20 +25,20 @@ class PathBindingSpecSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix(":foo/:bar") {
         get("xxx") {
-          render get(PathBinding).spec
+          render get(PathBinding).description
         }
         get("::\\d\\d") {
-          render get(PathBinding).spec
+          render get(PathBinding).description
         }
         get(":n:\\d\\d\\d") {
-          render get(PathBinding).spec
+          render get(PathBinding).description
         }
         get(":x?") {
-          render get(PathBinding).spec
+          render get(PathBinding).description
         }
         prefix(":foo/:bar") {
           get("xxx") {
-            render get(PathBinding).spec
+            render get(PathBinding).description
           }
         }
       }

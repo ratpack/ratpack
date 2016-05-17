@@ -48,7 +48,7 @@ public class RootPathBinding implements PathBinding {
   }
 
   @Override
-  public String getSpec() {
+  public String getDescription() {
     return "";
   }
 
