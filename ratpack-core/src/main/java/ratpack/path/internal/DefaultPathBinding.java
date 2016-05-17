@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
@@ -33,8 +36,7 @@ public class DefaultPathBinding implements PathBinding {
     this.binding = binding;
     this.description = parent instanceof RootPathBinding ? description : parent.getSpec() + "/" + description;
     this.tokens = DefaultPathTokens.of(tokens);
-    this.allTokens = parent.getAllTokens().isEmpty() ? this.tokens : DefaultPathTokens.of(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
-
+    this.allTokens = mergeTokens(this.tokens, parent.getAllTokens());
     String bindingWithSlash = binding.concat("/");
     String path = parent.getPastBinding();
     if (path.equals(binding)) {
@@ -43,6 +45,18 @@ public class DefaultPathBinding implements PathBinding {
       pastBinding = path.substring(bindingWithSlash.length());
     } else {
       throw new IllegalArgumentException(String.format("Path '%s' is not a child of '%s'", path, binding));
+    }
+  }
+
+  private static PathTokens mergeTokens(PathTokens thisTokens, PathTokens parentTokens) {
+    if (parentTokens.isEmpty()) {
+      return thisTokens;
+    } else if (thisTokens.isEmpty()) {
+      return parentTokens;
+    } else {
+      Map<String, String> merge = new LinkedHashMap<>(parentTokens);
+      merge.putAll(thisTokens);
+      return DefaultPathTokens.of(ImmutableMap.copyOf(merge));
     }
   }
 
