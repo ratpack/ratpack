@@ -29,6 +29,7 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
 
   private final ImmutableList.Builder<String> tokensBuilder = ImmutableList.builder();
   private final StringBuilder pattern = new StringBuilder();
+  private final StringBuilder description = new StringBuilder();
   private boolean addedOptional;
   private boolean addedToken;
 
@@ -39,6 +40,7 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
     addedToken = true;
     tokensBuilder.add(token);
     this.pattern.append(String.format("(?:(?:^|/)(%s))", pattern));
+    appendDescriptionSegment(":").append(token).append(":").append(pattern);
     return this;
   }
 
@@ -47,6 +49,7 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
     addedToken = true;
     tokensBuilder.add(token);
     this.pattern.append(String.format("(?:(?:^|/)(%s))?", pattern));
+    appendDescriptionSegment(":").append(token).append("?:").append(pattern);
     return this;
   }
 
@@ -57,6 +60,7 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
     addedToken = true;
     tokensBuilder.add(token);
     pattern.append("(?:(?:^|/)([^/?&#]+))");
+    appendDescriptionSegment(":").append(token);
     return this;
   }
 
@@ -65,23 +69,33 @@ public class DefaultPathBinderBuilder implements PathBinderBuilder {
     addedToken = true;
     tokensBuilder.add(token);
     pattern.append("(?:(?:^|/)([^/?&#]*))?");
+    appendDescriptionSegment(":").append(token).append("?");
     return this;
   }
 
   public PathBinderBuilder literalPattern(String pattern) {
-    this.pattern.append("(?:(?:^|/)").append(String.format("(?:%s)", pattern)).append(")");
+    this.pattern.append("(?:(?:^|/)").append("(?:").append(pattern).append("))");
+    appendDescriptionSegment("::").append(pattern);
     return this;
   }
 
   public PathBinderBuilder literal(String literal) {
-    this.pattern.append(String.format("\\Q%s\\E", literal));
+    this.pattern.append("\\Q").append(literal).append("\\E");
+    this.description.append(literal);
     return this;
+  }
+
+  private StringBuilder appendDescriptionSegment(String segment) {
+    if (description.length() > 0) {
+      description.append("/");
+    }
+    return description.append(segment);
   }
 
   public PathBinder build(boolean exhaustive) {
     String regex = (addedToken ? "(\\Q\\E" : "(") + pattern + (addedToken ? "\\Q\\E)" : ")") + (exhaustive ? "(?:/|$)" : "(?:/.*)?");
     Pattern compiled = Pattern.compile(regex);
-    return new TokenPathBinder(tokensBuilder.build(), compiled);
+    return new TokenPathBinder(tokensBuilder.build(), description.toString(), compiled);
   }
 
   public static PathBinder parse(String path, boolean exact) {
