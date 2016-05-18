@@ -18,6 +18,7 @@ package ratpack.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
+import io.netty.handler.codec.http.HttpMethod;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
@@ -34,6 +35,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Builds a {@link ServerConfig}.
@@ -221,6 +223,14 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @return {@code this}
    */
   ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth);
+
+  /**
+   * The server should expect the given methods could have bodies.
+   *
+   * @param httpMethods the HttpMethods that could have a body.
+   * @return  {@code this}
+   */
+  ServerConfigBuilder couldHaveBody(Set<HttpMethod> httpMethods);
 
   /**
    * {@inheritDoc}

@@ -45,6 +45,7 @@ import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.time.Instant;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
@@ -62,11 +63,15 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   private final Registry serverRegistry;
   private final boolean development;
 
+  private final Set<HttpMethod> methodsCanHaveBody;
+
   public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
     this.handlers = ChainHandler.unpack(handler);
     this.serverRegistry = serverRegistry;
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
-    this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
+    ServerConfig serverConfig = serverRegistry.get(ServerConfig.class);
+    this.methodsCanHaveBody = serverConfig.getMethodsCanHaveBody();
+    this.development = serverConfig.isDevelopment();
   }
 
   @Override
@@ -230,8 +235,8 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  private static boolean canHaveBody(HttpMethod method) {
-    return method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH;
+  private boolean canHaveBody(HttpMethod method) {
+    return methodsCanHaveBody.contains(method);
   }
 
 }

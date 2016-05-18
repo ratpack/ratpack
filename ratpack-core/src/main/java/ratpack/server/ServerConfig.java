@@ -17,7 +17,9 @@
 package ratpack.server;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
+import io.netty.handler.codec.http.HttpMethod;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
@@ -32,6 +34,7 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The configuration of the server.
@@ -77,6 +80,8 @@ public interface ServerConfig extends ConfigData {
    * @see #getMaxChunkSize()
    */
   int DEFAULT_MAX_CHUNK_SIZE = 8192;
+
+  Set<HttpMethod> DEFAULT_METHODS_CAN_HAVE_BODY = Sets.newHashSet(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH);
 
   /**
    * Creates a builder configured for development mode and an ephemeral port.
@@ -246,4 +251,11 @@ public interface ServerConfig extends ConfigData {
    */
   FileSystemBinding getBaseDir() throws NoBaseDirException;
 
+
+  /**
+   * The methods that could have bodies so they need to be treated that way otherwise a body will be ignored.
+   *
+   * @return A set of HttpMethods that could have a body.
+   */
+  Set<HttpMethod> getMethodsCanHaveBody();
 }

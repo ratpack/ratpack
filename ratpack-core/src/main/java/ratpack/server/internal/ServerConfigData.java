@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import io.netty.handler.codec.http.HttpMethod;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 
@@ -25,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Optional;
+import java.util.Set;
 
 public class ServerConfigData {
 
@@ -42,6 +44,7 @@ public class ServerConfigData {
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
   private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
+  private Set<HttpMethod> methodsCanHaveBody = ServerConfig.DEFAULT_METHODS_CAN_HAVE_BODY;
 
   public ServerConfigData(FileSystemBinding baseDir, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -164,5 +167,13 @@ public class ServerConfigData {
 
   public FileSystemBinding getBaseDir() {
     return baseDir;
+  }
+
+  public Set<HttpMethod> getMethodsCanHaveBody() {
+    return methodsCanHaveBody;
+  }
+
+  public void setMethodsCanHaveBody(Set<HttpMethod> methodsCanHaveBody) {
+    this.methodsCanHaveBody = methodsCanHaveBody;
   }
 }

@@ -17,6 +17,7 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableSet;
+import io.netty.handler.codec.http.HttpMethod;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
@@ -29,6 +30,7 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Optional;
+import java.util.Set;
 
 public class DefaultServerConfig extends DelegatingConfigData implements ServerConfig {
 
@@ -103,6 +105,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public FileSystemBinding getBaseDir() throws NoBaseDirException {
     return baseDir.orElseThrow(() -> new NoBaseDirException("No base dir has been set"));
+  }
+
+  @Override
+  public Set<HttpMethod> getMethodsCanHaveBody() {
+    return serverConfigData.getMethodsCanHaveBody();
   }
 
   @Override
