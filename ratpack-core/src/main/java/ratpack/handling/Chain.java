@@ -867,6 +867,72 @@ public interface Chain {
   }
 
   /**
+   * Inlines the given chain if {@code test} is {@code true}.
+   * <p>
+   * This is literally just sugar for wrapping the given action in an {@code if} statement.
+   * It can be useful when conditionally adding handlers based on state available when building the chain.
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(a -> a
+   *       .registryOf(r -> r.add(1))
+   *       .handlers(c -> c
+   *         .when(c.getRegistry().get(Integer.class) == 0, i -> i
+   *           .get(ctx -> ctx.render("ok"))
+   *         )
+   *       )
+   *     ).test(httpClient ->
+   *       assertEquals(httpClient.get().getStatusCode(), 404)
+   *     );
+   *
+   *     EmbeddedApp.of(a -> a
+   *       .registryOf(r -> r.add(0))
+   *       .handlers(c -> c
+   *         .when(c.getRegistry().get(Integer.class) == 0, i -> i
+   *           .get(ctx -> ctx.render("ok"))
+   *         )
+   *       )
+   *     ).test(httpClient ->
+   *       assertEquals(httpClient.getText(), "ok")
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param test whether to include the given chain action
+   * @param action the chain action to maybe include
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   */
+  default Chain when(boolean test, Action<? super Chain> action) throws Exception {
+    if (test) {
+      action.execute(this);
+    }
+    return this;
+  }
+
+  /**
+   * Inlines the given chain if {@code test} is {@code true}.
+   * <p>
+   * Similar to {@link #when(boolean, Action)}, except obtains the action instance from the registry by the given type.
+   *
+   * @param test whether to include the given chain action
+   * @param action the chain action to maybe include
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   */
+  default Chain when(boolean test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return when(test, getRegistry().get(action));
+  }
+
+  /**
    * Invokes the given handler only if the predicate passes.
    * <p>
    * This method differs from {@link #when when()} in that it does not insert the handler;

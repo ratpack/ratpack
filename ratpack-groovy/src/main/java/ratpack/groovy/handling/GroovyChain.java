@@ -744,17 +744,56 @@ public interface GroovyChain extends Chain {
   }
 
   default GroovyChain when(
-          @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
-          Class<? extends Action<? super Chain>> action
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Class<? extends Action<? super Chain>> action
   ) throws Exception {
     return when(test, getRegistry().get(action));
   }
 
+  /**
+   * Inlines the given handlers if {@code test} is {@code true}.
+   * <p>
+   * This is literally just sugar for wrapping the given action in an {@code if} statement.
+   * It can be useful when conditionally adding handlers based on state available when building the chain.
+   *
+   * @param test whether to include the given chain action
+   * @param handlers the handlers to maybe include
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   * @see Chain#when(boolean, Action)
+   */
+  default GroovyChain when(boolean test, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
+    return when(test, chainAction(handlers));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.when(test, action));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return from(Chain.super.when(test, action));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default GroovyChain onlyIf(Predicate<? super Context> test, Handler handler) {
     return from(Chain.super.onlyIf(test, handler));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default GroovyChain onlyIf(Predicate<? super Context> test, Class<? extends Handler> handler) {
     return from(Chain.super.onlyIf(test, handler));
@@ -790,8 +829,8 @@ public interface GroovyChain extends Chain {
   }
 
   default GroovyChain onlyIf(
-          @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
-          Class<? extends Handler> handler
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Class<? extends Handler> handler
   ) {
     return onlyIf(test, getRegistry().get(handler));
   }
