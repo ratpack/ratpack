@@ -23,13 +23,12 @@ ext.apiLinks = [
     "http://netty.io/4.1/api/",
     "http://www.slf4j.org/apidocs/",
     "http://docs.oracle.com/javase/8/docs/api/",
-    "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc/",
+    "http://google.github.io/guava/releases/${commonVersions.guava}/api/docs",
     "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams}-javadoc/",
     "http://fasterxml.github.io/jackson-databind/javadoc/2.7/",
     "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.7",
     "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.7",
-    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.7",
-    "http://www.javadoc.io/doc/com.github.ben-manes.caffeine/caffeine/${commonVersions.caffeine}"
+    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.7"
 ]
 
 dependencies {

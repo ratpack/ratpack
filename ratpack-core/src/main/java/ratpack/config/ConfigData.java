@@ -70,7 +70,6 @@ public interface ConfigData {
    * The default object mapper is constructed without argument.
    * It then has the following Jackson modules applied implicitly:
    * <ul>
-   *     <li>{@link com.fasterxml.jackson.datatype.jdk7.Jdk7Module}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.jdk8.Jdk8Module}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.guava.GuavaModule}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.jsr310.JavaTimeModule}</li>

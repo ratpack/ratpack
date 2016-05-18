@@ -20,7 +20,7 @@ apply from: "$rootDir/gradle/groovyModule.gradle"
 
 ext.apiLinks = [
     "http://docs.groovy-lang.org/${commonVersions.groovy}/html/api/",
-    "http://docs.guava-libraries.googlecode.com/git/javadoc/"
+    "http://google.github.io/guava/releases/${commonVersions.guava}/api/docs"
 ]
 
 dependencies {
