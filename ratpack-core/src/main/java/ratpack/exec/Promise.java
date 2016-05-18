@@ -438,6 +438,38 @@ public interface Promise<T> {
   }
 
   /**
+   * Transforms the promised value by applying the given function to it, if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .mapIf(s -> s.contains("f"), String::toUpperCase)
+   *           .mapIf(s -> s.contains("f"), s -> s + "-BAR")
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to be transformed
+   * @param transformer the transformation to apply to the promised value
+   * @return a promise
+   * @since 1.4
+   */
+  default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> transformer) {
+    return map(t -> predicate.apply(t) ? transformer.apply(t) : t);
+  }
+
+  /**
    * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
    * <p>
    * This is simply a more convenient form of using {@link Blocking#get(Factory)} and {@link #flatMap(Function)}.
@@ -967,6 +999,38 @@ public interface Promise<T> {
         }
       }))
     );
+  }
+
+  /**
+   * Transforms the promised value by applying the given function to it that returns a promise for the transformed value, if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()))
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s + "-BAR"))
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to be transformed
+   * @param transformer the transformation to apply to the promised value
+   * @return a promise
+   * @since 1.4
+   */
+  default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> transformer) {
+    return flatMap(t -> predicate.apply(t) ? transformer.apply(t) : Promise.value(t));
   }
 
   /**
