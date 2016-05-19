@@ -16,10 +16,14 @@
 
 package ratpack.config.internal.source;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.config.ConfigSource;
 import ratpack.file.FileSystemBinding;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 public class ObjectConfigSource implements ConfigSource {
 
@@ -32,10 +36,24 @@ public class ObjectConfigSource implements ConfigSource {
   }
 
   @Override
-  public ObjectNode loadConfigData(ObjectMapper mapper,
-                                   FileSystemBinding fileSystemBinding) throws Exception {
-    ObjectNode node = mapper.createObjectNode();
-    node.set(path, mapper.valueToTree(object));
-    return node;
+  public ObjectNode loadConfigData(ObjectMapper mapper, FileSystemBinding fileSystemBinding) throws Exception {
+    JsonNode value = mapper.valueToTree(object);
+    ObjectNode root = mapper.createObjectNode();
+
+    String[] keys = path.split("\\.");
+    Iterator<String> iterator = Arrays.asList(keys).iterator();
+
+    ObjectNode node = root;
+    while (true) {
+      String key = iterator.next();
+      if (iterator.hasNext()) {
+        node = node.putObject(key);
+      } else {
+        node.set(key, value);
+        break;
+      }
+    }
+
+    return root;
   }
 }

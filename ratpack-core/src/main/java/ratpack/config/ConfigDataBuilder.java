@@ -354,6 +354,8 @@ public interface ConfigDataBuilder {
 
   /**
    * Adds the object's fields at the given path as a configuration source.
+   * <p>
+   * The path is a period separated key string.
    *
    * @param path the configuration path the object's fields should be mapped on to
    * @param object the object from which to derive the configuration fields

@@ -18,6 +18,7 @@ package ratpack.config
 
 import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
+import groovy.transform.Canonical
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.func.Action
@@ -31,8 +32,6 @@ import spock.util.concurrent.PollingConditions
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.util.concurrent.atomic.AtomicInteger
-
-import groovy.transform.EqualsAndHashCode
 
 @SuppressWarnings(["MethodName"])
 class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
@@ -143,33 +142,34 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
   }
 
   def "can load config from an object"() {
-    def serviceConfigObj = new ServiceConfig(url: "http://example.com")
-    def appConfigObj = new MyAppConfig(name: "app", service: serviceConfigObj)
-
     when:
-    def serviceConfigData = ConfigData.of { it.object("/myService", serviceConfigObj) }
+    def serviceConfigObj = new ServiceConfig(url: "http://example.com")
+    def serviceConfigData = ConfigData.of { it.object("myService", serviceConfigObj) }
     def serviceConfig = serviceConfigData.get("/myService", ServiceConfig)
 
     then:
     serviceConfig == serviceConfigObj
 
     when:
-    def configData = ConfigData.of { it.object("/app", appConfigObj) }
+    def appConfigObj = new MyAppConfig(name: "app", service: serviceConfigObj)
+    def configData = ConfigData.of { it
+      .object("app", appConfigObj)
+      .object("app.service", new ServiceConfig(url: "changed"))
+    }
     def appConfig = configData.get("/app", MyAppConfig)
 
     then:
-    notThrown(Exception)
-    appConfig == appConfigObj
-    serviceConfigObj == appConfigObj.service
+    appConfig.name == "app"
+    appConfig.service.url == "changed"
   }
 
-  @EqualsAndHashCode
+  @Canonical
   static class MyAppConfig {
     String name
     ServiceConfig service
   }
 
-  @EqualsAndHashCode
+  @Canonical
   private static class ServiceConfig {
     String url
   }
