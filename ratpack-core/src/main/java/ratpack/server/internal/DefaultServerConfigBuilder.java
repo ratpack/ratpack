@@ -199,12 +199,6 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
-  public ServerConfigBuilder object(String path, Object object) {
-    configDataBuilder.object(path, object);
-    return this;
-  }
-
-  @Override
   public ServerConfigBuilder env(String prefix) {
     configDataBuilder.env(prefix);
     return this;
