@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.exec.util
+package ratpack.exec.batch
 
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
@@ -38,7 +38,7 @@ class BatchSpec extends Specification {
 
     when:
     def result = exec.yieldSingle { e ->
-      Batch.of(promises).parallel().yieldAll()
+      Batch.parallel(promises).yieldAll()
     }.valueOrThrow
 
     then:
@@ -51,7 +51,7 @@ class BatchSpec extends Specification {
 
     when:
     def result = exec.yieldSingle { e ->
-      Batch.of(promises).parallel().yield()
+      Batch.parallel(promises).yield()
     }.valueOrThrow
 
     then:
@@ -74,7 +74,7 @@ class BatchSpec extends Specification {
     when:
     def i = new AtomicInteger()
     def t = exec.yieldSingle { e ->
-      Batch.of(promises).parallel {
+      Batch.parallel(promises).execInit {
         it.add(Integer, i.getAndIncrement())
       }.yield()
     }.throwable
@@ -100,7 +100,7 @@ class BatchSpec extends Specification {
     when:
     def i = new AtomicInteger()
     def t = exec.yieldSingle { e ->
-      Batch.of(promises).parallel {
+      Batch.parallel(promises).execInit {
         it.add(Integer, i.getAndIncrement())
       }.yieldAll()
     }.valueOrThrow
@@ -114,7 +114,7 @@ class BatchSpec extends Specification {
   def "consume parallel publisher"() {
     when:
     def promises = (1..9).collect { i -> Blocking.get { "Promise $i" } }
-    def p = Batch.of(promises).parallel().publisher()
+    def p = Batch.parallel(promises).publisher()
 
     then:
     def l = exec.yield { p.toList() }.valueOrThrow
@@ -124,7 +124,7 @@ class BatchSpec extends Specification {
   def "consume publisher"() {
     when:
     def promises = (1..9).collect { i -> Blocking.get { "Promise $i" } }
-    def p = Batch.of(promises).publisher()
+    def p = Batch.serial(promises).publisher()
 
     then:
     def l = exec.yield { p.toList() }.valueOrThrow
@@ -134,7 +134,7 @@ class BatchSpec extends Specification {
   def "consume parallel publisher error"() {
     when:
     def promises = (1..9).collect { i -> i < 2 ? Promise.error(new RuntimeException("1")) : Promise.value(i) }
-    def p = Batch.of(promises).parallel().publisher()
+    def p = Batch.parallel(promises).publisher()
     exec.yield { p.toList() }.valueOrThrow
 
     then:
