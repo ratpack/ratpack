@@ -353,6 +353,15 @@ public interface ConfigDataBuilder {
   ConfigDataBuilder yaml(URL url);
 
   /**
+   * Adds the object's fields at the given path as a configuration source.
+   *
+   * @param path the configuration path the object's fields should be mapped on to
+   * @param object the object from which to derive the configuration fields
+   * @return {@code this}
+   */
+  ConfigDataBuilder object(String path, Object object);
+
+  /**
    * Sets the error all that will be used for added configuration sources.
    * The error all only applies to configuration sources added after this method is called; it is not applied retroactively.
    *

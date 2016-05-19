@@ -32,6 +32,8 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.util.concurrent.atomic.AtomicInteger
 
+import groovy.transform.EqualsAndHashCode
+
 @SuppressWarnings(["MethodName"])
 class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
   @SuppressWarnings("GroovyUnusedDeclaration")
@@ -140,11 +142,24 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     ex.cause instanceof NoSuchFileException
   }
 
+  def "can load config from an object"() {
+    def configObj = new ServiceConfig(url: "http://example.com")
+
+    when:
+    def configData = ConfigData.of { it.object("/myService", configObj) }
+    def config = configData.get("/myService", ServiceConfig)
+
+    then:
+    notThrown(Exception)
+    config == configObj
+  }
+
   static class MyAppConfig {
     String name
     ServiceConfig service
   }
 
+  @EqualsAndHashCode
   private static class ServiceConfig {
     String url
   }

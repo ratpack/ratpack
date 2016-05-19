@@ -22,6 +22,7 @@ To get started:
 Commonly used file formats can be used via the [`yaml`](api/ratpack/config/ConfigDataBuilder.html#yaml-java.lang.String-), [`json`](api/ratpack/config/ConfigDataBuilder.html#json-java.lang.String-) and [`props`](api/ratpack/config/ConfigDataBuilder.html#props-java.lang.String-) methods.
 The provided signatures can be used to load data from local files (`String` or `Path`), over the network (`URL`), from the classpath (use [`Resources.getResource(String)`](http://google.github.io/guava/releases/18.0/api/docs/com/google/common/io/Resources.html) to get a `URL`), or anywhere else you can treat as a [`ByteSource`](http://google.github.io/guava/releases/18.0/api/docs/com/google/common/io/ByteSource.html).
 Additionally, you can load data from non-file sources such as `Map`s/`Properties` objects (particularly useful for default values; see [example](api/ratpack/config/ConfigDataBuilder.html#props-java.util.Map-)), system properties, and environment variables.
+You can also choose to load configuration data from existing objects using the [`object`](api/ratpack/config/ConfigDataBuilder.html#object-java.lang.String-) method.
 If additional flexibility is needed, you can provide your own [`ConfigSource`](api/ratpack/config/ConfigSource.html) implementation.
 
 ### Flat Config Sources
