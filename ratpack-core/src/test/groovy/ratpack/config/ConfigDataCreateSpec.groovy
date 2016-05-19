@@ -143,17 +143,27 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
   }
 
   def "can load config from an object"() {
-    def configObj = new ServiceConfig(url: "http://example.com")
+    def serviceConfigObj = new ServiceConfig(url: "http://example.com")
+    def appConfigObj = new MyAppConfig(name: "app", service: serviceConfigObj)
 
     when:
-    def configData = ConfigData.of { it.object("/myService", configObj) }
-    def config = configData.get("/myService", ServiceConfig)
+    def serviceConfigData = ConfigData.of { it.object("/myService", serviceConfigObj) }
+    def serviceConfig = serviceConfigData.get("/myService", ServiceConfig)
+
+    then:
+    serviceConfig == serviceConfigObj
+
+    when:
+    def configData = ConfigData.of { it.object("/app", appConfigObj) }
+    def appConfig = configData.get("/app", MyAppConfig)
 
     then:
     notThrown(Exception)
-    config == configObj
+    appConfig == appConfigObj
+    serviceConfigObj == appConfigObj.service
   }
 
+  @EqualsAndHashCode
   static class MyAppConfig {
     String name
     ServiceConfig service

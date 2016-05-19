@@ -358,6 +358,7 @@ public interface ConfigDataBuilder {
    * @param path the configuration path the object's fields should be mapped on to
    * @param object the object from which to derive the configuration fields
    * @return {@code this}
+   * @since 1.4
    */
   ConfigDataBuilder object(String path, Object object);
 
