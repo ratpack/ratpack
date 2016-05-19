@@ -336,6 +336,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   /**
    * {@inheritDoc}
+   * @since 1.4
    */
   @Override
   ServerConfigBuilder object(String path, Object object);
