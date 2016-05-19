@@ -18,7 +18,7 @@ Ratpack provides some useful utilities for dealing with streams via its [`Stream
 
 ### Back pressure
 
-A key tenant of the Reactive Streams API is support for flow control via back pressure.
+A key tenet of the Reactive Streams API is support for flow control via back pressure.
 This allows stream subscribers, which in the case of a HTTP server app is usually the HTTP client, to communicate to the publisher how much data they can handle.
 In extreme cases, without back pressure a slowly consuming client can exhaust resources on the server as the data producer produces data faster than it is being consumed, potentially filling up in memory buffers.
 Back pressure allows the data producer to match its rate of production with what the client can handle.
