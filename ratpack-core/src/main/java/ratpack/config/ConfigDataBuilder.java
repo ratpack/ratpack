@@ -356,6 +356,39 @@ public interface ConfigDataBuilder {
    * Adds the object's fields at the given path as a configuration source.
    * <p>
    * The path is a period separated key string.
+   * The given object is subject to value merging and overrides as per other config sources.
+   *
+   * <pre class="java">{@code
+   * import ratpack.config.ConfigData;
+   * import java.util.Collections;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   static class Thing {
+   *     public String f1;
+   *     public String f2;
+   *     public String f3;
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     Thing input = new Thing();
+   *     input.f1 = "1";
+   *     input.f2 = "2";
+   *
+   *     ConfigData configData = ConfigData.of(c -> c
+   *       .object("thing", input)
+   *       .props(Collections.singletonMap("thing.f1", "changed"))
+   *       .object("thing.f3", "changed")
+   *     );
+   *     Thing thing = configData.get("/thing", Thing.class);
+   *
+   *     assertEquals("changed", thing.f1);
+   *     assertEquals("2", thing.f2);
+   *     assertEquals("changed", thing.f3);
+   *   }
+   * }
+   * }</pre>
    *
    * @param path the configuration path the object's fields should be mapped on to
    * @param object the object from which to derive the configuration fields

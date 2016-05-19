@@ -302,7 +302,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
-  public ConfigDataBuilder object(String path, Object object) {
+  public ServerConfigBuilder object(String path, Object object) {
     configDataBuilder.object(path, object);
     return this;
   }
