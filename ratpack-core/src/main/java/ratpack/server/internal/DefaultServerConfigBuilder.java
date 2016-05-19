@@ -302,6 +302,12 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder object(String path, Object object) {
+    configDataBuilder.object(path, object);
+    return this;
+  }
+
+  @Override
   public ServerConfigBuilder require(String pointer, Class<?> type) {
     Class<?> previous = required.put(
       Objects.requireNonNull(pointer, "pointer cannot be null"),
