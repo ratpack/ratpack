@@ -16,15 +16,11 @@
 
 package ratpack.retrofit
 
-import io.netty.buffer.UnpooledByteBufAllocator
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.http.client.HttpClient
-import ratpack.http.client.internal.DefaultHttpClient
-import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
 import retrofit2.Converter
@@ -50,7 +46,6 @@ class RatpackRetrofitSpec extends Specification {
   }
 
   Service service
-  HttpClient client
 
   @AutoCleanup
   EmbeddedApp server
@@ -69,8 +64,7 @@ class RatpackRetrofitSpec extends Specification {
         }
       }
     }
-    client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
-    service = RatpackRetrofit.builder(client)
+    service = RatpackRetrofit.client()
       .uri(server.address)
       .configure { Retrofit.Builder b ->
         b.addConverterFactory(new StringConverterFactory())
@@ -125,7 +119,7 @@ class RatpackRetrofitSpec extends Specification {
 
   def "exception thrown on connection exceptions"() {
     given:
-    service = RatpackRetrofit.builder(client)
+    service = RatpackRetrofit.client()
       .uri("http://localhost:8080")
       .configure { Retrofit.Builder b ->
       b.addConverterFactory(new StringConverterFactory())
