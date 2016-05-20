@@ -393,8 +393,35 @@ public interface Promise<T> {
    *
    * @param resultHandler the consumer of the result
    */
-  default void result(Action<? super Result<T>> resultHandler) {
-    onError(t -> resultHandler.execute(Result.<T>error(t))).then(v -> resultHandler.execute(Result.success(v)));
+  default void result(Action<? super ExecResult<T>> resultHandler) {
+    connect(new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        try {
+          resultHandler.execute(ExecResult.of(Result.success(value)));
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        try {
+          resultHandler.execute(ExecResult.of(Result.<T>error(throwable)));
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+
+      @Override
+      public void complete() {
+        try {
+          resultHandler.execute(ExecResult.<T>complete());
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+    });
   }
 
   /**
