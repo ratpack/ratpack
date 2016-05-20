@@ -25,7 +25,7 @@ import ratpack.stream.TransformablePublisher;
 import java.util.List;
 
 /**
- * A batch of promises to be processed, in parallel.
+ * A batch of promises to be processed, serially.
  * <p>
  * Serial batches can be created via {@link Batch#serial}.
  * <p>
