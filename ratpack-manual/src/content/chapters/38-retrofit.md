@@ -12,21 +12,20 @@ Ratpack's [`Promise`](api/ratpack/exec/Promise.html) construct as a return type.
 
 ## Usage
 
-The [`RatpackRetrofit.builder(HttpClient client)`](api/ratpack/retrofit/RatpackRetrofit.html#builder-ratpack.http.client.HttpClient-)
+The [`RatpackRetrofit.builder(HttpClient client)`](api/ratpack/retrofit/RatpackRetrofit.html#builder)
 method provides the entry point for creating API clients.
 The provided `HttpClient` will be used to issue the underlying HTTP requests for the client.
 
 The builder must be configured with the base URI by calling the [`uri(java.net.URI uri)`](api/ratpack/retrofit/RatpackRetrofit.Builder.html#uri-java.net.URI-)
 method before constructing clients.
 
-Once configured, the client is constructed by calling [`build(java.lang.Class api`](api/ratpack/retrofit/RatpackRetrofit.Builder.html#build-java.lang.Class-)
+Once configured, the client is constructed by calling [`build(java.lang.Class api)`](api/ratpack/retrofit/RatpackRetrofit.Builder.html#build-java.lang.Class-)
 with the api interface. 
 This methods returns a generated instance of the interface that will issue the HTTP requests and adapt the responses to the
 configured return type.
 
 ```language-java
 import ratpack.exec.Promise;
-import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
@@ -46,9 +45,8 @@ public class Example {
       .handlers(chain -> {
         chain.get(ctx -> {
           PublicAddress address = ctx.get(PublicAddress.class);
-          HttpClient httpClient = ctx.get(HttpClient.class);
           
-          HelloApi api = RatpackRetrofit.builder(httpClient)
+          HelloApi api = RatpackRetrofit.client()
             .uri(address.get())
             .build(HelloApi.class);
             
@@ -71,7 +69,6 @@ To create multiple clients, the underlying [`Retrofit`](https://square.github.io
 
 ```language-java
 import ratpack.exec.Promise;
-import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
@@ -97,9 +94,8 @@ public class Example {
       .handlers(chain -> {
         chain.get(ctx -> {
           PublicAddress address = ctx.get(PublicAddress.class);
-          HttpClient httpClient = ctx.get(HttpClient.class);
           
-          Retrofit retrofit = RatpackRetrofit.builder(httpClient)
+          Retrofit retrofit = RatpackRetrofit.client()
             .uri(address.get())
             .retrofit();
             
@@ -128,7 +124,6 @@ If the remote API is responding in JSON, then the [`JacksonConverterFactory`](ht
 ```language-java
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.exec.Promise;
-import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
@@ -154,10 +149,15 @@ public class Example {
       .handlers(chain -> {
         chain.get(ctx -> {
           PublicAddress address = ctx.get(PublicAddress.class);
-          HttpClient httpClient = ctx.get(HttpClient.class);
           
-          NameApi api = RatpackRetrofit.builder(httpClient)
-            .configure(b -> b.addConverterFactory(JacksonConverterFactory.create(ctx.get(ObjectMapper.class))))
+          NameApi api = RatpackRetrofit.client()
+            .configure(b -> 
+              b.addConverterFactory(
+                JacksonConverterFactory.create(
+                  ctx.get(ObjectMapper.class)
+                )
+              )
+            )
             .uri(address.get())
             .build(NameApi.class);
             

@@ -36,7 +36,6 @@ import java.net.URI;
  *
  * <pre class="java">{@code
  * import ratpack.exec.Promise;
- * import ratpack.http.client.HttpClient;
  * import ratpack.retrofit.RatpackRetrofit;
  * import ratpack.server.PublicAddress;
  * import ratpack.test.embed.EmbeddedApp;
@@ -56,8 +55,7 @@ import java.net.URI;
  *     EmbeddedApp.fromHandlers(chain -> {
  *         chain.get(ctx -> {
  *           PublicAddress address = ctx.get(PublicAddress.class);
- *           HttpClient httpClient = ctx.get(HttpClient.class);
- *           HelloService service = RatpackRetrofit.builder(httpClient)
+ *           HelloService service = RatpackRetrofit.client()
  *             .uri(address.get())
  *             .build(HelloService.class);
  *
@@ -76,24 +74,20 @@ import java.net.URI;
 public class RatpackRetrofit {
 
   /**
-   * Create a new builder for creating Retrofit implementations.
+   * Create a new builder for creating Retrofit clients.
    *
-   * @param httpClient the http client for Retrofit to use to make requests.
-   *
-   * @return a builder
+   * @return a client builder
    */
-  public static Builder builder(HttpClient httpClient) {
-    return new Builder(httpClient);
+  public static Builder client() {
+    return new Builder();
   }
 
   public static class Builder {
 
-    private HttpClient httpClient;
     private Action<? super Retrofit.Builder> builderAction = Action.noop();
     private URI uri;
 
-    public Builder(HttpClient httpClient) {
-      this.httpClient = httpClient;
+    public Builder() {
     }
 
     /**
@@ -141,10 +135,9 @@ public class RatpackRetrofit {
      * @return the Retrofit instance to create client interfaces
      */
     public Retrofit retrofit() {
-      Preconditions.checkNotNull(httpClient, "Must provide a HttpClient instance.");
       Preconditions.checkNotNull(uri, "Must provide the base uri.");
       Retrofit.Builder builder = new Retrofit.Builder()
-        .callFactory(new RatpackCallFactory(httpClient))
+        .callFactory(RatpackCallFactory.INSTANCE)
         .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE)
         .addConverterFactory(ScalarsConverterFactory.create());
       builder.baseUrl(uri.toString());
@@ -155,7 +148,7 @@ public class RatpackRetrofit {
     /**
      * Uses this builder to create a Retrofit client implemention.
      * <p>
-     * This is the short form of calling {@code builder.retrofit().build(service)}.
+     * This is the short form of calling {@code client.retrofit().build(service)}.
      *
      * @param service the client interface to generate.
      * @param <T> the type of the client interface.
