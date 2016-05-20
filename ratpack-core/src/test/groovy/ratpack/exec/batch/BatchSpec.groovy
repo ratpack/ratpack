@@ -23,6 +23,7 @@ import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 
 class BatchSpec extends Specification {
@@ -60,6 +61,8 @@ class BatchSpec extends Specification {
 
   def "yield failure parallel"() {
     given:
+    def handles = new ConcurrentLinkedQueue()
+    def counter = new AtomicInteger(10)
     def promises = (0..9).collect { i ->
       Blocking.get {
         def v = Execution.current().get(Integer)
@@ -67,6 +70,11 @@ class BatchSpec extends Specification {
           throw new RuntimeException("!")
         } else {
           "Promise $v"
+        }
+      }.defer {
+        handles << it
+        if (counter.decrementAndGet() == 0) {
+          handles.each { it.run() }
         }
       }
     }
