@@ -22,7 +22,6 @@ import ratpack.http.client.HttpClient;
 import ratpack.retrofit.internal.RatpackCallAdapterFactory;
 import ratpack.retrofit.internal.RatpackCallFactory;
 import ratpack.util.Exceptions;
-import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
@@ -110,7 +109,7 @@ public class RatpackRetrofit {
      *
      * @param builderAction the actions to apply to the Retrofit builder
      * @return this
-     * @see Converter.Factory
+     * @see retrofit2.Converter.Factory
      * @see retrofit2.CallAdapter.Factory
      */
     public Builder configure(Action<? super Retrofit.Builder> builderAction) {
