@@ -55,8 +55,8 @@ import java.net.URI;
  *     EmbeddedApp.fromHandlers(chain -> {
  *         chain.get(ctx -> {
  *           PublicAddress address = ctx.get(PublicAddress.class);
- *           HelloService service = RatpackRetrofit.client()
- *             .uri(address.get())
+ *           HelloService service = RatpackRetrofit
+ *             .client(address.get())
  *             .build(HelloService.class);
  *
  *           ctx.render(service.hello());
@@ -74,20 +74,33 @@ import java.net.URI;
 public class RatpackRetrofit {
 
   /**
-   * Create a new builder for creating Retrofit clients.
+   * Creates a new builder for creating Retrofit clients.
    *
+   * @param endpoint the endpoint for client implementations.
    * @return a client builder
    */
-  public static Builder client() {
-    return new Builder();
+  public static Builder client(URI endpoint) {
+    return new Builder(endpoint);
+  }
+
+  /**
+   * Creates a new builder for creating Retrofit clients.
+   *
+   * @param endpoint the endpoint for client implementations. Converted to {@link URI}.
+   * @return a client builder
+   */
+  public static Builder client(String endpoint) {
+    return Exceptions.uncheck(() -> client(new URI(endpoint)));
   }
 
   public static class Builder {
 
+    private final URI uri;
     private Action<? super Retrofit.Builder> builderAction = Action.noop();
-    private URI uri;
 
-    public Builder() {
+    public Builder(URI uri) {
+      Preconditions.checkNotNull(uri, "Must provide the base uri.");
+      this.uri = uri;
     }
 
     /**
@@ -105,28 +118,6 @@ public class RatpackRetrofit {
       return this;
     }
 
-    /**
-     * Sets the base URI for all requests issued by Retrofit clients created by this builder.
-     * <p>
-     * This must be specified.
-     * @param uri The base URI for http requests
-     * @return this
-     */
-    public Builder uri(URI uri) {
-      this.uri = uri;
-      return this;
-    }
-
-    /**
-     * Sets the base URI for all requests issued by Retrofit clients created by this builder.
-     * <p>
-     * This must be specified.
-     * @param uri The base URI for http requests
-     * @return this
-     */
-    public Builder uri(String uri) {
-      return Exceptions.uncheck(() -> uri(new URI(uri)));
-    }
 
     /**
      * Creates the underlying {@link Retrofit} instance and configures it to interface with {@link HttpClient} and {@link ratpack.exec.Promise}.
@@ -135,7 +126,6 @@ public class RatpackRetrofit {
      * @return the Retrofit instance to create client interfaces
      */
     public Retrofit retrofit() {
-      Preconditions.checkNotNull(uri, "Must provide the base uri.");
       Retrofit.Builder builder = new Retrofit.Builder()
         .callFactory(RatpackCallFactory.INSTANCE)
         .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE)

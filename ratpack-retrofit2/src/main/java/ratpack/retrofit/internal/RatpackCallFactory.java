@@ -63,7 +63,13 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
     @Override
     public void enqueue(okhttp3.Callback responseCallback) {
       final Call thisCall = this;
-      HttpClient client = Execution.current().get(Context.class).get(HttpClient.class);
+      final Execution e = Execution.current();
+      //Get an HttpClient from the Execution if it exists, else get it from the Context
+      HttpClient client = e
+        .maybeGet(HttpClient.class)
+        .orElseGet(() ->
+          e.get(Context.class).get(HttpClient.class)
+        );
       client.request(request.url().uri(), spec -> {
         spec.method(request.method());
         spec.headers(h -> {
