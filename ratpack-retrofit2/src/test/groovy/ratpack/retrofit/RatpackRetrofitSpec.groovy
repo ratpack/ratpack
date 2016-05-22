@@ -16,30 +16,25 @@
 
 package ratpack.retrofit
 
-import okhttp3.MediaType
-import okhttp3.RequestBody
-import okhttp3.ResponseBody
+import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.http.client.HttpClient
+import ratpack.http.client.internal.DefaultHttpClient
+import ratpack.registry.RegistrySpec
+import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
-import retrofit2.Converter
 import retrofit2.Response
-import retrofit2.Retrofit
 import retrofit2.http.GET
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-
-import java.lang.annotation.Annotation
-import java.lang.reflect.Type
-
 
 class RatpackRetrofitSpec extends Specification {
 
   interface Service {
     @GET("/") Promise<String> root()
     @GET("/") Promise<Response<String>> rootResponse()
-    @GET("/foo") Promise<String> foo()
     @GET("/foo") Promise<Response<String>> fooResponse()
     @GET("/error") Promise<String> error()
     @GET("/error") Promise<Response<String>> errorResponse()
@@ -49,6 +44,8 @@ class RatpackRetrofitSpec extends Specification {
 
   @AutoCleanup
   EmbeddedApp server
+
+  HttpClient client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
 
   def setup() {
     server = GroovyEmbeddedApp.of {
@@ -64,17 +61,16 @@ class RatpackRetrofitSpec extends Specification {
         }
       }
     }
-    service = RatpackRetrofit.client()
-      .uri(server.address)
-      .configure { Retrofit.Builder b ->
-        b.addConverterFactory(new StringConverterFactory())
-      }
+    service = RatpackRetrofit
+      .client(server.address)
       .build(Service)
   }
 
   def "successful request body"() {
     when:
-    def value = ExecHarness.yieldSingle {
+    def value = ExecHarness.yieldSingle({ RegistrySpec r ->
+      r.add(client)
+    }) {
       service.root()
     }.valueOrThrow
 
@@ -84,7 +80,9 @@ class RatpackRetrofitSpec extends Specification {
 
   def "successful request response"() {
     when:
-    Response<String> value = ExecHarness.yieldSingle {
+    Response<String> value = ExecHarness.yieldSingle({ RegistrySpec r ->
+      r.add(client)
+    }) {
       service.fooResponse()
     }.valueOrThrow
 
@@ -95,7 +93,9 @@ class RatpackRetrofitSpec extends Specification {
 
   def "simple type adapter throws exception on non successful response"() {
     when:
-    ExecHarness.yieldSingle {
+    ExecHarness.yieldSingle({ RegistrySpec r ->
+      r.add(client)
+    }) {
       service.error()
     }.valueOrThrow
 
@@ -107,7 +107,9 @@ class RatpackRetrofitSpec extends Specification {
   def "response type adapter does not throw on non successful response"() {
 
     when:
-    Response<String> response = ExecHarness.yieldSingle {
+    Response<String> response = ExecHarness.yieldSingle({ RegistrySpec r ->
+      r.add(client)
+    }) {
       service.errorResponse()
     }.valueOrThrow
 
@@ -119,40 +121,19 @@ class RatpackRetrofitSpec extends Specification {
 
   def "exception thrown on connection exceptions"() {
     given:
-    service = RatpackRetrofit.client()
-      .uri("http://localhost:8080")
-      .configure { Retrofit.Builder b ->
-      b.addConverterFactory(new StringConverterFactory())
-    }
-    .build(Service)
+    service = RatpackRetrofit
+      .client("http://localhost:8080")
+      .build(Service)
 
     when:
-    ExecHarness.yieldSingle {
+    ExecHarness.yieldSingle({ RegistrySpec r ->
+      r.add(client)
+    }) {
       service.rootResponse()
     }.valueOrThrow
 
     then:
     thrown(ConnectException)
 
-  }
-
-  static class StringConverterFactory extends Converter.Factory {
-    @Override
-    Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
-      return new Converter<ResponseBody, String>() {
-        @Override public String convert(ResponseBody value) throws IOException {
-          return value.string()
-        }
-      }
-    }
-
-    @Override
-    Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
-      return new Converter<String, RequestBody>() {
-        @Override public RequestBody convert(String value) throws IOException {
-          return RequestBody.create(MediaType.parse("text/plain"), value)
-        }
-      }
-    }
   }
 }

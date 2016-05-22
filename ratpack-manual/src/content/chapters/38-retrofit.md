@@ -46,8 +46,8 @@ public class Example {
         chain.get(ctx -> {
           PublicAddress address = ctx.get(PublicAddress.class);
           
-          HelloApi api = RatpackRetrofit.client()
-            .uri(address.get())
+          HelloApi api = RatpackRetrofit
+            .client(address.get())
             .build(HelloApi.class);
             
           ctx.render(api.hello());
@@ -95,8 +95,8 @@ public class Example {
         chain.get(ctx -> {
           PublicAddress address = ctx.get(PublicAddress.class);
           
-          Retrofit retrofit = RatpackRetrofit.client()
-            .uri(address.get())
+          Retrofit retrofit = RatpackRetrofit
+            .client(address.get())
             .retrofit();
             
           HelloApi hiApi = retrofit.create(HelloApi.class);
@@ -150,7 +150,8 @@ public class Example {
         chain.get(ctx -> {
           PublicAddress address = ctx.get(PublicAddress.class);
           
-          NameApi api = RatpackRetrofit.client()
+          NameApi api = RatpackRetrofit
+            .client(address.get())
             .configure(b -> 
               b.addConverterFactory(
                 JacksonConverterFactory.create(
@@ -158,7 +159,6 @@ public class Example {
                 )
               )
             )
-            .uri(address.get())
             .build(NameApi.class);
             
           api.names().then(nameList -> ctx.render(json(nameList)));  
