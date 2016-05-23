@@ -74,34 +74,9 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
         } else {
           responseCallback.onFailure(thisCall, new IOException(t));
         }
-      }).then(r -> {
-        Response.Builder builder = new Response.Builder();
-        builder.request(request)
-          .code(r.getStatusCode())
-          .body(new ResponseBody() {
-            @Override
-            public MediaType contentType() {
-              return MediaType.parse(r.getBody().getContentType().toString());
-            }
-
-            @Override
-            public long contentLength() {
-              return r.getBody().getBytes().length;
-            }
-
-            @Override
-            public BufferedSource source() {
-              return new Buffer().write(r.getBody().getBytes());
-            }
-          });
-        for (Map.Entry<String, Collection<String>> entry : r.getHeaders().asMultiValueMap().asMultimap().asMap().entrySet()) {
-          for (String value : entry.getValue()) {
-            builder.addHeader(entry.getKey(), value);
-          }
-        }
-        builder.protocol(Protocol.HTTP_1_1);
-        responseCallback.onResponse(thisCall, builder.build());
-      });
+      }).then(r ->
+        responseCallback.onResponse(thisCall, mapReceivedResponse(r))
+      );
     }
 
     Promise<ReceivedResponse> promise() {
@@ -122,7 +97,7 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
         spec.body(this::configureBody);
       }
     }
-    
+
     private void configureHeaders(MutableHeaders h) {
       for(Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
         h.set(entry.getKey(), entry.getValue());
@@ -134,6 +109,35 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
       request.body().writeTo(buffer);
       b.stream(buffer::writeTo);
       b.type(request.body().contentType().toString());
+    }
+
+    private Response mapReceivedResponse(ReceivedResponse r) {
+      Response.Builder builder = new Response.Builder();
+      builder.request(request)
+        .code(r.getStatusCode())
+        .body(new ResponseBody() {
+          @Override
+          public MediaType contentType() {
+            return MediaType.parse(r.getBody().getContentType().toString());
+          }
+
+          @Override
+          public long contentLength() {
+            return r.getBody().getBytes().length;
+          }
+
+          @Override
+          public BufferedSource source() {
+            return new Buffer().write(r.getBody().getBytes());
+          }
+        });
+      for (Map.Entry<String, Collection<String>> entry : r.getHeaders().asMultiValueMap().asMultimap().asMap().entrySet()) {
+        for (String value : entry.getValue()) {
+          builder.addHeader(entry.getKey(), value);
+        }
+      }
+      builder.protocol(Protocol.HTTP_1_1);
+      return builder.build();
     }
 
     @Override
