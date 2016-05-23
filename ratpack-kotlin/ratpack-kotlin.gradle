@@ -20,6 +20,6 @@ apply from: "$rootDir/gradle/kotlinModule.gradle"
 
 dependencies {
   compile project(":ratpack-core")
-  compile project(":ratpack-guice")
   testCompile project(":ratpack-test")
+  testCompile "com.squareup.okhttp3:okhttp:3.2.+"
 }
