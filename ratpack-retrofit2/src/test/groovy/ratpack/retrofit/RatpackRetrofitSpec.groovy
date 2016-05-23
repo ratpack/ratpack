@@ -20,6 +20,7 @@ import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.client.HttpClient
+import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.internal.DefaultHttpClient
 import ratpack.registry.RegistrySpec
 import ratpack.server.ServerConfig
@@ -35,6 +36,7 @@ class RatpackRetrofitSpec extends Specification {
   interface Service {
     @GET("/") Promise<String> root()
     @GET("/") Promise<Response<String>> rootResponse()
+    @GET("/") Promise<ReceivedResponse> rawResponse()
     @GET("/foo") Promise<Response<String>> fooResponse()
     @GET("/error") Promise<String> error()
     @GET("/error") Promise<Response<String>> errorResponse()
@@ -117,6 +119,20 @@ class RatpackRetrofitSpec extends Specification {
     noExceptionThrown()
 
     !response.isSuccessful()
+  }
+
+  def "can adapt to ReceivedResponse"() {
+    when:
+    String response = ExecHarness.yieldSingle({ RegistrySpec r ->
+      r.add(client)
+    }) {
+      service.rawResponse().map {
+        "${it.statusCode}:${it.body.text}"
+      }
+    }.valueOrThrow
+
+    then:
+    response == "200:OK"
   }
 
   def "exception thrown on connection exceptions"() {

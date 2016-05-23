@@ -22,8 +22,10 @@ import okhttp3.Response;
 import okio.Buffer;
 import okio.BufferedSource;
 import ratpack.exec.Execution;
+import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.http.client.HttpClient;
+import ratpack.http.client.ReceivedResponse;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -42,7 +44,7 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
     return new RatpackCall(request);
   }
 
-  private static class RatpackCall implements Call {
+  static class RatpackCall implements Call {
 
     private final Request request;
 
@@ -63,29 +65,7 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
     @Override
     public void enqueue(okhttp3.Callback responseCallback) {
       final Call thisCall = this;
-      final Execution e = Execution.current();
-      //Get an HttpClient from the Execution if it exists, else get it from the Context
-      HttpClient client = e
-        .maybeGet(HttpClient.class)
-        .orElseGet(() ->
-          e.get(Context.class).get(HttpClient.class)
-        );
-      client.request(request.url().uri(), spec -> {
-        spec.method(request.method());
-        spec.headers(h -> {
-          for(Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
-            h.set(entry.getKey(), entry.getValue());
-          }
-        });
-        if (request.body() != null) {
-          spec.body(b -> {
-            Buffer buffer = new Buffer();
-            request.body().writeTo(buffer);
-            b.stream(buffer::writeTo);
-            b.type(request.body().contentType().toString());
-          });
-        }
-      }).onError(t -> {
+      promise().onError(t -> {
         if (t instanceof IOException) {
           responseCallback.onFailure(thisCall, (IOException) t);
         } else {
@@ -118,6 +98,32 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
         }
         builder.protocol(Protocol.HTTP_1_1);
         responseCallback.onResponse(thisCall, builder.build());
+      });
+    }
+
+    Promise<ReceivedResponse> promise() {
+      final Execution e = Execution.current();
+      //Get an HttpClient from the Execution if it exists, else get it from the Context
+      HttpClient client = e
+        .maybeGet(HttpClient.class)
+        .orElseGet(() ->
+          e.get(Context.class).get(HttpClient.class)
+        );
+      return client.request(request.url().uri(), spec -> {
+        spec.method(request.method());
+        spec.headers(h -> {
+          for(Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
+            h.set(entry.getKey(), entry.getValue());
+          }
+        });
+        if (request.body() != null) {
+          spec.body(b -> {
+            Buffer buffer = new Buffer();
+            request.body().writeTo(buffer);
+            b.stream(buffer::writeTo);
+            b.type(request.body().contentType().toString());
+          });
+        }
       });
     }
 
