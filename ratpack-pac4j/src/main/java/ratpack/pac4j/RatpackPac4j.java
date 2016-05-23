@@ -21,6 +21,7 @@ import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.client.DirectClient;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
@@ -461,6 +462,18 @@ public class RatpackPac4j {
   public static Operation logout(Context ctx) {
     return ctx.get(Session.class)
       .remove(Pac4jSessionKeys.USER_PROFILE);
+  }
+
+  /**
+   * Creates a Pac4j {@link WebContext} implementation based on Ratpack's context.
+   *
+   * @param ctx the Ratpack context
+   * @return a Pac4j web context
+   *
+   * @since 1.4
+   */
+  public static Promise<WebContext> webContext(Context ctx) {
+    return RatpackWebContext.from(ctx, false).map(Types::<WebContext>cast);
   }
 
   private static <T extends UserProfile> void toProfile(Class<T> type, Downstream<? super Optional<T>> downstream, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
