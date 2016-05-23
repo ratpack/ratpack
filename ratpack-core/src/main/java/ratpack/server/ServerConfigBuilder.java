@@ -71,6 +71,27 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   }
 
   /**
+   * Sets the base dir using {@link BaseDir#find()}.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder findBaseDir() {
+    return baseDir(BaseDir.find());
+  }
+
+  /**
+   * Sets the base dir using {@link BaseDir#find(String)}.
+   *
+   * @param markerFilePath the path to the marker file on the classpath
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder findBaseDir(String markerFilePath) {
+    return baseDir(BaseDir.find(markerFilePath));
+  }
+
+  /**
    * Sets the port to listen for requests on.
    * <p>
    * Defaults to 5050.
@@ -312,6 +333,13 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    */
   @Override
   ServerConfigBuilder props(Properties properties);
+
+  /**
+   * {@inheritDoc}
+   * @since 1.4
+   */
+  @Override
+  ServerConfigBuilder object(String path, Object object);
 
   /**
    * {@inheritDoc}

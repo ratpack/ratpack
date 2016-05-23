@@ -18,16 +18,12 @@ package ratpack.site.github;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
-import ratpack.util.Types;
+import ratpack.exec.batch.Batch;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Iterables.*;
@@ -44,36 +40,9 @@ public class RatpackVersions {
   }
 
   public Promise<All> getAll() {
-    // TODO need better support in Ratpack for this kind of thing
-    return Promise.async(f -> {
-      AtomicInteger counter = new AtomicInteger(2);
-      Object[] versions = new Object[2];
-
-
-      Action<Execution> onComplete = e -> {
-        if (counter.decrementAndGet() == 0) {
-          f.success(new All(Types.cast(versions[0]), Types.cast(versions[1])));
-        }
-      };
-
-      AtomicBoolean error = new AtomicBoolean();
-
-      Action<Throwable> onError = t -> {
-        if (error.compareAndSet(false, true)) {
-          f.error(t);
-        }
-      };
-
-      Execution.fork()
-        .onError(onError)
-        .onComplete(onComplete)
-        .start(e -> gitHubData.getReleasedVersions().then(l -> versions[0] = l));
-
-      Execution.fork()
-        .onError(onError)
-        .onComplete(onComplete)
-        .start(e -> gitHubData.getUnreleasedVersions().then(l -> versions[1] = l));
-    });
+    return Batch.parallel(gitHubData.getReleasedVersions(), gitHubData.getUnreleasedVersions())
+      .yield()
+      .map(r -> new All(r.get(0), r.get(1)));
   }
 
   @SuppressWarnings("StaticPseudoFunctionalStyleMethod")

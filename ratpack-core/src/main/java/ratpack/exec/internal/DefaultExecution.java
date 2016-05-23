@@ -109,31 +109,7 @@ public class DefaultExecution implements Execution {
   }
 
   public static <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return subscriber -> require().delimitStream(subscriber::onError, continuation ->
-      publisher.subscribe(new Subscriber<T>() {
-        @Override
-        public void onSubscribe(final Subscription subscription) {
-          continuation.event(() ->
-            subscriber.onSubscribe(subscription)
-          );
-        }
-
-        @Override
-        public void onNext(final T element) {
-          continuation.event(() -> subscriber.onNext(element));
-        }
-
-        @Override
-        public void onComplete() {
-          continuation.complete(subscriber::onComplete);
-        }
-
-        @Override
-        public void onError(final Throwable cause) {
-          continuation.complete(() -> subscriber.onError(cause));
-        }
-      })
-    );
+    return publisher instanceof ExecutionBoundPublisher ? (TransformablePublisher<T>) publisher : new ExecutionBoundPublisher<>(publisher);
   }
 
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
@@ -345,6 +321,43 @@ public class DefaultExecution implements Execution {
     }
   }
 
+  private static class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
+    private final Publisher<T> publisher;
+
+    private ExecutionBoundPublisher(Publisher<T> publisher) {
+      this.publisher = publisher;
+    }
+
+    @Override
+    public void subscribe(Subscriber<? super T> subscriber) {
+      require().delimitStream(subscriber::onError, continuation ->
+        publisher.subscribe(new Subscriber<T>() {
+          @Override
+          public void onSubscribe(final Subscription subscription) {
+            continuation.event(() ->
+              subscriber.onSubscribe(subscription)
+            );
+          }
+
+          @Override
+          public void onNext(final T element) {
+            continuation.event(() -> subscriber.onNext(element));
+          }
+
+          @Override
+          public void onComplete() {
+            continuation.complete(subscriber::onComplete);
+          }
+
+          @Override
+          public void onError(final Throwable cause) {
+            continuation.complete(() -> subscriber.onError(cause));
+          }
+        })
+      );
+    }
+  }
+
   private class InitialExecStream extends ExecStream {
     Action<? super Execution> initial;
     Queue<Block> segments;
@@ -421,7 +434,7 @@ public class DefaultExecution implements Execution {
           if (resume == null) {
             if (resumed) {
               execStream = parent;
-              return execStream.exec();
+              return true;
             } else {
               return false;
             }
@@ -434,7 +447,7 @@ public class DefaultExecution implements Execution {
           Block segment = segments.poll();
           if (segment == null) {
             execStream = parent;
-            return execStream.exec();
+            return true;
           } else {
             segment.execute();
             return true;
@@ -465,7 +478,7 @@ public class DefaultExecution implements Execution {
     void error(Throwable throwable) {
       execStream = parent;
       if (resumed && resume == null) {
-        execStream.error(throwable);
+        parent.error(throwable);
       } else {
         try {
           onError.execute(throwable);
@@ -514,7 +527,7 @@ public class DefaultExecution implements Execution {
           }
         } else {
           events.poll();
-          return exec();
+          return true;
         }
       } else {
         nextSegment.execute();

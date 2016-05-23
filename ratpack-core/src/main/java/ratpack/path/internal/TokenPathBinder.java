@@ -30,10 +30,12 @@ import java.util.regex.Pattern;
 public class TokenPathBinder implements PathBinder {
 
   private final ImmutableList<String> tokenNames;
+  private final String target;
   private final Pattern regex;
 
-  protected TokenPathBinder(ImmutableList<String> tokenNames, Pattern regex) {
+  protected TokenPathBinder(ImmutableList<String> tokenNames, String target, Pattern regex) {
     this.tokenNames = tokenNames;
+    this.target = target;
     this.regex = regex;
   }
 
@@ -51,7 +53,7 @@ public class TokenPathBinder implements PathBinder {
         }
       }
 
-      return Optional.of(new DefaultPathBinding(boundPath, paramsBuilder.build(), parentBinding));
+      return Optional.of(new DefaultPathBinding(boundPath, paramsBuilder.build(), parentBinding, target));
     } else {
       return Optional.empty();
     }

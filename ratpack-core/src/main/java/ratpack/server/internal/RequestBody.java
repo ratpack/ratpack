@@ -26,7 +26,6 @@ import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.http.RequestBodyAlreadyReadException;
 import ratpack.http.RequestBodyTooLargeException;
-import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.stream.internal.BufferingPublisher;
 
@@ -137,74 +136,73 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
-  public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
-    return Streams.bindExec(new BufferingPublisher<>(ByteBuf::release, write -> {
-        if (read) {
-          throw new RequestBodyAlreadyReadException();
-        }
+  public TransformablePublisher<ByteBuf> readStream(long maxContentLength) {
+    return new BufferingPublisher<ByteBuf>(ByteBuf::release, write -> {
+      if (read) {
+        throw new RequestBodyAlreadyReadException();
+      }
 
-        read = true;
-        RequestBody.this.maxContentLength = maxContentLength;
+      read = true;
+      RequestBody.this.maxContentLength = maxContentLength;
 
-        if (advertisedLength > maxContentLength || length > maxContentLength) {
-          forceCloseConnection();
-          throw new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length));
-        }
+      if (advertisedLength > maxContentLength || length > maxContentLength) {
+        forceCloseConnection();
+        throw new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length));
+      }
 
-        ctx.channel().config().setAutoRead(false);
+      ctx.channel().config().setAutoRead(false);
 
-        return new Subscription() {
-          boolean autoRead;
+      return new Subscription() {
+        boolean autoRead;
 
-          @Override
-          public void request(long n) {
-            if (onAdd == null) {
-              ByteBuf alreadyReceived = composeReceived();
-              if (alreadyReceived.readableBytes() > 0) {
-                write.item(alreadyReceived);
-              }
-              if (done) {
-                write.complete();
-                return;
-              } else {
-                onAdd = httpContent -> {
-                  if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
-                    ByteBuf byteBuf = httpContent.content();
-                    length += byteBuf.readableBytes();
-                    if (maxContentLength > 0 && maxContentLength < length) {
-                      forceCloseConnection();
-                      write.error(new RequestBodyTooLargeException(maxContentLength, length));
-                      return;
-                    }
-
-                    write.item(byteBuf);
-                  }
-                  if (httpContent instanceof LastHttpContent) {
-                    done = true;
-                    ctx.channel().config().setAutoRead(false);
-                    write.complete();
-                  } else if (!autoRead && write.getRequested() > 0) {
-                    ctx.channel().read();
-                  }
-                };
-              }
+        @Override
+        public void request(long n) {
+          if (onAdd == null) {
+            ByteBuf alreadyReceived = composeReceived();
+            if (alreadyReceived.readableBytes() > 0) {
+              write.item(alreadyReceived);
             }
-
-            if (n == Long.MAX_VALUE) {
-              ctx.channel().config().setAutoRead(true);
-              autoRead = true;
+            if (done) {
+              write.complete();
+              return;
             } else {
-              ctx.channel().read();
+              onAdd = httpContent -> {
+                if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
+                  ByteBuf byteBuf = httpContent.content();
+                  length += byteBuf.readableBytes();
+                  if (maxContentLength > 0 && maxContentLength < length) {
+                    forceCloseConnection();
+                    write.error(new RequestBodyTooLargeException(maxContentLength, length));
+                    return;
+                  }
+
+                  write.item(byteBuf);
+                }
+                if (httpContent instanceof LastHttpContent) {
+                  done = true;
+                  ctx.channel().config().setAutoRead(false);
+                  write.complete();
+                } else if (!autoRead && write.getRequested() > 0) {
+                  ctx.channel().read();
+                }
+              };
             }
           }
 
-          @Override
-          public void cancel() {
-            forceCloseConnection();
+          if (n == Long.MAX_VALUE) {
+            ctx.channel().config().setAutoRead(true);
+            autoRead = true;
+          } else {
+            ctx.channel().read();
           }
-        };
-      })
-    );
+        }
+
+        @Override
+        public void cancel() {
+          forceCloseConnection();
+        }
+      };
+    }).bindExec();
   }
 
   @Override

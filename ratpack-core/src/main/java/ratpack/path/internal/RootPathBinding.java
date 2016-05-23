@@ -48,6 +48,11 @@ public class RootPathBinding implements PathBinding {
   }
 
   @Override
+  public String getDescription() {
+    return "";
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -65,4 +70,6 @@ public class RootPathBinding implements PathBinding {
   public int hashCode() {
     return path.hashCode();
   }
+
+
 }

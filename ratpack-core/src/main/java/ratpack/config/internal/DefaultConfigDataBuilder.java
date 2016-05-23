@@ -187,6 +187,11 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   }
 
   @Override
+  public ConfigDataBuilder object(String path, Object object) {
+    return add(new ObjectConfigSource(path, object));
+  }
+
+  @Override
   public ConfigDataBuilder onError(Action<? super Throwable> errorHandler) {
     this.errorHandler = errorHandler;
     return this;

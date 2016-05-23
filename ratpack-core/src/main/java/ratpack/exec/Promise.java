@@ -393,8 +393,35 @@ public interface Promise<T> {
    *
    * @param resultHandler the consumer of the result
    */
-  default void result(Action<? super Result<T>> resultHandler) {
-    onError(t -> resultHandler.execute(Result.<T>error(t))).then(v -> resultHandler.execute(Result.success(v)));
+  default void result(Action<? super ExecResult<T>> resultHandler) {
+    connect(new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        try {
+          resultHandler.execute(ExecResult.of(Result.success(value)));
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        try {
+          resultHandler.execute(ExecResult.of(Result.<T>error(throwable)));
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+
+      @Override
+      public void complete() {
+        try {
+          resultHandler.execute(ExecResult.<T>complete());
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+    });
   }
 
   /**
@@ -435,6 +462,38 @@ public interface Promise<T> {
       })
       )
     );
+  }
+
+  /**
+   * Transforms the promised value by applying the given function to it, if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .mapIf(s -> s.contains("f"), String::toUpperCase)
+   *           .mapIf(s -> s.contains("f"), s -> s + "-BAR")
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to be transformed
+   * @param transformer the transformation to apply to the promised value
+   * @return a promise
+   * @since 1.4
+   */
+  default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> transformer) {
+    return map(t -> predicate.apply(t) ? transformer.apply(t) : t);
   }
 
   /**
@@ -967,6 +1026,38 @@ public interface Promise<T> {
         }
       }))
     );
+  }
+
+  /**
+   * Transforms the promised value by applying the given function to it that returns a promise for the transformed value, if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()))
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s + "-BAR"))
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to be transformed
+   * @param transformer the transformation to apply to the promised value
+   * @return a promise
+   * @since 1.4
+   */
+  default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> transformer) {
+    return flatMap(t -> predicate.apply(t) ? transformer.apply(t) : Promise.value(t));
   }
 
   /**
