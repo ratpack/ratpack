@@ -18,6 +18,7 @@ package ratpack.retrofit.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
+import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofitCallException;
 import ratpack.util.Exceptions;
 import retrofit2.*;
@@ -55,9 +56,30 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
       }
       Type responseType = Utils.getSingleParameterUpperBound((ParameterizedType) parameterType);
       return new ResponseCallAdapter(responseType);
+    } else if (parameterTypeToken.getRawType() == ReceivedResponse.class) {
+      return new ReceivedResponseCallAdapter(parameterType);
     }
     //Else we're just promising a value
     return new SimpleCallAdapter(parameterType);
+  }
+
+  static final class ReceivedResponseCallAdapter implements CallAdapter<Promise<?>> {
+
+    private final Type responseType;
+
+    ReceivedResponseCallAdapter(Type responseType) {
+      this.responseType = responseType;
+    }
+
+    @Override
+    public Type responseType() {
+      return responseType;
+    }
+
+    @Override
+    public <R> Promise<ReceivedResponse> adapt(Call<R> call) {
+      return new RatpackCallFactory.RatpackCall(call.request()).promise();
+    }
   }
 
   static final class ResponseCallAdapter implements CallAdapter<Promise<?>> {
