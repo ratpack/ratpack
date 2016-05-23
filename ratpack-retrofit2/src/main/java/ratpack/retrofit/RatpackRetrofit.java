@@ -98,7 +98,7 @@ public class RatpackRetrofit {
     private final URI uri;
     private Action<? super Retrofit.Builder> builderAction = Action.noop();
 
-    public Builder(URI uri) {
+    private Builder(URI uri) {
       Preconditions.checkNotNull(uri, "Must provide the base uri.");
       this.uri = uri;
     }
