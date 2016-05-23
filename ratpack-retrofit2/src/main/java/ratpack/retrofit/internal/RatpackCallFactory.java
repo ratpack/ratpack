@@ -23,7 +23,6 @@ import okio.Buffer;
 import okio.BufferedSource;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
