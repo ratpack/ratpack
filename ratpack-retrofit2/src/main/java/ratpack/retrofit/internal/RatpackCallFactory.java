@@ -23,9 +23,12 @@ import okio.Buffer;
 import okio.BufferedSource;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
+import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
+import ratpack.http.client.RequestSpec;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -109,22 +112,28 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
         .orElseGet(() ->
           e.get(Context.class).get(HttpClient.class)
         );
-      return client.request(request.url().uri(), spec -> {
-        spec.method(request.method());
-        spec.headers(h -> {
-          for(Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
-            h.set(entry.getKey(), entry.getValue());
-          }
-        });
-        if (request.body() != null) {
-          spec.body(b -> {
-            Buffer buffer = new Buffer();
-            request.body().writeTo(buffer);
-            b.stream(buffer::writeTo);
-            b.type(request.body().contentType().toString());
-          });
-        }
-      });
+      return client.request(request.url().uri(), this::configureRequest);
+    }
+
+    private void configureRequest(RequestSpec spec) throws Exception {
+      spec.method(request.method());
+      spec.headers(this::configureHeaders);
+      if (request.body() != null) {
+        spec.body(this::configureBody);
+      }
+    }
+    
+    private void configureHeaders(MutableHeaders h) {
+      for(Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
+        h.set(entry.getKey(), entry.getValue());
+      }
+    }
+
+    private void configureBody(RequestSpec.Body b) throws Exception {
+      Buffer buffer = new Buffer();
+      request.body().writeTo(buffer);
+      b.stream(buffer::writeTo);
+      b.type(request.body().contentType().toString());
     }
 
     @Override
