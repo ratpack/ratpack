@@ -17,20 +17,15 @@
 package ratpack.retrofit;
 
 import com.google.common.base.Preconditions;
-import okhttp3.ResponseBody;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.internal.RatpackCallAdapterFactory;
 import ratpack.retrofit.internal.RatpackCallFactory;
 import ratpack.retrofit.internal.ReceivedResponseConverterFactory;
 import ratpack.util.Exceptions;
-import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.net.URI;
 
 /**
