@@ -28,7 +28,6 @@ configured return type.
 
 ```language-java
 import ratpack.exec.Promise;
-import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
 import ratpack.test.embed.EmbeddedApp;
@@ -57,10 +56,35 @@ public class Example {
         chain.get("hi", ctx -> ctx.render("hello"));
       })
     ).test(httpClient -> {
-      ReceivedResponse response = httpClient.get();
-      assertEquals("hello", response.getBody().getText());
+      assertEquals("hello", httpClient.getText());
     });
   }
+}
+```
+
+## Using Ratpack Promises in Retrofit APIs
+
+The `ratpack-retrofit2` integration provides support for utilizing Ratpack's `Promise` has a return type for a client interface.
+It supports adapting to `Promise` when the promised value is the following types:
+
+* Simple scalars (`Integer`, `String`, `Long`, etc.)
+* Retrofit [`Response`](https://square.github.io/retrofit/2.x/retrofit/retrofit2/Response.html)
+* Ratpack [`ReceivedResponse`](api/ratpack/http/client/ReceivedResponse.html)
+
+The following example shows the 3 variations configured for the same endpoint.
+
+```language-java
+import ratpack.exec.Promise;
+import ratpack.http.client.ReceivedResponse;
+import retrofit2.Response;
+import retrofit2.http.GET;
+
+public interface Example {
+  @GET("hi") Promise<String> hello();
+  
+  @GET("hi") Promise<Response<String>> helloResponse();
+  
+  @GET("hi") Promise<ReceivedResponse> helloRaw();
 }
 ```
 
@@ -71,7 +95,6 @@ To create multiple clients, the underlying [`Retrofit`](https://square.github.io
 
 ```language-java
 import ratpack.exec.Promise;
-import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
 import ratpack.test.embed.EmbeddedApp;
@@ -126,7 +149,6 @@ If the remote API is responding in JSON, then the [`JacksonConverterFactory`](ht
 ```language-java
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.exec.Promise;
-import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
 import ratpack.test.embed.EmbeddedApp;
