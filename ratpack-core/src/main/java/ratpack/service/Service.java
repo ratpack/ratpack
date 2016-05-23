@@ -18,6 +18,7 @@ package ratpack.service;
 
 import ratpack.api.NonBlocking;
 import ratpack.exec.Blocking;
+import ratpack.func.Action;
 import ratpack.server.RatpackServer;
 
 /**
@@ -235,4 +236,34 @@ public interface Service {
    */
   @NonBlocking
   default void onStop(StopEvent event) throws Exception { }
+
+  /**
+   * Creates a new Service implementation that executes the given action on start.
+   *
+   * @param action the action to execute on start
+   * @return the Service implementation
+   */
+  static Service start(Action<? super StartEvent> action) {
+    return new Service() {
+
+      @Override
+      public void onStart(StartEvent event) throws Exception {
+        action.execute(event);
+      }
+    };
+  }
+
+  /**
+   * Creates a new Service implementation that executes the given action on stop.
+   * @param action the action to execute on stop
+   * @return the Service implementation
+   */
+  static Service stop(Action<? super StopEvent> action) {
+    return new Service() {
+      @Override
+      public void onStop(StopEvent event) throws Exception {
+        action.execute(event);
+      }
+    };
+  }
 }
