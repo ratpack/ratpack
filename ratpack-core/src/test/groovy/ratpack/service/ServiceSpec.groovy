@@ -255,10 +255,10 @@ class ServiceSpec extends RatpackGroovyDslSpec {
   def "can create services from actions"() {
     when:
     bindings {
-      multiBindInstance Service.start {
+      multiBindInstance Service.startup("1") {
         events << "start".toString()
       }
-      multiBindInstance Service.stop {
+      multiBindInstance Service.shutdown("2") {
         events << "stop".toString()
       }
     }
