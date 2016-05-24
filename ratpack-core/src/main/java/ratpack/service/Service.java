@@ -242,6 +242,7 @@ public interface Service {
    *
    * @param action the action to execute on start
    * @return the Service implementation
+   * @since 1.4
    */
   static Service start(Action<? super StartEvent> action) {
     return new Service() {
@@ -257,6 +258,7 @@ public interface Service {
    * Creates a new Service implementation that executes the given action on stop.
    * @param action the action to execute on stop
    * @return the Service implementation
+   * @since 1.4
    */
   static Service stop(Action<? super StopEvent> action) {
     return new Service() {
