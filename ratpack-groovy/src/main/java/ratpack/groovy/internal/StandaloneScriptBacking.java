@@ -63,7 +63,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
   }
 
-  private static class ConsoleScriptConfigurer implements Action<RatpackServerSpec> {
+  public static class ConsoleScriptConfigurer implements Action<RatpackServerSpec> {
 
     private final Closure<?> closure;
 

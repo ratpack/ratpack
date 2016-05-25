@@ -22,6 +22,7 @@ import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
+import ratpack.groovy.internal.StandaloneScriptBacking;
 import ratpack.groovy.server.GroovyRatpackServerSpec;
 import ratpack.groovy.test.embed.internal.DefaultGroovyEmbeddedApp;
 import ratpack.server.ServerConfig;
@@ -47,6 +48,26 @@ import ratpack.test.http.TestHttpClient;
  * }
  * </pre>
  *
+ * <p>
+ * Alternatively, the same syntax as a {@code ratpack.groovy} file can by used.
+ *
+ * <pre class="tested">
+ * import static ratpack.groovy.test.embed.GroovyEmbeddedApp.ratpack
+ *
+ * ratpack {
+ *   bindings {
+ *     bindInstance String, "root"
+ *   }
+ *   handlers {
+ *     get {
+ *       render get(String)
+ *     }
+ *   }
+ * } test {
+ *   assert getText() == "root"
+ * }
+ * </pre>
+ *
  * @see EphemeralBaseDir
  * @see EmbeddedApp
  */
@@ -58,6 +79,10 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
   static GroovyEmbeddedApp of(@DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) throws Exception {
     return from(EmbeddedApp.of(s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
+  }
+
+  static GroovyEmbeddedApp ratpack(@DelegatesTo(value = Groovy.Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> script) throws Exception {
+    return from(EmbeddedApp.of(new StandaloneScriptBacking.ConsoleScriptConfigurer(script)::execute));
   }
 
   static GroovyEmbeddedApp fromServer(ServerConfigBuilder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {
