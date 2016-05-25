@@ -71,7 +71,7 @@ import java.net.URI;
  * }</pre>
  *
  */
-public class RatpackRetrofit {
+public abstract class RatpackRetrofit {
 
   /**
    * Creates a new builder for creating Retrofit clients.
@@ -137,7 +137,7 @@ public class RatpackRetrofit {
     }
 
     /**
-     * Uses this builder to create a Retrofit client implemention.
+     * Uses this builder to create a Retrofit client implementation.
      * <p>
      * This is the short form of calling {@code client.retrofit().build(service)}.
      *
