@@ -1,13 +1,11 @@
 package ratpack.kotlin
 
-import bsh.commands.dir
 import org.testng.annotations.Test
-import ratpack.kotlin.KContext
-import ratpack.kotlin.serverOf
-import ratpack.kotlin.serverStart
 import ratpack.registry.Registry
 import ratpack.server.*
 import java.net.URL
+import java.time.LocalDateTime
+import java.net.InetAddress.getByName as inetAddress
 
 @Test class RatpackTest {
     fun test_app_from_handler() {
@@ -22,7 +20,9 @@ import java.net.URL
     fun test_multipart_parsing() {
         val server = serverStart {
             serverConfig {
+                assert(baseDir==null)
                 port = 0
+                address = inetAddress("localhost")
                 baseDir = BaseDir.find("logback-test.xml")
             }
 
@@ -74,6 +74,25 @@ import java.net.URL
         appFromServer (server).check {
             assert("Hello World!" == getBody("hello"))
             assert("Good bye cruel World!" == getBody("bye"))
+        }
+    }
+
+    fun test_context_logic() {
+        appFromHandlers {
+            get("date") {
+                response.headers["date"] = httpDate(LocalDateTime.now())
+                withBody {
+                    ok(text + " response")
+                }
+            }
+            get("ok") { ok(201) }
+            get("halt") { halt(501) }
+        }
+        .check {
+            assert (getText("/date") == " response")
+            assert (response.headers.contains("date"))
+            assert (get("/ok").status.code == 201)
+            assert (get("/halt").status.code == 501)
         }
     }
 
