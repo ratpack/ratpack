@@ -28,6 +28,7 @@ configured return type.
 
 ```language-java
 import ratpack.exec.Promise;
+import ratpack.registry.Registry;
 import ratpack.retrofit.RatpackRetrofit;
 import ratpack.server.PublicAddress;
 import ratpack.test.embed.EmbeddedApp;
@@ -43,13 +44,15 @@ public class Example {
 
   public static void main(String... args) throws Exception {
     EmbeddedApp.of(s -> s
+      .registry(r -> 
+        Registry.single(
+          RatpackRetrofit
+            .client(r.get(PublicAddress.class).get())
+            .build(HelloApi.class))
+      )
       .handlers(chain -> {
         chain.get(ctx -> {
-          PublicAddress address = ctx.get(PublicAddress.class);
-          
-          HelloApi api = RatpackRetrofit
-            .client(address.get())
-            .build(HelloApi.class);
+          HelloApi api = ctx.get(HelloApi.class);
             
           ctx.render(api.hello());
         });
