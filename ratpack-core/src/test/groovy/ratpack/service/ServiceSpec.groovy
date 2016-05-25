@@ -252,6 +252,32 @@ class ServiceSpec extends RatpackGroovyDslSpec {
     events == ["1-start", "2-start", "3-start", "3-stop", "2-stop", "1-stop"]
   }
 
+  def "can create services from actions"() {
+    when:
+    bindings {
+      multiBindInstance Service.startup("1") {
+        events << "start".toString()
+      }
+      multiBindInstance Service.shutdown("2") {
+        events << "stop".toString()
+      }
+    }
+    handlers {
+      get {
+        render events.toString()
+      }
+    }
+
+    then:
+    text == ["start"].toString()
+
+    when:
+    server.stop()
+
+    then:
+    events == ["start", "stop"]
+  }
+
   static ServiceDependencies dependsOn(String dependentPrefix, String dependencyPrefix) {
     dependsOn(
       { it instanceof RecordingService && it.prefix == dependentPrefix },

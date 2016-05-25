@@ -18,6 +18,7 @@ package ratpack.service;
 
 import ratpack.api.NonBlocking;
 import ratpack.exec.Blocking;
+import ratpack.func.Action;
 import ratpack.server.RatpackServer;
 
 /**
@@ -235,4 +236,54 @@ public interface Service {
    */
   @NonBlocking
   default void onStop(StopEvent event) throws Exception { }
+
+  /**
+   * Creates a service that executes the given action as the {@link #onStart(StartEvent)} implementation.
+   * <p>
+   * This can be used to create a service implementation from a lambda expression,
+   * instead of creating an anonymous impl of {@code Service}.
+   *
+   * @param name the name of the service
+   * @param action the action to execute on start
+   * @return the service implementation
+   * @since 1.4
+   */
+  static Service startup(String name, Action<? super StartEvent> action) {
+    return new Service() {
+      @Override
+      public String getName() {
+        return name;
+      }
+
+      @Override
+      public void onStart(StartEvent event) throws Exception {
+        action.execute(event);
+      }
+    };
+  }
+
+  /**
+   * Creates a service that executes the given action as the {@link #onStop(StopEvent)} implementation.
+   * <p>
+   * This can be used to create a service implementation from a lambda expression,
+   * instead of creating an anonymous impl of {@code Service}.
+   *
+   * @param name the name of the service
+   * @param action the action to execute on stop
+   * @return the service implementation
+   * @since 1.4
+   */
+  static Service shutdown(String name, Action<? super StopEvent> action) {
+    return new Service() {
+      @Override
+      public String getName() {
+        return name;
+      }
+
+      @Override
+      public void onStop(StopEvent event) throws Exception {
+        action.execute(event);
+      }
+    };
+  }
 }
