@@ -28,9 +28,7 @@ configured return type.
 
 ```language-java
 import ratpack.exec.Promise;
-import ratpack.registry.Registry;
 import ratpack.retrofit.RatpackRetrofit;
-import ratpack.server.PublicAddress;
 import ratpack.test.embed.EmbeddedApp;
 import retrofit2.http.GET;
 
@@ -43,20 +41,24 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
+    EmbeddedApp api = EmbeddedApp.of(s -> s
+      .handlers(chain -> chain
+        .get("hi", ctx -> ctx.render("hello"))
+      )
+    );
     EmbeddedApp.of(s -> s
-      .registry(r -> 
-        Registry.single(
+      .registryOf(r -> 
+        r.add(HelloApi.class,
           RatpackRetrofit
-            .client(r.get(PublicAddress.class).get())
+            .client(api.getAddress())
             .build(HelloApi.class))
       )
       .handlers(chain -> {
         chain.get(ctx -> {
-          HelloApi api = ctx.get(HelloApi.class);
+          HelloApi helloApi = ctx.get(HelloApi.class);
             
-          ctx.render(api.hello());
+          ctx.render(helloApi.hello());
         });
-        chain.get("hi", ctx -> ctx.render("hello"));
       })
     ).test(httpClient -> {
       assertEquals("hello", httpClient.getText());
@@ -99,7 +101,6 @@ To create multiple clients, the underlying [`Retrofit`](https://square.github.io
 ```language-java
 import ratpack.exec.Promise;
 import ratpack.retrofit.RatpackRetrofit;
-import ratpack.server.PublicAddress;
 import ratpack.test.embed.EmbeddedApp;
 import retrofit2.http.GET;
 import retrofit2.Retrofit;
@@ -118,22 +119,28 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
+    EmbeddedApp api = EmbeddedApp.of(s -> s
+      .handlers(chain -> chain
+        .get("hi", ctx -> ctx.render("hello"))
+        .get("bye", ctx -> ctx.render("goodbye"))
+      )
+    );
     EmbeddedApp.of(s -> s
+      .registryOf(r -> {
+        Retrofit retrofit = RatpackRetrofit
+          .client(api.getAddress())
+          .retrofit();
+        r.add(HelloApi.class, retrofit.create(HelloApi.class));
+        r.add(GoodbyeApi.class, retrofit.create(GoodbyeApi.class));
+      })
       .handlers(chain -> {
         chain.get(ctx -> {
-          PublicAddress address = ctx.get(PublicAddress.class);
-          
-          Retrofit retrofit = RatpackRetrofit
-            .client(address.get())
-            .retrofit();
             
-          HelloApi hiApi = retrofit.create(HelloApi.class);
-          GoodbyeApi byeApi = retrofit.create(GoodbyeApi.class);
+          HelloApi hiApi = ctx.get(HelloApi.class);
+          GoodbyeApi byeApi = ctx.get(GoodbyeApi.class);
             
           ctx.render(hiApi.hello().right(byeApi.bye()).map(p -> p.left() + " and " + p.right()));
         });
-        chain.get("hi", ctx -> ctx.render("hello"));
-        chain.get("bye", ctx -> ctx.render("goodbye"));
       })
     ).test(httpClient -> {
       assertEquals("hello and goodbye", httpClient.getText());
@@ -153,7 +160,7 @@ If the remote API is responding in JSON, then the [`JacksonConverterFactory`](ht
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.exec.Promise;
 import ratpack.retrofit.RatpackRetrofit;
-import ratpack.server.PublicAddress;
+import ratpack.registry.Registry;
 import ratpack.test.embed.EmbeddedApp;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
@@ -172,25 +179,30 @@ public class Example {
   }
 
   public static void main(String... args) throws Exception {
+    EmbeddedApp api = EmbeddedApp.of(s -> s
+      .handlers(chain -> chain
+        .get("names", ctx -> ctx.render(json(new String[]{"John", "Jane"})))
+      )
+    );
     EmbeddedApp.of(s -> s
-      .handlers(chain -> {
-        chain.get(ctx -> {
-          PublicAddress address = ctx.get(PublicAddress.class);
-          
-          NameApi api = RatpackRetrofit
-            .client(address.get())
+      .registry(r -> 
+        Registry.single(NameApi.class, 
+          RatpackRetrofit
+            .client(api.getAddress())
             .configure(b -> 
               b.addConverterFactory(
                 JacksonConverterFactory.create(
-                  ctx.get(ObjectMapper.class)
+                  r.get(ObjectMapper.class)
                 )
               )
             )
-            .build(NameApi.class);
+            .build(NameApi.class))
+      )
+      .handlers(chain -> {
+        chain.get(ctx -> {
             
-          api.names().then(nameList -> ctx.render(json(nameList)));  
+          ctx.get(NameApi.class).names().then(nameList -> ctx.render(json(nameList)));  
         });
-        chain.get("names", ctx -> ctx.render(json(new String[]{"John", "Jane"})));
       })
     ).test(httpClient -> {
       assertEquals("[\"John\",\"Jane\"]", httpClient.getText());
