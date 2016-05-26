@@ -12,9 +12,9 @@ The following projects are maintained by the Ratpack core team as simple example
 
 The following are projects and examples of Ratpack implemented using languages other than Java and Groovy.
 
-* [Catacumba](https://funcool.github.io/catacumba/latest/) - non-blocking web toolkit for Clojure built on Ratpack/Netty.
-* [Kotlin Example](https://github.com/ratpack/example-ratpack-gradle-kotlin-app) - Example application written in [Kotlin](https://kotlinlang.org/).
-* [Ratpack JRuby Example](https://github.com/jkutner/ratpack-jruby-example) - Example Ratpack application written in [JRuby](http://jruby.org/)
+* [Catacumba](https://funcool.github.io/catacumba/latest) - non-blocking web toolkit for Clojure built on Ratpack/Netty.
+* [Kotlin Example](https://github.com/ratpack/example-ratpack-gradle-kotlin-app) - Example application written in [Kotlin](https://kotlinlang.org).
+* [Ratpack JRuby Example](https://github.com/jkutner/ratpack-jruby-example) - Example Ratpack application written in [JRuby](http://jruby.org)
 
 ## 3rd Party Modules
  
