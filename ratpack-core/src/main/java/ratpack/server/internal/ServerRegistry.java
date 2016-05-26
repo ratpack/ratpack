@@ -149,6 +149,6 @@ public abstract class ServerRegistry {
   }
 
   private static <T> void addConfigObject(RegistryBuilder baseRegistryBuilder, ConfigObject<T> configObject) {
-    baseRegistryBuilder.add(configObject.getType(), configObject.getObject());
+    baseRegistryBuilder.add(configObject.getTypeToken(), configObject.getObject());
   }
 }

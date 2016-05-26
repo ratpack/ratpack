@@ -26,6 +26,7 @@ import ratpack.config.ConfigObject;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
+import ratpack.guice.internal.GuiceUtil;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
 import ratpack.impose.Impositions;
@@ -276,7 +277,7 @@ public abstract class Guice {
     }
 
     private static <T> void bind(Binder binder, ConfigObject<T> configObject) {
-      binder.bind(configObject.getType()).toInstance(configObject.getObject());
+      binder.bind(GuiceUtil.toTypeLiteral(configObject.getTypeToken())).toInstance(configObject.getObject());
     }
   }
 }
