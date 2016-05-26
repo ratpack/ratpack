@@ -37,7 +37,6 @@ import java.net.URI;
  * <pre class="java">{@code
  * import ratpack.exec.Promise;
  * import ratpack.retrofit.RatpackRetrofit;
- * import ratpack.server.PublicAddress;
  * import ratpack.test.embed.EmbeddedApp;
  * import retrofit2.http.GET;
  *
@@ -52,17 +51,23 @@ import java.net.URI;
  *
  *   public static void main(String... args) throws Exception {
  *
- *     EmbeddedApp.fromHandlers(chain -> {
+ *     EmbeddedApp api = EmbeddedApp.of(s -> s
+ *      .handlers(chain -> chain
+ *        .get("hello", ctx -> ctx.render("hello"))
+ *      )
+ *     );
+ *     EmbeddedApp.of(s -> s
+ *      .registryOf(r -> r
+ *        .add(HelloService.class,
+ *          RatpackRetrofit.client(api.getAddress()).build(HelloService.class)
+ *        )
+ *      )
+ *      .handlers(chain -> {
  *         chain.get(ctx -> {
- *           PublicAddress address = ctx.get(PublicAddress.class);
- *           HelloService service = RatpackRetrofit
- *             .client(address.get())
- *             .build(HelloService.class);
  *
- *           ctx.render(service.hello());
+ *           ctx.render(ctx.get(HelloService.class).hello());
  *         });
- *         chain.get("hello", ctx -> ctx.render("hello"));
- *       }
+ *       })
  *     ).test(testHttpClient -> {
  *       assertEquals("hello", testHttpClient.getText());
  *     });
