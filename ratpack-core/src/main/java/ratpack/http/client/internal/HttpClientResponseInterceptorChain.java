@@ -15,40 +15,23 @@
  */
 package ratpack.http.client.internal;
 
+import ratpack.http.client.HttpClientResponseInterceptor;
+import ratpack.http.client.ReceivedResponse;
 
-import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.http.client.SentRequest;
-
-class ImmutableSentRequest implements SentRequest {
-  private final String method;
-  private final String uri;
-  private final HttpHeaders headers;
+class HttpClientResponseInterceptorChain {
+  private Iterable<? extends HttpClientResponseInterceptor> interceptors;
 
   /**
    * Constructor.
    *
-   * @param method the method
-   * @param uri the uri
-   * @param headers the headers
+   * @param interceptors response interceptors
    */
-  ImmutableSentRequest(final String method, final String uri, final HttpHeaders headers) {
-    this.method = method;
-    this.uri = uri;
-    this.headers = headers;
+  HttpClientResponseInterceptorChain(final Iterable<? extends
+    HttpClientResponseInterceptor> interceptors) {
+    this.interceptors = interceptors;
   }
 
-  @Override
-  public String method() {
-    return null;
-  }
-
-  @Override
-  public String uri() {
-    return null;
-  }
-
-  @Override
-  public HttpHeaders requestHeaders() {
-    return null;
+  void intercept(final ReceivedResponse response) {
+    interceptors.forEach(c -> c.intercept(response));
   }
 }

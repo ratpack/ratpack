@@ -25,8 +25,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
-import ratpack.http.client.HttpClientRequestInterceptor;
-import ratpack.http.client.HttpClientResponseInterceptor;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
@@ -35,20 +33,20 @@ import java.net.URI;
 class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
 
   private final int maxContentLengthBytes;
-  private final Iterable<? extends HttpClientRequestInterceptor> requestInterceptor;
-  private final Iterable<? extends HttpClientResponseInterceptor> responseInterceptor;
+  private final HttpClientRequestInterceptorChain requestInterceptorChain;
+  private final HttpClientResponseInterceptorChain responseInterceptorChain;
 
   public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer,
                                          URI uri, Execution execution,
                                          ByteBufAllocator byteBufAllocator,
                                          int maxContentLengthBytes,
                                          int redirectCount,
-                                         Iterable<? extends HttpClientRequestInterceptor> requestInterceptor,
-                                         Iterable<? extends HttpClientResponseInterceptor> responseInterceptor) {
-    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount, requestInterceptor);
+                                         HttpClientRequestInterceptorChain requestInterceptorChain,
+                                         HttpClientResponseInterceptorChain responseInterceptorChain) {
+    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount, requestInterceptorChain);
     this.maxContentLengthBytes = maxContentLengthBytes;
-    this.requestInterceptor = requestInterceptor;
-    this.responseInterceptor = responseInterceptor;
+    this.requestInterceptorChain = requestInterceptorChain;
+    this.responseInterceptorChain = responseInterceptorChain;
   }
 
   @Override
@@ -58,7 +56,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       @Override
       public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
         ReceivedResponse response = toReceivedResponse(msg);
-        responseInterceptor.forEach(c -> c.intercept(response));
+        responseInterceptorChain.intercept(response);
         success(downstream, response);
       }
 
@@ -78,8 +76,8 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
                                                 byteBufAllocator,
                                                 maxContentLengthBytes,
                                                 redirectCount,
-                                                requestInterceptor,
-                                                responseInterceptor);
+      requestInterceptorChain,
+      responseInterceptorChain);
   }
 
 }

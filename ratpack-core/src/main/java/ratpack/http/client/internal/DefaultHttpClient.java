@@ -85,8 +85,8 @@ public class DefaultHttpClient implements HttpClient {
       byteBufAllocator,
       maxContentLengthBytes,
       0,
-      requestInterceptor.get(),
-      responseInterceptor.get()).connect(f));
+      new HttpClientRequestInterceptorChain(requestInterceptor.get()),
+      new HttpClientResponseInterceptorChain(responseInterceptor.get())).connect(f));
   }
 
   @Override

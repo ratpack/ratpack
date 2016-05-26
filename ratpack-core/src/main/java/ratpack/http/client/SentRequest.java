@@ -15,7 +15,7 @@
  */
 package ratpack.http.client;
 
-import ratpack.http.Headers;
+import io.netty.handler.codec.http.HttpHeaders;
 
 /**
  * Interface representing the HTTP request sent by {@link HttpClient}.
@@ -39,6 +39,6 @@ public interface SentRequest {
    *
    * @return the headers
    */
-  Headers requestHeaders();
+  HttpHeaders requestHeaders();
 
 }
