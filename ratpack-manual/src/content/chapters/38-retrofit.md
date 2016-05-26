@@ -1,14 +1,17 @@
-# retrofit
+# Retrofit Type Safe Clients
 
-The `ratpack-retrofit2` extension provides integration for declarative HTTP clients with the [retrofit2](http://square.github.io/retrofit) library (v2.0.2).
+The `ratpack-retrofit2` extension provides integration for declarative type-safe HTTP clients with the [retrofit2](http://square.github.io/retrofit) library (v2.0.2).
 
 The retrofit library allows for representing HTTP APIs via a type-safe interface.
-This allows application code to interact with APIs using typed objects and abstracting the HTTP constructs.
+This allows application code to remain agnostic about the underlying API design and implementation and focuse solely on the 
+behavioral aspects of interfacing with the API.
 
 Retrofit clients generated using the [`RatpackRetrofit`](api/ratpack/retrofit/RatpackRetrofit.html) class are backed with
 Ratpack's [`HttpClient`](api/ratpack/http/client/HttpClient.html) and are capable of interfacing with 
 Ratpack's [`Promise`](api/ratpack/exec/Promise.html) construct as a return type.
 
+By using the `ratpack-retrofit2` integration, developers will can gain the benefit of isolating the API constructus as
+class and method annotations, while still utilizing the non-blocking nature of `HttpClient` and Ratpack's execution model.
 
 ## Usage
 
