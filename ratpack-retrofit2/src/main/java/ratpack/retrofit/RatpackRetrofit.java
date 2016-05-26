@@ -70,6 +70,7 @@ import java.net.URI;
  *       })
  *     ).test(testHttpClient -> {
  *       assertEquals("hello", testHttpClient.getText());
+ *       api.close();
  *     });
  *   }
  * }

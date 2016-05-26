@@ -38,7 +38,7 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
 
   public static final RatpackCallFactory INSTANCE = new RatpackCallFactory();
 
-  public RatpackCallFactory() {
+  private RatpackCallFactory() {
   }
 
   @Override

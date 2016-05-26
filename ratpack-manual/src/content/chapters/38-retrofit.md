@@ -1,6 +1,6 @@
 # retrofit
 
-The `ratpack-retrofit2` extension provides integration for declarative HTTP clients with the [retrofit2](http://square.github.io/retrofit) library.
+The `ratpack-retrofit2` extension provides integration for declarative HTTP clients with the [retrofit2](http://square.github.io/retrofit) library (v2.0.2).
 
 The retrofit library allows for representing HTTP APIs via a type-safe interface.
 This allows application code to interact with APIs using typed objects and abstracting the HTTP constructs.
@@ -62,6 +62,7 @@ public class Example {
       })
     ).test(httpClient -> {
       assertEquals("hello", httpClient.getText());
+      api.close();
     });
   }
 }
@@ -144,6 +145,7 @@ public class Example {
       })
     ).test(httpClient -> {
       assertEquals("hello and goodbye", httpClient.getText());
+      api.close();
     });
   }
 }
@@ -206,6 +208,7 @@ public class Example {
       })
     ).test(httpClient -> {
       assertEquals("[\"John\",\"Jane\"]", httpClient.getText());
+      api.close();
     });
   }
 }
