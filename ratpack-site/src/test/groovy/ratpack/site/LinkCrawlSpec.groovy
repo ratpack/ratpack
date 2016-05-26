@@ -29,7 +29,18 @@ class LinkCrawlSpec extends Specification {
     given:
     def aut = new RatpackSiteUnderTest()
 
-    def allowBroken = ["http://www.pac4j.org", "http://www.sparkjava.com", "http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk", "http://lea.verou.me/", "http://www.yourkit.com", "http://thecodingdesigner.com"]
+    def allowBroken = [
+      "http://www.pac4j.org",
+      "http://www.sparkjava.com",
+      "http://www.astigmatic.com",
+      "https://drone.io",
+      "http://search.maven.org",
+      "http://geekfairy.co.uk",
+      "http://lea.verou.me/",
+      "http://www.yourkit.com",
+      "http://thecodingdesigner.com",
+      "https://kotlinlang.org"
+    ]
 
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
