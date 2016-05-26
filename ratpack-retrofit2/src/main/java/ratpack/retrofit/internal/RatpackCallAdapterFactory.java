@@ -31,6 +31,10 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
   public static final RatpackCallAdapterFactory INSTANCE = new RatpackCallAdapterFactory();
 
+  private RatpackCallAdapterFactory() {
+
+  }
+
   @Override
   public CallAdapter<?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
     TypeToken<?> rawType = TypeToken.of(returnType);

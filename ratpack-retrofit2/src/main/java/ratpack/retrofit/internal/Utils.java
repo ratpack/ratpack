@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
-public class Utils {
+public abstract class Utils {
 
   public static Type getSingleParameterUpperBound(ParameterizedType type) {
     Type[] types = type.getActualTypeArguments();
