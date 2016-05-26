@@ -24,3 +24,7 @@ dependencies {
   compile "com.squareup.retrofit2:converter-scalars:${commonVersions.retrofit}"
   compile "com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}"
 }
+
+ext.apiLinks = [
+  "https://square.github.io/retrofit/2.x/retrofit/"
+]

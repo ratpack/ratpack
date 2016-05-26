@@ -1,6 +1,6 @@
 # Retrofit Type Safe Clients
 
-The `ratpack-retrofit2` extension provides integration for declarative type-safe HTTP clients with the [retrofit2](http://square.github.io/retrofit) library (v2.0.2).
+The `ratpack-retrofit2` extension provides integration for declarative type-safe HTTP clients with the [retrofit2](http://square.github.io/retrofit) library (v@retrofit-version@).
 
 The retrofit library allows for representing HTTP APIs via a type-safe interface.
 This allows application code to remain agnostic about the underlying API design and implementation and focuse solely on the 
