@@ -16,6 +16,7 @@
 
 package ratpack.server
 
+import com.google.common.reflect.TypeToken
 import com.google.inject.Provides
 import ratpack.guice.ConfigurableModule
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -40,6 +41,25 @@ class RequiredServerConfigSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "foo"
+  }
+
+  def "can declare required config as parameterised type"() {
+    when:
+    def type = new TypeToken<HashMap<String, Integer>>() {}
+    serverConfig {
+      props("config.v1": "1")
+      props("config.v2": "2")
+      require("/config", type)
+    }
+    handlers {
+      get {
+        assert serverConfig.requiredConfig.toList().first().typeToken == type
+        render serverConfig.requiredConfig.toList().first().object.toString()
+      }
+    }
+
+    then:
+    text == [v1: 1, v2: 2].toString()
   }
 
   static class ConfigModule extends ConfigurableModule<ConfigItem> {

@@ -18,6 +18,7 @@ package ratpack.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
@@ -25,9 +26,11 @@ import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.impose.ServerConfigImposition;
+import ratpack.util.Types;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
@@ -494,7 +497,31 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param type the class of the type to bind to
    * @return {@code this}
    */
-  ServerConfigBuilder require(String pointer, Class<?> type);
+  default ServerConfigBuilder require(String pointer, Class<?> type) {
+    return require(pointer, Types.token(type));
+  }
+
+  /**
+   * Declares that it is required that the server config provide an object of the given type at the given path.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the type to bind to
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder require(String pointer, Type type) {
+    return require(pointer, Types.token(type));
+  }
+
+  /**
+   * Declares that it is required that the server config provide an object of the given type at the given path.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the type to bind to
+   * @return {@code this}
+   * @since 1.4
+   */
+  ServerConfigBuilder require(String pointer, TypeToken<?> type);
 
   /**
    * Builds the server config.

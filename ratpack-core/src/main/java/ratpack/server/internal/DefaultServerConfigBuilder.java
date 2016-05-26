@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
@@ -52,7 +53,7 @@ import java.util.function.Supplier;
 public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   private final DefaultConfigDataBuilder configDataBuilder;
-  private final Map<String, Class<?>> required = Maps.newHashMap();
+  private final Map<String, TypeToken<?>> required = Maps.newHashMap();
   private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
   private final ServerEnvironment serverEnvironment;
   private final Impositions impositions;
@@ -63,7 +64,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     this.serverEnvironment = serverEnvironment;
   }
 
-  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, Class<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Impositions impositions) {
+  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, TypeToken<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Impositions impositions) {
     this.configDataBuilder = configDataBuilder.copy();
     this.required.putAll(required);
     this.baseDirSupplier.baseDir = baseDirSupplier.baseDir;
@@ -308,8 +309,8 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
-  public ServerConfigBuilder require(String pointer, Class<?> type) {
-    Class<?> previous = required.put(
+  public ServerConfigBuilder require(String pointer, TypeToken<?> type) {
+    TypeToken<?> previous = required.put(
       Objects.requireNonNull(pointer, "pointer cannot be null"),
       Objects.requireNonNull(type, "type cannot be null")
     );
@@ -369,12 +370,12 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     return new DefaultServerConfig(configData, requiredConfig);
   }
 
-  private static ImmutableSet<ConfigObject<?>> extractRequiredConfig(ConfigData configData, Map<String, Class<?>> required) {
+  private static ImmutableSet<ConfigObject<?>> extractRequiredConfig(ConfigData configData, Map<String, TypeToken<?>> required) {
     RuntimeException badConfig = new IllegalStateException("Failed to build required config items");
     ImmutableSet.Builder<ConfigObject<?>> config = ImmutableSet.builder();
-    for (Map.Entry<String, Class<?>> requiredConfig : required.entrySet()) {
+    for (Map.Entry<String, TypeToken<?>> requiredConfig : required.entrySet()) {
       String path = requiredConfig.getKey();
-      Class<?> type = requiredConfig.getValue();
+      TypeToken<?> type = requiredConfig.getValue();
       try {
         config.add(configData.getAsConfigObject(path, type));
       } catch (Exception e) {
