@@ -80,7 +80,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     if (msg instanceof HttpRequest) {
       newRequest(ctx, (HttpRequest) msg);
     } else if (msg instanceof HttpContent) {
-      RequestBodyAccumulator bodyAccumulator = ctx.attr(BODY_ACCUMULATOR_KEY).get();
+      RequestBodyAccumulator bodyAccumulator = ctx.channel().attr(BODY_ACCUMULATOR_KEY).get();
       if (bodyAccumulator != null) {
         bodyAccumulator.add((HttpContent) msg);
       }
@@ -88,7 +88,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
         ctx.read();
       }
     } else {
-      Action<Object> subscriber = ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
+      Action<Object> subscriber = ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber == null) {
         super.channelRead(ctx, msg);
       } else {
@@ -105,7 +105,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     RequestBody requestBody = canHaveBody(nettyRequest.method()) ? new RequestBody(HttpUtil.getContentLength(nettyRequest, -1L), nettyRequest, ctx) : null;
     if (requestBody != null) {
-      ctx.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
+      ctx.channel().attr(BODY_ACCUMULATOR_KEY).set(requestBody);
     }
 
     final Channel channel = ctx.channel();
@@ -129,11 +129,11 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
 
-    ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
+    ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 
     Action<Action<Object>> subscribeHandler = thing -> {
       transmitted.set(true);
-      ctx.attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
+      ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
     };
 
     final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
@@ -204,7 +204,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().writabilityChanged();
+    ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().writabilityChanged();
   }
 
   private boolean isIgnorableException(Throwable throwable) {

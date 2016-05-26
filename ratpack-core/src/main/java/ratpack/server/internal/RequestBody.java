@@ -103,7 +103,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   public void forceCloseConnection() {
     close();
-    ctx.attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().forceCloseConnection();
+    ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().forceCloseConnection();
   }
 
   private void tooLarge(Downstream<? super ByteBuf> downstream) {
