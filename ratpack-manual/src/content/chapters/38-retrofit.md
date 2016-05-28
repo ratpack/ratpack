@@ -3,15 +3,15 @@
 The `ratpack-retrofit2` extension provides integration for declarative type-safe HTTP clients with the [retrofit2](http://square.github.io/retrofit) library (v@retrofit-version@).
 
 The retrofit library allows for representing HTTP APIs via a type-safe interface.
-This allows application code to remain agnostic about the underlying API design and implementation and focuse solely on the 
+This allows application code to remain agnostic about the underlying API design and implementation and focus solely on the 
 behavioral aspects of interfacing with the API.
 
 Retrofit clients generated using the [`RatpackRetrofit`](api/ratpack/retrofit/RatpackRetrofit.html) class are backed with
 Ratpack's [`HttpClient`](api/ratpack/http/client/HttpClient.html) and are capable of interfacing with 
 Ratpack's [`Promise`](api/ratpack/exec/Promise.html) construct as a return type.
 
-By using the `ratpack-retrofit2` integration, developers will can gain the benefit of isolating the API constructus as
-class and method annotations, while still utilizing the non-blocking nature of `HttpClient` and Ratpack's execution model.
+By using the `ratpack-retrofit2` integration, developers can gain the benefit of isolating the API constructs as
+class and method annotations, while still utilizing the non-blocking nature of the Netty backed `HttpClient` and Ratpack's execution model.
 
 ## Usage
 
@@ -24,7 +24,7 @@ The provided `URI` or `String` specifies the base URL for all clients generated 
 The underlying [`Retrofit.Builder`](https://square.github.io/retrofit/2.x/retrofit/retrofit2/Retrofit.Builder.html) can be configured
 with the [`RatpackRetrofit.Builder.configure(Action<? super Retrofit.Builder> spec)`](api/ratpack/retrofit/RatpackRetrofit.Builder.html#configure-ratpack.func.Action-) method.
 
-Once configured, the client is constructed by calling [`build(java.lang.Class api)`](api/ratpack/retrofit/RatpackRetrofit.Builder.html#build-java.lang.Class-)
+Once configured, the client is constructed by calling [`build(Class<T> api)`](api/ratpack/retrofit/RatpackRetrofit.Builder.html#build-java.lang.Class-)
 with the api interface. 
 This method returns a generated instance of the interface that will issue the HTTP requests and adapt the responses to the
 configured return type.
@@ -73,7 +73,7 @@ public class Example {
 
 ## Using Ratpack Promises in Retrofit APIs
 
-The `ratpack-retrofit2` integration provides support for utilizing Ratpack's `Promise` has a return type for a client interface.
+The `ratpack-retrofit2` integration provides support for utilizing Ratpack's `Promise` as a return type for a client interface.
 It supports adapting to `Promise` when the promised value is the following types:
 
 * Simple scalars (`Integer`, `String`, `Long`, etc.)
@@ -205,7 +205,6 @@ public class Example {
       )
       .handlers(chain -> {
         chain.get(ctx -> {
-            
           ctx.get(NameApi.class).names().then(nameList -> ctx.render(json(nameList)));  
         });
       })
