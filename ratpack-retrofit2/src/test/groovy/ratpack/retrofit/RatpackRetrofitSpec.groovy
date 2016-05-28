@@ -19,6 +19,7 @@ package ratpack.retrofit
 import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.handling.Context
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.internal.DefaultHttpClient
@@ -47,7 +48,12 @@ class RatpackRetrofitSpec extends Specification {
   @AutoCleanup
   EmbeddedApp server
 
+  Context mockContext = Mock()
   HttpClient client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
+
+  def setup = { RegistrySpec r ->
+    r.add(mockContext)
+  }
 
   def setup() {
     server = GroovyEmbeddedApp.of {
@@ -66,13 +72,12 @@ class RatpackRetrofitSpec extends Specification {
     service = RatpackRetrofit
       .client(server.address)
       .build(Service)
+    _ * mockContext.get(HttpClient) >> client
   }
 
   def "successful request body"() {
     when:
-    def value = ExecHarness.yieldSingle({ RegistrySpec r ->
-      r.add(client)
-    }) {
+    def value = ExecHarness.yieldSingle(setup) {
       service.root()
     }.valueOrThrow
 
@@ -82,9 +87,7 @@ class RatpackRetrofitSpec extends Specification {
 
   def "successful request response"() {
     when:
-    Response<String> value = ExecHarness.yieldSingle({ RegistrySpec r ->
-      r.add(client)
-    }) {
+    Response<String> value = ExecHarness.yieldSingle(setup) {
       service.fooResponse()
     }.valueOrThrow
 
@@ -95,9 +98,7 @@ class RatpackRetrofitSpec extends Specification {
 
   def "simple type adapter throws exception on non successful response"() {
     when:
-    ExecHarness.yieldSingle({ RegistrySpec r ->
-      r.add(client)
-    }) {
+    ExecHarness.yieldSingle(setup) {
       service.error()
     }.valueOrThrow
 
@@ -109,9 +110,7 @@ class RatpackRetrofitSpec extends Specification {
   def "response type adapter does not throw on non successful response"() {
 
     when:
-    Response<String> response = ExecHarness.yieldSingle({ RegistrySpec r ->
-      r.add(client)
-    }) {
+    Response<String> response = ExecHarness.yieldSingle(setup) {
       service.errorResponse()
     }.valueOrThrow
 
@@ -123,9 +122,7 @@ class RatpackRetrofitSpec extends Specification {
 
   def "can adapt to ReceivedResponse"() {
     when:
-    String response = ExecHarness.yieldSingle({ RegistrySpec r ->
-      r.add(client)
-    }) {
+    String response = ExecHarness.yieldSingle(setup) {
       service.rawResponse().map {
         "${it.statusCode}:${it.body.text}"
       }
@@ -142,9 +139,7 @@ class RatpackRetrofitSpec extends Specification {
       .build(Service)
 
     when:
-    ExecHarness.yieldSingle({ RegistrySpec r ->
-      r.add(client)
-    }) {
+    ExecHarness.yieldSingle(setup) {
       service.rootResponse()
     }.valueOrThrow
 
