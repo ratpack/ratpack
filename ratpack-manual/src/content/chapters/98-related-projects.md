@@ -17,4 +17,9 @@ The following are projects and examples of Ratpack implemented using languages o
 * [Ratpack JRuby Example](https://github.com/jkutner/ratpack-jruby-example) - Example Ratpack application written in [JRuby](http://jruby.org)
 
 ## 3rd Party Modules
+
+The following 3rd party projects provided additional functionality to Ratpack projects.
+
+* [Bearer Token Auth](https://github.com/SmartThingsOSS/ratpack-bearer-auth) - Standard handlers for performing bearer token authentication.
+* [Cassandra Module](https://github.com/SmartThingsOSS/ratpack-cassandra) - Integrations for working with Cassandra data stores.
  
