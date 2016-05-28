@@ -76,6 +76,7 @@ import java.net.URI;
  * }
  * }</pre>
  *
+ * @since 1.4
  */
 public abstract class RatpackRetrofit {
 

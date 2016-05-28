@@ -16,5 +16,7 @@
 
 /**
  * Integration with <a href="http://square.github.io/retrofit/" target="_blank">Retrofit</a>.
+ *
+ * @since 1.4
  */
 package ratpack.retrofit;
