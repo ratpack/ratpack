@@ -18,7 +18,6 @@ package ratpack.session.clientside.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Crypto;
 
 public class NoCrypto implements Crypto {
@@ -34,7 +33,7 @@ public class NoCrypto implements Crypto {
   }
 
   private ByteBuf passthrough(ByteBuf message) {
-    return Unpooled.unmodifiableBuffer(message.retain().slice());
+    return message.retain().slice().asReadOnly();
   }
 
   @Override
