@@ -39,19 +39,22 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
     upstream.subscribe(new Subscriber<Iterable<? extends T>>() {
 
       private final AtomicBoolean done = new AtomicBoolean();
+      private Subscription upstreamSubscription;
 
       @Override
       public void onSubscribe(Subscription subscription) {
+        upstreamSubscription = subscription;
+
         downstream.onSubscribe(new Subscription() {
           @Override
           public void request(long n) {
-            subscription.request(n);
+            upstreamSubscription.request(n);
           }
 
           @Override
           public void cancel() {
             done.set(true);
-            subscription.cancel();
+            upstreamSubscription.cancel();
           }
         });
       }
@@ -59,8 +62,13 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
       @Override
       public void onNext(Iterable<? extends T> iterable) {
         Iterator<? extends T> iterator = iterable.iterator();
-        while (iterator.hasNext() && !done.get()) {
-          downstream.onNext(iterator.next());
+
+        if (!iterator.hasNext() && !done.get()) {
+          upstreamSubscription.request(1); // nothing in this iterable, request another to meet demand
+        } else {
+          while (iterator.hasNext() && !done.get()) {
+            downstream.onNext(iterator.next());
+          }
         }
       }
 

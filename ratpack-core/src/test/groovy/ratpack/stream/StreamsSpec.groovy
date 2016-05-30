@@ -391,6 +391,7 @@ class StreamsSpec extends Specification {
     queue.toList() == []
 
     when:
+    write.item([])
     write.item([0, 1, 2, 3])
 
     then:
