@@ -20,6 +20,9 @@ import com.google.inject.Binder
 import com.google.inject.Injector
 import com.google.inject.Module
 import com.google.inject.Provider
+import com.google.inject.Provides
+import com.google.inject.multibindings.OptionalBinder
+import ratpack.api.Nullable
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.registry.Registry
@@ -99,4 +102,78 @@ class GuiceRegistrySpec extends RegistryContractSpec {
     registry.equals(registry)
     otherRegistry.hashCode() == registry.hashCode()
   }
+
+  def "can use providers that return null"() {
+    given:
+    Registry reg = Guice.registry(com.google.inject.Guice.createInjector(new Module() {
+      @Override
+      void configure(Binder binder) { }
+
+      @Provides
+      String stringProvider() {
+        return null
+      }
+    }))
+
+    expect:
+    !reg.maybeGet(String).isPresent()
+  }
+
+  def "can use OptionalBinder"() {
+    given:
+    Registry reg = Guice.registry(com.google.inject.Guice.createInjector(new Module() {
+      @Override
+      void configure(Binder binder) {
+        OptionalBinder.newOptionalBinder(binder, String)
+      }
+
+      @Provides
+      String stringProvider() {
+        return null
+      }
+    }))
+
+    expect:
+    !reg.maybeGet(String).isPresent()
+  }
+
+  def "can use providers that return Optional"() {
+    given:
+    Registry reg = Guice.registry(com.google.inject.Guice.createInjector(new Module() {
+      @Override
+      void configure(Binder binder) { }
+
+      @Provides
+      Optional<String> stringProvider() {
+        return Optional.empty()
+      }
+    }))
+
+    expect:
+    !reg.maybeGet(String).isPresent()
+  }
+
+  def "can inject null using ratpack's Nullable annotation"() {
+    given:
+    Registry reg = Guice.registry(com.google.inject.Guice.createInjector(new Module() {
+      @Override
+      void configure(Binder binder) {
+        OptionalBinder.newOptionalBinder(binder, Integer)
+      }
+
+      @Provides
+      Integer integerProvider() {
+        return null
+      }
+
+      @Provides
+      String stringProvider(@Nullable Integer i) {
+        i == null ? "null" : i
+      }
+    }))
+
+    expect:
+    reg.get(String) == "null"
+  }
+
 }
