@@ -465,15 +465,18 @@ public class RatpackPac4j {
   }
 
   /**
-   * Creates a Pac4j {@link WebContext} implementation based on Ratpack's context.
+   * Adapts a Ratpack {@link Context} to a Pac4j {@link WebContext}.
+   * <p>
+   * The returned WebContext does not have access to the request body.
+   * {@link WebContext#getRequestParameters()} and associated methods will not include any
+   * form parameters if the request was a form.
    *
-   * @param ctx the Ratpack context
+   * @param ctx a Ratpack context
    * @return a Pac4j web context
-   *
    * @since 1.4
    */
   public static Promise<WebContext> webContext(Context ctx) {
-    return RatpackWebContext.from(ctx, false).map(Types::<WebContext>cast);
+    return Types.cast(RatpackWebContext.from(ctx, false));
   }
 
   private static <T extends UserProfile> void toProfile(Class<T> type, Downstream<? super Optional<T>> downstream, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
