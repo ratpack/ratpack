@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class ServerEnvironment {
 
@@ -38,6 +39,7 @@ public class ServerEnvironment {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);
   private static final int MAX_PORT = 65535;
+  private static final Pattern STARTS_WITH_SCHEME_PATTERN = Pattern.compile("^(.+)://.+$");
   public static final String PORT_PROPERTY = "ratpack.port";
   public static final String INTELLIJ_MAIN = "com.intellij.rt.execution.application.AppMain";
   public static final String INTELLIJ_JUNIT = "com.intellij.rt.execution.junit.JUnitStarter";
@@ -111,7 +113,7 @@ public class ServerEnvironment {
   private static URI parseUri(String description, String value) {
     if (value != null) {
       try {
-        URI uri = new URI(value);
+        URI uri = STARTS_WITH_SCHEME_PATTERN.matcher(value).matches() ? new URI(value) : new URI("http://" + value);
         String scheme = uri.getScheme();
         if (scheme.equals("http") || scheme.equals("https")) {
           return uri;
