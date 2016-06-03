@@ -124,8 +124,8 @@ public abstract class ServerRegistry {
           ratpackServer.stop();
           return null;
         }))
-        .add(HttpClient.class, HttpClient.httpClient(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(PooledByteBufAllocator.DEFAULT))
+        .add(HttpClient.class, HttpClient.httpClient(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength(), execController))
+        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(PooledByteBufAllocator.DEFAULT, execController))
         .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());
 

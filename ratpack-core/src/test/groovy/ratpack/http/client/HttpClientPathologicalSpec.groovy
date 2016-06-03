@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,16 @@ package ratpack.http.client
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
+import ratpack.http.client.internal.PooledHttpClientFactory
+import ratpack.http.client.internal.PooledHttpConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Timeout
+import spock.lang.Unroll
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 
-class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
+@Unroll
+class HttpClientPathologicalSpec extends RatpackGroovyDslSpec implements PooledHttpClientFactory {
 
   WireMockServer wm
 
@@ -41,7 +45,8 @@ class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
 
     when:
     handlers {
-      get { HttpClient httpClient ->
+      get {
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         render httpClient.get(URI.create(mockServiceUrl))
           .map { "You'll never see this" }
           .mapError { it.message }
@@ -50,5 +55,8 @@ class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "Server $mockServiceUrl closed the connection prematurely"
+
+    where:
+    pooled << [true, false]
   }
 }
