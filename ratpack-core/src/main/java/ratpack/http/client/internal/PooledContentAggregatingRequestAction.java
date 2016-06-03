@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.FixedChannelPool;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -42,7 +43,7 @@ public class PooledContentAggregatingRequestAction extends AbstractPooledRequest
   private int maxContentLengthBytes;
 
   public PooledContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer,
-                                               ChannelPoolMap<URI, FixedChannelPool> channelPoolMap,
+                                               ChannelPoolMap<URI, ChannelPool> channelPoolMap,
                                                URI uri,
                                                ByteBufAllocator byteBufAllocator,
                                                int maxContentLengthBytes,

@@ -17,14 +17,23 @@
 package ratpack.http.client.internal;
 
 public class PooledHttpConfig {
+  public static final boolean DEFAULT_POOLED = false;
   public static final int DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000;
   public static final int DEFAULT_MAX_CONNECTIONS = 32;
   public static final int DEFAULT_READ_TIMEOUT_MILLIS = 5000;
-
+  private boolean pooled = DEFAULT_POOLED;
   private int connectionTimeoutMillis = DEFAULT_CONNECTION_TIMEOUT_MILLIS;
   private int readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
   private int maxConnections = DEFAULT_MAX_CONNECTIONS;
   private boolean decompressResponse = true;
+
+  public boolean isPooled() {
+    return pooled;
+  }
+
+  public void setPooled(boolean pooled) {
+    this.pooled = pooled;
+  }
 
   public int getConnectionTimeoutMillis() {
     return connectionTimeoutMillis;

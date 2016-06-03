@@ -26,14 +26,16 @@ class PooledHttpConfigSpec extends Specification {
     int maxConnections = 1000
     int readTimeout = 1000
     boolean decompress = false
+    boolean pooled = true
 
     when:
-    PooledHttpConfig config = new PooledHttpConfig(connectionTimeoutMillis: connectTimeout, maxConnections: maxConnections, readTimeoutMillis: readTimeout, decompressResponse: decompress)
+    PooledHttpConfig config = new PooledHttpConfig(connectionTimeoutMillis: connectTimeout, maxConnections: maxConnections, readTimeoutMillis: readTimeout, decompressResponse: decompress, pooled: pooled)
 
     then:
     config.connectionTimeoutMillis == connectTimeout
     config.maxConnections == maxConnections
     config.readTimeoutMillis == readTimeout
     config.decompressResponse == decompress
+    config.pooled == pooled
   }
 }

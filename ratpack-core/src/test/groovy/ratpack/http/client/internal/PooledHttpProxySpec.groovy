@@ -23,6 +23,7 @@ import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.client.StreamedResponse
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
 
@@ -31,6 +32,8 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 
 import static ratpack.stream.Streams.publish
 
+//TODO pooled and non-pooled
+@Unroll
 class PooledHttpProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "can proxy a client response"() {

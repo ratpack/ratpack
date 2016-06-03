@@ -21,8 +21,8 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
-import io.netty.channel.pool.FixedChannelPool;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
@@ -59,7 +59,7 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
   private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
 
-  public PooledContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, FixedChannelPool> channelPoolMap, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
+  public PooledContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
     super(requestConfigurer, channelPoolMap, uri, byteBufAllocator, execution, redirectCount);
   }
 
@@ -78,6 +78,7 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
           channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
             if (!isKeepAlive) {
+              //TODO is this problematic if channel is already closed?
               ctx.close();
             }
           }

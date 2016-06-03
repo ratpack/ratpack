@@ -19,11 +19,25 @@ package ratpack.http.client.internal;
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
-import io.netty.channel.pool.FixedChannelPool;
 import io.netty.handler.codec.PrematureChannelClosureException;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +50,12 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.http.internal.*;
+import ratpack.http.internal.ByteBufBackedTypedData;
+import ratpack.http.internal.DefaultMediaType;
+import ratpack.http.internal.DefaultStatus;
+import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.http.internal.NettyHeadersBackedHeaders;
+import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,7 +69,7 @@ public abstract class AbstractPooledRequestAction<T> implements RequestAction<T>
   private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
 
   private final Action<? super RequestSpec> requestConfigurer;
-  protected final ChannelPoolMap<URI, FixedChannelPool> channelPoolMap;
+  protected final ChannelPoolMap<URI, ChannelPool> channelPoolMap;
   private final MutableHeaders headers;
   private final RequestSpecBacking requestSpecBacking;
   protected final ByteBufAllocator byteBufAllocator;
@@ -64,7 +83,7 @@ public abstract class AbstractPooledRequestAction<T> implements RequestAction<T>
   private final AtomicBoolean fired = new AtomicBoolean();
   protected final Execution execution;
 
-  public AbstractPooledRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, FixedChannelPool> channelPoolMap, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
+  public AbstractPooledRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
     this.requestConfigurer = requestConfigurer;
     this.channelPoolMap = channelPoolMap;
     this.byteBufAllocator = byteBufAllocator;

@@ -22,9 +22,11 @@ import com.github.tomakehurst.wiremock.http.Fault
 import ratpack.http.client.HttpClient
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Timeout
+import spock.lang.Unroll
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 
+@Unroll
 class PooledHttpClientPathologicalSpec extends RatpackGroovyDslSpec implements PooledHttpClientFactory {
 
   WireMockServer wm
@@ -43,7 +45,7 @@ class PooledHttpClientPathologicalSpec extends RatpackGroovyDslSpec implements P
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         render httpClient.get(URI.create(mockServiceUrl))
           .map { "You'll never see this" }
           .mapError { it.message }
@@ -52,5 +54,8 @@ class PooledHttpClientPathologicalSpec extends RatpackGroovyDslSpec implements P
 
     then:
     text == "Server $mockServiceUrl closed the connection prematurely"
+
+    where:
+    pooled << [true, false]
   }
 }

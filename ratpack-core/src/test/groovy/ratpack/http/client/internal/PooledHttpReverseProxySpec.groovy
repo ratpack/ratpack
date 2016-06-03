@@ -18,8 +18,10 @@ package ratpack.http.client.internal
 
 import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
+import spock.lang.Unroll
 
-
+//TODO pooled and non-pooled
+@Unroll
 class PooledHttpReverseProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "can forward request body"() {

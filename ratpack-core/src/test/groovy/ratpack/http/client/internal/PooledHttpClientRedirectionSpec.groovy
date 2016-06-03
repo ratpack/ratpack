@@ -22,7 +22,9 @@ import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
+import spock.lang.Unroll
 
+@Unroll
 class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "can follow simple redirect get request"() {
@@ -40,7 +42,7 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
     when:
     handlers {
       get {
-        HttpClient hcl = createClient(context)
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
         hcl.get(otherAppUrl("foo2")) {
         } then {
           render it.body.text
@@ -50,6 +52,9 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can follow a relative redirect get request"() {
@@ -68,7 +73,7 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
     when:
     handlers {
       get {
-        HttpClient hcl = createClient(context)
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
         hcl.get(otherAppUrl("foo")) {
         } then { ReceivedResponse response ->
           render response.body.text
@@ -78,6 +83,9 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
 
     then:
     text == "tar"
+
+    where:
+    pooled << [true, false]
   }
 
 
@@ -96,7 +104,7 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
     when:
     handlers {
       get {
-        HttpClient hcl = createClient(context)
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
         hcl.get(otherAppUrl("foo2")) {
           it.redirects(0)
         } then { ReceivedResponse response ->
@@ -107,6 +115,9 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
 
     then:
     text == ""
+
+    where:
+    pooled << [true, false]
   }
 
   def "Stop redirects in loop"() {
@@ -124,7 +135,7 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
     when:
     handlers {
       get {
-        HttpClient hcl = createClient(context)
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
         hcl.get(otherAppUrl("foo2")) { action ->
         }.then { ReceivedResponse response ->
           render "Status: " + response.statusCode
@@ -134,6 +145,9 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
 
     then:
     text == "Status: 302"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can use redirect strategy"() {
@@ -152,7 +166,7 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
 
     handlers {
       get {
-        HttpClient hcl = createClient(context)
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
         hcl.get(otherAppUrl()) { RequestSpec r ->
           r.headers.set("count", "0")
           r.onRedirect { ReceivedResponse res ->
@@ -167,6 +181,9 @@ class PooledHttpClientRedirectionSpec extends HttpClientSpec implements PooledHt
 
     then:
     text == "5"
+
+    where:
+    pooled << [true, false]
   }
 
 }

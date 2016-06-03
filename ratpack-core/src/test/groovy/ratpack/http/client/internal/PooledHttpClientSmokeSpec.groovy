@@ -23,6 +23,7 @@ import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
+import org.spockframework.compiler.model.WhereBlock
 import ratpack.exec.Blocking
 import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
@@ -42,6 +43,7 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
+@Unroll
 class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "can make simple get request"() {
@@ -55,7 +57,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.get(otherAppUrl("foo")) {
         } then { ReceivedResponse response ->
           render response.body.text
@@ -65,6 +67,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can make post request"() {
@@ -80,7 +85,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         def respProm = httpClient.post(otherAppUrl("foo")) {
           it.body.type("text/plain").text("bar")
         }
@@ -94,6 +99,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "client response buffer is retained for the execution"() {
@@ -107,7 +115,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.get(otherAppUrl()) {
         } then {
           def buffer = it.body.buffer
@@ -126,6 +134,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can write body using buffer"() {
@@ -141,7 +152,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.post(otherAppUrl()) {
           it.body {
             it.buffer(Unpooled.copiedBuffer("foo", CharsetUtil.UTF_8))
@@ -154,6 +165,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == "foo"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can write body using bytes"() {
@@ -169,7 +183,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.post(otherAppUrl()) {
           it.body {
             it.bytes("foo".getBytes(CharsetUtil.UTF_8))
@@ -182,6 +196,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == "foo"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can set headers"() {
@@ -195,7 +212,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.get(otherAppUrl()) {
           it.headers {
             it.add("foo", "bar")
@@ -221,7 +238,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.get(otherAppUrl()) {
         } then {
           it.forwardTo(response)
@@ -232,6 +249,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     then:
     text == "abc123"
     response.headers.get(HttpHeaders.Names.CONTENT_TYPE) == "text/plain;charset=UTF-8"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can send request body as text"() {
@@ -248,7 +268,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.post(otherAppUrl()) {
           it.body.text("føø")
         } then {
@@ -259,6 +279,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     getText() == "føø"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can send request body as text of content type"() {
@@ -274,7 +297,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.post(otherAppUrl()) {
           it.body.type("application/json").text("{'foo': 'bar'}")
         } then {
@@ -285,6 +308,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     getText() == "application/json"
+
+    where:
+    pooled << [true, false]
   }
 
   def "500 Error when RequestSpec throws an exception"() {
@@ -294,7 +320,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.get(otherAppUrl()) {
           throw new Exception("Some failure in the RequestSpec")
         } then {
@@ -308,6 +334,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     response.statusCode == 500
+
+    where:
+    pooled << [true, false]
   }
 
   @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
@@ -330,6 +359,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == ConnectTimeoutException.name
+
+    where:
+    pooled << [true, false]
   }
 
   def "can set read timeout"() {
@@ -362,6 +394,9 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
 
     then:
     text == ReadTimeoutException.name
+
+    where:
+    pooled << [true, false]
   }
 
   def "can directly stream a client chunked response"() {
@@ -377,7 +412,7 @@ class PooledHttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClie
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -400,6 +435,9 @@ bar
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can modify the stream of a client chunked response"() {
@@ -415,7 +453,7 @@ bar
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse stream ->
           render stringChunks(
@@ -441,6 +479,9 @@ BAR
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   //TODO - Random test case failure ... Need to dig into root cause.
@@ -460,7 +501,7 @@ BAR
     when:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo2")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -470,6 +511,9 @@ BAR
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can decompress a compressed response"() {
@@ -506,6 +550,9 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can not decompress a compressed response"() {
@@ -527,7 +574,7 @@ BAR
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
           rs.headers.set("accept-encoding", "compress, gzip")
           rs.decompressResponse(false)
@@ -543,11 +590,14 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == "gzip"
     new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
+
+    where:
+    pooled << [true, false]
   }
 
   def "can decompress a streamed compressed response"() {
     given:
-    def pooledHttpConfig = new PooledHttpConfig(decompressResponse: false)
+    def pooledHttpConfig = new PooledHttpConfig(decompressResponse: false, pooled: pooled)
     requestSpec {
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
@@ -580,6 +630,9 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   @Unroll

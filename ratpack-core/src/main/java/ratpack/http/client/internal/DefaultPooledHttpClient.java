@@ -24,6 +24,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.AbstractChannelPoolMap;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.FixedChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -48,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultPooledHttpClient implements PooledHttpClient {
   public static final Logger LOGGER = LoggerFactory.getLogger(DefaultPooledHttpClient.class);
 
-  private ChannelPoolMap<URI, FixedChannelPool> channelPoolMap;
+  private ChannelPoolMap<URI, ChannelPool> channelPoolMap;
   private int maxContentLengthBytes;
   private PooledHttpConfig config;
   private ByteBufAllocator byteBufAllocator;
@@ -69,10 +71,10 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
       .channel(ChannelImplDetector.getSocketChannelImpl())
       .group(execController.getEventLoopGroup());
 
-    channelPoolMap = new AbstractChannelPoolMap<URI, FixedChannelPool>() {
+    channelPoolMap = new AbstractChannelPoolMap<URI, ChannelPool>() {
 
       @Override
-      protected FixedChannelPool newPool(URI uri) {
+      protected ChannelPool newPool(URI uri) {
         String scheme = uri.getScheme();
         boolean useSsl = false;
         if (scheme.equals("https")) {
@@ -85,7 +87,7 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
         String host = uri.getHost();
         int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
-        return new FixedChannelPool(baseBoostrap.remoteAddress(host, port), new AbstractChannelPoolHandler() {
+        ChannelPoolHandler handler = new AbstractChannelPoolHandler() {
           @Override
           public void channelCreated(Channel ch) throws Exception {
             ChannelPipeline p = ch.pipeline();
@@ -103,7 +105,13 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
             super.channelReleased(ch);
           }
 
-        }, config.getMaxConnections());
+        };
+
+        if (config.isPooled()) {
+          return new FixedChannelPool(baseBoostrap.remoteAddress(host, port), handler, config.getMaxConnections());
+        } else {
+          return new NonPoolingChannelPool(baseBoostrap.remoteAddress(host, port), handler);
+        }
       }
     };
   }
