@@ -51,7 +51,7 @@ public class BlockingHttpClient {
     try (ExecController execController = new DefaultExecController(2)) {
       execController.fork()
         .start(e ->
-          HttpClient.httpClient(new UnpooledByteBufAllocator(false), Integer.MAX_VALUE)
+          HttpClient.httpClient(new UnpooledByteBufAllocator(false), Integer.MAX_VALUE, execController)
             .request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
             .map(response -> {
               TypedData responseBody = response.getBody();

@@ -17,29 +17,38 @@
 package ratpack.http.client.internal;
 
 public class PooledHttpConfig {
-  public static final int DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000;
+  public static final boolean DEFAULT_POOLED = false;
+  public static final long DEFAULT_CONNECTION_TIMEOUT_NANOS = 30000000000l;
   public static final int DEFAULT_MAX_CONNECTIONS = 32;
-  public static final int DEFAULT_READ_TIMEOUT_MILLIS = 5000;
-
-  private int connectionTimeoutMillis = DEFAULT_CONNECTION_TIMEOUT_MILLIS;
-  private int readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
+  public static final long DEFAULT_READ_TIMEOUT_NANOS = 5000000000l;
+  private boolean pooled = DEFAULT_POOLED;
+  private long connectionTimeoutNanos = DEFAULT_CONNECTION_TIMEOUT_NANOS;
+  private long readTimeoutNanos = DEFAULT_READ_TIMEOUT_NANOS;
   private int maxConnections = DEFAULT_MAX_CONNECTIONS;
   private boolean decompressResponse = true;
 
-  public int getConnectionTimeoutMillis() {
-    return connectionTimeoutMillis;
+  public boolean isPooled() {
+    return pooled;
   }
 
-  public void setConnectionTimeoutMillis(int connectionTimeoutMillis) {
-    this.connectionTimeoutMillis = connectionTimeoutMillis;
+  public void setPooled(boolean pooled) {
+    this.pooled = pooled;
   }
 
-  public int getReadTimeoutMillis() {
-    return readTimeoutMillis;
+  public long getConnectionTimeoutNanos() {
+    return connectionTimeoutNanos;
   }
 
-  public void setReadTimeoutMillis(int readTimeoutMillis) {
-    this.readTimeoutMillis = readTimeoutMillis;
+  public void setConnectionTimeoutNanos(long connectionTimeoutNanos) {
+    this.connectionTimeoutNanos = connectionTimeoutNanos;
+  }
+
+  public long getReadTimeoutNanos() {
+    return readTimeoutNanos;
+  }
+
+  public void setReadTimeoutNanos(long readTimeoutNanos) {
+    this.readTimeoutNanos = readTimeoutNanos;
   }
 
   public int getMaxConnections() {
