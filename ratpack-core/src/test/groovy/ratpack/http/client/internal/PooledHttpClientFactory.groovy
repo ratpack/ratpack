@@ -25,10 +25,10 @@ import ratpack.server.ServerConfig
 trait PooledHttpClientFactory {
 
   HttpClient createClient(Context context) {
-    PooledHttpClient.pooledHttpClient(context.get(ByteBufAllocator), context.get(ServerConfig).maxContentLength, context.get(ExecController))
+    HttpClient.httpClient(context.get(ByteBufAllocator), context.get(ServerConfig).maxContentLength, context.get(ExecController))
   }
 
   HttpClient createClient(Context context, PooledHttpConfig config) {
-    PooledHttpClient.pooledHttpClient(config, context.get(ByteBufAllocator), context.get(ServerConfig).maxContentLength, context.get(ExecController))
+    HttpClient.httpClient(config, context.get(ByteBufAllocator), context.get(ServerConfig).maxContentLength, context.get(ExecController))
   }
 }

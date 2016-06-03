@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,17 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
@@ -47,26 +52,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.util.Exceptions.uncheck;
 
-class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
+public class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
+
+  public static final Logger LOGGER = LoggerFactory.getLogger(ContentStreamingRequestAction.class);
+
   private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
-  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int redirectCount) {
-    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount);
-  }
 
-  @Override
-  protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentStreamingRequestAction(redirectRequestConfig, locationUrl, execution, byteBufAllocator, redirectCount);
+  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, PooledHttpConfig config, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
+    super(requestConfigurer, channelPoolMap, config, uri, byteBufAllocator, execution, redirectCount);
   }
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
-    p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
+    addHandler(p, "httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
+      private boolean isKeepAlive;
+
       @Override
-      public void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
+      protected void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
+        isKeepAlive = HttpUtil.isKeepAlive(msg);
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
+          channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
             ctx.close();
           }
@@ -75,26 +83,34 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
         final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
         final Status status = new DefaultStatus(msg.status());
 
-        success(downstream, new DefaultStreamedResponse(p, status, headers));
+        success(downstream, new DefaultStreamedResponse(p, status, headers, isKeepAlive));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        channelPoolMap.get(baseURI).release(ctx.channel());
         ctx.close();
         error(downstream, cause);
       }
     });
   }
 
+  @Override
+  protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
+    return new ContentStreamingRequestAction(redirectRequestConfig, channelPoolMap, config, locationUrl, byteBufAllocator, execution, redirectCount);
+  }
+
   private class DefaultStreamedResponse implements StreamedResponse {
     private final ChannelPipeline channelPipeline;
     private final Status status;
     private final Headers headers;
+    private final boolean isKeepAlive;
 
-    public DefaultStreamedResponse(ChannelPipeline p, Status status, Headers headers) {
+    public DefaultStreamedResponse(ChannelPipeline p, Status status, Headers headers, boolean isKeepAlive) {
       this.channelPipeline = p;
       this.status = status;
       this.headers = headers;
+      this.isKeepAlive = isKeepAlive;
     }
 
     @Override
@@ -114,7 +130,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
 
     @Override
     public TransformablePublisher<ByteBuf> getBody() {
-      return Streams.transformable(new HttpContentPublisher(channelPipeline));
+      return Streams.transformable(new HttpContentPublisher(channelPipeline, isKeepAlive));
     }
 
     @Override
@@ -142,9 +158,11 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
     private Subscriber<? super ByteBuf> subscriber;
     private final ChannelPipeline channelPipeline;
     private final AtomicBoolean stopped = new AtomicBoolean();
+    private final boolean isKeepAlive;
 
-    public HttpContentPublisher(ChannelPipeline p) {
+    public HttpContentPublisher(ChannelPipeline p, boolean isKeepAlive) {
       this.channelPipeline = p;
+      this.isKeepAlive = isKeepAlive;
     }
 
     @Override
@@ -152,12 +170,10 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
       subscribedTo.compareAndSet(false, true);
       subscriber = s;
 
-      channelPipeline.remove("httpResponseHandler");
-      channelPipeline.addLast("httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
+      addHandler(channelPipeline, "httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
         @Override
         public void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
           subscriber.onNext(msg.content());
-
           if (msg instanceof LastHttpContent && stopped.compareAndSet(false, true)) {
             subscriber.onComplete();
           }
@@ -168,7 +184,7 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
           if (stopped.compareAndSet(false, true)) {
             subscriber.onError(cause);
           }
-
+          channelPoolMap.get(baseURI).release(ctx.channel());
           if (ctx.channel().isOpen()) {
             ctx.close();
           }
@@ -196,7 +212,10 @@ class ContentStreamingRequestAction extends RequestActionSupport<StreamedRespons
         @Override
         public void cancel() {
           stopped.set(true);
-          channelPipeline.channel().close();
+          channelPoolMap.get(baseURI).release(channelPipeline.channel());
+          if (channelPipeline.channel().isOpen()) {
+            channelPipeline.channel().close();
+          }
         }
       });
     }

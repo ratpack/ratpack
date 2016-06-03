@@ -17,6 +17,7 @@
 package ratpack.sse;
 
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.RequestSpec;
@@ -27,8 +28,8 @@ import java.net.URI;
 
 public interface ServerSentEventStreamClient {
 
-  static ServerSentEventStreamClient sseStreamClient(ByteBufAllocator byteBufAllocator) {
-    return new DefaultServerSentEventStreamClient(byteBufAllocator);
+  static ServerSentEventStreamClient sseStreamClient(ByteBufAllocator byteBufAllocator, ExecController execController) {
+    return new DefaultServerSentEventStreamClient(byteBufAllocator, execController);
   }
 
   Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action);
