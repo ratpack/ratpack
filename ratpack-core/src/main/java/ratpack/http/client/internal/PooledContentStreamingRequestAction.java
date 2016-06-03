@@ -78,7 +78,6 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
           channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
             if (!isKeepAlive) {
-              //TODO is this problematic if channel is already closed?
               ctx.close();
             }
           }

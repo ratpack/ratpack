@@ -164,7 +164,7 @@ public abstract class AbstractPooledRequestAction<T> implements RequestAction<T>
       @Override
       public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         if (!readComplete) {
-                    error(downstream, new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
+          error(downstream, new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
         }
         super.channelReadComplete(ctx);
       }

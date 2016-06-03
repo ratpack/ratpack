@@ -62,7 +62,7 @@ public class PooledContentAggregatingRequestAction extends AbstractPooledRequest
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
         ctx.pipeline().remove(this);
-        if (!(isKeepAlive = HttpUtil.isKeepAlive(msg))) {
+        if (!(isKeepAlive = HttpUtil.isKeepAlive(msg)) && ctx.channel().isOpen()) {
           ctx.close();
         }
         channelPoolMap.get(baseURI).release(ctx.channel());

@@ -32,7 +32,6 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 
 import static ratpack.stream.Streams.publish
 
-//TODO pooled and non-pooled
 @Unroll
 class PooledHttpProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
 
@@ -48,7 +47,7 @@ class PooledHttpProxySpec extends HttpClientSpec implements PooledHttpClientFact
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -68,6 +67,9 @@ bar
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can proxy a client chunked response"() {
@@ -84,7 +86,7 @@ bar
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -108,6 +110,9 @@ bar
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can mutate response headers while proxying"() {
@@ -124,7 +129,7 @@ bar
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response) { MutableHeaders headers ->
@@ -151,6 +156,9 @@ bar
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can proxy a client error"() {
@@ -165,7 +173,7 @@ bar
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -185,6 +193,9 @@ Client error 404
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can proxy a server error"() {
@@ -199,7 +210,7 @@ Client error 404
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -217,6 +228,9 @@ transfer-encoding: chunked
 """)
       contains("A server error occurred")
     }
+
+    where:
+    pooled << [true, false]
   }
 
   def "can proxy compressed responses"() {
@@ -230,7 +244,7 @@ transfer-encoding: chunked
     and:
     handlers {
       get {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
           rs.decompressResponse(false)
           rs.headers.copy(request.headers)
@@ -251,6 +265,9 @@ transfer-encoding: chunked
     then:
     response.headers.get(CONTENT_ENCODING) == "gzip"
     new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
+
+    where:
+    pooled << [true, false]
   }
 
   //TODO - Problem with copying incoming and outgoing request body
@@ -268,7 +285,7 @@ transfer-encoding: chunked
     and:
     handlers {
       post {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
           rs.method("POST")
           rs.body { outgoingRequestBody ->
@@ -289,5 +306,8 @@ transfer-encoding: chunked
 
     then:
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 }

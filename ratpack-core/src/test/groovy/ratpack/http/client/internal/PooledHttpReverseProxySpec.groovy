@@ -20,7 +20,6 @@ import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
 import spock.lang.Unroll
 
-//TODO pooled and non-pooled
 @Unroll
 class PooledHttpReverseProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
 
@@ -33,7 +32,7 @@ class PooledHttpReverseProxySpec extends HttpClientSpec implements PooledHttpCli
     }
     handlers {
       post {
-        HttpClient httpClient = createClient(context)
+        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
         request.body.then { body ->
           httpClient.requestStream(otherAppUrl()) {
             it.method "POST"
@@ -52,6 +51,9 @@ class PooledHttpReverseProxySpec extends HttpClientSpec implements PooledHttpCli
     }
 
     r.body.text == "received: foo"
+
+    where:
+    pooled << [true, false]
   }
 
 }

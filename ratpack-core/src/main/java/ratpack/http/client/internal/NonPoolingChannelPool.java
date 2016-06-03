@@ -15,6 +15,11 @@ import static io.netty.util.internal.ObjectUtil.checkNotNull;
 
 /**
  * Creates a channel pool that does no pooling.
+ *
+ * TODO we get a lot of these errors perf testing:
+ * [ratpack-compute-1-3] WARN io.netty.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and
+ * it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+ * io.netty.handler.timeout.ReadTimeoutException
  */
 public final class NonPoolingChannelPool implements ChannelPool {
 
@@ -34,23 +39,25 @@ public final class NonPoolingChannelPool implements ChannelPool {
 
   @Override
   public Future<Channel> acquire() {
-    return acquire(bootstrap.group().next().<Channel>newPromise());
+    return acquire(bootstrap.config().group().next().<Channel>newPromise());
   }
 
   @Override
   public Future<Channel> acquire(final Promise<Channel> promise) {
-    checkNotNull(promise, "promise");
-    Bootstrap bs = bootstrap.clone();
-    ChannelFuture f = bs.connect();
-    if (f.isDone()) {
-      notifyConnect(f, promise);
-    } else {
-      f.addListener(new ChannelFutureListener() {
-        @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
-          notifyConnect(future, promise);
-        }
-      });
+    try {
+      ChannelFuture f = bootstrap.connect();
+      if (f.isDone()) {
+        notifyConnect(f, promise);
+      } else {
+        f.addListener(new ChannelFutureListener() {
+          @Override
+          public void operationComplete(ChannelFuture future) throws Exception {
+            notifyConnect(future, promise);
+          }
+        });
+      }
+    } catch (Throwable cause) {
+      promise.setFailure(cause);
     }
     return promise;
   }
@@ -63,18 +70,23 @@ public final class NonPoolingChannelPool implements ChannelPool {
   @Override
   public Future<Void> release(final Channel channel, final Promise<Void> promise) {
     final Promise<Void> p = channel.eventLoop().newPromise();
-    p.addListener(new FutureListener<Void>() {
-      @Override
-      public void operationComplete(Future<Void> future) throws Exception {
-        handler.channelReleased(channel);
-        channel.close();
-        if (future.isSuccess()) {
-          promise.setSuccess(null);
-        } else {
-          promise.setFailure(future.cause());
+    try {
+      handler.channelReleased(channel);
+      p.addListener(new FutureListener<Void>() {
+        @Override
+        public void operationComplete(Future<Void> future) throws Exception {
+          if (future.isSuccess()) {
+            promise.setSuccess(null);
+          } else {
+            promise.setFailure(future.cause());
+          }
         }
-      }
-    });
+      });
+    } catch (Throwable cause) {
+      promise.setFailure(cause);
+    } finally {
+      channel.close();
+    }
     return p;
   }
 
