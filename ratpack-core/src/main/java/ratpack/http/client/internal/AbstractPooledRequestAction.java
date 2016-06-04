@@ -20,6 +20,7 @@ import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -151,7 +152,12 @@ public abstract class AbstractPooledRequestAction<T> implements RequestAction<T>
         HttpHeaders requestHeaders = request.headers();
         requestHeaders.set(headers.getNettyHeaders());
 
-        channel.writeAndFlush(request);
+        ChannelFuture writeFuture = channel.writeAndFlush(request);
+        writeFuture.addListener(f2 -> {
+          if (!writeFuture.isSuccess()) {
+            error(downstream, writeFuture.cause());
+          }
+        });
       }
     });
   }
@@ -219,7 +225,7 @@ public abstract class AbstractPooledRequestAction<T> implements RequestAction<T>
 
         if (!redirected) {
           ctx.fireChannelRead(msg);
-          ctx.pipeline().remove(this);
+          //ctx.pipeline().remove(this); //TODO
         }
       }
     };

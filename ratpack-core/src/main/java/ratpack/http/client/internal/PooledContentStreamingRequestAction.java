@@ -65,7 +65,7 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
-    p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
+    addHandler(p, "httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
       private boolean isKeepAlive;
 
       @Override
@@ -74,7 +74,6 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
-          ctx.pipeline().remove(this);
           channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
             if (!isKeepAlive) {
@@ -91,7 +90,6 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.pipeline().remove(this);
         if (!isKeepAlive) {
           LOGGER.error("Closing channel={}", ctx.channel().id().asShortText(), cause);
           ctx.close();
@@ -177,13 +175,12 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
       subscribedTo.compareAndSet(false, true);
       subscriber = s;
 
-      channelPipeline.addLast("httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
+      addHandler(channelPipeline, "httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
         @Override
         public void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
           subscriber.onNext(msg.content());
           if (msg instanceof LastHttpContent && stopped.compareAndSet(false, true)) {
             subscriber.onComplete();
-            ctx.pipeline().remove(this);
           }
         }
 
@@ -192,7 +189,6 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
           if (stopped.compareAndSet(false, true)) {
             subscriber.onError(cause);
           }
-          ctx.pipeline().remove(this);
           if (!isKeepAlive && ctx.channel().isOpen()) {
             ctx.close();
           }
@@ -221,7 +217,6 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
         @Override
         public void cancel() {
           stopped.set(true);
-          channelPipeline.remove("httpContentHandler");
           if (!isKeepAlive && channelPipeline.channel().isOpen()) {
             channelPipeline.channel().close();
           }

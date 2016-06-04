@@ -72,45 +72,12 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
       .group(execController.getEventLoopGroup());
 
     channelPoolMap = new AbstractChannelPoolMap<URI, ChannelPool>() {
-
       @Override
       protected ChannelPool newPool(URI uri) {
-        String scheme = uri.getScheme();
-        boolean useSsl = false;
-        if (scheme.equals("https")) {
-          useSsl = true;
-        } else if (!scheme.equals("http")) {
-          throw new IllegalArgumentException(String.format("URL '%s' is not a http url", uri.toString()));
-        }
-
-        boolean finalUseSsl = useSsl;
-        String host = uri.getHost();
-        int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
-
-        ChannelPoolHandler handler = new AbstractChannelPoolHandler() {
-          @Override
-          public void channelCreated(Channel ch) throws Exception {
-            ChannelPipeline p = ch.pipeline();
-            if (finalUseSsl) {
-              SSLEngine sslEngine = SSLContext.getDefault().createSSLEngine();
-              sslEngine.setUseClientMode(true);
-              p.addLast("ssl", new SslHandler(sslEngine));
-            }
-            p.addLast(new HttpClientCodec());
-            p.addLast("readTimeout", new ReadTimeoutHandler(config.getReadTimeoutMillis(), TimeUnit.MILLISECONDS));
-          }
-
-          @Override
-          public void channelReleased(Channel ch) throws Exception {
-            super.channelReleased(ch);
-          }
-
-        };
-
         if (config.isPooled()) {
-          return new FixedChannelPool(baseBoostrap.remoteAddress(host, port), handler, config.getMaxConnections());
+          return createPooledPool(uri);
         } else {
-          return new NonPoolingChannelPool(baseBoostrap.remoteAddress(host, port), handler);
+          return createNonPooledPool(uri);
         }
       }
     };
@@ -143,6 +110,51 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
     //Execution is deeded for downstream flushing of request on the same thread
     return Promise.async(downstream -> new PooledContentStreamingRequestAction(requestConfigurer, channelPoolMap, uri, this.byteBufAllocator, Execution.current(), 0).connect(downstream));
+  }
+
+  private ChannelPool createPooledPool(URI uri) {
+    ChannelPoolHandler handler = createChannelPoolHandler(uri);
+    return new FixedChannelPool(baseBoostrap, handler, config.getMaxConnections());
+  }
+
+  private ChannelPool createNonPooledPool(URI uri) {
+    ChannelPoolHandler handler = createChannelPoolHandler(uri);
+    return new NonPoolingChannelPool(baseBoostrap, handler);
+  }
+
+  private ChannelPoolHandler createChannelPoolHandler(URI uri) {
+    String scheme = uri.getScheme();
+    boolean useSsl = false;
+    if (scheme.equals("https")) {
+      useSsl = true;
+    } else if (!scheme.equals("http")) {
+      throw new IllegalArgumentException(String.format("URL '%s' is not a http url", uri.toString()));
+    }
+
+    boolean finalUseSsl = useSsl;
+    String host = uri.getHost();
+    int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
+    baseBoostrap.remoteAddress(host, port);
+
+    return new AbstractChannelPoolHandler() {
+      @Override
+      public void channelCreated(Channel ch) throws Exception {
+        ChannelPipeline p = ch.pipeline();
+        if (finalUseSsl) {
+          SSLEngine sslEngine = SSLContext.getDefault().createSSLEngine();
+          sslEngine.setUseClientMode(true);
+          p.addLast("ssl", new SslHandler(sslEngine));
+        }
+        p.addLast(new HttpClientCodec());
+        p.addLast("readTimeout", new ReadTimeoutHandler(config.getReadTimeoutMillis(), TimeUnit.MILLISECONDS));
+      }
+
+      @Override
+      public void channelReleased(Channel ch) throws Exception {
+        super.channelReleased(ch);
+      }
+
+    };
   }
 
 }

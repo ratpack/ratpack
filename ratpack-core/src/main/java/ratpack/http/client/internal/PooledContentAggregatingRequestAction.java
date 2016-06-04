@@ -61,7 +61,6 @@ public class PooledContentAggregatingRequestAction extends AbstractPooledRequest
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        ctx.pipeline().remove(this);
         if (!(isKeepAlive = HttpUtil.isKeepAlive(msg)) && ctx.channel().isOpen()) {
           ctx.close();
         }
@@ -71,7 +70,6 @@ public class PooledContentAggregatingRequestAction extends AbstractPooledRequest
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.pipeline().remove(this);
         if (!isKeepAlive) {
           ctx.close();
         }
