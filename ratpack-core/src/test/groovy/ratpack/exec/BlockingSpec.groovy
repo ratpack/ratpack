@@ -273,6 +273,38 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     events == ["compute", "blocking", "inner compute", "inner blocking"]
   }
 
+  def "ensure the appropriate thread pool processes the segment"() {
+    given:
+    def events = []
+
+    when:
+    handlers {
+      all {
+        Blocking.op {
+          events << Thread.currentThread().name
+        } next {
+          events << Thread.currentThread().name
+        } next(Operation.of {
+          events << Thread.currentThread().name
+        }) next(Blocking.op {
+          events << Thread.currentThread().name
+        }) blockingNext {
+          events << Thread.currentThread().name
+        } then {
+          events << Thread.currentThread().name
+          response.send()
+        }
+      }
+    }
+
+    and:
+    get()
+
+    then:
+    def types = events.collect { (it =~ /ratpack-(blocking|compute)-\d-\d/)[0][1] }
+    types == ["blocking", "compute", "compute", "blocking", "blocking", "compute"]
+  }
+
   def "should throw UnmanagedThreadException when trying to use blocking outside of Execution"() {
     given:
     def promise = Blocking.get {}
