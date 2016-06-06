@@ -225,7 +225,6 @@ public abstract class AbstractPooledRequestAction<T> implements RequestAction<T>
 
         if (!redirected) {
           ctx.fireChannelRead(msg);
-          //ctx.pipeline().remove(this); //TODO
         }
       }
     };

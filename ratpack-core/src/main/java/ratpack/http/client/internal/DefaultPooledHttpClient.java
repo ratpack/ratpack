@@ -65,7 +65,6 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
 
     baseBoostrap = new Bootstrap();
     baseBoostrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-      .option(ChannelOption.SO_KEEPALIVE, true)
       .option(ChannelOption.TCP_NODELAY, true)
       .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getConnectionTimeoutMillis())
       .channel(ChannelImplDetector.getSocketChannelImpl())
@@ -102,22 +101,22 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    //Execution is deeded for downstream flushing of request on the same thread
     return Promise.async(downstream -> new PooledContentAggregatingRequestAction(requestConfigurer, channelPoolMap, uri, this.byteBufAllocator, this.maxContentLengthBytes, Execution.current(), 0).connect(downstream));
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
-    //Execution is deeded for downstream flushing of request on the same thread
     return Promise.async(downstream -> new PooledContentStreamingRequestAction(requestConfigurer, channelPoolMap, uri, this.byteBufAllocator, Execution.current(), 0).connect(downstream));
   }
 
   private ChannelPool createPooledPool(URI uri) {
+    baseBoostrap.option(ChannelOption.SO_KEEPALIVE, true);
     ChannelPoolHandler handler = createChannelPoolHandler(uri);
     return new FixedChannelPool(baseBoostrap, handler, config.getMaxConnections());
   }
 
   private ChannelPool createNonPooledPool(URI uri) {
+    baseBoostrap.option(ChannelOption.SO_KEEPALIVE, false);
     ChannelPoolHandler handler = createChannelPoolHandler(uri);
     return new NonPoolingChannelPool(baseBoostrap, handler);
   }
