@@ -281,17 +281,17 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       all {
         Blocking.op {
-          events << Thread.currentThread().name
+          events << Thread.currentThread().name.split('-')[1]
         } next {
-          events << Thread.currentThread().name
+          events << Thread.currentThread().name.split('-')[1]
         } next(Operation.of {
-          events << Thread.currentThread().name
+          events << Thread.currentThread().name.split('-')[1]
         }) next(Blocking.op {
-          events << Thread.currentThread().name
+          events << Thread.currentThread().name.split('-')[1]
         }) blockingNext {
-          events << Thread.currentThread().name
+          events << Thread.currentThread().name.split('-')[1]
         } then {
-          events << Thread.currentThread().name
+          events << Thread.currentThread().name.split('-')[1]
           response.send()
         }
       }
@@ -301,8 +301,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    def types = events.collect { (it =~ /ratpack-(blocking|compute)-\d-\d/)[0][1] }
-    types == ["blocking", "compute", "compute", "blocking", "blocking", "compute"]
+    events == ["blocking", "compute", "compute", "blocking", "blocking", "compute"]
   }
 
   def "should throw UnmanagedThreadException when trying to use blocking outside of Execution"() {
