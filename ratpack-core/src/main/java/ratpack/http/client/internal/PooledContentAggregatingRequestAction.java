@@ -69,10 +69,10 @@ public class PooledContentAggregatingRequestAction extends AbstractPooledRequest
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        channelPoolMap.get(baseURI).release(ctx.channel());
         if (!isKeepAlive) {
           ctx.close();
         }
-        channelPoolMap.get(baseURI).release(ctx.channel());
         error(downstream, cause);
       }
     });

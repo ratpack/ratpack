@@ -73,10 +73,12 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
         isKeepAlive = HttpUtil.isKeepAlive(msg);
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
-        channelPoolMap.get(baseURI).release(ctx.channel());
         execution.onComplete(() -> {
+          channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
-            ctx.close();
+            if (!isKeepAlive) {
+              ctx.close();
+            }
           }
         });
 
@@ -88,11 +90,11 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        channelPoolMap.get(baseURI).release(ctx.channel());
         if (!isKeepAlive) {
           LOGGER.error("Closing channel={}", ctx.channel().id().asShortText(), cause);
           ctx.close();
         }
-        channelPoolMap.get(baseURI).release(ctx.channel());
         error(downstream, cause);
       }
     });
