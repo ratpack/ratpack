@@ -36,12 +36,12 @@ import java.util.concurrent.CountDownLatch
 @Unroll
 class PooledContentStreamingRequestActionSpec extends HttpClientSpec implements PooledHttpClientFactory {
 
-  def "client channel is closed when response is not subscribed to"() {
+  def "client channel is closed when response is not subscribed to"(pooled, keepalive) {
     def requestAction
     def latch = new CountDownLatch(1)
 
     given:
-    otherApp { get("foo") { render "bar" } }
+    otherApp { get("foo") { response.headers.set('connection', keepalive) ; render "bar" } }
 
     and:
     handlers {
@@ -60,10 +60,15 @@ class PooledContentStreamingRequestActionSpec extends HttpClientSpec implements 
     expect:
     text == 'foo'
     latch.await()
-    !requestAction.channel.open
+    if (pooled) {
+      assert requestAction.channel.open
+    } else {
+      assert !requestAction.channel.open
+    }
 
     where:
     pooled << [true, false]
+    keepalive << ['keep-alive','close']
   }
 
   static class ChannelSpyRequestAction extends PooledContentStreamingRequestAction {

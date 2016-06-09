@@ -71,6 +71,7 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
         isKeepAlive = HttpUtil.isKeepAlive(msg);
+        msg.headers().forEach(h -> LOGGER.info(h.getKey() + "=" + h.getValue()));
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
