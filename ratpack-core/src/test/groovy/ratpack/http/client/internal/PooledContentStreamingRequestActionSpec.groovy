@@ -19,6 +19,8 @@ package ratpack.http.client.internal
 import io.netty.buffer.ByteBufAllocator
 import io.netty.channel.Channel
 import io.netty.channel.ChannelPipeline
+import io.netty.channel.pool.ChannelPool
+import io.netty.channel.pool.ChannelPoolMap
 import ratpack.exec.Downstream
 import ratpack.exec.ExecController
 import ratpack.exec.Execution
@@ -27,10 +29,12 @@ import ratpack.func.Action
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.RequestSpec
 import ratpack.http.client.StreamedResponse
+import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 
-class ContentStreamingRequestActionSpec extends HttpClientSpec {
+@Unroll
+class PooledContentStreamingRequestActionSpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "client channel is closed when response is not subscribed to"() {
     def requestAction
@@ -42,7 +46,8 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     and:
     handlers {
       get { ExecController execController, ByteBufAllocator byteBufAllocator ->
-        requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), execution, byteBufAllocator)
+        def map = createClient(context, new PooledHttpConfig(pooled: pooled)).channelPoolMap
+        requestAction = new ChannelSpyRequestAction({}, map, otherAppUrl("foo"), byteBufAllocator, execution)
         Promise.async(requestAction).then {
           execution.onComplete {
             latch.countDown()
@@ -56,13 +61,16 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     text == 'foo'
     latch.await()
     !requestAction.channel.open
+
+    where:
+    pooled << [true, false]
   }
 
-  static class ChannelSpyRequestAction extends ContentStreamingRequestAction {
+  static class ChannelSpyRequestAction extends PooledContentStreamingRequestAction {
     private Channel channel
 
-    ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator) {
-      super(requestConfigurer, uri, execution, byteBufAllocator, 0)
+    ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> map, URI uri, ByteBufAllocator byteBufAllocator, Execution execution) {
+      super(requestConfigurer, map, uri, byteBufAllocator, execution, 0)
     }
 
     @Override

@@ -73,12 +73,10 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
         isKeepAlive = HttpUtil.isKeepAlive(msg);
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
+        channelPoolMap.get(baseURI).release(ctx.channel());
         execution.onComplete(() -> {
-          channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
-            if (!isKeepAlive) {
-              ctx.close();
-            }
+            ctx.close();
           }
         });
 
@@ -189,10 +187,10 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
           if (stopped.compareAndSet(false, true)) {
             subscriber.onError(cause);
           }
+          channelPoolMap.get(baseURI).release(ctx.channel());
           if (!isKeepAlive && ctx.channel().isOpen()) {
             ctx.close();
           }
-          channelPoolMap.get(baseURI).release(ctx.channel());
         }
       });
 
@@ -217,10 +215,10 @@ public class PooledContentStreamingRequestAction extends AbstractPooledRequestAc
         @Override
         public void cancel() {
           stopped.set(true);
+          channelPoolMap.get(baseURI).release(channelPipeline.channel());
           if (!isKeepAlive && channelPipeline.channel().isOpen()) {
             channelPipeline.channel().close();
           }
-          channelPoolMap.get(baseURI).release(channelPipeline.channel());
         }
       });
     }

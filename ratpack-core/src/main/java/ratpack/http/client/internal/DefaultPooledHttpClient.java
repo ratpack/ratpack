@@ -147,12 +147,6 @@ public class DefaultPooledHttpClient implements PooledHttpClient {
         p.addLast(new HttpClientCodec());
         p.addLast("readTimeout", new ReadTimeoutHandler(config.getReadTimeoutMillis(), TimeUnit.MILLISECONDS));
       }
-
-      @Override
-      public void channelReleased(Channel ch) throws Exception {
-        super.channelReleased(ch);
-      }
-
     };
   }
 
