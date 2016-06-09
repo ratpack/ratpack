@@ -27,7 +27,7 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private Upstream<? extends T> upstream;
   private final AtomicBoolean fired = new AtomicBoolean();
-  private final Queue<Downstream<? super ExecResult<? extends T>>> waiting = PlatformDependent.newMpscQueue();
+  private final Queue<Downstream<? super T>> waiting = PlatformDependent.newMpscQueue();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<ExecResult<? extends T>> result = new AtomicReference<>();
 
@@ -39,9 +39,9 @@ public class CachingUpstream<T> implements Upstream<T> {
     if (draining.compareAndSet(false, true)) {
       try {
         ExecResult<? extends T> result = this.result.get();
-        Downstream<? super ExecResult<? extends T>> downstream = waiting.poll();
+        Downstream<? super T> downstream = waiting.poll();
         while (downstream != null) {
-          downstream.success(result);
+          downstream.accept(result);
           downstream = waiting.poll();
         }
       } finally {
@@ -59,39 +59,34 @@ public class CachingUpstream<T> implements Upstream<T> {
       upstream.connect(new Downstream<T>() {
         @Override
         public void error(Throwable throwable) {
-          result.set(ExecResult.of(Result.<T>error(throwable)));
-          doDrainInNewSegment();
+          receiveResult(ExecResult.of(Result.<T>error(throwable)));
           downstream.error(throwable);
         }
 
         @Override
         public void success(T value) {
-          result.set(ExecResult.of(Result.success(value)));
-          doDrainInNewSegment();
+          receiveResult(ExecResult.of(Result.success(value)));
           downstream.success(value);
         }
 
         @Override
         public void complete() {
-          result.set(CompleteExecResult.get());
-          doDrainInNewSegment();
+          receiveResult(CompleteExecResult.get());
           downstream.complete();
         }
       });
     } else {
-      Promise.<ExecResult<? extends T>>async(innerDownstream -> {
-        ExecResult<? extends T> result = this.result.get();
-        if (result == null) {
-          waiting.add(innerDownstream);
-        } else {
-          innerDownstream.success(result);
-        }
-      }).then(result -> downstream.accept(result));
-
+      ExecResult<? extends T> result = this.result.get();
+      if (result == null) {
+        Promise.<T>async(waiting::add).result(downstream::accept);
+      } else {
+        downstream.accept(result);
+      }
     }
   }
 
-  private void doDrainInNewSegment() {
+  private void receiveResult(ExecResult<T> newValue) {
+    result.set(newValue);
     this.upstream = null; // release
     DefaultExecution.require().getEventLoop().execute(this::tryDrain);
   }
