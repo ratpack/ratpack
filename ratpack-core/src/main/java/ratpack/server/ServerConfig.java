@@ -79,6 +79,24 @@ public interface ServerConfig extends ConfigData {
   int DEFAULT_MAX_CHUNK_SIZE = 8192;
 
   /**
+   * The default maximum initial line length to use when reading requests.
+   * <p>
+   * Defaults to {@value}
+   *
+   * @see #getMaxInitialLineLength()
+   */
+  int DEFAULT_MAX_INITIAL_LINE_LENGTH = 4096;
+
+  /**
+   * The default maximum header size to use when reading requests.
+   * <p>
+   * Defaults to {@value}
+   *
+   * @see #getMaxHeaderSize()
+   */
+  int DEFAULT_MAX_HEADER_SIZE = 8192;
+
+  /**
    * Creates a builder configured for development mode and an ephemeral port.
    *
    * @return a server config builder
@@ -237,6 +255,34 @@ public interface ServerConfig extends ConfigData {
    * @return the maximum chunk size
    */
   int getMaxChunkSize();
+
+  /**
+   * The maximum initial line length allowed for reading http requests.
+   * <p>
+   * This value is used to determine the maximum allowed length for the initial line of an http request.
+   * A lower value will reduce memory pressure by requiring less memory at one time,
+   * <p>
+   * Defaults to {@link #DEFAULT_MAX_INITIAL_LINE_LENGTH}.
+   * This value is suitable for most applications.
+   * If your application deals with very large request URIs, you may want to increase it.
+   *
+   * @return the maximum initial line length allowed for http requests.
+   */
+  int getMaxInitialLineLength();
+
+  /**
+   * The maximum size of all headers allowed for reading http requests.
+   * <p>
+   * This value is used to determine the maximum allowed size for the sum of the length all headers of an http request.
+   * A lower value will reduce memory pressure by requiring less memory at one time,
+   * <p>
+   * Defaults to {@link #DEFAULT_MAX_HEADER_SIZE}.
+   * This value is suitable for most applications.
+   * If your application deals with very large http headers, you may want to increase it.
+   *
+   * @return the maximum size of http headers allowed for an incoming http requests.
+   */
+  int getMaxHeaderSize();
 
   /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.

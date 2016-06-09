@@ -139,6 +139,16 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder maxInitialLineLength(int maxInitialLineLength) {
+    return addToServer(n -> n.put("maxInitialLineLength", maxInitialLineLength));
+  }
+
+  @Override
+  public ServerConfigBuilder maxHeaderSize(int maxHeaderSize) {
+    return addToServer(n -> n.put("maxHeaderSize", maxHeaderSize));
+  }
+
+  @Override
   public ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis) {
     return addToServer(n -> n.put("connectTimeoutMillis", connectTimeoutMillis));
   }
