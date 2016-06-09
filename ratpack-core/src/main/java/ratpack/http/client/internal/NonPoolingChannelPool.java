@@ -55,6 +55,10 @@ public final class NonPoolingChannelPool implements ChannelPool {
 
   @Override
   public Future<Void> release(final Channel channel, final Promise<Void> promise) {
+    try {
+      handler.channelReleased(channel);
+    } catch (Exception e) {
+    }
     return promise;
   }
 
