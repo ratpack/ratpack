@@ -7,12 +7,10 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
 
 /**
  * Creates a channel pool that does no pooling.
- * TODO slow
  */
 public final class NonPoolingChannelPool implements ChannelPool {
 
@@ -52,28 +50,11 @@ public final class NonPoolingChannelPool implements ChannelPool {
 
   @Override
   public Future<Void> release(Channel channel) {
-    return release(channel, channel.eventLoop().<Void>newPromise());
+    return release(channel, null);
   }
 
   @Override
   public Future<Void> release(final Channel channel, final Promise<Void> promise) {
-    try {
-      handler.channelReleased(channel);
-      ChannelFuture f = channel.close();
-      f.addListener(new FutureListener<Void>() {
-        @Override
-        public void operationComplete(Future<Void> future) throws Exception {
-          if (future.isSuccess()) {
-            promise.setSuccess(null);
-          } else {
-            promise.setFailure(future.cause());
-          }
-        }
-      });
-    } catch (Throwable cause) {
-      promise.setFailure(cause);
-      channel.close();
-    }
     return promise;
   }
 
