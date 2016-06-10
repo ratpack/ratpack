@@ -17,13 +17,17 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.internal.DefaultHttpClient;
+import ratpack.http.client.internal.PooledHttpConfig;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.net.URI;
+
+//TODO: Fix documentation, if needed
 
 /**
  * A http client that makes all HTTP requests asynchronously and returns a {@link ratpack.exec.Promise}.
@@ -88,6 +92,8 @@ import java.net.URI;
  */
 public interface HttpClient {
 
+  //TODO clean up the static methods here
+
   /**
    *  A method to create an instance of the default implementation of HttpClient.
    *
@@ -96,7 +102,7 @@ public interface HttpClient {
    * @return An instance of a HttpClient
    */
   static HttpClient httpClient(ServerConfig serverConfig, Registry registry) {
-    return new DefaultHttpClient(registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength());
+    return new DefaultHttpClient(new PooledHttpConfig(), registry.get(ByteBufAllocator.class), serverConfig.getMaxContentLength(), registry.get(ExecController.class));
   }
 
   /**
@@ -106,8 +112,20 @@ public interface HttpClient {
    * @param maxContentLengthBytes The max content length of a response to support.
    * @return An instance of a HttpClient
    */
-  static HttpClient httpClient(ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
-    return new DefaultHttpClient(byteBufAllocator, maxContentLengthBytes);
+  static HttpClient httpClient(ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, ExecController execController) {
+    return new DefaultHttpClient(new PooledHttpConfig(), byteBufAllocator, maxContentLengthBytes, execController);
+  }
+
+  /**
+   * Convenience for pooled http client
+   * @param config
+   * @param byteBufAllocator
+   * @param maxContentLengthBytes
+   * @param execController
+     * @return
+     */
+  static HttpClient httpClient(PooledHttpConfig config, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, ExecController execController) {
+    return new DefaultHttpClient(config, byteBufAllocator, maxContentLengthBytes, execController);
   }
 
   /**

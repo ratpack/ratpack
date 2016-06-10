@@ -34,7 +34,7 @@ import spock.lang.Unroll
 import java.util.concurrent.CountDownLatch
 
 @Unroll
-class PooledContentStreamingRequestActionSpec extends HttpClientSpec implements PooledHttpClientFactory {
+class ContentStreamingRequestActionSpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "client channel is closed when response is not subscribed to"(pooled, keepalive) {
     def requestAction
@@ -71,7 +71,7 @@ class PooledContentStreamingRequestActionSpec extends HttpClientSpec implements 
     keepalive << ['keep-alive','close']
   }
 
-  static class ChannelSpyRequestAction extends PooledContentStreamingRequestAction {
+  static class ChannelSpyRequestAction extends ContentStreamingRequestAction {
     private Channel channel
 
     ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> map, URI uri, ByteBufAllocator byteBufAllocator, Execution execution) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,17 @@
 package ratpack.http.client
 
 import ratpack.func.Action
+import ratpack.http.client.HttpClient
+import ratpack.http.client.HttpClientSpec
+import ratpack.http.client.ReceivedResponse
+import ratpack.http.client.RequestSpec
+import ratpack.http.client.internal.PooledHttpClientFactory
+import ratpack.http.client.internal.PooledHttpConfig
 import ratpack.http.internal.HttpHeaderConstants
+import spock.lang.Unroll
 
-class HttpClientRedirectionSpec extends HttpClientSpec {
+@Unroll
+class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClientFactory {
 
   def "can follow simple redirect get request"() {
     given:
@@ -35,8 +43,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     when:
     handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
+      get {
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
+        hcl.get(otherAppUrl("foo2")) {
         } then {
           render it.body.text
         }
@@ -45,6 +54,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can follow a relative redirect get request"() {
@@ -62,8 +74,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     when:
     handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo")) {
+      get {
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
+        hcl.get(otherAppUrl("foo")) {
         } then { ReceivedResponse response ->
           render response.body.text
         }
@@ -72,6 +85,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "tar"
+
+    where:
+    pooled << [true, false]
   }
 
 
@@ -89,8 +105,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     when:
     handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
+      get {
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
+        hcl.get(otherAppUrl("foo2")) {
           it.redirects(0)
         } then { ReceivedResponse response ->
           render response.body.text
@@ -100,6 +117,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == ""
+
+    where:
+    pooled << [true, false]
   }
 
   def "Stop redirects in loop"() {
@@ -116,9 +136,10 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     when:
     handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
-        } then { ReceivedResponse response ->
+      get {
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
+        hcl.get(otherAppUrl("foo2")) { action ->
+        }.then { ReceivedResponse response ->
           render "Status: " + response.statusCode
         }
       }
@@ -126,6 +147,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "Status: 302"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can use redirect strategy"() {
@@ -143,8 +167,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
     }
 
     handlers {
-      get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl()) { RequestSpec r ->
+      get {
+        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
+        hcl.get(otherAppUrl()) { RequestSpec r ->
           r.headers.set("count", "0")
           r.onRedirect { ReceivedResponse res ->
             def count = res.headers.get("count").toInteger()
@@ -158,6 +183,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "5"
+
+    where:
+    pooled << [true, false]
   }
 
 }

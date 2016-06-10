@@ -15,7 +15,7 @@
  */
 
 package ratpack.http.client.internal;
-
+//TODO: Merge with ServerConfig
 public class PooledHttpConfig {
   public static final boolean DEFAULT_POOLED = false;
   public static final int DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000;
