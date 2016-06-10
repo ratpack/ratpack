@@ -46,8 +46,8 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec implements Pooled
     and:
     handlers {
       get { ExecController execController, ByteBufAllocator byteBufAllocator ->
-        def map = createClient(context, new PooledHttpConfig(pooled: pooled)).channelPoolMap
-        requestAction = new ChannelSpyRequestAction({}, map, otherAppUrl("foo"), byteBufAllocator, execution)
+        def map = createClient(context, pooled).channelPoolMap
+        requestAction = new ChannelSpyRequestAction({}, map, pooled, otherAppUrl("foo"), byteBufAllocator, execution)
         Promise.async(requestAction).then {
           execution.onComplete {
             latch.countDown()
@@ -60,22 +60,22 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec implements Pooled
     expect:
     text == 'foo'
     latch.await()
-    if (pooled) {
+    if (pooled.pooled) {
       assert requestAction.channel.open
     } else {
       assert !requestAction.channel.open
     }
 
     where:
-    pooled << [true, false]
+    pooled << [new PooledHttpConfig(pooled: true), new PooledHttpConfig(pooled: false)]
     keepalive << ['keep-alive','close']
   }
 
   static class ChannelSpyRequestAction extends ContentStreamingRequestAction {
     private Channel channel
 
-    ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> map, URI uri, ByteBufAllocator byteBufAllocator, Execution execution) {
-      super(requestConfigurer, map, uri, byteBufAllocator, execution, 0)
+    ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> map, PooledHttpConfig config, URI uri, ByteBufAllocator byteBufAllocator, Execution execution) {
+      super(requestConfigurer, map, config, uri, byteBufAllocator, execution, 0)
     }
 
     @Override

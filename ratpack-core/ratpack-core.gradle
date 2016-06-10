@@ -57,6 +57,9 @@ dependencies {
 
 test {
   maxParallelForks = 3
+  testLogging {
+    events "started", "passed", "skipped", "failed"
+  }
 }
 
 // Reactive Streams TCK uses TestNG, and Gradle can't run TestNG and JUnit in the same run.

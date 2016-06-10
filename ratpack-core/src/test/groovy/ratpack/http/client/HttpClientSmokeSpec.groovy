@@ -339,7 +339,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
   def "can set connect timeout"() {
     setup:
     def nonRoutableIp = '192.168.0.0'
-    def pooledHttpConfig = new PooledHttpConfig(connectionTimeoutNanos: 20)
+    def pooledHttpConfig = new PooledHttpConfig(connectionTimeoutNanos: 20000000)
 
     when:
     handlers {
@@ -362,7 +362,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can set read timeout"() {
     setup:
-    def pooledHttpConfig = new PooledHttpConfig(readTimeoutNanos: 1)
+    def pooledHttpConfig = new PooledHttpConfig(readTimeoutNanos: 1000000)
 
     when:
     otherApp {

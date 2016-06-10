@@ -40,6 +40,7 @@ import ratpack.http.client.StreamedResponse;
 import ratpack.util.internal.ChannelImplDetector;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultHttpClient implements HttpClient {
   public static final Logger LOGGER = LoggerFactory.getLogger(DefaultHttpClient.class);
@@ -59,9 +60,9 @@ public class DefaultHttpClient implements HttpClient {
 
     baseBoostrap = new Bootstrap();
     baseBoostrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-      .option(ChannelOption.TCP_NODELAY, true)
-      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int)config.getConnectionTimeoutNanos()/1000000)
       .channel(ChannelImplDetector.getSocketChannelImpl())
+      .option(ChannelOption.TCP_NODELAY, true)
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int)TimeUnit.NANOSECONDS.toMillis(config.getConnectionTimeoutNanos()))
       .group(execController.getEventLoopGroup());
 
     channelPoolMap = new AbstractChannelPoolMap<URI, ChannelPool>() {
