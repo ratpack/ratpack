@@ -23,13 +23,7 @@ import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
-import org.spockframework.compiler.model.WhereBlock
 import ratpack.exec.Blocking
-import ratpack.http.client.HttpClient
-import ratpack.http.client.HttpClientSpec
-import ratpack.http.client.ReceivedResponse
-import ratpack.http.client.RequestSpec
-import ratpack.http.client.StreamedResponse
 import ratpack.http.client.internal.PooledHttpClientFactory
 import ratpack.http.client.internal.PooledHttpConfig
 import ratpack.stream.Streams
@@ -345,7 +339,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
   def "can set connect timeout"() {
     setup:
     def nonRoutableIp = '192.168.0.0'
-    def pooledHttpConfig = new PooledHttpConfig(connectionTimeoutMillis: 20)
+    def pooledHttpConfig = new PooledHttpConfig(connectionTimeoutNanos: 20)
 
     when:
     handlers {
@@ -368,7 +362,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can set read timeout"() {
     setup:
-    def pooledHttpConfig = new PooledHttpConfig(readTimeoutMillis: 1)
+    def pooledHttpConfig = new PooledHttpConfig(readTimeoutNanos: 1)
 
     when:
     otherApp {

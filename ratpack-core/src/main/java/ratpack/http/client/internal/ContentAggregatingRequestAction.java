@@ -43,12 +43,13 @@ public class ContentAggregatingRequestAction extends RequestActionSupport<Receiv
 
   public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer,
                                          ChannelPoolMap<URI, ChannelPool> channelPoolMap,
+                                         PooledHttpConfig config,
                                          URI uri,
                                          ByteBufAllocator byteBufAllocator,
                                          int maxContentLengthBytes,
                                          Execution execution,
                                          int redirectCount) {
-    super(requestConfigurer, channelPoolMap, uri, byteBufAllocator, execution, redirectCount);
+    super(requestConfigurer, channelPoolMap, config, uri, byteBufAllocator, execution, redirectCount);
     this.maxContentLengthBytes = maxContentLengthBytes;
   }
 
@@ -81,6 +82,6 @@ public class ContentAggregatingRequestAction extends RequestActionSupport<Receiv
 
   @Override
   protected RequestActionSupport<ReceivedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentAggregatingRequestAction(redirectRequestConfig, channelPoolMap, locationUrl, byteBufAllocator, maxContentLengthBytes, execution, redirectCount);
+    return new ContentAggregatingRequestAction(redirectRequestConfig, channelPoolMap, config, locationUrl, byteBufAllocator, maxContentLengthBytes, execution, redirectCount);
   }
 }

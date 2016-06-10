@@ -59,8 +59,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
 
-  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
-    super(requestConfigurer, channelPoolMap, uri, byteBufAllocator, execution, redirectCount);
+  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, PooledHttpConfig config, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
+    super(requestConfigurer, channelPoolMap, config, uri, byteBufAllocator, execution, redirectCount);
   }
 
   @Override
@@ -103,7 +103,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
   @Override
   protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentStreamingRequestAction(redirectRequestConfig, channelPoolMap, locationUrl, byteBufAllocator, execution, redirectCount);
+    return new ContentStreamingRequestAction(redirectRequestConfig, channelPoolMap, config, locationUrl, byteBufAllocator, execution, redirectCount);
   }
 
   private class DefaultStreamedResponse implements StreamedResponse {

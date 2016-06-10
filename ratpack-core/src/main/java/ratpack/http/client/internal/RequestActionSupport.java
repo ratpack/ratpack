@@ -32,6 +32,7 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -39,6 +40,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +61,11 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedHeaders;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -71,6 +77,7 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
 
   private final Action<? super RequestSpec> requestConfigurer;
   protected final ChannelPoolMap<URI, ChannelPool> channelPoolMap;
+  protected final PooledHttpConfig config;
   private final MutableHeaders headers;
   private final RequestSpecBacking requestSpecBacking;
   protected final ByteBufAllocator byteBufAllocator;
@@ -84,9 +91,10 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
   private final AtomicBoolean fired = new AtomicBoolean();
   protected final Execution execution;
 
-  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
+  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, PooledHttpConfig config, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
     this.requestConfigurer = requestConfigurer;
     this.channelPoolMap = channelPoolMap;
+    this.config = config;
     this.byteBufAllocator = byteBufAllocator;
     this.uri = uri;
     this.baseURI = constructBaseURI(uri);
@@ -162,7 +170,24 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
     });
   }
 
-  protected void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) {
+  protected void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
+
+    if (finalUseSsl) {
+      SSLEngine sslEngine;
+      if (requestSpecBacking.getSslContext() != null) {
+        sslEngine = requestSpecBacking.getSslContext().createSSLEngine();
+      } else {
+        sslEngine = SSLContext.getDefault().createSSLEngine();
+      }
+      sslEngine.setUseClientMode(true);
+      addHandler(p, "ssl", new SslHandler(sslEngine));
+    }
+
+    addHandler(p, "clientCodec", new HttpClientCodec());
+
+    long readTimeout = requestParams.readTimeoutNanos > 0 ? requestParams.readTimeoutNanos : config.getReadTimeoutNanos();
+    addHandler(p, "readTimeout", new ReadTimeoutHandler(readTimeout, TimeUnit.NANOSECONDS));
+
     ChannelHandler redirectHandler = new SimpleChannelInboundHandler<HttpObject>(false) {
       boolean readComplete;
       boolean redirected;

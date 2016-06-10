@@ -21,16 +21,12 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.AbstractChannelPoolMap;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.FixedChannelPool;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
@@ -43,10 +39,7 @@ import ratpack.http.client.RequestSpec;
 import ratpack.http.client.StreamedResponse;
 import ratpack.util.internal.ChannelImplDetector;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
 public class DefaultHttpClient implements HttpClient {
   public static final Logger LOGGER = LoggerFactory.getLogger(DefaultHttpClient.class);
@@ -58,10 +51,6 @@ public class DefaultHttpClient implements HttpClient {
   private Bootstrap baseBoostrap;
   private ExecController execController;
 
-  public DefaultHttpClient(PooledHttpConfig config, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
-    this(config, byteBufAllocator, maxContentLengthBytes, null);
-  }
-
   public DefaultHttpClient(PooledHttpConfig config, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, ExecController execController) {
     this.config = config;
     this.byteBufAllocator = byteBufAllocator;
@@ -71,15 +60,9 @@ public class DefaultHttpClient implements HttpClient {
     baseBoostrap = new Bootstrap();
     baseBoostrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
       .option(ChannelOption.TCP_NODELAY, true)
-      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getConnectionTimeoutMillis())
-      .channel(ChannelImplDetector.getSocketChannelImpl());
-
-    //TODO: Explain why this is needed
-    if (execController != null) {
-      baseBoostrap.group(execController.getEventLoopGroup());
-    } else if (config.isPooled()) {
-      throw new IllegalArgumentException("ExecController is required for pooling support");
-    }
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int)config.getConnectionTimeoutNanos()/1000000)
+      .channel(ChannelImplDetector.getSocketChannelImpl())
+      .group(execController.getEventLoopGroup());
 
     channelPoolMap = new AbstractChannelPoolMap<URI, ChannelPool>() {
       @Override
@@ -112,12 +95,12 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(downstream -> new ContentAggregatingRequestAction(requestConfigurer, channelPoolMap, uri, this.byteBufAllocator, this.maxContentLengthBytes, Execution.current(), 0).connect(downstream));
+    return Promise.async(downstream -> new ContentAggregatingRequestAction(requestConfigurer, channelPoolMap, config, uri, this.byteBufAllocator, this.maxContentLengthBytes, Execution.current(), 0).connect(downstream));
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(downstream -> new ContentStreamingRequestAction(requestConfigurer, channelPoolMap, uri, this.byteBufAllocator, Execution.current(), 0).connect(downstream));
+    return Promise.async(downstream -> new ContentStreamingRequestAction(requestConfigurer, channelPoolMap,config, uri, this.byteBufAllocator, Execution.current(), 0).connect(downstream));
   }
 
   private ChannelPool createPooledPool(URI uri) {
@@ -141,7 +124,6 @@ public class DefaultHttpClient implements HttpClient {
       throw new IllegalArgumentException(String.format("URL '%s' is not a http url", uri.toString()));
     }
 
-    boolean finalUseSsl = useSsl;
     String host = uri.getHost();
     int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
     baseBoostrap.remoteAddress(host, port);
@@ -149,14 +131,6 @@ public class DefaultHttpClient implements HttpClient {
     return new AbstractChannelPoolHandler() {
       @Override
       public void channelCreated(Channel ch) throws Exception {
-        ChannelPipeline p = ch.pipeline();
-        if (finalUseSsl) {
-          SSLEngine sslEngine = SSLContext.getDefault().createSSLEngine();
-          sslEngine.setUseClientMode(true);
-          p.addLast("ssl", new SslHandler(sslEngine));
-        }
-        p.addLast(new HttpClientCodec());
-        p.addLast("readTimeout", new ReadTimeoutHandler(config.getReadTimeoutMillis(), TimeUnit.MILLISECONDS));
       }
     };
   }
