@@ -16,6 +16,7 @@
 
 package ratpack.exec;
 
+import com.google.common.cache.LoadingCache;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
@@ -1173,6 +1174,9 @@ public interface Promise<T> {
 
   /**
    * Caches the promised value (or error) and returns it to all subscribers.
+   * <p>
+   * This method is equivalent to using {@link #cacheResultIf(Predicate)} with a predicate that always returns {@code true}.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -1202,8 +1206,10 @@ public interface Promise<T> {
    *   }
    * }
    * }</pre>
+   *
    * <p>
    * If the cached promise fails, the same exception will be returned every time.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -1223,10 +1229,162 @@ public interface Promise<T> {
    * }
    * }</pre>
    *
-   * @return a caching promise.
+   * @return a caching promise
+   * @see #cacheIf(Predicate)
+   * @see #cacheResultIf(Predicate)
    */
   default Promise<T> cache() {
-    return transform(CachingUpstream::new);
+    return cacheResultIf(Predicate.TRUE);
+  }
+
+  /**
+   * Caches the promise value and provides it to all future subscribers, if it satisfies the predicate.
+   * <p>
+   * This method is equivalent to using {@link #cacheResultIf(Predicate)} with a predicate that requires
+   * a successful result and for the value to satisfy the predicate given to this method.
+   * <p>
+   * Non success results will not be cached.
+   *
+   * @param shouldCache the test for whether a successful result is cacheable
+   * @return a caching promise
+   * @since 1.4
+   */
+  default Promise<T> cacheIf(Predicate<? super T> shouldCache) {
+    return cacheResultIf(r -> r.isSuccess() && shouldCache.apply(r.getValue()));
+  }
+
+  /**
+   * Caches the promise result and provides it to all future subscribers, if it satisfies the predicate.
+   * <p>
+   * This method is typically used when wanting to cache a failure result or a success result.
+   * Moreover, the error throwable or success value can be inspected to determine whether it should be cached.
+   * <p>
+   * A cached promise is fully threadsafe and and can be subscribed to concurrently.
+   * While there is no cached value, yielding the upstream value is serialised.
+   * That is, one value is requested at a time regardless of concurrent subscription.
+   * If a cache-able value is received, all pending subscribers will received the cache-able value.
+   * If a received value is not cache-able the corresponding subscriber will receive the value,
+   * and the upstream promise will be subscribed to again on behalf of the next subscriber.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.ArrayList;
+   * import java.util.List;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     AtomicInteger counter = new AtomicInteger();
+   *     Promise<Integer> promise = Promise.sync(() -> {
+   *       int i = counter.getAndIncrement();
+   *       if (i < 2) {
+   *         return i;
+   *       } else if (i == 2) {
+   *         throw new Exception(Integer.toString(i));
+   *       } else if (i == 3) {
+   *         throw new RuntimeException(Integer.toString(i));
+   *       } else {
+   *         throw new IllegalStateException(Integer.toString(i));
+   *       }
+   *     });
+   *
+   *     Promise<Integer> cachedPromise = promise.cacheResultIf(r ->
+   *       (r.isError() && r.getThrowable().getClass() == RuntimeException.class)
+   *         || (r.isSuccess() && r.getValue() > 10)
+   *     );
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       for (int i = 0; i < 6; i++) {
+   *         cachedPromise.result(results::add);
+   *       }
+   *     });
+   *
+   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
+   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
+   *     assertEquals(results.get(2).getThrowable().getClass(), Exception.class);
+   *     assertEquals(results.get(3).getThrowable().getClass(), RuntimeException.class);
+   *
+   *     // value is now cached
+   *     assertEquals(results.get(4).getThrowable().getClass(), RuntimeException.class);
+   *     assertEquals(results.get(5).getThrowable().getClass(), RuntimeException.class);
+   *   }
+   * }
+   * }</pre>
+   *
+   * <p>
+   * Note, the cached value never expires.
+   * If you wish to cache a value only for a certain amount of time,
+   * use a general caching tool such as Guava's {@link LoadingCache}.
+   *
+   * <pre class="java">{@code
+   * import com.google.common.cache.CacheBuilder;
+   * import com.google.common.cache.CacheLoader;
+   * import com.google.common.cache.LoadingCache;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.ArrayList;
+   * import java.util.List;
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     AtomicInteger counter = new AtomicInteger();
+   *     Promise<Integer> promise = Promise.sync(counter::getAndIncrement);
+   *
+   *     LoadingCache<String, Promise<Integer>> cache = CacheBuilder.newBuilder()
+   *       .expireAfterWrite(2, TimeUnit.SECONDS)
+   *       .build(new CacheLoader<String, Promise<Integer>>() {
+   *         public Promise<Integer> load(String key) throws Exception {
+   *           return promise.cacheResultIf(i -> i.isSuccess() && i.getValue() > 1);
+   *         }
+   *       });
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       for (int i = 0; i < 4; i++) {
+   *         cache.get("key").result(results::add);
+   *       }
+   *
+   *       // let the cache entry expire
+   *       Thread.sleep(2000);
+   *
+   *       for (int i = 0; i < 2; i++) {
+   *         cache.get("key").result(results::add);
+   *       }
+   *     });
+   *
+   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
+   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
+   *     assertEquals(results.get(2).getValueOrThrow(), Integer.valueOf(2));
+   *     assertEquals(results.get(3).getValueOrThrow(), Integer.valueOf(2));
+   *
+   *     // cache entry has expired
+   *
+   *     assertEquals(results.get(4).getValueOrThrow(), Integer.valueOf(3));
+   *     assertEquals(results.get(5).getValueOrThrow(), Integer.valueOf(3));
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param shouldCache the test for whether a result is cacheable
+   * @return a caching promise
+   * @since 1.4
+   */
+  default Promise<T> cacheResultIf(Predicate<? super ExecResult<T>> shouldCache) {
+    return transform(up -> new CachingUpstream<>(up, shouldCache));
   }
 
   /**

@@ -20,6 +20,7 @@ import ratpack.exec.Downstream;
 import ratpack.exec.Upstream;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.func.Function;
+import ratpack.func.Predicate;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,7 +43,7 @@ public class TimedFaultTolerantCachingPromiseTransform<T> implements Function<Up
   @Override
   public Upstream<T> apply(Upstream<T> upstream) throws Exception {
     return downstream -> {
-      if (effectiveUpstream.compareAndSet(null, new CachingUpstream<>(upstream))) {
+      if (effectiveUpstream.compareAndSet(null, new CachingUpstream<>(upstream, Predicate.TRUE))) {
         effectiveUpstream.get().connect(new Downstream<T>() {
           @Override
           public void success(T value) {
@@ -65,7 +66,7 @@ public class TimedFaultTolerantCachingPromiseTransform<T> implements Function<Up
         final long nextUpdateValue = nextUpdate.get();
         if (nextUpdateValue < System.currentTimeMillis()) {
           if (updatePending.compareAndSet(false, true)) {
-            Upstream<T> potentialNewUpstream = new CachingUpstream<>(upstream);
+            Upstream<T> potentialNewUpstream = new CachingUpstream<>(upstream, Predicate.TRUE);
             potentialNewUpstream.connect(new Downstream<T>() {
               @Override
               public void success(T value) {
