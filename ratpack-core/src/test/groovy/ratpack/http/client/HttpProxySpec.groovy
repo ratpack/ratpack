@@ -60,8 +60,7 @@ class HttpProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
     expect:
     rawResponse() == """HTTP/1.1 200 OK
 x-foo-header: foo
-content-type: text/plain;charset=UTF-8
-connection: keep-alive
+content-type: text/plain;charset=UTF-8$keepalive
 transfer-encoding: chunked
 
 3
@@ -72,6 +71,7 @@ bar
 
     where:
     pooled << [true, false]
+    keepalive << ["\nconnection: keep-alive",""]
   }
 
   def "can proxy a client chunked response"() {
@@ -99,8 +99,7 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 200 OK
 x-foo-header: foo
-content-type: text/plain;charset=UTF-8
-connection: keep-alive
+content-type: text/plain;charset=UTF-8$keepalive
 transfer-encoding: chunked
 
 3
@@ -115,6 +114,7 @@ bar
 
     where:
     pooled << [true, false]
+    keepalive << ["\nconnection: keep-alive",""]
   }
 
   def "can mutate response headers while proxying"() {
@@ -144,8 +144,7 @@ bar
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-content-type: text/plain;charset=UTF-8
-connection: keep-alive
+content-type: text/plain;charset=UTF-8$keepalive
 x-bar-header: bar
 transfer-encoding: chunked
 
@@ -161,6 +160,7 @@ bar
 
     where:
     pooled << [true, false]
+    keepalive << ["\nconnection: keep-alive",""]
   }
 
   def "can proxy a client error"() {
@@ -186,8 +186,7 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 404 Not Found
 x-foo-header: foo
-content-type: text/plain
-connection: keep-alive
+content-type: text/plain$keepalive
 transfer-encoding: chunked
 
 10
@@ -198,6 +197,7 @@ Client error 404
 
     where:
     pooled << [true, false]
+    keepalive << ["\nconnection: keep-alive",""]
   }
 
   def "can proxy a server error"() {
