@@ -119,9 +119,13 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
             if (error.get() == null) {
               promise.result(t -> {
                 if (t.isError()) {
-                  if (!error.compareAndSet(null, t.getThrowable())) {
+                  Throwable thisError = t.getThrowable();
+                  if (!error.compareAndSet(null, thisError)) {
                     //noinspection ThrowableResultOfMethodCallIgnored
-                    error.get().addSuppressed(t.getThrowable());
+                    Throwable firstError = error.get();
+                    if (firstError != thisError) {
+                      firstError.addSuppressed(thisError);
+                    }
                   }
                 } else {
                   consumer.execute(finalI, t.getValue());
