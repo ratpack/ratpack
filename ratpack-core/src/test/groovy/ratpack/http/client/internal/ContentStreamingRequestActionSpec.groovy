@@ -60,11 +60,7 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec implements Pooled
     expect:
     text == 'foo'
     latch.await()
-    if (pooled.pooled) {
-      assert requestAction.channel.open
-    } else {
-      assert !requestAction.channel.open
-    }
+    assert !requestAction.channel.open
 
     where:
     pooled << [new PooledHttpConfig(pooled: true), new PooledHttpConfig(pooled: false)]

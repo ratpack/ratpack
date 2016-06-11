@@ -151,7 +151,11 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
           HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
           headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
         }
-        headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        if (config.isPooled()) {
+          headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        } else {
+          headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
+        }
         int contentLength = request.content().readableBytes();
         if (contentLength > 0) {
           headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
@@ -180,10 +184,14 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
         sslEngine = SSLContext.getDefault().createSSLEngine();
       }
       sslEngine.setUseClientMode(true);
-      addHandler(p, "ssl", new SslHandler(sslEngine));
+      //this is added once because netty is not able to properly replace this handler on
+      //pooled channels from request to request. Because a pool is unique to a uri,
+      //doing this works, as subsequent requests would be passing in the same certs.
+      addHandlerOnce(p, "ssl", new SslHandler(sslEngine));
     }
 
-    addHandler(p, "clientCodec", new HttpClientCodec());
+    //this is added once because it is the same across all requests.
+    addHandlerOnce(p, "clientCodec", new HttpClientCodec());
 
     long readTimeout = requestParams.readTimeoutNanos > 0 ? requestParams.readTimeoutNanos : config.getReadTimeoutNanos();
     addHandler(p, "readTimeout", new ReadTimeoutHandler(readTimeout, TimeUnit.NANOSECONDS));
@@ -291,6 +299,12 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
       p.addLast(name, channelHandler);
     } else {
       p.replace(name, name, channelHandler);
+    }
+  }
+
+  protected void addHandlerOnce(ChannelPipeline p, String name, ChannelHandler channelHandler) {
+    if (p.get(name) == null) {
+      p.addLast(name, channelHandler);
     }
   }
 

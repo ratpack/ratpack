@@ -101,7 +101,7 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(downstream -> new ContentStreamingRequestAction(requestConfigurer, channelPoolMap,config, uri, this.byteBufAllocator, Execution.current(), 0).connect(downstream));
+    return Promise.async(downstream -> new ContentStreamingRequestAction(requestConfigurer, channelPoolMap, config, uri, this.byteBufAllocator, Execution.current(), 0).connect(downstream));
   }
 
   private ChannelPool createPooledPool(URI uri) {

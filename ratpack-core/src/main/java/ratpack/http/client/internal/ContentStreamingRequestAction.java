@@ -77,9 +77,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         execution.onComplete(() -> {
           channelPoolMap.get(baseURI).release(ctx.channel());
           if (!subscribedTo.get() && ctx.channel().isOpen()) {
-            if (!isKeepAlive) {
-              ctx.close();
-            }
+            ctx.close();
           }
         });
 
@@ -92,10 +90,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         channelPoolMap.get(baseURI).release(ctx.channel());
-        if (!isKeepAlive) {
-          LOGGER.error("Closing channel={}", ctx.channel().id().asShortText(), cause);
-          ctx.close();
-        }
+        ctx.close();
         error(downstream, cause);
       }
     });
@@ -191,7 +186,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             subscriber.onError(cause);
           }
           channelPoolMap.get(baseURI).release(ctx.channel());
-          if (!isKeepAlive && ctx.channel().isOpen()) {
+          if (ctx.channel().isOpen()) {
             ctx.close();
           }
         }
@@ -219,7 +214,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         public void cancel() {
           stopped.set(true);
           channelPoolMap.get(baseURI).release(channelPipeline.channel());
-          if (!isKeepAlive && channelPipeline.channel().isOpen()) {
+          if (channelPipeline.channel().isOpen()) {
             channelPipeline.channel().close();
           }
         }

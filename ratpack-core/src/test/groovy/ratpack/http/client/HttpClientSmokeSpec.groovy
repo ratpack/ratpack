@@ -362,7 +362,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can set read timeout"() {
     setup:
-    def pooledHttpConfig = new PooledHttpConfig(readTimeoutNanos: 1000000)
+    def pooledHttpConfig = new PooledHttpConfig(readTimeoutNanos: 1000000000L, pooled: pooled)
 
     when:
     otherApp {
@@ -381,6 +381,41 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
       get {
         HttpClient httpClient = createClient(context, pooledHttpConfig)
         httpClient.get(otherAppUrl()).onError {
+          render it.class.name
+        } then {
+          render "success"
+        }
+      }
+    }
+
+    then:
+    text == ReadTimeoutException.name
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can set read timeout on request"() {
+    setup:
+    def pooledHttpConfig = new PooledHttpConfig(pooled: pooled)
+
+    when:
+    otherApp {
+      get { ctx ->
+        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? "a" : null
+        }
+
+        render serverSentEvents(stream) {
+          it.id("a")
+        }
+      }
+    }
+
+    handlers {
+      get {
+        HttpClient httpClient = createClient(context, pooledHttpConfig)
+        httpClient.get(otherAppUrl(), { it.readTimeoutSeconds(1) }).onError {
           render it.class.name
         } then {
           render "success"
