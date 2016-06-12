@@ -33,6 +33,7 @@ import ratpack.handling.internal.ChainHandler;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DescribingHandler;
 import ratpack.handling.internal.DescribingHandlers;
+import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
 import ratpack.http.internal.*;
@@ -103,18 +104,28 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    RequestBody requestBody = canHaveBody(nettyRequest.method()) ? new RequestBody(HttpUtil.getContentLength(nettyRequest, -1L), nettyRequest, ctx) : null;
-    if (requestBody != null) {
-      ctx.channel().attr(BODY_ACCUMULATOR_KEY).set(requestBody);
-    }
+    Headers requestHeaders = new NettyHeadersBackedHeaders(nettyRequest.headers());
+
+    //Find the content length we will use this as an indicator of a body
+    Long contentLength = HttpUtil.getContentLength(nettyRequest, -1L);
+    String transferEncoding = requestHeaders.get(HttpHeaderNames.TRANSFER_ENCODING);
+
+    //If there is a content length or transfer encoding that indicates there is a body
+    boolean hasBody = (contentLength > 0) || (transferEncoding != null);
+
+    RequestBody requestBody = hasBody ? new RequestBody(contentLength, nettyRequest, ctx) : null;
 
     final Channel channel = ctx.channel();
+
+    if (requestBody != null) {
+      channel.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
+    }
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
     final DefaultRequest request = new DefaultRequest(
       Instant.now(),
-      new NettyHeadersBackedHeaders(nettyRequest.headers()),
+      requestHeaders,
       nettyRequest.method(),
       nettyRequest.protocolVersion(),
       nettyRequest.uri(),
@@ -150,8 +161,9 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
       if (requestBody != null) {
         requestBody.close();
+        channel.attr(BODY_ACCUMULATOR_KEY).remove();
       }
-      channel.attr(BODY_ACCUMULATOR_KEY).remove();
+
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
@@ -227,9 +239,4 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     // Close the connection as soon as the error message is sent.
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
-
-  private static boolean canHaveBody(HttpMethod method) {
-    return method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH;
-  }
-
 }
