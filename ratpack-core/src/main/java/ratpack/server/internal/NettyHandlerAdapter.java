@@ -219,9 +219,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     }
   }
 
-  @SuppressWarnings("deprecation")
   public static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-    @SuppressWarnings("deprecation")
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
     response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);
