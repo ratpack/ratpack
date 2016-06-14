@@ -690,12 +690,104 @@ public interface Promise<T> {
     return flatMap(in -> next);
   }
 
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the given promise as the {@code left}.
+   * <p>
+   * The existing promised value will become the {@code right}.
+   *
+   * @param left a promise for the left value of the result pair
+   * @param <O> the type of the left value
+   * @return a promise
+   */
   default <O> Promise<Pair<O, T>> left(Promise<O> left) {
-    return flatMap(right -> left.map(value -> Pair.of(value, right)));
+    return flatLeft(t -> left);
   }
 
+  /**
+   * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code left}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code right}.
+   *
+   * @param leftFunction a function that produces the left value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<O, T>> left(Function<? super T, ? extends O> leftFunction) {
+    return map(right -> Pair.of(
+      leftFunction.apply(right), right
+    ));
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code left}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code right}.
+   *
+   * @param leftFunction a function that produces a promise for the left value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<O, T>> flatLeft(Function<? super T, ? extends Promise<O>> leftFunction) {
+    return flatMap(right ->
+      leftFunction.apply(right)
+        .map(left ->
+          Pair.of(left, right)
+        )
+    );
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the given promise as the {@code right}.
+   * <p>
+   * The existing promised value will become the {@code left}.
+   *
+   * @param left a promise for the right value of the result pair
+   * @param <O> the type of the right value
+   * @return a promise
+   */
   default <O> Promise<Pair<T, O>> right(Promise<O> right) {
-    return flatMap(left -> right.map(value -> Pair.of(left, value)));
+    return flatRight(t -> right);
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code left}.
+   *
+   * @param leftFunction a function that produces the right value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function) {
+    return map(left -> Pair.of(
+      left, function.apply(left)
+    ));
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code left}.
+   *
+   * @param leftFunction a function that produces a promise for the right value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function) {
+    return flatMap(left ->
+      function.apply(left)
+        .map(right ->
+          Pair.of(left, right)
+        )
+    );
   }
 
   default Operation operation() {
