@@ -65,6 +65,7 @@ ext {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
     groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
+    guava: "com.google.guava:guava:$commonVersions.guava",
     remote: "io.remotecontrol:remote-core:${commonVersions.remote}",
     "remote-http": "io.remotecontrol:remote-transport-http:${commonVersions.remote}",
     jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
