@@ -123,4 +123,15 @@ public interface ExecStarter {
   @NonBlocking
   void start(Action<? super Execution> initialExecutionSegment);
 
+  /**
+   * Starts the execution, and executes the given operation.
+   *
+   * @param operation the operation to execute
+   * @since 1.4
+   */
+  @NonBlocking
+  default void start(Operation operation) {
+    start(e -> operation.then());
+  }
+
 }
