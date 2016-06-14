@@ -38,6 +38,7 @@ import ratpack.util.Types;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -411,15 +412,34 @@ public interface Context extends Registry {
    * Convenience method for handling last-modified based HTTP caching.
    * <p>
    * The given date is the "last modified" value of the response.
-   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date, a 304
-   * will be returned to the client. Otherwise, the given runnable will be executed (it should send a response)
+   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date,
+   * a 304 will be returned to the client.
+   * Otherwise, the given runnable will be executed (it should send a response)
    * and the "Last-Modified" header will be set by this method.
    *
-   * @param date The effective last modified date of the response
-   * @param runnable The response sending action if the response needs to be sent
+   * @param lastModified the effective last modified date of the response
+   * @param serve the response sending action if the response needs to be sent
    */
   @NonBlocking
-  void lastModified(Date date, Runnable runnable);
+  default void lastModified(Date lastModified, Runnable serve) {
+    lastModified(lastModified.toInstant(), serve);
+  }
+
+  /**
+   * Convenience method for handling last-modified based HTTP caching.
+   * <p>
+   * The given date is the "last modified" value of the response.
+   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date,
+   * a 304 will be returned to the client.
+   * Otherwise, the given runnable will be executed (it should send a response)
+   * and the "Last-Modified" header will be set by this method.
+   *
+   * @param lastModified the effective last modified date of the response
+   * @param serve the response sending action if the response needs to be sent
+   * @since 1.4
+   */
+  @NonBlocking
+  void lastModified(Instant lastModified, Runnable serve);
 
   /**
    * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).

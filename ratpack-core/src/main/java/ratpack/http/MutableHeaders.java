@@ -16,6 +16,7 @@
 
 package ratpack.http;
 
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -53,6 +54,18 @@ public interface MutableHeaders extends Headers {
    * @return this
    */
   MutableHeaders setDate(CharSequence name, Date value);
+
+  /**
+   * Set a header with the given date as the value.
+   *
+   * @param name the name of the header
+   * @param value the date value
+   * @return this
+   * @since 1.4
+   */
+  default MutableHeaders setDate(CharSequence name, Instant value) {
+    return setDate(name, new Date(value.toEpochMilli()));
+  }
 
   /**
    * Sets a new header with the specified name and values.
