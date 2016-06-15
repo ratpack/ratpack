@@ -34,7 +34,7 @@ import java.util.List;
  * Each promise will be executed in a {@link Execution#fork() forked execution}.
  * The {@link #execInit(Action)} method allows each forked execution to be customised before executing the work.
  *
- * @param <T>
+ * @param <T> the type of item emitted by the promises
  * @since 1.4
  */
 public interface ParallelBatch<T> extends Batch<T> {

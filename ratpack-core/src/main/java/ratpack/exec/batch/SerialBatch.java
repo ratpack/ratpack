@@ -31,7 +31,7 @@ import java.util.List;
  * <p>
  * Serial batches are faster than {@link ParallelBatch parallel batches} when the batch size is small and jobs complete quickly.
  *
- * @param <T>
+ * @param <T> the type of item emitted by the promises
  * @since 1.4
  */
 public interface SerialBatch<T> extends Batch<T> {
