@@ -133,6 +133,36 @@ class ServerConfigBuilderSpec extends Specification {
     builder.maxContentLength(256).build().maxContentLength == 256
   }
 
+  def "new builder has default max chunk size"() {
+    expect:
+    builder.build().maxChunkSize == ServerConfig.DEFAULT_MAX_CHUNK_SIZE
+  }
+
+  def "set max chunk size"() {
+    expect:
+    builder.maxChunkSize(256).build().maxChunkSize == 256
+  }
+
+  def "new builder has default max initial line length"() {
+    expect:
+    builder.build().maxInitialLineLength == ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH
+  }
+
+  def "set max initial line length"() {
+    expect:
+    builder.maxInitialLineLength(256).build().maxInitialLineLength == 256
+  }
+
+  def "new builder has default max header size"() {
+    expect:
+    builder.build().maxHeaderSize == ServerConfig.DEFAULT_MAX_HEADER_SIZE
+  }
+
+  def "set max header size"() {
+    expect:
+    builder.maxHeaderSize(256).build().maxHeaderSize == 256
+  }
+
   def "set ssl context"() {
     given:
     SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/launch/internal/keystore.jks'), 'password')
