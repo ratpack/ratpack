@@ -24,7 +24,12 @@ configurations {
 
 dependencies {
   compile project(":ratpack-spring-boot")
-  compile "org.springframework.boot:spring-boot-starter:$commonVersions.springBoot"
+  compile("org.springframework.boot:spring-boot-starter:$commonVersions.springBoot") {
+    exclude group: "org.yaml", module: "snakeyaml"
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compile commonDependencies.snakeyaml
+  compile commonDependencies.slf4j
 }
 
 conf2ScopeMappings.addMapping(100, configurations.compile, "compile")

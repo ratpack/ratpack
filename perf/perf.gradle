@@ -24,7 +24,7 @@ configurations {
 
 dependencies {
   compile commonDependencies.groovy
-  compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+  compile commonDependencies.toolingApi
   compile "org.slf4j:slf4j-simple:${commonVersions.slf4j}"
   testCompile commonDependencies.spock
 }
