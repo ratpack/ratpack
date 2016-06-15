@@ -155,6 +155,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param maxInitialLineLength the maximum length of the initial line of the request.
    * @return {@code this}
    * @see ServerConfig#getMaxInitialLineLength()
+   * @since 1.4
    */
   ServerConfigBuilder maxInitialLineLength(int maxInitialLineLength);
 
@@ -166,6 +167,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param maxHeaderSize the maximum size of the sum of the length of all headers.
    * @return {@code this}
    * @see ServerConfig#getMaxHeaderSize()
+   * @since 1.4
    */
   ServerConfigBuilder maxHeaderSize(int maxHeaderSize);
 
