@@ -84,6 +84,7 @@ public interface ServerConfig extends ConfigData {
    * Defaults to {@value}
    *
    * @see #getMaxInitialLineLength()
+   * @since 1.4
    */
   int DEFAULT_MAX_INITIAL_LINE_LENGTH = 4096;
 
@@ -93,6 +94,7 @@ public interface ServerConfig extends ConfigData {
    * Defaults to {@value}
    *
    * @see #getMaxHeaderSize()
+   * @since 1.4
    */
   int DEFAULT_MAX_HEADER_SIZE = 8192;
 
@@ -260,13 +262,13 @@ public interface ServerConfig extends ConfigData {
    * The maximum initial line length allowed for reading http requests.
    * <p>
    * This value is used to determine the maximum allowed length for the initial line of an http request.
-   * A lower value will reduce memory pressure by requiring less memory at one time,
    * <p>
    * Defaults to {@link #DEFAULT_MAX_INITIAL_LINE_LENGTH}.
    * This value is suitable for most applications.
    * If your application deals with very large request URIs, you may want to increase it.
    *
    * @return the maximum initial line length allowed for http requests.
+   * @since 1.4
    */
   int getMaxInitialLineLength();
 
@@ -274,13 +276,13 @@ public interface ServerConfig extends ConfigData {
    * The maximum size of all headers allowed for reading http requests.
    * <p>
    * This value is used to determine the maximum allowed size for the sum of the length all headers of an http request.
-   * A lower value will reduce memory pressure by requiring less memory at one time,
    * <p>
    * Defaults to {@link #DEFAULT_MAX_HEADER_SIZE}.
    * This value is suitable for most applications.
    * If your application deals with very large http headers, you may want to increase it.
    *
    * @return the maximum size of http headers allowed for an incoming http requests.
+   * @since 1.4
    */
   int getMaxHeaderSize();
 

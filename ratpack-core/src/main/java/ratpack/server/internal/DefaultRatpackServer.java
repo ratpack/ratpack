@@ -247,7 +247,8 @@ public class DefaultRatpackServer implements RatpackServer {
             serverConfig.getMaxInitialLineLength(),
             serverConfig.getMaxHeaderSize(),
             serverConfig.getMaxChunkSize(),
-            false));
+            false)
+          );
           pipeline.addLast("encoder", new HttpResponseEncoder());
           pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
