@@ -60,13 +60,13 @@ class ScriptIncludeSpec extends RatpackGroovyScriptAppSpec {
         }
       }
     """
-
+    def path = include.path.replaceAll('\\\\', '/')
     script """
       ratpack {
         bindings {
           bindInstance String, "foo"
         }
-        include "${include.path}"
+        include "${path}"
         handlers {
           get {
             response.send "\${get(String)}:\${get(Integer)}"
@@ -130,10 +130,12 @@ class ScriptIncludeSpec extends RatpackGroovyScriptAppSpec {
       }
     """
 
+    def nestedPath = nestedInclude.path.replaceAll('\\\\', '/')
+
     File include = getAdditionalFile("include.groovy") << """
       import static ${Groovy.name}.ratpack
       ratpack {
-        include "${nestedInclude.path}"
+        include "${nestedPath}"
         handlers {
           get("integer") {
             response.send get(Integer).toString()
@@ -142,12 +144,14 @@ class ScriptIncludeSpec extends RatpackGroovyScriptAppSpec {
       }
     """
 
+    def path = include.path.replaceAll('\\\\', '/')
+
     script """
       ratpack {
         bindings {
           bindInstance String, "foo"
         }
-        include "${include.path}"
+        include "${path}"
         handlers {
           get {
             response.send "\${get(String)}:\${get(Integer)}"
@@ -219,13 +223,13 @@ class ScriptIncludeSpec extends RatpackGroovyScriptAppSpec {
         }
       }
     """
-
+    def path = include.path.replaceAll('\\\\', '/')
     script """
       ratpack {
         bindings {
           bindInstance String, "foo"
         }
-        include "${include.path}"
+        include "${path}"
         handlers {
           get {
             response.send "main:\${get(String)}"
@@ -256,7 +260,7 @@ class ScriptIncludeSpec extends RatpackGroovyScriptAppSpec {
 
   protected File getAdditionalFile(String fileName) {
     if (!additionalFiles.containsKey(fileName)) {
-      def tokens = fileName.split(File.separator)
+      def tokens = fileName.split('/')
       if (tokens.length > 1) {
         try {
           temporaryFolder.newFolder((String[]) tokens[0..-2].toArray())
