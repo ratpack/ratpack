@@ -17,7 +17,6 @@
 package ratpack.retrofit
 
 import io.netty.buffer.UnpooledByteBufAllocator
-import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.exec.internal.DefaultExecController
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
