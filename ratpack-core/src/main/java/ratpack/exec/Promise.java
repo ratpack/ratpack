@@ -22,7 +22,9 @@ import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
+import ratpack.exec.util.Promised;
 import ratpack.func.*;
+import ratpack.util.Exceptions;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -1826,6 +1828,75 @@ public interface Promise<T> {
         }
       });
     });
+  }
+
+  /**
+   * Forks a new execution and subscribes to this promise, returning a promise for its value.
+   * <p>
+   * The new execution is created and started immediately by this method, effectively subscribing to the promise immediately.
+   * The returned promise provides the value when the execution completes.
+   * <p>
+   * This method can be used for simple parallel processing.
+   * It is often combined with the {@link #left(Promise)} or {@link #right(Promise)}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Blocking;
+   * import ratpack.exec.Promise;
+   * import ratpack.func.Pair;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.concurrent.CyclicBarrier;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     CyclicBarrier barrier = new CyclicBarrier(2);
+   *
+   *     Pair<Integer, String> result = ExecHarness.yieldSingle(r -> {
+   *       Promise<Integer> p1 = Blocking.get(() -> {
+   *         barrier.await();
+   *         return 1;
+   *       });
+   *       Promise<String> p2 = Blocking.get(() -> {
+   *         barrier.await();
+   *         return "2";
+   *       });
+   *
+   *       return p1.right(p2.fork());
+   *     }).getValueOrThrow();
+   *
+   *     assertEquals(result, Pair.of(1, "2"));
+   *   }
+   *
+   * }
+   * }</pre>
+   *
+   * @param execSpec configuration for the forked execution
+   * @return a promise
+   * @throws Exception any thrown by {@code execSpec}
+   * @since 1.4
+   */
+  default Promise<T> fork(Action<? super ExecSpec> execSpec) throws Exception {
+    Promised<T> promised = new Promised<>();
+    ExecStarter starter = Execution.fork();
+    execSpec.execute(starter);
+    starter.start(e -> connect(promised));
+    return promised.promise();
+  }
+
+  /**
+   * Forks a new execution and subscribes to this promise, returning a promise for its value.
+   * <p>
+   * This method delegates to {@link #fork(Action)} with {@link Action#noop()}.
+   *
+   * @return a promise
+   * @since 1.4
+   * @see #fork(Action)
+   */
+  default Promise<T> fork() {
+    return Exceptions.uncheck(() -> fork(Action.noop()));
   }
 
   static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
