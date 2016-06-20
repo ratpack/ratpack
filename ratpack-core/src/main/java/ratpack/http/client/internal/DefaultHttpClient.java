@@ -52,6 +52,10 @@ public class DefaultHttpClient implements HttpClient {
   private Bootstrap baseBoostrap;
   private ExecController execController;
 
+  public DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, ExecController execController) {
+    this(new PooledHttpConfig(), byteBufAllocator, maxContentLengthBytes, execController);
+  }
+
   public DefaultHttpClient(PooledHttpConfig config, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, ExecController execController) {
     this.config = config;
     this.byteBufAllocator = byteBufAllocator;
