@@ -1836,7 +1836,7 @@ public interface Promise<T> {
    * The new execution is created and started immediately by this method, effectively subscribing to the promise immediately.
    * The returned promise provides the value when the execution completes.
    * <p>
-   * This method can be used for simple parallel processing.
+   * This method can be used for simple of processing.
    * It is often combined with the {@link #left(Promise)} or {@link #right(Promise)}.
    *
    * <pre class="java">{@code

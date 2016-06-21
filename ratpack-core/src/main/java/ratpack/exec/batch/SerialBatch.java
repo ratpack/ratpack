@@ -19,22 +19,48 @@ package ratpack.exec.batch;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
+import ratpack.exec.batch.internal.DefaultSerialBatch;
 import ratpack.func.BiAction;
 import ratpack.stream.TransformablePublisher;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * A batch of promises to be processed, serially.
  * <p>
- * Serial batches can be created via {@link Batch#serial}.
+ * Serial batches can be created via {@link #of}.
  * <p>
  * Serial batches are faster than {@link ParallelBatch parallel batches} when the batch size is small and jobs complete quickly.
  *
- * @param <T> the type of item emitted by the promises
+ * @param <T> the type of value produced by each promise in the batch
  * @since 1.4
  */
 public interface SerialBatch<T> extends Batch<T> {
+
+  /**
+   * Creates a new serial batch of the given promises.
+   *
+   * @param promises the promises
+   * @param <T> the type of item produced by each promise
+   * @return a {@link SerialBatch}
+   */
+  static <T> SerialBatch<T> of(Iterable<? extends Promise<T>> promises) {
+    return new DefaultSerialBatch<>(promises);
+  }
+
+  /**
+   * Creates a new serial batch of the given promises.
+   *
+   * @param promises the promises
+   * @param <T> the type of item produced by each promise
+   * @return a {@link SerialBatch}
+   */
+  @SafeVarargs
+  @SuppressWarnings("varargs")
+  static <T> SerialBatch<T> of(Promise<T>... promises) {
+    return of(Arrays.asList(promises));
+  }
 
   /**
    * {@inheritDoc}

@@ -20,21 +20,16 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.internal.DefaultParallelBatch;
-import ratpack.exec.batch.internal.DefaultSerialBatch;
-import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * A batch of promises to be processed.
  * <p>
- * A batch is created via the {@link #serial} or {@link #parallel} methods.
- * For precise semantics of batch processing methods, consult {@link SerialBatch} and {@link ParallelBatch}.
+ * See {@link SerialBatch} and {@link ParallelBatch}.
  *
  * <pre class="java">{@code
  * import ratpack.exec.Promise;
@@ -55,7 +50,7 @@ import java.util.List;
  *         promises.add(Promise.value(i));
  *       }
  *
- *       return Batch.parallel(promises)
+ *       return ParallelBatch.of(promises)
  *         .publisher()
  *         .reduce(0, (r, i) -> r + i);
  *
@@ -66,58 +61,10 @@ import java.util.List;
  * }
  * }</pre>
  *
- * @param <T>
+ * @param <T> the type of value produced by each promise in the batch
  * @since 1.4
  */
 public interface Batch<T> {
-
-  /**
-   * Creates a new serial batch of the given promises.
-   *
-   * @param promises the promises
-   * @param <T> the type of item produced by each promise
-   * @return a {@link SerialBatch}
-   */
-  static <T> SerialBatch<T> serial(Iterable<? extends Promise<T>> promises) {
-    return new DefaultSerialBatch<>(promises);
-  }
-
-  /**
-   * Creates a new serial batch of the given promises.
-   *
-   * @param promises the promises
-   * @param <T> the type of item produced by each promise
-   * @return a {@link SerialBatch}
-   */
-  @SafeVarargs
-  @SuppressWarnings("varargs")
-  static <T> Batch<T> serial(Promise<T>... promises) {
-    return serial(Arrays.asList(promises));
-  }
-
-  /**
-   * Creates a new parallel batch of the given promises.
-   *
-   * @param promises the promises
-   * @param <T> the type of item produced by each promise
-   * @return a {@link ParallelBatch}
-   */
-  static <T> ParallelBatch<T> parallel(Iterable<? extends Promise<T>> promises) {
-    return new DefaultParallelBatch<>(promises, Action.noop());
-  }
-
-  /**
-   * Creates a new serial batch of the given promises.
-   *
-   * @param promises the promises
-   * @param <T> the type of item produced by each promise
-   * @return a {@link ParallelBatch}
-   */
-  @SafeVarargs
-  @SuppressWarnings("varargs")
-  static <T> Batch<T> parallel(Promise<T>... promises) {
-    return parallel(Arrays.asList(promises));
-  }
 
   /**
    * Processes all the promises of the batch, collecting any errors.

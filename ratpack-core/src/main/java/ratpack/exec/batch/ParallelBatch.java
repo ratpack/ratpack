@@ -20,24 +20,50 @@ import ratpack.exec.ExecResult;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
+import ratpack.exec.batch.internal.DefaultParallelBatch;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.stream.TransformablePublisher;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * A batch of promises to be processed, in parallel.
  * <p>
- * Parallel batches can be created via {@link Batch#parallel}.
+ * Parallel batches can be created via {@link #of}.
  * <p>
  * Each promise will be executed in a {@link Execution#fork() forked execution}.
  * The {@link #execInit(Action)} method allows each forked execution to be customised before executing the work.
  *
- * @param <T> the type of item emitted by the promises
+ * @param <T> the type of value produced by each promise in the batch
  * @since 1.4
  */
 public interface ParallelBatch<T> extends Batch<T> {
+
+  /**
+   * Creates a new parallel batch of the given promises.
+   *
+   * @param promises the promises
+   * @param <T> the type of item produced by each promise
+   * @return a {@link ParallelBatch}
+   */
+  static <T> ParallelBatch<T> of(Iterable<? extends Promise<T>> promises) {
+    return new DefaultParallelBatch<>(promises, Action.noop());
+  }
+
+  /**
+   * Creates a new parallel batch of the given promises.
+   *
+   * @param promises the promises
+   * @param <T> the type of item produced by each promise
+   * @return a {@link ParallelBatch}
+   */
+  @SafeVarargs
+  @SuppressWarnings("varargs")
+  static <T> ParallelBatch<T> of(Promise<T>... promises) {
+    return of(Arrays.asList(promises));
+  }
 
   /**
    * Specifies an initializer for each forked execution.
@@ -78,7 +104,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    * <pre class="java">{@code
    * import org.junit.Assert;
    * import ratpack.exec.Promise;
-   * import ratpack.exec.batch.Batch;
+   * import ratpack.exec.batch.ParallelBatch;
    * import ratpack.func.Pair;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -100,7 +126,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    *         Promise.value(Pair.of("d", 4))
    *       );
    *
-   *       Batch.parallel(promises)
+   *       ParallelBatch.of(promises)
    *         .forEach((i, v) -> map.put(v.left, v.right))
    *         .then();
    *     });

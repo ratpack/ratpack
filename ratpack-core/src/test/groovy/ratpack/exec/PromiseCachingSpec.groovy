@@ -16,7 +16,8 @@
 
 package ratpack.exec
 
-import ratpack.exec.batch.Batch
+import ratpack.exec.batch.ParallelBatch
+import ratpack.exec.batch.SerialBatch
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -158,7 +159,7 @@ class PromiseCachingSpec extends Specification {
     def p = Promise.sync { i.getAndIncrement() }.cacheIf { it >= 5 }
 
     exec({
-      Batch.serial((0..10).collect { p }).forEach { a, b -> events << b }.then()
+      SerialBatch.of((0..10).collect { p }).forEach { a, b -> events << b }.then()
     })
 
     then:
@@ -171,7 +172,7 @@ class PromiseCachingSpec extends Specification {
     def p = Promise.sync { i.getAndIncrement() }.cacheIf { it >= 5 }
 
     exec({
-      Batch.parallel((0..10).collect { p }).forEach { a, b -> events << b }.then()
+      ParallelBatch.of((0..10).collect { p }).forEach { a, b -> events << b }.then()
     })
 
     then:
@@ -184,7 +185,7 @@ class PromiseCachingSpec extends Specification {
     def p = Promise.sync { throw new Exception("${i.incrementAndGet()}") }.cacheResultIf { it.error }
 
     exec({
-      Batch.parallel((0..10).collect { p }).yieldAll().then { events.addAll(it.throwable) }
+      ParallelBatch.of((0..10).collect { p }).yieldAll().then { events.addAll(it.throwable) }
     })
 
     then:
