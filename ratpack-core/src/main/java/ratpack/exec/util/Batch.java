@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.exec.batch;
+package ratpack.exec.util;
 
 import org.reactivestreams.Publisher;
 import ratpack.exec.ExecResult;

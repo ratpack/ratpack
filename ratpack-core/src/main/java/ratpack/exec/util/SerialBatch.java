@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.exec.batch;
+package ratpack.exec.util;
 
 import ratpack.exec.ExecResult;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.internal.DefaultSerialBatch;
+import ratpack.exec.util.internal.DefaultSerialBatch;
 import ratpack.func.BiAction;
 import ratpack.stream.TransformablePublisher;
 

@@ -19,6 +19,8 @@ package ratpack.exec.batch
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
+import ratpack.exec.util.ParallelBatch
+import ratpack.exec.util.SerialBatch
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification

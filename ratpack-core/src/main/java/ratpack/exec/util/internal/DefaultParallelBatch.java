@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.exec.batch.internal;
+package ratpack.exec.util.internal;
 
 import com.google.common.collect.Lists;
 import org.reactivestreams.Subscription;
@@ -22,7 +22,7 @@ import ratpack.exec.ExecResult;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.ParallelBatch;
+import ratpack.exec.util.ParallelBatch;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.stream.TransformablePublisher;

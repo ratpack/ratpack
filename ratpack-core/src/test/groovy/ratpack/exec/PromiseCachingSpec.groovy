@@ -16,8 +16,8 @@
 
 package ratpack.exec
 
-import ratpack.exec.batch.ParallelBatch
-import ratpack.exec.batch.SerialBatch
+import ratpack.exec.util.ParallelBatch
+import ratpack.exec.util.SerialBatch
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup

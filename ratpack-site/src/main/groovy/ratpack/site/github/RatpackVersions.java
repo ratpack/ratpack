@@ -19,7 +19,7 @@ package ratpack.site.github;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.ParallelBatch;
+import ratpack.exec.util.ParallelBatch;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
