@@ -620,6 +620,65 @@ public abstract class RxRatpack {
   }
 
   /**
+   * Parallelize an observable by forking it's execution onto a different Ratpack compute thread and automatically binding
+   * the result back to the original execution.
+   * <p>
+   * This method can be used for simple parallel processing.  It's behavior is similar to the
+   * <a href="http://reactivex.io/documentation/operators/subscribeon.html">subscribeOn</a> but allows the use of
+   * Ratpack compute threads.  Using <code>fork</code> modifies the execution of the upstream observable.
+   * <p>
+   * This is different than <code>forkEach</code> which modifies where the downstream is executed.
+   *
+   * <pre class="java">{@code
+   * import ratpack.func.Pair;
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import rx.Observable;
+   *
+   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.Assert.assertNotEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     RxRatpack.initialize();
+   *
+   *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
+   *       Integer sum = execHarness.yield(execution -> {
+   *         final String originalComputeThread = Thread.currentThread().getName();
+   *
+   *         Observable<Integer> unforkedObservable = Observable.just(1);
+   *
+   *         // `map` is executed upstream from the fork; that puts it on another parallel compute thread
+   *         Observable<Pair<Integer, String>> forkedObservable = Observable.just(2)
+   *             .map((val) -> Pair.of(val, Thread.currentThread().getName()))
+   *             .compose(RxRatpack::fork);
+   *
+   *         return RxRatpack.promiseSingle(
+   *             Observable.zip(unforkedObservable, forkedObservable, (Integer intVal, Pair<Integer, String> pair) -> {
+   *               String forkedComputeThread = pair.right;
+   *               assertNotEquals(originalComputeThread, forkedComputeThread);
+   *               return intVal + pair.left;
+   *             })
+   *         );
+   *       }).getValueOrThrow();
+   *
+   *       assertEquals(sum.intValue(), 3);
+   *     }
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param observable the observable sequence to execute on a different compute thread
+   * @param <T> the element type
+   * @return an observable on the compute thread that <code>fork</code> was called from
+   * @see #forkEach(Observable)
+   */
+  public static <T> Observable<T> fork(Observable<T> observable) {
+    return observeEach(promise(observable).fork());
+  }
+
+  /**
    * Parallelize an observable by creating a new Ratpack execution for each element.
    *
    * <pre class="java">{@code
