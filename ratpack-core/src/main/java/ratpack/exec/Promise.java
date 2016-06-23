@@ -747,7 +747,7 @@ public interface Promise<T> {
    * <p>
    * The existing promised value will become the {@code left}.
    *
-   * @param left a promise for the right value of the result pair
+   * @param right a promise for the right value of the result pair
    * @param <O> the type of the right value
    * @return a promise
    */
@@ -761,14 +761,14 @@ public interface Promise<T> {
    * The function is called with the promised value.
    * The existing promised value will become the {@code left}.
    *
-   * @param leftFunction a function that produces the right value from the promised value
+   * @param rightFunction a function that produces the right value from the promised value
    * @param <O> the type of the left value
    * @return a promise
    * @since 1.4
    */
-  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function) {
+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {
     return map(left -> Pair.of(
-      left, function.apply(left)
+      left, rightFunction.apply(left)
     ));
   }
 
@@ -778,14 +778,14 @@ public interface Promise<T> {
    * The function is called with the promised value.
    * The existing promised value will become the {@code left}.
    *
-   * @param leftFunction a function that produces a promise for the right value from the promised value
+   * @param rightFunction a function that produces a promise for the right value from the promised value
    * @param <O> the type of the left value
    * @return a promise
    * @since 1.4
    */
-  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function) {
+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {
     return flatMap(left ->
-      function.apply(left)
+      rightFunction.apply(left)
         .map(right ->
           Pair.of(left, right)
         )
