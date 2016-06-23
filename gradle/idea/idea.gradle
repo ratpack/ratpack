@@ -10,7 +10,14 @@ idea {
       withXml { provider ->
         def node = provider.asNode()
         node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
-        node.append(new XmlParser().parse(file("gradle/idea/codeStyle.xml")))
+
+        def newCodeStyle = new XmlParser().parse(file("gradle/idea/codeStyle.xml"))
+        def codeStyleSettingsManager = node.component.find { it.@name == "CodeStyleSettingsManager" }
+        if (codeStyleSettingsManager) {
+          codeStyleSettingsManager.replaceNode(newCodeStyle)
+        } else {
+          node.append(newCodeStyle)
+        }
 
         def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
         if (nullableManager) {
