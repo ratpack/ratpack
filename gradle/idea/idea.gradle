@@ -5,11 +5,11 @@ idea {
   project {
     jdkName "1.8"
     languageLevel "1.8"
+    vcs = "Git"
     wildcards.add 'ratpack.groovy'
     ipr {
       withXml { provider ->
         def node = provider.asNode()
-        node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
 
         def newCodeStyle = new XmlParser().parse(file("gradle/idea/codeStyle.xml"))
         def codeStyleSettingsManager = node.component.find { it.@name == "CodeStyleSettingsManager" }
