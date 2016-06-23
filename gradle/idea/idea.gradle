@@ -36,9 +36,9 @@ idea {
           </component>
         """))
 
-        def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
+        def copyrightManager = node.component.find { it.@name == 'CopyrightManager' }
         copyrightManager.@default = "ASL2"
-        def aslCopyright = copyrightManager.copyright.find { it.option.find { it.@name == "myName" }?.@value == "ASL2" }
+        def aslCopyright = copyrightManager.copyright.option.find { it.@name == "myName" && it.@value == "ASL2" }
         if (aslCopyright == null) {
           copyrightManager.append(new XmlParser().parseText("""
             <copyright>
@@ -51,10 +51,16 @@ idea {
           """))
         }
 
-        def module2copyright = copyrightManager.module2copyright.first()
-        def productionCodeModule = module2copyright.find { it.element.find { it.@module == "Production" }?.@value == "ASL2" }
-        if (productionCodeModule == null) {
-          module2copyright.append(new XmlParser().parseText("""
+        def module2copyright = copyrightManager.module2copyright
+        def productionCodeModule = module2copyright.element.find { it.@module == "Production" && it.@copyright == "ASL2" }
+        if (!module2copyright) {
+          copyrightManager.append(new XmlParser().parseText("""
+            <module2copyright>
+              <element module="Production" copyright="ASL2" />
+            </module2copyright>
+          """))
+        } else if (productionCodeModule == null) {
+          module2copyright.first().append(new XmlParser().parseText("""
               <element module="Production" copyright="ASL2" />
           """))
         }
