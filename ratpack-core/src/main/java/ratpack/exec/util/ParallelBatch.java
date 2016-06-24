@@ -104,7 +104,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    * <pre class="java">{@code
    * import org.junit.Assert;
    * import ratpack.exec.Promise;
-   * import ratpack.exec.batch.ParallelBatch;
+   * import ratpack.exec.util.ParallelBatch;
    * import ratpack.func.Pair;
    * import ratpack.test.exec.ExecHarness;
    *

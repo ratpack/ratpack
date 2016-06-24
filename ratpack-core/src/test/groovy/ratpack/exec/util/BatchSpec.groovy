@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.exec.batch
+package ratpack.exec.util
 
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
