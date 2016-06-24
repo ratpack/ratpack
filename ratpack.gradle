@@ -37,6 +37,33 @@ buildscript {
   }
 }
 
+ext {
+  isSnapshot = version.endsWith("SNAPSHOT")
+  isTravis = System.getenv("TRAVIS") != null
+  isDrone = System.getenv("DRONE") != null
+  isCodeship = System.getenv("CI_NAME") == "codeship"
+  isSnapCi = System.getenv("SNAP_CI") != null
+  isAppveyor = System.getenv("APPVEYOR") != null
+  isHeroku = System.getenv("HEROKU") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
+  isCi = isCloudCi
+
+  publishedModules = [
+    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
+    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
+    "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2"
+  ].collect { project(it) }
+
+  noCodeModules = [
+    "ratpack-spring-boot-starter"
+  ]
+
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
+}
+
+apply from: 'gradle/buildScan.gradle'
+
 def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
 if (jvmEncoding != "UTF-8") {
   throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
@@ -47,15 +74,9 @@ if (!JavaVersion.current().java8Compatible) {
 }
 
 
-apply plugin: "com.gradle.build-scan"
 apply plugin: "artifactory"
 apply plugin: "com.github.kt3k.coveralls"
 apply plugin: "com.github.ben-manes.versions"
-
-buildScan {
-    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-    licenseAgree = 'yes'
-}
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
@@ -105,31 +126,6 @@ allprojects {
 }
 
 apply from: "gradle/idea/idea.gradle"
-
-ext {
-  isSnapshot = version.endsWith("SNAPSHOT")
-  isTravis = System.getenv("TRAVIS") != null
-  isDrone = System.getenv("DRONE") != null
-  isCodeship = System.getenv("CI_NAME") == "codeship"
-  isSnapCi = System.getenv("SNAP_CI") != null
-  isAppveyor = System.getenv("APPVEYOR") != null
-  isHeroku = System.getenv("HEROKU") != null
-  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
-  isCi = isCloudCi
-
-  publishedModules = [
-    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
-    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
-    "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2"
-  ].collect { project(it) }
-
-  noCodeModules = [
-    "ratpack-spring-boot-starter"
-  ]
-
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
-}
 
 apply from: "gradle/dependencies.gradle"
 
