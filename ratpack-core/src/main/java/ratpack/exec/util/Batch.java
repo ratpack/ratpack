@@ -34,6 +34,7 @@ import java.util.List;
  * <pre class="java">{@code
  * import ratpack.exec.Promise;
  * import ratpack.exec.util.Batch;
+ * import ratpack.exec.util.ParallelBatch;
  * import ratpack.test.exec.ExecHarness;
  *
  * import java.util.ArrayList;
