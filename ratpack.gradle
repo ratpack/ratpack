@@ -46,10 +46,8 @@ if (!JavaVersion.current().java8Compatible) {
   throw new IllegalStateException("Must be built with Java 8 or higher")
 }
 
-allprojects {
-    apply plugin: "com.gradle.build-scan"
-}
 
+apply plugin: "com.gradle.build-scan"
 apply plugin: "artifactory"
 apply plugin: "com.github.kt3k.coveralls"
 apply plugin: "com.github.ben-manes.versions"
