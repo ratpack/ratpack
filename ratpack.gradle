@@ -21,7 +21,7 @@ buildscript {
     jcenter()
     maven {
         url "https://plugins.gradle.org/m2/"
-                  }
+    }
   }
 
   dependencies {
@@ -46,7 +46,7 @@ if (!JavaVersion.current().java8Compatible) {
 }
 
 allprojects {
-    plugin apply: "com.gradle.build-scan"
+    apply plugin: "com.gradle.build-scan"
 }
 
 apply plugin: "artifactory"
