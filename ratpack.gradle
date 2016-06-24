@@ -52,6 +52,11 @@ apply plugin: "artifactory"
 apply plugin: "com.github.kt3k.coveralls"
 apply plugin: "com.github.ben-manes.versions"
 
+buildscan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+}
+
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
 }
