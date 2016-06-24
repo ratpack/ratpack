@@ -37,6 +37,10 @@ buildscript {
   }
 }
 
+allprojects {
+  version = "1.4.0-SNAPSHOT"
+}
+
 ext {
   isSnapshot = version.endsWith("SNAPSHOT")
   isTravis = System.getenv("TRAVIS") != null
@@ -111,7 +115,6 @@ task bintrayPublish << {
 
 allprojects {
   group = "io.ratpack"
-  version = "1.4.0-SNAPSHOT"
 
   apply plugin: "base"
   apply plugin: "idea"
