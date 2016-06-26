@@ -16,6 +16,8 @@
 
 package ratpack.rx
 
+import ratpack.exec.Execution
+import ratpack.registry.RegistrySpec
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Ignore
@@ -307,6 +309,32 @@ class RxParallelSpec extends Specification {
     e.message == "3!"
     result == -1
 
+  }
+
+  def "can make objects available to the forked execution's registry"() {
+    given:
+    rx.Observable<Integer> sequence = rx.Observable.just(1)
+    String harnessComputeThread = null
+    String forkComputeThread = null
+    String forkedValue = null
+
+    when:
+    Integer result = harness.yieldSingle {
+      Execution.current().add("foo")
+      harnessComputeThread = Thread.currentThread().name
+      String originalValue = Execution.current().get(String)
+
+      sequence
+        .doOnNext { forkComputeThread = Thread.currentThread().name }
+        .doOnNext { forkedValue = Execution.current().get(String) }
+        .fork { RegistrySpec registrySpec -> registrySpec.add(originalValue + "bar") }
+        .promiseSingle()
+    }.valueOrThrow
+
+    then:
+    "foobar" == forkedValue
+    harnessComputeThread != forkComputeThread && harnessComputeThread && forkComputeThread
+    result == 1
   }
 
 }
