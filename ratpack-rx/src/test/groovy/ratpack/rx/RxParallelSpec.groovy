@@ -26,6 +26,7 @@ import spock.lang.Specification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 import static ratpack.rx.RxRatpack.observe
 
@@ -123,6 +124,27 @@ class RxParallelSpec extends Specification {
     harness.run {
       sequence.forkEach().subscribe {
         received << it
+        barrier.await()
+      }
+      barrier.await()
+    }
+
+    then:
+    received.sort() == [1, 2, 3, 4, 5]
+  }
+
+  def "can add to registry of each fork"() {
+    given:
+    def sequence = rx.Observable.from(0, 1, 2, 3, 4)
+    def barrier = new CyclicBarrier(6)
+    def received = [].asSynchronized()
+    Integer addMe = 1
+
+    when:
+    harness.run {
+
+      sequence.forkEach({ RegistrySpec registrySpec -> registrySpec.add(addMe)}).subscribe {
+        received << it + Execution.current().get(Integer)
         barrier.await()
       }
       barrier.await()

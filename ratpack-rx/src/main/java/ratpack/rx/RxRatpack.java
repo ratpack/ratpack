@@ -784,6 +784,25 @@ public abstract class RxRatpack {
    * @return an observable
    */
   public static <T> Observable<T> forkEach(Observable<T> observable) {
+    return RxRatpack.forkEach(observable, Action.noop());
+  }
+
+  /**
+   * A variant of {@link #forkEach} that allows access to the registry of each forked execution inside an {@link Action}.
+   * <p>
+   * This allows the insertion of objects via {@link RegistrySpec#add} that will be available to every forked observable.
+   * <p>
+   * You do not have access to the original execution inside the {@link Action}.
+   *
+   * @param observable the observable sequence to process each element of in a forked execution
+   * @param doWithRegistrySpec an Action where objects can be inserted into the registry of the forked execution
+   * @param <T> the element type
+   * @return an observable
+   * @since 1.4
+   * @see #forkEach(Observable)
+   * @see #fork(Observable, Action)
+   */
+  public static <T> Observable<T> forkEach(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec) {
     return observable.<T>lift(downstream -> new Subscriber<T>(downstream) {
 
       private final AtomicInteger wip = new AtomicInteger(1);
@@ -820,6 +839,7 @@ public abstract class RxRatpack {
 
         wip.incrementAndGet();
         Execution.fork()
+          .register(doWithRegistrySpec)
           .onComplete(e -> this.maybeDone())
           .onError(this::onError)
           .start(e -> {
