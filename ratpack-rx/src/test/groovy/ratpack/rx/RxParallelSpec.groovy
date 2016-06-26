@@ -132,6 +132,27 @@ class RxParallelSpec extends Specification {
     received.sort() == [1, 2, 3, 4, 5]
   }
 
+  def "can add to registry of each fork"() {
+    given:
+    def sequence = rx.Observable.from(0, 1, 2, 3, 4)
+    def barrier = new CyclicBarrier(6)
+    def received = [].asSynchronized()
+    Integer addMe = 1
+
+    when:
+    harness.run {
+
+      sequence.forkEach({ RegistrySpec registrySpec -> registrySpec.add(addMe)}).subscribe {
+        received << it + Execution.current().get(Integer)
+        barrier.await()
+      }
+      barrier.await()
+    }
+
+    then:
+    received.sort() == [1, 2, 3, 4, 5]
+  }
+
   def "can use fork on next on observable"() {
     given:
     def sequence = rx.Observable.from("a", "b", "c", "d", "e")
