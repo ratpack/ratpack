@@ -15,7 +15,7 @@
  */
 package ratpack.dropwizard.metrics;
 
-abstract class ReporterConfigSupport<T extends ReporterConfigSupport<T>> {
+public abstract class ReporterConfigSupport<T extends ReporterConfigSupport<T>> {
   private String includeFilter;
   private String excludeFilter;
 
