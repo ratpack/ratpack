@@ -197,6 +197,34 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     get().statusCode == 406
   }
 
+  def "can match against invalid header values"() {
+    given:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          type("abc") {
+            render "abc"
+          }
+        }
+      }
+    }
+
+    when:
+    withAcceptHeader("abc")
+
+    then:
+    getText() == "abc"
+
+    when:
+    withAcceptHeader("application/")
+
+    then:
+    get().statusCode == 406
+  }
+
   def "invalid content type parameter values are ignored"() {
     given:
     handlers {

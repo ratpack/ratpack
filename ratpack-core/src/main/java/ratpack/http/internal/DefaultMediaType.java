@@ -49,7 +49,15 @@ public class DefaultMediaType implements MediaType {
       params = ImmutableListMultimap.of();
       string = "";
     } else {
-      com.google.common.net.MediaType mediaType = com.google.common.net.MediaType.parse(value);
+      com.google.common.net.MediaType mediaType;
+      try {
+        mediaType = com.google.common.net.MediaType.parse(value);
+      } catch (IllegalArgumentException e) {
+        type = value;
+        string = value;
+        params = ImmutableListMultimap.of();
+        return;
+      }
       if (mediaType != null && mediaType.type() != null) {
         if (mediaType.subtype() != null) {
           type = mediaType.type() + "/" + mediaType.subtype();
