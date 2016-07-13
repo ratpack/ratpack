@@ -243,7 +243,12 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, serverConfig.getMaxChunkSize(), false));
+          pipeline.addLast("decoder", new HttpRequestDecoder(
+            serverConfig.getMaxInitialLineLength(),
+            serverConfig.getMaxHeaderSize(),
+            serverConfig.getMaxChunkSize(),
+            false)
+          );
           pipeline.addLast("encoder", new HttpResponseEncoder());
           pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
