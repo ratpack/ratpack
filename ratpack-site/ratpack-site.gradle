@@ -98,8 +98,18 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile 'com.bertramlabs.plugins:ratpack-asset-pipeline:2.6.1'
-  providedRuntime 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.1'
+  compile('com.bertramlabs.plugins:ratpack-asset-pipeline:2.6.1') {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "io.ratpack", module: "ratpack-guice"
+    exclude group: "commons-logging", module: "commons-logging"
+    exclude group: "com.google.code.gson", module: "gson"
+  }
+  providedRuntime('com.bertramlabs.plugins:sass-asset-pipeline:2.6.1') {
+    exclude group: "org.jruby", module: "jruby-complete"
+    exclude group: "commons-logging", module: "commons-logging"
+    exclude group: "com.google.code.gson", module: "gson"
+  }
+  providedRuntime "org.jruby:jruby-complete:1.7.18"
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"
   runtime "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
@@ -113,9 +123,12 @@ dependencies {
   testCompile 'org.jsoup:jsoup:1.8.1'
   latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(":ratpack-manual")
 
-  browserTestCompile "org.gebish:geb-spock:0.10.0"
+  browserTestCompile("org.gebish:geb-spock:0.10.0") {
+    exclude group: "org.codehaus.groovy", module: "groovy-all"
+  }
   browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.45.0", {
     exclude module: 'guava'
+    exclude group: "cglib", module: "cglib-nodep"
   }
 
   manualVersions.each {

@@ -46,7 +46,11 @@ dependencies {
   testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
+    exclude group: "commons-codec", module: "commons-codec"
+    exclude group: "xml-apis", module: "xml-apis"
   }
+  testCompile "commons-codec:commons-codec:${commonVersions.commonsCodec}"
+  testCompile "xml-apis:xml-apis:${commonVersions.xmlApis}"
 
   testCompile("org.pac4j:pac4j-http:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
