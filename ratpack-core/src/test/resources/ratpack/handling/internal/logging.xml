@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2016 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<Configuration status="INFO">
+
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%m%n"/>
+    </Console>
+    <List name="requestList" />
+    <List name="serverErrorRequestList">
+      <MarkerFilter marker="status-5xx" onMatch="ACCEPT" onMismatch="DENY"/>
+    </List>
+    <List name="errorRequestList">
+      <Filters>
+        <MarkerFilter marker="status-5xx" onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+        <MarkerFilter marker="status-4xx" onMatch="ACCEPT" onMismatch="DENY"/>
+      </Filters>
+    </List>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="ratpack.request.info" level="INFO" additivity="false">
+      <AppenderRef ref="STDOUT"/>
+      <AppenderRef ref="requestList"/>
+      <AppenderRef ref="serverErrorRequestList"/>
+      <AppenderRef ref="errorRequestList"/>
+    </Logger>
+
+    <Logger name="ratpack.request.warn" level="WARN" additivity="false">
+      <AppenderRef ref="requestList"/>
+      <AppenderRef ref="serverErrorRequestList"/>
+      <AppenderRef ref="errorRequestList"/>
+    </Logger>
+
+    <Logger name="ratpack.request.warn.5xx" level="WARN" additivity="false">
+      <MarkerFilter marker="status-5xx" onMatch="ACCEPT" onMismatch="DENY"/>
+      <AppenderRef ref="requestList"/>
+      <AppenderRef ref="serverErrorRequestList"/>
+      <AppenderRef ref="errorRequestList"/>
+    </Logger>
+
+    <Logger name="ratpack.request.error" level="ERROR" additivity="false">
+      <AppenderRef ref="requestList"/>
+      <AppenderRef ref="serverErrorRequestList"/>
+      <AppenderRef ref="errorRequestList"/>
+    </Logger>
+
+    <Root level="INFO"/>
+  </Loggers>
+
+</Configuration>
