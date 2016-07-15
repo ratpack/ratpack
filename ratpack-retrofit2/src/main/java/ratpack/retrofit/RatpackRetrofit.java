@@ -130,7 +130,7 @@ public abstract class RatpackRetrofit {
      * Creates the underlying {@link Retrofit} instance and configures it to interface with {@link HttpClient} and {@link ratpack.exec.Promise}.
      * <p>
      * The resulting Retrofit instance can be re-used to generate multiple client interfaces which share the same base URI.
-     * @return the Retrofit instance to create client interfaces
+     * @return the Retrofit instance to of client interfaces
      */
     public Retrofit retrofit() {
       Retrofit.Builder builder = new Retrofit.Builder()
@@ -144,7 +144,7 @@ public abstract class RatpackRetrofit {
     }
 
     /**
-     * Uses this builder to create a Retrofit client implementation.
+     * Uses this builder to of a Retrofit client implementation.
      * <p>
      * This is the short form of calling {@code client.retrofit().build(service)}.
      *

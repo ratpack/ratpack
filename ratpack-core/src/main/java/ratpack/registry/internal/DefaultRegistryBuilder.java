@@ -34,7 +34,7 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
   }
 
   @Override
-  public <O> RegistryBuilder add(TypeToken<? super O> type, O object) {
+  public <O> RegistryBuilder add(TypeToken<O> type, O object) {
     builder.add(new DefaultRegistryEntry<>(type, object));
     ++size;
     return this;

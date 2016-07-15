@@ -18,7 +18,7 @@ package ratpack.sse
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
-import ratpack.http.client.HttpClientSpec
+import ratpack.http.client.BaseHttpClientSpec
 import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
@@ -30,7 +30,7 @@ import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.*
 
-class ServerSentEventsSpec extends HttpClientSpec {
+class ServerSentEventsSpec extends BaseHttpClientSpec {
 
   def "can send server sent event"() {
     given:

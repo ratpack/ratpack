@@ -95,6 +95,13 @@ public abstract class ServerRegistry {
       PromiseRenderer promiseRenderer = new PromiseRenderer();
       PublisherRenderer publisherRenderer = new PublisherRenderer();
 
+      HttpClient httpClient = HttpClient.of(s -> s
+        .execController(execController)
+        .poolSize(0)
+        .byteBufAllocator(PooledByteBufAllocator.DEFAULT)
+        .maxContentLength(serverConfig.getMaxContentLength())
+      );
+
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(Impositions.class, impositions)
@@ -124,8 +131,8 @@ public abstract class ServerRegistry {
           ratpackServer.stop();
           return null;
         }))
-        .add(HttpClient.class, HttpClient.httpClient(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(PooledByteBufAllocator.DEFAULT))
+        .add(HttpClient.class, httpClient)
+        .add(ServerSentEventStreamClient.class, httpClient.getSseClient())
         .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());
 

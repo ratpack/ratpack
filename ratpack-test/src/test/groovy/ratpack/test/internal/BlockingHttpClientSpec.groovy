@@ -16,9 +16,17 @@
 
 package ratpack.test.internal
 
+import ratpack.exec.ExecController
+import ratpack.exec.internal.DefaultExecController
+import ratpack.http.client.HttpClient
+import spock.lang.AutoCleanup
+
 import java.time.Duration
 
 class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
+
+  @AutoCleanup
+  ExecController execController = new DefaultExecController(2)
 
   def "can use blocking http client"() {
     when:
@@ -32,7 +40,7 @@ class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
     def client = new BlockingHttpClient()
 
     then:
-    client.request(applicationUnderTest.address, Duration.ofSeconds(5), {}).body.text == "ok"
+    client.request(HttpClient.of { it.execController(execController) }, applicationUnderTest.address, Duration.ofSeconds(5), {}).body.text == "ok"
   }
 
 }

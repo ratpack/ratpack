@@ -24,7 +24,7 @@ import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
 
-abstract class HttpClientSpec extends RatpackGroovyDslSpec {
+abstract class BaseHttpClientSpec extends RatpackGroovyDslSpec {
 
   @AutoCleanup
   EmbeddedApp otherApp

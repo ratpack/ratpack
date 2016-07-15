@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,16 @@ package ratpack.http.client
 
 import ratpack.func.Action
 import ratpack.http.internal.HttpHeaderConstants
+import spock.lang.Unroll
 
-class HttpClientRedirectionSpec extends HttpClientSpec {
+@Unroll
+class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
   def "can follow simple redirect get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -45,10 +50,16 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can follow a relative redirect get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.with {
@@ -72,11 +83,17 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "tar"
+
+    where:
+    pooled << [true, false]
   }
 
 
   def "Do not follow simple redirect if redirects set to 0"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -100,10 +117,16 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == ""
+
+    where:
+    pooled << [true, false]
   }
 
   def "Stop redirects in loop"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -117,8 +140,7 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo2")) {
-        } then { ReceivedResponse response ->
+        httpClient.get(otherAppUrl("foo2")) {} then { ReceivedResponse response ->
           render "Status: " + response.statusCode
         }
       }
@@ -126,10 +148,16 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "Status: 302"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can use redirect strategy"() {
     when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         def count = request.headers.get("count").toInteger()
@@ -158,6 +186,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec {
 
     then:
     text == "5"
+
+    where:
+    pooled << [true, false]
   }
 
 }

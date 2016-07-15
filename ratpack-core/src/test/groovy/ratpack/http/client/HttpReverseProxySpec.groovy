@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 package ratpack.http.client
 
-class HttpReverseProxySpec extends HttpClientSpec {
+import spock.lang.Unroll
+
+@Unroll
+class HttpReverseProxySpec extends BaseHttpClientSpec {
 
   def "can forward request body"() {
     when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         render request.body.map { "received: " + it.text }
@@ -45,6 +51,9 @@ class HttpReverseProxySpec extends HttpClientSpec {
     }
 
     r.body.text == "received: foo"
+
+    where:
+    pooled << [true, false]
   }
 
 }

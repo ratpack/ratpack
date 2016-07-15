@@ -240,7 +240,7 @@ public interface Service {
   /**
    * Creates a service that executes the given action as the {@link #onStart(StartEvent)} implementation.
    * <p>
-   * This can be used to create a service implementation from a lambda expression,
+   * This can be used to of a service implementation from a lambda expression,
    * instead of creating an anonymous impl of {@code Service}.
    *
    * @param name the name of the service
@@ -265,7 +265,7 @@ public interface Service {
   /**
    * Creates a service that executes the given action as the {@link #onStop(StopEvent)} implementation.
    * <p>
-   * This can be used to create a service implementation from a lambda expression,
+   * This can be used to of a service implementation from a lambda expression,
    * instead of creating an anonymous impl of {@code Service}.
    *
    * @param name the name of the service
