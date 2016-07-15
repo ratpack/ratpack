@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,14 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
-class HttpClientSmokeSpec extends HttpClientSpec {
+@Unroll
+class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
   def "can make simple get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render "bar"
@@ -58,10 +62,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can make post request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post("foo") {
         request.body.then { body ->
@@ -86,10 +96,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "client response buffer is retained for the execution"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         render "foo"
@@ -117,10 +133,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can write body using buffer"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -144,10 +166,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "foo"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can write body using bytes"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -171,6 +199,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "foo"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can set headers"() {
@@ -200,6 +231,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
   def "can serve response body buffer"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         render "abc123"
@@ -219,10 +253,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     then:
     text == "abc123"
     response.headers.get(HttpHeaders.Names.CONTENT_TYPE) == "text/plain;charset=UTF-8"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can send request body as text"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -245,10 +285,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     getText() == "føø"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can send request body as text of content type"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -270,10 +316,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     getText() == "application/json"
+
+    where:
+    pooled << [true, false]
   }
 
   def "500 Error when RequestSpec throws an exception"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {}
 
     and:
@@ -292,11 +344,17 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     response.statusCode == 500
+
+    where:
+    pooled << [true, false]
   }
 
   @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
   def "can set connect timeout"() {
     setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     def nonRoutableIp = '192.168.0.0'
 
     when:
@@ -314,9 +372,17 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == ConnectTimeoutException.name
+
+    where:
+    pooled << [true, false]
   }
 
-  def "can set read timeout"() {
+  def "can set read timeout from pooling config"() {
+    setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+
     when:
     otherApp {
       get { ctx ->
@@ -344,10 +410,52 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == ReadTimeoutException.name
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can set read timeout on request"() {
+    setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+
+    when:
+    otherApp {
+      get { ctx ->
+        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? "a" : null
+        }
+
+        render serverSentEvents(stream) {
+          it.id("a")
+        }
+      }
+    }
+
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl(), { it.readTimeoutSeconds(1) }).onError {
+          render it.class.name
+        } then {
+          render "success"
+        }
+      }
+    }
+
+    then:
+    text == ReadTimeoutException.name
+
+    where:
+    pooled << [true, false]
   }
 
   def "can directly stream a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render stringChunks(
@@ -368,7 +476,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-content-type: text/plain;charset=UTF-8
+content-type: text/plain;charset=UTF-8$keepalive
 transfer-encoding: chunked
 
 3
@@ -380,10 +488,18 @@ bar
 0
 
 """
+
+    where:
+    pooled | keepalive
+    true   | "\nconnection: keep-alive"
+    false  | ""
   }
 
   def "can modify the stream of a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render stringChunks(
@@ -420,10 +536,16 @@ BAR
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can follow a redirect when streaming a client response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -446,10 +568,16 @@ BAR
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can decompress a compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
@@ -457,10 +585,20 @@ BAR
     }
 
     and:
+    otherApp {
+      get("foo") {
+        response.send("bar")
+      }
+    }
+
+    and:
     handlers {
-      get {
-        assert request.headers.get("Accept-Encoding") == "gzip"
-        render "bar"
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
+          rs.headers.set("accept-encoding", "compress, gzip")
+        } then { ReceivedResponse receivedResponse ->
+          receivedResponse.forwardTo(response)
+        }
       }
     }
 
@@ -468,12 +606,18 @@ BAR
     def response = get()
 
     then:
-    response.headers.get(CONTENT_ENCODING) == null // client unpacks the header
+    response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can not decompress a compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
@@ -506,10 +650,16 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == "gzip"
     new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
+
+    where:
+    pooled << [true, false]
   }
 
   def "can decompress a streamed compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
@@ -541,6 +691,9 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   @Unroll

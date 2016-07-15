@@ -52,7 +52,7 @@ public interface RegistryBuilder extends RegistrySpec {
    * {@inheritDoc}
    */
   @Override
-  default <O> RegistryBuilder add(Class<? super O> type, O object) {
+  default <O> RegistryBuilder add(Class<O> type, O object) {
     return add(Types.token(type), object);
   }
 
@@ -60,7 +60,7 @@ public interface RegistryBuilder extends RegistrySpec {
    * {@inheritDoc}
    */
   @Override
-  default <O> RegistryBuilder add(TypeToken<? super O> type, O object) {
+  default <O> RegistryBuilder add(TypeToken<O> type, O object) {
     return addLazy(type, () -> object);
   }
 
