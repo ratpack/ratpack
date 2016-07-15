@@ -30,6 +30,13 @@ public interface Status {
   Status OK = Status.of(200);
 
   /**
+   * The 304 status code.
+   *
+   * @since 1.4
+   */
+  Status NOT_MODIFIED = Status.of(304);
+
+  /**
    * Creates a new status object.
    *
    * @param code the status code

@@ -40,18 +40,18 @@ class DefaultMediaTypeSpec extends Specification {
     ct(" application/json;foo=bar; foo=baz ").params.get("foo") == ["bar", "baz"]
   }
 
-  def "parsing illegal content type throws exception"() {
+  def "illegal content type is treated as just a type"() {
     when:
-    ct(" application/json;charset ;foo=bar ")
+    def c = ct(" application/json;charset ;foo=bar ")
 
     then:
-    thrown IllegalArgumentException
+    c.type == "application/json;charset ;foo=bar"
 
     when:
-    ct(" application/json;charset=foo ; bar=baz ")
+    c = ct(" application/json;charset=foo ; bar=baz ")
 
     then:
-    thrown IllegalArgumentException
+    c.type == "application/json;charset=foo ; bar=baz"
   }
 
   def "to string"() {

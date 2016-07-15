@@ -22,11 +22,23 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
 
-  compile "io.dropwizard.metrics:metrics-core:${commonVersions.dropwizardMetrics}"
-  compile "io.dropwizard.metrics:metrics-json:${commonVersions.dropwizardMetrics}"
-  compile "io.dropwizard.metrics:metrics-healthchecks:${commonVersions.dropwizardMetrics}"
-  compile "io.dropwizard.metrics:metrics-jvm:${commonVersions.dropwizardMetrics}"
-  compile "io.dropwizard.metrics:metrics-annotation:${commonVersions.dropwizardMetrics}"
-  compile "io.dropwizard.metrics:metrics-graphite:${commonVersions.dropwizardMetrics}"
+  compile("io.dropwizard.metrics:metrics-core:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compile("io.dropwizard.metrics:metrics-json:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+  }
+  compile("io.dropwizard.metrics:metrics-healthchecks:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compile("io.dropwizard.metrics:metrics-jvm:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compile("io.dropwizard.metrics:metrics-annotation:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compile("io.dropwizard.metrics:metrics-graphite:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
 }
-

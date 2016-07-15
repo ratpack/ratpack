@@ -38,10 +38,10 @@ sourceCompatibility = "1.6"
 targetCompatibility = "1.6"
 
 dependencies {
-  compile localGroovy()
   compile gradleApi()
 
   testCompile gradleTestKit()
+  testCompile commonDependencies.guava
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
     exclude module: "groovy-all", group: "org.codehaus.groovy"
   }

@@ -172,6 +172,30 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder maxChunkSize(int maxChunkSize);
 
   /**
+   * The maximum initial line length allowed for reading http requests.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_INITIAL_LINE_LENGTH}.
+   *
+   * @param maxInitialLineLength the maximum length of the initial line of the request.
+   * @return {@code this}
+   * @see ServerConfig#getMaxInitialLineLength()
+   * @since 1.4
+   */
+  ServerConfigBuilder maxInitialLineLength(int maxInitialLineLength);
+
+  /**
+   * The maximum size of all headers allowed for reading http requests.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_HEADER_SIZE}.
+   *
+   * @param maxHeaderSize the maximum size of the sum of the length of all headers.
+   * @return {@code this}
+   * @see ServerConfig#getMaxHeaderSize()
+   * @since 1.4
+   */
+  ServerConfigBuilder maxHeaderSize(int maxHeaderSize);
+
+  /**
    * The connect timeout of the channel.
    *
    * @param connectTimeoutMillis the connect timeout in milliseconds

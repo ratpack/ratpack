@@ -93,14 +93,29 @@ public interface Execution extends MutableRegistry {
     return ExecController.require().fork();
   }
 
+  /**
+   * Whether the current thread is a thread that is managed by Ratpack.
+   *
+   * @return whether the current thread is a thread that is managed by Ratpack
+   */
   static boolean isManagedThread() {
     return ThreadBinding.get().isPresent();
   }
 
+  /**
+   * Whether the current thread is a Ratpack compute thread.
+   *
+   * @return whether the current thread is a Ratpack compute thread
+   */
   static boolean isComputeThread() {
     return ThreadBinding.get().map(ThreadBinding::isCompute).orElse(false);
   }
 
+  /**
+   * Whether the current thread is a Ratpack blocking thread.
+   *
+   * @return whether the current thread is a Ratpack blocking thread
+   */
   static boolean isBlockingThread() {
     return ThreadBinding.get().map(threadBinding -> !threadBinding.isCompute()).orElse(false);
   }

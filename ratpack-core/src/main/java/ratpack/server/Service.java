@@ -25,7 +25,7 @@ import ratpack.api.NonBlocking;
  * It will be removed in Ratpack 2.x.
  * <p>
  * It is semantically equivalent to {@link ratpack.service.Service} in all ways except for ordering.
- * Services of this type do not receive events in parallel.
+ * Services of this type do not receive events in of.
  * Services dependencies are implicitly established between services of this type based on their
  * return order from the server registry.
  * <p>

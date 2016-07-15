@@ -373,4 +373,17 @@ public interface Registry {
     return builder().add(publicType, implementation).build();
   }
 
+  /**
+   * Creates a new, empty, mutable registry.
+   * <p>
+   * Mutable registries are not concurrent safe when being mutated.
+   * Concurrent reading is supported as long as no mutations are occurring.
+   *
+   * @return a new, empty, mutable registry.
+   * @since 1.4
+   */
+  static MutableRegistry mutable() {
+    return new SimpleMutableRegistry();
+  }
+
 }

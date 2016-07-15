@@ -35,7 +35,7 @@ dependencies {
   compile "io.netty:netty-codec-http:$commonVersions.netty"
   compile "io.netty:netty-handler:$commonVersions.netty"
   compile "io.netty:netty-transport-native-epoll:$commonVersions.netty:linux-x86_64"
-  compile "com.google.guava:guava:$commonVersions.guava"
+  compile commonDependencies.guava
   compile commonDependencies.slf4j
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
   compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"
@@ -44,15 +44,29 @@ dependencies {
 
   compile commonDependencies.jackson
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
+  compile("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
+    exclude group: "com.google.guava", module: "guava"
+    exclude group: "org.yaml", module: "snakeyaml"
+  }
+  compile commonDependencies.snakeyaml
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
-  testCompile "org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}"
-  testCompile 'org.mockito:mockito-core:1.10.19'
+  testCompile("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
+    exclude group: "junit", module: "junit"
+    exclude group: "org.yaml", module: "snakeyaml"
+  }
+  testCompile('org.mockito:mockito-core:1.10.19') {
+    exclude group: "org.hamcrest", module: "hamcrest-core"
+  }
   testCompile 'com.opencsv:opencsv:3.3'
-  testCompile 'com.github.tomakehurst:wiremock:1.56'
+  testCompile('com.github.tomakehurst:wiremock:1.56') {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+  }
 }
 
 test {

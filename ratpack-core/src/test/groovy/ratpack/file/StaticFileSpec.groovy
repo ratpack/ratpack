@@ -271,7 +271,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       prefix("bar") {
-        files {  dir "foo" }
+        files { dir "foo" }
       }
     }
 
@@ -338,7 +338,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     where:
     ifModifiedSince | statusCode   | contentLength
     -1000           | OK           | "hello!".length()
-    +1000           | OK           | "hello!".length()
+    +1000           | NOT_MODIFIED | 0
     0               | NOT_MODIFIED | 0
 
     state = ifModifiedSince < 0 ? "newer than" : ifModifiedSince == 0 ? "the same age as" : "older than"

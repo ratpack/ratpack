@@ -19,7 +19,7 @@ package ratpack.site.github;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.Batch;
+import ratpack.exec.util.ParallelBatch;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -40,7 +40,7 @@ public class RatpackVersions {
   }
 
   public Promise<All> getAll() {
-    return Batch.parallel(gitHubData.getReleasedVersions(), gitHubData.getUnreleasedVersions())
+    return ParallelBatch.of(gitHubData.getReleasedVersions(), gitHubData.getUnreleasedVersions())
       .yield()
       .map(r -> new All(r.get(0), r.get(1)));
   }

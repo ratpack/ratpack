@@ -16,6 +16,8 @@
 
 package ratpack.exec
 
+import ratpack.exec.util.ParallelBatch
+import ratpack.exec.util.SerialBatch
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -23,6 +25,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 
 class PromiseCachingSpec extends Specification {
 
@@ -148,6 +151,46 @@ class PromiseCachingSpec extends Specification {
 
     then:
     events.toList() == [e, "complete"]
+  }
+
+  def "can cache conditionally"() {
+    when:
+    def i = new AtomicInteger()
+    def p = Promise.sync { i.getAndIncrement() }.cacheIf { it >= 5 }
+
+    exec({
+      SerialBatch.of((0..10).collect { p }).forEach { a, b -> events << b }.then()
+    })
+
+    then:
+    events.toList() == [0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, "complete"]
+  }
+
+  def "can cache conditionally in parallel"() {
+    when:
+    def i = new AtomicInteger()
+    def p = Promise.sync { i.getAndIncrement() }.cacheIf { it >= 5 }
+
+    exec({
+      ParallelBatch.of((0..10).collect { p }).forEach { a, b -> events << b }.then()
+    })
+
+    then:
+    events.toList().subList(0, events.size() - 1).sort() == [0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5]
+  }
+
+  def "can cache errors"() {
+    when:
+    def i = new AtomicInteger()
+    def p = Promise.sync { throw new Exception("${i.incrementAndGet()}") }.cacheResultIf { it.error }
+
+    exec({
+      ParallelBatch.of((0..10).collect { p }).yieldAll().then { events.addAll(it.throwable) }
+    })
+
+    then:
+    events.toList().subList(0, events.size() - 1).message == (0..10).collect { "1" }
+
   }
 
 }

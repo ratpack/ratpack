@@ -37,6 +37,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.Status;
 import ratpack.http.TypedData;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -58,11 +59,11 @@ import ratpack.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
@@ -377,21 +378,21 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void lastModified(Date date, Runnable runnable) {
-    Date ifModifiedSinceHeader = requestConstants.request.getHeaders().getDate(IF_MODIFIED_SINCE);
-    long lastModifiedSecs = date.getTime() / 1000;
+  public void lastModified(Instant lastModified, Runnable runnable) {
+    Instant ifModifiedSince = requestConstants.request.getHeaders().getInstant(IF_MODIFIED_SINCE);
 
-    if (ifModifiedSinceHeader != null) {
-      long time = ifModifiedSinceHeader.getTime();
-      long ifModifiedSinceSecs = time / 1000;
+    if (ifModifiedSince != null) {
+      // Normalise to second resolution
+      ifModifiedSince = Instant.ofEpochSecond(ifModifiedSince.getEpochSecond());
+      lastModified = Instant.ofEpochSecond(lastModified.getEpochSecond());
 
-      if (lastModifiedSecs == ifModifiedSinceSecs) {
-        requestConstants.response.status(NOT_MODIFIED.code()).send();
+      if (!lastModified.isAfter(ifModifiedSince)) {
+        requestConstants.response.status(Status.NOT_MODIFIED).send();
         return;
       }
     }
 
-    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, date);
+    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, lastModified);
     runnable.run();
   }
 

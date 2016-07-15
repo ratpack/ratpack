@@ -38,7 +38,7 @@ import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.nio.file.Path;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -173,8 +173,8 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
-  public void lastModified(Date date, Runnable runnable) {
-    delegate.lastModified(date, runnable);
+  public void lastModified(Instant lastModified, Runnable runnable) {
+    delegate.lastModified(lastModified, runnable);
   }
 
   @Override

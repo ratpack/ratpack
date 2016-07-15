@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.exec.batch.internal;
+package ratpack.exec.util.internal;
 
 import com.google.common.collect.Lists;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.SerialBatch;
+import ratpack.exec.util.SerialBatch;
 import ratpack.func.BiAction;
 import ratpack.func.BiFunction;
 import ratpack.stream.Streams;

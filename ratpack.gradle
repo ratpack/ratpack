@@ -19,6 +19,9 @@ import java.util.concurrent.locks.ReentrantLock
 buildscript {
   repositories {
     jcenter()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
   }
 
   dependencies {
@@ -30,8 +33,40 @@ buildscript {
 
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
+    classpath "com.gradle:build-scan-plugin:1.0"
   }
 }
+
+allprojects {
+  version = "1.4.0-SNAPSHOT"
+}
+
+ext {
+  isSnapshot = version.endsWith("SNAPSHOT")
+  isTravis = System.getenv("TRAVIS") != null
+  isDrone = System.getenv("DRONE") != null
+  isCodeship = System.getenv("CI_NAME") == "codeship"
+  isSnapCi = System.getenv("SNAP_CI") != null
+  isAppveyor = System.getenv("APPVEYOR") != null
+  isHeroku = System.getenv("HEROKU") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
+  isCi = isCloudCi
+
+  publishedModules = [
+    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
+    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
+    "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2"
+  ].collect { project(it) }
+
+  noCodeModules = [
+    "ratpack-spring-boot-starter"
+  ]
+
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
+}
+
+apply from: 'gradle/buildScan.gradle'
 
 def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
 if (jvmEncoding != "UTF-8") {
@@ -41,6 +76,7 @@ if (jvmEncoding != "UTF-8") {
 if (!JavaVersion.current().java8Compatible) {
   throw new IllegalStateException("Must be built with Java 8 or higher")
 }
+
 
 apply plugin: "artifactory"
 apply plugin: "com.github.kt3k.coveralls"
@@ -79,7 +115,6 @@ task bintrayPublish << {
 
 allprojects {
   group = "io.ratpack"
-  version = "1.4.0-SNAPSHOT"
 
   apply plugin: "base"
   apply plugin: "idea"
@@ -94,31 +129,6 @@ allprojects {
 }
 
 apply from: "gradle/idea/idea.gradle"
-
-ext {
-  isSnapshot = version.endsWith("SNAPSHOT")
-  isTravis = System.getenv("TRAVIS") != null
-  isDrone = System.getenv("DRONE") != null
-  isCodeship = System.getenv("CI_NAME") == "codeship"
-  isSnapCi = System.getenv("SNAP_CI") != null
-  isAppveyor = System.getenv("APPVEYOR") != null
-  isHeroku = System.getenv("HEROKU") != null
-  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
-  isCi = isCloudCi
-
-  publishedModules = [
-    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
-    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
-    "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2"
-  ].collect { project(it) }
-
-  noCodeModules = [
-    "ratpack-spring-boot-starter"
-  ]
-
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
-}
 
 apply from: "gradle/dependencies.gradle"
 

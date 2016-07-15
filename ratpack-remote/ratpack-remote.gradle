@@ -22,6 +22,5 @@ dependencies {
   compile project(":ratpack-guice")
   compile commonDependencies.remote
 
-  testCompile commonDependencies."remote-http"
+  testCompile commonDependencies.remoteHttp
 }
-

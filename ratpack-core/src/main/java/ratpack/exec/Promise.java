@@ -16,12 +16,15 @@
 
 package ratpack.exec;
 
+import com.google.common.cache.LoadingCache;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
+import ratpack.exec.util.Promised;
 import ratpack.func.*;
+import ratpack.util.Exceptions;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -689,12 +692,104 @@ public interface Promise<T> {
     return flatMap(in -> next);
   }
 
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the given promise as the {@code left}.
+   * <p>
+   * The existing promised value will become the {@code right}.
+   *
+   * @param left a promise for the left value of the result pair
+   * @param <O> the type of the left value
+   * @return a promise
+   */
   default <O> Promise<Pair<O, T>> left(Promise<O> left) {
-    return flatMap(right -> left.map(value -> Pair.of(value, right)));
+    return flatLeft(t -> left);
   }
 
+  /**
+   * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code left}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code right}.
+   *
+   * @param leftFunction a function that produces the left value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<O, T>> left(Function<? super T, ? extends O> leftFunction) {
+    return map(right -> Pair.of(
+      leftFunction.apply(right), right
+    ));
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code left}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code right}.
+   *
+   * @param leftFunction a function that produces a promise for the left value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<O, T>> flatLeft(Function<? super T, ? extends Promise<O>> leftFunction) {
+    return flatMap(right ->
+      leftFunction.apply(right)
+        .map(left ->
+          Pair.of(left, right)
+        )
+    );
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the given promise as the {@code right}.
+   * <p>
+   * The existing promised value will become the {@code left}.
+   *
+   * @param right a promise for the right value of the result pair
+   * @param <O> the type of the right value
+   * @return a promise
+   */
   default <O> Promise<Pair<T, O>> right(Promise<O> right) {
-    return flatMap(left -> right.map(value -> Pair.of(left, value)));
+    return flatRight(t -> right);
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code left}.
+   *
+   * @param rightFunction a function that produces the right value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {
+    return map(left -> Pair.of(
+      left, rightFunction.apply(left)
+    ));
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code left}.
+   *
+   * @param rightFunction a function that produces a promise for the right value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {
+    return flatMap(left ->
+      rightFunction.apply(left)
+        .map(right ->
+          Pair.of(left, right)
+        )
+    );
   }
 
   default Operation operation() {
@@ -1173,6 +1268,9 @@ public interface Promise<T> {
 
   /**
    * Caches the promised value (or error) and returns it to all subscribers.
+   * <p>
+   * This method is equivalent to using {@link #cacheResultIf(Predicate)} with a predicate that always returns {@code true}.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -1202,8 +1300,10 @@ public interface Promise<T> {
    *   }
    * }
    * }</pre>
+   *
    * <p>
    * If the cached promise fails, the same exception will be returned every time.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -1223,10 +1323,162 @@ public interface Promise<T> {
    * }
    * }</pre>
    *
-   * @return a caching promise.
+   * @return a caching promise
+   * @see #cacheIf(Predicate)
+   * @see #cacheResultIf(Predicate)
    */
   default Promise<T> cache() {
-    return transform(CachingUpstream::new);
+    return cacheResultIf(Predicate.TRUE);
+  }
+
+  /**
+   * Caches the promise value and provides it to all future subscribers, if it satisfies the predicate.
+   * <p>
+   * This method is equivalent to using {@link #cacheResultIf(Predicate)} with a predicate that requires
+   * a successful result and for the value to satisfy the predicate given to this method.
+   * <p>
+   * Non success results will not be cached.
+   *
+   * @param shouldCache the test for whether a successful result is cacheable
+   * @return a caching promise
+   * @since 1.4
+   */
+  default Promise<T> cacheIf(Predicate<? super T> shouldCache) {
+    return cacheResultIf(r -> r.isSuccess() && shouldCache.apply(r.getValue()));
+  }
+
+  /**
+   * Caches the promise result and provides it to all future subscribers, if it satisfies the predicate.
+   * <p>
+   * This method is typically used when wanting to cache a failure result or a success result.
+   * Moreover, the error throwable or success value can be inspected to determine whether it should be cached.
+   * <p>
+   * A cached promise is fully threadsafe and and can be subscribed to concurrently.
+   * While there is no cached value, yielding the upstream value is serialised.
+   * That is, one value is requested at a time regardless of concurrent subscription.
+   * If a cache-able value is received, all pending subscribers will received the cache-able value.
+   * If a received value is not cache-able the corresponding subscriber will receive the value,
+   * and the upstream promise will be subscribed to again on behalf of the next subscriber.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.ArrayList;
+   * import java.util.List;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     AtomicInteger counter = new AtomicInteger();
+   *     Promise<Integer> promise = Promise.sync(() -> {
+   *       int i = counter.getAndIncrement();
+   *       if (i < 2) {
+   *         return i;
+   *       } else if (i == 2) {
+   *         throw new Exception(Integer.toString(i));
+   *       } else if (i == 3) {
+   *         throw new RuntimeException(Integer.toString(i));
+   *       } else {
+   *         throw new IllegalStateException(Integer.toString(i));
+   *       }
+   *     });
+   *
+   *     Promise<Integer> cachedPromise = promise.cacheResultIf(r ->
+   *       (r.isError() && r.getThrowable().getClass() == RuntimeException.class)
+   *         || (r.isSuccess() && r.getValue() > 10)
+   *     );
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       for (int i = 0; i < 6; i++) {
+   *         cachedPromise.result(results::add);
+   *       }
+   *     });
+   *
+   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
+   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
+   *     assertEquals(results.get(2).getThrowable().getClass(), Exception.class);
+   *     assertEquals(results.get(3).getThrowable().getClass(), RuntimeException.class);
+   *
+   *     // value is now cached
+   *     assertEquals(results.get(4).getThrowable().getClass(), RuntimeException.class);
+   *     assertEquals(results.get(5).getThrowable().getClass(), RuntimeException.class);
+   *   }
+   * }
+   * }</pre>
+   *
+   * <p>
+   * Note, the cached value never expires.
+   * If you wish to cache a value only for a certain amount of time,
+   * use a general caching tool such as Guava's {@link LoadingCache}.
+   *
+   * <pre class="java">{@code
+   * import com.google.common.cache.CacheBuilder;
+   * import com.google.common.cache.CacheLoader;
+   * import com.google.common.cache.LoadingCache;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.ArrayList;
+   * import java.util.List;
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     AtomicInteger counter = new AtomicInteger();
+   *     Promise<Integer> promise = Promise.sync(counter::getAndIncrement);
+   *
+   *     LoadingCache<String, Promise<Integer>> cache = CacheBuilder.newBuilder()
+   *       .expireAfterWrite(2, TimeUnit.SECONDS)
+   *       .build(new CacheLoader<String, Promise<Integer>>() {
+   *         public Promise<Integer> load(String key) throws Exception {
+   *           return promise.cacheResultIf(i -> i.isSuccess() && i.getValue() > 1);
+   *         }
+   *       });
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       for (int i = 0; i < 4; i++) {
+   *         cache.get("key").result(results::add);
+   *       }
+   *
+   *       // let the cache entry expire
+   *       Thread.sleep(2000);
+   *
+   *       for (int i = 0; i < 2; i++) {
+   *         cache.get("key").result(results::add);
+   *       }
+   *     });
+   *
+   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
+   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
+   *     assertEquals(results.get(2).getValueOrThrow(), Integer.valueOf(2));
+   *     assertEquals(results.get(3).getValueOrThrow(), Integer.valueOf(2));
+   *
+   *     // cache entry has expired
+   *
+   *     assertEquals(results.get(4).getValueOrThrow(), Integer.valueOf(3));
+   *     assertEquals(results.get(5).getValueOrThrow(), Integer.valueOf(3));
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param shouldCache the test for whether a result is cacheable
+   * @return a caching promise
+   * @since 1.4
+   */
+  default Promise<T> cacheResultIf(Predicate<? super ExecResult<T>> shouldCache) {
+    return transform(up -> new CachingUpstream<>(up, shouldCache));
   }
 
   /**
@@ -1576,6 +1828,75 @@ public interface Promise<T> {
         }
       });
     });
+  }
+
+  /**
+   * Forks a new execution and subscribes to this promise, returning a promise for its value.
+   * <p>
+   * The new execution is created and started immediately by this method, effectively subscribing to the promise immediately.
+   * The returned promise provides the value when the execution completes.
+   * <p>
+   * This method can be used for simple of processing.
+   * It is often combined with the {@link #left(Promise)} or {@link #right(Promise)}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Blocking;
+   * import ratpack.exec.Promise;
+   * import ratpack.func.Pair;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.concurrent.CyclicBarrier;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     CyclicBarrier barrier = new CyclicBarrier(2);
+   *
+   *     Pair<Integer, String> result = ExecHarness.yieldSingle(r -> {
+   *       Promise<Integer> p1 = Blocking.get(() -> {
+   *         barrier.await();
+   *         return 1;
+   *       });
+   *       Promise<String> p2 = Blocking.get(() -> {
+   *         barrier.await();
+   *         return "2";
+   *       });
+   *
+   *       return p1.right(p2.fork());
+   *     }).getValueOrThrow();
+   *
+   *     assertEquals(result, Pair.of(1, "2"));
+   *   }
+   *
+   * }
+   * }</pre>
+   *
+   * @param execSpec configuration for the forked execution
+   * @return a promise
+   * @throws Exception any thrown by {@code execSpec}
+   * @since 1.4
+   */
+  default Promise<T> fork(Action<? super ExecSpec> execSpec) throws Exception {
+    Promised<T> promised = new Promised<>();
+    ExecStarter starter = Execution.fork();
+    execSpec.execute(starter);
+    starter.start(e -> connect(promised));
+    return promised.promise();
+  }
+
+  /**
+   * Forks a new execution and subscribes to this promise, returning a promise for its value.
+   * <p>
+   * This method delegates to {@link #fork(Action)} with {@link Action#noop()}.
+   *
+   * @return a promise
+   * @since 1.4
+   * @see #fork(Action)
+   */
+  default Promise<T> fork() {
+    return Exceptions.uncheck(() -> fork(Action.noop()));
   }
 
   static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {

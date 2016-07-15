@@ -44,13 +44,6 @@ public final class MimeParse {
     ParseResults results = new ParseResults();
     results.params = new HashMap<>();
 
-    for (int i = 1; i < parts.length; ++i) {
-      String p = parts[i];
-      String[] subParts = p.split("=", 2);
-      if (subParts.length == 2) {
-        results.params.put(subParts[0].trim(), subParts[1].trim());
-      }
-    }
     String fullType = parts[0].trim();
 
     // Java URLConnection class sends an Accept header that includes a
@@ -59,15 +52,29 @@ public final class MimeParse {
       fullType = "*/*";
     }
     String[] types = fullType.split("/", 2);
+    if (types.length != 2) {
+      results.type = types[0].trim();
+      return results;
+    }
+
     results.type = types[0].trim();
     results.subType = types[1].trim();
+
+    for (int i = 1; i < parts.length; ++i) {
+      String p = parts[i];
+      String[] subParts = p.split("=", 2);
+      if (subParts.length == 2) {
+        results.params.put(subParts[0].trim(), subParts[1].trim());
+      }
+    }
+
     return results;
   }
 
   protected static ParseResults parseMediaRange(CharSequence range) {
     ParseResults results = parseMimeType(range);
     String q = results.params.get("q");
-    float f = toFloat(q, 1);
+    float f = toFloat(q, -1);
     if (q == null || q.trim().isEmpty() || f < 0 || f > 1) {
       results.params.put("q", "1");
     }
@@ -110,11 +117,16 @@ public final class MimeParse {
     ParseResults target = parseMediaRange(mimeType);
 
     for (ParseResults range : parsedRanges) {
-      if ((target.type.equals(range.type) || range.type.equals("*") || target.type
-        .equals("*"))
-        && (target.subType.equals(range.subType)
-        || range.subType.equals("*") || target.subType
-        .equals("*"))) {
+
+      boolean typeMatch = target.type.equals(range.type) || range.type.equals("*") || target.type.equals("*");
+      boolean subTypeMatch;
+      if (target.subType == null || range.subType == null) {
+        subTypeMatch = Objects.equals(target.subType, range.subType);
+      } else {
+        subTypeMatch = target.subType.equals(range.subType) || range.subType.equals("*") || target.subType.equals("*");
+      }
+
+      if (typeMatch && subTypeMatch) {
         for (String k : target.params.keySet()) {
           int paramMatches = 0;
           if (!k.equals("q") && range.params.containsKey(k)
@@ -122,7 +134,7 @@ public final class MimeParse {
             paramMatches++;
           }
           int fitness = (range.type.equals(target.type)) ? 100 : 0;
-          fitness += (range.subType.equals(target.subType)) ? 10 : 0;
+          fitness += (Objects.equals(range.subType, target.subType)) ? 10 : 0;
           fitness += paramMatches;
           if (fitness > bestFitness) {
             bestFitness = fitness;
@@ -138,7 +150,10 @@ public final class MimeParse {
     List<ParseResults> parseResults = new LinkedList<>();
     List<FitnessAndQuality> weightedMatches = new LinkedList<>();
     for (String r : header.split(",")) {
-      parseResults.add(parseMediaRange(r));
+      ParseResults parseResult = parseMediaRange(r);
+      if (parseResult != null) {
+        parseResults.add(parseResult);
+      }
     }
 
     for (CharSequence s : supported) {
@@ -152,8 +167,12 @@ public final class MimeParse {
     return lastOne.quality != 0f ? lastOne.mimeType : "";
   }
 
-  private static float toFloat(String f, float ifNull) {
-    return f == null ? ifNull : Float.valueOf(f);
+  private static float toFloat(String f, float ifNullOrNotANumber) {
+    try {
+      return f == null ? ifNullOrNotANumber : Float.valueOf(f);
+    } catch (NumberFormatException e) {
+      return ifNullOrNotANumber;
+    }
   }
 
   // hidden

@@ -23,10 +23,11 @@ import java.lang.annotation.*;
  * <ul>
  * <li>On a <b>parameter</b>, denotes that it is valid to supply null as the value for the parameter.
  * <li>On a <b>method</b>, denotes that the method may return null.
+ * <li>On a <b>field</b>, denotes that the field value may be null.
  * </ul>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
 public @interface Nullable {
 }

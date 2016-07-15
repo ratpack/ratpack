@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.exec.batch.internal;
+package ratpack.exec.util.internal;
 
 import com.google.common.collect.Lists;
 import org.reactivestreams.Subscription;
@@ -22,7 +22,7 @@ import ratpack.exec.ExecResult;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.batch.ParallelBatch;
+import ratpack.exec.util.ParallelBatch;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.stream.TransformablePublisher;
@@ -119,9 +119,13 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
             if (error.get() == null) {
               promise.result(t -> {
                 if (t.isError()) {
-                  if (!error.compareAndSet(null, t.getThrowable())) {
+                  Throwable thisError = t.getThrowable();
+                  if (!error.compareAndSet(null, thisError)) {
                     //noinspection ThrowableResultOfMethodCallIgnored
-                    error.get().addSuppressed(t.getThrowable());
+                    Throwable firstError = error.get();
+                    if (firstError != thisError) {
+                      firstError.addSuppressed(thisError);
+                    }
                   }
                 } else {
                   consumer.execute(finalI, t.getValue());

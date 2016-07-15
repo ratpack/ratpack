@@ -43,8 +43,9 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
-  testRuntime "org.gradle:gradle-tooling-api:${gradle.gradleVersion}" // used by gradle snippet fixture
+  testRuntime commonDependencies.toolingApi // used by gradle snippet fixture
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
   testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 

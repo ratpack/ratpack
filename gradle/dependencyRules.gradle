@@ -1,12 +1,28 @@
 configurations.all { configuration ->
   resolutionStrategy {
-    // failOnVersionConflict()
+    gradle.taskGraph.whenReady { taskGraph ->
+      if (taskGraph.allTasks.every { it.name != "dependencies" } ) {
+        failOnVersionConflict()
+      }
+    }
 
     eachDependency {
       // Spock brings in both 1.1 and 1.3 of this guy, so force 1.1 to 1.3.
       // Excludes aren't ideal because it's spock bringing in both of these
       if (requested.name == "hamcrest-core" && requested.version == "1.1") {
         useVersion "1.3"
+      }
+      // JRuby (used by the manual) pulls in multiple versions of a few modules
+      if (configuration.name == "jrubyExec") {
+        if (requested.name == "jcodings" && requested.group == "org.jruby.jcodings") {
+          useVersion "1.0.10"
+        }
+        if (requested.name == "jnr-ffi" && requested.group == "com.github.jnr") {
+          useVersion "1.0.10"
+        }
+        if (requested.name == "jnr-constants" && requested.group == "com.github.jnr") {
+          useVersion "0.8.5"
+        }
       }
       if (configuration.name == "codenarc") {
         if (requested.group == "org.codehaus.groovy") {

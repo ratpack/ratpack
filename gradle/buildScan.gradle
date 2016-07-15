@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.exec.internal;
+if (project.isCi) {
+  apply plugin: "com.gradle.build-scan"
 
-import ratpack.func.Block;
-
-// Marker interface used to detect user code vs infrastructure code, for error handling and interception
-public interface UserCode extends Block {
+  buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+  }
 }
