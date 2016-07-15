@@ -19,6 +19,7 @@ package ratpack.rx;
 import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.registry.RegistrySpec;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
 import ratpack.stream.Streams;
@@ -620,6 +621,121 @@ public abstract class RxRatpack {
   }
 
   /**
+   * Parallelize an observable by forking it's execution onto a different Ratpack compute thread and automatically binding
+   * the result back to the original execution.
+   * <p>
+   * This method can be used for simple parallel processing.  It's behavior is similar to the
+   * <a href="http://reactivex.io/documentation/operators/subscribeon.html">subscribeOn</a> but allows the use of
+   * Ratpack compute threads.  Using <code>fork</code> modifies the execution of the upstream observable.
+   * <p>
+   * This is different than <code>forkEach</code> which modifies where the downstream is executed.
+   *
+   * <pre class="java">{@code
+   * import ratpack.func.Pair;
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import rx.Observable;
+   *
+   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.Assert.assertNotEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     RxRatpack.initialize();
+   *
+   *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
+   *       Integer sum = execHarness.yield(execution -> {
+   *         final String originalComputeThread = Thread.currentThread().getName();
+   *
+   *         Observable<Integer> unforkedObservable = Observable.just(1);
+   *
+   *         // `map` is executed upstream from the fork; that puts it on another parallel compute thread
+   *         Observable<Pair<Integer, String>> forkedObservable = Observable.just(2)
+   *             .map((val) -> Pair.of(val, Thread.currentThread().getName()))
+   *             .compose(RxRatpack::fork);
+   *
+   *         return RxRatpack.promiseSingle(
+   *             Observable.zip(unforkedObservable, forkedObservable, (Integer intVal, Pair<Integer, String> pair) -> {
+   *               String forkedComputeThread = pair.right;
+   *               assertNotEquals(originalComputeThread, forkedComputeThread);
+   *               return intVal + pair.left;
+   *             })
+   *         );
+   *       }).getValueOrThrow();
+   *
+   *       assertEquals(sum.intValue(), 3);
+   *     }
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param observable the observable sequence to execute on a different compute thread
+   * @param <T> the element type
+   * @return an observable on the compute thread that <code>fork</code> was called from
+   * @since 1.4
+   * @see #forkEach(Observable)
+   */
+  public static <T> Observable<T> fork(Observable<T> observable) {
+    return observeEach(promise(observable).fork());
+  }
+
+  /**
+   *
+   * A variant of {@link #fork} that allows access to the registry of the forked execution inside an {@link Action}.
+   * <p>
+   * This allows the insertion of objects via {@link RegistrySpec#add} that will be available to the forked observable.
+   * <p>
+   * You do not have access to the original execution inside the {@link Action}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Execution;
+   * import ratpack.registry.RegistrySpec;
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import rx.Observable;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     RxRatpack.initialize();
+   *
+   *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
+   *       String concatenatedResult = execHarness.yield(execution -> {
+   *
+   *         Observable<String> notYetForked = Observable.just("foo")
+   *             .map((value) -> value + Execution.current().get(String.class));
+   *
+   *         Observable<String> forkedObservable = RxRatpack.fork(
+   *             notYetForked,
+   *             (RegistrySpec registrySpec) -> registrySpec.add("bar")
+   *         );
+   *
+   *         return RxRatpack.promiseSingle(forkedObservable);
+   *       }).getValueOrThrow();
+   *
+   *       assertEquals(concatenatedResult, "foobar");
+   *     }
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param observable the observable sequence to execute on a different compute thread
+   * @param doWithRegistrySpec an Action where objects can be inserted into the registry of the forked execution
+   * @param <T> the element type
+   * @return an observable on the compute thread that <code>fork</code> was called from
+   * @throws Exception
+   * @since 1.4
+   * @see #fork(Observable)
+     */
+  public static <T> Observable<T> fork(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec) throws Exception {
+    return observeEach(promise(observable).fork(execSpec -> execSpec.register(doWithRegistrySpec)));
+  }
+
+
+  /**
    * Parallelize an observable by creating a new Ratpack execution for each element.
    *
    * <pre class="java">{@code
@@ -668,6 +784,25 @@ public abstract class RxRatpack {
    * @return an observable
    */
   public static <T> Observable<T> forkEach(Observable<T> observable) {
+    return RxRatpack.forkEach(observable, Action.noop());
+  }
+
+  /**
+   * A variant of {@link #forkEach} that allows access to the registry of each forked execution inside an {@link Action}.
+   * <p>
+   * This allows the insertion of objects via {@link RegistrySpec#add} that will be available to every forked observable.
+   * <p>
+   * You do not have access to the original execution inside the {@link Action}.
+   *
+   * @param observable the observable sequence to process each element of in a forked execution
+   * @param doWithRegistrySpec an Action where objects can be inserted into the registry of the forked execution
+   * @param <T> the element type
+   * @return an observable
+   * @since 1.4
+   * @see #forkEach(Observable)
+   * @see #fork(Observable, Action)
+   */
+  public static <T> Observable<T> forkEach(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec) {
     return observable.<T>lift(downstream -> new Subscriber<T>(downstream) {
 
       private final AtomicInteger wip = new AtomicInteger(1);
@@ -704,6 +839,7 @@ public abstract class RxRatpack {
 
         wip.incrementAndGet();
         Execution.fork()
+          .register(doWithRegistrySpec)
           .onComplete(e -> this.maybeDone())
           .onError(this::onError)
           .start(e -> {
