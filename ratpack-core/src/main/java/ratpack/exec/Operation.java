@@ -109,7 +109,6 @@ public interface Operation {
 
   /**
    * Executes the given block as an operation, on a blocking thread.
-   * <p>
    *
    * @param operation a block of code to be executed, on a blocking thread
    * @return an operation
