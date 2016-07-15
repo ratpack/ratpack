@@ -107,6 +107,17 @@ public interface Operation {
     return next(Operation.of(operation));
   }
 
+  /**
+   * Executes the given block as an operation, on a blocking thread.
+   *
+   * @param operation a block of code to be executed, on a blocking thread
+   * @return an operation
+   * @since 1.4
+   */
+  default Operation blockingNext(Block operation) {
+    return next(Blocking.op(operation));
+  }
+
   default <O> O to(Function<? super Operation, ? extends O> function) throws Exception {
     return function.apply(this);
   }
