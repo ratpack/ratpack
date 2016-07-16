@@ -18,151 +18,88 @@ package ratpack.http.client.internal;
 
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.handler.codec.PrematureChannelClosureException;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpContentDecompressor;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.util.concurrent.Future;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.http.Headers;
-import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.http.internal.ByteBufBackedTypedData;
-import ratpack.http.internal.DefaultMediaType;
-import ratpack.http.internal.DefaultStatus;
-import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.http.internal.NettyHeadersBackedHeaders;
-import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.http.internal.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import static ratpack.util.Exceptions.uncheck;
 
-public abstract class RequestActionSupport<T> implements RequestAction<T> {
-  public static final Logger LOGGER = LoggerFactory.getLogger(RequestActionSupport.class);
+abstract class RequestActionSupport<T> implements Upstream<T> {
+
   private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
 
-  private final Action<? super RequestSpec> requestConfigurer;
-  protected final ChannelPoolMap<URI, ChannelPool> channelPoolMap;
-  protected final PooledHttpConfig config;
-  private final MutableHeaders headers;
-  private final RequestSpecBacking requestSpecBacking;
-  protected final ByteBufAllocator byteBufAllocator;
-  protected final URI uri;
-  protected final URI baseURI;
-  protected final RequestParams requestParams;
-  private final boolean finalUseSsl;
-  private final String host;
-  private final int port;
-  private final int redirectCount;
-  private final AtomicBoolean fired = new AtomicBoolean();
+  protected final HttpClientInternal client;
+  protected final ChannelPool channelPool;
+  protected final RequestConfig requestConfig;
+  protected final HttpChannelKey channelKey;
   protected final Execution execution;
 
-  public RequestActionSupport(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, PooledHttpConfig config, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
+  private final int redirectCount;
+  private final Action<? super RequestSpec> requestConfigurer;
+
+  private boolean fired;
+
+  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
     this.requestConfigurer = requestConfigurer;
-    this.channelPoolMap = channelPoolMap;
-    this.config = config;
-    this.byteBufAllocator = byteBufAllocator;
-    this.uri = uri;
-    this.baseURI = constructBaseURI(uri);
-    this.requestParams = new RequestParams();
-    this.headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-    this.requestSpecBacking = new RequestSpecBacking(headers, uri, byteBufAllocator, requestParams);
+    this.requestConfig = uncheck(() -> RequestConfig.of(uri, client, requestConfigurer));
+    this.client = client;
     this.execution = execution;
     this.redirectCount = redirectCount;
-
-    try {
-      this.requestConfigurer.execute(requestSpecBacking.asSpec());
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
-
-    String scheme = uri.getScheme();
-    boolean useSsl = false;
-    if (scheme.equals("https")) {
-      useSsl = true;
-    } else if (!scheme.equals("http")) {
-      throw new IllegalArgumentException(String.format("URL '%s' is not a http url", uri.toString()));
-    }
-    this.finalUseSsl = useSsl;
-
-    this.host = uri.getHost();
-    this.port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
-  }
-
-  private static String getFullPath(URI uri) {
-    StringBuilder sb = new StringBuilder(uri.getRawPath());
-    String query = uri.getRawQuery();
-    if (query != null) {
-      sb.append("?").append(query);
-    }
-
-    return sb.toString();
+    this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout);
+    this.channelPool = client.getChannelPoolMap().get(channelKey);
   }
 
   protected abstract void addResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream);
 
   @Override
   public void connect(final Downstream<? super T> downstream) throws Exception {
-    Future<Channel> connectFuture = this.channelPoolMap.get(baseURI).acquire();
-    connectFuture.addListener(f1 -> {
-      if (!connectFuture.isSuccess()) {
-        error(downstream, connectFuture.cause());
+    channelPool.acquire().addListener(f1 -> {
+      if (!f1.isSuccess()) {
+        error(downstream, f1.cause());
       } else {
-        Channel channel = connectFuture.getNow();
+        Channel channel = (Channel) f1.getNow();
+
         addCommonResponseHandlers(channel.pipeline(), downstream);
 
-        String fullPath = getFullPath(uri);
-        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
-        if (headers.get(HttpHeaderConstants.HOST) == null) {
-          HostAndPort hostAndPort = HostAndPort.fromParts(host, port);
-          headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
+        String fullPath = getFullPath(requestConfig.uri);
+        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestConfig.method), fullPath, requestConfig.body);
+        if (requestConfig.headers.get(HttpHeaderConstants.HOST) == null) {
+          HostAndPort hostAndPort = HostAndPort.fromParts(channelKey.host, channelKey.port);
+          requestConfig.headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
         }
-        if (config.isPooled()) {
-          headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        if (client.getPoolSize() > 0) {
+          requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         } else {
-          headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
+          requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
         }
         int contentLength = request.content().readableBytes();
         if (contentLength > 0) {
-          headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
+          requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
         }
 
         HttpHeaders requestHeaders = request.headers();
-        requestHeaders.set(headers.getNettyHeaders());
+        requestHeaders.set(requestConfig.headers.getNettyHeaders());
 
         ChannelFuture writeFuture = channel.writeAndFlush(request);
         writeFuture.addListener(f2 -> {
@@ -174,27 +111,27 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
     });
   }
 
-  protected void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
-
-    if (finalUseSsl) {
-      SSLEngine sslEngine;
-      if (requestSpecBacking.getSslContext() != null) {
-        sslEngine = requestSpecBacking.getSslContext().createSSLEngine();
-      } else {
-        sslEngine = SSLContext.getDefault().createSSLEngine();
-      }
-      sslEngine.setUseClientMode(true);
+  private void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
+    if (channelKey.ssl) {
       //this is added once because netty is not able to properly replace this handler on
       //pooled channels from request to request. Because a pool is unique to a uri,
       //doing this works, as subsequent requests would be passing in the same certs.
-      addHandlerOnce(p, "ssl", new SslHandler(sslEngine));
+      addHandlerOnce(p, "ssl", () -> {
+        SSLEngine sslEngine;
+        if (requestConfig.sslContext != null) {
+          sslEngine = requestConfig.sslContext.createSSLEngine();
+        } else {
+          sslEngine = SSLContext.getDefault().createSSLEngine();
+        }
+        sslEngine.setUseClientMode(true);
+        return new SslHandler(sslEngine);
+      });
     }
 
     //this is added once because it is the same across all requests.
-    addHandlerOnce(p, "clientCodec", new HttpClientCodec());
+    addHandlerOnce(p, "clientCodec", HttpClientCodec::new);
 
-    long readTimeout = requestParams.readTimeoutNanos > 0 ? requestParams.readTimeoutNanos : config.getReadTimeoutNanos();
-    addHandler(p, "readTimeout", new ReadTimeoutHandler(readTimeout, TimeUnit.NANOSECONDS));
+    addHandler(p, "readTimeout", new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
 
     ChannelHandler redirectHandler = new SimpleChannelInboundHandler<HttpObject>(false) {
       boolean readComplete;
@@ -203,7 +140,7 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
       @Override
       public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         if (!readComplete) {
-          error(downstream, new PrematureChannelClosureException("Server " + uri + " closed the connection prematurely"));
+          error(downstream, new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely"));
         }
         super.channelReadComplete(ctx);
       }
@@ -218,13 +155,13 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
         if (msg instanceof HttpResponse) {
           readComplete = true;
           final HttpResponse response = (HttpResponse) msg;
-          int maxRedirects = requestSpecBacking.getMaxRedirects();
+          int maxRedirects = requestConfig.maxRedirects;
           int status = response.status().code();
           String locationValue = response.headers().getAsString(HttpHeaderConstants.LOCATION);
 
           Action<? super RequestSpec> redirectConfigurer = RequestActionSupport.this.requestConfigurer;
           if (isRedirect(status) && redirectCount < maxRedirects && locationValue != null) {
-            final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect = requestSpecBacking.getOnRedirect();
+            final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect = requestConfig.onRedirect;
             if (onRedirect != null) {
               final Action<? super RequestSpec> onRedirectResult = onRedirect.apply(toReceivedResponse(response));
               if (onRedirectResult == null) {
@@ -246,12 +183,13 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
               if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
                 locationUrl = new URI(locationValue);
               } else {
-                locationUrl = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), locationValue, null, null);
+                locationUrl = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, locationValue, null, null);
               }
 
-              buildRedirectRequestAction(redirectRequestConfig, locationUrl, redirectCount + 1).connect(downstream);
+              onRedirect(locationUrl, redirectCount + 1, redirectRequestConfig).connect(downstream);
+
               redirected = true;
-              channelPoolMap.get(baseURI).release(ctx.channel());
+              channelPool.release(ctx.channel());
             }
           }
         }
@@ -263,7 +201,7 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
     };
     addHandler(p, "redirectHandler", redirectHandler);
 
-    if (requestSpecBacking.isDecompressResponse()) {
+    if (requestConfig.decompressResponse) {
       addHandler(p, "httpContentDecompressor", new HttpContentDecompressor());
     } else {
       removeHandler(p, "httpContentDecompressor");
@@ -272,29 +210,31 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
     addResponseHandlers(p, downstream);
   }
 
-  protected abstract RequestAction<T> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount);
+  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig);
 
   protected void success(Downstream<? super T> downstream, T value) {
-    if (fired.compareAndSet(false, true)) {
+    if (!fired) {
+      fired = true;
       downstream.success(value);
     }
   }
 
   protected void error(Downstream<?> downstream, Throwable error) {
-    if (fired.compareAndSet(false, true)) {
+    if (!fired) {
+      fired = true;
       downstream.error(error);
     }
   }
 
-  protected ReceivedResponse toReceivedResponse(FullHttpResponse msg) {
-    return toReceivedResponse(msg, initBufferReleaseOnExecutionClose(msg.content(), this.execution));
+  ReceivedResponse toReceivedResponse(FullHttpResponse msg) {
+    return toReceivedResponse(msg, initBufferReleaseOnExecutionClose(msg.content(), execution));
   }
 
-  protected ReceivedResponse toReceivedResponse(HttpResponse msg) {
-    return toReceivedResponse(msg, byteBufAllocator.buffer(0, 0));
+  private ReceivedResponse toReceivedResponse(HttpResponse msg) {
+    return toReceivedResponse(msg, Unpooled.EMPTY_BUFFER);
   }
 
-  protected void addHandler(ChannelPipeline p, String name, ChannelHandler channelHandler) {
+  void addHandler(ChannelPipeline p, String name, ChannelHandler channelHandler) {
     if (p.get(name) == null) {
       p.addLast(name, channelHandler);
     } else {
@@ -302,13 +242,13 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
     }
   }
 
-  protected void addHandlerOnce(ChannelPipeline p, String name, ChannelHandler channelHandler) {
+  private void addHandlerOnce(ChannelPipeline p, String name, Factory<? extends ChannelHandler> channelHandler) throws Exception {
     if (p.get(name) == null) {
-      p.addLast(name, channelHandler);
+      p.addLast(name, channelHandler.create());
     }
   }
 
-  protected void removeHandler(ChannelPipeline p, String name) {
+  private void removeHandler(ChannelPipeline p, String name) {
     if (p.get(name) != null) {
       p.remove(name);
     }
@@ -316,7 +256,7 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
 
   private ReceivedResponse toReceivedResponse(HttpResponse msg, ByteBuf responseBuffer) {
     final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
-    String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE.toString());
+    String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE);
     final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
     final Status status = new DefaultStatus(msg.status());
     return new DefaultReceivedResponse(status, headers, typedData);
@@ -331,17 +271,22 @@ public abstract class RequestActionSupport<T> implements RequestAction<T> {
     return code == 301 || code == 302 || code == 303 || code == 307;
   }
 
-  private URI constructBaseURI(URI uri) {
-    try {
-      return new URI(uri.getScheme(),
-        null,
-        uri.getHost(),
-        uri.getPort(),
-        null,
-        null,
-        null);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Unable to create valid baseURI from " + uri);
+  private static String getFullPath(URI uri) {
+    String path = uri.getRawPath();
+    String query = uri.getRawQuery();
+    String fragment = uri.getRawFragment();
+
+    if (query == null && fragment == null) {
+      return path;
+    } else {
+      StringBuilder sb = new StringBuilder(path);
+      if (query != null) {
+        sb.append("?").append(query);
+      }
+      if (fragment != null) {
+        sb.append("#").append(fragment);
+      }
+      return sb.toString();
     }
   }
 

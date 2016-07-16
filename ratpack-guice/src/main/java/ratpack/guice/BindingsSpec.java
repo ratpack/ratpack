@@ -311,7 +311,7 @@ public interface BindingsSpec extends RegistrySpec {
   }
 
   @Override
-  default <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+  default <O> RegistrySpec add(TypeToken<O> type, O object) {
     return multiBindInstance(type, object);
   }
 

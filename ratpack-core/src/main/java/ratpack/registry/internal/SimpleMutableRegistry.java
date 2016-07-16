@@ -43,7 +43,7 @@ public class SimpleMutableRegistry implements MutableRegistry {
   }
 
   @Override
-  public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+  public <O> RegistrySpec add(TypeToken<O> type, O object) {
     entries.add(new DefaultRegistryEntry<>(type, object));
     return this;
   }

@@ -395,13 +395,13 @@ public interface Request extends MutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  <O> Request add(Class<? super O> type, O object);
+  <O> Request add(Class<O> type, O object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> Request add(TypeToken<? super O> type, O object);
+  <O> Request add(TypeToken<O> type, O object);
 
   /**
    * {@inheritDoc}

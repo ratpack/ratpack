@@ -21,12 +21,16 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
+import ratpack.exec.ExecController;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.HttpUrlBuilder;
+import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.internal.DelegatingRequestSpec;
@@ -34,6 +38,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
+import ratpack.util.Exceptions;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,6 +50,8 @@ import java.util.Map;
 import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultTestHttpClient implements TestHttpClient {
+
+  private static final UnpooledByteBufAllocator UNPOOLED_HEAP_ALLOCATOR = new UnpooledByteBufAllocator(false);
 
   private final ApplicationUnderTest applicationUnderTest;
   private final BlockingHttpClient client = new BlockingHttpClient();
@@ -228,18 +235,19 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
-    try {
+    try (ExecController execController = new DefaultExecController(2)) {
       URI uri = builder(path).params(params).build();
-
-      response = client.request(uri, Duration.ofMinutes(60), requestSpec -> {
-        final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
-        decorated.method("GET");
-        defaultRequestConfig.execute(decorated);
-        request.execute(decorated);
-        requestAction.execute(decorated);
-        int port = uri.getPort() > 0 ? uri.getPort() : 80;
-        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
-      });
+      try (HttpClient httpClient = httpClient(execController)) {
+        response = client.request(httpClient, uri, Duration.ofMinutes(60), requestSpec -> {
+          final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
+          decorated.method("GET");
+          defaultRequestConfig.execute(decorated);
+          request.execute(decorated);
+          requestAction.execute(decorated);
+          int port = uri.getPort() > 0 ? uri.getPort() : 80;
+          requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
+        });
+      }
     } catch (Throwable throwable) {
       throw uncheck(throwable);
     }
@@ -248,8 +256,17 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return response;
   }
 
+  private HttpClient httpClient(ExecController execController) {
+    return Exceptions.uncheck(() -> HttpClient.of(s -> s
+      .execController(execController)
+      .byteBufAllocator(UNPOOLED_HEAP_ALLOCATOR)
+      .maxContentLength(Integer.MAX_VALUE)
+      .poolSize(8)
+    ));
+  }
+
   private void applyCookies(RequestSpec requestSpec) {
-    List<Cookie> requestCookies = getCookies(requestSpec.getUrl().getPath());
+    List<Cookie> requestCookies = getCookies(requestSpec.getUri().getPath());
     String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
     requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
   }
@@ -262,7 +279,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
+            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext(); ) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }
@@ -301,9 +318,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   public List<Cookie> getCookies(String path) {
     List<Cookie> clonedList = Lists.newLinkedList();
-    if (cookies == null) {
-      return clonedList;
-    }
     if (path == null || "".equals(path) || "/".equals(path)) {
       List<Cookie> list = cookies.get("/");
       if (list != null) {

@@ -16,23 +16,23 @@
 
 package ratpack.http.client
 
-import ratpack.http.client.internal.PooledHttpClientFactory
-import ratpack.http.client.internal.PooledHttpConfig
 import spock.lang.Unroll
 
 @Unroll
-class HttpReverseProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
+class HttpReverseProxySpec extends BaseHttpClientSpec {
 
   def "can forward request body"() {
     when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         render request.body.map { "received: " + it.text }
       }
     }
     handlers {
-      post {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      post { HttpClient httpClient ->
         request.body.then { body ->
           httpClient.requestStream(otherAppUrl()) {
             it.method "POST"

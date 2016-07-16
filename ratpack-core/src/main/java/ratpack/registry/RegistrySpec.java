@@ -37,7 +37,7 @@ public interface RegistrySpec {
    * @param <O> the public type of the registry entry
    * @return this
    */
-  default <O> RegistrySpec add(Class<? super O> type, O object) {
+  default <O> RegistrySpec add(Class<O> type, O object) {
     return add(Types.token(type), object);
   }
 
@@ -49,7 +49,7 @@ public interface RegistrySpec {
    * @param <O> the public type of the registry entry
    * @return this
    */
-  default <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+  default <O> RegistrySpec add(TypeToken<O> type, O object) {
     return addLazy(type, () -> object);
   }
 

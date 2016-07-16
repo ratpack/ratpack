@@ -288,13 +288,13 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public <O> Request add(TypeToken<? super O> type, O object) {
+  public <O> Request add(TypeToken<O> type, O object) {
     getDelegateRegistry().add(type, object);
     return this;
   }
 
   @Override
-  public <O> Request add(Class<? super O> type, O object) {
+  public <O> Request add(Class<O> type, O object) {
     getDelegateRegistry().add(type, object);
     return this;
   }

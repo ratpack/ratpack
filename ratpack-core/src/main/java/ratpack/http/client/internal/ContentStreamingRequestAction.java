@@ -17,23 +17,18 @@
 package ratpack.http.client.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
@@ -54,41 +49,36 @@ import static ratpack.util.Exceptions.uncheck;
 
 public class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(ContentStreamingRequestAction.class);
-
   private final AtomicBoolean subscribedTo = new AtomicBoolean();
 
-
-  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, ChannelPoolMap<URI, ChannelPool> channelPoolMap, PooledHttpConfig config, URI uri, ByteBufAllocator byteBufAllocator, Execution execution, int redirectCount) {
-    super(requestConfigurer, channelPoolMap, config, uri, byteBufAllocator, execution, redirectCount);
+  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
+    super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
     addHandler(p, "httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
-      private boolean isKeepAlive;
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
-        isKeepAlive = HttpUtil.isKeepAlive(msg);
         // Switch auto reading off so we can control the flow of response content
         p.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
-          channelPoolMap.get(baseURI).release(ctx.channel());
-          if (!subscribedTo.get() && ctx.channel().isOpen()) {
+          if (!subscribedTo.get()) {
             ctx.close();
+            channelPool.release(ctx.channel());
           }
         });
 
         final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
         final Status status = new DefaultStatus(msg.status());
 
-        success(downstream, new DefaultStreamedResponse(p, status, headers, isKeepAlive));
+        success(downstream, new DefaultStreamedResponse(p, status, headers));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        channelPoolMap.get(baseURI).release(ctx.channel());
+        channelPool.release(ctx.channel());
         ctx.close();
         error(downstream, cause);
       }
@@ -96,21 +86,19 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   }
 
   @Override
-  protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentStreamingRequestAction(redirectRequestConfig, channelPoolMap, config, locationUrl, byteBufAllocator, execution, redirectCount);
+  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
+    return new ContentStreamingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 
   private class DefaultStreamedResponse implements StreamedResponse {
     private final ChannelPipeline channelPipeline;
     private final Status status;
     private final Headers headers;
-    private final boolean isKeepAlive;
 
-    public DefaultStreamedResponse(ChannelPipeline p, Status status, Headers headers, boolean isKeepAlive) {
+    DefaultStreamedResponse(ChannelPipeline p, Status status, Headers headers) {
       this.channelPipeline = p;
       this.status = status;
       this.headers = headers;
-      this.isKeepAlive = isKeepAlive;
     }
 
     @Override
@@ -130,7 +118,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public TransformablePublisher<ByteBuf> getBody() {
-      return Streams.transformable(new HttpContentPublisher(channelPipeline, isKeepAlive));
+      return Streams.transformable(new HttpContentPublisher(channelPipeline));
     }
 
     @Override
@@ -158,11 +146,9 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
     private Subscriber<? super ByteBuf> subscriber;
     private final ChannelPipeline channelPipeline;
     private final AtomicBoolean stopped = new AtomicBoolean();
-    private final boolean isKeepAlive;
 
-    public HttpContentPublisher(ChannelPipeline p, boolean isKeepAlive) {
+    HttpContentPublisher(ChannelPipeline p) {
       this.channelPipeline = p;
-      this.isKeepAlive = isKeepAlive;
     }
 
     @Override
@@ -184,7 +170,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (stopped.compareAndSet(false, true)) {
             subscriber.onError(cause);
           }
-          channelPoolMap.get(baseURI).release(ctx.channel());
+          channelPool.release(ctx.channel());
           if (ctx.channel().isOpen()) {
             ctx.close();
           }
@@ -212,7 +198,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         @Override
         public void cancel() {
           stopped.set(true);
-          channelPoolMap.get(baseURI).release(channelPipeline.channel());
+          channelPool.release(channelPipeline.channel());
           if (channelPipeline.channel().isOpen()) {
             channelPipeline.channel().close();
           }

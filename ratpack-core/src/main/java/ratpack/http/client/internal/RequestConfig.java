@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.util.CharsetUtil;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.MutableHeaders;
+import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 
 import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
@@ -36,86 +38,107 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.Duration;
 
-class RequestSpecBacking {
+class RequestConfig {
 
-  private final MutableHeaders headers;
-  private final URI uri;
-  private final ByteBufAllocator byteBufAllocator;
-  private final RequestParams requestParams;
-  private boolean decompressResponse;
+  final URI uri;
+  final String method;
+  final MutableHeaders headers;
+  final ByteBuf body;
+  final int maxContentLength;
+  final Duration connectTimeout;
+  final Duration readTimeout;
+  final boolean decompressResponse;
+  final int maxRedirects;
+  final SSLContext sslContext;
+  final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
 
-  private ByteBuf bodyByteBuf;
+  static RequestConfig of(URI uri, HttpClient httpClient, Action<? super RequestSpec> action) throws Exception {
+    Spec spec = new Spec(uri, httpClient.getByteBufAllocator());
 
-  private String method = "GET";
-  private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
-  private SSLContext sslContext;
-  private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
+    spec.readTimeout = httpClient.getReadTimeout();
+    spec.maxContentLength = httpClient.getMaxContentLength();
 
-  public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
-    this.headers = headers;
+    action.execute(spec);
+
+    return new RequestConfig(
+      spec.uri,
+      spec.method,
+      spec.headers,
+      spec.bodyByteBuf,
+      spec.maxContentLength,
+      spec.connectTimeout,
+      spec.readTimeout,
+      spec.decompressResponse,
+      spec.maxRedirects,
+      spec.sslContext,
+      spec.onRedirect
+    );
+  }
+
+  private RequestConfig(URI uri, String method, MutableHeaders headers, ByteBuf body, int maxContentLength, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SSLContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
-    this.byteBufAllocator = byteBufAllocator;
-    this.requestParams = requestParams;
-    this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
-    this.decompressResponse = true;
+    this.method = method;
+    this.headers = headers;
+    this.body = body;
+    this.maxContentLength = maxContentLength;
+    this.connectTimeout = connectTimeout;
+    this.readTimeout = readTimeout;
+    this.decompressResponse = decompressResponse;
+    this.maxRedirects = maxRedirects;
+    this.sslContext = sslContext;
+    this.onRedirect = onRedirect;
   }
 
-  public Function<? super ReceivedResponse, Action<? super RequestSpec>> getOnRedirect() {
-    return onRedirect;
-  }
+  private static class Spec implements RequestSpec {
 
-  public String getMethod() {
-    return method;
-  }
+    private final ByteBufAllocator byteBufAllocator;
+    private final URI uri;
 
-  public int getMaxRedirects() {
-    return maxRedirects;
-  }
-
-  public boolean isDecompressResponse() {
-    return decompressResponse;
-  }
-
-  @Nullable
-  public SSLContext getSslContext() {
-    return sslContext;
-  }
-
-  @Nullable
-  public ByteBuf getBody() {
-    return bodyByteBuf;
-  }
-
-  public RequestSpec asSpec() {
-    return new Spec();
-  }
-
-  private class Spec implements RequestSpec {
-
+    private MutableHeaders headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
+    private boolean decompressResponse = true;
+    private Duration connectTimeout = Duration.ofSeconds(30);
+    private Duration readTimeout = Duration.ofSeconds(30);
+    private int maxContentLength = -1;
+    private ByteBuf bodyByteBuf = Unpooled.EMPTY_BUFFER;
+    private String method = "GET";
+    private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
+    private SSLContext sslContext;
+    private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
     private BodyImpl body = new BodyImpl();
+
+    Spec(URI uri, ByteBufAllocator byteBufAllocator) {
+      this.uri = uri;
+      this.byteBufAllocator = byteBufAllocator;
+    }
 
     @Override
     public RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function) {
-      RequestSpecBacking.this.onRedirect = function;
+      this.onRedirect = function;
       return this;
     }
 
     @Override
     public RequestSpec redirects(int maxRedirects) {
       Preconditions.checkArgument(maxRedirects >= 0);
-      RequestSpecBacking.this.maxRedirects = maxRedirects;
+      this.maxRedirects = maxRedirects;
       return this;
     }
 
     @Override
     public RequestSpec sslContext(SSLContext sslContext) {
-      RequestSpecBacking.this.sslContext = sslContext;
+      this.sslContext = sslContext;
       return this;
     }
 
     @Override
     public MutableHeaders getHeaders() {
       return headers;
+    }
+
+    @Override
+    public RequestSpec maxContentLength(int numBytes) {
+      this.maxContentLength = numBytes;
+      return this;
     }
 
     @Override
@@ -126,30 +149,30 @@ class RequestSpecBacking {
 
     @Override
     public RequestSpec method(String method) {
-      RequestSpecBacking.this.method = method.toUpperCase();
+      this.method = method.toUpperCase();
       return this;
     }
 
     @Override
-    public RequestSpec decompressResponse(boolean shouldDecompress) {
-      RequestSpecBacking.this.decompressResponse = shouldDecompress;
-      return this;
-    }
-
-    @Override
-    public URI getUrl() {
+    public URI getUri() {
       return uri;
     }
 
     @Override
+    public RequestSpec decompressResponse(boolean shouldDecompress) {
+      this.decompressResponse = shouldDecompress;
+      return this;
+    }
+
+    @Override
     public RequestSpec connectTimeout(Duration duration) {
-      requestParams.connectTimeout = duration;
+      this.connectTimeout = duration;
       return this;
     }
 
     @Override
     public RequestSpec readTimeout(Duration duration) {
-      requestParams.readTimeoutNanos = duration.toNanos();
+      this.readTimeout = duration;
       return this;
     }
 

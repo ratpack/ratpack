@@ -19,8 +19,6 @@ package ratpack.http.client
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
-import ratpack.http.client.internal.PooledHttpClientFactory
-import ratpack.http.client.internal.PooledHttpConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -28,7 +26,7 @@ import spock.lang.Unroll
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 
 @Unroll
-class HttpClientPathologicalSpec extends RatpackGroovyDslSpec implements PooledHttpClientFactory {
+class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
 
   WireMockServer wm
 
@@ -40,13 +38,15 @@ class HttpClientPathologicalSpec extends RatpackGroovyDslSpec implements PooledH
   @Timeout(5)
   void "handles empty response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     wm.stubFor(WireMock.get(WireMock.urlEqualTo('/test')).willReturn(WireMock.aResponse().withFault(Fault.EMPTY_RESPONSE)))
     def mockServiceUrl = "http://localhost:${wm.port()}/test"
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         render httpClient.get(URI.create(mockServiceUrl))
           .map { "You'll never see this" }
           .mapError { it.message }

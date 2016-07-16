@@ -93,6 +93,15 @@ public interface RequestSpec {
   MutableHeaders getHeaders();
 
   /**
+   * The maximum response length to accept.
+   *
+   * @param numBytes the maximum response length to accept
+   * @return {@code this}
+   * @since 1.4
+   */
+  RequestSpec maxContentLength(int numBytes);
+
+  /**
    * This method can be used to compose changes to the headers.
    *
    * @param action Provide an action that will act on MutableHeaders.
@@ -115,18 +124,27 @@ public interface RequestSpec {
    */
   RequestSpec decompressResponse(boolean shouldDecompress);
 
-  URI getUrl();
+  /**
+   * The request URI.
+   *
+   * @return the request URI
+   * @since 1.4
+   */
+  URI getUri();
 
   /**
-   * Sets the socket connection timeout to the given value in seconds.
-   * <p>
-   * This value defaults to 30 seconds.
-   *
-   * @since 1.1
-   * @param seconds the socket connection timeout in seconds
-   * @see #connectTimeout(Duration)
-   * @return {@code this}
+   * @deprecated since 1.4, use {@link #getUri()}
    */
+  @Deprecated
+  default URI getUrl() {
+    return getUri();
+  }
+
+  /**
+   * @since 1.1
+   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
+   */
+  @Deprecated
   default RequestSpec connectTimeoutSeconds(int seconds) {
     return connectTimeout(Duration.of(seconds, SECONDS));
   }
@@ -142,6 +160,10 @@ public interface RequestSpec {
    */
   RequestSpec connectTimeout(Duration duration);
 
+  /**
+   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
+   */
+  @Deprecated
   default RequestSpec readTimeoutSeconds(int seconds) {
     return readTimeout(Duration.of(seconds, SECONDS));
   }

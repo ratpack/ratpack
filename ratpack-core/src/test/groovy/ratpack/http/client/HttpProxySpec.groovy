@@ -16,10 +16,6 @@
 
 package ratpack.http.client
 
-import ratpack.http.MutableHeaders
-import ratpack.http.client.internal.PooledHttpClientFactory
-import ratpack.http.client.internal.PooledHttpConfig
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -29,10 +25,13 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
 
 @Unroll
-class HttpProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
+class HttpProxySpec extends BaseHttpClientSpec {
 
   def "can proxy a client response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.headers.add("x-foo-header", "foo")
@@ -42,11 +41,10 @@ class HttpProxySpec extends HttpClientSpec implements PooledHttpClientFactory {
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
-        } then { StreamedResponse responseStream ->
-          responseStream.forwardTo(response)
+        } then {
+          it.forwardTo(response)
         }
       }
     }
@@ -65,11 +63,14 @@ bar
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive",""]
+    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can proxy a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.headers.add("x-foo-header", "foo")
@@ -81,11 +82,10 @@ bar
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
-        } then { StreamedResponse responseStream ->
-          responseStream.forwardTo(response)
+        } then {
+          it.forwardTo(response)
         }
       }
     }
@@ -108,11 +108,14 @@ bar
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive",""]
+    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can mutate response headers while proxying"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.headers.add("x-foo-header", "foo")
@@ -124,14 +127,10 @@ bar
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
-        } then { StreamedResponse responseStream ->
-          responseStream.forwardTo(response) { MutableHeaders headers ->
-            headers.remove("x-foo-header")
-            headers.add("x-bar-header", "bar")
-          }
+        } then {
+          it.forwardTo(response) { it.remove("x-foo-header").add("x-bar-header", "bar") }
         }
       }
     }
@@ -154,11 +153,14 @@ bar
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive",""]
+    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can proxy a client error"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.headers.add("x-foo-header", "foo")
@@ -168,11 +170,10 @@ bar
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
-        } then { StreamedResponse responseStream ->
-          responseStream.forwardTo(response)
+        } then {
+          it.forwardTo(response)
         }
       }
     }
@@ -191,11 +192,14 @@ Client error 404
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive",""]
+    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can proxy a server error"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.headers.add("x-foo-header", "foo")
@@ -205,11 +209,10 @@ Client error 404
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
-        } then { StreamedResponse responseStream ->
-          responseStream.forwardTo(response)
+        } then {
+          it.forwardTo(response)
         }
       }
     }
@@ -231,31 +234,31 @@ transfer-encoding: chunked
 
   def "can proxy compressed responses"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
-        response.send("bar")
+        render "bar"
       }
     }
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
-        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
-          rs.decompressResponse(false)
-          rs.headers.copy(request.headers)
-        } then { ReceivedResponse receivedResponse ->
-          receivedResponse.forwardTo(response)
+      get { HttpClient httpClient ->
+        httpClient.request(otherAppUrl("foo")) {
+          it.decompressResponse(false)
+            .headers.copy(request.headers)
+        } then {
+          it.forwardTo(response)
         }
       }
     }
 
     when:
-    def response = requestSpec { RequestSpec rs ->
-      rs.decompressResponse(false)
-      rs.headers { MutableHeaders h ->
-        h.add("Accept-Encoding", "compress, gzip")
-      }
+    def response = requestSpec {
+      it.decompressResponse(false)
+        .headers.add("Accept-Encoding", "compress, gzip")
     }.get()
 
     then:
@@ -266,39 +269,30 @@ transfer-encoding: chunked
     pooled << [true, false]
   }
 
-  //TODO - Problem with copying incoming and outgoing request body
-  @Ignore
   def "can proxy a post request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post("foo") {
-        request.body.then {
-          response.send it.text
-        }
+        render request.body.map { it.text }
       }
     }
 
     and:
     handlers {
-      post {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
-        httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
-          rs.method("POST")
-          rs.body { outgoingRequestBody ->
-            request.body.then { incomingRequestBody ->
-              outgoingRequestBody.buffer(incomingRequestBody.buffer)
-            }
-          }
-        } then { ReceivedResponse receivedResponse ->
-          receivedResponse.forwardTo(response)
+      post { HttpClient httpClient ->
+        request.body.flatMap { incoming ->
+          httpClient.request(otherAppUrl("foo")) { it.method("POST").body.buffer(incoming.buffer) }
+        } then {
+          it.forwardTo(response)
         }
       }
     }
 
     when:
-    def response = requestSpec { RequestSpec rs ->
-      rs.body.text("bar")
-    }.post()
+    def response = requestSpec { it.body.text("bar") }.post()
 
     then:
     response.body.text == "bar"

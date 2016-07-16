@@ -87,14 +87,8 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
-  public URI getUrl() {
-    return delegate.getUrl();
-  }
-
-  @Override
-  public RequestSpec readTimeoutSeconds(int seconds) {
-    delegate.readTimeoutSeconds(seconds);
-    return this;
+  public URI getUri() {
+    return delegate.getUri();
   }
 
   @Override
@@ -125,4 +119,10 @@ public class DelegatingRequestSpec implements RequestSpec {
     delegate.basicAuth(username, password);
     return this;
   }
+
+  @Override
+  public RequestSpec maxContentLength(int numBytes) {
+    return delegate.maxContentLength(numBytes);
+  }
+
 }

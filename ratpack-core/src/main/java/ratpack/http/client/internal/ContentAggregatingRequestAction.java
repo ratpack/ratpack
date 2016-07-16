@@ -16,61 +16,54 @@
 
 package ratpack.http.client.internal;
 
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
 import java.net.URI;
 
-public class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
+class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
 
-  private final int maxContentLengthBytes;
-
-  public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer,
-                                         ChannelPoolMap<URI, ChannelPool> channelPoolMap,
-                                         PooledHttpConfig config,
-                                         URI uri,
-                                         ByteBufAllocator byteBufAllocator,
-                                         int maxContentLengthBytes,
-                                         Execution execution,
-                                         int redirectCount) {
-    super(requestConfigurer, channelPoolMap, config, uri, byteBufAllocator, execution, redirectCount);
-    this.maxContentLengthBytes = maxContentLengthBytes;
+  ContentAggregatingRequestAction(
+    URI uri,
+    HttpClientInternal client,
+    int redirectCount,
+    Execution execution,
+    Action<? super RequestSpec> requestConfigurer
+  ) {
+    super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super ReceivedResponse> downstream) {
-    addHandler(p, "aggregator", new HttpObjectAggregator(maxContentLengthBytes));
+    addHandler(p, "aggregator", new HttpObjectAggregator(requestConfig.maxContentLength));
     addHandler(p, "httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        channelPoolMap.get(baseURI).release(ctx.channel());
+        channelPool.release(ctx.channel());
         success(downstream, toReceivedResponse(msg));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        channelPoolMap.get(baseURI).release(ctx.channel());
+        channelPool.release(ctx.channel());
         ctx.close();
         error(downstream, cause);
       }
     });
   }
 
-
   @Override
-  protected RequestActionSupport<ReceivedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentAggregatingRequestAction(redirectRequestConfig, channelPoolMap, config, locationUrl, byteBufAllocator, maxContentLengthBytes, execution, redirectCount);
+  protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
+    return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 }

@@ -17,16 +17,17 @@
 package ratpack.http.client
 
 import ratpack.func.Action
-import ratpack.http.client.internal.PooledHttpClientFactory
-import ratpack.http.client.internal.PooledHttpConfig
 import ratpack.http.internal.HttpHeaderConstants
 import spock.lang.Unroll
 
 @Unroll
-class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClientFactory {
+class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
   def "can follow simple redirect get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -39,9 +40,8 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
     when:
     handlers {
-      get {
-        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
-        hcl.get(otherAppUrl("foo2")) {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {
         } then {
           render it.body.text
         }
@@ -57,6 +57,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
   def "can follow a relative redirect get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         response.with {
@@ -70,9 +73,8 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
     when:
     handlers {
-      get {
-        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
-        hcl.get(otherAppUrl("foo")) {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
         } then { ReceivedResponse response ->
           render response.body.text
         }
@@ -89,6 +91,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
   def "Do not follow simple redirect if redirects set to 0"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -101,9 +106,8 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
     when:
     handlers {
-      get {
-        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
-        hcl.get(otherAppUrl("foo2")) {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {
           it.redirects(0)
         } then { ReceivedResponse response ->
           render response.body.text
@@ -120,6 +124,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
   def "Stop redirects in loop"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -132,10 +139,8 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
     when:
     handlers {
-      get {
-        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
-        hcl.get(otherAppUrl("foo2")) { action ->
-        }.then { ReceivedResponse response ->
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {} then { ReceivedResponse response ->
           render "Status: " + response.statusCode
         }
       }
@@ -150,6 +155,9 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
 
   def "can use redirect strategy"() {
     when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         def count = request.headers.get("count").toInteger()
@@ -163,9 +171,8 @@ class HttpClientRedirectionSpec extends HttpClientSpec implements PooledHttpClie
     }
 
     handlers {
-      get {
-        HttpClient hcl = createClient(context, new PooledHttpConfig(pooled: pooled))
-        hcl.get(otherAppUrl()) { RequestSpec r ->
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl()) { RequestSpec r ->
           r.headers.set("count", "0")
           r.onRedirect { ReceivedResponse res ->
             def count = res.headers.get("count").toInteger()

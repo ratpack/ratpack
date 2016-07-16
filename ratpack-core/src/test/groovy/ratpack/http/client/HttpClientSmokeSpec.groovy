@@ -24,10 +24,7 @@ import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
-import ratpack.http.client.internal.PooledHttpClientFactory
-import ratpack.http.client.internal.PooledHttpConfig
 import ratpack.stream.Streams
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -40,10 +37,13 @@ import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
 @Unroll
-class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFactory {
+class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
   def "can make simple get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render "bar"
@@ -52,8 +52,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl("foo")) {
         } then { ReceivedResponse response ->
           render response.body.text
@@ -70,6 +69,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can make post request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post("foo") {
         request.body.then { body ->
@@ -80,8 +82,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         def respProm = httpClient.post(otherAppUrl("foo")) {
           it.body.type("text/plain").text("bar")
         }
@@ -102,6 +103,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "client response buffer is retained for the execution"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         render "foo"
@@ -110,8 +114,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
         } then {
           def buffer = it.body.buffer
@@ -137,6 +140,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can write body using buffer"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -147,8 +153,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.post(otherAppUrl()) {
           it.body {
             it.buffer(Unpooled.copiedBuffer("foo", CharsetUtil.UTF_8))
@@ -168,6 +173,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can write body using bytes"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -178,8 +186,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.post(otherAppUrl()) {
           it.body {
             it.bytes("foo".getBytes(CharsetUtil.UTF_8))
@@ -207,8 +214,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
           it.headers {
             it.add("foo", "bar")
@@ -225,6 +231,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can serve response body buffer"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         render "abc123"
@@ -233,8 +242,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
         } then {
           it.forwardTo(response)
@@ -252,6 +260,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can send request body as text"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -263,8 +274,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.post(otherAppUrl()) {
           it.body.text("føø")
         } then {
@@ -282,6 +292,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can send request body as text of content type"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -292,8 +305,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.post(otherAppUrl()) {
           it.body.type("application/json").text("{'foo': 'bar'}")
         } then {
@@ -311,12 +323,14 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "500 Error when RequestSpec throws an exception"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {}
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
           throw new Exception("Some failure in the RequestSpec")
         } then {
@@ -338,14 +352,17 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
   @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
   def "can set connect timeout"() {
     setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     def nonRoutableIp = '192.168.0.0'
-    def pooledHttpConfig = new PooledHttpConfig(connectionTimeoutNanos: 20000000)
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, pooledHttpConfig)
-        httpClient.get("http://$nonRoutableIp".toURI()).onError {
+      get { HttpClient httpClient ->
+        httpClient.get("http://$nonRoutableIp".toURI()) {
+          it.connectTimeout(Duration.ofMillis(20))
+        } onError {
           render it.class.name
         } then {
           render "success"
@@ -362,7 +379,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can set read timeout from pooling config"() {
     setup:
-    def pooledHttpConfig = new PooledHttpConfig(readTimeoutNanos: 1000000000L, pooled: pooled)
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
 
     when:
     otherApp {
@@ -378,9 +397,10 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
     }
 
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, pooledHttpConfig)
-        httpClient.get(otherAppUrl(), { it.readTimeoutSeconds(0) }).onError {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl()) {
+          it.readTimeoutSeconds(1)
+        } onError {
           render it.class.name
         } then {
           render "success"
@@ -397,7 +417,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can set read timeout on request"() {
     setup:
-    def pooledHttpConfig = new PooledHttpConfig(pooled: pooled)
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
 
     when:
     otherApp {
@@ -413,8 +435,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
     }
 
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, pooledHttpConfig)
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl(), { it.readTimeoutSeconds(1) }).onError {
           render it.class.name
         } then {
@@ -432,6 +453,9 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
   def "can directly stream a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render stringChunks(
@@ -442,8 +466,7 @@ class HttpClientSmokeSpec extends HttpClientSpec implements PooledHttpClientFact
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -467,12 +490,16 @@ bar
 """
 
     where:
-    pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive", ""]
+    pooled | keepalive
+    true   | "\nconnection: keep-alive"
+    false  | ""
   }
 
   def "can modify the stream of a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render stringChunks(
@@ -483,8 +510,7 @@ bar
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) {
         } then { StreamedResponse stream ->
           render stringChunks(
@@ -515,10 +541,11 @@ BAR
     pooled << [true, false]
   }
 
-  //TODO - Random test case failure ... Need to dig into root cause.
-  @Ignore
   def "can follow a redirect when streaming a client response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -531,8 +558,7 @@ BAR
 
     when:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo2")) {
         } then { StreamedResponse responseStream ->
           responseStream.forwardTo(response)
@@ -549,7 +575,9 @@ BAR
 
   def "can decompress a compressed response"() {
     given:
-    def pooledHttpConfig = new PooledHttpConfig(decompressResponse: false)
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
@@ -565,8 +593,7 @@ BAR
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, pooledHttpConfig)
+      get { HttpClient httpClient ->
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
           rs.headers.set("accept-encoding", "compress, gzip")
         } then { ReceivedResponse receivedResponse ->
@@ -588,6 +615,9 @@ BAR
 
   def "can not decompress a compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
@@ -604,8 +634,7 @@ BAR
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, new PooledHttpConfig(pooled: pooled))
+      get { HttpClient httpClient ->
         httpClient.request(otherAppUrl("foo")) { RequestSpec rs ->
           rs.headers.set("accept-encoding", "compress, gzip")
           rs.decompressResponse(false)
@@ -628,7 +657,9 @@ BAR
 
   def "can decompress a streamed compressed response"() {
     given:
-    def pooledHttpConfig = new PooledHttpConfig(decompressResponse: false, pooled: pooled)
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
@@ -644,8 +675,7 @@ BAR
 
     and:
     handlers {
-      get {
-        HttpClient httpClient = createClient(context, pooledHttpConfig)
+      get { HttpClient httpClient ->
         httpClient.requestStream(otherAppUrl("foo")) { rs ->
           rs.headers.set("accept-Encoding", "compress, gzip")
         } then { StreamedResponse streamedResponse ->

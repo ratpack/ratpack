@@ -36,7 +36,7 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
   }
 
   @Override
-  public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+  public <O> RegistrySpec add(TypeToken<O> type, O object) {
     return spec.add(type, object);
   }
 
