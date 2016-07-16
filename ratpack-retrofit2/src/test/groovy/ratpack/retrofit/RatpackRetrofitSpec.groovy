@@ -18,6 +18,7 @@ package ratpack.retrofit
 
 import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.exec.Promise
+import ratpack.exec.internal.DefaultExecController
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Context
 import ratpack.http.client.HttpClient
@@ -49,7 +50,7 @@ class RatpackRetrofitSpec extends Specification {
   EmbeddedApp server
 
   Context mockContext = Mock()
-  HttpClient client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
+  HttpClient client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH, new DefaultExecController(2))
 
   def setup = { RegistrySpec r ->
     r.add(mockContext)
