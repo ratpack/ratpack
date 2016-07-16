@@ -16,33 +16,37 @@
 
 package ratpack.http.client.internal
 
-import io.netty.buffer.ByteBufAllocator
+import groovy.transform.InheritConstructors
 import io.netty.channel.Channel
 import io.netty.channel.ChannelPipeline
 import ratpack.exec.Downstream
-import ratpack.exec.ExecController
-import ratpack.exec.Execution
 import ratpack.exec.Promise
-import ratpack.func.Action
-import ratpack.http.client.HttpClientSpec
-import ratpack.http.client.RequestSpec
+import ratpack.http.client.BaseHttpClientSpec
+import ratpack.http.client.HttpClient
 import ratpack.http.client.StreamedResponse
+import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
-class ContentStreamingRequestActionSpec extends HttpClientSpec {
+@Unroll
+class ContentStreamingRequestActionSpec extends BaseHttpClientSpec {
 
-  def "client channel is closed when response is not subscribed to"() {
-    def requestAction
-    def latch = new CountDownLatch(1)
-
+  def "client channel is closed when response is not subscribed to"(pooled, keepalive) {
     given:
-    otherApp { get("foo") { render "bar" } }
+    ChannelSpyRequestAction requestAction = null
+    def latch = new CountDownLatch(1)
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+
+    otherApp { get("foo") { response.headers.set('connection', keepalive); render "bar" } }
 
     and:
     handlers {
-      get { ExecController execController, ByteBufAllocator byteBufAllocator ->
-        requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), execution, byteBufAllocator)
+      get { HttpClient httpClient ->
+        HttpClientInternal httpClientInternal = httpClient as HttpClientInternal
+        requestAction = new ChannelSpyRequestAction({}, otherAppUrl("foo"), httpClientInternal, execution, 0)
         Promise.async(requestAction).then {
           execution.onComplete {
             latch.countDown()
@@ -55,15 +59,24 @@ class ContentStreamingRequestActionSpec extends HttpClientSpec {
     expect:
     text == 'foo'
     latch.await()
-    !requestAction.channel.open
+    //sometimes it takes a while for netty to actually close the channel - wait a few seconds for that to happen
+    for (int i = 0; i < 3; i++) {
+      if (requestAction.channel.open) {
+        TimeUnit.SECONDS.sleep(1)
+      } else {
+        break
+      }
+    }
+    assert !requestAction.channel.open
+
+    where:
+    pooled << [true, false]
+    keepalive << ['keep-alive', 'close']
   }
 
+  @InheritConstructors
   static class ChannelSpyRequestAction extends ContentStreamingRequestAction {
     private Channel channel
-
-    ChannelSpyRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator) {
-      super(requestConfigurer, uri, execution, byteBufAllocator, 0)
-    }
 
     @Override
     protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {

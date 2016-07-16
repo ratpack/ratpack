@@ -151,7 +151,7 @@ public interface Execution extends MutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  default <O> Execution add(Class<? super O> type, O object) {
+  default <O> Execution add(Class<O> type, O object) {
     MutableRegistry.super.add(type, object);
     return this;
   }
@@ -160,7 +160,7 @@ public interface Execution extends MutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  default <O> Execution add(TypeToken<? super O> type, O object) {
+  default <O> Execution add(TypeToken<O> type, O object) {
     MutableRegistry.super.add(type, object);
     return this;
   }

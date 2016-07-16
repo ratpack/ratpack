@@ -331,7 +331,7 @@ public class Streams {
    * <p>
    * The {@code mapper} function receives a {@link WriteStream} for emitting items and returns a {@link WriteStream} that will be written to by the upstream publisher.
    * Calling {@link WriteStream#complete()} or {@link WriteStream#error(Throwable)} on the received write stream will {@link org.reactivestreams.Subscription#cancel() cancel} the upstream subscription and it is guaranteed that no more items will be emitted from the upstream.
-   * If the complete/error signals from upstream don't need to be intercepted, the {@link WriteStream#itemMap(Action)} can be used on the write stream given to the mapping function to create the return write stream.
+   * If the complete/error signals from upstream don't need to be intercepted, the {@link WriteStream#itemMap(Action)} can be used on the write stream given to the mapping function to of the return write stream.
    * <p>
    * The returned stream is {@link #buffer buffered}, which allows the stream transformation to emit more items downstream than what was received from the upstream.
    * Currently, the upstream subscription will always receive a single {@link org.reactivestreams.Subscription#request(long) request} for {@link Long#MAX_VALUE}, effectively asking upstream to emit as fast as it can.

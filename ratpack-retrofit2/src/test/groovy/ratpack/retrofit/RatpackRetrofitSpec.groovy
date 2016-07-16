@@ -22,7 +22,6 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Context
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
-import ratpack.http.client.internal.DefaultHttpClient
 import ratpack.registry.RegistrySpec
 import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
@@ -35,12 +34,23 @@ import spock.lang.Specification
 class RatpackRetrofitSpec extends Specification {
 
   interface Service {
-    @GET("/") Promise<String> root()
-    @GET("/") Promise<Response<String>> rootResponse()
-    @GET("/") Promise<ReceivedResponse> rawResponse()
-    @GET("/foo") Promise<Response<String>> fooResponse()
-    @GET("/error") Promise<String> error()
-    @GET("/error") Promise<Response<String>> errorResponse()
+    @GET("/")
+    Promise<String> root()
+
+    @GET("/")
+    Promise<Response<String>> rootResponse()
+
+    @GET("/")
+    Promise<ReceivedResponse> rawResponse()
+
+    @GET("/foo")
+    Promise<Response<String>> fooResponse()
+
+    @GET("/error")
+    Promise<String> error()
+
+    @GET("/error")
+    Promise<Response<String>> errorResponse()
   }
 
   Service service
@@ -49,7 +59,13 @@ class RatpackRetrofitSpec extends Specification {
   EmbeddedApp server
 
   Context mockContext = Mock()
-  HttpClient client = new DefaultHttpClient(UnpooledByteBufAllocator.DEFAULT, ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
+
+  def HttpClient client() {
+    HttpClient.of {
+      it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
+      it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
+    }
+  }
 
   def setup = { RegistrySpec r ->
     r.add(mockContext)
@@ -72,7 +88,7 @@ class RatpackRetrofitSpec extends Specification {
     service = RatpackRetrofit
       .client(server.address)
       .build(Service)
-    _ * mockContext.get(HttpClient) >> client
+    _ * mockContext.get(HttpClient) >> { client() }
   }
 
   def "successful request body"() {
