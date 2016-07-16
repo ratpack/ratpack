@@ -33,4 +33,20 @@ class GroovyEmbeddedAppSpec extends Specification {
     }
   }
 
+  def "embedded app using ratpack.groovy syntax"() {
+    expect:
+    GroovyEmbeddedApp.ratpack {
+      bindings {
+        bindInstance String, "foo"
+      }
+      handlers {
+        all {
+          render get(String)
+        }
+      }
+    } test {
+      assert it.text == "foo"
+    }
+  }
+
 }

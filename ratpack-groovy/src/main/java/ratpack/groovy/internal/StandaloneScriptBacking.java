@@ -20,13 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import ratpack.func.Action;
 import ratpack.groovy.Groovy;
-import ratpack.groovy.internal.capture.RatpackDslBacking;
-import ratpack.groovy.internal.capture.RatpackDslClosures;
-import ratpack.guice.Guice;
 import ratpack.server.RatpackServer;
-import ratpack.server.RatpackServerSpec;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
 
 import java.nio.file.Path;
 import java.util.concurrent.locks.Lock;
@@ -54,33 +48,12 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
       Path scriptFile = ClosureUtil.findScript(closure);
       if (scriptFile == null) {
-        running = RatpackServer.start(new ConsoleScriptConfigurer(closure));
+        running = RatpackServer.start(new RatpackClosureConfigurer(closure));
       } else {
         running = RatpackServer.start(Groovy.Script.app(scriptFile));
       }
     } finally {
       lock.unlock();
-    }
-  }
-
-  private static class ConsoleScriptConfigurer implements Action<RatpackServerSpec> {
-
-    private final Closure<?> closure;
-
-    public ConsoleScriptConfigurer(Closure<?> closure) {
-      this.closure = closure;
-    }
-
-    @Override
-    public void execute(RatpackServerSpec server) throws Exception {
-      RatpackDslClosures closures = new RatpackDslClosures(null);
-      RatpackDslBacking backing = new RatpackDslBacking(closures);
-      ClosureUtil.configureDelegateFirst(backing, closure);
-      server.registry(Guice.registry(ClosureUtil.delegatingAction(closures.getBindings())));
-      server.handlers(Groovy.chainAction(closures.getHandlers()));
-      ServerConfigBuilder builder = ServerConfig.builder().development(true);
-      ClosureUtil.configureDelegateFirst(builder, closures.getServerConfig());
-      server.serverConfig(builder);
     }
   }
 }
