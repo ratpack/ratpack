@@ -24,7 +24,6 @@ import ratpack.func.Action;
 import ratpack.http.client.internal.DefaultHttpClient;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
-import ratpack.sse.ServerSentEventStreamClient;
 import ratpack.util.Exceptions;
 
 import java.net.URI;
@@ -107,13 +106,6 @@ public interface HttpClient extends AutoCloseable {
   default Promise<ReceivedResponse> get(URI uri) {
     return get(uri, Action.noop());
   }
-
-  /**
-   * A client for accepting a server sent event stream.
-   *
-   * @since 1.4
-   */
-  ServerSentEventStreamClient getSseClient();
 
   /**
    * The buffer allocator used by the client.

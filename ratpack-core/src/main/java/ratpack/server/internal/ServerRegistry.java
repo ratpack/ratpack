@@ -132,7 +132,7 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, httpClient)
-        .add(ServerSentEventStreamClient.class, httpClient.getSseClient())
+        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
         .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());
 
