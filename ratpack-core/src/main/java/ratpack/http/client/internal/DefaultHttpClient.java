@@ -29,8 +29,6 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
-import ratpack.sse.ServerSentEventStreamClient;
-import ratpack.sse.internal.DefaultServerSentEventStreamClient;
 import ratpack.util.internal.ChannelImplDetector;
 
 import java.net.URI;
@@ -114,11 +112,6 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   public ExecController getExecController() {
     return execController;
-  }
-
-  @Override
-  public ServerSentEventStreamClient getSseClient() {
-    return new DefaultServerSentEventStreamClient(this);
   }
 
   @Override
