@@ -35,8 +35,7 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
       post { HttpClient httpClient ->
         request.body.then { body ->
           httpClient.requestStream(otherAppUrl()) {
-            it.method "POST"
-            it.body.buffer body.buffer
+            it.post().body.buffer body.buffer
           } then {
             it.forwardTo(response)
           }
@@ -46,8 +45,7 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
 
     then:
     def r = request {
-      it.method "POST"
-      it.body.text "foo"
+      it.post().body.text "foo"
     }
 
     r.body.text == "received: foo"

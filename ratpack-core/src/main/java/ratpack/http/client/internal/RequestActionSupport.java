@@ -83,7 +83,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
         addCommonResponseHandlers(channel.pipeline(), downstream);
 
         String fullPath = getFullPath(requestConfig.uri);
-        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestConfig.method), fullPath, requestConfig.body);
+        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestConfig.method.getNettyMethod(), fullPath, requestConfig.body);
         if (requestConfig.headers.get(HttpHeaderConstants.HOST) == null) {
           HostAndPort hostAndPort = HostAndPort.fromParts(channelKey.host, channelKey.port);
           requestConfig.headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
@@ -174,7 +174,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
             if (redirectConfigurer != null) {
               Action<? super RequestSpec> redirectRequestConfig = s -> {
                 if (status == 301 || status == 302) {
-                  s.method("GET");
+                  s.get();
                 }
               };
               redirectRequestConfig = redirectRequestConfig.append(redirectConfigurer);

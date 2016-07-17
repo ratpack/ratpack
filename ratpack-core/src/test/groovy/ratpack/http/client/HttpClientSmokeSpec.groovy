@@ -795,10 +795,10 @@ BAR
 
     when:
     def response = request { spec ->
-      spec.method("OPTIONS")
+      spec.options()
     }
     def pathResponse = request("foo") { spec ->
-      spec.method("OPTIONS")
+      spec.options()
     }
 
     then:
@@ -820,10 +820,10 @@ BAR
 
     when:
     def response = request { spec ->
-      spec.method("HEAD")
+      spec.head()
     }
     def pathResponse = request("foo") { spec ->
-      spec.method("HEAD")
+      spec.head()
     }
 
     then:

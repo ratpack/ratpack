@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 
 import javax.net.ssl.SSLContext;
@@ -111,14 +112,97 @@ public interface RequestSpec {
   RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
 
   /**
-   * Set the HTTP verb to use.
-   * @param method which HTTP verb to use
+   * Specifies the request method.
+   *
+   * @param method the method
    * @return this
    */
-  RequestSpec method(String method);
+  default RequestSpec method(String method) {
+    return method(HttpMethod.of(method));
+  }
+
+  /**
+   * Specifies the request method.
+   *
+   * @param method the method
+   * @return this
+   * @since 1.4
+   */
+  RequestSpec method(HttpMethod method);
+
+  /**
+   * Specifies to use the GET request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec get() {
+    return method(HttpMethod.GET);
+  }
+
+  /**
+   * Specifies to use the POST request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec post() {
+    return method(HttpMethod.POST);
+  }
+
+  /**
+   * Specifies to use the PUT request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec put() {
+    return method(HttpMethod.PUT);
+  }
+
+  /**
+   * Specifies to use the DELETE request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec delete() {
+    return method(HttpMethod.DELETE);
+  }
+
+  /**
+   * Specifies to use the PATCH request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec patch() {
+    return method(HttpMethod.PATCH);
+  }
+
+  /**
+   * Specifies to use the OPTIONS request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec options() {
+    return method(HttpMethod.OPTIONS);
+  }
+
+  /**
+   * Specifies to use the HEAD request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec head() {
+    return method(HttpMethod.HEAD);
+  }
 
   /**
    * Enables automatic decompression of the response.
+   *
    * @param shouldDecompress whether to enable decompression
    * @return this
    */

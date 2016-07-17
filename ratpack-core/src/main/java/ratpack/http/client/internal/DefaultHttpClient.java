@@ -192,7 +192,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public Promise<ReceivedResponse> post(URI uri, Action<? super RequestSpec> action) {
-    return request(uri, action.prepend(s -> s.method("POST")));
+    return request(uri, action.prepend(RequestSpec::post));
   }
 
   @Override

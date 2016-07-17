@@ -19,21 +19,26 @@ package ratpack.http.internal;
 import com.google.common.collect.ImmutableMap;
 import ratpack.http.HttpMethod;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 public class DefaultHttpMethod implements HttpMethod {
 
   private final io.netty.handler.codec.http.HttpMethod nettyMethod;
 
-  private static final ImmutableMap<io.netty.handler.codec.http.HttpMethod, HttpMethod> METHODS = ImmutableMap.<io.netty.handler.codec.http.HttpMethod, HttpMethod>builder()
-    .put(io.netty.handler.codec.http.HttpMethod.GET, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.GET))
-    .put(io.netty.handler.codec.http.HttpMethod.HEAD, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.HEAD))
-    .put(io.netty.handler.codec.http.HttpMethod.POST, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.POST))
-    .put(io.netty.handler.codec.http.HttpMethod.PUT, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.PUT))
-    .put(io.netty.handler.codec.http.HttpMethod.DELETE, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.DELETE))
-    .put(io.netty.handler.codec.http.HttpMethod.OPTIONS, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.OPTIONS))
-    .put(io.netty.handler.codec.http.HttpMethod.PATCH, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.PATCH))
-    .put(io.netty.handler.codec.http.HttpMethod.TRACE, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.TRACE))
-    .put(io.netty.handler.codec.http.HttpMethod.CONNECT, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.CONNECT))
-    .build();
+  private static final Map<io.netty.handler.codec.http.HttpMethod, HttpMethod> METHODS = new IdentityHashMap<>(
+    ImmutableMap.<io.netty.handler.codec.http.HttpMethod, HttpMethod>builder()
+      .put(io.netty.handler.codec.http.HttpMethod.GET, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.GET))
+      .put(io.netty.handler.codec.http.HttpMethod.HEAD, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.HEAD))
+      .put(io.netty.handler.codec.http.HttpMethod.POST, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.POST))
+      .put(io.netty.handler.codec.http.HttpMethod.PUT, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.PUT))
+      .put(io.netty.handler.codec.http.HttpMethod.DELETE, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.DELETE))
+      .put(io.netty.handler.codec.http.HttpMethod.OPTIONS, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.OPTIONS))
+      .put(io.netty.handler.codec.http.HttpMethod.PATCH, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.PATCH))
+      .put(io.netty.handler.codec.http.HttpMethod.TRACE, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.TRACE))
+      .put(io.netty.handler.codec.http.HttpMethod.CONNECT, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.CONNECT))
+      .build()
+  );
 
   private DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod nettyMethod) {
     this.nettyMethod = nettyMethod;
@@ -77,6 +82,11 @@ public class DefaultHttpMethod implements HttpMethod {
     } else {
       return this.nettyMethod.name().equalsIgnoreCase(name);
     }
+  }
+
+  @Override
+  public io.netty.handler.codec.http.HttpMethod getNettyMethod() {
+    return this.nettyMethod;
   }
 
   @Override

@@ -19,6 +19,7 @@ package ratpack.http.client.internal;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
@@ -75,7 +76,7 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
-  public RequestSpec method(String method) {
+  public RequestSpec method(HttpMethod method) {
     delegate.method(method);
     return this;
   }

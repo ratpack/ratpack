@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
@@ -41,7 +42,7 @@ import java.time.Duration;
 class RequestConfig {
 
   final URI uri;
-  final String method;
+  final HttpMethod method;
   final MutableHeaders headers;
   final ByteBuf body;
   final int maxContentLength;
@@ -75,7 +76,7 @@ class RequestConfig {
     );
   }
 
-  private RequestConfig(URI uri, String method, MutableHeaders headers, ByteBuf body, int maxContentLength, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SSLContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
+  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, ByteBuf body, int maxContentLength, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SSLContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
@@ -100,7 +101,7 @@ class RequestConfig {
     private Duration readTimeout = Duration.ofSeconds(30);
     private int maxContentLength = -1;
     private ByteBuf bodyByteBuf = Unpooled.EMPTY_BUFFER;
-    private String method = "GET";
+    private HttpMethod method = HttpMethod.GET;
     private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
     private SSLContext sslContext;
     private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
@@ -148,8 +149,8 @@ class RequestConfig {
     }
 
     @Override
-    public RequestSpec method(String method) {
-      this.method = method.toUpperCase();
+    public RequestSpec method(HttpMethod method) {
+      this.method = method;
       return this;
     }
 

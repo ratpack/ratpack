@@ -284,7 +284,7 @@ transfer-encoding: chunked
     handlers {
       post { HttpClient httpClient ->
         request.body.flatMap { incoming ->
-          httpClient.request(otherAppUrl("foo")) { it.method("POST").body.buffer(incoming.buffer) }
+          httpClient.request(otherAppUrl("foo")) { it.post().body.buffer(incoming.buffer) }
         } then {
           it.forwardTo(response)
         }

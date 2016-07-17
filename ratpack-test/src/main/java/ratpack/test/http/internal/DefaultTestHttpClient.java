@@ -103,7 +103,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse head(String path) {
-    return request(path, spec -> spec.method("HEAD"));
+    return request(path, RequestSpec::head);
   }
 
   @Override
@@ -113,7 +113,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse options(String path) {
-    return request(path, spec -> spec.method("OPTIONS"));
+    return request(path, RequestSpec::options);
   }
 
   @Override
@@ -133,7 +133,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse get(String path) {
-    return request(path, spec -> spec.method("GET"));
+    return request(path, RequestSpec::get);
   }
 
   @Override
@@ -153,7 +153,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse post(String path) {
-    return request(path, spec -> spec.method("POST"));
+    return request(path, RequestSpec::post);
   }
 
   @Override
@@ -174,7 +174,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse put(String path) {
-    return request(path, spec -> spec.method("PUT"));
+    return request(path, RequestSpec::put);
   }
 
   @Override
@@ -195,7 +195,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse patch(String path) {
-    return request(path, spec -> spec.method("PATCH"));
+    return request(path, RequestSpec::patch);
   }
 
   @Override
@@ -215,7 +215,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse delete(String path) {
-    return request(path, spec -> spec.method("DELETE"));
+    return request(path, RequestSpec::delete);
   }
 
   @Override
@@ -240,7 +240,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
       try (HttpClient httpClient = httpClient(execController)) {
         response = client.request(httpClient, uri, Duration.ofMinutes(60), requestSpec -> {
           final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
-          decorated.method("GET");
+          decorated.get();
           defaultRequestConfig.execute(decorated);
           request.execute(decorated);
           requestAction.execute(decorated);
