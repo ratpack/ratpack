@@ -15,6 +15,12 @@
  */
 package ratpack.dropwizard.metrics;
 
+/**
+ * A common base for reporter config classes.
+ *
+ * @param <T> self type
+ * @since 1.4
+ */
 public abstract class ReporterConfigSupport<T extends ReporterConfigSupport<T>> {
   private String includeFilter;
   private String excludeFilter;
