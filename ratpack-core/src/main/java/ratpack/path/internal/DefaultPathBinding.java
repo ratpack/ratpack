@@ -17,11 +17,9 @@
 package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class DefaultPathBinding implements PathBinding {
 
@@ -56,9 +54,12 @@ public class DefaultPathBinding implements PathBinding {
     } else if (thisTokens.isEmpty()) {
       return parentTokens;
     } else {
-      Map<String, String> merge = new LinkedHashMap<>(parentTokens);
-      merge.putAll(thisTokens);
-      return DefaultPathTokens.of(ImmutableMap.copyOf(merge));
+      ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+      Sets.difference(parentTokens.keySet(), thisTokens.keySet()).forEach(t ->
+        builder.put(t, parentTokens.get(t))
+      );
+      builder.putAll(thisTokens);
+      return DefaultPathTokens.of(builder.build());
     }
   }
 
