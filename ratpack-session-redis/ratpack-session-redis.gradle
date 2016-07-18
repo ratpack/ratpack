@@ -27,6 +27,7 @@ dependencies {
     exclude group: "io.netty", module: "netty-handler"
     exclude group: "io.netty", module: "netty-transport"
     exclude group: "io.reactivex", module: "rxjava"
+    exclude group: "com.google.guava", module: "guava"
   }
   compile commonDependencies.rxjava
   testCompile "com.github.kstyrc:embedded-redis:0.6"

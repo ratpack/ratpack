@@ -103,6 +103,7 @@ dependencies {
     exclude group: "io.ratpack", module: "ratpack-guice"
     exclude group: "commons-logging", module: "commons-logging"
     exclude group: "com.google.code.gson", module: "gson"
+    exclude group: "com.google.guava", module: "guava"
   }
   providedRuntime('com.bertramlabs.plugins:sass-asset-pipeline:2.6.1') {
     exclude group: "org.jruby", module: "jruby-complete"
