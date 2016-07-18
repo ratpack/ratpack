@@ -33,7 +33,7 @@ public abstract class TypeCaching {
     }
 
     boolean isAssignableFrom(ConcurrentMap<TypeToken<?>, Boolean> cache, TypeToken<?> left, TypeToken<?> right) {
-      return left.isSubtypeOf(right);
+      return left.isSupertypeOf(right);
     }
 
     @SuppressWarnings("unchecked")
