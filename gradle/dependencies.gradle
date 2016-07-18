@@ -19,7 +19,7 @@ ext {
     remote: "0.7",
     slf4j: "1.7.12",
     netty: "4.1.3.Final",
-    guava: "18.0",
+    guava: "19.0",
     groovy: "2.4.3",
     pac4j: "1.8.5",
     rxjava: "1.1.2",
