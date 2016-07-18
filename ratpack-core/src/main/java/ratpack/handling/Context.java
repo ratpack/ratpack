@@ -349,7 +349,7 @@ public interface Context extends Registry {
    * @return the header value or {@code null} if there is no such header
    * @since 1.4
    */
-  default String header(String name) {
+  default String header(CharSequence name) {
     return getRequest().getHeaders().get(name);
   }
 
