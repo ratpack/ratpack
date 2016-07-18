@@ -48,6 +48,7 @@ dependencies {
     exclude group: "com.google.inject", module: "guice"
     exclude group: "commons-codec", module: "commons-codec"
     exclude group: "xml-apis", module: "xml-apis"
+    exclude group: "org.slf4j", module: "jcl-over-slf4j"
   }
   testCompile "commons-codec:commons-codec:${commonVersions.commonsCodec}"
   testCompile "xml-apis:xml-apis:${commonVersions.xmlApis}"

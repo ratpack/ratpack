@@ -30,5 +30,7 @@ dependencies {
     exclude group: "com.google.guava", module: "guava"
   }
   compile commonDependencies.rxjava
-  testCompile "com.github.kstyrc:embedded-redis:0.6"
+  testCompile "com.github.kstyrc:embedded-redis:0.6", {
+    exclude group: "com.google.guava", module: "guava"
+  }
 }
