@@ -32,7 +32,7 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
 import ratpack.parse.Parse;
-import ratpack.path.PathTokens;
+import ratpack.path.PathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
@@ -141,13 +141,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public PathTokens getPathTokens() throws NotInRegistryException {
-    return delegate.getPathTokens();
-  }
-
-  @Override
-  public PathTokens getAllPathTokens() throws NotInRegistryException {
-    return delegate.getAllPathTokens();
+  public PathBinding getPathBinding() {
+    return delegate.getPathBinding();
   }
 
   @Override

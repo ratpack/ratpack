@@ -45,7 +45,6 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
-import ratpack.path.PathTokens;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.NotInRegistryException;
@@ -287,12 +286,9 @@ public class DefaultContext implements Context {
     next();
   }
 
-  public PathTokens getPathTokens() {
-    return pathBindings.peek().getTokens();
-  }
-
-  public PathTokens getAllPathTokens() {
-    return pathBindings.peek().getAllTokens();
+  @Override
+  public PathBinding getPathBinding() {
+    return pathBindings.peek();
   }
 
   public Path file(String path) {
@@ -462,7 +458,7 @@ public class DefaultContext implements Context {
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     if (type.equals(PathBinding.TYPE)) {
-      return Types.cast(pathBindings.peek());
+      return Types.cast(getPathBinding());
     }
     return joinedRegistry.get(type);
   }
