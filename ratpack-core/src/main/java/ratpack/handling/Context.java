@@ -339,6 +339,22 @@ public interface Context extends Registry {
   void render(Object object) throws NoSuchRendererException;
 
   /**
+   * Returns the header value with the specified header name.
+   * <p>
+   * If there is more than one header value for the specified header name, the first value is returned.
+   *
+   * <p>
+   * Shorthand for {@code getRequest().getHeaders().get(String)}.
+   *
+   * @param name The case insensitive name of the header to get retrieve the first value of
+   * @return the header value or {@code null} if there is no such header
+   * @since 1.4
+   */
+  default String header(String name) {
+    return getRequest().getHeaders().get(name);
+  }
+
+  /**
    * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
    * <p>
    * This method is effectively deprecated and will be removed in Ratpack 2.0.
