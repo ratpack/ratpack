@@ -297,7 +297,7 @@ public abstract class RxRatpack {
    * Converts an {@link Observable} into a {@link Promise}, for all of the observable's items.
    * <p>
    * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
-   * It is intended to be used in conjunction with the {@link Observable#x} method as a method reference.
+   * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
@@ -427,7 +427,7 @@ public abstract class RxRatpack {
    * Converts an {@link Observable} into a {@link Promise}, for the observable's single item.
    * <p>
    * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
-   * It is intended to be used in conjunction with the {@link Observable#x} method as a method reference.
+   * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
@@ -538,7 +538,7 @@ public abstract class RxRatpack {
    * Converts an {@link Observable} into a {@link Publisher}, for all of the observable's items.
    * <p>
    * This method can be used to simply adapt an observable to a ReactiveStreams publisher.
-   * It is intended to be used in conjunction with the {@link Observable#x} method as a method reference.
+   * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
