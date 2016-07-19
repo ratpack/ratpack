@@ -17,6 +17,7 @@
 package ratpack.http;
 
 import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -28,6 +29,9 @@ public interface MutableHeaders extends Headers {
    * Adds a new header with the specified name and value.
    * <p>
    * Will not replace any existing values for the header.
+   * <p>
+   * Objects of type {@link Instant}, {@link Calendar} or {@link Date} will be converted to a
+   * RFC 7231 date/time string.
    *
    * @param name The name of the header
    * @param value The value of the header
@@ -39,6 +43,9 @@ public interface MutableHeaders extends Headers {
    * Sets the (only) value for the header with the specified name.
    * <p>
    * All existing values for the same header will be removed.
+   * <p>
+   * Objects of type {@link Instant}, {@link Calendar} or {@link Date} will be converted to a
+   * RFC 7231 date/time string.
    *
    * @param name The name of the header
    * @param value The value of the header
@@ -71,6 +78,9 @@ public interface MutableHeaders extends Headers {
    * Sets a new header with the specified name and values.
    * <p>
    * All existing values for the same header will be removed.
+   * <p>
+   * Objects of type {@link Instant}, {@link Calendar} or {@link Date} will be converted to a
+   * RFC 7231 date/time string.
    *
    * @param name The name of the header
    * @param values The values of the header
