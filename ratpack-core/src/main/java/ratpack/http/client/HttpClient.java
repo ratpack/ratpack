@@ -18,7 +18,6 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.internal.DefaultHttpClient;
@@ -113,13 +112,6 @@ public interface HttpClient extends AutoCloseable {
    * @since 1.4
    */
   ByteBufAllocator getByteBufAllocator();
-
-  /**
-   * The execution controller used by the client.
-   *
-   * @since 1.4
-   */
-  ExecController getExecController();
 
   /**
    * The number of connections that the client will pool for any given server.

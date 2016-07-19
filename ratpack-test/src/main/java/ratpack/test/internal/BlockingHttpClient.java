@@ -18,6 +18,7 @@ package ratpack.test.internal;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.Downstream;
+import ratpack.exec.ExecController;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Result;
 import ratpack.func.Action;
@@ -41,11 +42,11 @@ import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 public class BlockingHttpClient {
 
-  public ReceivedResponse request(HttpClient httpClient, URI uri, Duration timeout, Action<? super RequestSpec> action) throws Throwable {
+  public ReceivedResponse request(HttpClient httpClient, URI uri, ExecController execController, Duration timeout, Action<? super RequestSpec> action) throws Throwable {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<ExecResult<ReceivedResponse>> result = new AtomicReference<>();
 
-    httpClient.getExecController().fork()
+    execController.fork()
       .start(e ->
         httpClient.request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
           .map(response -> {

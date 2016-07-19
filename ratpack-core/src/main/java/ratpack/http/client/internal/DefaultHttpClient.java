@@ -18,12 +18,10 @@ package ratpack.http.client.internal;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoop;
 import io.netty.channel.pool.*;
-import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -48,15 +46,9 @@ public class DefaultHttpClient implements HttpClientInternal {
   private final HttpChannelPoolMap channelPoolMap = new HttpChannelPoolMap() {
     @Override
     protected ChannelPool newPool(HttpChannelKey key) {
-      Execution execution = Execution.current();
-
-      EventLoop loop = execution.getController() == execController
-        ? execution.getEventLoop()
-        : execController.getEventLoopGroup().next();
-
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
-        .group(loop)
+        .group(Execution.current().getEventLoop())
         .channel(ChannelImplDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, byteBufAllocator)
@@ -70,14 +62,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     }
   };
 
-  private final ExecController execController;
   private final ByteBufAllocator byteBufAllocator;
   private final int maxContentLength;
   private final int poolSize;
   private final Duration readTimeout;
 
-  private DefaultHttpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout) {
-    this.execController = execController;
+  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLength = maxContentLength;
     this.poolSize = poolSize;
@@ -110,10 +100,6 @@ public class DefaultHttpClient implements HttpClientInternal {
     return readTimeout;
   }
 
-  public ExecController getExecController() {
-    return execController;
-  }
-
   @Override
   public void close() {
     channelPoolMap.close();
@@ -123,12 +109,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     DefaultHttpClient.Spec spec = new DefaultHttpClient.Spec();
     action.execute(spec);
 
-    if (spec.execController == null) {
-      throw new IllegalStateException("Cannot of HttpPool with null ExecController");
-    }
-
     return new DefaultHttpClient(
-      spec.execController,
       spec.byteBufAllocator,
       spec.maxContentLength,
       spec.poolSize,
@@ -138,19 +119,12 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private static class Spec implements HttpClientSpec {
 
-    private ExecController execController = ExecController.current().orElse(null);
-    private ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
+    private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
     private int poolSize;
     private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
     private Duration readTimeout = Duration.ofSeconds(30);
 
     private Spec() {
-    }
-
-    @Override
-    public HttpClientSpec execController(ExecController execController) {
-      this.execController = execController;
-      return this;
     }
 
     @Override

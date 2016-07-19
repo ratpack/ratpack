@@ -237,8 +237,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
     try (ExecController execController = new DefaultExecController(2)) {
       URI uri = builder(path).params(params).build();
-      try (HttpClient httpClient = httpClient(execController)) {
-        response = client.request(httpClient, uri, Duration.ofMinutes(60), requestSpec -> {
+      try (HttpClient httpClient = httpClient()) {
+        response = client.request(httpClient, uri, execController, Duration.ofMinutes(60), requestSpec -> {
           final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
           decorated.get();
           defaultRequestConfig.execute(decorated);
@@ -256,9 +256,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return response;
   }
 
-  private HttpClient httpClient(ExecController execController) {
+  private HttpClient httpClient() {
     return Exceptions.uncheck(() -> HttpClient.of(s -> s
-      .execController(execController)
       .byteBufAllocator(UNPOOLED_HEAP_ALLOCATOR)
       .maxContentLength(Integer.MAX_VALUE)
       .poolSize(8)
@@ -279,7 +278,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
+            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext(); ) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }

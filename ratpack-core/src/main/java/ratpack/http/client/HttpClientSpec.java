@@ -17,8 +17,7 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import ratpack.exec.ExecController;
+import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 
@@ -34,24 +33,9 @@ import java.time.Duration;
 public interface HttpClientSpec {
 
   /**
-   * Sets the execution controller to use when making requests.
-   * <p>
-   * Defaults to {@link ExecController#current()}.
-   * That is, if an execution controller is bound to the current thread, it is the default.
-   * <p>
-   * An execution controller MUST be specified for a client.
-   * However, as the default value is the current thread-bound execution controller,
-   * this rarely needs to be explicitly specified.
-   *
-   * @param execController the execution controller
-   * @return {@code this}
-   */
-  HttpClientSpec execController(ExecController execController);
-
-  /**
    * The buffer allocator to use.
    * <p>
-   * Defaults to {@link UnpooledByteBufAllocator#DEFAULT}.
+   * Defaults to {@link PooledByteBufAllocator#DEFAULT}.
    *
    * @param byteBufAllocator the buffer allocator
    * @return {@code this}

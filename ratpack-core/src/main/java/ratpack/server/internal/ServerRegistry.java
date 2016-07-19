@@ -87,7 +87,6 @@ public abstract class ServerRegistry {
     try {
 
       HttpClient httpClient = HttpClient.of(s -> s
-        .execController(execController)
         .poolSize(0)
         .byteBufAllocator(PooledByteBufAllocator.DEFAULT)
         .maxContentLength(serverConfig.getMaxContentLength())
