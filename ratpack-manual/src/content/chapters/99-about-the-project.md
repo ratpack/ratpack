@@ -49,7 +49,7 @@ The following people have provided significant contributions.
 * [Lari Hotari](https://github.com/lhotari)
 * [Massimo Lusetti](https://github.com/mlusetti)
 * [Rob Zienert](https://github.com/robzienert)
-* [Tom Duncan](https://github.com/tomdcc)
+* [Tom Dunstan](https://github.com/tomdcc)
 * [Wilson MacGyver](https://github.com/wmacgyver)
 * [Jörn Huxhorn](https://github.com/huxi)
 * [Robert Zakrzewski](https://github.com/zedar)
