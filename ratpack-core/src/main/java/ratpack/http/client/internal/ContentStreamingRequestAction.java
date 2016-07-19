@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -70,10 +71,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
         });
 
-        final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
-        final Status status = new DefaultStatus(msg.status());
-
-        success(downstream, new DefaultStreamedResponse(p, status, headers));
+        success(downstream, new DefaultStreamedResponse(p, msg));
       }
 
       @Override
@@ -92,13 +90,16 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
   private class DefaultStreamedResponse implements StreamedResponse {
     private final ChannelPipeline channelPipeline;
+    private final HttpResponse response;
     private final Status status;
     private final Headers headers;
 
-    DefaultStreamedResponse(ChannelPipeline p, Status status, Headers headers) {
-      this.channelPipeline = p;
-      this.status = status;
-      this.headers = headers;
+    private DefaultStreamedResponse(ChannelPipeline channelPipeline, HttpResponse response) {
+      this.channelPipeline = channelPipeline;
+      this.response = response;
+
+      this.headers = new NettyHeadersBackedHeaders(response.headers());
+      this.status = new DefaultStatus(response.status());
     }
 
     @Override
@@ -118,7 +119,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public TransformablePublisher<ByteBuf> getBody() {
-      return Streams.transformable(new HttpContentPublisher(channelPipeline));
+      return Streams.transformable(new HttpContentPublisher());
     }
 
     @Override
@@ -140,71 +141,73 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
       response.status(this.status);
       response.sendStream(getBody());
     }
-  }
 
-  private class HttpContentPublisher implements Publisher<ByteBuf> {
-    private Subscriber<? super ByteBuf> subscriber;
-    private final ChannelPipeline channelPipeline;
-    private final AtomicBoolean stopped = new AtomicBoolean();
+    private class HttpContentPublisher implements Publisher<ByteBuf> {
+      private Subscriber<? super ByteBuf> subscriber;
+      private final AtomicBoolean stopped = new AtomicBoolean();
 
-    HttpContentPublisher(ChannelPipeline p) {
-      this.channelPipeline = p;
-    }
+      @Override
+      public void subscribe(Subscriber<? super ByteBuf> s) {
+        subscribedTo.compareAndSet(false, true);
+        subscriber = s;
 
-    @Override
-    public void subscribe(Subscriber<? super ByteBuf> s) {
-      subscribedTo.compareAndSet(false, true);
-      subscriber = s;
-
-      addHandler(channelPipeline, "httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
-        @Override
-        public void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
-          subscriber.onNext(msg.content());
-          if (msg instanceof LastHttpContent && stopped.compareAndSet(false, true)) {
-            subscriber.onComplete();
-          }
-        }
-
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-          if (stopped.compareAndSet(false, true)) {
-            subscriber.onError(cause);
-          }
-          channelPool.release(ctx.channel());
-          if (ctx.channel().isOpen()) {
-            ctx.close();
-          }
-        }
-      });
-
-      s.onSubscribe(new Subscription() {
-        @Override
-        public void request(long n) {
-          if (n < 1) {
-            throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
+        addHandler(channelPipeline, "httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
+          @Override
+          public void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
+            if (msg.content().readableBytes() > 0) {
+              subscriber.onNext(msg.content());
+            }
+            if (msg instanceof LastHttpContent && stopped.compareAndSet(false, true)) {
+              if (!HttpUtil.isKeepAlive(response)) {
+                ctx.channel().close();
+              }
+              channelPool.release(ctx.channel());
+              subscriber.onComplete();
+            }
           }
 
-          if (!stopped.get()) {
-            if (n == Long.MAX_VALUE) {
-              channelPipeline.channel().config().setAutoRead(true);
-            } else {
-              for (int i = 0; i < n; i++) {
-                channelPipeline.channel().read();
+          @Override
+          public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            if (stopped.compareAndSet(false, true)) {
+              subscriber.onError(cause);
+            }
+            channelPool.release(ctx.channel());
+            if (ctx.channel().isOpen()) {
+              ctx.close();
+            }
+          }
+        });
+
+        s.onSubscribe(new Subscription() {
+          @Override
+          public void request(long n) {
+            if (n < 1) {
+              throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
+            }
+
+            if (!stopped.get()) {
+              if (n == Long.MAX_VALUE) {
+                channelPipeline.channel().config().setAutoRead(true);
+              } else {
+                for (int i = 0; i < n; i++) {
+                  channelPipeline.channel().read();
+                }
               }
             }
           }
-        }
 
-        @Override
-        public void cancel() {
-          stopped.set(true);
-          channelPool.release(channelPipeline.channel());
-          if (channelPipeline.channel().isOpen()) {
-            channelPipeline.channel().close();
+          @Override
+          public void cancel() {
+            stopped.set(true);
+            channelPool.release(channelPipeline.channel());
+            if (channelPipeline.channel().isOpen()) {
+              channelPipeline.channel().close();
+            }
           }
-        }
-      });
+        });
+      }
     }
   }
+
 
 }

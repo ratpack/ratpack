@@ -79,6 +79,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
         error(downstream, f1.cause());
       } else {
         Channel channel = (Channel) f1.getNow();
+        channel.config().setAutoRead(true);
         addCommonResponseHandlers(channel.pipeline(), downstream);
 
         String fullPath = getFullPath(requestConfig.uri);
@@ -186,6 +187,10 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
               }
 
               onRedirect(locationUrl, redirectCount + 1, redirectRequestConfig).connect(downstream);
+
+              if (!HttpUtil.isKeepAlive(response)) {
+                ctx.channel().close();
+              }
 
               redirected = true;
               channelPool.release(ctx.channel());

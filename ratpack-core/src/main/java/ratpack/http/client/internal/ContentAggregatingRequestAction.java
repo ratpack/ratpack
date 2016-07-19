@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpUtil;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -50,10 +51,17 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
+        if (!HttpUtil.isKeepAlive(msg)) {
+          ctx.channel().close();
+        }
         channelPool.release(ctx.channel());
 
         ByteBuf content = msg.content();
-        execution.onComplete(content::release);
+        execution.onComplete(() -> {
+          if (content.refCnt() > 0) {
+            content.release();
+          }
+        });
         success(downstream, toReceivedResponse(msg, content));
       }
 

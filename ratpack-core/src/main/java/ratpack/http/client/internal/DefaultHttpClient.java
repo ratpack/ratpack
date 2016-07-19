@@ -40,8 +40,12 @@ public class DefaultHttpClient implements HttpClientInternal {
   private static final ChannelPoolHandler NOOP_HANDLER = new AbstractChannelPoolHandler() {
     @Override
     public void channelCreated(Channel ch) throws Exception {}
-  };
 
+    @Override
+    public void channelReleased(Channel ch) throws Exception {
+      ch.config().setAutoRead(false);
+    }
+  };
 
   private final HttpChannelPoolMap channelPoolMap = new HttpChannelPoolMap() {
     @Override
@@ -52,6 +56,7 @@ public class DefaultHttpClient implements HttpClientInternal {
         .channel(ChannelImplDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, byteBufAllocator)
+        .option(ChannelOption.AUTO_READ, false)
         .option(ChannelOption.SO_KEEPALIVE, isPooling());
 
       if (isPooling()) {
