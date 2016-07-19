@@ -24,6 +24,7 @@ import ratpack.http.TypedData;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.parse.ParserSupport;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
 
@@ -33,7 +34,7 @@ public class FormParser extends ParserSupport<FormParseOpts> {
 
   private static final TypeToken<Form> FORM_TYPE = Types.token(Form.class);
 
-  public static final TypeToken<Parser<FormParseOpts>> TYPE = new TypeToken<Parser<FormParseOpts>>() {};
+  public static final TypeToken<Parser<FormParseOpts>> TYPE = TypeCaching.typeToken(new TypeToken<Parser<FormParseOpts>>() {});
   public static final Parser<FormParseOpts> INSTANCE = new FormParser();
 
   private FormParser() {

@@ -24,6 +24,7 @@ import ratpack.handling.Context;
 import ratpack.health.HealthCheck;
 import ratpack.health.HealthCheckResults;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
@@ -34,7 +35,7 @@ import java.util.Map;
 
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
 
-  public static final TypeToken<Renderer<HealthCheckResults>> TYPE = new TypeToken<Renderer<HealthCheckResults>>() {};
+  public static final TypeToken<Renderer<HealthCheckResults>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<HealthCheckResults>>() {});
 
   private final ByteBufAllocator byteBufAllocator;
 
