@@ -345,7 +345,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     def channelId1 = connection.inputStream.text
 
     then:
-    connection.getHeaderField("Connection") == "keep-alive"
+    connection.getHeaderField("Connection") == null
 
     when:
     connection = applicationUnderTest.address.toURL().openConnection()
@@ -355,7 +355,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     def channelId2 = connection.inputStream.text
 
     then:
-    connection.getHeaderField("Connection") == "keep-alive"
+    connection.getHeaderField("Connection") == null
 
     and:
     channelId1 == channelId2

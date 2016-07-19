@@ -476,8 +476,9 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-content-type: text/plain;charset=UTF-8$keepalive
 transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
+connection: close
 
 3
 bar
@@ -490,9 +491,7 @@ bar
 """
 
     where:
-    pooled | keepalive
-    true   | "\nconnection: keep-alive"
-    false  | ""
+    pooled << [true, false]
   }
 
   def "can modify the stream of a client chunked response"() {
@@ -526,6 +525,7 @@ bar
     rawResponse() == """HTTP/1.1 200 OK
 transfer-encoding: chunked
 content-type: text/plain;charset=UTF-8
+connection: close
 
 3
 BAR

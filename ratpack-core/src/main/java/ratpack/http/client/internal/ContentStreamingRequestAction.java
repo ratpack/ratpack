@@ -20,12 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import io.netty.handler.codec.http.*;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -38,49 +33,34 @@ import ratpack.http.Status;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.StreamedResponse;
 import ratpack.http.internal.DefaultStatus;
-import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedHeaders;
-import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.stream.internal.BufferedWriteStream;
+import ratpack.stream.internal.BufferingPublisher;
+import ratpack.util.Exceptions;
 
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ratpack.util.Exceptions.uncheck;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
 
-  private final AtomicBoolean subscribedTo = new AtomicBoolean();
+  private static final String HANDLER_NAME = "streaming";
 
   ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
     super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
   @Override
+  protected void disposeChannel(ChannelPipeline channelPipeline, boolean forceClose) {
+    channelPipeline.remove(HANDLER_NAME);
+
+    super.disposeChannel(channelPipeline, forceClose);
+  }
+
+  @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
-    addHandler(p, "httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
-
-      @Override
-      protected void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
-        // Switch auto reading off so we can control the flow of response content
-        p.channel().config().setAutoRead(false);
-        execution.onComplete(() -> {
-          if (!subscribedTo.get()) {
-            ctx.close();
-            channelPool.release(ctx.channel());
-          }
-        });
-
-        success(downstream, new DefaultStreamedResponse(p, msg));
-      }
-
-      @Override
-      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        channelPool.release(ctx.channel());
-        ctx.close();
-        error(downstream, cause);
-      }
-    });
+    p.addLast(HANDLER_NAME, new Handler(p, downstream));
   }
 
   @Override
@@ -88,126 +68,141 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
     return new ContentStreamingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 
-  private class DefaultStreamedResponse implements StreamedResponse {
+  private class Handler extends SimpleChannelInboundHandler<HttpObject> {
+
     private final ChannelPipeline channelPipeline;
-    private final HttpResponse response;
-    private final Status status;
-    private final Headers headers;
+    private final Downstream<? super StreamedResponse> downstream;
 
-    private DefaultStreamedResponse(ChannelPipeline channelPipeline, HttpResponse response) {
+    private List<HttpContent> received;
+    private BufferedWriteStream<ByteBuf> write;
+    private HttpResponse response;
+
+    public Handler(ChannelPipeline channelPipeline, Downstream<? super StreamedResponse> downstream) {
+      super(false);
       this.channelPipeline = channelPipeline;
-      this.response = response;
-
-      this.headers = new NettyHeadersBackedHeaders(response.headers());
-      this.status = new DefaultStatus(response.status());
+      this.downstream = downstream;
     }
 
     @Override
-    public Status getStatus() {
-      return status;
-    }
-
-    @Override
-    public int getStatusCode() {
-      return status.getCode();
-    }
-
-    @Override
-    public Headers getHeaders() {
-      return headers;
-    }
-
-    @Override
-    public TransformablePublisher<ByteBuf> getBody() {
-      return Streams.transformable(new HttpContentPublisher());
-    }
-
-    @Override
-    public void forwardTo(Response response) {
-      forwardTo(response, Action.noop());
-    }
-
-    @Override
-    public void forwardTo(Response response, Action<? super MutableHeaders> headerMutator) {
-      response.getHeaders().copy(this.headers);
-      response.getHeaders().remove(HttpHeaderConstants.CONTENT_LENGTH); // responses will always be chunked
-      try {
-        headerMutator.execute(response.getHeaders());
-      } catch (Exception e) {
-        throw uncheck(e);
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
+      if (httpObject instanceof HttpResponse) {
+        this.response = (HttpResponse) httpObject;
+        // Switch auto reading off so we can control the flow of response content
+        channelPipeline.channel().config().setAutoRead(false);
+        execution.onComplete(() -> {
+          if (write == null) {
+            disposeChannel(ctx.pipeline(), true);
+          }
+        });
+        success(downstream, new DefaultStreamedResponse(channelPipeline));
+      } else if (httpObject instanceof HttpContent) {
+        HttpContent httpContent = (HttpContent) httpObject;
+        if (write == null) {
+          if (received == null) {
+            received = new ArrayList<>();
+          }
+          received.add(httpContent);
+          if (httpObject instanceof LastHttpContent) {
+            disposeChannel(ctx.pipeline(), HttpUtil.isKeepAlive(response));
+          }
+        } else {
+          if (httpContent.content().readableBytes() > 0) {
+            write.item(httpContent.content());
+          } else {
+            httpContent.release();
+          }
+          if (httpObject instanceof LastHttpContent) {
+            write.complete();
+            disposeChannel(ctx.pipeline(), !HttpUtil.isKeepAlive(response));
+          } else {
+            if (write.getRequested() > 0) {
+              ctx.read();
+            }
+          }
+        }
       }
-      response.getHeaders().set(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-
-      response.status(this.status);
-      response.sendStream(getBody());
     }
 
-    private class HttpContentPublisher implements Publisher<ByteBuf> {
-      private Subscriber<? super ByteBuf> subscriber;
-      private final AtomicBoolean stopped = new AtomicBoolean();
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+      disposeChannel(ctx.pipeline(), true);
+      error(downstream, cause);
+    }
+
+    class DefaultStreamedResponse implements StreamedResponse {
+      private final ChannelPipeline channelPipeline;
+      private final Status status;
+      private final Headers headers;
+
+      private DefaultStreamedResponse(ChannelPipeline channelPipeline) {
+        this.channelPipeline = channelPipeline;
+        this.headers = new NettyHeadersBackedHeaders(response.headers());
+        this.status = new DefaultStatus(response.status());
+      }
 
       @Override
-      public void subscribe(Subscriber<? super ByteBuf> s) {
-        subscribedTo.compareAndSet(false, true);
-        subscriber = s;
-
-        addHandler(channelPipeline, "httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
-          @Override
-          public void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
-            if (msg.content().readableBytes() > 0) {
-              subscriber.onNext(msg.content());
-            }
-            if (msg instanceof LastHttpContent && stopped.compareAndSet(false, true)) {
-              if (!HttpUtil.isKeepAlive(response)) {
-                ctx.channel().close();
-              }
-              channelPool.release(ctx.channel());
-              subscriber.onComplete();
-            }
-          }
-
-          @Override
-          public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            if (stopped.compareAndSet(false, true)) {
-              subscriber.onError(cause);
-            }
-            channelPool.release(ctx.channel());
-            if (ctx.channel().isOpen()) {
-              ctx.close();
-            }
-          }
-        });
-
-        s.onSubscribe(new Subscription() {
-          @Override
-          public void request(long n) {
-            if (n < 1) {
-              throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
-            }
-
-            if (!stopped.get()) {
-              if (n == Long.MAX_VALUE) {
-                channelPipeline.channel().config().setAutoRead(true);
-              } else {
-                for (int i = 0; i < n; i++) {
-                  channelPipeline.channel().read();
-                }
-              }
-            }
-          }
-
-          @Override
-          public void cancel() {
-            stopped.set(true);
-            channelPool.release(channelPipeline.channel());
-            if (channelPipeline.channel().isOpen()) {
-              channelPipeline.channel().close();
-            }
-          }
-        });
+      public Status getStatus() {
+        return status;
       }
+
+      @Override
+      public int getStatusCode() {
+        return status.getCode();
+      }
+
+      @Override
+      public Headers getHeaders() {
+        return headers;
+      }
+
+      @Override
+      public TransformablePublisher<ByteBuf> getBody() {
+        return new BufferingPublisher<>(ByteBuf::release, write -> {
+          Handler.this.write = write;
+
+          if (received != null) {
+            for (HttpContent httpContent : received) {
+              if (httpContent.content().readableBytes() > 0) {
+                write.item(httpContent.content());
+              } else {
+                httpContent.release();
+              }
+              if (httpContent instanceof LastHttpContent) {
+                write.complete();
+              }
+            }
+          }
+
+          return new Subscription() {
+            @Override
+            public void request(long n) {
+              channelPipeline.read();
+            }
+
+            @Override
+            public void cancel() {
+              disposeChannel(channelPipeline, true);
+            }
+          };
+        });
+
+      }
+
+      @Override
+      public void forwardTo(Response response) {
+        forwardTo(response, Action.noop());
+      }
+
+      @Override
+      public void forwardTo(Response response, Action<? super MutableHeaders> headerMutator) {
+        MutableHeaders outgoingHeaders = response.getHeaders();
+        outgoingHeaders.copy(headers);
+        outgoingHeaders.remove(HttpHeaderNames.CONNECTION);
+        Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
+        response.status(status);
+        response.sendStream(getBody().bindExec());
+      }
+
     }
   }
-
-
 }

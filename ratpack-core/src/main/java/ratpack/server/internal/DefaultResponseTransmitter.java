@@ -90,13 +90,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         isKeepAlive = false;
       } else if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
         isKeepAlive = false;
+      } else if (!isKeepAlive) {
+        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
       }
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-
-      if (isKeepAlive) {
-        headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-      }
 
       if (channel.isOpen()) {
         return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
@@ -149,9 +147,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       });
     } else {
       Blocking.get(() ->
-          Files.newByteChannel(file)
+        Files.newByteChannel(file)
       ).then(fileChannel ->
-          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
+        transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
       );
     }
   }

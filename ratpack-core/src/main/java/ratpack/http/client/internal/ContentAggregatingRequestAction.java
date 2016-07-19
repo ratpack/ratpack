@@ -34,6 +34,9 @@ import java.net.URI;
 
 class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
 
+  private static final String AGGREGATOR_HANDLER_NAME = "aggregator";
+  private static final String RESPONSE_HANDLER_NAME = "response";
+
   ContentAggregatingRequestAction(
     URI uri,
     HttpClientInternal client,
@@ -45,16 +48,20 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
   }
 
   @Override
+  protected void disposeChannel(ChannelPipeline channelPipeline, boolean forceClose) {
+    channelPipeline.remove(AGGREGATOR_HANDLER_NAME);
+    channelPipeline.remove(RESPONSE_HANDLER_NAME);
+    super.disposeChannel(channelPipeline, forceClose);
+  }
+
+  @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super ReceivedResponse> downstream) {
-    addHandler(p, "aggregator", new HttpObjectAggregator(requestConfig.maxContentLength));
-    addHandler(p, "httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
+    p.addLast(AGGREGATOR_HANDLER_NAME, new HttpObjectAggregator(requestConfig.maxContentLength));
+    p.addLast(RESPONSE_HANDLER_NAME, new SimpleChannelInboundHandler<FullHttpResponse>(false) {
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        if (!HttpUtil.isKeepAlive(msg)) {
-          ctx.channel().close();
-        }
-        channelPool.release(ctx.channel());
+        disposeChannel(ctx.pipeline(), !HttpUtil.isKeepAlive(msg));
 
         ByteBuf content = msg.content();
         execution.onComplete(() -> {
@@ -67,8 +74,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        channelPool.release(ctx.channel());
-        ctx.close();
+        disposeChannel(ctx.pipeline(), true);
         error(downstream, cause);
       }
     });

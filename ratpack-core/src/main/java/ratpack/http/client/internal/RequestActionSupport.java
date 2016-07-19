@@ -24,6 +24,7 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.PrematureChannelClosureException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -48,13 +49,18 @@ import static ratpack.util.Exceptions.uncheck;
 abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
+  private static final String SSL_HANDLER_NAME = "ssl";
+  private static final String CLIENT_CODEC_HANDLER_NAME = "clientCodec";
+  private static final String READ_TIMEOUT_HANDLER_NAME = "readTimeout";
+  private static final String REDIRECT_HANDLER_NAME = "redirect";
+  private static final String DECOMPRESS_HANDLER_NAME = "decompressor";
 
   protected final HttpClientInternal client;
-  protected final ChannelPool channelPool;
   protected final RequestConfig requestConfig;
-  protected final HttpChannelKey channelKey;
   protected final Execution execution;
 
+  private final HttpChannelKey channelKey;
+  private ChannelPool channelPool;
   private final int redirectCount;
   private final Action<? super RequestSpec> requestConfigurer;
 
@@ -88,9 +94,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
           HostAndPort hostAndPort = HostAndPort.fromParts(channelKey.host, channelKey.port);
           requestConfig.headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
         }
-        if (client.getPoolSize() > 0) {
-          requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        } else {
+        if (client.getPoolSize() == 0) {
           requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
         }
         int contentLength = request.content().readableBytes();
@@ -111,12 +115,26 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     });
   }
 
+  protected void disposeChannel(ChannelPipeline channelPipeline, boolean forceClose) {
+    channelPipeline.remove(READ_TIMEOUT_HANDLER_NAME);
+    channelPipeline.remove(REDIRECT_HANDLER_NAME);
+    if (channelPipeline.get(DECOMPRESS_HANDLER_NAME) != null) {
+      channelPipeline.remove(DECOMPRESS_HANDLER_NAME);
+    }
+
+    if (forceClose) {
+      channelPipeline.channel().close();
+    }
+
+    channelPool.release(channelPipeline.channel());
+  }
+
   private void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
     if (channelKey.ssl) {
       //this is added once because netty is not able to properly replace this handler on
       //pooled channels from request to request. Because a pool is unique to a uri,
       //doing this works, as subsequent requests would be passing in the same certs.
-      addHandlerOnce(p, "ssl", () -> {
+      addHandlerOnce(p, SSL_HANDLER_NAME, () -> {
         SSLEngine sslEngine;
         if (requestConfig.sslContext != null) {
           sslEngine = requestConfig.sslContext.createSSLEngine();
@@ -129,25 +147,33 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     }
 
     //this is added once because it is the same across all requests.
-    addHandlerOnce(p, "clientCodec", HttpClientCodec::new);
+    addHandlerOnce(p, CLIENT_CODEC_HANDLER_NAME, HttpClientCodec::new);
 
-    addHandler(p, "readTimeout", new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
+    p.addLast(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
 
-    ChannelHandler redirectHandler = new SimpleChannelInboundHandler<HttpObject>(false) {
+    p.addLast(REDIRECT_HANDLER_NAME, new SimpleChannelInboundHandler<HttpObject>(false) {
       boolean readComplete;
       boolean redirected;
 
       @Override
       public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (!readComplete) {
+        if (!ctx.isRemoved() && !readComplete) {
           error(downstream, new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely"));
         }
-        super.channelReadComplete(ctx);
+        super.channelInactive(ctx);
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
+        if (cause instanceof ReadTimeoutException) {
+          if (ctx.isRemoved()) {
+            disposeChannel(ctx.pipeline(), true);
+          } else {
+            error(downstream, cause);
+          }
+        } else {
+          super.exceptionCaught(ctx, cause);
+        }
       }
 
       @Override
@@ -188,12 +214,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
               onRedirect(locationUrl, redirectCount + 1, redirectRequestConfig).connect(downstream);
 
-              if (!HttpUtil.isKeepAlive(response)) {
-                ctx.channel().close();
-              }
-
               redirected = true;
-              channelPool.release(ctx.channel());
+              disposeChannel(ctx.pipeline(), !HttpUtil.isKeepAlive(response));
             }
           }
         }
@@ -202,13 +224,10 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
           ctx.fireChannelRead(msg);
         }
       }
-    };
-    addHandler(p, "redirectHandler", redirectHandler);
+    });
 
     if (requestConfig.decompressResponse) {
-      addHandler(p, "httpContentDecompressor", new HttpContentDecompressor());
-    } else {
-      removeHandler(p, "httpContentDecompressor");
+      p.addLast(DECOMPRESS_HANDLER_NAME, new HttpContentDecompressor());
     }
 
     addResponseHandlers(p, downstream);
@@ -234,23 +253,9 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     return toReceivedResponse(msg, Unpooled.EMPTY_BUFFER);
   }
 
-  void addHandler(ChannelPipeline p, String name, ChannelHandler channelHandler) {
-    if (p.get(name) == null) {
-      p.addLast(name, channelHandler);
-    } else {
-      p.replace(name, name, channelHandler);
-    }
-  }
-
   private void addHandlerOnce(ChannelPipeline p, String name, Factory<? extends ChannelHandler> channelHandler) throws Exception {
     if (p.get(name) == null) {
       p.addLast(name, channelHandler.create());
-    }
-  }
-
-  private void removeHandler(ChannelPipeline p, String name) {
-    if (p.get(name) != null) {
-      p.remove(name);
     }
   }
 

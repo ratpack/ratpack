@@ -50,20 +50,12 @@ class HttpProxySpec extends BaseHttpClientSpec {
     }
 
     expect:
-    rawResponse() == """HTTP/1.1 200 OK
-x-foo-header: foo
-content-type: text/plain;charset=UTF-8$keepalive
-transfer-encoding: chunked
-
-3
-bar
-0
-
-"""
+    def response = get()
+    response.headers.asMultiValueMap() == ["x-foo-header": "foo", "content-type": "text/plain;charset=UTF-8", "content-length": "3"]
+    response.body.text == "bar"
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can proxy a client chunked response"() {
@@ -93,8 +85,9 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 200 OK
 x-foo-header: foo
-content-type: text/plain;charset=UTF-8$keepalive
 transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
+connection: close
 
 3
 bar
@@ -108,7 +101,6 @@ bar
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can mutate response headers while proxying"() {
@@ -137,9 +129,10 @@ bar
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-content-type: text/plain;charset=UTF-8$keepalive
-x-bar-header: bar
 transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
+x-bar-header: bar
+connection: close
 
 3
 bar
@@ -153,7 +146,6 @@ bar
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can proxy a client error"() {
@@ -181,18 +173,15 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 404 Not Found
 x-foo-header: foo
-content-type: text/plain$keepalive
-transfer-encoding: chunked
+content-type: text/plain
+content-length: 16
+connection: close
 
-10
 Client error 404
-0
-
 """
 
     where:
     pooled << [true, false]
-    keepalive << ["\nconnection: keep-alive", ""]
   }
 
   def "can proxy a server error"() {
@@ -222,8 +211,8 @@ Client error 404
       startsWith("""HTTP/1.1 500 Internal Server Error
 x-foo-header: foo
 content-type: text/plain
-connection: keep-alive
 transfer-encoding: chunked
+connection: close
 """)
       contains("A server error occurred")
     }

@@ -42,6 +42,7 @@ class ChunkedResponseSpec extends RatpackGroovyDslSpec {
     rawResponse() == """HTTP/1.1 200 OK
 transfer-encoding: chunked
 content-type: text/plain;charset=UTF-8
+connection: close
 
 5
 abcü
@@ -69,6 +70,7 @@ abcü
     rawResponse() == """HTTP/1.1 200 OK
 transfer-encoding: chunked
 content-type: text/plain;charset=UTF-8
+connection: close
 
 5
 abcü

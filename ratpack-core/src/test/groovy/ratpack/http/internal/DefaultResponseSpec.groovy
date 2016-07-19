@@ -322,7 +322,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     def connection1 = applicationUnderTest.getAddress().toURL().openConnection()
 
     then:
-    connection1.getHeaderField("Connection") == "keep-alive"
+    connection1.getHeaderField("Connection") == null
     channel.get().open
 
     when:
