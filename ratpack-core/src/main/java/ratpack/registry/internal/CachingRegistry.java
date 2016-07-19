@@ -23,15 +23,15 @@ import ratpack.util.Types;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 public class CachingRegistry implements Registry {
 
   private final Registry delegate;
 
-  private final ConcurrentMap<TypeToken<?>, Optional<?>> cache = new ConcurrentHashMap<>();
-  private final ConcurrentMap<TypeToken<?>, Iterable<?>> allCache = new ConcurrentHashMap<>();
+  private final Map<TypeToken<?>, Optional<?>> cache = new ConcurrentHashMap<>();
+  private final Map<TypeToken<?>, Iterable<?>> allCache = new ConcurrentHashMap<>();
+
   private final Function<TypeToken<?>, Optional<?>> maybeGet;
   private final Function<TypeToken<?>, Iterable<?>> getAll;
 

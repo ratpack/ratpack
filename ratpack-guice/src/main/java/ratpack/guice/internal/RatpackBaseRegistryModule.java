@@ -22,19 +22,17 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
-import com.google.inject.multibindings.Multibinder;
 import io.netty.buffer.ByteBufAllocator;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.reactivestreams.Publisher;
 import ratpack.api.Blocks;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.Execution;
-import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
+import ratpack.file.internal.FileRenderer;
 import ratpack.form.internal.FormParser;
 import ratpack.guice.ExecutionScoped;
 import ratpack.guice.RequestScoped;
@@ -43,19 +41,18 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.registry.Registry;
-import ratpack.render.Renderable;
-import ratpack.render.Renderer;
+import ratpack.render.internal.CharSequenceRenderer;
+import ratpack.render.internal.PromiseRenderer;
+import ratpack.render.internal.PublisherRenderer;
+import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-
-import static ratpack.registry.internal.TypeCaching.typeToken;
 
 /**
  * Expose bindings for objects in the base registry.
@@ -71,13 +68,14 @@ public class RatpackBaseRegistryModule extends AbstractModule {
 
   @SuppressWarnings({"rawtypes"})
   private static final ImmutableList<TypeToken<?>> PARAMETERISED_TYPES = ImmutableList.of(
-    typeToken(new TypeToken<Renderer<Path>>() {}),
-    typeToken(new TypeToken<Renderer<Promise>>() {}),
-    typeToken(new TypeToken<Renderer<Publisher>>() {}),
-    typeToken(new TypeToken<Renderer<Renderable>>() {}),
-    typeToken(new TypeToken<Renderer<CharSequence>>() {})
+    FileRenderer.TYPE,
+    PromiseRenderer.TYPE,
+    PublisherRenderer.TYPE,
+    RenderableRenderer.TYPE,
+    CharSequenceRenderer.TYPE,
+    FormParser.TYPE
   );
-  private static final ImmutableList<Class<?>> MULTIBIND_TYPES = ImmutableList.of(FormParser.class);
+
   private static final ImmutableList<Class<?>> OPTIONAL_TYPES = ImmutableList.of(FileSystemBinding.class);
   private final Registry baseRegistry;
 
@@ -98,7 +96,6 @@ public class RatpackBaseRegistryModule extends AbstractModule {
 
     SIMPLE_TYPES.forEach(this::simpleBind);
     PARAMETERISED_TYPES.forEach(this::parameterisedBind);
-    MULTIBIND_TYPES.forEach(this::setBind);
     OPTIONAL_TYPES.forEach(this::optionalBind);
 
     MethodInterceptor interceptor = new BlockingInterceptor();
@@ -112,13 +109,7 @@ public class RatpackBaseRegistryModule extends AbstractModule {
 
   @SuppressWarnings("unchecked")
   private <T> void parameterisedBind(TypeToken<T> typeToken) {
-    TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(typeToken.getType());
-    bind(typeLiteral).toProvider(() -> baseRegistry.get(typeToken));
-  }
-
-  private <T> void setBind(Class<T> type) {
-    Multibinder<T> setBinder = Multibinder.newSetBinder(binder(), type);
-    baseRegistry.getAll(type).forEach(instance -> setBinder.addBinding().toInstance(instance));
+    bind(GuiceUtil.toTypeLiteral(typeToken)).toProvider(() -> baseRegistry.get(typeToken));
   }
 
   private <T> void optionalBind(Class<T> type) {

@@ -47,8 +47,8 @@ class RenderingSpec extends RatpackGroovyDslSpec {
 
   static class ThingRenderer extends RendererSupport<Thing> {
     @Override
-    void render(Context context, Thing object) throws Exception {
-      context.render("thing: $object.name")
+    void render(Context ctx, Thing object) throws Exception {
+      ctx.render("thing: $object.name")
     }
   }
 

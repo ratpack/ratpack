@@ -16,6 +16,7 @@
 
 package ratpack.health.internal;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -23,6 +24,7 @@ import ratpack.handling.Context;
 import ratpack.health.HealthCheck;
 import ratpack.health.HealthCheckResults;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
 import java.io.BufferedOutputStream;
@@ -32,6 +34,8 @@ import java.util.Map;
 
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
 
+  public static final TypeToken<Renderer<HealthCheckResults>> TYPE = new TypeToken<Renderer<HealthCheckResults>>() {};
+
   private final ByteBufAllocator byteBufAllocator;
 
   public HealthCheckResultsRenderer(ByteBufAllocator byteBufAllocator) {
@@ -40,7 +44,7 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Override
-  public void render(Context context, HealthCheckResults healthCheckResults) throws Exception {
+  public void render(Context ctx, HealthCheckResults healthCheckResults) throws Exception {
     ByteBuf buffer = byteBufAllocator.buffer();
     boolean first = true;
     boolean unhealthy = false;
@@ -70,7 +74,7 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
       throw e;
     }
 
-    context.getResponse()
+    ctx.getResponse()
       .contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8)
       .status(unhealthy ? 503 : 200)
       .send(buffer);

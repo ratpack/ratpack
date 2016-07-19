@@ -33,7 +33,11 @@ public abstract class TypeCaching {
     }
 
     boolean isAssignableFrom(ConcurrentMap<TypeToken<?>, Boolean> cache, TypeToken<?> left, TypeToken<?> right) {
-      return left.isSupertypeOf(right);
+      return isAssignableFrom(left, right);
+    }
+
+    private static boolean isAssignableFrom(TypeToken<?> left, TypeToken<?> right) {
+      return left.equals(right) || left.isSupertypeOf(right);
     }
 
     @SuppressWarnings("unchecked")
@@ -63,9 +67,8 @@ public abstract class TypeCaching {
     boolean isAssignableFrom(ConcurrentMap<TypeToken<?>, Boolean> forLeft, TypeToken<?> left, TypeToken<?> right) {
       Boolean value = forLeft.get(right);
       if (value == null) {
-        boolean assignableFrom = left.isSupertypeOf(right);
-        forLeft.put(right, assignableFrom);
-        return assignableFrom;
+        value = Impl.isAssignableFrom(left, right);
+        forLeft.put(right, value);
       }
       return value;
     }

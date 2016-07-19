@@ -46,9 +46,9 @@ public class MarkupTemplateRenderer extends RendererSupport<MarkupTemplate> {
   }
 
   @Override
-  public void render(Context context, MarkupTemplate template) throws Exception {
+  public void render(Context ctx, MarkupTemplate template) throws Exception {
     String contentType = template.getContentType();
-    contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
+    contentType = contentType == null ? ctx.get(MimeTypes.class).getContentType(template.getName()) : contentType;
 
     try {
       Template compiledTemplate = engine.createTemplateByPath(template.getName());
@@ -64,9 +64,9 @@ public class MarkupTemplateRenderer extends RendererSupport<MarkupTemplate> {
         throw e;
       }
 
-      context.getResponse().send(contentType, byteBuf);
+      ctx.getResponse().send(contentType, byteBuf);
     } catch (IOException e) {
-      context.error(e);
+      ctx.error(e);
     }
   }
 }

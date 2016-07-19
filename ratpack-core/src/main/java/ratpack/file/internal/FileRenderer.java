@@ -18,6 +18,7 @@ package ratpack.file.internal;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.exec.Blocking;
 import ratpack.file.MimeTypes;
@@ -26,6 +27,7 @@ import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 import ratpack.util.Exceptions;
 
@@ -41,7 +43,12 @@ public class FileRenderer extends RendererSupport<Path> {
 
   private final boolean cacheMetadata;
 
-  public FileRenderer(boolean cacheMetadata) {
+  public static final TypeToken<Renderer<Path>> TYPE = new TypeToken<Renderer<Path>>() {};
+
+  public static final Renderer<Path> CACHING = new FileRenderer(true);
+  public static final Renderer<Path> NON_CACHING = new FileRenderer(false);
+
+  private FileRenderer(boolean cacheMetadata) {
     this.cacheMetadata = cacheMetadata;
   }
 
@@ -50,12 +57,12 @@ public class FileRenderer extends RendererSupport<Path> {
     .build();
 
   @Override
-  public void render(Context context, Path targetFile) throws Exception {
+  public void render(Context ctx, Path targetFile) throws Exception {
     readAttributes(targetFile, cacheMetadata, attributes -> {
       if (attributes == null || !attributes.isRegularFile()) {
-        context.clientError(404);
+        ctx.clientError(404);
       } else {
-        sendFile(context, targetFile, attributes);
+        sendFile(ctx, targetFile, attributes);
       }
     });
   }

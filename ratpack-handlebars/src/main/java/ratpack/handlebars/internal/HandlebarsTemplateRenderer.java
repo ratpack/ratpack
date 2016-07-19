@@ -35,21 +35,21 @@ public class HandlebarsTemplateRenderer extends RendererSupport<Template> {
   }
 
   @Override
-  public void render(Context context, Template template) {
+  public void render(Context ctx, Template template) {
     String contentType = template.getContentType();
     String templateName = template.getName();
-    contentType = contentType == null ? context.get(MimeTypes.class).getContentType(templateName) : contentType;
+    contentType = contentType == null ? ctx.get(MimeTypes.class).getContentType(templateName) : contentType;
     String renderedTemplate;
     try {
       com.github.jknack.handlebars.Template compiledTemplate = handlebars.compile(templateName);
       Object templateModel = template.getModel();
       renderedTemplate = compiledTemplate.apply(templateModel);
     } catch (IOException e) {
-      context.error(e);
+      ctx.error(e);
       return;
     }
 
-    context.getResponse().send(contentType, renderedTemplate);
+    ctx.getResponse().send(contentType, renderedTemplate);
   }
 
   @Override

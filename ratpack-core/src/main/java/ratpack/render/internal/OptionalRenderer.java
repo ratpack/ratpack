@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,27 @@
 package ratpack.render.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
-public class PromiseRenderer extends RendererSupport<Promise<?>> {
+import java.util.Optional;
 
-  public static final TypeToken<Renderer<Promise<?>>> TYPE = new TypeToken<Renderer<Promise<?>>>() {};
+public class OptionalRenderer extends RendererSupport<Optional<?>> {
 
-  public static final Renderer<Promise<?>> INSTANCE = new PromiseRenderer();
+  public static final TypeToken<Renderer<Optional<?>>> TYPE = new TypeToken<Renderer<Optional<?>>>() {};
 
-  private PromiseRenderer() {}
+  public static final Renderer<Optional<?>> INSTANCE = new OptionalRenderer();
 
-  @Override
-  public void render(Context ctx, Promise<?> promise) throws Exception {
-    promise.then(ctx::render);
+  private OptionalRenderer() {
   }
 
+  @Override
+  public void render(Context ctx, @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<?> o) throws Exception {
+    if (o.isPresent()) {
+      ctx.render(o.get());
+    } else {
+      ctx.notFound();
+    }
+  }
 }

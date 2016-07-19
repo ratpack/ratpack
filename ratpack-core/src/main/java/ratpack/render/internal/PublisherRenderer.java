@@ -25,13 +25,16 @@ import ratpack.stream.Streams;
 
 public class PublisherRenderer extends RendererSupport<Publisher<?>> {
 
-  public static final TypeToken<Renderer<Publisher<?>>> TYPE = new TypeToken<Renderer<Publisher<?>>>() {
-  };
+  public static final TypeToken<Renderer<Publisher<?>>> TYPE = new TypeToken<Renderer<Publisher<?>>>() {};
 
+  public static final Renderer<Publisher<?>> INSTANCE = new PublisherRenderer();
+
+  private PublisherRenderer() {
+  }
 
   @Override
-  public void render(Context context, Publisher<?> publisher) throws Exception {
-    Streams.toPromise(publisher).then(context::render);
+  public void render(Context ctx, Publisher<?> publisher) throws Exception {
+    Streams.toPromise(publisher).then(ctx::render);
   }
 
 }

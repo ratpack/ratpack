@@ -16,15 +16,21 @@
 
 package ratpack.render.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.render.Renderable;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
 public class RenderableRenderer extends RendererSupport<Renderable> {
 
+  public static final TypeToken<Renderer<Renderable>> TYPE = new TypeToken<Renderer<Renderable>>() {};
+
+  public static final Renderer<Renderable> INSTANCE = new RenderableRenderer();
+
   @Override
-  public void render(Context context, Renderable object) throws Exception {
-    object.render(context);
+  public void render(Context ctx, Renderable object) throws Exception {
+    object.render(ctx);
   }
 
 }

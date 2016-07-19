@@ -111,6 +111,6 @@ public abstract class RendererSupport<T> implements Renderer<T> {
   /**
    * {@inheritDoc}
    */
-  abstract public void render(Context context, T t) throws Exception;
+  abstract public void render(Context ctx, T t) throws Exception;
 
 }

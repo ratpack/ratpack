@@ -33,6 +33,11 @@ public class ActivationBackedMimeTypes implements MimeTypes {
 
   private static final MimetypesFileTypeMap MIME_TYPES_MAP = new MimetypesFileTypeMap();
 
+  public static final MimeTypes INSTANCE = new ActivationBackedMimeTypes();
+
+  private ActivationBackedMimeTypes() {
+  }
+
   @Override
   public String getContentType(String name) {
     return MIME_TYPES_MAP.getContentType(name);
