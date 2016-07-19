@@ -278,7 +278,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext(); ) {
+            Iterator<Cookie> iter = list.listIterator();
+            while (iter.hasNext()) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }
