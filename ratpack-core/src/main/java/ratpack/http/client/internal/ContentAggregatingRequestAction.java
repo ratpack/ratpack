@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -50,7 +51,10 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
         channelPool.release(ctx.channel());
-        success(downstream, toReceivedResponse(msg));
+
+        ByteBuf content = msg.content();
+        execution.onComplete(content::release);
+        success(downstream, toReceivedResponse(msg, content));
       }
 
       @Override
@@ -66,4 +70,5 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
   protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
     return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
+
 }

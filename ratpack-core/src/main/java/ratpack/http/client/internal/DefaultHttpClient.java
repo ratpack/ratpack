@@ -48,7 +48,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     protected ChannelPool newPool(HttpChannelKey key) {
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
-        .group(Execution.current().getEventLoop())
+        .group(key.execution.getEventLoop())
         .channel(ChannelImplDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, byteBufAllocator)
@@ -164,12 +164,12 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer));
+    return Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer).connect(downstream));
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer));
+    return Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer).connect(downstream));
   }
 
 }

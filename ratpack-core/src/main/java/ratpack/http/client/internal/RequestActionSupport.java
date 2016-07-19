@@ -66,7 +66,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     this.client = client;
     this.execution = execution;
     this.redirectCount = redirectCount;
-    this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout);
+    this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
   }
 
@@ -79,7 +79,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
         error(downstream, f1.cause());
       } else {
         Channel channel = (Channel) f1.getNow();
-
         addCommonResponseHandlers(channel.pipeline(), downstream);
 
         String fullPath = getFullPath(requestConfig.uri);
@@ -226,10 +225,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     }
   }
 
-  ReceivedResponse toReceivedResponse(FullHttpResponse msg) {
-    return toReceivedResponse(msg, initBufferReleaseOnExecutionClose(msg.content(), execution));
-  }
-
   private ReceivedResponse toReceivedResponse(HttpResponse msg) {
     return toReceivedResponse(msg, Unpooled.EMPTY_BUFFER);
   }
@@ -254,17 +249,12 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     }
   }
 
-  private ReceivedResponse toReceivedResponse(HttpResponse msg, ByteBuf responseBuffer) {
+  protected ReceivedResponse toReceivedResponse(HttpResponse msg, ByteBuf responseBuffer) {
     final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
     String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE);
     final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
     final Status status = new DefaultStatus(msg.status());
     return new DefaultReceivedResponse(status, headers, typedData);
-  }
-
-  private ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
-    execution.onComplete(responseBuffer::release);
-    return responseBuffer;
   }
 
   private static boolean isRedirect(int code) {

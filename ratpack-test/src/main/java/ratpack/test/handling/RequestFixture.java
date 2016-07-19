@@ -17,9 +17,14 @@
 package ratpack.test.handling;
 
 import com.google.common.net.HostAndPort;
+import ratpack.error.ClientErrorHandler;
+import ratpack.error.ServerErrorHandler;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
+import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.Request;
+import ratpack.http.Response;
 import ratpack.registry.RegistrySpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
@@ -32,10 +37,10 @@ import java.util.Map;
  * <p>
  * A request fixture emulates a request, <b>and</b> the effective state of the request handling in the handler pipeline.
  * <p>
- * A request fixture can be obtained by the {@link ratpack.test.handling.RequestFixture#requestFixture()} method.
- * However it is often more convenient to use the alternative {@link ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, ratpack.func.Action)} method.
+ * A request fixture can be obtained by the {@link RequestFixture#requestFixture()} method.
+ * However it is often more convenient to use the alternative {@link RequestFixture#handle(Handler, Action)} method.
  *
- * @see #handle(ratpack.handling.Handler)
+ * @see #handle(Handler)
  */
 public interface RequestFixture {
 
@@ -74,7 +79,7 @@ public interface RequestFixture {
    * @param handler The handler to invoke
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
-   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @throws Exception any thrown by {@code action}
    * @see #handle(Action, Action)
    */
@@ -123,7 +128,7 @@ public interface RequestFixture {
    * @param chainAction the definition of a handler chain to test
    * @param requestFixtureAction the configuration of the request fixture
    * @return a result object indicating what happened
-   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @throws Exception any thrown by {@code chainAction} or {@code requestFixtureAction}
    * @see #handle(Handler, Action)
    */
@@ -137,8 +142,8 @@ public interface RequestFixture {
   /**
    * Create a request fixture, for unit testing of {@link Handler handlers}.
    *
-   * @see #handle(ratpack.handling.Handler, ratpack.func.Action)
-   * @see #handle(ratpack.func.Action, ratpack.func.Action)
+   * @see #handle(Handler, Action)
+   * @see #handle(Action, Action)
    * @return a request fixture
    */
   static RequestFixture requestFixture() {
@@ -172,27 +177,27 @@ public interface RequestFixture {
    * <p>
    * Can be used to make objects (e.g. support services) available via context registry lookup.
    * <p>
-   * By default, only a {@link ratpack.error.ServerErrorHandler} and {@link ratpack.error.ClientErrorHandler} are in the context registry.
+   * By default, only a {@link ServerErrorHandler} and {@link ClientErrorHandler} are in the context registry.
    *
    * @return a specification of the context registry
    */
   RegistrySpec getRegistry();
 
   /**
-   * Invokes the given handler with a newly created {@link ratpack.handling.Context} based on the state of this fixture.
+   * Invokes the given handler with a newly created {@link Context} based on the state of this fixture.
    * <p>
    * The return value can be used to examine the effective result of the handler.
    * <p>
    * A result may be one of the following:
    * <ul>
-   * <li>The sending of a response via one of the {@link ratpack.http.Response#send} methods</li>
-   * <li>Rendering to the response via the {@link ratpack.handling.Context#render(Object)}</li>
-   * <li>Raising of a client error via {@link ratpack.handling.Context#clientError(int)}</li>
-   * <li>Raising of a server error via {@link ratpack.handling.Context#error(Throwable)}</li>
+   * <li>The sending of a response via one of the {@link Response#send} methods</li>
+   * <li>Rendering to the response via the {@link Context#render(Object)}</li>
+   * <li>Raising of a client error via {@link Context#clientError(int)}</li>
+   * <li>Raising of a server error via {@link Context#error(Throwable)}</li>
    * <li>Raising of a server error by the throwing of an exception</li>
-   * <li>Delegating to the next handler by invoking one of the {@link ratpack.handling.Context#next} methods</li>
+   * <li>Delegating to the next handler by invoking one of the {@link Context#next} methods</li>
    * </ul>
-   * Note that any handlers <i>{@link ratpack.handling.Context#insert inserted}</i> by the handler under test will be invoked.
+   * Note that any handlers <i>{@link Context#insert inserted}</i> by the handler under test will be invoked.
    * If the last inserted handler delegates to the next handler, the handling will terminate with a result indicating that the effective result was delegating to the next handler.
    * <p>
    * This method blocks until a result is achieved, even if the handler performs an asynchronous operation (such as performing {@link ratpack.exec.Blocking#get(ratpack.func.Factory) blocking IO}).
@@ -207,7 +212,7 @@ public interface RequestFixture {
   HandlingResult handle(Handler handler) throws HandlerTimeoutException;
 
   /**
-   * Similar to {@link #handle(ratpack.handling.Handler)}, but for testing a handler chain.
+   * Similar to {@link #handle(Handler)}, but for testing a handler chain.
    *
    * @param chainAction the handler chain to test
    * @return the effective result of the handling
@@ -230,7 +235,7 @@ public interface RequestFixture {
   /**
    * Configures the server config to have no base dir and given configuration.
    * <p>
-   * By default the server config is equivalent to {@link ServerConfig#builder() ServerConfigBuilder.builder()}.{@link ServerConfigBuilder#build() build()}.
+   * By default the server config is equivalent to {@link ServerConfig#builder() ServerConfig.builder()}.{@link ServerConfigBuilder#build() build()}.
    *
    * @param action configuration of the server config
    * @return this
@@ -316,7 +321,7 @@ public interface RequestFixture {
   /**
    * Set the remote address from which the request is made.
    * <p>
-   * Effectively the return value of {@link ratpack.http.Request#getRemoteAddress()}.
+   * Effectively the return value of {@link Request#getRemoteAddress()}.
 
    * @param remote the remote host and port address
    * @return this
@@ -326,7 +331,7 @@ public interface RequestFixture {
   /**
    * Set the local address to which this request is made.
    * <p>
-   * Effectively the return value of {@link ratpack.http.Request#getLocalAddress()}.
+   * Effectively the return value of {@link Request#getLocalAddress()}.
    *
    * @param local the local host and port address
    * @return this

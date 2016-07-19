@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal;
 
+import ratpack.exec.Execution;
+
 import java.net.URI;
 import java.time.Duration;
 
@@ -27,8 +29,10 @@ final class HttpChannelKey {
 
   // intentionally not part of the equality check
   final Duration connectTimeout;
+  final Execution execution;
 
-  HttpChannelKey(URI uri, Duration connectTimeout) {
+  HttpChannelKey(URI uri, Duration connectTimeout, Execution execution) {
+    this.execution = execution;
     switch (uri.getScheme()) {
       case "https":
         this.ssl = true;
