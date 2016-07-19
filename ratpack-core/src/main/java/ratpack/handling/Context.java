@@ -27,6 +27,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
@@ -49,7 +50,9 @@ import ratpack.util.Types;
 import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -349,8 +352,26 @@ public interface Context extends Registry {
    * @return the header value or {@code null} if there is no such header
    * @since 1.4
    */
-  default String header(CharSequence name) {
-    return getRequest().getHeaders().get(name);
+  default Optional<String> header(CharSequence name) {
+    return Optional.ofNullable(getRequest().getHeaders().get(name));
+  }
+
+  /**
+   * Sets a response header.
+   * <p>
+   * Any previously set values for the header will be removed.
+   * <p>
+   * Shorthand for {@code getResponse().getHeaders().set(CharSequence, Iterable)}.
+   *
+   * @param name the name of the header to set
+   * @param values the header values
+   * @return {@code this}
+   * @since 1.4
+   * @see MutableHeaders#set(CharSequence, Iterable)
+   */
+  default Context header(CharSequence name, Object... values) {
+    getResponse().getHeaders().set(name, Arrays.asList(values));
+    return this;
   }
 
   /**

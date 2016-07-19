@@ -18,6 +18,7 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.ByMethodSpec;
@@ -25,7 +26,7 @@ import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 
 /**
- * Subclass of {@link ratpack.handling.Context} that adds Groovy friendly variants of methods.
+ * Subclass of {@link Context} that adds Groovy friendly variants of methods.
  */
 public interface GroovyContext extends Context {
 
@@ -50,7 +51,7 @@ public interface GroovyContext extends Context {
   GroovyContext getContext();
 
   /**
-   * Groovy friendly overload of {@link #byMethod(ratpack.func.Action)}.
+   * Groovy friendly overload of {@link #byMethod(Action)}.
    *
    * <pre class="tested-dynamic">
    * import ratpack.groovy.test.handling.GroovyRequestFixture
@@ -87,7 +88,7 @@ public interface GroovyContext extends Context {
   void byMethod(@DelegatesTo(value = ByMethodSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
   /**
-   * Groovy friendly overload of {@link #byContent(ratpack.func.Action)}.
+   * Groovy friendly overload of {@link #byContent(Action)}.
    *
    * <pre class="tested-dynamic">{@code
    * import ratpack.groovy.test.handling.GroovyRequestFixture
@@ -131,5 +132,14 @@ public interface GroovyContext extends Context {
    * @param closure A closure to call when the request is closed
    */
   void onClose(@DelegatesTo(value = RequestOutcome.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyContext header(CharSequence name, Object... values) {
+    Context.super.header(name, values);
+    return this;
+  }
 
 }
