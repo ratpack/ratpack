@@ -97,7 +97,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
    * @since 1.4
    */
   static GroovyEmbeddedApp ratpack(@DelegatesTo(value = Groovy.Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> script) throws Exception {
-    return from(EmbeddedApp.of(new RatpackClosureConfigurer(script)::execute));
+    return from(EmbeddedApp.of(new RatpackClosureConfigurer(script, true)));
   }
 
   static GroovyEmbeddedApp fromServer(ServerConfigBuilder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {

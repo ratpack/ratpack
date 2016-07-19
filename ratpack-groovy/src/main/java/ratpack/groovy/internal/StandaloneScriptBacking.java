@@ -48,7 +48,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
       Path scriptFile = ClosureUtil.findScript(closure);
       if (scriptFile == null) {
-        running = RatpackServer.start(new RatpackClosureConfigurer(closure));
+        running = RatpackServer.start(new RatpackClosureConfigurer(closure, false));
       } else {
         running = RatpackServer.start(Groovy.Script.app(scriptFile));
       }

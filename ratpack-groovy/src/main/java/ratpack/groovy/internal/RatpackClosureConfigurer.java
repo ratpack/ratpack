@@ -29,9 +29,11 @@ import ratpack.server.ServerConfigBuilder;
 public class RatpackClosureConfigurer implements Action<RatpackServerSpec> {
 
   private final Closure<?> closure;
+  private final boolean ephemeralPort;
 
-  public RatpackClosureConfigurer(Closure<?> closure) {
+  public RatpackClosureConfigurer(Closure<?> closure, boolean ephemeralPort) {
     this.closure = closure;
+    this.ephemeralPort = ephemeralPort;
   }
 
   @Override
@@ -42,6 +44,9 @@ public class RatpackClosureConfigurer implements Action<RatpackServerSpec> {
     server.registry(Guice.registry(ClosureUtil.delegatingAction(closures.getBindings())));
     server.handlers(Groovy.chainAction(closures.getHandlers()));
     ServerConfigBuilder builder = ServerConfig.builder().development(true);
+    if (ephemeralPort) {
+      builder.port(0);
+    }
     ClosureUtil.configureDelegateFirst(builder, closures.getServerConfig());
     server.serverConfig(builder);
   }
