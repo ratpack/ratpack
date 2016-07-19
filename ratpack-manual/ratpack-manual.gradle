@@ -161,7 +161,6 @@ test {
   systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
   systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
   systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
-  forkEvery 1
 }
 
 task checkApi(type: Checkstyle) {
