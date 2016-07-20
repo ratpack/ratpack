@@ -20,7 +20,7 @@ buildscript {
   repositories {
     jcenter()
     maven {
-        url "https://plugins.gradle.org/m2/"
+      url "https://plugins.gradle.org/m2/"
     }
   }
 
@@ -97,19 +97,29 @@ artifactoryPublish { task ->
 }
 
 task bintrayPublish << {
-  if (!(ratpackBintrayUser && ratpackBintrayApiKey)) {
-    throw new InvalidUserDataException("You must provide ratpackBintrayUser and ratpackBintrayApiKey")
+  if (!project.hasProperty("ratpackOssJfrogApiKey")) {
+    throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
   }
 
   if (!project.hasProperty('buildNumber')) {
     throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
   }
 
-  def baseUrl = 'https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/'
-  def params = '?params=org=ratpack|repo=maven|package=ratpack'
-  def curlUrl = [baseUrl, project.buildNumber, params].join('')
-  def curl = ['curl', '-X', 'POST', '-u',
-              /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, curlUrl].execute()
+  def curl = ['curl',
+              '-X', 'POST',
+              "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
+              "-H", "Content-Type: application/json",
+              "-d", """{
+    "subject": "ratpack",
+    "repoName": "maven",
+    "packageName": "ratpack",
+    "versionName": "${project.version}",
+    "licenses": ["Apache-2.0"],
+    "vcs_url": "https://github.com/ratpack/ratpack"
+}
+""",
+              "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
+  ].execute()
   logger.info("Received response: ${curl.text}")
 }
 
