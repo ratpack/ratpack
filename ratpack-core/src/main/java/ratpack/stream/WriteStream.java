@@ -19,7 +19,6 @@ package ratpack.stream;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
-import ratpack.func.Function;
 
 /**
  * The write end of a data stream.
@@ -28,7 +27,7 @@ import ratpack.func.Function;
  * That is, write streams are not thread safe.
  *
  * @param <T> the type of item emitted.
- * @see Streams#streamMap(Publisher, Function)
+ * @see Streams#streamMap(Publisher, StreamMapper)
  */
 public interface WriteStream<T> {
 
@@ -61,7 +60,7 @@ public interface WriteStream<T> {
    * Creates a new write stream that passes error and complete signals on to this stream, but passes items to the given action.
    * <p>
    * This effectively creates an <i>upstream</i> write stream that transforms items.
-   * It is often useful when {@link Streams#streamMap(Publisher, Function)}  mapping streams}.
+   * It is often useful when {@link Streams#streamMap(Publisher, StreamMapper)}  mapping streams}.
    * <p>
    * The {@code itemMapper} typically manually calls {@link #item(Object)} on this stream, one or more times, when receiving an item.
    * That is, the action may emit multiple items downstream in a particular invocation.
