@@ -18,11 +18,12 @@ package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.func.Function;
+import org.reactivestreams.Subscription;
 import ratpack.sse.Event;
+import ratpack.stream.StreamMapper;
 import ratpack.stream.WriteStream;
 
-public class ServerSentEventStreamMapDecoder implements Function<WriteStream<Event<?>>, WriteStream<ByteBuf>> {
+public class ServerSentEventStreamMapDecoder implements StreamMapper<ByteBuf, Event<?>> {
 
   private final ByteBufAllocator bufferAllocator;
 
@@ -31,26 +32,7 @@ public class ServerSentEventStreamMapDecoder implements Function<WriteStream<Eve
   }
 
   @Override
-  public WriteStream<ByteBuf> apply(WriteStream<Event<?>> sseWriteStream) throws Exception {
-    return new WriteStream<ByteBuf>() {
-      @Override
-      public void item(ByteBuf item) {
-        try {
-          ServerSentEventDecoder.INSTANCE.decode(item, bufferAllocator, sseWriteStream::item);
-        } catch (Exception e) {
-          error(e);
-        }
-      }
-
-      @Override
-      public void error(Throwable throwable) {
-        sseWriteStream.error(throwable);
-      }
-
-      @Override
-      public void complete() {
-        sseWriteStream.complete();
-      }
-    };
+  public WriteStream<ByteBuf> map(Subscription subscription, WriteStream<Event<?>> down) throws Exception {
+    return down.itemMap(subscription, item -> ServerSentEventDecoder.INSTANCE.decode(item, bufferAllocator, down::item));
   }
 }

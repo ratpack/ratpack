@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A batch of promises to be processed, in parallel.
  * <p>
- * Parallel batches can be created via {@link #of}.
+ * Parallel batches can be created via {@link #of(Iterable}.
  * <p>
  * Each promise will be executed in a {@link Execution#fork() forked execution}.
  * The {@link #execInit(Action)} method allows each forked execution to be customised before executing the work.

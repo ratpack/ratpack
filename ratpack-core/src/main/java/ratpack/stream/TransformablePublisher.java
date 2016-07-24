@@ -35,7 +35,7 @@ import java.util.List;
 public interface TransformablePublisher<T> extends Publisher<T> {
 
   /**
-   * See {@link ratpack.stream.Streams#map(Publisher, Function)}.
+   * See {@link Streams#map(Publisher, Function)}.
    *
    * @param function the transformation
    * @param <O> the type of transformed item
@@ -46,7 +46,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#flatMap(Publisher, Function)}.
+   * See {@link Streams#flatMap(Publisher, Function)}.
    *
    * @param function the transformation
    * @param <O> the type of transformed item
@@ -57,7 +57,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#buffer(Publisher)}.
+   * See {@link Streams#buffer(Publisher)}.
    *
    * @return a buffering publisher
    */
@@ -66,7 +66,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#gate(Publisher, Action)}.
+   * See {@link Streams#gate(Publisher, Action)}.
    *
    * @param valveReceiver an action that receives a runnable “valve” that when run allows request to start flowing upstream
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
@@ -76,7 +76,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#wiretap(Publisher, Action)}.
+   * See {@link Streams#wiretap(Publisher, Action)}.
    *
    * @param listener the listener for emitted items
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
@@ -86,7 +86,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#multicast(Publisher)}.
+   * See {@link Streams#multicast(Publisher)}.
    *
    * @return a publisher that respects back pressure for each of its subscribers
    */
@@ -95,7 +95,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#toPromise(Publisher)}.
+   * See {@link Streams#toPromise(Publisher)}.
    *
    * @return a promise for this publisher's single item
    */
@@ -175,18 +175,27 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#streamMap(org.reactivestreams.Publisher, ratpack.func.Function)}.
+   * See {@link Streams#streamMap(Publisher, StreamMapper)}.
    *
-   * @param function the transformation
+   * @param mapper the transformation
    * @param <O> the type of transformed item
    * @return the transformed publisher
+   * @since 1.4
    */
+  default <O> TransformablePublisher<O> streamMap(StreamMapper<? super T, O> mapper) {
+    return Streams.streamMap(this, mapper);
+  }
+
+  /**
+   * @deprecated since 1.4, use {@link #streamMap(StreamMapper)}
+   */
+  @Deprecated
   default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<? super T>> function) {
     return Streams.streamMap(this, function);
   }
 
   /**
-   * See {@link ratpack.stream.Streams#filter(Publisher, Predicate)}.
+   * See {@link Streams#filter(Publisher, Predicate)}.
    *
    * @param filter the filter
    * @return the filtered publisher

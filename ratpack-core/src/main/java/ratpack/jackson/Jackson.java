@@ -553,7 +553,7 @@ public abstract class Jackson {
    * @see #chunkedJsonList(Registry, Publisher)
    */
   public static <T> ResponseChunks chunkedJsonList(ObjectWriter objectWriter, Publisher<T> stream) {
-    return ResponseChunks.bufferChunks(HttpHeaderConstants.JSON, Streams.streamMap(stream, out -> {
+    return ResponseChunks.bufferChunks(HttpHeaderConstants.JSON, Streams.streamMap(stream, (s, out) -> {
       JsonGenerator generator = objectWriter.getFactory().createGenerator(new OutputStream() {
         @Override
         public void write(int b) throws IOException {
@@ -574,6 +574,7 @@ public abstract class Jackson {
           try {
             generator.writeObject(item);
           } catch (Exception e) {
+            s.cancel();
             out.error(e);
           }
         }

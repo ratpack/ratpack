@@ -16,7 +16,10 @@
 
 package ratpack.stream;
 
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 import ratpack.func.Action;
+import ratpack.func.Function;
 
 /**
  * The write end of a data stream.
@@ -25,7 +28,7 @@ import ratpack.func.Action;
  * That is, write streams are not thread safe.
  *
  * @param <T> the type of item emitted.
- * @see Streams#streamMap(org.reactivestreams.Publisher, ratpack.func.Function)
+ * @see Streams#streamMap(Publisher, Function)
  */
 public interface WriteStream<T> {
 
@@ -58,17 +61,47 @@ public interface WriteStream<T> {
    * Creates a new write stream that passes error and complete signals on to this stream, but passes items to the given action.
    * <p>
    * This effectively creates an <i>upstream</i> write stream that transforms items.
-   * It is often useful when {@link Streams#streamMap mapping streams}.
+   * It is often useful when {@link Streams#streamMap(Publisher, Function)}  mapping streams}.
    * <p>
    * The {@code itemMapper} typically manually calls {@link #item(Object)} on this stream, one or more times, when receiving an item.
    * That is, the action may emit multiple items downstream in a particular invocation.
-   * If the mapper throws an exception, the exception will be emitted via {@link #error(Throwable)}.
+   * If the mapper throws an exception, the exception will be emitted via {@link #error(Throwable)} and the subscription will be cancelled.
    * The mapper may call {@link #complete()} or {@link #error(Throwable)}, but should ensure that it does not call any other methods of this interface after.
    *
-   * @param <O> the type of item received by the returned write stream
+   * @param subscription the upstream subscription
    * @param itemMapper the item mapper
+   * @param <O> the type of item received by the returned write stream
    * @return a write stream that writes through to this write stream
+   * @since 1.4
    */
+  default <O> WriteStream<O> itemMap(Subscription subscription, Action<? super O> itemMapper) {
+    return new WriteStream<O>() {
+      @Override
+      public void item(O item) {
+        try {
+          itemMapper.execute(item);
+        } catch (Exception e) {
+          subscription.cancel();
+          error(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        WriteStream.this.error(throwable);
+      }
+
+      @Override
+      public void complete() {
+        WriteStream.this.complete();
+      }
+    };
+  }
+
+  /**
+   * @deprecated since 1.4, use {@link #itemMap(Subscription, Action)}
+   */
+  @Deprecated
   default <O> WriteStream<O> itemMap(Action<? super O> itemMapper) {
     return new WriteStream<O>() {
       @Override

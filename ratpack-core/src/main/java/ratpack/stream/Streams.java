@@ -260,28 +260,13 @@ public class Streams {
    * @return the input stream filtered
    */
   public static <T> TransformablePublisher<T> filter(Publisher<T> input, Predicate<? super T> filter) {
-    return streamMap(input, out -> new WriteStream<T>() {
-      @Override
-      public void item(T item) {
-        try {
-          if (filter.apply(item)) {
-            out.item(item);
-          }
-        } catch (Throwable throwable) {
-          out.error(throwable);
-        }
+    return streamMap(input, (s, out) -> out.itemMap(s, item -> {
+      if (filter.apply(item)) {
+        out.item(item);
+      } else {
+        s.request(1);
       }
-
-      @Override
-      public void error(Throwable throwable) {
-        out.error(throwable);
-      }
-
-      @Override
-      public void complete() {
-        out.complete();
-      }
-    });
+    }));
   }
 
   /**
@@ -339,12 +324,25 @@ public class Streams {
    *
    * @param input the stream to map
    * @param mapper the mapping function
-   * @param <T> the type of item received
-   * @param <O> the type of item produced
+   * @param <U> the type of item received
+   * @param <D> the type of item produced
    * @return the input stream transformed
+   * @since 1.4
    */
-  public static <T, O> TransformablePublisher<O> streamMap(Publisher<T> input, Function<? super WriteStream<O>, ? extends WriteStream<? super T>> mapper) {
+  public static <U, D> TransformablePublisher<D> streamMap(Publisher<? extends U> input, StreamMapper<? super U, D> mapper) {
     return new StreamMapPublisher<>(input, mapper).buffer();
+  }
+
+  /**
+   * @deprecated since 1.4, use {@link #streamMap(Publisher, StreamMapper)}
+   */
+  @Deprecated
+  public static <U, D> TransformablePublisher<D> streamMap(Publisher<U> input, Function<? super WriteStream<D>, ? extends WriteStream<? super U>> mapper) {
+    return streamMap(input, ((subscription, downstream) -> {
+      @SuppressWarnings("UnnecessaryLocalVariable")
+      WriteStream<? super U> writeStream = mapper.apply(downstream);
+      return writeStream;
+    }));
   }
 
   /**
