@@ -65,6 +65,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private final Action<? super RequestSpec> requestConfigurer;
 
   private boolean fired;
+  private boolean disposed;
 
   RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
     this.requestConfigurer = requestConfigurer;
@@ -115,7 +116,22 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     });
   }
 
-  protected void disposeChannel(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected void forceDispose(ChannelPipeline channelPipeline) {
+    dispose(channelPipeline, true);
+  }
+
+  protected void dispose(ChannelPipeline channelPipeline, HttpResponse response) {
+    dispose(channelPipeline, !HttpUtil.isKeepAlive(response));
+  }
+
+  protected final void dispose(ChannelPipeline channelPipeline, boolean forceClose) {
+    if (!disposed) {
+      disposed = true;
+      doDispose(channelPipeline, forceClose);
+    }
+  }
+
+  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
     channelPipeline.remove(READ_TIMEOUT_HANDLER_NAME);
     channelPipeline.remove(REDIRECT_HANDLER_NAME);
     if (channelPipeline.get(DECOMPRESS_HANDLER_NAME) != null) {
@@ -167,7 +183,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (cause instanceof ReadTimeoutException) {
           if (ctx.isRemoved()) {
-            disposeChannel(ctx.pipeline(), true);
+            forceDispose(ctx.pipeline());
           } else {
             error(downstream, cause);
           }
@@ -215,7 +231,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
               onRedirect(locationUrl, redirectCount + 1, redirectRequestConfig).connect(downstream);
 
               redirected = true;
-              disposeChannel(ctx.pipeline(), !HttpUtil.isKeepAlive(response));
+              dispose(ctx.pipeline(), response);
             }
           }
         }

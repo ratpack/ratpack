@@ -22,7 +22,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpUtil;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -48,10 +47,10 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
   }
 
   @Override
-  protected void disposeChannel(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
     channelPipeline.remove(AGGREGATOR_HANDLER_NAME);
     channelPipeline.remove(RESPONSE_HANDLER_NAME);
-    super.disposeChannel(channelPipeline, forceClose);
+    super.doDispose(channelPipeline, forceClose);
   }
 
   @Override
@@ -60,21 +59,21 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
     p.addLast(RESPONSE_HANDLER_NAME, new SimpleChannelInboundHandler<FullHttpResponse>(false) {
 
       @Override
-      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        disposeChannel(ctx.pipeline(), !HttpUtil.isKeepAlive(msg));
+      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+        dispose(ctx.pipeline(), response);
 
-        ByteBuf content = msg.content();
+        ByteBuf content = response.content();
         execution.onComplete(() -> {
           if (content.refCnt() > 0) {
             content.release();
           }
         });
-        success(downstream, toReceivedResponse(msg, content));
+        success(downstream, toReceivedResponse(response, content));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        disposeChannel(ctx.pipeline(), true);
+        forceDispose(ctx.pipeline());
         error(downstream, cause);
       }
     });

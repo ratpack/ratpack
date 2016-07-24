@@ -52,10 +52,9 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   }
 
   @Override
-  protected void disposeChannel(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
     channelPipeline.remove(HANDLER_NAME);
-
-    super.disposeChannel(channelPipeline, forceClose);
+    super.doDispose(channelPipeline, forceClose);
   }
 
   @Override
@@ -91,7 +90,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         channelPipeline.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
           if (write == null) {
-            disposeChannel(ctx.pipeline(), true);
+            forceDispose(channelPipeline);
           }
         });
         success(downstream, new DefaultStreamedResponse(channelPipeline));
@@ -103,7 +102,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
           received.add(httpContent);
           if (httpObject instanceof LastHttpContent) {
-            disposeChannel(ctx.pipeline(), HttpUtil.isKeepAlive(response));
+            dispose(ctx.pipeline(), response);
           }
         } else {
           if (httpContent.content().readableBytes() > 0) {
@@ -113,7 +112,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
           if (httpObject instanceof LastHttpContent) {
             write.complete();
-            disposeChannel(ctx.pipeline(), !HttpUtil.isKeepAlive(response));
+            dispose(ctx.pipeline(), response);
           } else {
             if (write.getRequested() > 0) {
               ctx.read();
@@ -125,7 +124,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      disposeChannel(ctx.pipeline(), true);
+      forceDispose(ctx.pipeline());
       error(downstream, cause);
     }
 
@@ -169,6 +168,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
               }
               if (httpContent instanceof LastHttpContent) {
                 write.complete();
+                dispose(channelPipeline, response);
               }
             }
           }
@@ -181,7 +181,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
             @Override
             public void cancel() {
-              disposeChannel(channelPipeline, true);
+              forceDispose(channelPipeline);
             }
           };
         });
