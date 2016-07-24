@@ -30,7 +30,7 @@ import org.reactivestreams.Subscription;
 public interface StreamMapper<U, D> {
 
   /**
-   * A transform step in a publisher chain.
+   * A transform step in a {@link Publisher} chain.
    *
    * @param subscription the upstream subscription
    * @param downstream the downstream to write to

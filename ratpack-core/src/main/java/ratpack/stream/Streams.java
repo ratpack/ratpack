@@ -338,11 +338,11 @@ public class Streams {
    */
   @Deprecated
   public static <U, D> TransformablePublisher<D> streamMap(Publisher<U> input, Function<? super WriteStream<D>, ? extends WriteStream<? super U>> mapper) {
-    return streamMap(input, ((subscription, downstream) -> {
+    return streamMap(input, (subscription, downstream) -> {
       @SuppressWarnings("UnnecessaryLocalVariable")
       WriteStream<? super U> writeStream = mapper.apply(downstream);
       return writeStream;
-    }));
+    });
   }
 
   /**
