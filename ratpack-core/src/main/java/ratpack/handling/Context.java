@@ -274,8 +274,13 @@ public interface Context extends Registry {
    *   }
    * }
    * }</pre>
-   * If there is no type registered, or if the client does not accept any of the given types, by default a {@code 406} will be issued with {@link Context#clientError(int)}.
+   * If there is no type registered, or if the client does not accept any of the given types, the "noMatch" handler will be used.
+   * By default, the "noMatch" handler will issue a {@code 406} error via {@link Context#clientError(int)}.
    * If you want a different behavior, use {@link ByContentSpec#noMatch}.
+   * <p>
+   * If the request lacks a usable Accept header (header not present or has an empty value), the "unspecified" handler will be used.
+   * By default, the "unspecified" handler will use the handler for the first registered content type.
+   * If you want a different behavior, use {@link ByContentSpec#unspecified}.
    * <p>
    * Only the last specified handler for a type will be used.
    * That is, adding a subsequent handler for the same type will replace the previous.
