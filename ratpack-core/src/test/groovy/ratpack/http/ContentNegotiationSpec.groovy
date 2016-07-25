@@ -36,9 +36,6 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
           }
         }
       }
-      get("noneRegistered") {
-        byContent {}
-      }
     }
 
     and:
@@ -85,10 +82,6 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     withAcceptHeader("some/nonsense")
     then:
     text == ""
-    response.statusCode == 406
-
-    then:
-    getText("noneRegistered") == ""
     response.statusCode == 406
   }
 
