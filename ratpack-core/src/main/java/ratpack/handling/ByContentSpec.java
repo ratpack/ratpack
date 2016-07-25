@@ -99,6 +99,7 @@ public interface ByContentSpec {
    *
    * @param block the code to invoke if no usable "Accept" header is present in the request.
    * @return this
+   * @since 1.5
    */
   ByContentSpec unspecified(Block block);
 
@@ -108,6 +109,7 @@ public interface ByContentSpec {
    *
    * @param mimeType the MIME type to use as a fallback if no type is requested
    * @return this
+   * @since 1.5
    */
   ByContentSpec unspecified(String mimeType);
 
