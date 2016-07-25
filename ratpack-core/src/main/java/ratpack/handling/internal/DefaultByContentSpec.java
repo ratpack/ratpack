@@ -31,9 +31,15 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   private final Map<String, Block> blocks;
   private Handler noMatchHandler = ctx -> ctx.clientError(406);
+  private Handler unspecifiedHandler;
 
   public DefaultByContentSpec(Map<String, Block> blocks) {
     this.blocks = blocks;
+    this.unspecifiedHandler = ctx -> {
+      String winner = blocks.keySet().stream().findFirst().orElseThrow(IllegalStateException::new);
+      ctx.getResponse().contentType(winner);
+      blocks.get(winner).execute();
+    };
   }
 
   @Override
@@ -90,7 +96,26 @@ public class DefaultByContentSpec implements ByContentSpec {
     return this;
   }
 
+  @Override
+  public ByContentSpec unspecified(Block handler) {
+    unspecifiedHandler = ctx -> handler.execute();
+    return this;
+  }
+
+  @Override
+  public ByContentSpec unspecified(String mimeType) {
+    unspecifiedHandler = ctx -> {
+      ctx.getResponse().contentType(mimeType);
+      blocks.get(mimeType).execute();
+    };
+    return this;
+  }
+
   public Handler getNoMatchHandler() {
     return noMatchHandler;
+  }
+
+  public Handler getUnspecifiedHandler() {
+    return unspecifiedHandler;
   }
 }

@@ -452,7 +452,7 @@ public class DefaultContext implements Context {
     Map<String, Block> blocks = Maps.newLinkedHashMap();
     DefaultByContentSpec spec = new DefaultByContentSpec(blocks);
     action.execute(spec);
-    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler()).handle(this);
+    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler(), spec.getUnspecifiedHandler()).handle(this);
   }
 
   @Override

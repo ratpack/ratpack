@@ -34,7 +34,7 @@ public interface ByContentSpec {
    * Specifies that the given handler should be used if the client wants content of the given MIME type.
    * This only supports fully-specified content types (no "*" wildcards).
    *
-   * @param mimeType The MIME type to register for
+   * @param mimeType the MIME type to register for
    * @param block the code to invoke if the content type matches
    * @return this
    */
@@ -84,9 +84,26 @@ public interface ByContentSpec {
    * Specifies that the handler for the specified content type should be used if the client's requested content type cannot be matched with any of the other handlers.
    * Effectively, this treats the request as if the user requested the specified MIME type.
    *
-   * @param mimeType The MIME type to use as a fallback if the requested type can't be matched
+   * @param mimeType the MIME type to use as a fallback if the requested type can't be matched
    * @return this
    */
   ByContentSpec noMatch(String mimeType);
+
+  /**
+   * Specifies that the given handler should be used if the client did not provide an "Accept" header in the request.
+   *
+   * @param block the code to invoke if no "Accept" header is present in the request.
+   * @return this
+   */
+  ByContentSpec unspecified(Block block);
+
+  /**
+   * Specifies that the handler for the specified content type should be used if the client did not provide an "Accept" header in the request.
+   * Effectively, this treats the request as if the user requested the specified MIME type.
+   *
+   * @param mimeType the MIME type to use as a fallback if no type is requested
+   * @return this
+   */
+  ByContentSpec unspecified(String mimeType);
 
 }

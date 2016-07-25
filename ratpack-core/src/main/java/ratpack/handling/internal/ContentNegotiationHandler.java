@@ -17,14 +17,13 @@
 package ratpack.handling.internal;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.internal.MimeParse;
+import ratpack.util.internal.Collectors2;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +31,12 @@ public class ContentNegotiationHandler implements Handler {
 
   private final Map<String, Block> blocks;
   private final Handler noMatchHandler;
+  private final Handler unspecifiedHandler;
 
-  public ContentNegotiationHandler(Map<String, Block> blocks, Handler noMatchHandler) {
+  public ContentNegotiationHandler(Map<String, Block> blocks, Handler noMatchHandler, Handler unspecifiedHandler) {
     this.blocks = blocks;
     this.noMatchHandler = noMatchHandler;
+    this.unspecifiedHandler = unspecifiedHandler;
   }
 
   @Override
@@ -45,20 +46,18 @@ public class ContentNegotiationHandler implements Handler {
       return;
     }
 
-    List<String> types = Lists.newArrayList(blocks.keySet());
-    String winner = types.get(0);
-    Collections.reverse(types);
-
     String acceptHeader = context.getRequest().getHeaders().get(HttpHeaderNames.ACCEPT);
-    if (!Strings.isNullOrEmpty(acceptHeader)) {
-      winner = MimeParse.bestMatch(types, acceptHeader);
-    }
-
-    if (Strings.isNullOrEmpty(winner)) {
-      noMatchHandler.handle(context);
+    if (Strings.isNullOrEmpty(acceptHeader)) {
+      unspecifiedHandler.handle(context);
     } else {
-      context.getResponse().contentType(winner);
-      blocks.get(winner).execute();
+      List<String> types = blocks.keySet().stream().collect(Collectors2.toListReversed());
+      String winner = MimeParse.bestMatch(types, acceptHeader);
+      if (Strings.isNullOrEmpty(winner)) {
+        noMatchHandler.handle(context);
+      } else {
+        context.getResponse().contentType(winner);
+        blocks.get(winner).execute();
+      }
     }
   }
 }
