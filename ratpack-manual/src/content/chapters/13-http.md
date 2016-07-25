@@ -466,6 +466,10 @@ public class Example {
 }
 ```
 
+## Content Negotiation
+
+Support for rendering different representations of a resource (JSON/XML/HTML, GIF/PNG, etc.) is provided via [`byContent(Action)`](api/ratpack/handling/Context.html#byContent-ratpack.func.Action-).
+
 ## Sessions
 
 TODO introduce `ratpack-sessions` library
