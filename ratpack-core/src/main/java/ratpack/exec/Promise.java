@@ -1880,9 +1880,7 @@ public interface Promise<T> {
    */
   default Promise<T> fork(Action<? super ExecSpec> execSpec) throws Exception {
     Promised<T> promised = new Promised<>();
-    ExecStarter starter = Execution.fork();
-    execSpec.execute(starter);
-    starter.start(e -> connect(promised));
+    execSpec.with(Execution.fork()).start(e -> connect(promised));
     return promised.promise();
   }
 
