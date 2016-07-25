@@ -45,8 +45,9 @@ public class ServerConfigData {
   private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
   private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
 
-  public ServerConfigData(FileSystemBinding baseDir, int port, boolean development, URI publicAddress) {
+  public ServerConfigData(FileSystemBinding baseDir, InetAddress address, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
+    this.address = address;
     this.port = port;
     this.development = development;
     this.publicAddress = publicAddress;
