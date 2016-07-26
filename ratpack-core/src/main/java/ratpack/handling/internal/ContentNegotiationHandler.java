@@ -17,12 +17,12 @@
 package ratpack.handling.internal;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.internal.MimeParse;
-import ratpack.util.internal.Collectors2;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,7 @@ public class ContentNegotiationHandler implements Handler {
     if (Strings.isNullOrEmpty(acceptHeader)) {
       unspecifiedHandler.handle(context);
     } else {
-      List<String> types = blocks.keySet().stream().collect(Collectors2.toListReversed());
+      List<String> types = ImmutableList.copyOf(blocks.keySet()).reverse();
       String winner = MimeParse.bestMatch(types, acceptHeader);
       if (Strings.isNullOrEmpty(winner)) {
         noMatchHandler.handle(context);
