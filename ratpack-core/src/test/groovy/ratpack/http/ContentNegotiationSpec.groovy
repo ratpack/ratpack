@@ -121,7 +121,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     "text/*" | "mimeType cannot include wildcards"
   }
 
-  def "default to 406 clientError when no handlers"() {
+  def "default to 406 clientError when no blocks registered"() {
     when:
     handlers {
       get {
@@ -267,7 +267,26 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     response.body.contentType.type == "application/json"
   }
 
-  def "can register custom noMatch handler"() {
+  def "noMatch for a type without a matching block results in an error"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          noMatch("some/nonsense")
+        }
+      }
+    }
+
+    and:
+    withAcceptHeader("application/xml")
+    then:
+    get().statusCode == 500
+  }
+
+  def "can register custom noMatch block"() {
     when:
     handlers {
       get {
@@ -290,7 +309,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     response.body.contentType.type == "text/html"
   }
 
-  def "default unspecified behavior is first handler"() {
+  def "default unspecified behavior is first block"() {
     when:
     handlers {
       get {
@@ -347,7 +366,24 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     response.body.contentType.type == "application/xml"
   }
 
-  def "can register custom unspecified handler"() {
+  def "unspecified for a type without a matching block results in an error"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          unspecified("some/nonsense")
+        }
+      }
+    }
+
+    then:
+    get().statusCode == 500
+  }
+
+  def "can register custom unspecified block"() {
     when:
     handlers {
       get {

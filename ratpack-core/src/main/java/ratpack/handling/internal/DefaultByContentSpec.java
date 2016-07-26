@@ -89,10 +89,7 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   @Override
   public ByContentSpec noMatch(String mimeType) {
-    noMatchHandler = ctx -> {
-      ctx.getResponse().contentType(mimeType);
-      blocks.get(mimeType).execute();
-    };
+    noMatchHandler = handleWithMimeTypeBlock(mimeType);
     return this;
   }
 
@@ -104,10 +101,7 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   @Override
   public ByContentSpec unspecified(String mimeType) {
-    unspecifiedHandler = ctx -> {
-      ctx.getResponse().contentType(mimeType);
-      blocks.get(mimeType).execute();
-    };
+    unspecifiedHandler = handleWithMimeTypeBlock(mimeType);
     return this;
   }
 
@@ -117,5 +111,17 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   public Handler getUnspecifiedHandler() {
     return unspecifiedHandler;
+  }
+
+  private Handler handleWithMimeTypeBlock(String mimeType) {
+    return (ctx) -> {
+      Block block = blocks.get(mimeType);
+      if (block == null) {
+        ctx.error(new IllegalStateException("No block defined for mimeType " + mimeType));
+      } else {
+        ctx.getResponse().contentType(mimeType);
+        block.execute();
+      }
+    };
   }
 }

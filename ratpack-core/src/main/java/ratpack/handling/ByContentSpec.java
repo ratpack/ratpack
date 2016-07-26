@@ -123,6 +123,7 @@ public interface ByContentSpec {
   /**
    * Specifies that the handler for the specified content type should be used if the client's requested content type cannot be matched with any of the other handlers.
    * Effectively, this treats the request as if the user requested the specified MIME type.
+   * If the specified mimeType doesn't have a registered block, it will result in a server error for applicable requests.
    *
    * @param mimeType the MIME type to use as a fallback if the requested type can't be matched
    * @return this
@@ -141,6 +142,7 @@ public interface ByContentSpec {
   /**
    * Specifies that the handler for the specified content type should be used if the client did not provide a usable "Accept" header in the request.
    * Effectively, this treats the request as if the user requested the specified MIME type.
+   * If the specified mimeType doesn't have a registered block, it will result in a server error for applicable requests.
    *
    * @param mimeType the MIME type to use as a fallback if no type is requested
    * @return this
