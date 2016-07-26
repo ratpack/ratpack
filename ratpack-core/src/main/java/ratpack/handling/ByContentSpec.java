@@ -20,6 +20,38 @@ import ratpack.func.Block;
 
 /**
  * A specification of how to respond to a request, based on the requested content type (i.e. the request's Accept header).
+ * This is useful when a given handler can provide content of more than one type (i.e. <a href="http://en.wikipedia.org/wiki/Content_negotiation">content negotiation</a>).
+ * <p>
+ * The handler to use will be selected based on parsing the "Accept" header, respecting quality weighting and wildcard matching.
+ * The order that types are specified is significant for wildcard matching.
+ * The earliest registered type that matches the wildcard will be used.
+ *
+ * <pre class="java">{@code
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.http.client.ReceivedResponse;
+ *
+ * import static org.junit.Assert.*;
+ *
+ * public class Example {
+ *   public static void main(String[] args) throws Exception {
+ *     EmbeddedApp.fromHandler(ctx -> {
+ *       String message = "hello!";
+ *       ctx.byContent(m -> m
+ *         .json(() -> ctx.render("{\"msg\": \"" + message + "\"}"))
+ *         .html(() -> ctx.render("<p>" + message + "</p>"))
+ *       );
+ *     }).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.requestSpec(s -> s.getHeaders().add("Accept", "application/json")).get();
+ *       assertEquals("{\"msg\": \"hello!\"}", response.getBody().getText());
+ *       assertEquals("application/json", response.getBody().getContentType().getType());
+ *
+ *       response = httpClient.requestSpec(s -> s.getHeaders().add("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7")).get();
+ *       assertEquals("<p>hello!</p>", response.getBody().getText());
+ *       assertEquals("text/html", response.getBody().getContentType().getType());
+ *     });
+ *   }
+ * }
+ * }</pre>
  * <p>
  * If there is no type registered, or if the client does not accept any of the given types, the "noMatch" handler will be used.
  * By default, the "noMatch" handler will issue a {@code 406} error via {@link Context#clientError(int)}.
@@ -28,6 +60,9 @@ import ratpack.func.Block;
  * If the request lacks a usable Accept header (header not present or has an empty value), the "unspecified" handler will be used.
  * By default, the "unspecified" handler will use the handler for the first registered content type.
  * If you want a different behavior, use {@link #unspecified}.
+ * <p>
+ * Only the last specified handler for a type will be used.
+ * That is, adding a subsequent handler for the same type will replace the previous.
  *
  * @see Context#byContent(ratpack.func.Action)
  * @see <a href="http://tools.ietf.org/html/rfc7231#section-5.3.2">RFC 7231: Accept</a>
