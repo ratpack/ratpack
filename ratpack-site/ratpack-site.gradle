@@ -138,7 +138,7 @@ dependencies {
     delegate."manual-$it" "io.ratpack:ratpack-manual:$it@zip"
   }
 
-  newrelicAgent "com.newrelic.agent.java:newrelic-agent:${commonVersions.newrelic}"
+//  newrelicAgent "com.newrelic.agent.java:newrelic-agent:${commonVersions.newrelic}"
 }
 
 mainClassName = 'ratpack.site.SiteMain'
@@ -240,9 +240,9 @@ processResources {
 distributions.main.contents {
   from "src/heroku"
   into("newrelic") {
-    from({ configurations.newrelicAgent }) {
-      rename { "agent.jar" }
-    }
+//    from({ configurations.newrelicAgent }) {
+//      rename { "agent.jar" }
+//    }
     from "src/newrelic"
   }
 }
