@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import ratpack.func.Action;
 import ratpack.registry.Registry;
 
 /**
@@ -56,9 +57,9 @@ import ratpack.registry.Registry;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registryOf(r -> r
- *         .add(HandlerDecorator.prepend(new AddListToRequestRegistry()))
- *         .add(HandlerDecorator.prepend(new AddStringToList("foo")))
- *         .add(HandlerDecorator.prepend(new AddStringToList("bar")))
+ *         .add(HandlerDecorator.prependHandlers(new AddListToRequestRegistry()))
+ *         .add(HandlerDecorator.prependHandlers(new AddStringToList("foo")))
+ *         .add(HandlerDecorator.prependHandlers(new AddStringToList("bar")))
  *       )
  *       .handler(r ->
  *         ctx -> ctx.render(ctx.getRequest().get(Types.listOf(String.class)).toString())
@@ -173,11 +174,53 @@ public interface HandlerDecorator {
    * <p>
    * The given handler should call {@link Context#next()} to delegate to the rest of the handlers.
    *
-   * @param handler the handler to prepend
+   * @param handler the handler to prependHandlers
    * @return a handler decorator implementation
    */
   static HandlerDecorator prepend(Handler handler) {
     return (registry, rest) -> Handlers.chain(handler, rest);
+  }
+
+  /**
+   * A factory for decorator impls that effectively inserts the given handler before the “rest” of the handlers.
+   * <p>
+   * This is useful for cases when a handler is installed from the registry outside of the
+   * usual {@link ratpack.server.RatpackServerSpec#handlers(Action)}} method, e.g. from an external module.
+   * <p>
+   * The given handler should call {@link Context#next()} to delegate to the rest of the handlers.
+   *
+   * @param handler a class defining the handler
+   * @return a handler decorator implementation
+   */
+  static HandlerDecorator prepend(Class<? extends Handler> handler) {
+    return (registry, rest) -> Handlers.chain(registry.get(handler), rest);
+  }
+
+  /**
+   * A factory for decorator impls that effectively inserts the given chain before the “rest” of the handlers.
+   * The chain may define handlers that render results or call {@link Context#next()} to delegate to the
+   * rest of the handlers.
+   *
+   * @param handlers an action defining a handler chain
+   * @return a handler decorator implementation
+   */
+  static HandlerDecorator prependHandlers(Action<? super Chain> handlers) {
+    return (registry, rest) -> Handlers.chain(Handlers.chain(registry, handlers), rest);
+  }
+
+  /**
+   * A factory for decorator impls that effectively inserts the given chain before the “rest” of the handlers.
+   * The chain may define handlers that render results or call {@link Context#next()} to delegate to the
+   * rest of the handlers.
+   * <p>
+   * This is useful for cases when a group of handlers is installed from the registry outside of the
+   * usual {@link ratpack.server.RatpackServerSpec#handlers(Action)}} method, e.g. from an external module.
+   *
+   * @param handlers a class defining an action for a handler chain
+   * @return a handler decorator implementation
+   */
+  static HandlerDecorator prependHandlers(Class<? extends Action<? super Chain>> handlers) {
+    return (registry, rest) -> Handlers.chain(Handlers.chain(registry, registry.get(handlers)), rest);
   }
 
 }
