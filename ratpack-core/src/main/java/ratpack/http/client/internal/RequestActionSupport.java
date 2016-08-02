@@ -30,7 +30,6 @@ import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.http.Headers;
 import ratpack.http.Status;
@@ -41,6 +40,7 @@ import ratpack.http.internal.*;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -83,7 +83,12 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   public void connect(final Downstream<? super T> downstream) throws Exception {
     channelPool.acquire().addListener(f1 -> {
       if (!f1.isSuccess()) {
-        error(downstream, f1.cause());
+        Throwable e = f1.cause();
+        if (e instanceof ConnectTimeoutException) {
+          e = new ConnectTimeoutException("Connect timeout (" + requestConfig.connectTimeout + ") connecting to " + requestConfig.uri);
+          e.setStackTrace(f1.cause().getStackTrace());
+        }
+        error(downstream, e);
       } else {
         Channel channel = (Channel) f1.getNow();
         channel.config().setAutoRead(true);
@@ -132,6 +137,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
+    channelPipeline.remove(CLIENT_CODEC_HANDLER_NAME);
     channelPipeline.remove(READ_TIMEOUT_HANDLER_NAME);
     channelPipeline.remove(REDIRECT_HANDLER_NAME);
     if (channelPipeline.get(DECOMPRESS_HANDLER_NAME) != null) {
@@ -146,56 +152,38 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   private void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
-    if (channelKey.ssl) {
+    if (channelKey.ssl && p.get(SSL_HANDLER_NAME) == null) {
       //this is added once because netty is not able to properly replace this handler on
       //pooled channels from request to request. Because a pool is unique to a uri,
       //doing this works, as subsequent requests would be passing in the same certs.
-      addHandlerOnce(p, SSL_HANDLER_NAME, () -> {
-        SSLEngine sslEngine;
-        if (requestConfig.sslContext != null) {
-          sslEngine = requestConfig.sslContext.createSSLEngine();
-        } else {
-          sslEngine = SSLContext.getDefault().createSSLEngine();
-        }
-        sslEngine.setUseClientMode(true);
-        return new SslHandler(sslEngine);
-      });
+      p.addLast(SSL_HANDLER_NAME, createSslHandler());
     }
 
-    //this is added once because it is the same across all requests.
-    addHandlerOnce(p, CLIENT_CODEC_HANDLER_NAME, HttpClientCodec::new);
+    p.addLast(CLIENT_CODEC_HANDLER_NAME, new HttpClientCodec(4096, 8192, 8192, true));
 
     p.addLast(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
 
     p.addLast(REDIRECT_HANDLER_NAME, new SimpleChannelInboundHandler<HttpObject>(false) {
-      boolean readComplete;
       boolean redirected;
 
       @Override
-      public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (!ctx.isRemoved() && !readComplete) {
-          error(downstream, new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely"));
-        }
-        super.channelInactive(ctx);
-      }
-
-      @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause instanceof ReadTimeoutException) {
-          if (ctx.isRemoved()) {
-            forceDispose(ctx.pipeline());
-          } else {
-            error(downstream, cause);
-          }
-        } else {
-          super.exceptionCaught(ctx, cause);
+        forceDispose(ctx.pipeline());
+
+        if (cause instanceof PrematureChannelClosureException) {
+          Exception e = new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely");
+          e.setStackTrace(cause.getStackTrace());
+          cause = e;
+        } else if (cause instanceof ReadTimeoutException) {
+          cause = new RuntimeException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
         }
+
+        error(downstream, cause);
       }
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         if (msg instanceof HttpResponse) {
-          readComplete = true;
           final HttpResponse response = (HttpResponse) msg;
           int maxRedirects = requestConfig.maxRedirects;
           int status = response.status().code();
@@ -249,6 +237,17 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     addResponseHandlers(p, downstream);
   }
 
+  private SslHandler createSslHandler() throws NoSuchAlgorithmException {
+    SSLEngine sslEngine;
+    if (requestConfig.sslContext != null) {
+      sslEngine = requestConfig.sslContext.createSSLEngine();
+    } else {
+      sslEngine = SSLContext.getDefault().createSSLEngine();
+    }
+    sslEngine.setUseClientMode(true);
+    return new SslHandler(sslEngine);
+  }
+
   protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig);
 
   protected void success(Downstream<? super T> downstream, T value) {
@@ -267,12 +266,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private ReceivedResponse toReceivedResponse(HttpResponse msg) {
     return toReceivedResponse(msg, Unpooled.EMPTY_BUFFER);
-  }
-
-  private void addHandlerOnce(ChannelPipeline p, String name, Factory<? extends ChannelHandler> channelHandler) throws Exception {
-    if (p.get(name) == null) {
-      p.addLast(name, channelHandler.create());
-    }
   }
 
   protected ReceivedResponse toReceivedResponse(HttpResponse msg, ByteBuf responseBuffer) {
