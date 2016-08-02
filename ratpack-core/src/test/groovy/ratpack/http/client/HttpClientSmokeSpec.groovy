@@ -20,7 +20,6 @@ import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
-import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
@@ -398,9 +397,9 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     handlers {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
-          it.readTimeoutSeconds(1)
+          it.readTimeout(Duration.ofSeconds(1))
         } onError {
-          render it.class.name
+          render it.toString()
         } then {
           render "success"
         }
@@ -408,7 +407,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == ReadTimeoutException.name
+    text == "java.lang.RuntimeException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -435,8 +434,8 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl(), { it.readTimeoutSeconds(1) }).onError {
-          render it.class.name
+        httpClient.get(otherAppUrl(), { it.readTimeout(Duration.ofSeconds(1)) }).onError {
+          render it.toString()
         } then {
           render "success"
         }
@@ -444,7 +443,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == ReadTimeoutException.name
+    text == "java.lang.RuntimeException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
