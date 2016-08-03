@@ -24,7 +24,7 @@ When you've got the release announcement set, copy it to the description of the 
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 1. Tag commit with name “v«number»” (don't push yet)
-1. Build and upload the binaries: `./gradlew artifactoryPublish` - See below for credential requirements
+1. Build and upload the binaries: `./gradlew artifactoryPublish --max-workers=1` - See below for credential requirements
 1. Promote the binaries from oss.jfrog.org to Bintray and Maven Central
     1. Go to https://oss.jfrog.org/artifactory/webapp/#/builds/ratpack
     1. To log in use your Bintray username and Bintray API key
