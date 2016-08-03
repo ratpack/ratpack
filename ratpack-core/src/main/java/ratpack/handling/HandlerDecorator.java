@@ -191,6 +191,7 @@ public interface HandlerDecorator {
    *
    * @param handler a class defining the handler
    * @return a handler decorator implementation
+   * @since 1.5
    */
   static HandlerDecorator prepend(Class<? extends Handler> handler) {
     return (registry, rest) -> Handlers.chain(registry.get(handler), rest);
@@ -203,6 +204,7 @@ public interface HandlerDecorator {
    *
    * @param handlers an action defining a handler chain
    * @return a handler decorator implementation
+   * @since 1.5
    */
   static HandlerDecorator prependHandlers(Action<? super Chain> handlers) {
     return (registry, rest) -> Handlers.chain(Handlers.chain(registry, handlers), rest);
@@ -218,6 +220,7 @@ public interface HandlerDecorator {
    *
    * @param handlers a class defining an action for a handler chain
    * @return a handler decorator implementation
+   * @since 1.5
    */
   static HandlerDecorator prependHandlers(Class<? extends Action<? super Chain>> handlers) {
     return (registry, rest) -> Handlers.chain(Handlers.chain(registry, registry.get(handlers)), rest);
