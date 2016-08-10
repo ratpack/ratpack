@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
 /**
  * A generic type for an object that does some work with 2 input things.
  * <p>
- * This type serves the same purpose as the JDK's {@link java.util.function.BiConsumer}, but allows throwing checked exceptions.
+ * This type serves the same purpose as the JDK's {@link BiConsumer}, but allows throwing checked exceptions.
  * It contains methods for bridging to and from the JDK type.
  *
  * @param <T> The type of the first thing.
@@ -42,9 +42,20 @@ public interface BiAction<T, U> {
   void execute(T t, U u) throws Exception;
 
   /**
-   * Creates a JDK {@link java.util.function.BiConsumer} from this action.
+   * Returns a bi-action that does precisely nothing.
+   *
+   * @return a bi-action that does precisely nothing
+   * @since 1.5
+   */
+  static BiAction<Object, Object> noop() {
+    return (a, b) -> {
+    };
+  }
+
+  /**
+   * Creates a JDK {@link BiConsumer} from this action.
    * <p>
-   * Any exceptions thrown by {@code this} action will be unchecked via {@link ratpack.util.Exceptions#uncheck(Throwable)} and rethrown.
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link Exceptions#uncheck(Throwable)} and rethrown.
    *
    * @return this function as a JDK style consumer.
    */
