@@ -34,17 +34,17 @@ class GradleSnippetExecuter implements SnippetExecuter {
   private static final Condition AVAILABLE = LOCK.newCondition()
   private static volatile boolean busy
 
-  public GradleSnippetExecuter(SnippetFixture fixture) {
-    this.fixture = fixture;
+  GradleSnippetExecuter(SnippetFixture fixture) {
+    this.fixture = fixture
   }
 
   @Override
-  public SnippetFixture getFixture() {
-    return fixture;
+  SnippetFixture getFixture() {
+    return fixture
   }
 
   @Override
-  public void execute(TestCodeSnippet snippet) throws Exception {
+  void execute(TestCodeSnippet snippet) throws Exception {
     try {
       LOCK.lock()
       while (busy) {
