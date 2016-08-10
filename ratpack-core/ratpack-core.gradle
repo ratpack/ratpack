@@ -84,7 +84,6 @@ task streamTckTest(type: Test) {
 
   classpath = sourceSets.test.runtimeClasspath
   testClassesDir = sourceSets.test.output.classesDir
-  testSrcDirs = sourceSets.test.allSource.srcDirs.toList()
 
   binResultsDir = file("$buildDir/$name-results/binary")
   reports {
