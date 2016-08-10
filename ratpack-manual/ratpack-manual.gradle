@@ -45,7 +45,7 @@ dependencies {
     exclude group: "org.apache.httpcomponents", module: "httpclient"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
-  testRuntime gradleTestKit()
+  testCompile gradleTestKit()
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
   testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 
