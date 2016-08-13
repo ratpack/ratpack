@@ -41,7 +41,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
   private static final Object CANCEL = new Object();
 
   private final Action<? super T> disposer;
-  private final Function<? super BufferedWriteStream<T>, Subscription> function;
+  private final Function<? super BufferedWriteStream<T>, ? extends Subscription> function;
 
   public BufferingPublisher(Action<? super T> disposer, Publisher<T> publisher) {
     this(disposer, write -> {
@@ -49,7 +49,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
     });
   }
 
-  public BufferingPublisher(Action<? super T> disposer, Function<? super BufferedWriteStream<T>, Subscription> function) {
+  public BufferingPublisher(Action<? super T> disposer, Function<? super BufferedWriteStream<T>, ? extends Subscription> function) {
     this.disposer = disposer;
     this.function = function;
   }
@@ -70,7 +70,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
     private final AtomicBoolean draining = new AtomicBoolean();
     private final Queue<Object> signals = PlatformDependent.newMpscQueue();
 
-    public ConnectingSubscriber(Publisher<T> publisher, BufferedWriteStream<T> write) {
+    ConnectingSubscriber(Publisher<T> publisher, BufferedWriteStream<T> write) {
       this.publisher = publisher;
       this.write = write;
     }
@@ -150,7 +150,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     private final BufferedWriteStream<T> writeStream = new WriteStream();
 
-    public BufferingSubscription(Subscriber<? super T> downstream) {
+    BufferingSubscription(Subscriber<? super T> downstream) {
       this.downstream = downstream;
       downstream.onSubscribe(this);
       open = true;
