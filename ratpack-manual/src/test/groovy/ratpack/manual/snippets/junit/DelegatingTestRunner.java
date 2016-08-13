@@ -28,42 +28,44 @@ import java.util.concurrent.TimeUnit;
 
 public class DelegatingTestRunner extends Suite {
 
-    public DelegatingTestRunner(Class<?> clazz) throws InitializationError {
-        super(clazz, extractRunners(clazz));
+  public DelegatingTestRunner(Class<?> clazz) throws InitializationError {
+    super(clazz, extractRunners(clazz));
 
-        setScheduler(new RunnerScheduler() {
+    setScheduler(new RunnerScheduler() {
 
-            private final ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+      private final ExecutorService service = Executors.newFixedThreadPool(
+        Boolean.getBoolean("cloudCi") ? 1 : Runtime.getRuntime().availableProcessors()
+      );
 
-            public void schedule(Runnable childStatement) {
-                service.submit(childStatement);
-            }
+      public void schedule(Runnable childStatement) {
+        service.submit(childStatement);
+      }
 
-            public void finished() {
-                try {
-                    service.shutdown();
-                    service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace(System.err);
-                }
-            }
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Runner> extractRunners(Class<?> clazz) throws InitializationError {
-        if (!RunnerProvider.class.isAssignableFrom(clazz)) {
-            throw new InitializationError(clazz.getName() + " does not implement " + RunnerProvider.class.getName());
-        }
-
-        Class<RunnerProvider> asType = (Class<RunnerProvider>) clazz;
-        RunnerProvider instance;
+      public void finished() {
         try {
-            instance = asType.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new InitializationError(e);
+          service.shutdown();
+          service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+          e.printStackTrace(System.err);
         }
+      }
+    });
+  }
 
-        return instance.getRunners();
+  @SuppressWarnings("unchecked")
+  private static List<Runner> extractRunners(Class<?> clazz) throws InitializationError {
+    if (!RunnerProvider.class.isAssignableFrom(clazz)) {
+      throw new InitializationError(clazz.getName() + " does not implement " + RunnerProvider.class.getName());
     }
+
+    Class<RunnerProvider> asType = (Class<RunnerProvider>) clazz;
+    RunnerProvider instance;
+    try {
+      instance = asType.newInstance();
+    } catch (InstantiationException | IllegalAccessException e) {
+      throw new InitializationError(e);
+    }
+
+    return instance.getRunners();
+  }
 }
