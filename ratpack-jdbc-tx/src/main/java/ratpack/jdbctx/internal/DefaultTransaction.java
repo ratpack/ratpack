@@ -88,7 +88,7 @@ public class DefaultTransaction implements Transaction {
 
   @Override
   public Transaction autoBind(boolean autoBind) {
-    this.autoBind = true;
+    this.autoBind = autoBind;
     return this;
   }
 
