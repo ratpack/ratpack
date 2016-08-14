@@ -97,7 +97,7 @@ public interface Promise<T> {
   }
 
   /**
-   * Creates a promise for value, synchronously, produced by the given factory.
+   * Creates a promise for the value synchronously produced by the given factory.
    * <p>
    * The given factory will be invoked every time that the value is requested.
    * If the factory throws an exception, the promise will convey that exception.
@@ -141,6 +141,23 @@ public interface Promise<T> {
       }
       down.success(t);
     });
+  }
+
+  /**
+   * Creates a promise for the promise produced by the given factory.
+   * <p>
+   * The given factory will be invoked every time that the value is requested.
+   * If the factory throws an exception, the promise will convey that exception.
+   * <p>
+   * This can be used to effectively prepend work to another promise.
+   *
+   * @param factory the producer of the promise to return
+   * @param <T> the type of promised value
+   * @return a promise for the result of the factory
+   * @since 1.5
+   */
+  static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
+    return async(down -> factory.create().connect(down));
   }
 
   /**

@@ -119,6 +119,21 @@ public interface Action<T> {
   }
 
   /**
+   * An action that receives a throwable to thrown, suppressing the given value.
+   *
+   * @return an action that receives a throwable to thrown, suppressing the given value
+   * @since 1.5
+   */
+  static Action<Throwable> suppressAndThrow(Throwable toSuppress) {
+    return throwable -> {
+      if (throwable != toSuppress) {
+        throwable.addSuppressed(toSuppress);
+      }
+      throw Exceptions.toException(throwable);
+    };
+  }
+
+  /**
    * Returns an action that immediately throws the given exception.
    * <p>
    * The exception is thrown via {@link ratpack.util.Exceptions#toException(Throwable)}

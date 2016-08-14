@@ -24,6 +24,7 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -76,9 +77,21 @@ public interface Execution extends MutableRegistry {
    *
    * @return the currently executing execution
    * @throws UnmanagedThreadException if called from outside of an execution
+   * @see #currentOpt()
    */
   static Execution current() throws UnmanagedThreadException {
     return DefaultExecution.require();
+  }
+
+  /**
+   * Provides the currently executing execution, if any.
+   *
+   * @return the currently executing execution
+   * @see #current()
+   * @since 1.5
+   */
+  static Optional<Execution> currentOpt() {
+    return Optional.ofNullable(DefaultExecution.get());
   }
 
   /**
@@ -91,6 +104,16 @@ public interface Execution extends MutableRegistry {
    */
   static ExecStarter fork() throws UnmanagedThreadException {
     return ExecController.require().fork();
+  }
+
+  /**
+   * Whether there is currently a bound execution.
+   *
+   * @return whether there is currently a bound execution
+   * @since 1.5
+   */
+  static boolean isBound() {
+    return DefaultExecution.get() != null;
   }
 
   /**
