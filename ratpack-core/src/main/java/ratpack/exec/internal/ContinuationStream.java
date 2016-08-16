@@ -18,10 +18,10 @@ package ratpack.exec.internal;
 
 import ratpack.func.Block;
 
-public interface ContinuationStream {
+interface ContinuationStream {
 
-  void complete(Block rest);
+  boolean complete(Block rest);
 
-  void event(Block event);
+  boolean event(Block event);
 
 }

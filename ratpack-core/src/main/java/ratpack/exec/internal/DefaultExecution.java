@@ -39,6 +39,7 @@ import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public class DefaultExecution implements Execution {
@@ -108,8 +109,8 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  public static <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return publisher instanceof ExecutionBoundPublisher ? (TransformablePublisher<T>) publisher : new ExecutionBoundPublisher<>(publisher);
+  public static <T> TransformablePublisher<T> stream(Publisher<T> publisher, Action<? super T> disposer) {
+    return publisher instanceof ExecutionBoundPublisher ? (TransformablePublisher<T>) publisher : new ExecutionBoundPublisher<>(publisher, disposer);
   }
 
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
@@ -166,7 +167,7 @@ public class DefaultExecution implements Execution {
     drain();
   }
 
-  public void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+  private void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
     execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
     drain();
   }
@@ -290,7 +291,7 @@ public class DefaultExecution implements Execution {
     return registry.getAll(type);
   }
 
-  public abstract static class ExecStream {
+  private abstract static class ExecStream {
     abstract boolean exec() throws Exception;
 
     abstract void enqueue(Block block);
@@ -322,36 +323,77 @@ public class DefaultExecution implements Execution {
   }
 
   private static class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
-    private final Publisher<T> publisher;
 
-    private ExecutionBoundPublisher(Publisher<T> publisher) {
+    private final Publisher<T> publisher;
+    private final Action<? super T> disposer;
+
+    private ExecutionBoundPublisher(Publisher<T> publisher, Action<? super T> disposer) {
       this.publisher = publisher;
+      this.disposer = disposer;
     }
 
     @Override
     public void subscribe(Subscriber<? super T> subscriber) {
       require().delimitStream(subscriber::onError, continuation ->
         publisher.subscribe(new Subscriber<T>() {
+
+          private final AtomicBoolean cancelled = new AtomicBoolean();
+
           @Override
           public void onSubscribe(final Subscription subscription) {
             continuation.event(() ->
-              subscriber.onSubscribe(subscription)
+              subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                  subscription.request(n);
+                }
+
+                @Override
+                public void cancel() {
+                  cancelled.set(true);
+                  subscription.cancel();
+                  continuation.complete(Block.noop());
+                }
+              })
             );
           }
 
           @Override
           public void onNext(final T element) {
-            continuation.event(() -> subscriber.onNext(element));
+            boolean added = continuation.event(() -> {
+              if (cancelled.get()) {
+                dispose(element);
+              } else {
+                subscriber.onNext(element);
+              }
+            });
+            if (!added) {
+              dispose(element);
+            }
+          }
+
+          private void dispose(T element) {
+            try {
+              disposer.execute(element);
+            } catch (Exception e) {
+              LOGGER.warn("Exception raised disposing stream item will be ignored - ", e);
+            }
           }
 
           @Override
           public void onComplete() {
-            continuation.complete(subscriber::onComplete);
+            continuation.complete(() -> {
+              if (!cancelled.get()) {
+                subscriber.onComplete();
+              }
+            });
           }
 
           @Override
           public void onError(final Throwable cause) {
-            continuation.complete(() -> subscriber.onError(cause));
+            if (!cancelled.get()) {
+              continuation.complete(() -> subscriber.onError(cause));
+            }
           }
         })
       );
@@ -362,7 +404,7 @@ public class DefaultExecution implements Execution {
     Action<? super Execution> initial;
     Queue<Block> segments;
 
-    public InitialExecStream(Action<? super Execution> initial) {
+    InitialExecStream(Action<? super Execution> initial) {
       this.initial = initial;
     }
 
@@ -421,7 +463,7 @@ public class DefaultExecution implements Execution {
     boolean resumed;
     Queue<Block> segments;
 
-    public SingleEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super Continuation> initial) {
+    SingleEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super Continuation> initial) {
       this.parent = parent;
       this.onError = onError;
       this.initial = initial;
@@ -493,24 +535,33 @@ public class DefaultExecution implements Execution {
     final ExecStream parent;
     private final Action<? super Throwable> onError;
     final Queue<Queue<Block>> events = PlatformDependent.newMpscQueue();
-    Block complete;
+    private final AtomicReference<Block> complete = new AtomicReference<>();
 
-    public MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
+    MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
       this.parent = parent;
       this.onError = onError;
       event(() -> initial.execute(this));
     }
 
-    public void event(Block action) {
-      Queue<Block> event = new ArrayDeque<>();
-      event.add(action);
-      events.add(event);
-      drain();
+    public boolean event(Block action) {
+      if (complete.get() == null) {
+        Queue<Block> event = new ArrayDeque<>();
+        event.add(action);
+        events.add(event);
+        drain();
+        return true;
+      } else {
+        return false;
+      }
     }
 
-    public void complete(Block action) {
-      this.complete = action;
-      drain();
+    public boolean complete(Block action) {
+      if (complete.compareAndSet(null, action)) {
+        drain();
+        return true;
+      } else {
+        return false;
+      }
     }
 
     @Override
@@ -518,11 +569,11 @@ public class DefaultExecution implements Execution {
       Block nextSegment = events.peek().poll();
       if (nextSegment == null) {
         if (events.size() == 1) {
-          if (complete == null) {
+          if (complete.get() == null) {
             return false;
           } else {
             execStream = parent;
-            complete.execute();
+            complete.get().execute();
             return true;
           }
         } else {

@@ -16,13 +16,11 @@
 
 package ratpack.stream;
 
+import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.exec.Promise;
-import ratpack.exec.Upstream;
+import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.func.BiFunction;
@@ -604,6 +602,19 @@ public class Streams {
   /**
    * Binds the given publisher to the current {@link Execution}.
    * <p>
+   * Calls {@link #bindExec(Publisher, Action)} with {@link Action#noop()} as the disposer.
+   *
+   * @param publisher the publisher to bind to the execution
+   * @param <T> the type of item emitted by the publisher
+   * @return a new publisher that binds the given publisher to the current execution
+   */
+  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
+    return bindExec(publisher, Action.noop());
+  }
+
+  /**
+   * Binds the given publisher to the current {@link Execution}.
+   * <p>
    * Publishers may emit signals asynchronously and on any thread.
    * An execution bound publisher emits all of its “signals” (e.g. {@code onNext()}) on its execution (and therefore same thread).
    * By binding the publisher to the execution, the execution can remain open while the publisher is emitting
@@ -614,12 +625,49 @@ public class Streams {
    * It is typically only necessary to bind the last publisher in a chain to the execution.
    * If the processing of items does not require execution mechanics, it can be faster to wrap the publisher subscription
    * in {@link Promise#async(Upstream)} and complete the promise in the subscriber's {@link Subscriber#onComplete()}.
+   * <p>
+   * The given {@code disposer} is used to “free” any items that were not yet received by the subscriber when
+   * the subscription is cancelled, or if the subscriber errors.
+   * This is only required if the emitted items are reference counted (e.g. {@link ByteBuf}) or hold open resources (e.g. file handles).
+   * Any exceptions raised by the disposer will be logged then ignored.
+   * If items do not need disposing, pass {@link Action#noop()}.
    *
    * @param publisher the publisher to bind to the execution
+   * @param disposer the disposer of unhandled items
    * @param <T> the type of item emitted by the publisher
    * @return a new publisher that binds the given publisher to the current execution
+   * @since 1.5
    */
-  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
-    return DefaultExecution.stream(publisher);
+  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher, Action<? super T> disposer) {
+    return DefaultExecution.stream(publisher, disposer);
   }
+
+  /**
+   * Consumes the given publisher eagerly in a forked execution, buffering results until ready to be consumed by this execution.
+   * <p>
+   * This can be used when wanting to effectively parallelize the production of values and the consumption.
+   * The given publisher can emit items as fast as possible, independent of consumption.
+   * <p>
+   * If the given publisher emits faster than the consumer of the returned publisher,
+   * excessive memory may be used to buffer the items until the consumer can process them.
+   * <p>
+   * The given publisher will not be subscribed to until the returned publisher is.
+   * When the first {@link Subscription#request(long)} is issued,
+   * a request for {@link Long#MAX_VALUE} will be issued to the subscription to the given publisher.
+   * <p>
+   * The returned publisher is {@link #bindExec(Publisher) execution bound}.
+   *
+   * @param publisher the publisher to consume as fast as possible in a forked execution
+   * @param execConfig the configuration for the forked execution
+   * @param disposer the disposer for any buffered items when the stream errors or is cancelled
+   * @param <T> the type of emitted item
+   * @return an execution bound publisher that propagates the items of the given publisher
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> fork(Publisher<T> publisher, Action<? super ExecSpec> execConfig, Action<? super T> disposer) {
+    return new BufferingPublisher<T>(disposer, write -> {
+      return new ForkingSubscription<>(execConfig, publisher, write);
+    }).bindExec(disposer);
+  }
+
 }

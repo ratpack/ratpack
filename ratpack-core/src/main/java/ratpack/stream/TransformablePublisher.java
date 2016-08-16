@@ -17,6 +17,8 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import ratpack.exec.ExecSpec;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.BiFunction;
@@ -28,7 +30,9 @@ import java.util.List;
 /**
  * A wrapper over a {@link Publisher} that makes it more convenient to chain transformations of different kinds.
  * <p>
- * Note that this type implements the publisher interface, so behaves just like the publisher that it is wrapping with respect to the {@link Publisher#subscribe(org.reactivestreams.Subscriber)} method.
+ * Note that this type implements the publisher interface,
+ * so behaves just like the publisher that it is wrapping with respect to the
+ * {@link Publisher#subscribe(Subscriber)} method.
  *
  * @param <T> the type of item emitted by this publisher
  */
@@ -215,6 +219,17 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
+   * See {@link Streams#bindExec(Publisher, Action)}
+   *
+   * @param disposer the disposer of unhandled items
+   * @return a publisher bound to the current execution
+   * @since 1.5
+   */
+  default TransformablePublisher<T> bindExec(Action<? super T> disposer) {
+    return Streams.bindExec(this, disposer);
+  }
+
+  /**
    * Reduces the stream to a single value, by applying the given function successively.
    *
    * @param seed the initial value
@@ -225,6 +240,32 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    */
   default <R> Promise<R> reduce(R seed, BiFunction<R, T, R> reducer) {
     return Streams.reduce(this, seed, reducer);
+  }
+
+  /**
+   * Consumes the given publisher eagerly in a forked execution, buffering results until ready to be consumed by this execution.
+   *
+   * @param execConfig the configuration for the forked execution
+   * @param disposer the disposer for any buffered items when the stream errors or is cancelled
+   * @return an execution bound publisher that propagates the items of the given publisher
+   * @see Streams#fork(Publisher, Action, Action)
+   * @since 1.5
+   */
+  default TransformablePublisher<T> fork(Action<? super ExecSpec> execConfig, Action<? super T> disposer) {
+    return Streams.fork(this, execConfig, disposer);
+  }
+
+  /**
+   * Consumes the given publisher eagerly in a forked execution, buffering results until ready to be consumed by this execution.
+   * <p>
+   * This method is identical to {@link #fork(Action, Action)}, but uses {@link Action#noop()} for both arguments.
+   *
+   * @return an execution bound publisher that propagates the items of the given publisher
+   * @see Streams#fork(Publisher, Action, Action)
+   * @since 1.5
+   */
+  default TransformablePublisher<T> fork() {
+    return Streams.fork(this, Action.noop(), Action.noop());
   }
 
 }
