@@ -171,7 +171,7 @@ public class RatpackPac4j {
    *                 .get(ctx -> ctx.render("Hello " + ctx.get(CommonProfile.class).getId()))
    *             )
    *            .prefix("require-authz", a -> a
-   *              .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class, (ctx, profile) -> { return "special-user".equals(profile.getId()); }))
+   *              .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class, (ctx, profile) -> { return "special-user".equals(profile.get(0).getId()); }))
    *              .get(ctx -> ctx.render("Hello " + ctx.get(CommonProfile.class).getId()))
    *            )
    *            .get(ctx -> ctx.render("no auth required"))
