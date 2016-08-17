@@ -22,7 +22,7 @@ It must be placed early in the handler chain as it makes the configured client i
 
 There are two ways to initiate auth:
 
-- [`RatpackPac4j.requireAuth(Class<Client>, Authorizer...)`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-org.pac4j.core.authorization.Authorizer...-)
+- [`RatpackPac4j.requireAuth(Class<Client>, Authorizer...)`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-org.pac4j.core.authorization.authorizer.Authorizer...-)
     - a handler implementation that acts as a “filter” (both for authentication and authorizations)
 
 - [`RatpackPac4j.login(Context, Class<Client>)`](api/ratpack/pac4j/RatpackPac4j.html#login-ratpack.handling.Context-java.lang.Class-)
