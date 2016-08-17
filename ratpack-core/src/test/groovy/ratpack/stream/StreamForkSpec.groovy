@@ -109,8 +109,8 @@ class StreamForkSpec extends Specification {
           @Override
           void onNext(Object o) {
             if (o == 4) {
-              subscription.cancel()
               barrier.await()
+              subscription.cancel()
               down.success(10)
             }
           }
