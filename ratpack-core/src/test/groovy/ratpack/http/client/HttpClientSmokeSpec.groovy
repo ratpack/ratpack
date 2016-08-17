@@ -407,7 +407,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "java.lang.RuntimeException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -443,7 +443,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "java.lang.RuntimeException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
