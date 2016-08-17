@@ -33,6 +33,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.Headers;
 import ratpack.http.Status;
+import ratpack.http.client.HttpClientReadTimeoutException;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
@@ -175,7 +176,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
           e.setStackTrace(cause.getStackTrace());
           cause = e;
         } else if (cause instanceof ReadTimeoutException) {
-          cause = new RuntimeException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
+          cause = new HttpClientReadTimeoutException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
         }
 
         error(downstream, cause);
