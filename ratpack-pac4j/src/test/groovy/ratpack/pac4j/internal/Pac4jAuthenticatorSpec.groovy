@@ -16,11 +16,10 @@
 
 package ratpack.pac4j.internal
 
+import org.pac4j.core.credentials.authenticator.UsernamePasswordAuthenticator
 import org.pac4j.core.exception.CredentialsException
+import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
-import org.pac4j.http.credentials.authenticator.UsernamePasswordAuthenticator
-import org.pac4j.http.profile.HttpProfile
-import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
@@ -77,8 +76,8 @@ class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
 
   void "authenticator should execute in blocking thread"() {
     given:
-    def authenticator = { credentials ->
-      credentials.userProfile = new HttpProfile(id: credentials.username)
+    def authenticator = { credentials, ctx ->
+      credentials.userProfile = new CommonProfile(id: credentials.username)
       if (!Execution.isBlockingThread()) {
         throw new CredentialsException("!")
       }
@@ -88,7 +87,7 @@ class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
         Thread.start { down.success(1) }
       })
     } as UsernamePasswordAuthenticator
-    def client = new IndirectBasicAuthClient(authenticator, AuthenticatorProfileCreator.INSTANCE)
+    def client = new IndirectBasicAuthClient(authenticator)
 
     and:
     bindings {

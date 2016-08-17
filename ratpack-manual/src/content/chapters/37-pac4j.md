@@ -1,4 +1,4 @@
-# pac4j
+# Security (pac4j)
 
 The `ratpack-pac4j` extension provides authentication and authorization support via integration with [pac4j](https://github.com/pac4j/pac4j).
 

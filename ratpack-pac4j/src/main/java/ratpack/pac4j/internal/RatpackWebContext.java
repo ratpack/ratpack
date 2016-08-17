@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
-import org.pac4j.core.exception.RequiresHttpAction;
+import org.pac4j.core.exception.HttpAction;
 import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.form.internal.DefaultForm;
@@ -182,7 +182,7 @@ public class RatpackWebContext implements WebContext {
     return getAddress().toString() + request.getUri();
   }
 
-  public void sendResponse(RequiresHttpAction action) {
+  public void sendResponse(HttpAction action) {
     response.status(action.getCode());
     sendResponse();
   }
