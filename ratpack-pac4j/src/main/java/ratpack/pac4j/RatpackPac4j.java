@@ -48,7 +48,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static com.google.common.collect.Iterables.all;
 import static java.util.Arrays.asList;
 
 /**
@@ -150,7 +149,7 @@ public class RatpackPac4j {
    * As such, this handler should be downstream of the {@link #authenticator(Client[])} handler.
    *
    * <pre class="java">{@code
-   * import org.pac4j.core.profile.UserProfile;
+   * import org.pac4j.core.profile.CommonProfile;
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
@@ -169,11 +168,11 @@ public class RatpackPac4j {
    *             .get("logout", ctx -> RatpackPac4j.logout(ctx).then(() -> ctx.render("logged out")))
    *             .prefix("require-authn", a -> a
    *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
-   *                 .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
+   *                 .get(ctx -> ctx.render("Hello " + ctx.get(CommonProfile.class).getId()))
    *             )
    *            .prefix("require-authz", a -> a
    *              .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class, (ctx, profile) -> { return "special-user".equals(profile.getId()); }))
-   *              .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
+   *              .get(ctx -> ctx.render("Hello " + ctx.get(CommonProfile.class).getId()))
    *            )
    *            .get(ctx -> ctx.render("no auth required"))
    *         )
@@ -317,7 +316,7 @@ public class RatpackPac4j {
    *
    * <pre class="java">{@code
    * import io.netty.handler.codec.http.HttpHeaderNames;
-   * import org.pac4j.core.profile.UserProfile;
+   * import org.pac4j.core.profile.CommonProfile;
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
@@ -340,7 +339,7 @@ public class RatpackPac4j {
    *             .prefix("auth", a -> a
    *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> {
-   *                   ctx.render("Hello " + ctx.get(UserProfile.class).getId());
+   *                   ctx.render("Hello " + ctx.get(CommonProfile.class).getId());
    *                 })
    *             )
    *             .get("no-auth", ctx -> {
