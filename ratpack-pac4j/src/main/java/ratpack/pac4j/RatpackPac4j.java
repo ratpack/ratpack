@@ -210,10 +210,10 @@ public class RatpackPac4j {
       } else {
         RatpackWebContext.from(ctx, false).then(webContext -> {
           try {
-            boolean authorized = false;
+            boolean authorized = true;
             for (Authorizer a : authorizerList) {
-              if (a == null || a.isAuthorized(webContext, Arrays.asList(userProfile))) {
-                authorized = true;
+              if (a != null && !a.isAuthorized(webContext, Arrays.asList(userProfile))) {
+                authorized = false;
                 break;
               }
             }
