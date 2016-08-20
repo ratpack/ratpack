@@ -17,17 +17,21 @@
 package ratpack.http.client;
 
 /**
- * Thrown when when no data was read within a certain period of time for a http client.
+ * Thrown when the read timeout duration for a request is reached.
+ * <p>
+ * This will occur if the server fails to send any data back in response within the given duration,
+ * since the last time any data was received.
  *
+ * @since 1.4.1
  */
-public class HttpClientReadTimeoutException extends RuntimeException  {
+public class HttpClientReadTimeoutException extends RuntimeException {
 
   /**
-   * Constructor
+   * Constructor.
    *
-   * @param message the exception message.
+   * @param message the exception message
    */
-  public HttpClientReadTimeoutException(String message){
+  public HttpClientReadTimeoutException(String message) {
     super(message);
   }
 }
