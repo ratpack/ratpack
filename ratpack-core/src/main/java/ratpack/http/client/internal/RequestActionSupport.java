@@ -76,50 +76,66 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     this.redirectCount = redirectCount;
     this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
+
+    finalizeHeaders();
   }
 
   protected abstract void addResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream);
 
   @Override
   public void connect(final Downstream<? super T> downstream) throws Exception {
-    channelPool.acquire().addListener(f1 -> {
-      if (!f1.isSuccess()) {
-        Throwable e = f1.cause();
-        if (e instanceof ConnectTimeoutException) {
-          e = new ConnectTimeoutException("Connect timeout (" + requestConfig.connectTimeout + ") connecting to " + requestConfig.uri);
-          e.setStackTrace(f1.cause().getStackTrace());
-        }
-        error(downstream, e);
+    channelPool.acquire().addListener(acquireFuture -> {
+      if (acquireFuture.isSuccess()) {
+        Channel channel = (Channel) acquireFuture.getNow();
+        send(downstream, channel);
       } else {
-        Channel channel = (Channel) f1.getNow();
-        channel.config().setAutoRead(true);
-        addCommonResponseHandlers(channel.pipeline(), downstream);
-
-        String fullPath = getFullPath(requestConfig.uri);
-        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestConfig.method.getNettyMethod(), fullPath, requestConfig.body);
-        if (requestConfig.headers.get(HttpHeaderConstants.HOST) == null) {
-          HostAndPort hostAndPort = HostAndPort.fromParts(channelKey.host, channelKey.port);
-          requestConfig.headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
-        }
-        if (client.getPoolSize() == 0) {
-          requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
-        }
-        int contentLength = request.content().readableBytes();
-        if (contentLength > 0) {
-          requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
-        }
-
-        HttpHeaders requestHeaders = request.headers();
-        requestHeaders.set(requestConfig.headers.getNettyHeaders());
-
-        ChannelFuture writeFuture = channel.writeAndFlush(request);
-        writeFuture.addListener(f2 -> {
-          if (!writeFuture.isSuccess()) {
-            error(downstream, writeFuture.cause());
-          }
-        });
+        connectFailure(downstream, acquireFuture.cause());
       }
     });
+  }
+
+  private void send(Downstream<? super T> downstream, Channel channel) throws Exception {
+    channel.config().setAutoRead(true);
+
+    FullHttpRequest request = new DefaultFullHttpRequest(
+      HttpVersion.HTTP_1_1,
+      requestConfig.method.getNettyMethod(),
+      getFullPath(requestConfig.uri),
+      requestConfig.body,
+      requestConfig.headers.getNettyHeaders(),
+      EmptyHttpHeaders.INSTANCE
+    );
+
+    addCommonResponseHandlers(channel.pipeline(), downstream);
+
+    channel.writeAndFlush(request).addListener(writeFuture -> {
+      if (!writeFuture.isSuccess()) {
+        error(downstream, writeFuture.cause());
+      }
+    });
+  }
+
+  private void connectFailure(Downstream<? super T> downstream, Throwable e) {
+    if (e instanceof ConnectTimeoutException) {
+      StackTraceElement[] stackTrace = e.getStackTrace();
+      e = new ConnectTimeoutException("Connect timeout (" + requestConfig.connectTimeout + ") connecting to " + requestConfig.uri);
+      e.setStackTrace(stackTrace);
+    }
+    error(downstream, e);
+  }
+
+  private void finalizeHeaders() {
+    if (requestConfig.headers.get(HttpHeaderConstants.HOST) == null) {
+      HostAndPort hostAndPort = HostAndPort.fromParts(channelKey.host, channelKey.port);
+      requestConfig.headers.set(HttpHeaderConstants.HOST, hostAndPort.toString());
+    }
+    if (client.getPoolSize() == 0) {
+      requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
+    }
+    int contentLength = requestConfig.body.readableBytes();
+    if (contentLength > 0) {
+      requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
+    }
   }
 
   protected void forceDispose(ChannelPipeline channelPipeline) {
@@ -130,7 +146,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     dispose(channelPipeline, !HttpUtil.isKeepAlive(response));
   }
 
-  protected final void dispose(ChannelPipeline channelPipeline, boolean forceClose) {
+  private void dispose(ChannelPipeline channelPipeline, boolean forceClose) {
     if (!disposed) {
       disposed = true;
       doDispose(channelPipeline, forceClose);
@@ -141,6 +157,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     channelPipeline.remove(CLIENT_CODEC_HANDLER_NAME);
     channelPipeline.remove(READ_TIMEOUT_HANDLER_NAME);
     channelPipeline.remove(REDIRECT_HANDLER_NAME);
+
     if (channelPipeline.get(DECOMPRESS_HANDLER_NAME) != null) {
       channelPipeline.remove(DECOMPRESS_HANDLER_NAME);
     }
@@ -169,8 +186,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        forceDispose(ctx.pipeline());
-
         if (cause instanceof PrematureChannelClosureException) {
           Exception e = new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely");
           e.setStackTrace(cause.getStackTrace());
