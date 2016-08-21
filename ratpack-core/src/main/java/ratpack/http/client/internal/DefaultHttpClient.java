@@ -43,7 +43,26 @@ public class DefaultHttpClient implements HttpClientInternal {
 
     @Override
     public void channelReleased(Channel ch) throws Exception {
-      ch.config().setAutoRead(false);
+    }
+  };
+
+  private static final ChannelPoolHandler POOLING_HANDLER = new AbstractChannelPoolHandler() {
+    @Override
+    public void channelCreated(Channel ch) throws Exception {
+
+    }
+
+    @Override
+    public void channelReleased(Channel ch) throws Exception {
+      if (ch.isOpen()) {
+        ch.config().setAutoRead(true);
+        ch.pipeline().addLast(IdlingConnectionHandler.INSTANCE);
+      }
+    }
+
+    @Override
+    public void channelAcquired(Channel ch) throws Exception {
+      ch.pipeline().remove(IdlingConnectionHandler.INSTANCE);
     }
   };
 
@@ -60,7 +79,7 @@ public class DefaultHttpClient implements HttpClientInternal {
         .option(ChannelOption.SO_KEEPALIVE, isPooling());
 
       if (isPooling()) {
-        return new FixedChannelPool(bootstrap, NOOP_HANDLER, getPoolSize());
+        return new FixedChannelPool(bootstrap, POOLING_HANDLER, getPoolSize());
       } else {
         return new SimpleChannelPool(bootstrap, NOOP_HANDLER, ALWAYS_UNHEALTHY);
       }
