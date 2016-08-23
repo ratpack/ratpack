@@ -24,6 +24,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.*;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
+import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
@@ -79,7 +80,12 @@ public class DefaultHttpClient implements HttpClientInternal {
         .option(ChannelOption.SO_KEEPALIVE, isPooling());
 
       if (isPooling()) {
-        return new FixedChannelPool(bootstrap, POOLING_HANDLER, getPoolSize());
+        ChannelPool channelPool = new FixedChannelPool(bootstrap, POOLING_HANDLER, getPoolSize());
+        ((ExecControllerInternal) key.execution.getController()).onClose(() -> {
+          remove(key);
+          channelPool.close();
+        });
+        return channelPool;
       } else {
         return new SimpleChannelPool(bootstrap, NOOP_HANDLER, ALWAYS_UNHEALTHY);
       }

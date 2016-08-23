@@ -54,4 +54,28 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
     latch.await()
     text == "ok"
   }
+
+  def "clients can safely be used across different exec controllers"() {
+    when:
+    Channel channel
+    handlers { get { render poolingHttpClient.get(otherAppUrl()).map { it.body.text } } }
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        render "ok"
+      }
+    }
+
+    then:
+    text == "ok"
+    channel.isOpen()
+
+    when:
+    application.close()
+
+    then:
+    !channel.isOpen()
+    text == "ok"
+  }
+
 }
