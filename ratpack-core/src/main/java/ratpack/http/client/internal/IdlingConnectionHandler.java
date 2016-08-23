@@ -16,10 +16,27 @@
 
 package ratpack.http.client.internal;
 
-import ratpack.http.client.HttpClient;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
-interface HttpClientInternal extends HttpClient {
+@ChannelHandler.Sharable
+class IdlingConnectionHandler extends ChannelInboundHandlerAdapter {
 
-  HttpChannelPoolMap getChannelPoolMap();
+  static final ChannelInboundHandler INSTANCE = new IdlingConnectionHandler();
+
+  private IdlingConnectionHandler() {
+  }
+
+  @Override
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    ctx.close();
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    ctx.close();
+  }
 
 }

@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.http.client.internal;
+package ratpack.http.client;
 
-import ratpack.http.client.HttpClient;
+/**
+ * Thrown when the read timeout duration for a request is reached.
+ * <p>
+ * This will occur if the server fails to send any data back in response within the given duration,
+ * since the last time any data was received.
+ *
+ * @since 1.4.1
+ */
+public class HttpClientReadTimeoutException extends RuntimeException {
 
-interface HttpClientInternal extends HttpClient {
-
-  HttpChannelPoolMap getChannelPoolMap();
-
+  /**
+   * Constructor.
+   *
+   * @param message the exception message
+   */
+  public HttpClientReadTimeoutException(String message) {
+    super(message);
+  }
 }
