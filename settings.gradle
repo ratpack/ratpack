@@ -42,7 +42,8 @@ include \
     "ratpack-spring-boot-starter",
     "ratpack-benchmark",
     "ratpack-retrofit2",
-    "ratpack-jdbc-tx"
+    "ratpack-jdbc-tx",
+    "ratpack-consul"
 
 include "perf"
 
