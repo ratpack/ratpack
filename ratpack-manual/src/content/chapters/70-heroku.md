@@ -99,7 +99,7 @@ you can simply start the application by using `java` directly.
 web: java ratpack.groovy.GroovyRatpackMain
 ```
 
-See the [launching chapter](launching.html) chapter for more detail on starting Ratpack applications.
+See the [launching chapter](launching.html) for more detail on starting Ratpack applications.
 
 ## General Considerations
 
