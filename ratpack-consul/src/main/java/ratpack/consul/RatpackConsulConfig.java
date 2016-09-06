@@ -25,6 +25,7 @@ import ratpack.util.Exceptions;
 /**
  * Integration for retrieving values from a <a href=https://www.consul.io/>Consul</a> Key-Value store as {@link com.google.common.io.ByteSource} to be used
  * with the existing {@link ratpack.server.ServerConfigBuilder} parsing options.
+ * @since 1.5
  */
 public interface RatpackConsulConfig {
 

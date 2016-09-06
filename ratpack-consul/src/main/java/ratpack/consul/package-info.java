@@ -31,5 +31,7 @@
  * <li>{@link ratpack.server.ServerConfigBuilder#yaml(com.google.common.io.ByteSource)}</li>
  * </ul>
  * </p>
+ *
+ * @since 1.5
  */
 package ratpack.consul;
