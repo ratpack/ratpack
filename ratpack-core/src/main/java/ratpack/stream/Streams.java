@@ -583,7 +583,6 @@ public class Streams {
             subscription.cancel();
             d.error(e);
           }
-          System.out.println(count.decrementAndGet());
         }
 
         @Override
@@ -593,8 +592,6 @@ public class Streams {
 
         @Override
         public void onComplete() {
-          System.out.println(value);
-
           d.success(value);
         }
       })
