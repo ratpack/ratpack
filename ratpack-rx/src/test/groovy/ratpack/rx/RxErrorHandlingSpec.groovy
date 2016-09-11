@@ -26,6 +26,7 @@ import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.Subscriber
+import rx.exceptions.OnCompletedFailedException
 import rx.exceptions.OnErrorNotImplementedException
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
@@ -321,7 +322,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
-  def "exception thrown by oncomplete is not re-thrown"() {
+  def "exception thrown by oncomplete is not re-thrown, wrapped by OnCompletedFailedException"() {
     given:
     def e = new Exception("!")
 
@@ -348,9 +349,13 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    then:
+    and:
     get()
-    errorHandler.errors == [e]
+
+    then:
+    errorHandler.errors.size() == 1
+    errorHandler.errors.first().class == OnCompletedFailedException
+    errorHandler.errors.first().cause == e
   }
 
 }

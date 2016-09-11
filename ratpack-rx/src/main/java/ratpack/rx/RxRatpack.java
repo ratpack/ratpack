@@ -20,8 +20,8 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
-import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
+import ratpack.rx.internal.MultiExecControllerBackedScheduler;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
@@ -30,9 +30,8 @@ import rx.RxReactiveStreams;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
-import rx.plugins.RxJavaErrorHandler;
+import rx.plugins.RxJavaHooks;
 import rx.plugins.RxJavaObservableExecutionHook;
-import rx.plugins.RxJavaPlugins;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -90,39 +89,24 @@ public abstract class RxRatpack {
    * }
    * }</pre>
    */
-  @SuppressWarnings("deprecation")
+
   public static void initialize() {
-    RxJavaPlugins plugins = RxJavaPlugins.getInstance();
-
-    ExecutionHook ourHook = new ExecutionHook();
-    try {
-      plugins.registerObservableExecutionHook(ourHook);
-    } catch (IllegalStateException e) {
-      RxJavaObservableExecutionHook existingHook = plugins.getObservableExecutionHook();
-      if (!(existingHook instanceof ExecutionHook)) {
-        throw new IllegalStateException("Cannot install RxJava integration because another execution hook (" + existingHook.getClass() + ") is already installed");
-      }
+    if (RxJavaHooks.isLockdown()) {
+      throw new IllegalStateException("Cannot install RxJava integration because it has already been locked down");
     }
 
-    ErrorHandler ourErrorHandler = new ErrorHandler();
-    try {
-      plugins.registerErrorHandler(ourErrorHandler);
-    } catch (IllegalStateException e) {
-      RxJavaErrorHandler existingErrorHandler = plugins.getErrorHandler();
-      if (!(existingErrorHandler instanceof ErrorHandler)) {
-        throw new IllegalStateException("Cannot install RxJava integration because another error handler (" + existingErrorHandler.getClass() + ") is already installed");
-      }
-    }
-
-    try {
-      plugins.registerSchedulersHook(new DefaultSchedulers());
-    } catch (IllegalStateException e) {
-      rx.plugins.RxJavaSchedulersHook existingSchedulers = plugins.getSchedulersHook();
-      if (!(existingSchedulers instanceof DefaultSchedulers)) {
-        throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
-      }
-    }
+    // TODO RxJavaHooks.setOnSingleCreate();
+    RxJavaHooks.setOnObservableStart(RxRatpack::onSubscribeStart);
+    RxJavaHooks.setOnError(RxRatpack::onError);
+    RxJavaHooks.setOnNewThreadScheduler(RxRatpack::onNewThreadScheduler);
   }
+
+  // TODO javadoc
+  public static void initializeWithLockdown() {
+    RxRatpack.initialize();
+    RxJavaHooks.lockdown();
+  }
+
 
   /**
    * Converts a {@link Promise} into an {@link Observable}.
@@ -346,6 +330,7 @@ public abstract class RxRatpack {
    * @see #promise(Observable)
    * @throws UnmanagedThreadException if called outside of an execution
    */
+  @Deprecated
   public static <T> Promise<List<T>> promise(Observable.OnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
     return promise(Observable.create(onSubscribe));
   }
@@ -488,6 +473,7 @@ public abstract class RxRatpack {
    * @see #promise(Observable.OnSubscribe)
    * @see #promiseSingle(Observable)
    */
+  @Deprecated
   public static <T> Promise<T> promiseSingle(Observable.OnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
     return promiseSingle(Observable.create(onSubscribe));
   }
@@ -572,6 +558,7 @@ public abstract class RxRatpack {
    * @param <T> the type of the value observed
    * @return a ReactiveStreams publisher containing each value of the observable
    */
+  @Deprecated
   public static <T> TransformablePublisher<T> publisher(Observable.OnSubscribe<T> onSubscribe) {
     return publisher(Observable.create(onSubscribe));
   }
@@ -872,26 +859,24 @@ public abstract class RxRatpack {
     return scheduler(ExecController.require());
   }
 
-  private static class ErrorHandler extends RxJavaErrorHandler {
-    @Override
-    public void handleError(Throwable e) {
-      Promise.error(e).then(Action.noop());
-    }
+  private static <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, Observable.OnSubscribe<T> onSubscribe) {
+    return ExecController.current()
+      .map(e -> executionBackedOnSubscribe(onSubscribe))
+      .orElse(onSubscribe);
   }
 
-  private static class ExecutionHook extends RxJavaObservableExecutionHook {
+  private static <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe) {
+    return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
+  }
 
-    @Override
-    public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, Observable.OnSubscribe<T> onSubscribe) {
-      return ExecController.current()
-        .map(e -> executionBackedOnSubscribe(onSubscribe))
-        .orElse(onSubscribe);
-    }
+  private static void onError(Throwable e) {
+    Promise.error(e).then(Action.noop());
+  }
 
+  private static Scheduler computationScheduler = new MultiExecControllerBackedScheduler();
 
-    private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe) {
-      return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
-    }
+  private static Scheduler onNewThreadScheduler(Scheduler originalScheduler) {
+    return computationScheduler;
   }
 
   private static class ExecutionBackedSubscriber<T> extends Subscriber<T> {

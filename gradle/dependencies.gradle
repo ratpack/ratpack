@@ -22,7 +22,7 @@ ext {
     guava: "19.0",
     groovy: "2.4.7",
     pac4j: "1.8.8",
-    rxjava: "1.1.2",
+    rxjava: "1.1.10",
     hystrix: "1.5.1",
     jackson: "2.7.5",
     dropwizardMetrics: "3.1.1",
