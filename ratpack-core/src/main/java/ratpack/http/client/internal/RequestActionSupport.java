@@ -177,20 +177,17 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       p.addLast(SSL_HANDLER_NAME, createSslHandler());
     }
 
-    p.addLast(CLIENT_CODEC_HANDLER_NAME, new HttpClientCodec(4096, 8192, 8192, true));
+    p.addLast(CLIENT_CODEC_HANDLER_NAME, new HttpClientCodec(4096, 8192, 8192, false));
 
     p.addLast(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
 
     p.addLast(REDIRECT_HANDLER_NAME, new SimpleChannelInboundHandler<HttpObject>(false) {
       boolean redirected;
+      HttpResponse response;
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause instanceof PrematureChannelClosureException) {
-          Exception e = new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely");
-          e.setStackTrace(cause.getStackTrace());
-          cause = e;
-        } else if (cause instanceof ReadTimeoutException) {
+        if (cause instanceof ReadTimeoutException) {
           cause = new HttpClientReadTimeoutException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
         }
 
@@ -198,9 +195,15 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       }
 
       @Override
+      public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        Exception e = new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely");
+        error(downstream, e);
+      }
+
+      @Override
       protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         if (msg instanceof HttpResponse) {
-          final HttpResponse response = (HttpResponse) msg;
+          this.response = (HttpResponse) msg;
           int maxRedirects = requestConfig.maxRedirects;
           int status = response.status().code();
           String locationValue = response.headers().getAsString(HttpHeaderConstants.LOCATION);
