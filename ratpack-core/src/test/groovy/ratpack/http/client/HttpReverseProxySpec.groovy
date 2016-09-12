@@ -16,6 +16,7 @@
 
 package ratpack.http.client
 
+import io.netty.buffer.Unpooled
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -27,7 +28,7 @@ import static ratpack.stream.Streams.publish
 @Unroll
 class HttpReverseProxySpec extends BaseHttpClientSpec {
 
-  def "can forward request body"() {
+  def "can forward non streamed response as a stream"() {
     when:
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
@@ -35,6 +36,41 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
     otherApp {
       post {
         render request.body.map { "received: " + it.text }
+      }
+    }
+    handlers {
+      post { HttpClient httpClient ->
+        request.body.then { body ->
+          httpClient.requestStream(otherAppUrl()) {
+            it.post().body.bytes body.bytes
+          } then {
+            it.forwardTo(response)
+          }
+        }
+      }
+    }
+
+    then:
+    def r = request {
+      it.post().body.text "foo"
+    }
+
+    r.body.text == "received: foo"
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can forward chunked response as a stream"() {
+    when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      post {
+        request.body.then {
+          render stringChunks("text/plain", publish([it.text] * 1000))
+        }
       }
     }
     handlers {
@@ -54,10 +90,46 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
       it.post().body.text "foo"
     }
 
-    r.body.text == "received: foo"
+    r.body.text == "foo" * 1000
 
     where:
     pooled << [true, false]
+  }
+
+  def "can forward an EOF framed response"() {
+    when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      post {
+        request.body.then {
+          response.forceCloseConnection()
+          response.sendStream(publish([it.text] * 1000).map { Unpooled.wrappedBuffer(it.bytes) })
+        }
+      }
+    }
+    handlers {
+      post { HttpClient httpClient ->
+        request.body.then { body ->
+          httpClient.requestStream(otherAppUrl()) {
+            it.post().body.buffer body.buffer
+          } then {
+            it.forwardTo(response)
+          }
+        }
+      }
+    }
+
+    then:
+    def r = request {
+      it.post().body.text "foo"
+    }
+
+    r.body.text == "foo" * 1000
+
+    where:
+    pooled << [false]
   }
 
   def "can proxy a client response"() {
