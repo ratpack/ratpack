@@ -487,7 +487,7 @@ public class Streams {
    * @return a publisher that splits collection items into new items per collection element
    */
   public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<? extends T>> publisher) {
-    return new FanOutPublisher<>(publisher).buffer();
+    return new FanOutPublisher<>(publisher);
   }
 
   /**

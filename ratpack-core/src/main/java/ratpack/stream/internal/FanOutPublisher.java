@@ -19,68 +19,75 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.stream.TransformablePublisher;
+import ratpack.func.Action;
 
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FanOutPublisher<T> implements TransformablePublisher<T> {
+public class FanOutPublisher<T> extends BufferingPublisher<T> {
 
-  private final Publisher<? extends Iterable<? extends T>> upstream;
+  public FanOutPublisher(Publisher<? extends Iterable<? extends T>> publisher) {
+    super(Action.noop(), write -> {
+      return new Subscription() {
 
-  public FanOutPublisher(Publisher<? extends Iterable<? extends T>> upstream) {
-    this.upstream = upstream;
-  }
+        Subscription upstream;
+        final AtomicBoolean emitting = new AtomicBoolean();
 
-  // Note, we know that a buffer publisher is downstream
-
-  @Override
-  public void subscribe(final Subscriber<? super T> downstream) {
-    upstream.subscribe(new Subscriber<Iterable<? extends T>>() {
-
-      private final AtomicBoolean done = new AtomicBoolean();
-      private Subscription upstreamSubscription;
-
-      @Override
-      public void onSubscribe(Subscription subscription) {
-        upstreamSubscription = subscription;
-
-        downstream.onSubscribe(new Subscription() {
-          @Override
-          public void request(long n) {
-            upstreamSubscription.request(n);
+        @Override
+        public void request(long n) {
+          if (emitting.get()) {
+            return;
           }
 
-          @Override
-          public void cancel() {
-            done.set(true);
-            upstreamSubscription.cancel();
-          }
-        });
-      }
+          if (upstream == null) {
+            publisher.subscribe(new Subscriber<Iterable<? extends T>>() {
+              @Override
+              public void onSubscribe(Subscription s) {
+                if (write.isCancelled()) {
+                  s.cancel();
+                  return;
+                }
 
-      @Override
-      public void onNext(Iterable<? extends T> iterable) {
-        Iterator<? extends T> iterator = iterable.iterator();
+                upstream = s;
+                if (write.getRequested() > 0) {
+                  s.request(write.getRequested());
+                }
+              }
 
-        if (!iterator.hasNext() && !done.get()) {
-          upstreamSubscription.request(1); // nothing in this iterable, request another to meet demand
-        } else {
-          while (iterator.hasNext() && !done.get()) {
-            downstream.onNext(iterator.next());
+              @Override
+              public void onNext(Iterable<? extends T> items) {
+                emitting.set(true);
+                for (T item : items) {
+                  write.item(item);
+                }
+                emitting.set(false);
+                long requested = write.getRequested();
+                if (requested > 0) {
+                  upstream.request(1);
+                }
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                write.error(t);
+              }
+
+              @Override
+              public void onComplete() {
+                write.complete();
+              }
+            });
+          } else {
+            upstream.request(n);
           }
         }
-      }
 
-      @Override
-      public void onError(Throwable t) {
-        downstream.onError(t);
-      }
-
-      @Override
-      public void onComplete() {
-        downstream.onComplete();
-      }
+        @Override
+        public void cancel() {
+          if (upstream != null) {
+            upstream.cancel();
+          }
+        }
+      };
     });
   }
 

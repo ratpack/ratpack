@@ -38,4 +38,6 @@ public interface BufferedWriteStream<T> extends WriteStream<T> {
    */
   long getBuffered();
 
+  boolean isCancelled();
+
 }
