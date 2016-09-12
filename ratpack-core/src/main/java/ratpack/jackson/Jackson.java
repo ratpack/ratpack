@@ -128,7 +128,7 @@ import java.io.OutputStream;
  *       )
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get("stream");
- *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
+ *       assertEquals("text/event-stream", response.getHeaders().get("Content-Type"));
  *
  *       String expectedOutput = Arrays.asList("a", "b", "c")
  *         .stream()

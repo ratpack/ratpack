@@ -64,7 +64,7 @@ import ratpack.stream.Streams;
  *       context.render(events);
  *     }).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
- *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
+ *       assertEquals("text/event-stream", response.getHeaders().get("Content-Type"));
  *
  *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *         .stream()
