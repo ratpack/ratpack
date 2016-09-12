@@ -60,7 +60,7 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence HTML_UTF_8 = new AsciiString("text/html;charset=UTF-8");
   public static final CharSequence ON = new AsciiString("on");
 
-  public static final CharSequence TEXT_EVENT_STREAM_CHARSET_UTF_8 = new AsciiString("text/event-stream;charset=UTF-8");
+  public static final CharSequence TEXT_EVENT_STREAM = new AsciiString("text/event-stream");
 
   public static final String XML_HTTP_REQUEST = "XMLHttpRequest";
 }

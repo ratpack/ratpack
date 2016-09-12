@@ -58,7 +58,7 @@ id: 3
 
 """
     response.statusCode == OK.code()
-    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
+    response.headers["Content-Type"] == "text/event-stream"
     response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] == "no-cache"
     response.headers["Content-Encoding"] == null
@@ -168,7 +168,7 @@ id: 3
     expect:
     def response = get()
     response.statusCode == OK.code()
-    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
+    response.headers["Content-Type"] == "text/event-stream"
     response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] == "no-cache"
     response.headers["Content-Encoding"] == "gzip"
