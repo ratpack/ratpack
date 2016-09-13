@@ -286,7 +286,7 @@ class ListTest extends GroovyTestCase {
 
 If the thrown exception would be another type, `shouldFail` would rethrow the exception letting the test method fail
 
-A complete overview of all`GroovyTestCase` methods can be found in the [JavaDoc documentation](http://groovy.codehaus.org/api/groovy/util/GroovyTestCase.html).
+A complete overview of all`GroovyTestCase` methods can be found in the [JavaDoc documentation](http://docs.groovy-lang.org/@groovy-version@/html/api/groovy/util/GroovyTestCase.html).
 
 ### JUnit 4 support
 
@@ -307,7 +307,7 @@ class ListTest {
 }
 ```
 
-A complete overview of all `GroovyAssert` methods can be found in the [JavaDoc documentation](http://groovy.codehaus.org/api/groovy/test/GroovyAssert.html).
+A complete overview of all `GroovyAssert` methods can be found in the [JavaDoc documentation](http://docs.groovy-lang.org/@groovy-version@/html/api/groovy/test/GroovyAssert.html).
 
 ### Spock
 

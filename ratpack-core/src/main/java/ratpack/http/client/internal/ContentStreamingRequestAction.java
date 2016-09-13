@@ -111,8 +111,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             httpContent.release();
           }
           if (httpObject instanceof LastHttpContent) {
-            write.complete();
             dispose(ctx.pipeline(), response);
+            write.complete();
           } else {
             if (write.getRequested() > 0) {
               ctx.read();
@@ -120,6 +120,11 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
         }
       }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+      super.channelInactive(ctx);
     }
 
     @Override
@@ -200,6 +205,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         outgoingHeaders.remove(HttpHeaderNames.CONNECTION);
         Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
         response.status(status);
+
         response.sendStream(getBody().bindExec());
       }
 

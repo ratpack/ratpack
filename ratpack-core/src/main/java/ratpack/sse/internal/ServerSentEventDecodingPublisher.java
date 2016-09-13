@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,75 +14,80 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal;
+package ratpack.sse.internal;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
+import ratpack.sse.Event;
+import ratpack.stream.internal.BufferingPublisher;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+class ServerSentEventDecodingPublisher extends BufferingPublisher<Event<?>> {
 
-public class FanOutPublisher<T> extends BufferingPublisher<T> {
-
-  public FanOutPublisher(Publisher<? extends Iterable<? extends T>> publisher) {
+  ServerSentEventDecodingPublisher(Publisher<? extends ByteBuf> publisher, ByteBufAllocator allocator) {
     super(Action.noop(), write -> {
       return new Subscription() {
 
         Subscription upstream;
-        final AtomicBoolean emitting = new AtomicBoolean();
+        ServerSentEventDecoder decoder = new ServerSentEventDecoder(allocator, write::item);
+
+        volatile boolean emitting;
 
         @Override
         public void request(long n) {
-          if (emitting.get()) {
+          if (emitting) {
             return;
           }
 
           if (upstream == null) {
-            publisher.subscribe(new Subscriber<Iterable<? extends T>>() {
+            publisher.subscribe(new Subscriber<ByteBuf>() {
               @Override
               public void onSubscribe(Subscription s) {
-                if (write.isCancelled()) {
-                  s.cancel();
-                  return;
-                }
-
                 upstream = s;
-                if (write.getRequested() > 0) {
-                  s.request(write.getRequested());
-                }
+                upstream.request(n);
               }
 
               @Override
-              public void onNext(Iterable<? extends T> items) {
-                emitting.set(true);
-                for (T item : items) {
-                  write.item(item);
+              public void onNext(ByteBuf event) {
+                emitting = true;
+                try {
+                  decoder.decode(event);
+                } catch (Throwable e) {
+                  upstream.cancel();
+                  onError(e);
+                  return;
+                } finally {
+                  emitting = false;
                 }
-                emitting.set(false);
-                long requested = write.getRequested();
-                if (requested > 0) {
+                if (write.getRequested() > 0) {
                   upstream.request(1);
                 }
               }
 
               @Override
               public void onError(Throwable t) {
+                decoder.close();
                 write.error(t);
               }
 
               @Override
               public void onComplete() {
+                decoder.close();
                 write.complete();
               }
             });
           } else {
             upstream.request(n);
           }
+
         }
 
         @Override
         public void cancel() {
+          decoder.close();
           if (upstream != null) {
             upstream.cancel();
           }

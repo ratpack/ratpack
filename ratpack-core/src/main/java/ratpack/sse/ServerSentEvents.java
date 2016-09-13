@@ -68,7 +68,7 @@ import ratpack.stream.Streams;
  *
  *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *         .stream()
- *         .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
+ *         .map(i -> "id: " + i + "\nevent: counter\ndata: event " + i + "\n")
  *         .collect(joining("\n"))
  *         + "\n";
  *
@@ -130,9 +130,9 @@ public class ServerSentEvents implements Renderable {
     ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
+    response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
     response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
     response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
-    response.forceCloseConnection();
     response.sendStream(Streams.map(publisher, i -> ServerSentEventEncoder.INSTANCE.encode(i, bufferAllocator)));
   }
 

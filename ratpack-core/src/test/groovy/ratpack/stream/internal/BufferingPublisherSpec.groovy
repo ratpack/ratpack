@@ -221,4 +221,20 @@ class BufferingPublisherSpec extends Specification {
     latch.await()
   }
 
+  def "indicates when cancelled"() {
+    when:
+    p.subscribe(subscriber)
+    subscriber.subscription.request(1)
+
+    then:
+    !writeStream.cancelled
+
+    when:
+    subscriber.subscription.cancel()
+
+    then:
+    writeStream.cancelled
+  }
+
+
 }
