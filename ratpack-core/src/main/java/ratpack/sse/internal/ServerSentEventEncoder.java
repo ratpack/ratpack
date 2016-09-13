@@ -44,6 +44,13 @@ public class ServerSentEventEncoder {
     OutputStream outputStream = new ByteBufOutputStream(buffer);
     Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.encoder(UTF_8));
 
+    String eventId = event.getId();
+    if (eventId != null) {
+      outputStream.write(EVENT_ID_PREFIX);
+      writer.append(eventId).flush();
+      outputStream.write(NEWLINE);
+    }
+
     String eventType = event.getEvent();
     if (eventType != null) {
       outputStream.write(EVENT_TYPE_PREFIX);
@@ -62,14 +69,6 @@ public class ServerSentEventEncoder {
           writer.append(character).flush();
         }
       }
-      outputStream.write(NEWLINE);
-    }
-
-
-    String eventId = event.getId();
-    if (eventId != null) {
-      outputStream.write(EVENT_ID_PREFIX);
-      writer.append(eventId).flush();
       outputStream.write(NEWLINE);
     }
 
