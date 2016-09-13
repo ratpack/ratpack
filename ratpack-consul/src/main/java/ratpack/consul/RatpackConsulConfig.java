@@ -80,18 +80,18 @@ public interface RatpackConsulConfig {
    *     public String secret;
    *   }
    *
-   *   public static void main(String... args) {
+   *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(a -> a
    *       .serverConfig(s -> s
    *         .yaml(RatpackConsulConfig.value("default/app"))
-   *         .json(RatpackConsulConfig.value("default/environment", ImmutableQueryOptions.builder().token("app-acl-token').build())
-   *         .props(RatpackConsulConfig.value("app/environment", b -> b.withUrl("https://consul.domain.io"))
+   *         .json(RatpackConsulConfig.value("default/environment", ImmutableQueryOptions.builder().token("app-acl-token").build()))
+   *         .props(RatpackConsulConfig.value("app/environment", b -> b.withUrl("https://consul.domain.io")))
    *         .require("/config", Config.class)
    *       )
    *       .handlers(c -> c
    *         .get(ctx -> ctx.render(ctx.get(Config.class)))
    *       )
-   *     )
+   *     );
    *   }
    * }
    * }</pre>
