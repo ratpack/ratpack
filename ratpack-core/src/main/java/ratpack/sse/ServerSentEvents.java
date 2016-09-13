@@ -64,11 +64,11 @@ import ratpack.stream.Streams;
  *       context.render(events);
  *     }).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
- *       assertEquals("text/event-stream", response.getHeaders().get("Content-Type"));
+ *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
  *
  *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *         .stream()
- *         .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
+ *         .map(i -> "id: " + i + "\nevent: counter\ndata: event " + i + "\n")
  *         .collect(joining("\n"))
  *         + "\n";
  *
@@ -129,7 +129,7 @@ public class ServerSentEvents implements Renderable {
   public void render(Context context) throws Exception {
     ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
     Response response = context.getResponse();
-    response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM);
+    response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
     response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
     response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
