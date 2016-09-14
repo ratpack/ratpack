@@ -16,7 +16,7 @@
 
 package ratpack.pac4j.internal
 
-import org.pac4j.core.credentials.authenticator.UsernamePasswordAuthenticator
+import org.pac4j.core.credentials.UsernamePasswordCredentials
 import org.pac4j.core.exception.CredentialsException
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
@@ -86,7 +86,7 @@ class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
       Blocking.on(Promise.async { down ->
         Thread.start { down.success(1) }
       })
-    } as UsernamePasswordAuthenticator
+    } as Authenticator<UsernamePasswordCredentials>
     def client = new IndirectBasicAuthClient(authenticator)
 
     and:
