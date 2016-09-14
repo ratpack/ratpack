@@ -234,7 +234,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       @Override
       public void onComplete() {
         if (done.compareAndSet(false, true)) {
-          channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(cancelOnFailure);
           post(responseStatus);
         }
       }
