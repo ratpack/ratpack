@@ -66,5 +66,27 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     text == "ok"
   }
 
+  def "chunked responses are streamed reliably"() {
+    given:
+    def payload = new byte[15 * 8012]
+    new Random().nextBytes(payload)
+
+    when:
+    otherApp {
+      get {
+        response.send(payload)
+      }
+    }
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl(), {}).then { StreamedResponse streamedResponse ->
+          streamedResponse.forwardTo(response)
+        }
+      }
+    }
+
+    then:
+    (1..10).collect { get().body.bytes == payload }.every()
+  }
 
 }
