@@ -24,6 +24,24 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
 
   def poolingHttpClient = HttpClient.of { it.poolSize(1) }
 
+  def "connection can be reused"() {
+    when:
+    otherApp {
+      get {
+        render "ok"
+      }
+    }
+    handlers {
+      get {
+        render poolingHttpClient.get(otherAppUrl()).map { it.body.text }
+      }
+    }
+
+    then:
+    text == "ok"
+    text == "ok"
+  }
+
   def "keep alive connection is silently discarded when it closes"() {
     when:
     Channel channel = null

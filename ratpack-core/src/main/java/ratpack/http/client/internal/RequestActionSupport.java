@@ -87,7 +87,21 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     channelPool.acquire().addListener(acquireFuture -> {
       if (acquireFuture.isSuccess()) {
         Channel channel = (Channel) acquireFuture.getNow();
-        send(downstream, channel);
+        if (channel.eventLoop().equals(execution.getEventLoop())) {
+          send(downstream, channel);
+        } else {
+          channel.deregister().addListener(deregisterFuture ->
+            execution.getEventLoop().register(channel).addListener(registerFuture -> {
+              if (registerFuture.isSuccess()) {
+                send(downstream, channel);
+              } else {
+                channel.close();
+                channelPool.release(channel);
+                connectFailure(downstream, registerFuture.cause());
+              }
+            })
+          );
+        }
       } else {
         connectFailure(downstream, acquireFuture.cause());
       }
