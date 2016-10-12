@@ -16,6 +16,7 @@
 
 package ratpack.path
 
+import ratpack.test.ApplicationUnderTest
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class PathBindingSpecSpec extends RatpackGroovyDslSpec {
@@ -51,6 +52,33 @@ class PathBindingSpecSpec extends RatpackGroovyDslSpec {
     getText("a/b/11") == ":foo/:bar/::\\d\\d"
     getText("a/b/111") == ":foo/:bar/:n:\\d\\d\\d"
     getText("a/b/a/b/xxx") == ":foo/:bar/:foo/:bar/xxx"
+  }
+
+  def "binding incorrectly formatted paths to tokens should not cause server errors"() {
+    when:
+    handlers {
+      get(":token") {
+        response.send()
+      }
+    }
+
+    then:
+    statusCode(applicationUnderTest, "networking%party") != 500
+  }
+
+  private int statusCode(ApplicationUnderTest applicationUnderTest, String path) {
+    def port = applicationUnderTest.address.port
+    Socket s = new Socket("localhost", port)
+    def statusLine = s.withCloseable { socket ->
+      def pw = new PrintWriter(socket.outputStream)
+      pw.println("GET $path HTTP/1.1")
+      pw.println("Host: localhost:$port")
+      pw.println("")
+      pw.flush()
+      def reader = new InputStreamReader(socket.inputStream)
+      reader.readLine()
+    }
+    statusLine.tokenize()[1].toInteger()
   }
 
 }
