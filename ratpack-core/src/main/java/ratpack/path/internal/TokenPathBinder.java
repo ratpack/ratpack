@@ -19,6 +19,7 @@ package ratpack.path.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import ratpack.path.InvalidPathEncodingException;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
 
@@ -60,7 +61,11 @@ public class TokenPathBinder implements PathBinder {
   }
 
   private String decodeURIComponent(String s) {
-    return QueryStringDecoder.decodeComponent(s.replace("+", "%2B"));
+    try {
+      return QueryStringDecoder.decodeComponent(s.replace("+", "%2B"));
+    } catch (IllegalArgumentException cause) {
+      throw new InvalidPathEncodingException(cause);
+    }
   }
 
   @Override
