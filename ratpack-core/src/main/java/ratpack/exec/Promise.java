@@ -670,6 +670,70 @@ public interface Promise<T> {
   }
 
   /**
+   * Executes the operation returned by the given function, if it satisfies the predicate.
+   * <p>
+   * This method can be used when needing to perform an operation returned by another object, based on the promised value.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Operation;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static class CaseService {
+   *     public Operation toUpper(String value, List<String> values) {
+   *       return Operation.of(() -> values.add(value.toUpperCase()));
+   *     }
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     CaseService service = new CaseService();
+   *     List<String> events = Lists.newLinkedList();
+   *
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .nextOpIf(v -> v.startsWith("f"), v -> service.toUpper(v, events))
+   *        .nextOpIf(v -> v.startsWith("s"), v -> events.add("ignore"))
+   *        .then(events::add)
+   *     );
+   *
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to execute the operation.
+   * @param function a function that returns an operation that acts on the promised value
+   * @return a promise for the original value
+   */
+  default Promise<T> nextOpIf(Predicate<? super T> predicate, Function<? super T, ? extends Operation> function) {
+    return transform(up -> down -> up.connect(
+      down.<T>onSuccess(value -> {
+          if (predicate.apply(value)) {
+            function.apply(value)
+              .onError(down::error)
+              .then(() ->
+                down.success(value)
+              );
+          } else {
+            down.success(value);
+          }
+        })
+      )
+    );
+  }
+
+  /**
    * Replaces {@code this} promise with the provided promise for downstream subscribers.
    * <p>
    * This is simply a more convenient form of {@link #flatMap(Function)}, where the given promise is returned.
