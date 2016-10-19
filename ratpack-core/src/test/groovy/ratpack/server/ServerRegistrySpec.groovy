@@ -18,7 +18,7 @@ package ratpack.server
 
 import ratpack.groovy.Groovy
 import ratpack.registry.Registry
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.ServerBackedApplicationUnderTest
 import spock.lang.Specification
 
 class ServerRegistrySpec extends Specification {
@@ -27,7 +27,7 @@ class ServerRegistrySpec extends Specification {
     when:
     def server = RatpackServer.of {
       it
-      .serverConfig { it.port(0) }
+        .serverConfig { it.port(0) }
         .registry { Registry.single(it.get(ServerConfig)) }
         .handler {
         Groovy.groovyHandler {
@@ -36,7 +36,12 @@ class ServerRegistrySpec extends Specification {
       }
     }
 
-    ApplicationUnderTest.of(server).test {
+    new ServerBackedApplicationUnderTest() {
+      @Override
+      protected RatpackServer createServer() throws Exception {
+        return server
+      }
+    }.test {
       assert it.text == "2"
     }
 

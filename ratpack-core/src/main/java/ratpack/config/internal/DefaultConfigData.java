@@ -16,10 +16,12 @@
 
 package ratpack.config.internal;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.ConfigSource;
@@ -47,13 +49,14 @@ public class DefaultConfigData implements ConfigData {
   }
 
   @Override
-  public <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type) {
+  public <O> ConfigObject<O> getAsConfigObject(String pointer, TypeToken<O> type) {
     JsonNode node = pointer != null ? rootNode.at(pointer) : rootNode;
     if (node.isMissingNode()) {
       node = emptyNode;
     }
     try {
-      O value = objectMapper.readValue(new TreeTraversingParser(node, objectMapper), type);
+      JavaType javaType = objectMapper.getTypeFactory().constructType(type.getType());
+      O value = objectMapper.readValue(new TreeTraversingParser(node, objectMapper), javaType);
       return new DefaultConfigObject<>(pointer, type, value);
     } catch (IOException ex) {
       throw Exceptions.uncheck(ex);

@@ -19,10 +19,12 @@ package ratpack.server;
 import ratpack.registry.Registry;
 
 /**
- * A start event.
+ * Deprecated, replaced by {@link ratpack.service.StartEvent}.
  *
- * @see Service#onStart(StartEvent)
+ * @see ratpack.service.StartEvent
+ * @deprecated since 1.3
  */
+@Deprecated
 public interface StartEvent {
 
   /**

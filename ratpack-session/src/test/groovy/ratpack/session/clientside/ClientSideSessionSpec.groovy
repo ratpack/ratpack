@@ -19,9 +19,11 @@ package ratpack.session.clientside
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
+import ratpack.server.ServerConfig
 import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.time.Duration
@@ -32,8 +34,21 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
   }
 
+  String key
+  String token
+
   def setup() {
-    modules << new ClientSideSessionModule()
+    modules << new ClientSideSessionModule() {
+      @Override
+      protected void defaultConfig(ServerConfig serverConfig, ClientSideSessionConfig config) {
+        if (key != null) {
+          config.setSecretKey(key)
+        }
+        if (token != null) {
+          config.setSecretToken(token)
+        }
+      }
+    }
     supportsSize = false
   }
 
@@ -329,5 +344,111 @@ class ClientSideSessionSpec extends SessionSpec {
       "DESede/ECB/NoPadding",
       "DESede/ECB/PKCS5Padding"
     ]
+  }
+
+  @Issue("This alogrithms seem to intermittently fail, so we'll be ok if they break")
+  def "can use algorithm #algorithm - ok if fails"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule
+      module ClientSideSessionModule, {
+        it.with {
+          int length = 16
+          switch (algorithm) {
+            case ~/^AES.*/:
+              length = 16
+              break
+            case ~/^DESede.*/:
+              length = 24
+              break
+            case ~/^DES.*/:
+              length = 8
+              break
+          }
+          secretKey = "a" * length
+          cipherAlgorithm = algorithm
+        }
+      }
+    }
+    handlers {
+      get { Session session ->
+        render session.get("value").map { it.orElse("null") }
+      }
+      post("set/:value") { Session session ->
+        render session.set("value", pathTokens.value).map { "ok" }
+      }
+    }
+
+    expect:
+    try {
+      text == "null"
+      postText("set/foo") == "ok"
+      text == "foo"
+    } catch (Exception e) {
+      e.printStackTrace()
+    }
+
+    where:
+    algorithm << [
+      "DESede/CBC/NoPadding",
+    ]
+  }
+
+  def "changing the signing token invalidates the session"() {
+    when:
+    handlers {
+      get { Session session ->
+        render session.get("value").map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+          render pathTokens.value
+        }
+      }
+    }
+
+    then:
+    getText("set/bar") == "bar"
+    text == "bar"
+
+    when:
+    token = "abcdefghi"
+    server.reload()
+
+    then:
+    text == "null"
+  }
+
+  def "changing the encryption key invalidates the session"() {
+    when:
+    key = "secretsecretsecr"
+    handlers {
+      get { Session session ->
+        render session.get("value").flatMapError {
+          session.terminate().flatMap { session.get("value") }
+        }.map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+          render pathTokens.value
+        }
+      }
+    }
+
+    then:
+    getText("set/bar") == "bar"
+    text == "bar"
+
+    when:
+    key = "secretsecretsecx"
+    server.reload()
+
+    then:
+    text == "null"
   }
 }

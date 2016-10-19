@@ -19,6 +19,9 @@ import java.util.concurrent.locks.ReentrantLock
 buildscript {
   repositories {
     jcenter()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
   }
 
   dependencies {
@@ -30,69 +33,13 @@ buildscript {
 
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
+    classpath "com.gradle:build-scan-plugin:1.1"
   }
-}
-
-def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
-if (jvmEncoding != "UTF-8") {
-  throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
-}
-
-if (!JavaVersion.current().java8Compatible) {
-  throw new IllegalStateException("Must be built with Java 8 or higher")
-}
-
-apply plugin: "artifactory"
-apply plugin: "com.github.kt3k.coveralls"
-apply plugin: "com.github.ben-manes.versions"
-
-artifactory {
-  contextUrl = 'http://oss.jfrog.org'
-}
-
-artifactoryPublish {
-  skip true
-}
-
-task bintrayPublish << {
-  if (!(ratpackBintrayUser && ratpackBintrayApiKey)) {
-    throw new InvalidUserDataException("You must provide ratpackBintrayUser and ratpackBintrayApiKey")
-  }
-
-  if (!project.hasProperty('buildNumber')) {
-    throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
-  }
-
-  def baseUrl = 'https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/'
-  def params = '?params=org=ratpack|repo=maven|package=ratpack'
-  def curlUrl = [baseUrl, project.buildNumber, params].join('')
-  def curl = ['curl', '-X', 'POST', '-u',
-              /"${ratpackBintrayUser}:${ratpackBintrayApiKey}"/, curlUrl].execute()
-  logger.info("Received response: ${curl.text}")
 }
 
 allprojects {
-  group = "io.ratpack"
-  version = "1.1.0-SNAPSHOT"
-
-  apply plugin: "base"
-  apply plugin: "idea"
-  apply plugin: "eclipse"
-  apply plugin: "java"
-  apply plugin: "jacoco"
-  apply from: "$rootDir/gradle/dependencyRules.gradle"
-
-  repositories {
-    jcenter()
-    maven { url 'http://oss.jfrog.org/artifactory/repo' }
-  }
-
-  jacoco {
-    toolVersion = "0.7.2.201409121644"
-  }
+  version = "1.5.0-SNAPSHOT"
 }
-
-apply from: "gradle/idea/idea.gradle"
 
 ext {
   isSnapshot = version.endsWith("SNAPSHOT")
@@ -109,187 +56,116 @@ ext {
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
     "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
     "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot"
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2",
+    "ratpack-jdbc-tx", "ratpack-consul"
   ].collect { project(it) }
 
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
+  noCodeModules = [
+    "ratpack-spring-boot-starter"
+  ]
 
-  localRepoUrl = "${buildDir.toURI()}/localrepo"
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
 }
+
+apply from: 'gradle/buildScan.gradle'
+
+def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
+if (jvmEncoding != "UTF-8") {
+  throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
+}
+
+if (!JavaVersion.current().java8Compatible) {
+  throw new IllegalStateException("Must be built with Java 8 or higher")
+}
+
+
+apply plugin: "artifactory"
+apply plugin: "com.github.kt3k.coveralls"
+apply plugin: "com.github.ben-manes.versions"
+
+artifactory {
+  contextUrl = 'http://oss.jfrog.org'
+}
+
+artifactoryPublish { task ->
+  gradle.taskGraph.whenReady { taskGraph ->
+    def startParameter = project.gradle.startParameter
+    if (taskGraph.hasTask(task) && startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
+      throw new IllegalStateException("cannot run " + task + " with --parallel and --max-workers > 1")
+    }
+  }
+  skip true
+}
+
+task bintrayPublish << {
+  if (!project.hasProperty("ratpackOssJfrogApiKey")) {
+    throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
+  }
+
+  if (!project.hasProperty('buildNumber')) {
+    throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
+  }
+
+  def curl = ['curl',
+              '-X', 'POST',
+              "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
+              "-H", "Content-Type: application/json",
+              "-d", """{
+    "subject": "ratpack",
+    "repoName": "maven",
+    "packageName": "ratpack",
+    "versionName": "${project.version}",
+    "licenses": ["Apache-2.0"],
+    "vcs_url": "https://github.com/ratpack/ratpack"
+}
+""",
+              "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
+  ].execute()
+  logger.info("Received response: ${curl.text}")
+}
+
+allprojects {
+  group = "io.ratpack"
+
+  apply plugin: "base"
+  apply plugin: "idea"
+  apply plugin: "eclipse"
+  apply from: "$rootDir/gradle/dependencyRules.gradle"
+
+  repositories {
+    jcenter()
+    maven { url 'http://oss.jfrog.org/artifactory/repo' }
+  }
+
+}
+
+apply from: "gradle/idea/idea.gradle"
 
 apply from: "gradle/dependencies.gradle"
 
 subprojects {
-  tasks.withType(Upload).matching { it.name != "install" }.all {
-    rootProject.subprojects {
-      mustRunAfter tasks.matching { it instanceof VerificationTask }
-    }
-  }
-
-  // CodeNarc appears to hang in drone.io
-  tasks.withType(CodeNarc) {
-    onlyIf { !rootProject.hasProperty("ciBuild") }
-  }
-
-  tasks.withType(Test) {
-    allprojects {
-      mustRunAfter tasks.withType(Checkstyle)
-    }
-  }
-
-  if (project.path != ":ratpack-benchmark") {
-    tasks.withType(JavaCompile) {
-      options.compilerArgs = ["-proc:none"]
-    }
-    tasks.withType(GroovyCompile) {
-      groovyOptions.forkOptions.memoryMaximumSize = "512m"
-      allprojects {
-        mustRunAfter tasks.withType(CodeNarc)
-      }
-      options.compilerArgs = ["-proc:none"]
-    }
-  }
-
   apply from: "$rootDir/gradle/ratpackLocal.gradle"
-
-  tasks.withType(Javadoc) {
-    options.encoding = "utf-8"
-    options.docEncoding = "utf-8"
-    options.charSet = "utf-8"
-    exclude "**/internal/**"
-  }
-
-  apply plugin: "maven"
-  apply from: "${rootDir}/gradle/pom.gradle"
-  apply plugin: "signing"
-
-  if (rootProject.hasProperty("ciBuild")) {
-    plugins.withType(ReportingBasePlugin) {
-      reporting.baseDir = rootProject.file("build/reports/$name")
-    }
-  }
-
-  jacocoTestReport {
-    additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
-    sourceDirectories = files(sourceSets.main.allSource.srcDirs)
-    classDirectories = files(sourceSets.main.output)
-    reports {
-      html.enabled = true
-      xml.enabled = true
-      csv.enabled = false
-    }
+  if (project in publishedModules) {
+    apply from: "$rootDir/gradle/publish.gradle"
   }
 }
 
-// Have to evaluate the children before setting up the publishing stuff so the dependencies are defined.
 evaluationDependsOnChildren()
 
-subprojects {
-  configurations.signatures.artifacts.all {
-    extension = toSignArtifact.extension + "." + extension
-  }
-
-  if (project in publishedModules) {
-    apply plugin: "artifactory"
-    artifactoryPublish { task ->
-      rootProject.artifactory {
-        publish {
-          repository {
-            repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
-            gradle.taskGraph.whenReady { taskGraph ->
-              if (taskGraph.hasTask(task)) {
-                username = ratpackBintrayUser
-                password = ratpackBintrayApiKey
-              }
-            }
-          }
-        }
-      }
-    }
-
-    assert description: "Project $project.path is published, must have a description"
-
-    modifyPom {
-      project {
-        name project.name
-        description project.description
-        url "http://www.ratpack.io"
-        licenses {
-          license {
-            name "The Apache Software License, Version 2.0"
-            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            distribution "repo"
-          }
-        }
-        scm {
-          connection "scm:https://ratpack@github.com/ratpack/ratpack"
-          developerConnection "scm:git@github.com:ratpack/ratpack.git"
-          url "https://github.com/ratpack/ratpack"
-        }
-        developers {
-          developer {
-            id "ratpack"
-            name "Team Ratpack"
-          }
-        }
-      }
-    }
-  }
-
-  tasks.withType(Test) {
-    jvmArgs "-Xss320k"
-    minHeapSize "312m"
-    maxHeapSize "312m"
-
-    testLogging {
-      exceptionFormat "full"
-    }
-
-    doFirst {
-      if (isCloudCi) {
-        maxParallelForks 1
-        systemProperty "cloudCi", "true"
-      }
-    }
-  }
-}
-
-task ciZip(type: Zip) {
-  into "reports", { from "build/reports" }
-  into "manual", { from { project(":ratpack-manual").packageManual } }
-  archiveName = "ci.zip"
-  destinationDir = buildDir
-}
-
+apply plugin: "jacoco"
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
-  dependsOn publishedModules.test
-  sourceDirectories = files(publishedModules.sourceSets.main.allSource.srcDirs)
-  classDirectories = files(publishedModules.sourceSets.main.output)
-  executionData = files(publishedModules.jacocoTestReport.executionData)
+  def projects = subprojects.findAll { it.plugins.hasPlugin(JacocoPlugin) && it.file("src/test").exists() }
+
+  dependsOn projects*.test
+
+  sourceDirectories = files(projects*.sourceSets*.main*.allSource)
+  classDirectories = files(projects*.sourceSets*.main*.output)
+  executionData = files(projects*.jacocoTestReport*.executionData)
+
   reports {
     html.enabled = true
     xml.enabled = true
     csv.enabled = false
-  }
-}
-
-coveralls {
-  service = System.getenv().get("CI_NAME")
-  sourceDirs = jacocoReport.sourceDirectories.files.toList()
-  jacocoReportPath = jacocoReport.reports.xml.destination.absolutePath - rootDir.absolutePath
-}
-
-task testReport(type: TestReport) {
-  destinationDir file("$buildDir/tests")
-  reportOn subprojects.collect { it.tasks.test }
-}
-
-task allDependencies << {
-  allprojects { p ->
-    configurations.each { c ->
-      println "Downloading dependencies for $p.path - $c.name"
-      c.files
-    }
   }
 }
 
@@ -313,5 +189,14 @@ gradle.taskGraph.afterTask {
     busy.set(false)
     available.signal()
     lock.unlock()
+  }
+}
+
+task downloadDependencies << {
+  allprojects { p ->
+    configurations.each { c ->
+      println "Downloading dependencies for $p.path - $c.name"
+      c.files
+    }
   }
 }

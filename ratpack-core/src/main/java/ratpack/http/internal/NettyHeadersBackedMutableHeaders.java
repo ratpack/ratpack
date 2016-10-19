@@ -16,13 +16,18 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.Iterables;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 
+import java.time.Instant;
 import java.util.Date;
 
 public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders implements MutableHeaders {
+
+  private static final com.google.common.base.Function<Object, Object> CONVERT_VALUE = v ->
+    v instanceof Instant ? new Date(((Instant) v).toEpochMilli()) : v;
 
   public NettyHeadersBackedMutableHeaders(HttpHeaders headers) {
     super(headers);
@@ -30,13 +35,13 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
 
   @SuppressWarnings("deprecation")
   public MutableHeaders add(CharSequence name, Object value) {
-    headers.add(name, value);
+    headers.add(name, CONVERT_VALUE.apply(value));
     return this;
   }
 
   @SuppressWarnings("deprecation")
   public MutableHeaders set(CharSequence name, Object value) {
-    headers.set(name, value);
+    headers.set(name, CONVERT_VALUE.apply(value));
     return this;
   }
 
@@ -49,7 +54,7 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
 
   @SuppressWarnings("deprecation")
   public MutableHeaders set(CharSequence name, Iterable<?> values) {
-    headers.set(name, values);
+    headers.set(name, Iterables.transform(values, CONVERT_VALUE));
     return this;
   }
 

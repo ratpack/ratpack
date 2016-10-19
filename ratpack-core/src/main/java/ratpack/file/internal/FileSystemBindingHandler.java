@@ -16,36 +16,29 @@
 
 package ratpack.file.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.server.ServerConfig;
+import ratpack.handling.internal.ChainHandler;
 import ratpack.registry.Registry;
+import ratpack.server.ServerConfig;
 
 import java.util.concurrent.ExecutionException;
 
 public class FileSystemBindingHandler implements Handler {
 
   private final String path;
-  private final Handler handler;
+  private final Handler[] handler;
 
-  private final static LoadingCache<FileSystemBinding, Registry> CACHE = CacheBuilder.newBuilder()
-    .maximumSize(1024)
-    .build(new CacheLoader<FileSystemBinding, Registry>() {
-      @Override
-      public Registry load(FileSystemBinding key) throws Exception {
-        return Registry.single(FileSystemBinding.class, key);
-      }
-    });
+  private final static Cache<FileSystemBinding, Registry> CACHE = Caffeine.newBuilder().build();
 
   public FileSystemBindingHandler(ServerConfig serverConfig, String path, Handler handler) {
     if (serverConfig.isHasBaseDir()) {
       this.path = path;
-      this.handler = handler;
+      this.handler = ChainHandler.unpack(handler);
     } else {
       throw new BaseDirRequiredException("An application base directory is required to use this handler");
     }
@@ -59,7 +52,11 @@ public class FileSystemBindingHandler implements Handler {
     if (binding == null) {
       context.clientError(404);
     } else {
-      context.insert(CACHE.get(binding), handler);
+      context.insert(CACHE.get(binding, FileSystemBindingHandler::registry), handler);
     }
+  }
+
+  private static Registry registry(FileSystemBinding binding) {
+    return Registry.single(FileSystemBinding.class, binding);
   }
 }

@@ -17,19 +17,14 @@
 package ratpack.exec.internal;
 
 import ratpack.exec.ExecResult;
-import ratpack.registry.Registry;
+import ratpack.util.Types;
 
 public class CompleteExecResult<T> implements ExecResult<T> {
 
-  private final Registry registry;
+  private static final ExecResult<Object> INSTANCE = new CompleteExecResult<>();
 
-  public CompleteExecResult(Registry registry) {
-    this.registry = registry;
-  }
-
-  @Override
-  public Registry getRegistry() {
-    return registry;
+  public static <T> ExecResult<T> get() {
+    return Types.cast(INSTANCE);
   }
 
   @Override
@@ -66,4 +61,5 @@ public class CompleteExecResult<T> implements ExecResult<T> {
   public String toString() {
     return "ExecResult{complete=true}";
   }
+
 }

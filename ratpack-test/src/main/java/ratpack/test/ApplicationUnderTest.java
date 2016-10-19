@@ -16,60 +16,32 @@
 
 package ratpack.test;
 
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
-import ratpack.server.RatpackServer;
+import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.http.TestHttpClient;
 
 import java.net.URI;
 
 /**
- * Provides the address of the running application.
- * <p>
- * This will be called on demand. Implementations may bootstrap the application
- * the first time the address is asked for.
- * <p>
- * Implementations do not need to be thread safe.
+ * A Ratpack application that is being tested, or used at test time.
+ *
+ * @see CloseableApplicationUnderTest
+ * @see ServerBackedApplicationUnderTest
+ * @see MainClassApplicationUnderTest
+ * @see EmbeddedApp
  */
 public interface ApplicationUnderTest {
 
-  static CloseableApplicationUnderTest of(RatpackServer ratpackServer) {
-    return of(() -> ratpackServer);
-  }
-
-  static CloseableApplicationUnderTest of(Factory<? extends RatpackServer> ratpackServer) {
-    return new ServerBackedApplicationUnderTest() {
-      @Override
-      protected RatpackServer createServer() throws Exception {
-        return ratpackServer.create();
-      }
-    };
-  }
-
-  static CloseableApplicationUnderTest of(Class<?> mainClass) {
-    return new MainClassApplicationUnderTest(mainClass);
-  }
-
-  static CloseableApplicationUnderTest of(Class<?> mainClass, Action<? super RegistrySpec> action) throws Exception {
-    return new MainClassApplicationUnderTest(mainClass) {
-      @Override
-      protected Registry createOverrides(Registry serverRegistry) throws Exception {
-        return Registry.of(action);
-      }
-    };
-  }
-
   /**
-   * The address of the application under test, which is guaranteed to be accepting requests.
+   * The address of the application under test, which is guaranteed to be listening for requests.
+   * <p>
+   * Implementations should start the application if it has not already been started before returning from this method.
    *
-   * @return The address of the application under test, which is guaranteed to be accepting requests
+   * @return the address of the application under test
    */
   URI getAddress();
 
   /**
-   * Creates a new test HTTP client that tests this application.
+   * Creates a new test HTTP client that makes requests to this application.
    *
    * @return a new test HTTP client that tests this application
    */

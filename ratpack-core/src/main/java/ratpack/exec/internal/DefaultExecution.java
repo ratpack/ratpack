@@ -21,6 +21,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
+import io.netty.util.concurrent.FastThreadLocal;
+import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -33,19 +35,18 @@ import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.RegistrySpec;
 import ratpack.registry.internal.SimpleMutableRegistry;
-import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public class DefaultExecution implements Execution {
 
   public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
-  public final static ThreadLocal<DefaultExecution> THREAD_BINDING = new ThreadLocal<>();
+  public final static FastThreadLocal<DefaultExecution> THREAD_BINDING = new FastThreadLocal<>();
 
   private ExecStream execStream;
 
@@ -108,38 +109,14 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  public static <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
-    return Streams.transformable(subscriber -> require().delimitStream(continuation ->
-        publisher.subscribe(new Subscriber<T>() {
-          @Override
-          public void onSubscribe(final Subscription subscription) {
-            continuation.event(() ->
-                subscriber.onSubscribe(subscription)
-            );
-          }
-
-          @Override
-          public void onNext(final T element) {
-            continuation.event(() -> subscriber.onNext(element));
-          }
-
-          @Override
-          public void onComplete() {
-            continuation.complete(subscriber::onComplete);
-          }
-
-          @Override
-          public void onError(final Throwable cause) {
-            continuation.complete(() -> subscriber.onError(cause));
-          }
-        })
-    ));
+  public static <T> TransformablePublisher<T> stream(Publisher<T> publisher, Action<? super T> disposer) {
+    return publisher instanceof ExecutionBoundPublisher ? (TransformablePublisher<T>) publisher : new ExecutionBoundPublisher<>(publisher, disposer);
   }
 
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
     return downstream -> {
       final AtomicBoolean fired = new AtomicBoolean();
-      require().delimit(continuation -> {
+      require().delimit(downstream::error, continuation -> {
           try {
             upstream.connect(new Downstream<T>() {
               @Override
@@ -185,13 +162,13 @@ public class DefaultExecution implements Execution {
     return eventLoop;
   }
 
-  public void delimit(Action<? super Continuation> segment) {
-    execStream.enqueue(() -> execStream = new SingleEventExecStream(execStream, segment));
+  public void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+    execStream.enqueue(() -> execStream = new SingleEventExecStream(execStream, onError, segment));
     drain();
   }
 
-  public void delimitStream(Action<? super ContinuationStream> segment) {
-    execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, segment));
+  private void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+    execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
     drain();
   }
 
@@ -241,22 +218,13 @@ public class DefaultExecution implements Execution {
   }
 
   private void exec() {
-    try {
-      boolean didExec = execStream.exec();
-      while (didExec) {
-        didExec = execStream.exec();
-      }
-    } catch (Throwable segmentError) {
-      execStream = new InitialExecStream();
+    while (true) {
       try {
-        onError.execute(segmentError);
-        boolean didExec = execStream.exec();
-        while (didExec) {
-          didExec = execStream.exec();
+        if (!(execStream.exec())) {
+          break;
         }
-      } catch (Throwable errorHandlerError) {
-        LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
-        execStream = TerminalExecStream.INSTANCE;
+      } catch (Throwable segmentError) {
+        execStream.error(segmentError);
       }
     }
 
@@ -323,10 +291,12 @@ public class DefaultExecution implements Execution {
     return registry.getAll(type);
   }
 
-  public abstract static class ExecStream {
+  private abstract static class ExecStream {
     abstract boolean exec() throws Exception;
 
-    abstract void enqueue(Block segment);
+    abstract void enqueue(Block block);
+
+    abstract void error(Throwable throwable);
   }
 
   private static class TerminalExecStream extends ExecStream {
@@ -345,16 +315,96 @@ public class DefaultExecution implements Execution {
     void enqueue(Block segment) {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
+
+    @Override
+    void error(Throwable throwable) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+  }
+
+  private static class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
+
+    private final Publisher<T> publisher;
+    private final Action<? super T> disposer;
+
+    private ExecutionBoundPublisher(Publisher<T> publisher, Action<? super T> disposer) {
+      this.publisher = publisher;
+      this.disposer = disposer;
+    }
+
+    @Override
+    public void subscribe(Subscriber<? super T> subscriber) {
+      require().delimitStream(subscriber::onError, continuation ->
+        publisher.subscribe(new Subscriber<T>() {
+
+          private final AtomicBoolean cancelled = new AtomicBoolean();
+
+          @Override
+          public void onSubscribe(final Subscription subscription) {
+            continuation.event(() ->
+              subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                  subscription.request(n);
+                }
+
+                @Override
+                public void cancel() {
+                  cancelled.set(true);
+                  subscription.cancel();
+                  continuation.complete(Block.noop());
+                }
+              })
+            );
+          }
+
+          @Override
+          public void onNext(final T element) {
+            boolean added = continuation.event(() -> {
+              if (cancelled.get()) {
+                dispose(element);
+              } else {
+                subscriber.onNext(element);
+              }
+            });
+            if (!added) {
+              dispose(element);
+            }
+          }
+
+          private void dispose(T element) {
+            try {
+              disposer.execute(element);
+            } catch (Exception e) {
+              LOGGER.warn("Exception raised disposing stream item will be ignored - ", e);
+            }
+          }
+
+          @Override
+          public void onComplete() {
+            continuation.complete(() -> {
+              if (!cancelled.get()) {
+                subscriber.onComplete();
+              }
+            });
+          }
+
+          @Override
+          public void onError(final Throwable cause) {
+            if (!cancelled.get()) {
+              continuation.complete(() -> subscriber.onError(cause));
+            }
+          }
+        })
+      );
+    }
   }
 
   private class InitialExecStream extends ExecStream {
     Action<? super Execution> initial;
     Queue<Block> segments;
 
-    public InitialExecStream() {
-    }
-
-    public InitialExecStream(Action<? super Execution> initial) {
+    InitialExecStream(Action<? super Execution> initial) {
       this.initial = initial;
     }
 
@@ -388,18 +438,34 @@ public class DefaultExecution implements Execution {
       }
       segments.add(segment);
     }
+
+    @Override
+    void error(Throwable throwable) {
+      initial = null;
+      if (segments != null) {
+        segments.clear();
+      }
+      try {
+        onError.execute(throwable);
+      } catch (Throwable errorHandlerError) {
+        LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
+        execStream = TerminalExecStream.INSTANCE;
+      }
+    }
   }
 
   private class SingleEventExecStream extends ExecStream implements Continuation {
     final ExecStream parent;
 
+    private final Action<? super Throwable> onError;
     Action<? super Continuation> initial;
     Block resume;
     boolean resumed;
     Queue<Block> segments;
 
-    public SingleEventExecStream(ExecStream parent, Action<? super Continuation> initial) {
+    SingleEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super Continuation> initial) {
       this.parent = parent;
+      this.onError = onError;
       this.initial = initial;
     }
 
@@ -410,7 +476,7 @@ public class DefaultExecution implements Execution {
           if (resume == null) {
             if (resumed) {
               execStream = parent;
-              return execStream.exec();
+              return true;
             } else {
               return false;
             }
@@ -423,7 +489,7 @@ public class DefaultExecution implements Execution {
           Block segment = segments.poll();
           if (segment == null) {
             execStream = parent;
-            return execStream.exec();
+            return true;
           } else {
             segment.execute();
             return true;
@@ -444,35 +510,58 @@ public class DefaultExecution implements Execution {
       segments.add(segment);
     }
 
-
     public void resume(Block action) {
       resumed = true;
       resume = action;
       drain();
     }
 
+    @Override
+    void error(Throwable throwable) {
+      execStream = parent;
+      if (resumed && resume == null) {
+        parent.error(throwable);
+      } else {
+        try {
+          onError.execute(throwable);
+        } catch (Throwable e) {
+          execStream.error(e);
+        }
+      }
+    }
   }
 
   private class MultiEventExecStream extends ExecStream implements ContinuationStream {
     final ExecStream parent;
-    final Queue<Queue<Block>> events = new ConcurrentLinkedQueue<>();
-    Block complete;
+    private final Action<? super Throwable> onError;
+    final Queue<Queue<Block>> events = PlatformDependent.newMpscQueue();
+    private final AtomicReference<Block> complete = new AtomicReference<>();
 
-    public MultiEventExecStream(ExecStream parent, Action<? super ContinuationStream> initial) {
+    MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
       this.parent = parent;
+      this.onError = onError;
       event(() -> initial.execute(this));
     }
 
-    public void event(Block action) {
-      Queue<Block> event = new ArrayDeque<>();
-      event.add(action);
-      events.add(event);
-      drain();
+    public boolean event(Block action) {
+      if (complete.get() == null) {
+        Queue<Block> event = new ArrayDeque<>();
+        event.add(action);
+        events.add(event);
+        drain();
+        return true;
+      } else {
+        return false;
+      }
     }
 
-    public void complete(Block action) {
-      this.complete = action;
-      drain();
+    public boolean complete(Block action) {
+      if (complete.compareAndSet(null, action)) {
+        drain();
+        return true;
+      } else {
+        return false;
+      }
     }
 
     @Override
@@ -480,16 +569,16 @@ public class DefaultExecution implements Execution {
       Block nextSegment = events.peek().poll();
       if (nextSegment == null) {
         if (events.size() == 1) {
-          if (complete == null) {
+          if (complete.get() == null) {
             return false;
           } else {
             execStream = parent;
-            complete.execute();
+            complete.get().execute();
             return true;
           }
         } else {
           events.poll();
-          return exec();
+          return true;
         }
       } else {
         nextSegment.execute();
@@ -500,6 +589,16 @@ public class DefaultExecution implements Execution {
     @Override
     void enqueue(Block segment) {
       events.peek().add(segment);
+    }
+
+    @Override
+    void error(Throwable throwable) {
+      execStream = parent;
+      try {
+        onError.execute(throwable);
+      } catch (Exception e) {
+        execStream.error(e);
+      }
     }
   }
 }

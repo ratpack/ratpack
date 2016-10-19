@@ -28,7 +28,7 @@ class PromiseBlockingSpec extends Specification {
   def exec = ExecHarness.harness()
 
   private <T> Promise<T> async(Result<T> t) {
-    Promise.of { f ->
+    Promise.async { f ->
         f.accept(t)
     }
   }
@@ -104,7 +104,7 @@ class PromiseBlockingSpec extends Specification {
     exec.yield {
       Blocking.get {
         Blocking.on(
-          Promise.of {
+          Promise.async {
             Blocking.on(Promise.value(2))
           }
         )

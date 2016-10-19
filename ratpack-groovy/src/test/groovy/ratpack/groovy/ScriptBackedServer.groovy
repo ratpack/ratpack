@@ -16,6 +16,8 @@
 
 package ratpack.groovy
 
+import ratpack.impose.ForceServerListenPortImposition
+import ratpack.impose.Impositions
 import ratpack.server.RatpackServer
 import ratpack.server.StartupFailureException
 import ratpack.server.internal.ServerCapturer
@@ -33,7 +35,9 @@ class ScriptBackedServer implements RatpackServer {
 
   @Override
   void start() throws StartupFailureException {
-    nestedServer = ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) { -> starter.run() }
+    nestedServer = Impositions.of { it.add(ForceServerListenPortImposition.ephemeral()) }.impose { ->
+      ServerCapturer.capture({ -> starter.run() })
+    }
 
     def stopAt = System.currentTimeMillis() + 10000
     while (System.currentTimeMillis() < stopAt && (nestedServer == null || !nestedServer.running)) {

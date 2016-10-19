@@ -147,8 +147,8 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     then:
     requestSpec { requestSpec ->
       requestSpec.body.stream({ it << string.getBytes("utf8") })
-      postText() == string
     }
+    postText() == string
   }
 
   def "get bytes on get request"() {
@@ -200,7 +200,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
         }
       }
       post("allow") {
-        request.getBody(16*8).then { body ->
+        request.getBody(16 * 8).then { body ->
           response.send new String(body.bytes, "utf8")
         }
       }
@@ -269,5 +269,95 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     then:
     requestSpec { it.body.text("foo") }
     postText() == "ratpack.http.RequestBodyAlreadyReadException: the request body has already been read"
+  }
+
+  def "can take custom action on request body too large"() {
+    when:
+    serverConfig {
+      maxContentLength 16
+    }
+    handlers {
+      post { ctx ->
+        request.getBody({ ctx.render("foo") }).then { body ->
+          response.send new String(body.bytes, "utf8")
+        }
+      }
+    }
+
+    then:
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.text("bar".multiply(16)) }
+    with(post()) {
+      statusCode == 200
+      body.text == "foo"
+      headers.connection == "close"
+    }
+  }
+
+  def "request body is not eagerly read"() {
+    given:
+    def body = "a" * (4096 * 10)
+    handlers {
+      post { ctx ->
+        ctx.render(directChannelAccess.channel.id().asShortText())
+      }
+    }
+
+    when:
+    HttpURLConnection connection = applicationUnderTest.address.toURL().openConnection()
+    connection.setRequestMethod("POST")
+    connection.doOutput = true
+    connection.outputStream << body
+    def channelId1 = connection.inputStream.text
+
+    then:
+    connection.getHeaderField("Connection") == "close"
+
+    when:
+    connection = applicationUnderTest.address.toURL().openConnection()
+    connection.setRequestMethod("POST")
+    connection.doOutput = true
+    connection.outputStream << body
+    def channelId2 = connection.inputStream.text
+
+    then:
+    connection.getHeaderField("Connection") == "close"
+
+    and:
+    channelId1 != channelId2
+  }
+
+  def "can read large request body over same connection"() {
+    given:
+    def body = "a" * (4096 * 10)
+    handlers {
+      post {
+        request.body.then {
+          context.render(directChannelAccess.channel.id().asShortText())
+        }
+      }
+    }
+
+    when:
+    HttpURLConnection connection = applicationUnderTest.address.toURL().openConnection()
+    connection.setRequestMethod("POST")
+    connection.doOutput = true
+    connection.outputStream << body
+    def channelId1 = connection.inputStream.text
+
+    then:
+    connection.getHeaderField("Connection") == null
+
+    when:
+    connection = applicationUnderTest.address.toURL().openConnection()
+    connection.setRequestMethod("POST")
+    connection.doOutput = true
+    connection.outputStream << body
+    def channelId2 = connection.inputStream.text
+
+    then:
+    connection.getHeaderField("Connection") == null
+
+    and:
+    channelId1 == channelId2
   }
 }

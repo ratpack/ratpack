@@ -68,7 +68,7 @@ public interface ExecHarness extends AutoCloseable {
    *
    *     // Our method under test
    *     public <T> Promise<T> promise(final T value) {
-   *       return Promise.of(fulfiller -> asyncApi.returnAsync(value, fulfiller::success));
+   *       return Promise.async(downstream -> asyncApi.returnAsync(value, downstream::success));
    *     }
    *   }
    *

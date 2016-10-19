@@ -203,7 +203,7 @@ abstract class Crawler {
 
         @Override
         X509Certificate[] getAcceptedIssuers() {
-          return new X509Certificate[0];
+          return new X509Certificate[0]
         }
       }
 
@@ -322,11 +322,7 @@ abstract class Crawler {
 
       Link link = (Link) o
 
-      if (uri != link.uri) {
-        return false
-      }
-
-      return true
+      uri == link.uri
     }
 
     int hashCode() {

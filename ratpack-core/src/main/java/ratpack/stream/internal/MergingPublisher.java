@@ -23,10 +23,12 @@ import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MergingPublisher<T> implements TransformablePublisher<T> {
 
   private final ConcurrentLinkedDeque<Publisher<? extends T>> upstreamPublishers = new ConcurrentLinkedDeque<>();
+  private final AtomicInteger publisherCount = new AtomicInteger();
   private final ConcurrentLinkedDeque<Subscription> upstreamPublisherSubscriptions = new ConcurrentLinkedDeque<>();
   private Subscriber<? super T> downstreamSubscriber;
 
@@ -36,6 +38,7 @@ public class MergingPublisher<T> implements TransformablePublisher<T> {
       throw new IllegalArgumentException("At least 2 publishers must be supplied to merge");
     }
 
+    publisherCount.set(publishers.length);
     //noinspection ManualArrayToCollectionCopy
     for (Publisher<? extends T> publisher : publishers) {
       upstreamPublishers.add(publisher);
@@ -106,7 +109,7 @@ public class MergingPublisher<T> implements TransformablePublisher<T> {
   }
 
   private void tryComplete() {
-    if (upstreamPublishers.isEmpty()) {
+    if (publisherCount.decrementAndGet() == 0) {
       downstreamSubscriber.onComplete();
     }
   }

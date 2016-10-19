@@ -41,4 +41,27 @@ public class DefaultStatus implements Status {
   public HttpResponseStatus getNettyStatus() {
     return status;
   }
+
+  @Override
+  public String toString() {
+    return status.code() + ":" + status.reasonPhrase();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultStatus that = (DefaultStatus) o;
+    return status.equals(that.status);
+  }
+
+  @Override
+  public int hashCode() {
+    return status.hashCode();
+  }
 }

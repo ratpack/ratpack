@@ -21,7 +21,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -186,16 +186,17 @@ public class RatpackProperties implements Validator {
 
     String s = uri.toString();
     int separator = s.indexOf("!/");
-    String entryName = s.substring(separator + 2);
-    URI fileURI = URI.create(s.substring(0, separator));
-
-    FileSystem fs;
+    URI fileURI = URI.create(s.substring(0, separator) + "!/");
     try {
-      fs = FileSystems.newFileSystem(fileURI, Collections.<String, Object>emptyMap());
-      return fs.getPath(entryName);
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Could not create file system for resource: " + resource, e);
+      FileSystems.getFileSystem(fileURI);
+    } catch (FileSystemNotFoundException e) {
+      try {
+        FileSystems.newFileSystem(fileURI, Collections.singletonMap("create", "true"));
+      } catch (IOException e1) {
+        throw new IllegalArgumentException("Cannot convert to Path: " + uri);
+      }
     }
+    return Paths.get(fileURI);
   }
 
   static Resource initBaseDir() {

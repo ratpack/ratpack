@@ -48,8 +48,10 @@ class PromiseErrorSpec extends Specification {
     when:
     exec {
       Promise.error(new IllegalArgumentException("!"))
-        .onError { throw new NullPointerException("!") }
-        .then {
+        .onError {
+        throw new NullPointerException("!")
+      }
+      .then {
         events << "then"
       }
     } {
@@ -84,10 +86,10 @@ class PromiseErrorSpec extends Specification {
     when:
     exec {
       Promise.error(new IllegalArgumentException("!"))
-        .onError {it.message == "!"} { events << "error" }
+        .onError { it.message == "!" } { events << "error" }
         .then {
-          events << "then"
-        }
+        events << "then"
+      }
     } {
       events << it
     }
@@ -100,7 +102,7 @@ class PromiseErrorSpec extends Specification {
     when:
     exec {
       Promise.error(new IllegalArgumentException("!"))
-        .onError {it.message != "!"} { events << "error" }
+        .onError { it.message != "!" } { events << "error" }
         .then {
         events << "then"
       }
@@ -150,7 +152,7 @@ class PromiseErrorSpec extends Specification {
     when:
     exec {
       Promise.error(new IllegalArgumentException("!"))
-        .onError {t -> t.message == "foo"} { events << "error1" }
+        .onError { t -> t.message == "foo" } { events << "error1" }
         .onError(IllegalArgumentException) { events << "error2" }
         .then {
         events << "then"
@@ -161,6 +163,119 @@ class PromiseErrorSpec extends Specification {
 
     then:
     events == ["error2", "complete"]
+  }
+
+  def "can map error to value"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException()).mapError { 1 }.then(events.&add)
+    }
+
+    then:
+    events == [1, "complete"]
+  }
+
+  def "can map error to different error"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException()).mapError {
+        throw e
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
+  }
+
+  def "can map error of type"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException()).mapError(IllegalArgumentException) {
+        throw e
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
+  }
+
+  def "error map does not apply when error is of different type"() {
+    when:
+    def e1 = new IllegalArgumentException()
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(e1).mapError(NullPointerException) {
+        throw e
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e1, "complete"]
+  }
+
+  def "can flatmapmap error to value"() {
+    when:
+    exec {
+      Promise.error(new IllegalArgumentException()).flatMapError { Promise.value(1) }.then(events.&add)
+    }
+
+    then:
+    events == [1, "complete"]
+  }
+
+  def "can flatmap error to different error"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException()).flatMapError {
+        Promise.error(e)
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
+  }
+
+  def "can flatmapmap error of type"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException()).flatMapError(IllegalArgumentException) {
+        Promise.error(e)
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
+  }
+
+  def "error flatmap does not apply when error is of different type"() {
+    when:
+    def e1 = new IllegalArgumentException()
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(e1).flatMapError(NullPointerException) {
+        Promise.error(e)
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e1, "complete"]
+  }
+
+  def "error thrown by error flatmap propagates"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException()).flatMapError {
+        throw e
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
   }
 
 }

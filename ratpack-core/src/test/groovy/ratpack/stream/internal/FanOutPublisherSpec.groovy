@@ -32,4 +32,15 @@ class FanOutPublisherSpec extends Specification {
     s.received == [1, 2, 3]
   }
 
+  def "empty collections don't count towards subscriber demand"() {
+    when:
+    def p = Streams.fanOut(Streams.publish([[1, 2], [], [], [3, 4]]))
+    List r
+    def s = new CollectingSubscriber({ r = it.value }, { it.request(3) })
+    p.subscribe(s)
+
+    then:
+    s.received == [1, 2, 3]
+  }
+
 }

@@ -146,7 +146,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       all {
-        Promise.of { d ->
+        Promise.async { d ->
           Execution.fork().register { it.add(new RecordingInterceptor("registry")) }.start {
             d.success("foo")
           }
@@ -205,7 +205,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       all {
-        render Promise.of { d ->
+        render Promise.async { d ->
           Execution.fork().onComplete { d.success(Boolean.toString(on)) } start {}
         }
       }

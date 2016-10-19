@@ -3,7 +3,7 @@
 [Heroku][] is a scalable polyglot cloud application platform.
 It allows you to focus on writing applications in the language of your choice, and then easily deploy them to the cloud without having to manually manage servers, load balancing, log aggregation, etc.
 Heroku does not have, nor does it need, any special Ratpack support above its [generic support for JVM applications](http://java.heroku.com).
-Heroku is a rich platform, with many [add-ons](https://addons.heroku.com) such as Postgres, Redis, Memcache, RabbitMQ, New Relic, etc.
+Heroku is a rich platform, with many [elements](https://elements.heroku.com/) such as Postgres, Redis, Memcache, RabbitMQ, New Relic, etc.
 It is a compelling option for serving Ratpack applications.
 
 Deployments to Heroku are typically in source form.
@@ -18,7 +18,7 @@ The rest of this chapter outlines the requirements and necessary configuration f
 Ratpack applications can be built by any build system, but the Ratpack team recommends [Gradle](http://gradle.org).
 Heroku has native support for Gradle via the [Gradle buildpack](https://devcenter.heroku.com/articles/buildpacks), which works well with the Ratpack Gradle plugins.
 
-All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
+All Gradle projects should use the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
 If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
 
 ### Building

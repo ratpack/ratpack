@@ -23,7 +23,6 @@ import ratpack.http.internal.HttpHeaderConstants;
 
 public class IgnorableHttpContentCompressor extends HttpContentCompressor {
 
-
   @SuppressWarnings("deprecation")
   @Override
   protected Result beginEncode(HttpResponse res, String acceptEncoding) throws Exception {

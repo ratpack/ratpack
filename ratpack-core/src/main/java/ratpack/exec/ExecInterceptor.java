@@ -22,7 +22,7 @@ import ratpack.func.Block;
 /**
  * Intercepts execution segments of an execution, primarily for traceability and recording metrics.
  * <p>
- * Interceptors present the base registry will be implicitly applied to all executions.
+ * Interceptors present in the base registry will be implicitly applied to all executions.
  * Execution specific interceptors can be registered via the {@link ExecStarter#register(Action)} method when starting the execution.
  * The {@link Execution#addInterceptor(ExecInterceptor, Block)} method allows interceptors to be registered during an execution, for the rest of the execution.
  *
@@ -88,24 +88,22 @@ import ratpack.func.Block;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     ExecResult<String> result = ExecHarness.yieldSingle(
+ *     ExecResult<Timer> result = ExecHarness.yieldSingle(
  *       r -> r.add(new ProcessingTimingInterceptor()), // add the interceptor to the registry
  *       e -> {
  *         Thread.sleep(100);
  *         return Blocking.get(() -> {
  *           Thread.sleep(100);
- *           return "foo";
+ *           return Execution.current().get(Timer.class);
  *         })
  *         .map(s -> {
  *           Thread.sleep(100);
- *           return s.toUpperCase();
+ *           return s;
  *         });
  *       }
  *     );
  *
- *     assertEquals("FOO", result.getValue());
- *
- *     Timer timer = result.getRegistry().get(Timer.class);
+ *     Timer timer = result.getValue();
  *     assertTrue(timer.getBlockingTime() >= 100);
  *     assertTrue(timer.getComputeTime() >= 200);
  *   }

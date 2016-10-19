@@ -18,12 +18,13 @@ package ratpack.http.internal;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.http.HttpUrlBuilder;
+import ratpack.util.MultiValueMap;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.io.UnsupportedEncodingException;
@@ -42,6 +43,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     .precomputed();
 
   private static final Joiner PATH_JOINER = Joiner.on("/");
+  public static final Escaper PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
 
   private String protocol = "http";
   private String host = "localhost";
@@ -54,7 +56,6 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   }
 
   public DefaultHttpUrlBuilder(URI uri) {
-    this.pathSegments.clear(); //TODO Review I think this is correct or mabye add a reset / clear
     this.protocol = uri.getScheme();
     if (protocol == null) {
       protocol = "http";
@@ -64,8 +65,6 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     if (!protocol.equals("http") && !protocol.equals("https")) {
       throw new IllegalArgumentException("uri " + uri + " must be a http or https uri");
     }
-
-    System.out.println("uri: " + uri);
 
     host(uri.getHost());
     port(uri.getPort());
@@ -85,12 +84,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     }
 
     if (uri.getRawQuery() != null) {
-      Map<String, List<String>> parameters = new QueryStringDecoder(uri).parameters();
-      for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
-        if (entry.getKey() != null) {
-          params.putAll(entry.getKey(), entry.getValue());
-        }
-      }
+      new QueryStringDecoder(uri).parameters().forEach(params::putAll);
     }
   }
 
@@ -121,9 +115,16 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   }
 
   @Override
+  public HttpUrlBuilder encodedPath(String path) {
+    Objects.requireNonNull(path, "path must not be null");
+    Arrays.asList(path.split("/")).forEach(pathSegments::add);
+    return this;
+  }
+
+  @Override
   public HttpUrlBuilder path(String path) {
     Objects.requireNonNull(path, "path must not be null");
-    Collections.addAll(pathSegments, path.split("/"));
+    Arrays.asList(path.split("/")).forEach(this::segment);
     return this;
   }
 
@@ -131,9 +132,9 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   public HttpUrlBuilder segment(String pathSegment, Object... args) {
     Objects.requireNonNull(pathSegment, "pathSegment must not be null");
     if (args.length == 0) {
-      pathSegments.add(pathSegment);
+      pathSegments.add(PATH_SEGMENT_ESCAPER.escape(pathSegment));
     } else {
-      pathSegments.add(String.format(pathSegment, args));
+      pathSegments.add(PATH_SEGMENT_ESCAPER.escape(String.format(pathSegment, args)));
     }
     return this;
   }
@@ -169,6 +170,12 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     return this;
   }
 
+  @Override
+  public HttpUrlBuilder params(MultiValueMap<String, ?> params) {
+    this.params.putAll(params.asMultimap());
+    return this;
+  }
+
   public URI build() {
     String string = toString();
 
@@ -182,7 +189,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   private void appendPathString(StringBuilder stringBuilder) {
     if (!pathSegments.isEmpty()) {
       stringBuilder.append("/");
-      PATH_JOINER.appendTo(stringBuilder, Iterables.transform(pathSegments, input -> UrlEscapers.urlPathSegmentEscaper().escape(input)));
+      PATH_JOINER.appendTo(stringBuilder, pathSegments);
     }
   }
 

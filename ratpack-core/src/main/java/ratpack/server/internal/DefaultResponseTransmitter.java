@@ -21,17 +21,19 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioStream;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.event.internal.DefaultEventController;
+import ratpack.api.Nullable;
 import ratpack.exec.Blocking;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.handling.internal.DoubleTransmissionException;
+import ratpack.func.Action;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
+import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
@@ -41,34 +43,39 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
+  static final AttributeKey<DefaultResponseTransmitter> ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
+
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
   private static final Runnable NOOP_RUNNABLE = () -> {
   };
+  private static final ChannelFutureListener CHANNEL_READ = f -> f.channel().read();
 
   private final AtomicBoolean transmitted;
   private final Channel channel;
-  private final HttpRequest nettyRequest;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
-  private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
+  private final RequestBodyAccumulator requestBodyAccumulator;
   private final boolean isSsl;
+
+  private List<Action<? super RequestOutcome>> outcomeListeners;
 
   private boolean isKeepAlive;
   private Instant stopTime;
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, DefaultEventController<RequestOutcome> requestOutcomeEventController) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBodyAccumulator requestBodyAccumulator) {
     this.transmitted = transmitted;
     this.channel = channel;
-    this.nettyRequest = nettyRequest;
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
-    this.requestOutcomeEventController = requestOutcomeEventController;
+    this.requestBodyAccumulator = requestBodyAccumulator;
     this.isKeepAlive = HttpUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
@@ -78,14 +85,18 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
 
-      if (responseHeaders.contains(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.CLOSE, true)) {
+      if (requestBodyAccumulator != null && !requestBodyAccumulator.isComplete()) {
+        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
         isKeepAlive = false;
+      } else if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
+        isKeepAlive = false;
+      } else if (!isKeepAlive) {
+        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
       }
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-
-      if (isKeepAlive) {
-        headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+      if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+        HttpUtil.setTransferEncodingChunked(headersResponse, true);
       }
 
       if (channel.isOpen()) {
@@ -139,9 +150,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       });
     } else {
       Blocking.get(() ->
-          Files.newByteChannel(file)
+        Files.newByteChannel(file)
       ).then(fileChannel ->
-          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
+        transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
       );
     }
   }
@@ -235,7 +246,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private void post(HttpResponseStatus responseStatus, ChannelFuture lastContentFuture) {
     if (channel.isOpen()) {
-      if (!isKeepAlive) {
+      if (isKeepAlive) {
+        lastContentFuture.addListener(CHANNEL_READ);
+      } else {
         lastContentFuture.addListener(ChannelFutureListener.CLOSE);
       }
       notifyListeners(responseStatus, lastContentFuture);
@@ -245,16 +258,36 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {
-    if (requestOutcomeEventController.isHasListeners()) {
+    if (outcomeListeners != null) {
       future.addListener(ignore -> {
+        channel.attr(ATTRIBUTE_KEY).set(null);
         SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
         RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
-        requestOutcomeEventController.fire(requestOutcome);
+        for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
+          try {
+            outcomeListener.execute(requestOutcome);
+          } catch (Exception e) {
+            LOGGER.warn("request outcome listener " + outcomeListener + " threw exception", e);
+          }
+        }
       });
     }
   }
 
   public void writabilityChanged() {
     onWritabilityChanged.run();
+  }
+
+  @Override
+  public void addOutcomeListener(Action<? super RequestOutcome> action) {
+    if (outcomeListeners == null) {
+      outcomeListeners = new ArrayList<>(1);
+    }
+    outcomeListeners.add(action);
+  }
+
+  @Override
+  public void forceCloseConnection() {
+    responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
   }
 }

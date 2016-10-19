@@ -25,6 +25,7 @@ import ratpack.file.FileSystemBinding;
  *
  * @see ConfigDataBuilder#add(ConfigSource)
  */
+@FunctionalInterface
 public interface ConfigSource {
   /**
    * Loads the configuration data from this data source.

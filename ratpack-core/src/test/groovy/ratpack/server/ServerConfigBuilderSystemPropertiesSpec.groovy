@@ -19,6 +19,7 @@ package ratpack.server
 import com.google.common.io.Resources
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
+import ratpack.impose.Impositions
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext
@@ -31,7 +32,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
 
   def setup() {
     properties = new Properties()
-    builder = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties))
+    builder = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties), Impositions.none())
   }
 
   def "set port"() {

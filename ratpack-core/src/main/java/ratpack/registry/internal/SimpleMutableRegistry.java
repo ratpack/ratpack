@@ -43,7 +43,7 @@ public class SimpleMutableRegistry implements MutableRegistry {
   }
 
   @Override
-  public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+  public <O> RegistrySpec add(TypeToken<O> type, O object) {
     entries.add(new DefaultRegistryEntry<>(type, object));
     return this;
   }
@@ -52,7 +52,8 @@ public class SimpleMutableRegistry implements MutableRegistry {
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     Iterator<? extends RegistryEntry<?>> iterator = entries.iterator();
     while (iterator.hasNext()) {
-      if (TypeAssignabilityCache.isAssignableFrom(iterator.next().getType(), type)) {
+      TypeToken<?> entryType = iterator.next().getType();
+      if (TypeCaching.isAssignableFrom(TypeCaching.cache(entryType), entryType, type)) {
         iterator.remove();
       }
     }

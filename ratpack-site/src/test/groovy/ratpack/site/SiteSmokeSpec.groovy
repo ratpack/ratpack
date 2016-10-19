@@ -48,6 +48,15 @@ class SiteSmokeSpec extends Specification {
     response.body.text.contains('<title>Ratpack: Lean & powerful HTTP apps for the JVM</title>')
   }
 
+  def "Check /manual to manual/current Redirect"() {
+    when:
+    get("manual/")
+
+    then:
+    response.statusCode == 302
+    response.headers.get("location").endsWith("/manual/current/")
+  }
+
   def cleanup() {
     aut.stop()
   }

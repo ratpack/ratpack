@@ -30,13 +30,13 @@ public abstract class GroovyRendererSupport<T> extends RendererSupport<T> {
   /**
    * Delegates to {@link #render(GroovyContext, Object)}, wrapping the given {@code context} in a {@link GroovyContext}.
    *
-   * @param context The context
+   * @param ctx The context
    * @param object The object to render
    * @throws Exception the exception thrown by {@link #render(GroovyContext, Object)} if any
    */
   @Override
-  public final void render(Context context, T object) throws Exception {
-    render(GroovyContext.from(context), object);
+  public final void render(Context ctx, T object) throws Exception {
+    render(GroovyContext.from(ctx), object);
   }
 
   /**

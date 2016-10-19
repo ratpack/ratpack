@@ -17,8 +17,9 @@
 package ratpack.groovy.handling
 
 import ratpack.groovy.Groovy
+import ratpack.impose.ForceServerListenPortImposition
+import ratpack.impose.Impositions
 import ratpack.server.RatpackServer
-import ratpack.server.internal.ServerCapturer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -35,7 +36,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
-        ServerCapturer.capture(new ServerCapturer.Overrides().port(0)) {
+        Impositions.of { it.add ForceServerListenPortImposition.ephemeral() }.impose {
           RatpackServer.of(Groovy.Script.appWithArgs(compileStatic, ratpackFile.canonicalFile.toPath(), args))
         }
       }
@@ -225,39 +226,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
     then:
     text == "1"
-
-    when:
-    ratpackFile.lastModified = System.currentTimeMillis()
-
-    then:
     text == "2"
-
-    when:
-    script """
-      class RequestCounter {
-        int requests
-
-        int inc() {
-          return ++requests
-        }
-      }
-      ratpack {
-        serverConfig {
-          development true
-        }
-        bindings {
-          bindInstance new RequestCounter()
-        }
-        handlers {
-          get {
-            render get(RequestCounter).inc().toString()
-          }
-        }
-      }
-    """
-
-    then:
-    text == "3"
 
     when:
     script """
@@ -285,6 +254,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
     then:
     text == "1"
+    text == "2"
   }
 
   def "changes to app are not reloaded when not development"() {

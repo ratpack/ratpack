@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 
 import javax.net.ssl.SSLContext;
@@ -93,6 +94,15 @@ public interface RequestSpec {
   MutableHeaders getHeaders();
 
   /**
+   * The maximum response length to accept.
+   *
+   * @param numBytes the maximum response length to accept
+   * @return {@code this}
+   * @since 1.4
+   */
+  RequestSpec maxContentLength(int numBytes);
+
+  /**
    * This method can be used to compose changes to the headers.
    *
    * @param action Provide an action that will act on MutableHeaders.
@@ -102,31 +112,123 @@ public interface RequestSpec {
   RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
 
   /**
-   * Set the HTTP verb to use.
-   * @param method which HTTP verb to use
+   * Specifies the request method.
+   *
+   * @param method the method
    * @return this
    */
-  RequestSpec method(String method);
+  default RequestSpec method(String method) {
+    return method(HttpMethod.of(method));
+  }
+
+  /**
+   * Specifies the request method.
+   *
+   * @param method the method
+   * @return this
+   * @since 1.4
+   */
+  RequestSpec method(HttpMethod method);
+
+  /**
+   * Specifies to use the GET request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec get() {
+    return method(HttpMethod.GET);
+  }
+
+  /**
+   * Specifies to use the POST request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec post() {
+    return method(HttpMethod.POST);
+  }
+
+  /**
+   * Specifies to use the PUT request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec put() {
+    return method(HttpMethod.PUT);
+  }
+
+  /**
+   * Specifies to use the DELETE request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec delete() {
+    return method(HttpMethod.DELETE);
+  }
+
+  /**
+   * Specifies to use the PATCH request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec patch() {
+    return method(HttpMethod.PATCH);
+  }
+
+  /**
+   * Specifies to use the OPTIONS request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec options() {
+    return method(HttpMethod.OPTIONS);
+  }
+
+  /**
+   * Specifies to use the HEAD request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec head() {
+    return method(HttpMethod.HEAD);
+  }
 
   /**
    * Enables automatic decompression of the response.
+   *
    * @param shouldDecompress whether to enable decompression
    * @return this
    */
   RequestSpec decompressResponse(boolean shouldDecompress);
 
-  URI getUrl();
+  /**
+   * The request URI.
+   *
+   * @return the request URI
+   * @since 1.4
+   */
+  URI getUri();
 
   /**
-   * Sets the socket connection timeout to the given value in seconds.
-   * <p>
-   * This value defaults to 30 seconds.
-   *
-   * @since 1.1.0
-   * @param seconds the socket connection timeout in seconds
-   * @see #connectTimeout(Duration)
-   * @return {@code this}
+   * @deprecated since 1.4, use {@link #getUri()}
    */
+  @Deprecated
+  default URI getUrl() {
+    return getUri();
+  }
+
+  /**
+   * @since 1.1
+   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
+   */
+  @Deprecated
   default RequestSpec connectTimeoutSeconds(int seconds) {
     return connectTimeout(Duration.of(seconds, SECONDS));
   }
@@ -136,12 +238,16 @@ public interface RequestSpec {
    * <p>
    * This value defaults to 30 seconds.
    *
-   * @since 1.1.0
+   * @since 1.1
    * @param duration the socket connection timeout
    * @return {@code this}
    */
   RequestSpec connectTimeout(Duration duration);
 
+  /**
+   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
+   */
+  @Deprecated
   default RequestSpec readTimeoutSeconds(int seconds) {
     return readTimeout(Duration.of(seconds, SECONDS));
   }

@@ -19,11 +19,7 @@ package ratpack.session.internal;
 import ratpack.api.Nullable;
 import ratpack.session.SessionKey;
 
-import java.io.Serializable;
-
-public class DefaultSessionKey<T> implements SessionKey<T>, Serializable {
-
-  private static final long serialVersionUID = 1;
+public class DefaultSessionKey<T> implements SessionKey<T> {
 
   private final String name;
   private final Class<T> type;

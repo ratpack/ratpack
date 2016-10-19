@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+import ratpack.config.internal.source.ArgsConfigSource;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
@@ -45,6 +46,7 @@ import java.util.Properties;
  * import ratpack.func.Action;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
+ * import ratpack.test.ServerBackedApplicationUnderTest;
  * import ratpack.test.http.TestHttpClient;
  *
  * import static org.junit.Assert.*;
@@ -70,7 +72,7 @@ import java.util.Properties;
  *       });
  *       server.start();
  *
- *       TestHttpClient httpClient = TestHttpClient.testHttpClient(server);
+ *       TestHttpClient httpClient = ServerBackedApplicationUnderTest.of(server).getHttpClient();
  *       assertEquals("threads:7", httpClient.getText());
  *
  *       server.stop();
@@ -158,7 +160,7 @@ public interface ConfigDataBuilder {
    *
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default ConfigDataBuilder args(String[] args) {
     return args("=", args);
@@ -170,7 +172,7 @@ public interface ConfigDataBuilder {
    * @param separator the separator of the key and value in each arg
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default ConfigDataBuilder args(String separator, String[] args) {
     return args("", separator, args);
@@ -187,9 +189,11 @@ public interface ConfigDataBuilder {
    * @param separator the separator between the key and the value
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
-  ConfigDataBuilder args(String prefix, String separator, String[] args);
+  default ConfigDataBuilder args(String prefix, String separator, String[] args) {
+    return add(new ArgsConfigSource(prefix, separator, args));
+  }
 
   /**
    * Adds a configuration source for a JSON file.
@@ -347,6 +351,51 @@ public interface ConfigDataBuilder {
    * @return {@code this}
    */
   ConfigDataBuilder yaml(URL url);
+
+  /**
+   * Adds the object's fields at the given path as a configuration source.
+   * <p>
+   * The path is a period separated key string.
+   * The given object is subject to value merging and overrides as per other config sources.
+   *
+   * <pre class="java">{@code
+   * import ratpack.config.ConfigData;
+   * import java.util.Collections;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   static class Thing {
+   *     public String f1;
+   *     public String f2;
+   *     public String f3;
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     Thing input = new Thing();
+   *     input.f1 = "1";
+   *     input.f2 = "2";
+   *
+   *     ConfigData configData = ConfigData.of(c -> c
+   *       .object("thing", input)
+   *       .props(Collections.singletonMap("thing.f1", "changed"))
+   *       .object("thing.f3", "changed")
+   *     );
+   *     Thing thing = configData.get("/thing", Thing.class);
+   *
+   *     assertEquals("changed", thing.f1);
+   *     assertEquals("2", thing.f2);
+   *     assertEquals("changed", thing.f3);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param path the configuration path the object's fields should be mapped on to
+   * @param object the object from which to derive the configuration fields
+   * @return {@code this}
+   * @since 1.4
+   */
+  ConfigDataBuilder object(String path, Object object);
 
   /**
    * Sets the error all that will be used for added configuration sources.

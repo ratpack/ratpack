@@ -16,8 +16,6 @@
 
 package ratpack.groovy.template.internal;
 
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
@@ -25,20 +23,16 @@ import ratpack.func.Function;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import static ratpack.util.Exceptions.toException;
-import static ratpack.util.Exceptions.uncheck;
 
 public class Render {
 
   private final ByteBufAllocator bufferAllocator;
-  private final LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache;
+  private final Function<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache;
   private final TextTemplateSource templateSource;
   private final Map<String, ?> model;
   private final Function<String, TextTemplateSource> includeTransformer;
 
-  private Render(ByteBufAllocator bufferAllocator, LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, final Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) {
+  private Render(ByteBufAllocator bufferAllocator, Function<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, final Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) {
     this.bufferAllocator = bufferAllocator;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateSource = templateSource;
@@ -47,7 +41,7 @@ public class Render {
   }
 
   private Promise<ByteBuf> invoke() {
-    return Promise.of(f -> {
+    return Promise.async(f -> {
         ByteBuf byteBuf = bufferAllocator.ioBuffer();
         try {
           CompiledTextTemplate fromCache = getFromCache(compiledTemplateCache, templateSource);
@@ -61,12 +55,8 @@ public class Render {
     );
   }
 
-  private CompiledTextTemplate getFromCache(LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource) {
-    try {
-      return compiledTemplateCache.get(templateSource);
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw uncheck(toException(e.getCause()));
-    }
+  private CompiledTextTemplate getFromCache(Function<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource) throws Exception {
+    return compiledTemplateCache.apply(templateSource);
   }
 
   private void executeNested(final String templatePath, final Map<String, ?> model, ByteBuf buffer) throws Exception {
@@ -83,7 +73,7 @@ public class Render {
     });
   }
 
-  public static Promise<ByteBuf> render(ByteBufAllocator bufferAllocator, LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) throws Exception {
+  public static Promise<ByteBuf> render(ByteBufAllocator bufferAllocator, Function<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache, TextTemplateSource templateSource, Map<String, ?> model, Function<String, TextTemplateSource> includeTransformer) throws Exception {
     return new Render(bufferAllocator, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
   }
 }

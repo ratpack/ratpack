@@ -16,29 +16,68 @@
 
 package ratpack.health.internal;
 
+import com.google.common.reflect.TypeToken;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
+import ratpack.health.HealthCheck;
 import ratpack.health.HealthCheckResults;
+import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.registry.internal.TypeCaching;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+
+import java.io.BufferedOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Map;
 
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
 
+  public static final TypeToken<Renderer<HealthCheckResults>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<HealthCheckResults>>() {});
+
+  private final ByteBufAllocator byteBufAllocator;
+
+  public HealthCheckResultsRenderer(ByteBufAllocator byteBufAllocator) {
+    this.byteBufAllocator = byteBufAllocator;
+  }
+
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Override
-  public void render(Context context, HealthCheckResults healthCheckResults) throws Exception {
-    StringBuilder builder = new StringBuilder();
-    healthCheckResults.getResults().forEach((name, result) -> {
-      if (builder.length() > 0) {
-        builder.append("\n");
-      }
-      builder.append(name).append(" : ").append(result.isHealthy() ? "HEALTHY" : "UNHEALTHY");
-      if (!result.isHealthy()) {
-        builder.append(" [").append(result.getMessage()).append("]");
-        if (result.getError() != null) {
-          builder.append(" [").append(result.getError().toString()).append("]");
+  public void render(Context ctx, HealthCheckResults healthCheckResults) throws Exception {
+    ByteBuf buffer = byteBufAllocator.buffer();
+    boolean first = true;
+    boolean unhealthy = false;
+
+    try {
+      Writer writer = new OutputStreamWriter(new BufferedOutputStream(new ByteBufOutputStream(buffer)));
+      for (Map.Entry<String, HealthCheck.Result> entry : healthCheckResults.getResults().entrySet()) {
+        if (first) {
+          first = false;
+        } else {
+          writer.write("\n");
+        }
+        String name = entry.getKey();
+        HealthCheck.Result result = entry.getValue();
+        writer.append(name).append(" : ").append(result.isHealthy() ? "HEALTHY" : "UNHEALTHY");
+        if (!result.isHealthy()) {
+          unhealthy = true;
+          writer.append(" [").append(result.getMessage()).append("]");
+          if (result.getError() != null) {
+            writer.append(" [").append(result.getError().toString()).append("]");
+          }
         }
       }
-    });
+      writer.close();
+    } catch (Exception e) {
+      buffer.release();
+      throw e;
+    }
 
-    context.getResponse().send(builder.toString());
+    ctx.getResponse()
+      .contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8)
+      .status(unhealthy ? 503 : 200)
+      .send(buffer);
   }
 }

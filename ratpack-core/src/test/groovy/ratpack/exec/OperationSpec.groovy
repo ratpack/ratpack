@@ -46,7 +46,7 @@ class OperationSpec extends Specification {
   }
 
   private <T> Promise<T> async(T t) {
-    Promise.of { f -> Thread.start { f.success(t) } }
+    Promise.async { f -> Thread.start { f.success(t) } }
   }
 
 }

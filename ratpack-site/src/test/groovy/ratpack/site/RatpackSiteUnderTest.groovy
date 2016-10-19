@@ -17,6 +17,8 @@
 package ratpack.site
 
 import groovy.transform.CompileStatic
+import ratpack.impose.ImpositionsSpec
+import ratpack.impose.UserRegistryImposition
 import ratpack.registry.Registry
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
@@ -25,6 +27,7 @@ import ratpack.site.github.RatpackVersions
 import ratpack.test.MainClassApplicationUnderTest
 
 @CompileStatic
+@SuppressWarnings("ClassName")
 class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
   RatpackSiteUnderTest() {
@@ -32,8 +35,8 @@ class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
   }
 
   @Override
-  protected Registry createOverrides(Registry serverRegistry) throws Exception {
-    Registry.of {
+  protected void addImpositions(ImpositionsSpec impositions) {
+    impositions.add(UserRegistryImposition.of(Registry.of {
       def data = new MockGithubData()
 
       def config = new TestConfig()
@@ -46,6 +49,7 @@ class RatpackSiteUnderTest extends MainClassApplicationUnderTest {
 
       it.add(GitHubData, data)
       it.add(new RatpackVersions(data))
-    }
+    }))
   }
+
 }

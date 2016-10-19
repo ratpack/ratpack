@@ -17,20 +17,27 @@
 package ratpack.http.internal;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import ratpack.api.Nullable;
 import ratpack.exec.Promise;
+import ratpack.func.Block;
 import ratpack.func.Function;
+import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
+import ratpack.http.HttpMethod;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.RequestBodyReader;
+import ratpack.stream.TransformablePublisher;
+import ratpack.stream.internal.EmptyPublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -61,7 +68,7 @@ public class DefaultRequest implements Request {
   private Set<Cookie> cookies;
 
   public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
-                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, RequestBodyReader bodyReader) {
+                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, @Nullable RequestBodyReader bodyReader) {
     this.headers = headers;
     this.bodyReader = bodyReader;
     this.method = DefaultHttpMethod.valueOf(method);
@@ -207,8 +214,36 @@ public class DefaultRequest implements Request {
   }
 
   @Override
+  public Promise<TypedData> getBody(Block onTooLarge) {
+    return getBody(serverConfig.getMaxContentLength(), onTooLarge);
+  }
+
+  @Override
   public Promise<TypedData> getBody(long maxContentLength) {
-    return bodyReader.read(maxContentLength).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    return getBody(maxContentLength, () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code()));
+  }
+
+  @Override
+  public Promise<TypedData> getBody(long maxContentLength, Block onTooLarge) {
+    if (bodyReader == null) {
+      return Promise.value(new ByteBufBackedTypedData(Unpooled.EMPTY_BUFFER, getContentType()));
+    } else {
+      return bodyReader.read(maxContentLength, onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    }
+  }
+
+  @Override
+  public TransformablePublisher<? extends ByteBuf> getBodyStream() {
+    return getBodyStream(serverConfig.getMaxContentLength());
+  }
+
+  @Override
+  public TransformablePublisher<? extends ByteBuf> getBodyStream(long maxContentLength) {
+    if (bodyReader == null) {
+      return EmptyPublisher.instance();
+    } else {
+      return bodyReader.readStream(maxContentLength);
+    }
   }
 
   @Override
@@ -219,6 +254,21 @@ public class DefaultRequest implements Request {
   @Override
   public MediaType getContentType() {
     return DefaultMediaType.get(headers.get(HttpHeaderNames.CONTENT_TYPE));
+  }
+
+  @Override
+  public boolean isExpectsContinue() {
+    return Iterables.any(headers.getAll(HttpHeaderNames.EXPECT), HttpHeaderValues.CONTINUE::contentEqualsIgnoreCase);
+  }
+
+  @Override
+  public boolean isChunkedTransfer() {
+    return Iterables.any(headers.getAll(HttpHeaderNames.TRANSFER_ENCODING), HttpHeaderValues.CHUNKED::contentEqualsIgnoreCase);
+  }
+
+  @Override
+  public long getContentLength() {
+    return bodyReader == null ? -1L : bodyReader.getContentLength();
   }
 
   @Override
@@ -238,13 +288,13 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public <O> Request add(TypeToken<? super O> type, O object) {
+  public <O> Request add(TypeToken<O> type, O object) {
     getDelegateRegistry().add(type, object);
     return this;
   }
 
   @Override
-  public <O> Request add(Class<? super O> type, O object) {
+  public <O> Request add(Class<O> type, O object) {
     getDelegateRegistry().add(type, object);
     return this;
   }

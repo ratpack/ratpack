@@ -95,7 +95,7 @@ public class MarkupTemplateModule extends ConfigurableModule<MarkupTemplateModul
   @Provides
   @Singleton
   MarkupTemplateEngine provideTemplateEngine(ServerConfig serverConfig, Config config) {
-    ClassLoader parent = getClass().getClassLoader();
+    ClassLoader parent = Thread.currentThread().getContextClassLoader();
     TemplateConfiguration effectiveConfiguration = new TemplateConfiguration(config);
     effectiveConfiguration.setCacheTemplates(config.isCacheTemplates()); // not copied by constructor
     Path templatesDir = serverConfig.getBaseDir().file(config.getTemplatesDirectory());

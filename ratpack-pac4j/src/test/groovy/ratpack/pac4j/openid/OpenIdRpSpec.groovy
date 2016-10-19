@@ -18,22 +18,35 @@ package ratpack.pac4j.openid
 
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
+import ratpack.func.Action
+import ratpack.groovy.handling.GroovyChainAction
+import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
-import ratpack.http.internal.HttpHeaderConstants
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
+import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
+import static ratpack.http.internal.HttpHeaderConstants.COOKIE
+import static ratpack.http.internal.HttpHeaderConstants.SET_COOKIE
+import static ratpack.http.internal.HttpHeaderConstants.XML_HTTP_REQUEST
+import static ratpack.http.internal.HttpHeaderConstants.X_REQUESTED_WITH
+import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
 /**
  * Tests OpenID Relying Party support.
  */
 class OpenIdRpSpec extends RatpackGroovyDslSpec {
-  private static final String EMAIL = "fake@example.com"
+
+  private static final String EMAIL         = "fake@example.com"
+  private static final String AUTH_PATH     = "auth"
+  private static final String NOAUTH_PATH   = "noauth"
+  private static final String PREFIX_PATH   = "prefix"
+  private static final String PROVIDER_PATH = "/openid_provider"
 
   @AutoCleanup
   EmbeddedProvider provider = new EmbeddedProvider()
@@ -46,13 +59,23 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
+      prefix PREFIX_PATH, new TestAuthenticationChainConfiguration()
+
+      insert new TestAuthenticationChainConfiguration()
+    }
+
+  }
+
+  final class TestAuthenticationChainConfiguration extends GroovyChainAction {
+
+    void execute() {
       all(RatpackPac4j.authenticator(new OpenIdTestClient(provider.port)))
-      get("noauth") {
+      get(NOAUTH_PATH) {
         def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
         def genericUserProfile = maybeGet(UserProfile).orElse(null)
         response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
       }
-      prefix("auth") {
+      prefix(AUTH_PATH) {
         all(RatpackPac4j.requireAuth(OpenIdTestClient))
         get {
           def typedUserProfile = maybeGet(YahooOpenIdProfile).orElse(null)
@@ -64,81 +87,105 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
 
   }
 
+  @Unroll("test no auth given prefix path [#prefix]")
   def "test noauth"() {
     when:
-    def response = client.get("noauth")
+    def response = client.get("$prefix$NOAUTH_PATH")
 
     then:
     response.body.text == "noauth:null:null"
+
+    where:
+    prefix << ["", "$PREFIX_PATH/"]
   }
 
+  @Unroll("successful auth using prefix #prefix")
   def "test successful auth"() {
     setup:
-    client.requestSpec { it.redirects(0) }
+    reset { request -> noRedirects request }
     provider.addResult(true, EMAIL)
 
     when:
-    def response1 = client.get("auth")
+    def initialResponse = client.get("$prefix$AUTH_PATH")
 
     then:
-    response1.statusCode == FOUND.code()
-    response1.headers.get(LOCATION).contains("/openid_provider")
+    initialResponse.statusCode == FOUND.code()
+    location(initialResponse).contains PROVIDER_PATH
 
     when:
-    def response2 = client.get(response1.headers.get(LOCATION))
+    def providerResponse = client.get(location(initialResponse))
 
     then:
-    response2.statusCode == FOUND.code()
-    response2.headers.get(LOCATION).contains(RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH)
+    providerResponse.statusCode == FOUND.code()
+    location(providerResponse).contains DEFAULT_AUTHENTICATOR_PATH
 
     when:
-    client.resetRequest()
-    client.requestSpec {
-      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
-      it.redirects(0)
+    reset { request ->
+      copyCookie initialResponse, request
+      noRedirects request
     }
-    def response3 = client.get(response2.headers.get(LOCATION))
+    def authenticatorResponse = client.get(location(providerResponse))
 
     then:
-    response3.statusCode == FOUND.code()
-    response3.headers.get(LOCATION).contains("/auth")
+    authenticatorResponse.statusCode == FOUND.code()
+    location(authenticatorResponse).contains("$prefix$AUTH_PATH")
 
     when:
-    client.resetRequest()
-    client.requestSpec {
-      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
+    reset { request ->
+      copyCookie initialResponse, request
     }
-    def response4 = client.get(response3.headers.get(LOCATION))
+    def protectedResourceResponse = client.get(location(authenticatorResponse))
 
     then:
-    response4.body.text == "auth:${EMAIL}:${EMAIL}"
+    protectedResourceResponse.body.text == "auth:${EMAIL}:${EMAIL}"
 
     when:
-    client.resetRequest()
-    client.requestSpec {
-      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
+    reset { request ->
+      copyCookie initialResponse, request
     }
-    def response5 = client.get("noauth")
+    def unprotectedResourceResponse = client.get("$prefix$NOAUTH_PATH")
 
     then:
-    response5.body.text == "noauth:null:null"
+    unprotectedResourceResponse.body.text == "noauth:null:null"
+
+    where:
+    prefix << ["", "$PREFIX_PATH/"]
   }
 
   def "it should not redirect ajax requests"() {
     setup:
-    // Set AJAX request header.
-    client.requestSpec { RequestSpec requestSpec ->
-      requestSpec.headers.add(
-        HttpHeaderConstants.X_REQUESTED_WITH,
-        HttpHeaderConstants.XML_HTTP_REQUEST
-      )
-    }
+    ajaxRequest()
 
     when: "make a request that requires authentication"
-    def response = client.get("auth")
+    def response = client.get(AUTH_PATH)
 
     then: "a 401 response is returned and no redirect is made"
-    assert response.statusCode == UNAUTHORIZED.code()
+    response.statusCode == UNAUTHORIZED.code()
+  }
+
+  private void ajaxRequest() {
+    client.requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add(X_REQUESTED_WITH, XML_HTTP_REQUEST)
+    }
+  }
+
+  private RequestSpec copyCookie(ReceivedResponse from, RequestSpec to) {
+    to.headers.set COOKIE, from.headers.getAll(SET_COOKIE)
+    to
+  }
+
+  private RequestSpec noRedirects(RequestSpec request) {
+    request.redirects 0
+    request
+  }
+
+  private String location(ReceivedResponse response) {
+    response.headers.get LOCATION
+  }
+
+  private void reset(Action<? super RequestSpec> requestAction) {
+    client.resetRequest()
+    client.requestSpec requestAction
   }
 
 }

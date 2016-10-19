@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.util.CharsetUtil;
 import ratpack.sse.Event;
 
 import java.io.OutputStream;
@@ -41,7 +42,14 @@ public class ServerSentEventEncoder {
     ByteBuf buffer = bufferAllocator.buffer();
 
     OutputStream outputStream = new ByteBufOutputStream(buffer);
-    Writer writer = new OutputStreamWriter(outputStream, UTF_8);
+    Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.encoder(UTF_8));
+
+    String eventId = event.getId();
+    if (eventId != null) {
+      outputStream.write(EVENT_ID_PREFIX);
+      writer.append(eventId).flush();
+      outputStream.write(NEWLINE);
+    }
 
     String eventType = event.getEvent();
     if (eventType != null) {
@@ -61,14 +69,6 @@ public class ServerSentEventEncoder {
           writer.append(character).flush();
         }
       }
-      outputStream.write(NEWLINE);
-    }
-
-
-    String eventId = event.getId();
-    if (eventId != null) {
-      outputStream.write(EVENT_ID_PREFIX);
-      writer.append(eventId).flush();
       outputStream.write(NEWLINE);
     }
 

@@ -21,6 +21,7 @@ import ratpack.exec.ExecutionException;
 import ratpack.exec.Promise;
 import ratpack.exec.Upstream;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.util.Exceptions;
 
@@ -40,7 +41,7 @@ public class DefaultPromise<T> implements Promise<T> {
       public void success(T value) {
         try {
           then.execute(value);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           throwError(e);
         }
       }
@@ -58,12 +59,12 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
-  public void connect(Downstream<T> downstream) {
+  public void connect(Downstream<? super T> downstream) {
     ThreadBinding.requireComputeThread("Promise.connect() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
     doConnect(downstream);
   }
 
-  public void doConnect(Downstream<T> downstream) {
+  public void doConnect(Downstream<? super T> downstream) {
     try {
       upstream.connect(downstream);
     } catch (ExecutionException e) {
@@ -73,12 +74,8 @@ public class DefaultPromise<T> implements Promise<T> {
     }
   }
 
-  private void throwError(Throwable throwable) {
-    DefaultExecution.require().delimit(h ->
-        h.resume(() -> {
-          throw Exceptions.toException(throwable);
-        })
-    );
+  public static void throwError(Throwable throwable) {
+    DefaultExecution.require().delimit(Action.throwException(), h -> h.resume(Block.throwException(throwable)));
   }
 
   @Override

@@ -17,12 +17,16 @@
 package ratpack.pac4j;
 
 import com.google.common.collect.ImmutableList;
+import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
+import org.pac4j.core.client.DirectClient;
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.exec.Blocking;
 import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
@@ -40,7 +44,11 @@ import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.util.Types;
 
+import java.util.List;
 import java.util.Optional;
+
+import static com.google.common.collect.Iterables.all;
+import static java.util.Arrays.asList;
 
 /**
  * Provides integration with the <a href="http://www.pac4j.org">Pac4j library</a> for authentication and authorization.
@@ -51,7 +59,7 @@ import java.util.Optional;
  * The {@link #authenticator(Client[])} method provides a handler that implements the authentication process,
  * and is required in all apps wanting to use authentication.
  * <p>
- * The {@link #requireAuth(Class)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
+ * The {@link #requireAuth(Class, Authorizer...)} method provides a handler that acts like a filter, ensuring that the user is authenticated for all requests.
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
@@ -95,7 +103,7 @@ public class RatpackPac4j {
    * Provides the set of Pac4j {@link Client clients}.
    *
    * @see #authenticator(String, ClientsProvider)
-   * @since 1.1.0
+   * @since 1.1
    */
   public interface ClientsProvider {
     Iterable<? extends Client<?, ?>> get(Context ctx);
@@ -115,7 +123,7 @@ public class RatpackPac4j {
    * The user will then be redirected back to the URL that initiated the authentication.
    * <p>
    * If the path does not match, the handler will push an instance of {@link Clients} into the context registry and pass control downstream.
-   * The {@link Clients} instance will be retrieved downstream by any {@link #requireAuth(Class)} handler (or use of {@link #login(Context, Class)}.
+   * The {@link Clients} instance will be retrieved downstream by any {@link #requireAuth(Class, Authorizer...)} handler (or use of {@link #login(Context, Class)}.
    *
    * @param path the path to bind the authenticator to (relative to the current request path binding)
    * @param clientsProvider the provider of authentication clients
@@ -126,21 +134,24 @@ public class RatpackPac4j {
   }
 
   /**
-   * An authentication “filter”, that initiates authentication if necessary.
+   * An authentication and authorization “filter”.
    * <p>
    * This handler can be used to ensure that a user profile is available for all downstream handlers.
    * If there is no user profile present in the session (i.e. user not logged in), authentication will be initiated based on the given client type (i.e. redirect to the {@link #authenticator(Client[])} handler).
    * If there is a {@link UserProfile} present in the session, this handler will push the user profile into the context registry before delegating downstream.
    * If there is a {@link UserProfile} present in the context registry, this handler will simply delegate downstream.
    * <p>
+   * If there is a {@link UserProfile}, <b>each</b> of the given authorizers will be tested in turn and all must return true.
+   * If so, control will flow to the next handler.
+   * Otherwise, a {@code 403} {@link Context#clientError(int) client error} will be issued.
+   * <p>
    * This handler requires a {@link Clients} instance available in the context registry.
    * As such, this handler should be downstream of the {@link #authenticator(Client[])} handler.
    *
    * <pre class="java">{@code
    * import org.pac4j.core.profile.UserProfile;
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.pac4j.RatpackPac4j;
    * import ratpack.session.SessionModule;
@@ -153,30 +164,58 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
-   *             .prefix("require-auth", a -> a
-   *                 .all(RatpackPac4j.requireAuth(BasicAuthClient.class))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("logout", ctx -> RatpackPac4j.logout(ctx).then(() -> ctx.render("logged out")))
+   *             .prefix("require-authn", a -> a
+   *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
    *             )
-   *             .get(ctx -> ctx.render("no auth required"))
+   *            .prefix("require-authz", a -> a
+   *              .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class, (ctx, profile) -> { return "special-user".equals(profile.getId()); }))
+   *              .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
+   *            )
+   *            .get(ctx -> ctx.render("no auth required"))
    *         )
    *     ).test(httpClient -> {
    *       httpClient.requestSpec(r -> r.redirects(1));
    *       assertEquals("no auth required", httpClient.getText());
-   *       assertEquals(401, httpClient.get("require-auth").getStatusCode());
-   *       assertEquals("Hello user", httpClient.requestSpec(r -> r.basicAuth("user", "user")).getText("require-auth"));
+   *
+   *       assertEquals(401, httpClient.get("require-authn").getStatusCode());
+   *       assertEquals("Hello user", httpClient.requestSpec(r -> r.basicAuth("user", "user")).getText("require-authn"));
+   *
+   *       assertEquals(403, httpClient.get("require-authz").getStatusCode());
+   *
+   *       assertEquals("logged out", httpClient.getText("logout"));
+   *       httpClient.resetRequest();
+   *
+   *       assertEquals(401, httpClient.get("require-authz").getStatusCode());
+   *       assertEquals("Hello special-user", httpClient.requestSpec(r -> r.basicAuth("special-user", "special-user")).getText("require-authz"));
    *     });
    *   }
    * }
    * }</pre>
    *
    * @param clientType the client type to use to authenticate with if required
+   * @param authorizers the authorizers to check authorizations
    * @return a handler
    */
-  public static Handler requireAuth(Class<? extends Client<?, ?>> clientType) {
-    return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile ->
-        ctx.next(Registry.single(userProfile))
-    );
+  @SafeVarargs
+  @SuppressWarnings("varargs")
+  public static <C extends Credentials, U extends UserProfile> Handler requireAuth(Class<? extends Client<C, U>> clientType, Authorizer<? super U>... authorizers) {
+    List<Authorizer<? super U>> authorizerList = asList(authorizers);
+    return ctx -> RatpackPac4j.login(ctx, clientType).then(userProfile -> {
+      if (authorizerList.isEmpty()) {
+        ctx.next(Registry.single(userProfile));
+      } else {
+        RatpackWebContext.from(ctx, false).then(webContext -> {
+          if (all(authorizerList, a -> a == null || a.isAuthorized(webContext, userProfile))) {
+            ctx.next(Registry.single(userProfile));
+          } else {
+            ctx.clientError(403);
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -185,12 +224,11 @@ public class RatpackPac4j {
    * This method can be used to programmatically initiate a log in, if required.
    * If the user is already logged in, the user profile will be provided via the returned promise.
    * If the user is not already logged in, the promise will not be fulfilled and the user will be redirected to the authenticator.
-   * As such, like {@link #requireAuth(Class)}, this can only be used downstream of the {@link #authenticator(Client[])} handler.
+   * As such, like {@link #requireAuth(Class, Authorizer...)}, this can only be used downstream of the {@link #authenticator(Client[])} handler.
    *
    * <pre class="java">{@code
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.pac4j.RatpackPac4j;
@@ -206,8 +244,8 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
-   *             .get("auth", ctx -> RatpackPac4j.login(ctx, BasicAuthClient.class).then(p -> ctx.redirect("/")))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("auth", ctx -> RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
    *                 RatpackPac4j.userProfile(ctx)
    *                   .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
@@ -232,10 +270,25 @@ public class RatpackPac4j {
    * @param clientType the client type to authenticate with
    * @return a promise for the user profile, fulfilled if logged in
    */
-  public static Promise<UserProfile> login(Context ctx, Class<? extends Client<?, ?>> clientType) {
-    return userProfile(ctx)
-      .route(p -> !p.isPresent(), p -> initiateAuthentication(ctx, clientType))
-      .map(Optional::get);
+  public static <C extends Credentials, U extends UserProfile> Promise<U> login(Context ctx, Class<? extends Client<C, U>> clientType) {
+    if (isDirect(clientType)) {
+      return userProfile(ctx)
+        .flatMap(p -> {
+          if (p.isPresent()) {
+            Optional<U> cast = Types.cast(p);
+            return Promise.value(cast);
+          } else {
+            return performDirectAuthentication(ctx, clientType);
+          }
+        })
+        .route(p -> !p.isPresent(), p -> ctx.clientError(401))
+        .map(Optional::get);
+    } else {
+      return userProfile(ctx)
+        .route(p -> !p.isPresent(), p -> initiateAuthentication(ctx, clientType))
+        .map(Optional::get)
+        .map(Types::<U>cast);
+    }
   }
 
   /**
@@ -244,7 +297,7 @@ public class RatpackPac4j {
    * The promised optional will be empty if the user is not authenticated.
    * <p>
    * This method should be used if the user <i>may</i> have been authenticated.
-   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class)} handler,
+   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class, Authorizer...)} handler,
    * as the auth handler puts the profile into the context registry for easy retrieval.
    * <p>
    * This method returns a promise as it will attempt to load the profile from the session if it
@@ -253,9 +306,8 @@ public class RatpackPac4j {
    * <pre class="java">{@code
    * import io.netty.handler.codec.http.HttpHeaderNames;
    * import org.pac4j.core.profile.UserProfile;
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.pac4j.RatpackPac4j;
@@ -272,9 +324,9 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .prefix("auth", a -> a
-   *                 .all(RatpackPac4j.requireAuth(BasicAuthClient.class))
+   *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> {
    *                   ctx.render("Hello " + ctx.get(UserProfile.class).getId());
    *                 })
@@ -326,7 +378,7 @@ public class RatpackPac4j {
    * the returned promise will be a failure with a {@link ClassCastException}.
    * <p>
    * This method should be used if the user <i>may</i> have been authenticated.
-   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class)} handler,
+   * That is, when the the need for the profile is not downstream of an {@link #requireAuth(Class, Authorizer...)} handler,
    * as the auth handler puts the profile into the context registry for easy retrieval.
    * <p>
    * This method returns a promise as it will attempt to load the profile from the session if it
@@ -339,17 +391,17 @@ public class RatpackPac4j {
    * @see #userProfile(Context)
    */
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
-    return Promise.of(f ->
-        toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
-            ctx.get(Session.class)
-              .get(Pac4jSessionKeys.USER_PROFILE)
-              .then(p -> {
-                if (p.isPresent()) {
-                  ctx.getRequest().add(UserId.class, UserId.of(p.get().getId()));
-                }
-                toProfile(type, f, p, () -> f.success(Optional.<T>empty()));
-              })
-        )
+    return Promise.async(f ->
+      toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
+        ctx.get(Session.class)
+          .get(Pac4jSessionKeys.USER_PROFILE)
+          .then(p -> {
+            if (p.isPresent()) {
+              ctx.getRequest().add(UserId.class, UserId.of(p.get().getId()));
+            }
+            toProfile(type, f, p, () -> f.success(Optional.<T>empty()));
+          })
+      )
     );
   }
 
@@ -359,9 +411,8 @@ public class RatpackPac4j {
    * The returned operation simply removes the profile from the session, regardless of whether it's actually there or not.
    *
    * <pre class="java">{@code
-   * import org.pac4j.http.client.BasicAuthClient;
-   * import org.pac4j.http.credentials.SimpleTestUsernamePasswordAuthenticator;
-   * import org.pac4j.http.profile.UsernameProfileCreator;
+   * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+   * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.pac4j.RatpackPac4j;
@@ -377,8 +428,8 @@ public class RatpackPac4j {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator())))
-   *             .get("auth", ctx -> RatpackPac4j.login(ctx, BasicAuthClient.class).then(p -> ctx.redirect("/")))
+   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("auth", ctx -> RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
    *                 RatpackPac4j.userProfile(ctx)
    *                   .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
@@ -414,19 +465,18 @@ public class RatpackPac4j {
   }
 
   /**
-   * Creates a Pac4j {@link WebContext} implementation based on Ratpack's context.
+   * Adapts a Ratpack {@link Context} to a Pac4j {@link WebContext}.
+   * <p>
+   * The returned WebContext does not have access to the request body.
+   * {@link WebContext#getRequestParameters()} and associated methods will not include any
+   * form parameters if the request was a form.
    *
-   * @param ctx the Ratpack context
+   * @param ctx a Ratpack context
    * @return a Pac4j web context
+   * @since 1.4
    */
   public static Promise<WebContext> webContext(Context ctx) {
-    return internalWebContext(ctx).map(Types::<WebContext>cast);
-  }
-
-  private static Promise<RatpackWebContext> internalWebContext(Context ctx) {
-    return ctx.getRequest().getBody()
-      .right(ctx.get(Session.class).getData())
-      .map(p -> new RatpackWebContext(ctx, p.getLeft(), p.getRight()));
+    return Types.cast(RatpackWebContext.from(ctx, false));
   }
 
   private static <T extends UserProfile> void toProfile(Class<T> type, Downstream<? super Optional<T>> downstream, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {
@@ -447,10 +497,10 @@ public class RatpackPac4j {
     Clients clients = ctx.get(Clients.class);
     Client<?, ?> client = clients.findClient(clientType);
 
-    internalWebContext(ctx).then(webContext -> {
+    RatpackWebContext.from(ctx, false).then(webContext -> {
       webContext.getSession().set(Pac4jSessionKeys.REQUESTED_URL, request.getUri());
       try {
-        client.redirect(webContext, true, request.isAjaxRequest());
+        client.redirect(webContext, true);
       } catch (Exception e) {
         if (e instanceof RequiresHttpAction) {
           webContext.sendResponse((RequiresHttpAction) e);
@@ -462,5 +512,25 @@ public class RatpackPac4j {
 
       webContext.sendResponse();
     });
+  }
+
+  private static <C extends Credentials, U extends UserProfile> Promise<Optional<U>> performDirectAuthentication(Context ctx, Class<? extends Client<C, U>> clientType) {
+    return RatpackWebContext.from(ctx, false).flatMap(webContext ->
+      Blocking.get(() -> {
+        Clients clients = ctx.get(Clients.class);
+        Client<C, U> client = clients.findClient(clientType);
+        return userProfileFromCredentials(client, webContext);
+      })
+    );
+  }
+
+  private static <C extends Credentials, U extends UserProfile> Optional<U> userProfileFromCredentials(Client<C, U> client, RatpackWebContext webContext) throws RequiresHttpAction {
+    C credentials = client.getCredentials(webContext);
+    U userProfile = client.getUserProfile(credentials, webContext);
+    return Optional.ofNullable(userProfile);
+  }
+
+  private static boolean isDirect(Class<? extends Client<?, ?>> clientType) {
+    return DirectClient.class.isAssignableFrom(clientType);
   }
 }

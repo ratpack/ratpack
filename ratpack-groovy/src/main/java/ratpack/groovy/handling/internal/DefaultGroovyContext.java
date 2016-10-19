@@ -32,13 +32,13 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
 import ratpack.parse.Parse;
-import ratpack.path.PathTokens;
+import ratpack.path.PathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.nio.file.Path;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -141,13 +141,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public PathTokens getPathTokens() throws NotInRegistryException {
-    return delegate.getPathTokens();
-  }
-
-  @Override
-  public PathTokens getAllPathTokens() throws NotInRegistryException {
-    return delegate.getAllPathTokens();
+  public PathBinding getPathBinding() {
+    return delegate.getPathBinding();
   }
 
   @Override
@@ -162,19 +157,19 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void redirect(String location) throws NotInRegistryException {
-    delegate.redirect(location);
+  public void redirect(Object to) throws NotInRegistryException {
+    delegate.redirect(to);
   }
 
   @Override
-  public void redirect(int code, String location) throws NotInRegistryException {
-    delegate.redirect(code, location);
+  public void redirect(int code, Object to) throws NotInRegistryException {
+    delegate.redirect(code, to);
   }
 
   @Override
   @NonBlocking
-  public void lastModified(Date date, Runnable runnable) {
-    delegate.lastModified(date, runnable);
+  public void lastModified(Instant lastModified, Runnable runnable) {
+    delegate.lastModified(lastModified, runnable);
   }
 
   @Override

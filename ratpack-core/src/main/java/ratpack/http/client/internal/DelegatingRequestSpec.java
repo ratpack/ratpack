@@ -19,6 +19,7 @@ package ratpack.http.client.internal;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
@@ -75,7 +76,7 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
-  public RequestSpec method(String method) {
+  public RequestSpec method(HttpMethod method) {
     delegate.method(method);
     return this;
   }
@@ -87,14 +88,8 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
-  public URI getUrl() {
-    return delegate.getUrl();
-  }
-
-  @Override
-  public RequestSpec readTimeoutSeconds(int seconds) {
-    delegate.readTimeoutSeconds(seconds);
-    return this;
+  public URI getUri() {
+    return delegate.getUri();
   }
 
   @Override
@@ -125,4 +120,10 @@ public class DelegatingRequestSpec implements RequestSpec {
     delegate.basicAuth(username, password);
     return this;
   }
+
+  @Override
+  public RequestSpec maxContentLength(int numBytes) {
+    return delegate.maxContentLength(numBytes);
+  }
+
 }

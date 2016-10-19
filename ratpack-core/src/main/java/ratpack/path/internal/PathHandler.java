@@ -16,82 +16,51 @@
 
 package ratpack.path.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.reflect.TypeToken;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ChainHandler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registry;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 public class PathHandler implements Handler {
 
-  private static final LoadingCache<CacheKey, Optional<Registry>> CACHE = CacheBuilder.newBuilder()
-    .maximumSize(2048) // TODO - make this tuneable
-    .build(new CacheLoader<CacheKey, Optional<Registry>>() {
-      @Override
-      public Optional<Registry> load(CacheKey key) throws Exception {
-        return key.pathBinder.bind(key.parentBinding).map(b ->
-            Registry.single(PathBinding.class, b)
-        );
-      }
-    });
-
-  private static final TypeToken<PathBinding> PATH_BINDING_TYPE_TOKEN = TypeToken.of(PathBinding.class);
-
-  private static class CacheKey {
-    private final PathBinder pathBinder;
-    private final String path;
-    private final PathBinding parentBinding;
-
-    public CacheKey(PathBinder pathBinder, String path, PathBinding parentBinding) {
-      this.pathBinder = pathBinder;
-      this.path = path;
-      this.parentBinding = parentBinding;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      CacheKey cacheKey = (CacheKey) o;
-
-      return parentBinding.equals(cacheKey.parentBinding) && path.equals(cacheKey.path) && pathBinder.equals(cacheKey.pathBinder);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = pathBinder.hashCode();
-      result = 31 * result + path.hashCode();
-      result = 31 * result + parentBinding.hashCode();
-      return result;
-    }
-  }
+  private static final int CACHE_SIZE = Integer.parseInt(System.getProperty("ratpack.cachesize.path", "10000"));
+  private static final Handler POP_BINDING = ctx -> {
+    ctx.getExecution().get(PathBindingStorage.TYPE).pop();
+    ctx.next();
+  };
 
   private final PathBinder binder;
-  private final Handler handler;
+  private final Handler[] handler;
+  
+  private final Cache<PathBinding, Optional<PathBinding>> cache = Caffeine.newBuilder()
+    .maximumSize(CACHE_SIZE)
+    .build();
 
   public PathHandler(PathBinder binder, Handler handler) {
     this.binder = binder;
-    this.handler = handler;
+    Handler[] unpacked = ChainHandler.unpack(handler);
+    Handler[] withPop = new Handler[unpacked.length + 1];
+    System.arraycopy(unpacked, 0, withPop, 0, unpacked.length);
+    withPop[unpacked.length] = POP_BINDING;
+    this.handler = withPop;
   }
 
-  public void handle(Context context) throws ExecutionException {
-    Optional<Registry> registry = CACHE.get(new CacheKey(binder, context.getRequest().getPath(), context.get(PATH_BINDING_TYPE_TOKEN)));
-    if (registry.isPresent()) {
-      context.insert(registry.get(), handler);
+  public void handle(Context ctx) throws ExecutionException {
+    PathBindingStorage pathBindings = ctx.getExecution().get(PathBindingStorage.TYPE);
+    PathBinding pathBinding = pathBindings.peek();
+    Optional<PathBinding> newBinding = cache.get(pathBinding, binder::bind);
+
+    if (newBinding.isPresent()) {
+      pathBindings.push(newBinding.get());
+      ctx.insert(handler);
     } else {
-      context.next();
+      ctx.next();
     }
   }
 

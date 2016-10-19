@@ -17,7 +17,6 @@
 package ratpack.health;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
@@ -25,11 +24,13 @@ import ratpack.exec.Throttle;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
+import ratpack.util.Types;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -90,6 +91,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The handler creates a {@link HealthCheckResults} object with the results of running the health checks and {@link Context#render(Object) renders} it.
  * Ratpack provides a default renderer for {@link HealthCheckResults} objects, that renders results as plain text one per line with the format:
  * <pre>{@code name : HEALTHY|UNHEALTHY [message] [exception]}</pre>
+ * <p>If any result is unhealthy, a {@code 503} status will be emitted, else {@code 200}.</p>
  * <p>
  * To change the output format, simply add your own renderer for this type to the registry.
  *
@@ -119,7 +121,7 @@ public class HealthCheckHandler implements Handler {
    */
   public static final String DEFAULT_NAME_TOKEN = "name";
 
-  private static final TypeToken<HealthCheck> HEALTH_CHECK_TYPE_TOKEN = TypeToken.of(HealthCheck.class);
+  private static final TypeToken<HealthCheck> HEALTH_CHECK_TYPE_TOKEN = Types.token(HealthCheck.class);
 
   private final String name;
   private final Throttle throttle;
@@ -229,21 +231,21 @@ public class HealthCheckHandler implements Handler {
       return Promise.value(new HealthCheckResults(ImmutableSortedMap.of()));
     }
 
-    return Promise.<Map<String, HealthCheck.Result>>of(f -> {
+    return Promise.<Map<String, HealthCheck.Result>>async(f -> {
       AtomicInteger counter = new AtomicInteger();
-      Map<String, HealthCheck.Result> results = Maps.newConcurrentMap();
+      Map<String, HealthCheck.Result> results = new ConcurrentHashMap<>();
       while (iterator.hasNext()) {
         counter.incrementAndGet();
         HealthCheck healthCheck = iterator.next();
         Execution.fork().start(e ->
-            execute(registry, healthCheck)
-              .throttled(throttle)
-              .then(r -> {
-                results.put(healthCheck.getName(), r);
-                if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
-                  f.success(results);
-                }
-              })
+          execute(registry, healthCheck)
+            .throttled(throttle)
+            .then(r -> {
+              results.put(healthCheck.getName(), r);
+              if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
+                f.success(results);
+              }
+            })
         );
       }
     })

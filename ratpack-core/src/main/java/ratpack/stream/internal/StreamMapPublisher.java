@@ -19,46 +19,29 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.func.Function;
+import ratpack.stream.StreamMapper;
 import ratpack.stream.TransformablePublisher;
 import ratpack.stream.WriteStream;
 
-public class StreamMapPublisher<T, O> implements TransformablePublisher<O> {
+public class StreamMapPublisher<U, D> implements TransformablePublisher<D> {
 
-  private final Publisher<? extends T> upstream;
-  private final Function<? super WriteStream<O>, ? extends WriteStream<? super T>> mapper;
+  private final Publisher<? extends U> upstream;
+  private final StreamMapper<? super U, ? extends D> mapper;
 
-  private WriteStream<? super T> input;
+  private WriteStream<? super U> input;
 
-  public StreamMapPublisher(Publisher<? extends T> upstream, Function<? super WriteStream<O>, ? extends WriteStream<? super T>> mapper) {
+  public StreamMapPublisher(Publisher<? extends U> upstream, StreamMapper<? super U, ? extends D> mapper) {
     this.upstream = upstream;
     this.mapper = mapper;
   }
 
   @Override
-  public void subscribe(Subscriber<? super O> downstreamSubscriber) {
-    upstream.subscribe(new Subscriber<T>() {
+  public void subscribe(Subscriber<? super D> downstreamSubscriber) {
+    upstream.subscribe(new Subscriber<U>() {
       @Override
       public void onSubscribe(Subscription upstreamSubscription) {
         try {
-          input = mapper.apply(new WriteStream<O>() {
-            @Override
-            public void item(O item) {
-              downstreamSubscriber.onNext(item);
-            }
-
-            @Override
-            public void error(Throwable throwable) {
-              upstreamSubscription.cancel();
-              downstreamSubscriber.onError(throwable);
-            }
-
-            @Override
-            public void complete() {
-              upstreamSubscription.cancel();
-              downstreamSubscriber.onComplete();
-            }
-          });
+          input = mapStream(upstreamSubscription, downstreamSubscriber, mapper);
         } catch (Exception e) {
           upstreamSubscription.cancel();
           downstreamSubscriber.onError(e);
@@ -80,7 +63,7 @@ public class StreamMapPublisher<T, O> implements TransformablePublisher<O> {
 
 
       @Override
-      public void onNext(T i) {
+      public void onNext(U i) {
         input.item(i);
       }
 
@@ -92,6 +75,25 @@ public class StreamMapPublisher<T, O> implements TransformablePublisher<O> {
       @Override
       public void onComplete() {
         input.complete();
+      }
+    });
+  }
+
+  private static <U, D> WriteStream<U> mapStream(Subscription upstreamSubscription, final Subscriber<? super D> downstreamSubscriber, StreamMapper<U, D> mapper) throws Exception {
+    return mapper.map(upstreamSubscription, new WriteStream<D>() {
+      @Override
+      public void item(D item) {
+        downstreamSubscriber.onNext(item);
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        downstreamSubscriber.onError(throwable);
+      }
+
+      @Override
+      public void complete() {
+        downstreamSubscriber.onComplete();
       }
     });
   }

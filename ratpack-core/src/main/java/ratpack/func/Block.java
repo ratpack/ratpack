@@ -73,4 +73,14 @@ public interface Block {
   default Operation operation() {
     return Operation.of(this);
   }
+
+  /**
+   * Creates an {@link Action} from this block, where the argument is ignored.
+   *
+   * @return an action that executes this block
+   * @since 1.1
+   */
+  default Action<Object> action() {
+    return t -> execute();
+  }
 }

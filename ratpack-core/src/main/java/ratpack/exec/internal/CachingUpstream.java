@@ -16,84 +16,118 @@
 
 package ratpack.exec.internal;
 
+import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.*;
+import ratpack.func.Predicate;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CachingUpstream<T> implements Upstream<T> {
 
   private Upstream<? extends T> upstream;
-  private final AtomicBoolean fired = new AtomicBoolean();
-  private final Queue<Downstream<? super ExecResult<? extends T>>> waiting = new ConcurrentLinkedQueue<>();
-  private final AtomicBoolean draining = new AtomicBoolean();
-  private final AtomicReference<ExecResult<? extends T>> result = new AtomicReference<>();
 
-  public CachingUpstream(Upstream<? extends T> upstream) {
+  private final AtomicReference<ExecResult<? extends T>> resultRef = new AtomicReference<>();
+  private final Predicate<? super ExecResult<T>> predicate;
+
+  private final AtomicBoolean pending = new AtomicBoolean();
+  private final AtomicBoolean draining = new AtomicBoolean();
+  private final Queue<Downstream<? super T>> waiting = PlatformDependent.newMpscQueue();
+
+  public CachingUpstream(Upstream<? extends T> upstream, Predicate<? super ExecResult<T>> predicate) {
     this.upstream = upstream;
+    this.predicate = predicate;
   }
 
   private void tryDrain() {
     if (draining.compareAndSet(false, true)) {
       try {
-        ExecResult<? extends T> result = this.result.get();
-        Downstream<? super ExecResult<? extends T>> downstream = waiting.poll();
-        while (downstream != null) {
-          downstream.success(result);
-          downstream = waiting.poll();
+        ExecResult<? extends T> result = this.resultRef.get();
+        if (result == null) {
+          if (pending.compareAndSet(false, true)) {
+            Downstream<? super T> downstream = waiting.poll();
+            if (downstream == null) {
+              pending.set(false);
+            } else {
+              try {
+                yield(downstream);
+              } catch (Throwable e) {
+                receiveResult(downstream, ExecResult.of(Result.error(e)));
+              }
+            }
+          }
+        } else {
+          Downstream<? super T> downstream = waiting.poll();
+          while (downstream != null) {
+            downstream.accept(result);
+            downstream = waiting.poll();
+          }
         }
       } finally {
         draining.set(false);
       }
     }
-    if (!draining.get() && !waiting.isEmpty()) {
+
+    if (!waiting.isEmpty() && (resultRef.get() != null || !pending.get())) {
       tryDrain();
     }
   }
 
+  private void yield(final Downstream<? super T> downstream) throws Exception {
+    upstream.connect(new Downstream<T>() {
+      public void error(Throwable throwable) {
+        receiveResult(downstream, ExecResult.of(Result.<T>error(throwable)));
+      }
+
+      @Override
+      public void success(T value) {
+        receiveResult(downstream, ExecResult.of(Result.success(value)));
+      }
+
+      @Override
+      public void complete() {
+        receiveResult(downstream, CompleteExecResult.get());
+      }
+    });
+  }
+
   @Override
   public void connect(Downstream<? super T> downstream) throws Exception {
-    if (fired.compareAndSet(false, true)) {
-      upstream.connect(new Downstream<T>() {
-        @Override
-        public void error(Throwable throwable) {
-          result.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current()));
-          doDrainInNewSegment();
-          downstream.error(throwable);
-        }
-
-        @Override
-        public void success(T value) {
-          result.set(new ResultBackedExecResult<>(Result.success(value), Execution.current()));
-          doDrainInNewSegment();
-          downstream.success(value);
-        }
-
-        @Override
-        public void complete() {
-          result.set(new CompleteExecResult<>(Execution.current()));
-          doDrainInNewSegment();
-          downstream.complete();
-        }
-      });
+    ExecResult<? extends T> result = this.resultRef.get();
+    if (result == null) {
+      Promise.<T>async(d -> {
+        waiting.add(d);
+        tryDrain();
+      }).result(downstream::accept);
     } else {
-      Promise.<ExecResult<? extends T>>of(innerDownstream -> {
-        ExecResult<? extends T> result = this.result.get();
-        if (result == null) {
-          waiting.add(innerDownstream);
-        } else {
-          innerDownstream.success(result);
-        }
-      }).then(result -> downstream.accept(result));
-
+      downstream.accept(result);
     }
   }
 
-  private void doDrainInNewSegment() {
-    this.upstream = null; // release
-    DefaultExecution.require().getEventLoop().execute(this::tryDrain);
+  private void receiveResult(Downstream<? super T> downstream, ExecResult<T> result) {
+    boolean shouldCache = false;
+    try {
+      shouldCache = predicate.apply(result);
+    } catch (Throwable e) {
+      if (result.isError()) {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        result.getThrowable().addSuppressed(e);
+      } else {
+        result = ExecResult.of(Result.error(e));
+      }
+    }
+
+    if (shouldCache) {
+      this.resultRef.set(result);
+      this.upstream = null; // release
+    } else {
+      pending.set(false);
+    }
+
+    downstream.accept(result);
+
+    tryDrain();
   }
 
 }

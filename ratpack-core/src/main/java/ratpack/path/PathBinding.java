@@ -16,12 +16,22 @@
 
 package ratpack.path;
 
+import com.google.common.reflect.TypeToken;
+import ratpack.util.Types;
+
 /**
  * A path binding represents some kind of "match" on the path of a request.
  *
  * @see PathBinder
  */
 public interface PathBinding {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1
+   */
+  TypeToken<PathBinding> TYPE = Types.token(PathBinding.class);
 
   /**
    * The path of the request path that was bound to.
@@ -45,6 +55,37 @@ public interface PathBinding {
    * @return The part of the path bound to that is past where the binding bound to. May be an empty string if the exact path was bound to.
    */
   String getPastBinding();
+
+  /**
+   * Describes the kind of path that this binder binds to.
+   *
+   * <pre class="java">{@code
+   * import ratpack.path.PathBinding;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.fromHandlers(c -> c
+   *       .prefix(":foo/:bar?", c1 -> c1
+   *         .get("baz", ctx -> ctx.render(ctx.get(PathBinding.class).getDescription()))
+   *       )
+   *     ).test(httpClient -> {
+   *       assertEquals(":foo/:bar?/baz", httpClient.getText("/a/b/baz"));
+   *       assertEquals(":foo/:bar?/baz", httpClient.getText("/c/d/baz"));
+   *     });
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The spec is effectively the cumulative pattern strings used to define what to bind to.
+   *
+   * @return the kind of path that this binder binds to
+   * @since 1.4
+   */
+  String getDescription();
 
   /**
    * Any tokens that the binding has extracted from the path.

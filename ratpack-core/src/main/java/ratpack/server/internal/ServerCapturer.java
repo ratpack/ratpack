@@ -17,76 +17,26 @@
 package ratpack.server.internal;
 
 import ratpack.func.Block;
-import ratpack.func.Function;
-import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 
 public abstract class ServerCapturer {
 
-  private static final ThreadLocal<Overrides> OVERRIDES_HOLDER = ThreadLocal.withInitial(Overrides::new);
   private static final ThreadLocal<RatpackServer> SERVER_HOLDER = new ThreadLocal<>();
 
   private ServerCapturer() {
   }
 
-  public static class Overrides {
-    private int port = -1;
-    private Function<? super Registry, ? extends Registry> registryFunction = Function.constant(Registry.empty());
-    private Boolean development;
-
-    public Overrides port(int port) {
-      this.port = port;
-      return this;
-    }
-
-    public Overrides registry(Function<? super Registry, ? extends Registry> registryFunction) {
-      this.registryFunction = registryFunction;
-      return this;
-    }
-
-    public Overrides development(boolean development) {
-      this.development = development;
-      return this;
-    }
-
-    public int getPort() {
-      return port;
-    }
-
-    public Function<? super Registry, ? extends Registry> getRegistryFunction() {
-      return registryFunction;
-    }
-
-    public Boolean isDevelopment() {
-      return development;
-    }
-  }
-
   public static RatpackServer capture(Block bootstrap) throws Exception {
-    return capture(new Overrides(), bootstrap);
-  }
-
-  public static RatpackServer capture(Overrides overrides, Block bootstrap) throws Exception {
-    OVERRIDES_HOLDER.set(overrides);
     try {
       bootstrap.execute();
+      return SERVER_HOLDER.get();
     } finally {
-      OVERRIDES_HOLDER.remove();
+      SERVER_HOLDER.remove();
     }
-
-    RatpackServer ratpackServer = SERVER_HOLDER.get();
-    SERVER_HOLDER.remove();
-    return ratpackServer;
   }
 
-  public static Overrides capture(RatpackServer server) throws Exception {
+  public static void capture(RatpackServer server) throws Exception {
     SERVER_HOLDER.set(server);
-    return OVERRIDES_HOLDER.get();
   }
-
-  public static RatpackServer get() {
-    return SERVER_HOLDER.get();
-  }
-
 
 }

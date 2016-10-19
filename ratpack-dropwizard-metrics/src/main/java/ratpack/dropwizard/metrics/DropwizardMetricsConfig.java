@@ -15,7 +15,7 @@
  */
 package ratpack.dropwizard.metrics;
 
-import ratpack.dropwizard.metrics.internal.RequestTimingHandler;
+import ratpack.dropwizard.metrics.internal.DefaultRequestTimingHandler;
 import ratpack.func.Action;
 
 import java.time.Duration;
@@ -26,11 +26,15 @@ import static ratpack.util.Exceptions.uncheck;
 
 /**
  * The configuration object for {@link DropwizardMetricsModule}.
+ * <p>
+ * Request timing metrics and blocking execution timing metrics are enabled by default.
  */
 public class DropwizardMetricsConfig {
   public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
   private boolean jvmMetrics;
+  private boolean requestTimingMetrics = true;
+  private boolean blockingTimingMetrics = true;
   private Map<String, String> requestMetricGroups;
   private Optional<JmxConfig> jmx = Optional.empty();
   private Optional<ConsoleConfig> console = Optional.empty();
@@ -50,11 +54,53 @@ public class DropwizardMetricsConfig {
 
   /**
    * The state of JVM metrics reporting.
-   * @param jvmMetrics True is JVM metrics are report. False otherwise
+   * @param jvmMetrics True if JVM metrics are to be reported. False otherwise
    * @return this
    */
   public DropwizardMetricsConfig jvmMetrics(boolean jvmMetrics) {
     this.jvmMetrics = jvmMetrics;
+    return this;
+  }
+
+  /**
+   * The state of request timing metrics.
+   *
+   * @return True if request timing metrics is enabled. False otherwise
+   * @since 1.2
+   */
+  public boolean isRequestTimingMetrics() {
+    return requestTimingMetrics;
+  }
+
+  /**
+   * The state of request timing metrics reporting.
+   * @param requestTimingMetrics True if request timing metrics are to be reported. False otherwise
+   * @return this
+   * @since 1.2
+   */
+  public DropwizardMetricsConfig requestTimingMetrics(boolean requestTimingMetrics) {
+    this.requestTimingMetrics = requestTimingMetrics;
+    return this;
+  }
+
+  /**
+   * The state of blocking timing metrics.
+   *
+   * @return True if blocking timing metrics is enabled. False otherwise
+   * @since 1.2
+   */
+  public boolean isBlockingTimingMetrics() {
+    return blockingTimingMetrics;
+  }
+
+  /**
+   * The state of blocking timing metrics reporting.
+   * @param blockingTimingMetrics True if blocking timing metrics are to be reported. False otherwise
+   * @return this
+   * @since 1.2
+   */
+  public DropwizardMetricsConfig blockingTimingMetrics(boolean blockingTimingMetrics) {
+    this.blockingTimingMetrics = blockingTimingMetrics;
     return this;
   }
 
@@ -70,7 +116,7 @@ public class DropwizardMetricsConfig {
    * Should no matches be made the default metric grouping will be used.
    *
    * @return the request metric group expressions
-   * @see RequestTimingHandler
+   * @see DefaultRequestTimingHandler
    */
   public Map<String, String> getRequestMetricGroups() {
     return requestMetricGroups;
@@ -273,4 +319,5 @@ public class DropwizardMetricsConfig {
       throw uncheck(e);
     }
   }
+
 }

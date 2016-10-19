@@ -19,7 +19,7 @@ package ratpack.server
 import ratpack.handling.Handler
 import ratpack.registry.Registry
 import ratpack.server.internal.ServerEnvironment
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class ServerDefinitionErrorSpec extends Specification {
   RatpackServer server
 
   @Delegate
-  TestHttpClient httpClient = TestHttpClient.testHttpClient(ApplicationUnderTest.of { server })
+  TestHttpClient httpClient = TestHttpClient.testHttpClient(ServerBackedApplicationUnderTest.of { server })
 
   def setup() {
     implicitlyDevelopment(true)
@@ -120,9 +120,11 @@ class ServerDefinitionErrorSpec extends Specification {
 
   def "registry build error is not fatal when in development"() {
     given:
-    server = RatpackServer.of { it.registry {
-      throw new IllegalStateException("boom")
-    }.handler {} }
+    server = RatpackServer.of {
+      it.registry {
+        throw new IllegalStateException("boom")
+      }.handler {}
+    }
 
     when:
     server.start()

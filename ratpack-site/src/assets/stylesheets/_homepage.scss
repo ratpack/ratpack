@@ -1,3 +1,7 @@
+.content {
+  @include clearfix;
+}
+
 #page-header .social {
   $social-font-size: 1.3rem;
   $social-background-color: $lichtgrau;
@@ -165,7 +169,16 @@ blockquote {
   }
 }
 
+#learning-ratpack {
+  height: 220px;
+  margin-left: 1em;
+  box-shadow: 0 0 4px $yellow;
+  margin-bottom: 4px;
+  margin-top: 4px;
+}
+
 #page-footer {
+  clear: both;
   .credits {
     text-align: center;
     @include margin-leader(1, $footer-font-size);

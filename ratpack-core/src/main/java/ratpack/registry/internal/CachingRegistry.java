@@ -23,15 +23,17 @@ import ratpack.util.Types;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 public class CachingRegistry implements Registry {
 
   private final Registry delegate;
 
-  private final ConcurrentMap<TypeToken<?>, Optional<?>> cache = new ConcurrentHashMap<>();
-  private final ConcurrentMap<TypeToken<?>, Iterable<?>> allCache = new ConcurrentHashMap<>();
+  private final Map<TypeToken<?>, Optional<?>> cache = new ConcurrentHashMap<>();
+  private final Map<TypeToken<?>, Iterable<?>> allCache = new ConcurrentHashMap<>();
+
+  private final Function<TypeToken<?>, Optional<?>> maybeGet;
+  private final Function<TypeToken<?>, Iterable<?>> getAll;
 
   public static Registry of(Registry registry) {
     if (registry instanceof CachingRegistry) {
@@ -43,6 +45,8 @@ public class CachingRegistry implements Registry {
 
   private CachingRegistry(Registry delegate) {
     this.delegate = delegate;
+    this.maybeGet = delegate::maybeGet;
+    this.getAll = delegate::getAll;
   }
 
   private static <K, V> V compute(Map<K, V> map, K key, Function<? super K, ? extends V> supplier) {
@@ -56,12 +60,12 @@ public class CachingRegistry implements Registry {
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    return Types.cast(compute(cache, type, delegate::maybeGet));
+    return Types.cast(compute(cache, type, maybeGet));
   }
 
   @Override
   public <O> Iterable<O> getAll(TypeToken<O> type) {
-    return Types.cast(compute(allCache, type, delegate::getAll));
+    return Types.cast(compute(allCache, type, getAll));
   }
 
   @Override

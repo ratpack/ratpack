@@ -609,7 +609,7 @@ public interface Chain {
    * @param path the relative path to match on
    * @param handler the handler to delegate to
    * @return this
-   * @since 1.1.0
+   * @since 1.1
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
@@ -621,7 +621,10 @@ public interface Chain {
   }
 
   /**
-   * @since 1.1.0
+   * @param path the path to bind to
+   * @param handler a handler
+   * @return {@code this}
+   * @since 1.1
    */
   default Chain options(String path, Class<? extends Handler> handler) {
     return options(path, getRegistry().get(handler));
@@ -633,7 +636,7 @@ public interface Chain {
    *
    * @param handler the handler to delegate to
    * @return this
-   * @since 1.1.0
+   * @since 1.1
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
@@ -644,7 +647,9 @@ public interface Chain {
   }
 
   /**
-   * @since 1.1.0
+   * @param handler a handler
+   * @return {code this}
+   * @since 1.1
    */
   default Chain options(Class<? extends Handler> handler) {
     return options(getRegistry().get(handler));
@@ -862,6 +867,72 @@ public interface Chain {
   }
 
   /**
+   * Inlines the given chain if {@code test} is {@code true}.
+   * <p>
+   * This is literally just sugar for wrapping the given action in an {@code if} statement.
+   * It can be useful when conditionally adding handlers based on state available when building the chain.
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(a -> a
+   *       .registryOf(r -> r.add(1))
+   *       .handlers(c -> c
+   *         .when(c.getRegistry().get(Integer.class) == 0, i -> i
+   *           .get(ctx -> ctx.render("ok"))
+   *         )
+   *       )
+   *     ).test(httpClient ->
+   *       assertEquals(httpClient.get().getStatusCode(), 404)
+   *     );
+   *
+   *     EmbeddedApp.of(a -> a
+   *       .registryOf(r -> r.add(0))
+   *       .handlers(c -> c
+   *         .when(c.getRegistry().get(Integer.class) == 0, i -> i
+   *           .get(ctx -> ctx.render("ok"))
+   *         )
+   *       )
+   *     ).test(httpClient ->
+   *       assertEquals(httpClient.getText(), "ok")
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param test whether to include the given chain action
+   * @param action the chain action to maybe include
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   */
+  default Chain when(boolean test, Action<? super Chain> action) throws Exception {
+    if (test) {
+      action.execute(this);
+    }
+    return this;
+  }
+
+  /**
+   * Inlines the given chain if {@code test} is {@code true}.
+   * <p>
+   * Similar to {@link #when(boolean, Action)}, except obtains the action instance from the registry by the given type.
+   *
+   * @param test whether to include the given chain action
+   * @param action the chain action to maybe include
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   */
+  default Chain when(boolean test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return when(test, getRegistry().get(action));
+  }
+
+  /**
    * Invokes the given handler only if the predicate passes.
    * <p>
    * This method differs from {@link #when when()} in that it does not insert the handler;
@@ -913,7 +984,7 @@ public interface Chain {
    * }</pre>
    *
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   default Chain notFound() {
     return all(Handlers.notFound());

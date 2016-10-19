@@ -18,6 +18,7 @@ package ratpack.server;
 
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.impose.Impositions;
 import ratpack.server.internal.DefaultRatpackServer;
 
 /**
@@ -28,7 +29,7 @@ import ratpack.server.internal.DefaultRatpackServer;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
  *
- * import ratpack.test.ApplicationUnderTest;
+ * import ratpack.test.ServerBackedApplicationUnderTest;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -43,7 +44,7 @@ import ratpack.server.internal.DefaultRatpackServer;
  *     );
  *
  *     // this method starts the server, via server.start() and then calls server.stop()
- *     ApplicationUnderTest.of(server).test(httpClient -> {
+ *     ServerBackedApplicationUnderTest.of(server).test(httpClient -> {
  *       assertEquals("foo 1", httpClient.getText("a"));
  *       assertEquals("foo 2", httpClient.getText("b"));
  *     });
@@ -54,6 +55,7 @@ import ratpack.server.internal.DefaultRatpackServer;
  * Server objects are thread safe in that every instance method is {@code synchronized}.
  *
  * @see RatpackServerSpec
+ * @see ratpack.service.Service
  * @see #of(Action)
  */
 public interface RatpackServer {
@@ -73,7 +75,7 @@ public interface RatpackServer {
    * @throws Exception any thrown by creating the server
    */
   static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
-    return new DefaultRatpackServer(definition);
+    return new DefaultRatpackServer(definition, Impositions.current());
   }
 
   /**

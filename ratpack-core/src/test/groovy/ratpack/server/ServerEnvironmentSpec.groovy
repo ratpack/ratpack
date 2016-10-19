@@ -60,6 +60,11 @@ class ServerEnvironmentSpec extends Specification {
     !env([RATPACK_PUBLIC_ADDRESS: "bad://example.com:2020"], ["ratpack.publicAddress":"bad://example.com:3030"]).publicAddress
     env([RATPACK_PUBLIC_ADDRESS: "bad://example.com:2020"], ["ratpack.publicAddress":"http://example.com:3030"]).publicAddress == URI.create("http://example.com:3030")
     env([RATPACK_PUBLIC_ADDRESS: "http://example.com:2020"], ["ratpack.publicAddress":"bad://example.com:3030"]).publicAddress == URI.create("http://example.com:2020")
+    env([RATPACK_PUBLIC_ADDRESS: "example.com:2020"], [:]).publicAddress == URI.create("http://example.com:2020")
+    env([RATPACK_PUBLIC_ADDRESS: "example.com"], [:]).publicAddress == URI.create("http://example.com")
+    env([RATPACK_PUBLIC_ADDRESS: "192.168.1.151:2020"], [:]).publicAddress == URI.create("http://192.168.1.151:2020")
+    env([RATPACK_PUBLIC_ADDRESS: "192.168.1.151"], [:]).publicAddress == URI.create("http://192.168.1.151")
+    !env([RATPACK_PUBLIC_ADDRESS: "bad://192.168.1.151"], [:]).publicAddress
   }
 
   def "is implicitly development when started from intellij but not when running tests"() {

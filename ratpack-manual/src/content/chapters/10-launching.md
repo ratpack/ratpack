@@ -57,7 +57,7 @@ This method searches for a resource on the classpath at the path `"/.ratpack"`.
 
 The contents of the marker file are entirely ignored.
 It is just used to find the enclosing directory, which will be used as the base dir.
-The file may within a JAR that is on the classpath, or within a directory that is on the classpath.
+The file may be within a JAR that is on the classpath, or within a directory that is on the classpath.
 
 The following example demonstrates using `BaseDir.find()` to discover the base dir from the classpath.
 
@@ -102,10 +102,15 @@ A real main method would simply call `BaseDir.find()`, relying on whatever launc
 Ratpack accesses the base dir via the Java 7 [Path](http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html) API,
 allowing transparent use of JAR contents as the file system.
 
+#### Port
+
+The [port(int)](api/ratpack/server/ServerConfigBuilder.html#port-int-) method allows setting the port used to connect to the server.
+If not configured, the default value is 5050.
+
 ### Registry
 
 A [`registry`](api/ratpack/registry/Registry.html) is a store of objects stored by type.
-There may be many different registries within an application, but all applications are backed a “server registry”.
+There may be many different registries within an application, but all applications are backed by a “server registry”.
 A server registry is just the name given to the registry that backs the application and is defined at launch time.
 
 ### Handler
@@ -115,5 +120,8 @@ Handlers are composable, and very few applications are actually comprised of onl
 The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
 that uses the [`Chain`](api/ratpack/handling/Chain.html) DSL to create the composite handler.
 
-### Hooking into the application lifecycle
-The [`service`](api/ratpack/server/Service.html) interface is used to hook into the applications lifecycle.
+### Start and stop actions
+
+The [`Service`](api/ratpack/service/Service.html) interface allows hooking in to the application lifecycle.
+Before accepting any requests, Ratpack will notify all services and allow them to perform any initialization.
+Conversely, when the application stops, Ratpack will notify all services and allow them to perform any cleanup or termination. 

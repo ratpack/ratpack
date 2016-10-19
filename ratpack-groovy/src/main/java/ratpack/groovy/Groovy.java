@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
@@ -50,9 +49,10 @@ import ratpack.registry.Registry;
 import ratpack.server.*;
 import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.FileBackedReloadInformant;
-import ratpack.util.internal.IoUtils;
+import ratpack.util.internal.Paths2;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -140,6 +140,33 @@ public abstract class Groovy {
      * @param configurer The configuration closure, delegating to {@link ServerConfigBuilder}
      */
     void serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+
+    /**
+     * Evaluates the provided path using the Ratpack DSL and applies the configuration to this server.
+     * <p>
+     * The configuration supplied by the included path are applied inline with the existing parent configuration.
+     * This allows the same semantics as specifying the configuration in a single file to be followed.
+     * For {@link Ratpack#bindings(Closure)}, the configuration is appended.
+     * For {@link Ratpack#handlers} and {@link Ratpack#serverConfig(Closure)}, the configuration is merged.
+     * Settings from the parent configuration that are applied after the {@code include}, will be applied after the child configurations.
+     * <p>
+     * If the {@code path} is a relative path, then it will be resolved against the location of the parent script file that is including it.
+     *
+     * @param path The absolute path to the external Groovy DSL to included into the server.
+     * @since 1.3
+     */
+    void include(Path path);
+
+    /**
+     * Evaluates the path provided using the Ratpack DSL and applies the configuration to this server.
+     * <p>
+     * The provided string is evaluated using {@link java.nio.file.Paths#get(String, String...)}
+     *
+     * @param path The absolute path to the external Groovy DSL to included into the server.
+     * @see #include(Path)
+     * @since 1.3
+     */
+    void include(String path);
 
   }
 
@@ -253,7 +280,7 @@ public abstract class Groovy {
      *
      * @param args args to make available to the script via the {@code args} variable
      * @return an application definition action
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Action<? super RatpackServerSpec> appWithArgs(String... args) {
       return appWithArgs(false, new String[]{DEFAULT_APP_PATH, DEFAULT_APP_PATH.substring(0, 1).toUpperCase() + DEFAULT_APP_PATH.substring(1)}, args);
@@ -270,7 +297,7 @@ public abstract class Groovy {
      * @param script the script
      * @param args args to make available to the script via the {@code args} variable
      * @return an application definition action
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Action<? super RatpackServerSpec> appWithArgs(boolean compileStatic, Path script, String... args) {
       return b -> doApp(b, compileStatic, script.getParent(), script, args);
@@ -287,7 +314,7 @@ public abstract class Groovy {
      * @param scriptPaths the potential paths to the scripts (first existing is used)
      * @param args args to make available to the script via the {@code args} variable
      * @return an application definition action
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Action<? super RatpackServerSpec> appWithArgs(boolean compileStatic, String[] scriptPaths, String... args) {
       return b -> {
@@ -307,7 +334,7 @@ public abstract class Groovy {
     }
 
     private static void doApp(RatpackServerSpec definition, boolean compileStatic, Path baseDir, Path scriptFile, String... args) throws Exception {
-      String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+      String script = Paths2.readText(scriptFile, StandardCharsets.UTF_8);
 
       RatpackDslClosures closures = new RatpackDslScriptCapture(compileStatic, args, RatpackDslBacking::new).apply(scriptFile, script);
       definition.serverConfig(ClosureUtil.configureDelegateFirstAndReturn(loadPropsIfPresent(ServerConfig.builder().baseDir(baseDir), baseDir), closures.getServerConfig()));
@@ -385,7 +412,7 @@ public abstract class Groovy {
      * @param scriptPath the path to the script
      * @param args args to make available to the script via the {@code args} variable
      * @return a handler definition function
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Function<Registry, Handler> handlersWithArgs(boolean compileStatic, String scriptPath, String... args) {
       checkGroovy();
@@ -453,13 +480,13 @@ public abstract class Groovy {
      * @param scriptPath the path to the script
      * @param args args to make available to the script via the {@code args} variable
      * @return a registry definition function
-     * @since 1.1.0
+     * @since 1.1
      */
     public static Function<Registry, Registry> bindingsWithArgs(boolean compileStatic, String scriptPath, String... args) {
       checkGroovy();
       return r -> {
         Path scriptFile = r.get(FileSystemBinding.class).file(scriptPath);
-        String script = IoUtils.read(UnpooledByteBufAllocator.DEFAULT, scriptFile).toString(CharsetUtil.UTF_8);
+        String script = Paths2.readText(scriptFile, StandardCharsets.UTF_8);
         Closure<?> bindingsClosure = new RatpackDslScriptCapture(compileStatic, args, BindingsOnly::new).andThen(RatpackDslClosures::getBindings).apply(scriptFile, script);
         return Guice.registry(bindingsSpec -> {
           bindingsSpec.bindInstance(new FileBackedReloadInformant(scriptFile));

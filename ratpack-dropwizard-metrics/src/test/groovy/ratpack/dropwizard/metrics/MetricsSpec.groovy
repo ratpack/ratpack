@@ -28,6 +28,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
 import ratpack.exec.Blocking
+import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
@@ -178,6 +179,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     @Timed
     public AnnotatedMetricService triggerTimer3() { this }
 
+    @Timed(name = 'foo.timer.promise', absolute = true)
+    public Promise<String> triggerTimerPromise() { Promise.sync{sleep(50); "resultPromise"} }
+
+    @Timed(name = 'foo.timer.sync', absolute=true)
+    public String triggerTimerSync() {sleep(50); "resultSync"}
+
   }
 
   def "can collect metered annotated metrics"() {
@@ -222,6 +229,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       unNamedMeter = arguments[1]
     }
 
+
     absoluteNamedMeter.count == 4
     namedMeter.count == 2
     unNamedMeter.count == 2
@@ -253,10 +261,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    when:
+    when: "Calling the service twice"
     2.times { get("timer") }
 
-    then:
+    then: "Timers should be registered only once"
     1 * reporter.onTimerAdded("foo timer", !null) >> { arguments ->
       absoluteNamedTimer = arguments[1]
     }
@@ -269,9 +277,48 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       unNamedTimer = arguments[1]
     }
 
+    and: "Expect the number timers be named, and un-named"
     absoluteNamedTimer.count == 4
     namedTimer.count == 2
     unNamedTimer.count == 2
+
+  }
+
+  def "can properly capture timing events" () {
+    MetricRegistry registry
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), {}
+      bind AnnotatedMetricService
+    }
+
+    handlers { MetricRegistry metrics ->
+      registry = metrics
+
+      path("sync") { AnnotatedMetricService service ->
+        render(service.triggerTimerSync())
+
+      }
+
+      path("async") { AnnotatedMetricService service ->
+        render(service.triggerTimerPromise())
+      }
+    }
+
+    when: "Timing synchronous methods"
+    def resultSync = get("sync")
+
+    then: "The synchronous methods should take at least the time they slept"
+    registry.timers.get('foo.timer.sync').count <= 50
+    resultSync.body.text == "resultSync"
+
+    when: "Timing promise methods"
+    def resultPromise = get("async")
+
+    then: "The asynchronous methods should take at least the time they slept"
+    registry.timers.get('foo.timer.promise').count <= 50
+    resultPromise.body.text == "resultPromise"
   }
 
   def "can collect gauge annotated metrics"() {
@@ -611,4 +658,61 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       fourxxCounter.count == 2
     }
   }
+
+  def "can disable blocking metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), { it.blockingTimingMetrics(false) }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-requests", !null)
+    0 * reporter.onTimerAdded("foo.get-blocking", !null)
+  }
+
+  def "can disable request timing metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), { it.requestTimingMetrics(false) }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      path("foo") {
+        Blocking.get {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    1 * reporter.onTimerAdded("foo.get-blocking", !null)
+    0 * reporter.onTimerAdded("foo.get-requests", !null)
+  }
+
 }

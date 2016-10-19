@@ -31,7 +31,7 @@ public interface JsonRender {
    *
    * @return The underlying object to be rendered.
    */
-  public Object getObject();
+  Object getObject();
 
   /**
    * The object writer to use to render the object as JSON.
@@ -41,7 +41,7 @@ public interface JsonRender {
    * @return The object writer to be used.
    */
   @Nullable
-  public ObjectWriter getObjectWriter();
+  ObjectWriter getObjectWriter();
 
   /**
    * The view class to use when rendering the object.
@@ -51,6 +51,6 @@ public interface JsonRender {
    * @return The view class to be used.
    */
   @Nullable
-  public Class<?> getViewClass();
+  Class<?> getViewClass();
 
 }

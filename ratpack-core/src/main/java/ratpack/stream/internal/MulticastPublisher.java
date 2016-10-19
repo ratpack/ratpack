@@ -43,10 +43,14 @@ public class MulticastPublisher<T> implements TransformablePublisher<T> {
       downStreamSubscriber.onError(new IllegalStateException("The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted"));
     } else {
       ((TransformablePublisher<T>) s -> s.onSubscribe(new Subscription() {
+        AtomicBoolean requested = new AtomicBoolean();
+
         @Override
         public void request(long n) {
-          bufferedSubscribers.add(s);
-          tryUpstreamSubscribe();
+          if (requested.compareAndSet(false, true)) {
+            bufferedSubscribers.add(s);
+            tryUpstreamSubscribe();
+          }
         }
 
         @Override

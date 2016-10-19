@@ -16,6 +16,8 @@
 
 package ratpack.exec;
 
+import ratpack.exec.internal.CompleteExecResult;
+import ratpack.exec.internal.ResultBackedExecResult;
 import ratpack.registry.Registry;
 
 /**
@@ -38,10 +40,37 @@ public interface ExecResult<T> extends Result<T> {
   boolean isComplete();
 
   /**
-   * The execution registry.
+   * Deprecated. Do not use.
    *
    * @return the execution registry.
+   * @throws UnsupportedOperationException always
    */
-  Registry getRegistry();
+  @Deprecated
+  default Registry getRegistry() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("ExecResult.getRegistry() has been removed.");
+  }
+
+  /**
+   * Wraps the given result as an exec result.
+   *
+   * @param result the result
+   * @param <T> the type of value
+   * @return the given result as an exec result
+   * @since 1.2
+   */
+  static <T> ExecResult<T> of(Result<T> result) {
+    return new ResultBackedExecResult<>(result);
+  }
+
+  /**
+   * Returns a complete exec result.
+   *
+   * @param <T> the type of value
+   * @return a complete exec result
+   * @since 1.2
+   */
+  static <T> ExecResult<T> complete() {
+    return CompleteExecResult.get();
+  }
 
 }

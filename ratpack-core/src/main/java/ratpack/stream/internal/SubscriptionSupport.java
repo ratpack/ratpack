@@ -16,15 +16,16 @@
 
 package ratpack.stream.internal;
 
+import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-abstract class SubscriptionSupport<T> implements Subscription {
+public abstract class SubscriptionSupport<T> implements Subscription {
 
   private Subscriber<? super T> subscriber;
 
@@ -38,7 +39,7 @@ abstract class SubscriptionSupport<T> implements Subscription {
   private final AtomicReference<Throwable> error = new AtomicReference<>();
 
   private final AtomicBoolean inOnMethod = new AtomicBoolean();
-  private final ConcurrentLinkedQueue<T> onNextQueue = new ConcurrentLinkedQueue<>();
+  private final Queue<T> onNextQueue = PlatformDependent.newMpscQueue();
 
   protected SubscriptionSupport(Subscriber<? super T> subscriber) {
     this.subscriber = subscriber;
@@ -117,7 +118,7 @@ abstract class SubscriptionSupport<T> implements Subscription {
   private void drain() {
     if (inOnMethod.compareAndSet(false, true)) {
       try {
-        for (;;) {
+        while (true) {
           Throwable error = this.error.get();
           if (error != null) {
             subscriber.onError(error);

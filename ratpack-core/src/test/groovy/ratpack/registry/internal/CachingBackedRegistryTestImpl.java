@@ -38,12 +38,12 @@ public class CachingBackedRegistryTestImpl extends CachingBackedRegistry {
     this(new LinkedList<>());
   }
 
-  public CachingBackedRegistryTestImpl(final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries) {
+  private CachingBackedRegistryTestImpl(final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries) {
     super(new RegistryBacking() {
       @Override
       public <T> Iterable<Supplier<? extends T>> provide(final TypeToken<T> typeToken) {
         return FluentIterable.from(supplierEntries)
-          .filter(entry -> typeToken.isAssignableFrom(entry.getLeft()))
+          .filter(entry -> typeToken.isSupertypeOf(entry.getLeft()))
           .transform(input -> Types.cast(input.getRight()));
       }
     });
@@ -51,7 +51,7 @@ public class CachingBackedRegistryTestImpl extends CachingBackedRegistry {
   }
 
   public void register(Object instance) {
-    register(TypeToken.of(instance.getClass()), instance);
+    register(Types.token(instance.getClass()), instance);
   }
 
   public void register(TypeToken<?> type, Object instance) {

@@ -17,21 +17,28 @@
 ext {
   commonVersions = [
     remote: "0.7",
-    slf4j: "1.7.12",
-    netty: "4.1.0.Beta7",
-    guava: "18.0",
-    groovy: "2.4.3",
-    pac4j: "1.7.0",
-    rxjava: "1.0.14",
-    hystrix: "1.4.3",
-    jackson: "2.6.2",
+    slf4j: "1.7.21",
+    netty: "4.1.5.Final",
+    guava: "19.0",
+    groovy: "2.4.7",
+    pac4j: "1.8.8",
+    rxjava: "1.1.2",
+    hystrix: "1.5.1",
+    jackson: "2.7.5",
     dropwizardMetrics: "3.1.1",
     pegdown: "1.5.0",
     spock: "1.0-groovy-2.4",
-    log4j: "2.4",
+    log4j: "2.6.2",
     newrelic: "3.15.0",
     reactiveStreams: "1.0.0",
-    guice: "4.0"
+    guice: "4.1.0",
+    springBoot: "1.3.0.RELEASE",
+    caffeine: "2.3.1",
+    retrofit: "2.1.0",
+    commonsLogging: "1.2",
+    commonsCodec: "1.10",
+    xmlApis: "1.4.01",
+    snakeyaml: "1.15",
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -62,13 +69,26 @@ ext {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
     groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
-    remote: "io.remotecontrol:remote-core:${commonVersions.remote}",
-    "remote-http": "io.remotecontrol:remote-transport-http:${commonVersions.remote}",
+    guava: "com.google.guava:guava:$commonVersions.guava",
+    rxjava: "io.reactivex:rxjava:$commonVersions.rxjava",
+    remote: dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
+      exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }),
+    remoteHttp: dependencies.create("io.remotecontrol:remote-transport-http:${commonVersions.remote}", {
+      exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }),
     jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
     h2: "com.h2database:h2:1.4.186",
-    compass: ["rubygems:compass:1.0.3", dependencies.create("rubygems:chunky_png:1.2.9", {
-      force = true
-    })]
+    toolingApi: dependencies.create("org.gradle:gradle-tooling-api:${gradle.gradleVersion}", {
+      exclude group: "org.slf4j", module: "slf4j-api"
+    }),
+    snakeyaml: "org.yaml:snakeyaml:${commonVersions.snakeyaml}",
+    compass: [
+      dependencies.create("rubygems:compass:1.0.3"),
+      dependencies.create("rubygems:chunky_png:1.2.9", {
+        force = true
+      })
+    ]
   ]
 }

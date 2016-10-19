@@ -48,7 +48,7 @@ public class DefaultThrottle implements Throttle {
         up.connect(down);
       } else {
         active.decrementAndGet();
-        Promise.<Downstream<? super T>>of(innerDown -> {
+        Promise.<Downstream<? super T>>async(innerDown -> {
           queue.add(() -> innerDown.success(down));
           drain();
         }).then(up::connect);

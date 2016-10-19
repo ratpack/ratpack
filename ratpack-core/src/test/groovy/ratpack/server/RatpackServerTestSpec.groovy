@@ -17,20 +17,28 @@
 package ratpack.server
 
 import ratpack.func.Action
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Handler
-import ratpack.test.ApplicationUnderTest
+import ratpack.http.client.RequestSpec
+import ratpack.test.ServerBackedApplicationUnderTest
+import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Timeout
+
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 class RatpackServerTestSpec extends Specification {
 
   @AutoCleanup("stop")
   RatpackServer server
-  def http = TestHttpClient.testHttpClient(ApplicationUnderTest.of({ server }))
+  def http = TestHttpClient.testHttpClient(ServerBackedApplicationUnderTest.of { server })
 
   def cleanup() {
-    if (server.isRunning()) {
+    if (server?.isRunning()) {
       server.stop()
     }
   }
@@ -136,8 +144,8 @@ class RatpackServerTestSpec extends Specification {
 
   def "server lifecycle events are executed with event data"() {
     given:
-    def counter = 0
-    def reloadCounter = 0
+    def counter = new AtomicInteger()
+    def reloadCounter = new AtomicInteger()
 
     server = RatpackServer.of {
       it.serverConfig(ServerConfig.embedded().development(false))
@@ -148,14 +156,14 @@ class RatpackServerTestSpec extends Specification {
           @Override
           void onStart(StartEvent event) throws Exception {
             if (!event.reload) {
-              counter++
+              counter.incrementAndGet()
             }
           }
 
           @Override
           void onStop(StopEvent event) throws Exception {
             if (!event.reload) {
-              counter += event.registry.get(Integer)
+              counter.addAndGet(event.registry.get(Integer))
             }
           }
         })
@@ -164,14 +172,14 @@ class RatpackServerTestSpec extends Specification {
           @Override
           void onStart(StartEvent event) throws Exception {
             if (event.reload) {
-              reloadCounter++
+              reloadCounter.incrementAndGet()
             }
           }
 
           @Override
           void onStop(StopEvent event) throws Exception {
             if (event.reload) {
-              reloadCounter++
+              reloadCounter.incrementAndGet()
             }
           }
         })
@@ -184,40 +192,39 @@ class RatpackServerTestSpec extends Specification {
 
     then:
     server.running
-    counter == 1
-    reloadCounter == 0
+    counter.get() == 1
+    reloadCounter.get() == 0
 
     when:
     server.reload()
 
     then:
     server.running
-    counter == 1
-    reloadCounter == 2
+    counter.get() == 1
+    reloadCounter.get() == 2
 
     when:
     server.stop()
 
     then:
     !server.running
-    counter == 6
-    reloadCounter == 2
-
+    counter.get() == 6
+    reloadCounter.get() == 2
   }
 
   def "netty configuration is applied"() {
     given:
-    server = RatpackServer.of ({
+    server = RatpackServer.of({
       it
         .serverConfig(ServerConfig.embedded()
-          .connectTimeoutMillis(1000)
-          .maxMessagesPerRead(3)
-          .writeSpinCount(10))
+        .connectTimeoutMillis(1000)
+        .maxMessagesPerRead(3)
+        .writeSpinCount(10))
         .handlers {
-          it.path("connectTimeoutMillis") { it.render it.directChannelAccess.channel.config().connectTimeoutMillis.toString() }
-          it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().recvByteBufAllocator.newHandle().guess().toString() }
-          it.path("writeSpinCount") { it.render it.directChannelAccess.channel.config().writeSpinCount.toString() }
-        }
+        it.path("connectTimeoutMillis") { it.render it.directChannelAccess.channel.config().connectTimeoutMillis.toString() }
+        it.path("maxMessagesPerRead") { it.render it.directChannelAccess.channel.config().recvByteBufAllocator.newHandle().guess().toString() }
+        it.path("writeSpinCount") { it.render it.directChannelAccess.channel.config().writeSpinCount.toString() }
+      }
     } as Action<RatpackServerSpec>)
 
     when:
@@ -227,5 +234,38 @@ class RatpackServerTestSpec extends Specification {
     http.getText("connectTimeoutMillis") == "1000"
     http.getText("maxMessagesPerRead") == "3"
     http.getText("writeSpinCount") == "10"
+  }
+
+  @Timeout(5)
+  def "handle concurrent requests while in development mode"() {
+    given:
+    int concurrentRequests = 2
+    EmbeddedApp server = GroovyEmbeddedApp.of {
+      handlers {
+        post {
+          render request.body.map { it.text }
+        }
+      }
+    }
+
+    def pool = Executors.newFixedThreadPool(concurrentRequests)
+
+    when:
+    def requests = (1..concurrentRequests).collect {
+      pool.submit({
+        server.httpClient.requestSpec { RequestSpec spec ->
+          spec.body.text("1" * 100)
+        }.postText()
+      } as Callable<String>)
+    }
+
+    then:
+    requests.each {
+      assert it.get() == "1" * 100
+    }
+
+    cleanup:
+    pool.shutdown()
+    server?.close()
   }
 }

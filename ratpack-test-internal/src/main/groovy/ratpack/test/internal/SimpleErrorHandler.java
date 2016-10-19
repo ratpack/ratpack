@@ -23,6 +23,7 @@ public class SimpleErrorHandler implements ServerErrorHandler {
 
   @Override
   public void error(Context context, Throwable throwable) throws Exception {
+    throwable.printStackTrace();
     context.getResponse().status(500).send(throwable.toString());
   }
 

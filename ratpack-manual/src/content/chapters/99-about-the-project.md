@@ -24,7 +24,7 @@ The following people have provided significant contributions.
 
 * [Tim Berglund](https://github.com/tlberglund)
 * [Peter Ledbrook](https://github.com/pledbrook)
-* [Marco Vermeulen](https://github.com/marcoVermeulen)
+* [Marco Vermeulen](https://github.com/marc0der)
 * [Paul Fairless](https://github.com/paulfairless)
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
@@ -49,7 +49,7 @@ The following people have provided significant contributions.
 * [Lari Hotari](https://github.com/lhotari)
 * [Massimo Lusetti](https://github.com/mlusetti)
 * [Rob Zienert](https://github.com/robzienert)
-* [Tom Duncan](https://github.com/tomdcc)
+* [Tom Dunstan](https://github.com/tomdcc)
 * [Wilson MacGyver](https://github.com/wmacgyver)
 * [Jörn Huxhorn](https://github.com/huxi)
 * [Robert Zakrzewski](https://github.com/zedar)
@@ -75,6 +75,15 @@ The following people have provided significant contributions.
 * [Ari Becker](https://github.com/solatic)
 * [James Lee](https://github.com/brucenunk)
 * [Bob wen](https://github.com/bobwenx)
+* [Edinson Padrón](https://github.com/epadronu)
+* [Dan Maas](https://github.com/drmaas)
+* [Gus Power](https://github.com/guspower)
+* [Rahul Somasunderam](https://github.com/rahulsom)
+* [Spencer Allain](https://github.com/merscwog)
+* [Phill Barber] (https://github.com/phillbarber)
+* [Sebastien Bonnet] (https://github.com/sebbonnet)
+* [Alex Edwards](https://github.com/set321go)
+* [Ho Yan Leung](https://github.com/hyleung)
 
 ### Past project members
 

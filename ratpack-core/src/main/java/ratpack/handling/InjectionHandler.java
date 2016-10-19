@@ -18,6 +18,7 @@ package ratpack.handling;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.internal.Extractions;
+import ratpack.util.Types;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -165,7 +166,7 @@ public abstract class InjectionHandler implements Handler {
     this.types = new ArrayList<>(parameterTypes.length - 1);
 
     for (int i = 1; i < parameterTypes.length; ++i) {
-      this.types.add(TypeToken.of(parameterTypes[i]));
+      this.types.add(Types.token(parameterTypes[i]));
     }
   }
 

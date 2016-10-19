@@ -20,30 +20,28 @@ import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
-import ratpack.path.PathBinding;
+import ratpack.path.internal.PathBindingStorage;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
-import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
-import static ratpack.file.internal.DefaultFileRenderer.sendFile;
+import static ratpack.file.internal.FileRenderer.readAttributes;
+import static ratpack.file.internal.FileRenderer.sendFile;
 import static ratpack.util.Exceptions.uncheck;
 
 public class FileHandler implements Handler {
 
   private final ImmutableList<String> indexFiles;
+  private final boolean cacheMetadata;
 
-  public FileHandler(ImmutableList<String> indexFiles) {
+  public FileHandler(ImmutableList<String> indexFiles, boolean cacheMetadata) {
     this.indexFiles = indexFiles;
+    this.cacheMetadata = cacheMetadata;
   }
 
   public void handle(Context context) throws Exception {
-    Request request = context.getRequest();
-
-    String path = context.maybeGet(PathBinding.class)
-      .map(PathBinding::getPastBinding)
-      .orElse(request.getPath());
+    String path = context.getExecution().get(PathBindingStorage.TYPE).peek().getPastBinding();
 
     // Decode the path.
     try {
@@ -61,7 +59,7 @@ public class FileHandler implements Handler {
   }
 
   private void servePath(final Context context, final Path file) throws Exception {
-    readAttributes(file, attributes -> {
+    readAttributes(file, cacheMetadata, attributes -> {
       if (attributes == null) {
         context.next();
       } else if (attributes.isRegularFile()) {
@@ -80,7 +78,7 @@ public class FileHandler implements Handler {
     } else {
       String name = indexFiles.get(i);
       final Path indexFile = file.resolve(name);
-      readAttributes(indexFile, attributes -> {
+      readAttributes(indexFile, cacheMetadata, attributes -> {
         if (attributes != null && attributes.isRegularFile()) {
           String path = context.getRequest().getPath();
           if (path.endsWith("/") || path.isEmpty()) {

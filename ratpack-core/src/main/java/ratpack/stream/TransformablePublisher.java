@@ -17,8 +17,11 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import ratpack.exec.ExecSpec;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
+import ratpack.func.BiFunction;
 import ratpack.func.Function;
 import ratpack.func.Predicate;
 
@@ -27,14 +30,16 @@ import java.util.List;
 /**
  * A wrapper over a {@link Publisher} that makes it more convenient to chain transformations of different kinds.
  * <p>
- * Note that this type implements the publisher interface, so behaves just like the publisher that it is wrapping with respect to the {@link Publisher#subscribe(org.reactivestreams.Subscriber)} method.
+ * Note that this type implements the publisher interface,
+ * so behaves just like the publisher that it is wrapping with respect to the
+ * {@link Publisher#subscribe(Subscriber)} method.
  *
  * @param <T> the type of item emitted by this publisher
  */
 public interface TransformablePublisher<T> extends Publisher<T> {
 
   /**
-   * See {@link ratpack.stream.Streams#map(Publisher, Function)}.
+   * See {@link Streams#map(Publisher, Function)}.
    *
    * @param function the transformation
    * @param <O> the type of transformed item
@@ -45,7 +50,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#flatMap(Publisher, Function)}.
+   * See {@link Streams#flatMap(Publisher, Function)}.
    *
    * @param function the transformation
    * @param <O> the type of transformed item
@@ -56,7 +61,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#buffer(Publisher)}.
+   * See {@link Streams#buffer(Publisher)}.
    *
    * @return a buffering publisher
    */
@@ -65,7 +70,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#gate(Publisher, Action)}.
+   * See {@link Streams#gate(Publisher, Action)}.
    *
    * @param valveReceiver an action that receives a runnable “valve” that when run allows request to start flowing upstream
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
@@ -75,7 +80,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#wiretap(Publisher, Action)}.
+   * See {@link Streams#wiretap(Publisher, Action)}.
    *
    * @param listener the listener for emitted items
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
@@ -85,7 +90,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#multicast(Publisher)}.
+   * See {@link Streams#multicast(Publisher)}.
    *
    * @return a publisher that respects back pressure for each of its subscribers
    */
@@ -94,7 +99,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#toPromise(Publisher)}.
+   * See {@link Streams#toPromise(Publisher)}.
    *
    * @return a promise for this publisher's single item
    */
@@ -174,24 +179,93 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link ratpack.stream.Streams#streamMap(org.reactivestreams.Publisher, ratpack.func.Function)}.
+   * See {@link Streams#streamMap(Publisher, StreamMapper)}.
    *
-   * @param function the transformation
+   * @param mapper the transformation
    * @param <O> the type of transformed item
    * @return the transformed publisher
+   * @since 1.4
    */
+  default <O> TransformablePublisher<O> streamMap(StreamMapper<? super T, O> mapper) {
+    return Streams.streamMap(this, mapper);
+  }
+
+  /**
+   * @deprecated since 1.4, use {@link #streamMap(StreamMapper)}
+   */
+  @Deprecated
   default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<? super T>> function) {
     return Streams.streamMap(this, function);
   }
 
   /**
-   * See {@link ratpack.stream.Streams#filter(Publisher, Predicate)}.
+   * See {@link Streams#filter(Publisher, Predicate)}.
    *
    * @param filter the filter
    * @return the filtered publisher
    */
   default TransformablePublisher<T> filter(Predicate<? super T> filter) {
     return Streams.filter(this, filter);
+  }
+
+  /**
+   * See {@link Streams#bindExec(Publisher)}
+   *
+   * @return a publisher bound to the current execution
+   * @since 1.4
+   */
+  default TransformablePublisher<T> bindExec() {
+    return Streams.bindExec(this);
+  }
+
+  /**
+   * See {@link Streams#bindExec(Publisher, Action)}
+   *
+   * @param disposer the disposer of unhandled items
+   * @return a publisher bound to the current execution
+   * @since 1.5
+   */
+  default TransformablePublisher<T> bindExec(Action<? super T> disposer) {
+    return Streams.bindExec(this, disposer);
+  }
+
+  /**
+   * Reduces the stream to a single value, by applying the given function successively.
+   *
+   * @param seed the initial value
+   * @param reducer the reducing function
+   * @param <R> the type of result
+   * @return a promise for the reduced value
+   * @since 1.4
+   */
+  default <R> Promise<R> reduce(R seed, BiFunction<R, T, R> reducer) {
+    return Streams.reduce(this, seed, reducer);
+  }
+
+  /**
+   * Consumes the given publisher eagerly in a forked execution, buffering results until ready to be consumed by this execution.
+   *
+   * @param execConfig the configuration for the forked execution
+   * @param disposer the disposer for any buffered items when the stream errors or is cancelled
+   * @return an execution bound publisher that propagates the items of the given publisher
+   * @see Streams#fork(Publisher, Action, Action)
+   * @since 1.5
+   */
+  default TransformablePublisher<T> fork(Action<? super ExecSpec> execConfig, Action<? super T> disposer) {
+    return Streams.fork(this, execConfig, disposer);
+  }
+
+  /**
+   * Consumes the given publisher eagerly in a forked execution, buffering results until ready to be consumed by this execution.
+   * <p>
+   * This method is identical to {@link #fork(Action, Action)}, but uses {@link Action#noop()} for both arguments.
+   *
+   * @return an execution bound publisher that propagates the items of the given publisher
+   * @see Streams#fork(Publisher, Action, Action)
+   * @since 1.5
+   */
+  default TransformablePublisher<T> fork() {
+    return Streams.fork(this, Action.noop(), Action.noop());
   }
 
 }

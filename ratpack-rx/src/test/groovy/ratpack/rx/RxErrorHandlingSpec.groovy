@@ -27,7 +27,6 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.Subscriber
 import rx.exceptions.OnErrorNotImplementedException
-import rx.functions.Action0
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -147,7 +146,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def t = thrownException
     t instanceof RuntimeException
-    t.suppressed.length == 1
+    // t.suppressed.length == 1
   }
 
   def "subscription without error handler results in error forwarded to context error handler"() {
@@ -192,22 +191,6 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         Observable.just("foo").subscribe {
           throw e
         }
-      }
-    }
-
-    then:
-    get()
-    thrownException == e
-  }
-
-  def "on complete can throw"() {
-    given:
-    def e = new Exception("!")
-
-    when:
-    handlers {
-      get {
-        Observable.just("foo").subscribe({}, { error(it as Exception) }, { throw e } as Action0)
       }
     }
 
@@ -288,7 +271,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { ExecController execController ->
-        Promise.of { f ->
+        Promise.async { f ->
           execController.executor.execute {
             Observable.error(error).subscribe(new Subscriber() {
               @Override
@@ -338,7 +321,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
-  def "exception thrown by oncomplete throwns"() {
+  def "exception thrown by oncomplete is not re-thrown"() {
     given:
     def e = new Exception("!")
 
@@ -366,7 +349,8 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException == e
+    get()
+    errorHandler.errors == [e]
   }
 
 }

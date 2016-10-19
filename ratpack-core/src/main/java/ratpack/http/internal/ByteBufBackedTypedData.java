@@ -18,7 +18,6 @@ package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.http.MediaType;
 import ratpack.http.TypedData;
@@ -48,7 +47,7 @@ public class ByteBufBackedTypedData implements TypedData {
 
   @Override
   public ByteBuf getBuffer() {
-    return Unpooled.unmodifiableBuffer(byteBuf);
+    return byteBuf.asReadOnly();
   }
 
   @Override

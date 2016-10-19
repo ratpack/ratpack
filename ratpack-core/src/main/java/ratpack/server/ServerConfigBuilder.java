@@ -18,15 +18,19 @@ package ratpack.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.impose.ServerConfigImposition;
+import ratpack.util.Types;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
@@ -38,6 +42,7 @@ import java.util.Properties;
  * Builds a {@link ServerConfig}.
  *
  * @see RatpackServerSpec#serverConfig(Action)
+ * @see ServerConfigImposition
  */
 public interface ServerConfigBuilder extends ConfigDataBuilder {
 
@@ -66,6 +71,27 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    */
   default ServerConfigBuilder baseDir(File file) {
     return baseDir(file.toPath());
+  }
+
+  /**
+   * Sets the base dir using {@link BaseDir#find()}.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder findBaseDir() {
+    return baseDir(BaseDir.find());
+  }
+
+  /**
+   * Sets the base dir using {@link BaseDir#find(String)}.
+   *
+   * @param markerFilePath the path to the marker file on the classpath
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder findBaseDir(String markerFilePath) {
+    return baseDir(BaseDir.find(markerFilePath));
   }
 
   /**
@@ -133,6 +159,41 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @see ServerConfig#getMaxContentLength()
    */
   ServerConfigBuilder maxContentLength(int maxContentLength);
+
+  /**
+   * The maximum size of read chunks of request/response bodies.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_CHUNK_SIZE}.
+   *
+   * @param maxChunkSize the maximum size of read chunks of request/response bodies
+   * @return {@code this}
+   * @see ServerConfig#getMaxChunkSize()
+   */
+  ServerConfigBuilder maxChunkSize(int maxChunkSize);
+
+  /**
+   * The maximum initial line length allowed for reading http requests.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_INITIAL_LINE_LENGTH}.
+   *
+   * @param maxInitialLineLength the maximum length of the initial line of the request.
+   * @return {@code this}
+   * @see ServerConfig#getMaxInitialLineLength()
+   * @since 1.4
+   */
+  ServerConfigBuilder maxInitialLineLength(int maxInitialLineLength);
+
+  /**
+   * The maximum size of all headers allowed for reading http requests.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_HEADER_SIZE}.
+   *
+   * @param maxHeaderSize the maximum size of the sum of the length of all headers.
+   * @return {@code this}
+   * @see ServerConfig#getMaxHeaderSize()
+   * @since 1.4
+   */
+  ServerConfigBuilder maxHeaderSize(int maxHeaderSize);
 
   /**
    * The connect timeout of the channel.
@@ -236,7 +297,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    */
   @Override
   ServerConfigBuilder args(String[] args);
@@ -247,7 +308,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param separator the separator of the key and value in each arg
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    * @see #args(String[])
    */
   @Override
@@ -264,7 +325,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param separator the separator between the key and the value
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1.0
+   * @since 1.1
    * @see #args(String[])
    */
   @Override
@@ -299,6 +360,13 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    */
   @Override
   ServerConfigBuilder props(Properties properties);
+
+  /**
+   * {@inheritDoc}
+   * @since 1.4
+   */
+  @Override
+  ServerConfigBuilder object(String path, Object object);
 
   /**
    * {@inheritDoc}
@@ -453,12 +521,37 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param type the class of the type to bind to
    * @return {@code this}
    */
-  ServerConfigBuilder require(String pointer, Class<?> type);
+  default ServerConfigBuilder require(String pointer, Class<?> type) {
+    return require(pointer, Types.token(type));
+  }
+
+  /**
+   * Declares that it is required that the server config provide an object of the given type at the given path.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the type to bind to
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder require(String pointer, Type type) {
+    return require(pointer, Types.token(type));
+  }
+
+  /**
+   * Declares that it is required that the server config provide an object of the given type at the given path.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the type to bind to
+   * @return {@code this}
+   * @since 1.4
+   */
+  ServerConfigBuilder require(String pointer, TypeToken<?> type);
 
   /**
    * Builds the server config.
    *
    * @return a server config
+   * @see ServerConfigImposition
    */
   @Override
   ServerConfig build();

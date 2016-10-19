@@ -18,6 +18,7 @@ package ratpack.http
 
 import com.google.common.collect.ImmutableMultimap
 import ratpack.groovy.internal.ClosureUtil
+import ratpack.util.internal.ImmutableDelegatingMultiValueMap
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -105,7 +106,21 @@ class HttpUrlBuilderSpec extends Specification {
     expect:
     build { params ImmutableMultimap.of("a", "") } == "http://localhost?a"
     build { params ImmutableMultimap.of("a", "b") } == "http://localhost?a=b"
+    build { params ImmutableMultimap.of("a", "b", "a", "c") } == "http://localhost?a=b&a=c"
     build { params ImmutableMultimap.of("a", "1 ?", "b ?", "") } == "http://localhost?a=1+%3F&b+%3F"
+  }
+
+  def "params from request multi value map"() {
+    expect:
+    build { params new ImmutableDelegatingMultiValueMap([a: [""]]) } == "http://localhost?a"
+    build { params new ImmutableDelegatingMultiValueMap([a: ["b"]]) } == "http://localhost?a=b"
+    build { params new ImmutableDelegatingMultiValueMap([a: ["b", "c"]]) } == "http://localhost?a=b&a=c"
+  }
+
+  def "can append already encoded path"() {
+    expect:
+    build { path "foo%2Fbar" } == "http://localhost/foo%252Fbar"
+    build { encodedPath "foo%2Fbar" } == "http://localhost/foo%2Fbar"
   }
 
   @Unroll

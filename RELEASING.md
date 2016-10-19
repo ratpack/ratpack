@@ -12,7 +12,7 @@ When you've got the release announcement set, copy it to the description of the 
 
 ## Pre
 
-1. Ensure there is a next (version after what is being released) milestone on GitHub with a date set (1st of next month)
+1. Ensure there is a next (version after what is being released) milestone on GitHub
 1. Check that there are no outstanding reviews for commits for the current versions, or at least that any issues don't block the release
 1. Check that there are no outstanding issues/pull requests for the development version (either implement or move them to next milestone)
 1. (a) Ensure that there are no -SNAPSHOT dependencies (or if there are, that there is good reason for them)
@@ -24,9 +24,9 @@ When you've got the release announcement set, copy it to the description of the 
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 1. Tag commit with name “v«number»” (don't push yet)
-1. Build and upload the binaries: `./gradlew artifactoryPublish` - See below for credential requirements
+1. Build and upload the binaries: `./gradlew artifactoryPublish --max-workers=1` - See below for credential requirements
 1. Promote the binaries from oss.jfrog.org to Bintray and Maven Central
-    1. Go to https://oss.jfrog.org/webapp/builds/ratpack/?6
+    1. Go to https://oss.jfrog.org/artifactory/webapp/#/builds/ratpack
     1. To log in use your Bintray username and Bintray API key
     1. Find the build you just uploaded (you should be able to tell by the version number).  If you sort by "Time Built" desc it will be at the top of the list
     1. Take the buildNumber and run `./gradlew bintrayPublish -PbuildNumber=«buildNumber» -i`
@@ -59,7 +59,7 @@ When you've got the release announcement set, copy it to the description of the 
 1. Credentials for oss.jfrog.org
     1. This is your Bintray account - use the Bintray UI to ask for write permissions to the io.ratpack group in oss.jfrog.org
 1. GPG credentials/config
-    1. We use the Gradle Signing Plugin to sign the artifacts (we don't let Bintray do this) - See [the Gradle docs](http://www.gradle.org/docs/current/userguide/signing_plugin.html#N15692) for how to set this up
+    1. We use the Gradle Signing Plugin to sign the artifacts (we don't let Bintray do this) - See [the Gradle docs](https://docs.gradle.org/current/userguide/signing_plugin.html#N15692) for how to set this up
     1. One gotcha is forgetting to distribute your public key.  See [here](http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/#.U9rkY2MSS6N) for more info.  If you don't do this you will get problems when syncing to Maven central.
 1. oss.sonatype.org credentials
     1. The sync from Bintray to Central requires an account with oss.sonatype.org

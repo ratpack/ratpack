@@ -19,10 +19,7 @@ package ratpack.registry;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.registry.internal.CachingBackedRegistry;
-import ratpack.registry.internal.DefaultRegistryBuilder;
-import ratpack.registry.internal.EmptyRegistry;
-import ratpack.registry.internal.HierarchicalRegistry;
+import ratpack.registry.internal.*;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -120,7 +117,7 @@ public interface Registry {
    * @throws NotInRegistryException If no object of this type can be returned
    */
   default <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
+    return get(TypeCaching.typeToken(type));
   }
 
   /**
@@ -132,7 +129,12 @@ public interface Registry {
    * @throws NotInRegistryException If no object of this type can be returned
    */
   default <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return maybeGet(type).orElseThrow(() -> new NotInRegistryException(type));
+    Optional<O> o = maybeGet(type);
+    if (o.isPresent()) {
+      return o.get();
+    } else {
+      throw new NotInRegistryException(type);
+    }
   }
 
   /**
@@ -143,7 +145,7 @@ public interface Registry {
    * @return An object of the specified type, or null if no object of this type is available.
    */
   default <O> Optional<O> maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
+    return maybeGet(TypeCaching.typeToken(type));
   }
 
   /**
@@ -163,7 +165,7 @@ public interface Registry {
    * @return All objects of the given type
    */
   default <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
+    return getAll(TypeCaching.typeToken(type));
   }
 
   /**
@@ -213,7 +215,7 @@ public interface Registry {
    * @see #first(TypeToken, Function)
    */
   default <T, O> Optional<O> first(Class<T> type, Function<? super T, ? extends O> function) throws Exception {
-    return first(TypeToken.of(type), function);
+    return first(TypeCaching.typeToken(type), function);
   }
 
   /**
@@ -319,7 +321,7 @@ public interface Registry {
   }
 
   /**
-   * Creates a single lazily created entry registry, using {@link RegistryBuilder#addLazy(Class, Supplier)}.
+   * Deprecated, use {@link #singleLazy(Class, Supplier)}.
    *
    * @param publicType the public type of the entry
    * @param supplier the supplier for the object
@@ -341,7 +343,7 @@ public interface Registry {
    * @param <T> the public type of the entry
    * @return a new single entry registry
    * @see RegistryBuilder#addLazy(Class, Supplier)
-   * @since 1.1.0
+   * @since 1.1
    */
   static <T> Registry singleLazy(Class<T> publicType, Supplier<? extends T> supplier) {
     return builder().addLazy(publicType, supplier).build();
@@ -369,6 +371,19 @@ public interface Registry {
    */
   static <T> Registry single(Class<? super T> publicType, T implementation) {
     return builder().add(publicType, implementation).build();
+  }
+
+  /**
+   * Creates a new, empty, mutable registry.
+   * <p>
+   * Mutable registries are not concurrent safe when being mutated.
+   * Concurrent reading is supported as long as no mutations are occurring.
+   *
+   * @return a new, empty, mutable registry.
+   * @since 1.4
+   */
+  static MutableRegistry mutable() {
+    return new SimpleMutableRegistry();
   }
 
 }

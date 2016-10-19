@@ -4,7 +4,9 @@ def version = model.version
 section(id: "main") {
   article(class: "content") {
     h2("Version ${version.version} ${version.released ? "" : "(unreleased)"}")
-    p("${(version.released ? "Released " : "Due ")} on ${version.dueString()}.")
+    if (version.dueString() != "unscheduled") {
+      p("${(version.released ? "Released " : "Due ")} on ${version.dueString()}.")
+    }
     if (version.description) {
       p(version.descriptionHtml)
     }

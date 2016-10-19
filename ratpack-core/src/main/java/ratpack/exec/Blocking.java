@@ -55,34 +55,34 @@ public abstract class Blocking {
     return new DefaultPromise<>(downstream -> {
       DefaultExecution execution = DefaultExecution.require();
       EventLoop eventLoop = execution.getEventLoop();
-      execution.delimit(continuation ->
-          eventLoop.execute(() ->
-              CompletableFuture.supplyAsync(
-                new Supplier<Result<T>>() {
-                  Result<T> result;
+      execution.delimit(downstream::error, continuation ->
+        eventLoop.execute(() ->
+          CompletableFuture.supplyAsync(
+            new Supplier<Result<T>>() {
+              Result<T> result;
 
-                  @Override
-                  public Result<T> get() {
+              @Override
+              public Result<T> get() {
+                try {
+                  DefaultExecution.THREAD_BINDING.set(execution);
+                  intercept(execution, execution.getAllInterceptors().iterator(), () -> {
                     try {
-                      DefaultExecution.THREAD_BINDING.set(execution);
-                      intercept(execution, execution.getAllInterceptors().iterator(), () -> {
-                        try {
-                          result = Result.success(factory.create());
-                        } catch (Throwable e) {
-                          result = Result.error(e);
-                        }
-                      });
-                      return result;
+                      result = Result.success(factory.create());
                     } catch (Throwable e) {
-                      DefaultExecution.interceptorError(e);
-                      return result;
-                    } finally {
-                      DefaultExecution.THREAD_BINDING.remove();
+                      result = Result.error(e);
                     }
-                  }
-                }, execution.getController().getBlockingExecutor()
-              ).thenAcceptAsync(v -> continuation.resume(() -> downstream.accept(v)), eventLoop)
-          )
+                  });
+                  return result;
+                } catch (Throwable e) {
+                  DefaultExecution.interceptorError(e);
+                  return result;
+                } finally {
+                  DefaultExecution.THREAD_BINDING.remove();
+                }
+              }
+            }, execution.getController().getBlockingExecutor()
+          ).thenAcceptAsync(v -> continuation.resume(() -> downstream.accept(v)), eventLoop)
+        )
       );
     });
   }
@@ -190,7 +190,10 @@ public abstract class Blocking {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Result<T>> resultReference = new AtomicReference<>();
 
-    backing.delimit(continuation ->
+    backing.delimit(t -> {
+        resultReference.set(Result.error(t));
+        latch.countDown();
+      }, continuation ->
         promise.connect(
           new Downstream<T>() {
             @Override

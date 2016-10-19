@@ -17,6 +17,7 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.util.Types;
 
 /**
  * A {@link Registry} that is also mutable.
@@ -31,7 +32,7 @@ public interface MutableRegistry extends Registry, RegistrySpec {
    * @throws NotInRegistryException if there is nothing registered by that type
    */
   default <T> void remove(Class<T> type) throws NotInRegistryException {
-    remove(TypeToken.of(type));
+    remove(Types.token(type));
   }
 
   /**

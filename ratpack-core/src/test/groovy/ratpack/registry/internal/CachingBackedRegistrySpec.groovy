@@ -21,6 +21,7 @@ import com.google.common.reflect.TypeToken
 import ratpack.func.Function
 import ratpack.registry.NotInRegistryException
 import ratpack.registry.RegistryBacking
+import ratpack.util.Types
 import spock.lang.Specification
 
 class CachingBackedRegistrySpec extends Specification {
@@ -50,14 +51,14 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "search empty registry"() {
     expect:
-    !r.first(TypeToken.of(Object), Function.identity()).present
-    !r.first(TypeToken.of(Object), Function.constant(null)).present
+    !r.first(Types.token(Object), Function.identity()).present
+    !r.first(Types.token(Object), Function.constant(null)).present
   }
 
   def "search with one item"() {
     given:
-    TypeToken type = TypeToken.of(String)
-    TypeToken other = TypeToken.of(Number)
+    TypeToken type = Types.token(String)
+    TypeToken other = Types.token(Number)
     def value = "Something"
 
     r.register(value)
@@ -71,8 +72,8 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "search with multiple items"() {
     given:
-    TypeToken string = TypeToken.of(String)
-    TypeToken number = TypeToken.of(Number)
+    TypeToken string = Types.token(String)
+    TypeToken number = Types.token(Number)
     def a = "A"
     def b = "B"
     def c = 42
@@ -91,8 +92,8 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "find first"() {
     given:
-    def sameType = TypeToken.of(String)
-    def differentType = TypeToken.of(Number)
+    def sameType = Types.token(String)
+    def differentType = Types.token(Number)
     def value = "Something"
     r.register(value)
     expect:
@@ -105,7 +106,7 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "lookups are cached when all or first method is used"() {
     given:
-    TypeToken string = TypeToken.of(String)
+    TypeToken string = Types.token(String)
     def a = "A"
     def b = "B"
     RegistryBacking supplierFunc = Mock()
@@ -124,7 +125,7 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "lookups are cached when getAll or get method is used"() {
     given:
-    TypeToken string = TypeToken.of(String)
+    TypeToken string = Types.token(String)
     def a = "A"
     def b = "B"
     RegistryBacking supplierFunc = Mock()

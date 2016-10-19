@@ -17,6 +17,7 @@
 package ratpack.config.internal;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 
@@ -38,7 +39,7 @@ public class DelegatingConfigData implements ConfigData {
   }
 
   @Override
-  public <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type) {
+  public <O> ConfigObject<O> getAsConfigObject(String pointer, TypeToken<O> type) {
     return delegate.getAsConfigObject(pointer, type);
   }
 

@@ -8,9 +8,24 @@ The context object that a handler operates on provides the [`getRequest()`](api/
 & [`getResponse()`](api/ratpack/handling/Context.html#getResponse--) methods for accessing the [`Request`](api/ratpack/http/Request.html) and [`Response`](api/ratpack/http/Response.html) respectively.
 These objects provide more or less what you would expect. 
 
-For example, they both provide a `getHeaders()` method that returns an model of the HTTP headers sent with the request and a model of the HTTP headers that are to be sent with the response.
+For example, they both provide a `getHeaders()` method that returns a model of the HTTP headers sent with the request and a model of the HTTP headers that are to be sent with the response.
 The [`Request`](api/ratpack/http/Request.html) exposes other metadata attributes such as the [HTTP method](api/ratpack/http/Request.html#getMethod--),
 the [URI](api/ratpack/http/Request.html#getUri--) and a key/value model of the [query string parameters](api/ratpack/http/Request.html#getQueryParams--) among other things.
+
+## Redirecting
+
+The [`redirect(int, Object)`](api/ratpack/handling/Context.html#redirect-int-java.lang.Object-) context method supports issuing redirects.
+This method obtains the [`Redirector`](api/ratpack/handling/Redirector.html) from the context registry and forwards the arguments.
+
+Ratpack provides a [default implementation](api/ratpack/handling/Redirector.html#standard--) that supports: 
+
+1. Literal URL values
+2. Protocol relative URL values
+3. Absolute paths within the current application
+4. Relative paths within the current application
+
+Most applications do not need to provide a custom `Redirector` implementation, as the default behaviour is sufficient.
+One reason to provide a custom redirector implementation would be to interpret domain objects as locations to redirect to.
 
 ## Reading the request
 
@@ -63,7 +78,7 @@ See [`Form`](api/ratpack/form/Form.html) and [`UploadedFile`](api/ratpack/form/U
 
 ## Sending a response
 
-Sending an HTTP response in Ratpack is easy, efficient, and flexible.
+Sending a HTTP response in Ratpack is easy, efficient, and flexible.
 Like most things in Ratpack, transmitting a response to a client is done in a non-blocking manner.
 Ratpack provides a few mechanisms for sending a response.
 The methods exposed to manipulating the response can be found in the [`Response`](api/ratpack/http/Response.html) and [`Context`](api/ratpack/handling/Context.html) objects. 

@@ -76,6 +76,15 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("maxContentLength")) {
       data.setMaxContentLength(serverNode.get("maxContentLength").asInt(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH));
     }
+    if (serverNode.hasNonNull("maxChunkSize")) {
+      data.setMaxChunkSize(serverNode.get("maxChunkSize").asInt(ServerConfig.DEFAULT_MAX_CHUNK_SIZE));
+    }
+    if (serverNode.hasNonNull("maxInitialLineLength")) {
+      data.setMaxInitialLineLength(serverNode.get("maxInitialLineLength").asInt(ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH));
+    }
+    if (serverNode.hasNonNull("maxHeaderSize")) {
+      data.setMaxHeaderSize(serverNode.get("maxHeaderSize").asInt(ServerConfig.DEFAULT_MAX_HEADER_SIZE));
+    }
     if (serverNode.hasNonNull("ssl")) {
       data.setSslContext(toValue(codec, serverNode.get("ssl"), SSLContext.class));
     }

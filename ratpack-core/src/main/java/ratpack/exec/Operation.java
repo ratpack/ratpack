@@ -69,13 +69,66 @@ import java.util.Optional;
 public interface Operation {
 
   static Operation of(Block block) {
-    return new DefaultOperation(Promise.<Void>of(f -> {
+    return new DefaultOperation(Promise.<Void>async(f -> {
       block.execute();
       f.success(null);
     }));
   }
 
   Operation onError(Action<? super Throwable> onError);
+
+  /**
+   * Convert an error to a success or different error.
+   * <p>
+   * The given action receives the upstream error and is executed as an operation.
+   * If the operation completes without error, the original error is considered handled
+   * and the returned operation will propagate success.
+   * <p>
+   * If the given action operation throws an exception,
+   * the returned operation will propagate that exception.
+   * <p>
+   * This method differs to {@link #onError(Action)} in that it does not terminate the operation.
+   *
+   * @param action the error handler
+   * @return an operation
+   * @since 1.5
+   */
+  default Operation mapError(Action<? super Throwable> action) {
+    return promise().transform(up -> down ->
+      up.connect(new Downstream<Void>() {
+        @Override
+        public void success(Void value) {
+          down.success(value);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          Operation.of(() -> action.execute(throwable)).promise().connect(new Downstream<Void>() {
+            @Override
+            public void success(Void value) {
+              down.success(value);
+            }
+
+            @Override
+            public void error(Throwable throwable) {
+              down.error(throwable);
+            }
+
+            @Override
+            public void complete() {
+              down.complete();
+            }
+          });
+
+        }
+
+        @Override
+        public void complete() {
+          down.complete();
+        }
+      })
+    ).operation();
+  }
 
   @NonBlocking
   void then(Block block);
@@ -105,6 +158,17 @@ public interface Operation {
 
   default Operation next(Block operation) {
     return next(Operation.of(operation));
+  }
+
+  /**
+   * Executes the given block as an operation, on a blocking thread.
+   *
+   * @param operation a block of code to be executed, on a blocking thread
+   * @return an operation
+   * @since 1.4
+   */
+  default Operation blockingNext(Block operation) {
+    return next(Blocking.op(operation));
   }
 
   default <O> O to(Function<? super Operation, ? extends O> function) throws Exception {

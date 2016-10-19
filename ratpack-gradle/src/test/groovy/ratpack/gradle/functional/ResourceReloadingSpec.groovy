@@ -16,13 +16,13 @@
 
 package ratpack.gradle.functional
 
-import spock.lang.Timeout
+import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
-@Timeout(120)
 class ResourceReloadingSpec extends FunctionalSpec {
 
   int port
+  def resultHolder = new BlockingVariable(10)
 
   def "edits to base dir contents are live"() {
     given:
@@ -52,7 +52,15 @@ class ResourceReloadingSpec extends FunctionalSpec {
 
     """
     when:
-    Thread.start { run "run" }
+    run("classes") // download dependencies outside of timeout
+
+    Thread.start {
+      try {
+        resultHolder.set(run("run"))
+      } catch (ignore) {
+        resultHolder.set(null)
+      }
+    }
     def portFile = file("port")
     new PollingConditions().within(30) {
       assert portFile.isFile() && portFile.text
@@ -71,8 +79,9 @@ class ResourceReloadingSpec extends FunctionalSpec {
 
   def cleanup() {
     if (port) {
-      urlText(port) == "stopping"
+      assert urlText(port) == "stopping"
     }
+    resultHolder.get()
   }
 
   String urlText(int port, String path = "") {

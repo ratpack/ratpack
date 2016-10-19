@@ -16,12 +16,15 @@
 
 package ratpack.http.internal
 
-import io.netty.buffer.Unpooled
+import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.http.HttpMethod
 import io.netty.handler.codec.http.HttpVersion
+import ratpack.exec.Promise
+import ratpack.func.Block
 import ratpack.http.Headers
-import ratpack.http.MediaType
 import ratpack.server.ServerConfig
+import ratpack.server.internal.RequestBodyReader
+import ratpack.stream.TransformablePublisher
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -33,7 +36,6 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
   def "Properly parses uri/query/path based on input #inputUri"() {
     given:
     def headers = Mock(Headers)
-    def content = Unpooled.buffer()
 
     when:
     def request = new DefaultRequest(
@@ -45,7 +47,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
       new InetSocketAddress('localhost', 45678),
       new InetSocketAddress('localhost', 5050),
       ServerConfig.builder().build(),
-      { -> new ByteBufBackedTypedData(content, MediaType.PLAIN_TEXT_UTF8) })
+      new NoRequestBodyReader())
 
     then:
     request.rawUri == inputUri
@@ -73,7 +75,6 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
   def "It should detect an AJAX request"() {
     given:
     def headers = Mock(Headers)
-    def content = Unpooled.buffer()
 
     when:
     def request = new DefaultRequest(
@@ -85,7 +86,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
       new InetSocketAddress('localhost', 45678),
       new InetSocketAddress('localhost', 5050),
       ServerConfig.builder().build(),
-      { -> new ByteBufBackedTypedData(content, MediaType.PLAIN_TEXT_UTF8)})
+      new NoRequestBodyReader())
     Boolean result = request.isAjaxRequest()
 
     then:
@@ -100,4 +101,20 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     ''                                                  | false
   }
 
+  static class NoRequestBodyReader implements RequestBodyReader {
+    @Override
+    long getContentLength() {
+      -1
+    }
+
+    @Override
+    Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
+      throw new UnsupportedOperationException()
+    }
+  }
 }

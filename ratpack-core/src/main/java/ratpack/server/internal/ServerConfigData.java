@@ -41,6 +41,9 @@ public class ServerConfigData {
   private Optional<Integer> maxMessagesPerRead = Optional.empty();
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
+  private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
+  private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
+  private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
 
   public ServerConfigData(FileSystemBinding baseDir, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -153,7 +156,32 @@ public class ServerConfigData {
     this.writeSpinCount = Optional.of(writeSpinCount);
   }
 
+  public int getMaxInitialLineLength() {
+    return maxInitialLineLength;
+  }
+
+  public void setMaxInitialLineLength(final int maxInitialLineLength) {
+    this.maxInitialLineLength = maxInitialLineLength;
+  }
+
+  public int getMaxHeaderSize() {
+    return maxHeaderSize;
+  }
+
+  public void setMaxHeaderSize(final int maxHeaderSize) {
+    this.maxHeaderSize = maxHeaderSize;
+  }
+
+  public int getMaxChunkSize() {
+    return maxChunkSize;
+  }
+
+  public void setMaxChunkSize(int maxChunkSize) {
+    this.maxChunkSize = maxChunkSize;
+  }
+
   public FileSystemBinding getBaseDir() {
     return baseDir;
   }
+
 }

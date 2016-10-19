@@ -16,6 +16,8 @@
 
 package ratpack.manual.snippets.fixture;
 
+import ratpack.impose.ForceServerListenPortImposition;
+import ratpack.impose.Impositions;
 import ratpack.manual.snippets.TestCodeSnippet;
 import ratpack.manual.snippets.executer.SnippetExecuter;
 import ratpack.server.RatpackServer;
@@ -36,7 +38,10 @@ public abstract class ServerCaptureSnippetExecuter implements SnippetExecuter {
 
   @Override
   public void execute(TestCodeSnippet snippet) throws Exception {
-    withServer(ServerCapturer.capture(new ServerCapturer.Overrides().port(0), () -> executer.execute(snippet)));
+    withServer(
+      Impositions.of(i -> i.add(ForceServerListenPortImposition.ephemeral()))
+        .impose(() -> ServerCapturer.capture(() -> executer.execute(snippet)))
+    );
   }
 
   protected abstract void withServer(RatpackServer server) throws Exception;

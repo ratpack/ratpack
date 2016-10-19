@@ -61,7 +61,7 @@ The `import` statements are collapsed by default for clarity.
 Click them to show/hide them.
 
 This example is a complete Ratpack application.
-However, the [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) is not the entry point that is typically used for applications proper (see the [Launching chapter](launching.html) for details on the typical entry point).
+However, the [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) is not the entry point that is typically used for proper applications (see the [Launching chapter](launching.html) for details on the typical entry point).
 `EmbeddedApp` is testing oriented.
 It makes it easy to start/stop very small (or fully fledged) apps during a larger application, and provides a convenient way to make HTTP requests against the app.
 It is used in the examples to keep the amount of bootstrapping to a minimum in order to focus on the API being demonstrated.

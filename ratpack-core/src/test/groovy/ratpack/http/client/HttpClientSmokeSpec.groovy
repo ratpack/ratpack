@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
-import io.netty.channel.ConnectTimeoutException
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
-import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
+import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -34,10 +34,14 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
-class HttpClientSmokeSpec extends HttpClientSpec {
+@Unroll
+class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
   def "can make simple get request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render "bar"
@@ -56,10 +60,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can make post request"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post("foo") {
         request.body.then { body ->
@@ -84,10 +94,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "client response buffer is retained for the execution"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         render "foo"
@@ -115,10 +131,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can write body using buffer"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -142,10 +164,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "foo"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can write body using bytes"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -169,6 +197,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "foo"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can set headers"() {
@@ -198,6 +229,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
   def "can serve response body buffer"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get {
         render "abc123"
@@ -217,10 +251,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     then:
     text == "abc123"
     response.headers.get(HttpHeaders.Names.CONTENT_TYPE) == "text/plain;charset=UTF-8"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can send request body as text"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -243,10 +283,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     getText() == "føø"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can send request body as text of content type"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       post {
         request.body.then { body ->
@@ -268,10 +314,16 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     getText() == "application/json"
+
+    where:
+    pooled << [true, false]
   }
 
   def "500 Error when RequestSpec throws an exception"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {}
 
     and:
@@ -290,10 +342,17 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     response.statusCode == 500
+
+    where:
+    pooled << [true, false]
   }
 
+  @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
   def "can set connect timeout"() {
     setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     def nonRoutableIp = '192.168.0.0'
 
     when:
@@ -302,7 +361,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
         httpClient.get("http://$nonRoutableIp".toURI()) {
           it.connectTimeout(Duration.ofMillis(20))
         } onError {
-          render it.class.name
+          render it.toString()
         } then {
           render "success"
         }
@@ -310,10 +369,18 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     }
 
     then:
-    text == ConnectTimeoutException.name
+    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://192.168.0.0"
+
+    where:
+    pooled << [true, false]
   }
 
-  def "can set read timeout"() {
+  def "can set read timeout from pooling config"() {
+    setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+
     when:
     otherApp {
       get { ctx ->
@@ -330,9 +397,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     handlers {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
-          it.readTimeoutSeconds(1)
+          it.readTimeout(Duration.ofSeconds(1))
         } onError {
-          render it.class.name
+          render it.toString()
         } then {
           render "success"
         }
@@ -340,11 +407,53 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     }
 
     then:
-    text == ReadTimeoutException.name
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can set read timeout on request"() {
+    setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+
+    when:
+    otherApp {
+      get { ctx ->
+        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? "a" : null
+        }
+
+        render serverSentEvents(stream) {
+          it.id("a")
+        }
+      }
+    }
+
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl(), { it.readTimeout(Duration.ofSeconds(1)) }).onError {
+          render it.toString()
+        } then {
+          render "success"
+        }
+      }
+    }
+
+    then:
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+
+    where:
+    pooled << [true, false]
   }
 
   def "can directly stream a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render stringChunks(
@@ -365,8 +474,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     expect:
     rawResponse() == """HTTP/1.1 200 OK
-content-type: text/plain;charset=UTF-8
 transfer-encoding: chunked
+content-type: text/plain;charset=UTF-8
+connection: close
 
 3
 bar
@@ -377,10 +487,16 @@ bar
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can modify the stream of a client chunked response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo") {
         render stringChunks(
@@ -407,6 +523,7 @@ bar
     rawResponse() == """HTTP/1.1 200 OK
 transfer-encoding: chunked
 content-type: text/plain;charset=UTF-8
+connection: close
 
 3
 BAR
@@ -417,10 +534,16 @@ BAR
 0
 
 """
+
+    where:
+    pooled << [true, false]
   }
 
   def "can follow a redirect when streaming a client response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     otherApp {
       get("foo2") {
         redirect(302, otherAppUrl("foo").toString())
@@ -443,12 +566,17 @@ BAR
 
     then:
     text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can decompress a compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
-      it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
       }
@@ -478,10 +606,16 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
 
   def "can not decompress a compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
       it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
@@ -514,12 +648,17 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == "gzip"
     new GZIPInputStream(response.body.inputStream).bytes == "bar".bytes
+
+    where:
+    pooled << [true, false]
   }
 
   def "can decompress a streamed compressed response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     requestSpec {
-      it.decompressResponse(false) // tell test http client to not decompress the response
       it.headers {
         it.set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP)
       }
@@ -550,5 +689,146 @@ BAR
     then:
     response.headers.get(CONTENT_ENCODING) == null
     response.body.text == "bar"
+
+    where:
+    pooled << [true, false]
   }
+
+  @Unroll
+  def "can configure request method #method via request spec"() {
+    given:
+    handlers {
+      path("foo") {
+        byMethod {
+          get {
+            response.send "GET-foo"
+          }
+          put {
+            response.send "PUT-foo"
+          }
+          post {
+            response.send "POST-foo"
+          }
+          delete {
+            response.send "DELETE-foo"
+          }
+          patch {
+            response.send "PATCH-foo"
+          }
+        }
+      }
+      all {
+        byMethod {
+          get {
+            response.send "GET"
+          }
+          put {
+            response.send "PUT"
+          }
+          post {
+            response.send "POST"
+          }
+          delete {
+            response.send "DELETE"
+          }
+          patch {
+            response.send "PATCH"
+          }
+        }
+      }
+
+    }
+
+    when:
+    def response = request { spec ->
+      spec.method(method)
+    }
+    def pathResponse = request("foo") { spec ->
+      spec.method(method)
+    }
+
+    then:
+    response.status.code == 200
+    response.body.text == method
+
+    and:
+    pathResponse.status.code == 200
+    pathResponse.body.text == "${method}-foo"
+
+    where:
+    method << ["GET", "PUT", "POST", "DELETE", "PATCH"]
+  }
+
+  def "can configure request method OPTIONS via request spec"() {
+    given:
+    handlers {
+      path("foo") {
+        byMethod {
+          get {
+            response.send "GET-foo"
+          }
+        }
+      }
+      all {
+        byMethod {
+          get {
+            response.send "GET"
+          }
+          put {
+            response.send "PUT"
+          }
+          post {
+            response.send "POST"
+          }
+          delete {
+            response.send "DELETE"
+          }
+          patch {
+            response.send "PATCH"
+          }
+        }
+      }
+
+    }
+
+    when:
+    def response = request { spec ->
+      spec.options()
+    }
+    def pathResponse = request("foo") { spec ->
+      spec.options()
+    }
+
+    then:
+    response.status.code == 200
+    response.headers.get("ALLOW") == ["GET", "PUT", "POST", "DELETE", "PATCH"].join(",")
+
+    and:
+    pathResponse.status.code == 200
+    pathResponse.headers.get("ALLOW") == ["GET"].join(",")
+  }
+
+  def "can configure request method HEAD via request spec"() {
+    given:
+    handlers {
+      get {
+        response.send "GET"
+      }
+    }
+
+    when:
+    def response = request { spec ->
+      spec.head()
+    }
+    def pathResponse = request("foo") { spec ->
+      spec.head()
+    }
+
+    then:
+    response.status.code == 200
+
+    and:
+    pathResponse.status.code == 404
+  }
+
 }

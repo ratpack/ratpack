@@ -16,12 +16,17 @@
 
 package ratpack.exec;
 
+import com.google.common.cache.LoadingCache;
+import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
+import ratpack.exec.util.Promised;
 import ratpack.func.*;
+import ratpack.util.Exceptions;
 
+import java.time.Duration;
 import java.util.Objects;
 
 import static ratpack.func.Action.ignoreArg;
@@ -35,7 +40,7 @@ import static ratpack.func.Action.ignoreArg;
  * Such operations are implemented via the {@link #transform(Function)} method.
  * Each operation returns a new promise object, not the original promise object.
  * <p>
- * To create a promise, use the {@link Promise#of(Upstream)} method (or one of the variants such as {@link Promise#ofLazy(Factory)}.
+ * To create a promise, use the {@link Promise#async(Upstream)} method (or one of the variants such as {@link Promise#sync(Factory)}.
  * To test code that uses promises, use the {@link ratpack.test.exec.ExecHarness}.
  * <p>
  * The promise is not “activated” until the {@link #then(Action)} method is called.
@@ -52,57 +57,200 @@ import static ratpack.func.Action.ignoreArg;
 public interface Promise<T> {
 
   /**
-   * Creates a promise for value that will be available later.
+   * Creates a promise for value that will be produced asynchronously.
    * <p>
-   * This method can be used to integrate with APIs that produce values asynchronously.
-   * The {@link Upstream#connect(Downstream)} method will be invoked every time the value is requested.
+   * The {@link Upstream#connect(Downstream)} method of the given upstream will be invoked every time the value is requested.
    * This method should propagate the value (or error) to the given downstream object when it is available.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       Promise.<String>async(down ->
+   *         new Thread(() -> {
+   *           down.success("foo");
+   *         }).start()
+   *       )
+   *     ).getValueOrThrow();
+   *
+   *     assertEquals(value, "foo");
+   *   }
+   * }
+   * }</pre>
    *
    * @param upstream the producer of the value
    * @param <T> the type of promised value
    * @return a promise for the asynchronously created value
+   * @see Upstream
+   * @see #sync(Factory)
+   * @see #value(Object)
+   * @see #error(Throwable)
+   * @since 1.3
    */
-  static <T> Promise<T> of(Upstream<T> upstream) {
+  static <T> Promise<T> async(Upstream<T> upstream) {
     return new DefaultPromise<>(DefaultExecution.upstream(upstream));
   }
 
   /**
-   * Creates a promise for the given value.
+   * Creates a promise for the value synchronously produced by the given factory.
    * <p>
-   * This method can be used when a promise is called for, but the value is immediately available.
+   * The given factory will be invoked every time that the value is requested.
+   * If the factory throws an exception, the promise will convey that exception.
    *
-   * @param t the promised value
-   * @param <T> the type of promised value
-   * @return a promise for the given item
-   */
-  static <T> Promise<T> value(T t) {
-    return of(f -> f.success(t));
-  }
-
-  /**
-   * Creates a promise for value produced by the given factory.
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       Promise.sync(() -> "foo")
+   *     ).getValueOrThrow();
+   *
+   *     assertEquals(value, "foo");
+   *   }
+   * }
+   * }</pre>
+   *
    * <p>
-   * This method can be used when a promise is called for, and the value is available synchronously as the result of a function.
+   * This method is often used to when a method needs to return a promise, but can produce its value synchronously.
    *
    * @param factory the producer of the value
    * @param <T> the type of promised value
    * @return a promise for the result of the factory
+   * @see #async(Upstream)
+   * @see #value(Object)
+   * @see #error(Throwable)
+   * @since 1.3
    */
-  static <T> Promise<T> ofLazy(Factory<T> factory) {
-    return of(f -> f.success(factory.create()));
+  static <T> Promise<T> sync(Factory<T> factory) {
+    return async(down -> {
+      T t;
+      try {
+        t = factory.create();
+      } catch (Exception e) {
+        down.error(e);
+        return;
+      }
+      down.success(t);
+    });
+  }
+
+  /**
+   * Creates a promise for the promise produced by the given factory.
+   * <p>
+   * The given factory will be invoked every time that the value is requested.
+   * If the factory throws an exception, the promise will convey that exception.
+   * <p>
+   * This can be used to effectively prepend work to another promise.
+   *
+   * @param factory the producer of the promise to return
+   * @param <T> the type of promised value
+   * @return a promise for the result of the factory
+   * @since 1.5
+   */
+  static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
+    return async(down -> factory.create().connect(down));
+  }
+
+  /**
+   * Creates a promise for the given item.
+   * <p>
+   * The given item will be used every time that the value is requested.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     String value = ExecHarness.yieldSingle(e ->
+   *       Promise.value("foo")
+   *     ).getValueOrThrow();
+   *
+   *     assertEquals(value, "foo");
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param t the promised value
+   * @param <T> the type of promised value
+   * @return a promise for the given item
+   * @see #async(Upstream)
+   * @see #sync(Factory)
+   * @see #error(Throwable)
+   */
+  static <T> Promise<T> value(T t) {
+    return async(down -> down.success(t));
   }
 
   /**
    * Creates a failed promise with the given error.
    * <p>
-   * This method can be used when a promise is called for, but the failure is immediately available.
+   * The given error will be used every time that the value is requested.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.Assert.assertSame;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     Exception exception = new Exception();
+   *     Throwable error = ExecHarness.yieldSingle(e ->
+   *       Promise.error(exception)
+   *     ).getThrowable();
+   *
+   *     assertSame(exception, error);
+   *   }
+   * }
+   * }</pre>
    *
    * @param t the error
    * @param <T> the type of promised value
    * @return a failed promise
+   * @see #async(Upstream)
+   * @see #sync(Factory)
+   * @see #value(Object)
    */
   static <T> Promise<T> error(Throwable t) {
-    return of(f -> f.error(t));
+    return async(down -> down.error(t));
+  }
+
+  /**
+   * Deprecated.
+   *
+   * @param upstream the producer of the value
+   * @param <T> the type of promised value
+   * @return a promise for the asynchronously created value
+   * @deprecated replaced by {@link #async(Upstream)}
+   */
+  @Deprecated
+  static <T> Promise<T> of(Upstream<T> upstream) {
+    return async(upstream);
+  }
+
+  /**
+   * Deprecated.
+   *
+   * @param factory the producer of the value
+   * @param <T> the type of promised value
+   * @return a promise for the result of the factory
+   * @deprecated replaced by {@link #sync(Factory)}}
+   */
+  @Deprecated
+  static <T> Promise<T> ofLazy(Factory<T> factory) {
+    return sync(factory);
   }
 
   /**
@@ -123,7 +271,7 @@ public interface Promise<T> {
    *
    * @param downstream the downstream consumer
    */
-  void connect(Downstream<T> downstream);
+  void connect(Downstream<? super T> downstream);
 
   /**
    * Apply a custom transform to this promise.
@@ -177,26 +325,26 @@ public interface Promise<T> {
    * @param predicate the predicate to test against the error
    * @param errorHandler the action to take if an error occurs
    * @return A promise for the successful result
-   * @since 1.1.0
+   * @since 1.1
    */
   default Promise<T> onError(Predicate<? super Throwable> predicate, Action<? super Throwable> errorHandler) {
     return transform(up -> down ->
-        up.connect(down.onError(throwable -> {
-          if (predicate.apply(throwable)) {
-            try {
-              errorHandler.execute(throwable);
-            } catch (Throwable e) {
-              if (e != throwable) {
-                e.addSuppressed(throwable);
-              }
-              down.error(e);
-              return;
+      up.connect(down.onError(throwable -> {
+        if (predicate.apply(throwable)) {
+          try {
+            errorHandler.execute(throwable);
+          } catch (Throwable e) {
+            if (e != throwable) {
+              e.addSuppressed(throwable);
             }
-            down.complete();
-          } else {
-            down.error(throwable);
+            down.error(e);
+            return;
           }
-        }))
+          down.complete();
+        } else {
+          down.error(throwable);
+        }
+      }))
     );
   }
 
@@ -239,7 +387,7 @@ public interface Promise<T> {
    * @param errorHandler the action to take if an error occurs
    * @param <E> the type of exception to handle with the given action
    * @return A promise for the successful result
-   * @since 1.1.0
+   * @since 1.1
    */
   default <E extends Throwable> Promise<T> onError(Class<E> errorType, Action<? super E> errorHandler) {
     return onError(errorType::isInstance, t -> errorHandler.execute(errorType.cast(t)));
@@ -265,8 +413,35 @@ public interface Promise<T> {
    *
    * @param resultHandler the consumer of the result
    */
-  default void result(Action<? super Result<T>> resultHandler) {
-    onError(t -> resultHandler.execute(Result.<T>error(t))).then(v -> resultHandler.execute(Result.success(v)));
+  default void result(Action<? super ExecResult<T>> resultHandler) {
+    connect(new Downstream<T>() {
+      @Override
+      public void success(T value) {
+        try {
+          resultHandler.execute(ExecResult.of(Result.success(value)));
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        try {
+          resultHandler.execute(ExecResult.of(Result.<T>error(throwable)));
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+
+      @Override
+      public void complete() {
+        try {
+          resultHandler.execute(ExecResult.<T>complete());
+        } catch (Throwable e) {
+          DefaultPromise.throwError(e);
+        }
+      }
+    });
   }
 
   /**
@@ -297,16 +472,48 @@ public interface Promise<T> {
    */
   default <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
     return transform(up -> down -> up.connect(
-        down.<T>onSuccess(value -> {
-          try {
-            O apply = transformer.apply(value);
-            down.success(apply);
-          } catch (Throwable e) {
-            down.error(e);
-          }
-        })
+      down.<T>onSuccess(value -> {
+        try {
+          O apply = transformer.apply(value);
+          down.success(apply);
+        } catch (Throwable e) {
+          down.error(e);
+        }
+      })
       )
     );
+  }
+
+  /**
+   * Transforms the promised value by applying the given function to it, if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .mapIf(s -> s.contains("f"), String::toUpperCase)
+   *           .mapIf(s -> s.contains("f"), s -> s + "-BAR")
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to be transformed
+   * @param transformer the transformation to apply to the promised value
+   * @return a promise
+   * @since 1.4
+   */
+  default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> transformer) {
+    return map(t -> predicate.apply(t) ? transformer.apply(t) : t);
   }
 
   /**
@@ -335,16 +542,271 @@ public interface Promise<T> {
     return flatMap(t -> Blocking.op(action.curry(t)).map(() -> t));
   }
 
+  /**
+   * Deprecated.
+   * <p>
+   * Use {@link #replace(Promise)}.
+   *
+   * @param next the promise to replace {@code this} with
+   * @param <O> the type of value provided by the replacement promise
+   * @return a promise
+   * @deprecated replaced by {@link #replace(Promise)} as of 1.1.0
+   */
+  @Deprecated
   default <O> Promise<O> next(Promise<O> next) {
     return flatMap(in -> next);
   }
 
-  default <O> Promise<Pair<O, T>> left(Promise<O> left) {
-    return flatMap(right -> left.map(value -> Pair.of(value, right)));
+  /**
+   * Executes the provided, potentially asynchronous, {@link Action} with the promised value as input.
+   * <p>
+   * This method can be used when needing to perform an action with the promised value, without substituting the promised value.
+   * That is, the exact same object provided to the given action will be propagated downstream.
+   * <p>
+   * The given action is executed within an {@link Operation}, allowing it to perform asynchronous work.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     List<String> events = Lists.newLinkedList();
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .next(v ->
+   *          Promise.value(v) // may be async
+   *            .map(String::toUpperCase)
+   *            .then(events::add)
+   *        )
+   *        .then(events::add)
+   *     );
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param action the action to execute with the promised value
+   * @return a promise for the original value
+   * @see #nextOp(Function)
+   * @since 1.1
+   */
+  default Promise<T> next(@NonBlocking Action<? super T> action) {
+    return nextOp(v ->
+      Operation.of(() ->
+        action.execute(v)
+      )
+    );
   }
 
+
+  /**
+   * Executes the operation returned by the given function.
+   * <p>
+   * This method can be used when needing to perform an operation returned by another object, based on the promised value.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Operation;
+   *
+   * import com.google.common.collect.Lists;
+   *
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static class CaseService {
+   *     public Operation toUpper(String value, List<String> values) {
+   *       return Operation.of(() -> values.add(value.toUpperCase()));
+   *     }
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     CaseService service = new CaseService();
+   *     List<String> events = Lists.newLinkedList();
+   *
+   *     ExecHarness.runSingle(c ->
+   *       Promise.value("foo")
+   *        .nextOp(v -> service.toUpper(v, events))
+   *        .then(events::add)
+   *     );
+   *
+   *     assertEquals(Arrays.asList("FOO", "foo"), events);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param function a function that returns an operation that acts on the promised value
+   * @return a promise for the original value
+   * @see #next(Action)
+   * @since 1.1
+   */
+  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
+    return transform(up -> down -> up.connect(
+      down.<T>onSuccess(value ->
+        function.apply(value)
+          .onError(down::error)
+          .then(() ->
+            down.success(value)
+          )
+      )
+      )
+    );
+  }
+
+  /**
+   * Replaces {@code this} promise with the provided promise for downstream subscribers.
+   * <p>
+   * This is simply a more convenient form of {@link #flatMap(Function)}, where the given promise is returned.
+   * This method can be used when a subsequent operation on a promise isn't dependent on the actual promised value.
+   * <p>
+   * If the upstream promise fails, its error will propagate downstream and the given promise will never be subscribed to.
+   *
+   *  <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   private static String value;
+   *
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .next(v -> value = v)
+   *           .replace(Promise.value("bar"))
+   *     );
+   *
+   *     assertEquals("bar", result.getValue());
+   *     assertEquals("foo", value);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param next the promise to replace {@code this} with
+   * @param <O> the type of the value of the replacement promise
+   * @return a promise
+   * @since 1.1
+   */
+  default <O> Promise<O> replace(Promise<O> next) {
+    return flatMap(in -> next);
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the given promise as the {@code left}.
+   * <p>
+   * The existing promised value will become the {@code right}.
+   *
+   * @param left a promise for the left value of the result pair
+   * @param <O> the type of the left value
+   * @return a promise
+   */
+  default <O> Promise<Pair<O, T>> left(Promise<O> left) {
+    return flatLeft(t -> left);
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code left}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code right}.
+   *
+   * @param leftFunction a function that produces the left value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<O, T>> left(Function<? super T, ? extends O> leftFunction) {
+    return map(right -> Pair.of(
+      leftFunction.apply(right), right
+    ));
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code left}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code right}.
+   *
+   * @param leftFunction a function that produces a promise for the left value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<O, T>> flatLeft(Function<? super T, ? extends Promise<O>> leftFunction) {
+    return flatMap(right ->
+      leftFunction.apply(right)
+        .map(left ->
+          Pair.of(left, right)
+        )
+    );
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the given promise as the {@code right}.
+   * <p>
+   * The existing promised value will become the {@code left}.
+   *
+   * @param right a promise for the right value of the result pair
+   * @param <O> the type of the right value
+   * @return a promise
+   */
   default <O> Promise<Pair<T, O>> right(Promise<O> right) {
-    return flatMap(left -> right.map(value -> Pair.of(left, value)));
+    return flatRight(t -> right);
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code left}.
+   *
+   * @param rightFunction a function that produces the right value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {
+    return map(left -> Pair.of(
+      left, rightFunction.apply(left)
+    ));
+  }
+
+  /**
+   * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.
+   * <p>
+   * The function is called with the promised value.
+   * The existing promised value will become the {@code left}.
+   *
+   * @param rightFunction a function that produces a promise for the right value from the promised value
+   * @param <O> the type of the left value
+   * @return a promise
+   * @since 1.4
+   */
+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {
+    return flatMap(left ->
+      rightFunction.apply(left)
+        .map(right ->
+          Pair.of(left, right)
+        )
+    );
   }
 
   default Operation operation() {
@@ -408,14 +870,95 @@ public interface Promise<T> {
    */
   default Promise<T> mapError(Function<? super Throwable, ? extends T> transformer) {
     return transform(up -> down ->
-        up.connect(down.onError(throwable -> {
+      up.connect(down.onError(throwable -> {
+        try {
+          T transformed = transformer.apply(throwable);
+          down.success(transformed);
+        } catch (Throwable t) {
+          down.error(t);
+        }
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Function)}, except that it will only apply if the error is of the given type.
+   * If the error is not of the given type, it will not be transformed and will propagate as normal.
+   *
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.3
+   */
+  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> function) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        if (type.isInstance(throwable)) {
+          T transformed;
           try {
-            T transformed = transformer.apply(throwable);
-            down.success(transformed);
+            transformed = function.apply(throwable);
           } catch (Throwable t) {
             down.error(t);
+            return;
           }
-        }))
+          down.success(transformed);
+        } else {
+          down.error(throwable);
+        }
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Function)}, except that it allows async transformation.
+   *
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.3
+   */
+  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> function) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        Promise<T> transformed;
+        try {
+          transformed = function.apply(throwable);
+        } catch (Throwable t) {
+          down.error(t);
+          return;
+        }
+        transformed.connect(down);
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Class, Function)}, except that it allows async transformation.
+   *
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.3
+   */
+  default <E extends Throwable> Promise<T> flatMapError(Class<E> type, Function<? super E, ? extends Promise<T>> function) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        if (type.isInstance(throwable)) {
+          Promise<T> transformed;
+          try {
+            transformed = function.apply(type.cast(throwable));
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          transformed.connect(down);
+        } else {
+          down.error(throwable);
+        }
+      }))
     );
   }
 
@@ -587,14 +1130,46 @@ public interface Promise<T> {
    */
   default <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {
     return transform(up -> down ->
-        up.connect(down.<T>onSuccess(value -> {
-          try {
-            transformer.apply(value).onError(down::error).then(down::success);
-          } catch (Throwable e) {
-            down.error(e);
-          }
-        }))
+      up.connect(down.<T>onSuccess(value -> {
+        try {
+          transformer.apply(value).onError(down::error).then(down::success);
+        } catch (Throwable e) {
+          down.error(e);
+        }
+      }))
     );
+  }
+
+  /**
+   * Transforms the promised value by applying the given function to it that returns a promise for the transformed value, if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()))
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s + "-BAR"))
+   *     );
+   *
+   *     assertEquals("FOO", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to satisfy in order to be transformed
+   * @param transformer the transformation to apply to the promised value
+   * @return a promise
+   * @since 1.4
+   */
+  default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> transformer) {
+    return flatMap(t -> predicate.apply(t) ? transformer.apply(t) : Promise.value(t));
   }
 
   /**
@@ -673,26 +1248,26 @@ public interface Promise<T> {
    */
   default Promise<T> route(Predicate<? super T> predicate, Action<? super T> action) {
     return transform(up -> down ->
-        up.connect(down.<T>onSuccess(value -> {
-          boolean apply;
+      up.connect(down.<T>onSuccess(value -> {
+        boolean apply;
+        try {
+          apply = predicate.apply(value);
+        } catch (Throwable e) {
+          down.error(e);
+          return;
+        }
+
+        if (apply) {
           try {
-            apply = predicate.apply(value);
+            action.execute(value);
+            down.complete();
           } catch (Throwable e) {
             down.error(e);
-            return;
           }
-
-          if (apply) {
-            try {
-              action.execute(value);
-              down.complete();
-            } catch (Throwable e) {
-              down.error(e);
-            }
-          } else {
-            down.success(value);
-          }
-        }))
+        } else {
+          down.success(value);
+        }
+      }))
     );
   }
 
@@ -710,6 +1285,9 @@ public interface Promise<T> {
 
   /**
    * Caches the promised value (or error) and returns it to all subscribers.
+   * <p>
+   * This method is equivalent to using {@link #cacheResultIf(Predicate)} with a predicate that always returns {@code true}.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -722,7 +1300,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       AtomicLong counter = new AtomicLong();
-   *       Promise<Long> uncached = Promise.of(f -> f.success(counter.getAndIncrement()));
+   *       Promise<Long> uncached = Promise.async(f -> f.success(counter.getAndIncrement()));
    *
    *       uncached.then(i -> assertEquals(0l, i.longValue()));
    *       uncached.then(i -> assertEquals(1l, i.longValue()));
@@ -739,8 +1317,10 @@ public interface Promise<T> {
    *   }
    * }
    * }</pre>
+   *
    * <p>
    * If the cached promise fails, the same exception will be returned every time.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -751,7 +1331,7 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       Throwable error = new Exception("bang!");
-   *       Promise<Object> cached = Promise.of(f -> f.error(error)).cache();
+   *       Promise<Object> cached = Promise.error(error).cache();
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
    *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
@@ -760,10 +1340,162 @@ public interface Promise<T> {
    * }
    * }</pre>
    *
-   * @return a caching promise.
+   * @return a caching promise
+   * @see #cacheIf(Predicate)
+   * @see #cacheResultIf(Predicate)
    */
   default Promise<T> cache() {
-    return transform(CachingUpstream::new);
+    return cacheResultIf(Predicate.TRUE);
+  }
+
+  /**
+   * Caches the promise value and provides it to all future subscribers, if it satisfies the predicate.
+   * <p>
+   * This method is equivalent to using {@link #cacheResultIf(Predicate)} with a predicate that requires
+   * a successful result and for the value to satisfy the predicate given to this method.
+   * <p>
+   * Non success results will not be cached.
+   *
+   * @param shouldCache the test for whether a successful result is cacheable
+   * @return a caching promise
+   * @since 1.4
+   */
+  default Promise<T> cacheIf(Predicate<? super T> shouldCache) {
+    return cacheResultIf(r -> r.isSuccess() && shouldCache.apply(r.getValue()));
+  }
+
+  /**
+   * Caches the promise result and provides it to all future subscribers, if it satisfies the predicate.
+   * <p>
+   * This method is typically used when wanting to cache a failure result or a success result.
+   * Moreover, the error throwable or success value can be inspected to determine whether it should be cached.
+   * <p>
+   * A cached promise is fully threadsafe and and can be subscribed to concurrently.
+   * While there is no cached value, yielding the upstream value is serialised.
+   * That is, one value is requested at a time regardless of concurrent subscription.
+   * If a cache-able value is received, all pending subscribers will received the cache-able value.
+   * If a received value is not cache-able the corresponding subscriber will receive the value,
+   * and the upstream promise will be subscribed to again on behalf of the next subscriber.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.ArrayList;
+   * import java.util.List;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     AtomicInteger counter = new AtomicInteger();
+   *     Promise<Integer> promise = Promise.sync(() -> {
+   *       int i = counter.getAndIncrement();
+   *       if (i < 2) {
+   *         return i;
+   *       } else if (i == 2) {
+   *         throw new Exception(Integer.toString(i));
+   *       } else if (i == 3) {
+   *         throw new RuntimeException(Integer.toString(i));
+   *       } else {
+   *         throw new IllegalStateException(Integer.toString(i));
+   *       }
+   *     });
+   *
+   *     Promise<Integer> cachedPromise = promise.cacheResultIf(r ->
+   *       (r.isError() && r.getThrowable().getClass() == RuntimeException.class)
+   *         || (r.isSuccess() && r.getValue() > 10)
+   *     );
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       for (int i = 0; i < 6; i++) {
+   *         cachedPromise.result(results::add);
+   *       }
+   *     });
+   *
+   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
+   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
+   *     assertEquals(results.get(2).getThrowable().getClass(), Exception.class);
+   *     assertEquals(results.get(3).getThrowable().getClass(), RuntimeException.class);
+   *
+   *     // value is now cached
+   *     assertEquals(results.get(4).getThrowable().getClass(), RuntimeException.class);
+   *     assertEquals(results.get(5).getThrowable().getClass(), RuntimeException.class);
+   *   }
+   * }
+   * }</pre>
+   *
+   * <p>
+   * Note, the cached value never expires.
+   * If you wish to cache a value only for a certain amount of time,
+   * use a general caching tool such as Guava's {@link LoadingCache}.
+   *
+   * <pre class="java">{@code
+   * import com.google.common.cache.CacheBuilder;
+   * import com.google.common.cache.CacheLoader;
+   * import com.google.common.cache.LoadingCache;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.ArrayList;
+   * import java.util.List;
+   * import java.util.concurrent.TimeUnit;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     AtomicInteger counter = new AtomicInteger();
+   *     Promise<Integer> promise = Promise.sync(counter::getAndIncrement);
+   *
+   *     LoadingCache<String, Promise<Integer>> cache = CacheBuilder.newBuilder()
+   *       .expireAfterWrite(2, TimeUnit.SECONDS)
+   *       .build(new CacheLoader<String, Promise<Integer>>() {
+   *         public Promise<Integer> load(String key) throws Exception {
+   *           return promise.cacheResultIf(i -> i.isSuccess() && i.getValue() > 1);
+   *         }
+   *       });
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       for (int i = 0; i < 4; i++) {
+   *         cache.get("key").result(results::add);
+   *       }
+   *
+   *       // let the cache entry expire
+   *       Thread.sleep(2000);
+   *
+   *       for (int i = 0; i < 2; i++) {
+   *         cache.get("key").result(results::add);
+   *       }
+   *     });
+   *
+   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
+   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
+   *     assertEquals(results.get(2).getValueOrThrow(), Integer.valueOf(2));
+   *     assertEquals(results.get(3).getValueOrThrow(), Integer.valueOf(2));
+   *
+   *     // cache entry has expired
+   *
+   *     assertEquals(results.get(4).getValueOrThrow(), Integer.valueOf(3));
+   *     assertEquals(results.get(5).getValueOrThrow(), Integer.valueOf(3));
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param shouldCache the test for whether a result is cacheable
+   * @return a caching promise
+   * @since 1.4
+   */
+  default Promise<T> cacheResultIf(Predicate<? super ExecResult<T>> shouldCache) {
+    return transform(up -> new CachingUpstream<>(up, shouldCache));
   }
 
   /**
@@ -779,11 +1511,11 @@ public interface Promise<T> {
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
     return transform(up -> down ->
-        Promise.of(innerDown ->
-            releaser.execute((Runnable) () -> innerDown.success(true))
-        ).then(v ->
-            up.connect(down)
-        )
+      Promise.async(innerDown ->
+        releaser.execute((Runnable) () -> innerDown.success(true))
+      ).then(v ->
+        up.connect(down)
+      )
     );
   }
 
@@ -803,9 +1535,9 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *         Promise.<String>of(f -> {
+   *         Promise.<String>sync(() -> {
    *           events.add("promise");
-   *           f.success("foo");
+   *           return "foo";
    *         })
    *           .onYield(() -> events.add("onYield"))
    *           .then(v -> events.add("then"))
@@ -846,9 +1578,9 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     List<String> events = Lists.newLinkedList();
    *     ExecHarness.runSingle(c ->
-   *         Promise.<String>of(f -> {
+   *         Promise.<String>sync(() -> {
    *           events.add("promise");
-   *           f.success("foo");
+   *           return "foo";
    *         })
    *           .wiretap(r -> events.add("wiretap: " + r.getValue()))
    *           .then(v -> events.add("then"))
@@ -864,16 +1596,33 @@ public interface Promise<T> {
    */
   default Promise<T> wiretap(Action<? super Result<T>> listener) {
     return transform(up -> down ->
-        up.connect(down.<T>onSuccess(value -> {
+      up.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
           try {
             listener.execute(Result.success(value));
-          } catch (Throwable t) {
-            down.error(t);
+          } catch (Exception e) {
+            down.error(e);
             return;
           }
-
           down.success(value);
-        }))
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            listener.execute(Result.<T>error(throwable));
+          } catch (Exception e) {
+            throwable.addSuppressed(e);
+          }
+          down.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          down.complete();
+        }
+      })
     );
   }
 
@@ -908,19 +1657,19 @@ public interface Promise<T> {
    *       Throttle throttle = Throttle.ofSize(maxAtOnce);
    *
    *       // Launch numJobs forked executions, and return the maximum number that were executing at any given time
-   *       return Promise.of(outerFulfiller -> {
+   *       return Promise.async(downstream -> {
    *         for (int i = 0; i < numJobs; i++) {
    *           Execution.fork().start(forkedExec ->
-   *             Promise.<Integer>of(innerFulfiller -> {
+   *             Promise.sync(() -> {
    *               int activeNow = active.incrementAndGet();
    *               int maxConcurrentVal = maxConcurrent.updateAndGet(m -> Math.max(m, activeNow));
    *               active.decrementAndGet();
-   *               innerFulfiller.success(maxConcurrentVal);
+   *               return maxConcurrentVal;
    *             })
    *             .throttled(throttle) // limit concurrency
    *             .then(max -> {
    *               if (done.incrementAndGet() == numJobs) {
-   *                 outerFulfiller.success(max);
+   *                 downstream.success(max);
    *               }
    *             })
    *           );
@@ -938,6 +1687,231 @@ public interface Promise<T> {
    */
   default Promise<T> throttled(Throttle throttle) {
     return throttle.throttle(this);
+  }
+
+  /**
+   * Closes the given closeable when the value or error propagates to this point.
+   * <p>
+   * This can be used to simulate a try/finally synchronous construct.
+   * It is typically used to close some resource after an asynchronous operation.
+   *
+   * <pre class="java">{@code
+   * import org.junit.Assert;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * public class Example {
+   *   static class MyResource implements AutoCloseable {
+   *     final boolean inError;
+   *     boolean closed;
+   *
+   *     public MyResource(boolean inError) {
+   *       this.inError = inError;
+   *     }
+   *
+   *     {@literal @}Override
+   *     public void close() {
+   *       closed = true;
+   *     }
+   *   }
+   *
+   *   static Promise<String> resourceUsingMethod(MyResource resource) {
+   *     return Promise.sync(() -> {
+   *       if (resource.inError) {
+   *         throw new Exception("error!");
+   *       } else {
+   *         return "ok!";
+   *       }
+   *     });
+   *   }
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     ExecHarness.runSingle(e -> {
+   *       MyResource myResource = new MyResource(false);
+   *       resourceUsingMethod(myResource)
+   *         .close(myResource)
+   *         .then(value -> Assert.assertTrue(myResource.closed));
+   *     });
+   *
+   *     ExecHarness.runSingle(e -> {
+   *       MyResource myResource = new MyResource(true);
+   *       resourceUsingMethod(myResource)
+   *         .close(myResource)
+   *         .onError(error -> Assert.assertTrue(myResource.closed))
+   *         .then(value -> {
+   *           throw new UnsupportedOperationException("should not reach here!");
+   *         });
+   *     });
+   *
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * The general pattern is to open the resource, and then pass it to some method/closure that works with it and returns a promise.
+   * This method is then called on the returned promise to cleanup the resource.
+   *
+   * @param closeable the closeable to close
+   * @since 1.3
+   */
+  default Promise<T> close(AutoCloseable closeable) {
+    return transform(up -> down ->
+      up.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.success(value);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+            throwable.addSuppressed(e);
+          }
+          down.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.complete();
+        }
+      })
+    );
+  }
+
+  /**
+   * Emits the time taken from when the promise is subscribed to to when the result is available.
+   * <p>
+   * The given {@code action} is called regardless of whether the promise is successful or not.
+   * <p>
+   * If the promise fails and this method throws an exception, the original exception will propagate with the thrown exception suppressed.
+   * If the promise succeeds and this method throws an exception, the thrown exception will propagate.
+   *
+   * @param action a callback for the time
+   * @since 1.3
+   * @return effectively {@code this}
+   */
+  default Promise<T> time(Action<? super Duration> action) {
+    return transform(up -> down -> {
+      long start = System.nanoTime();
+      up.connect(new Downstream<T>() {
+        private Duration duration() {
+          // protect against clock skew causing negative durations
+          return Duration.ofNanos(Math.max(0, System.nanoTime() - start));
+        }
+
+        @Override
+        public void success(T value) {
+          try {
+            action.execute(duration());
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          down.success(value);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            action.execute(duration());
+          } catch (Throwable t) {
+            throwable.addSuppressed(t);
+          }
+          down.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          try {
+            action.execute(duration());
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          down.complete();
+        }
+      });
+    });
+  }
+
+  /**
+   * Forks a new execution and subscribes to this promise, returning a promise for its value.
+   * <p>
+   * The new execution is created and started immediately by this method, effectively subscribing to the promise immediately.
+   * The returned promise provides the value when the execution completes.
+   * <p>
+   * This method can be used for simple of processing.
+   * It is often combined with the {@link #left(Promise)} or {@link #right(Promise)}.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.Blocking;
+   * import ratpack.exec.Promise;
+   * import ratpack.func.Pair;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.concurrent.CyclicBarrier;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     CyclicBarrier barrier = new CyclicBarrier(2);
+   *
+   *     Pair<Integer, String> result = ExecHarness.yieldSingle(r -> {
+   *       Promise<Integer> p1 = Blocking.get(() -> {
+   *         barrier.await();
+   *         return 1;
+   *       });
+   *       Promise<String> p2 = Blocking.get(() -> {
+   *         barrier.await();
+   *         return "2";
+   *       });
+   *
+   *       return p1.right(p2.fork());
+   *     }).getValueOrThrow();
+   *
+   *     assertEquals(result, Pair.of(1, "2"));
+   *   }
+   *
+   * }
+   * }</pre>
+   *
+   * @param execSpec configuration for the forked execution
+   * @return a promise
+   * @throws Exception any thrown by {@code execSpec}
+   * @since 1.4
+   */
+  default Promise<T> fork(Action<? super ExecSpec> execSpec) throws Exception {
+    Promised<T> promised = new Promised<>();
+    execSpec.with(Execution.fork()).start(e -> connect(promised));
+    return promised.promise();
+  }
+
+  /**
+   * Forks a new execution and subscribes to this promise, returning a promise for its value.
+   * <p>
+   * This method delegates to {@link #fork(Action)} with {@link Action#noop()}.
+   *
+   * @return a promise
+   * @since 1.4
+   * @see #fork(Action)
+   */
+  default Promise<T> fork() {
+    return Exceptions.uncheck(() -> fork(Action.noop()));
   }
 
   static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {

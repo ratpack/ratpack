@@ -17,6 +17,7 @@
 package ratpack.parse;
 
 import com.google.common.reflect.TypeToken;
+import ratpack.util.Types;
 
 import java.util.Optional;
 
@@ -96,7 +97,7 @@ public class Parse<T, O> {
    * @return a parse instance from the given arguments
    */
   public static <T, O> Parse<T, O> of(Class<T> type, O opts) {
-    return of(TypeToken.of(type), opts);
+    return of(Types.token(type), opts);
   }
 
   /**
@@ -107,7 +108,7 @@ public class Parse<T, O> {
    * @return a parse instance to the given type
    */
   public static <T> Parse<T, ?> of(Class<T> type) {
-    return of(TypeToken.of(type));
+    return of(Types.token(type));
   }
 
 }

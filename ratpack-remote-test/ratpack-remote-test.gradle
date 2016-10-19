@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-description = "Test time integration with the Groovy Remote Control library for Ratpack applications - http://groovy.codehaus.org/modules/remote/"
+description = "Test time integration with the Groovy Remote Control library for Ratpack applications"
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {
   compile project(":ratpack-test"), project(":ratpack-remote")
-  compile commonDependencies."remote-http"
+  compile commonDependencies.remoteHttp
 }

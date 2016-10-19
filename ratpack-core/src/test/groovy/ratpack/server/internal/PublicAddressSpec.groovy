@@ -18,11 +18,13 @@ package ratpack.server.internal
 
 import com.google.common.net.HostAndPort
 import io.netty.handler.codec.http.DefaultHttpHeaders
-import ratpack.handling.Context
+import ratpack.exec.Promise
 import ratpack.http.Headers
 import ratpack.http.Request
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders
 import ratpack.server.PublicAddress
+import ratpack.test.exec.ExecHarness
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -32,14 +34,22 @@ import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME
 
 class PublicAddressSpec extends Specification {
 
+  @AutoCleanup
+  def harness = ExecHarness.harness()
+
+  String get(PublicAddress publicAddress, Request request) {
+    harness.yield({ it.add(Request, request) }, {
+      Promise.value(publicAddress.get().toString())
+    }).value
+  }
+
   @Unroll
   def "Get URL #publicURL, #scheme, #requestUri, #headers, #bindHost:#bindPort -> #expected"() {
     given:
-    def context = mockContext(mockRequest(requestUri, mockHeaders(headers), HostAndPort.fromParts(bindHost, bindPort)))
-    def publicAddress = publicURL ? PublicAddress.of(new URI(publicURL)) : new InferringPublicAddress(scheme)
+    def publicAddress = get(publicURL ? PublicAddress.of(new URI(publicURL)) : PublicAddress.inferred(scheme), mockRequest(requestUri, mockHeaders(headers), HostAndPort.fromParts(bindHost, bindPort)))
 
     expect:
-    publicAddress.get(context).toString() == expected
+    publicAddress == expected
 
     where:
     publicURL                       | scheme       | requestUri                                    | headers                           | bindHost            | bindPort || expected
@@ -49,7 +59,6 @@ class PublicAddressSpec extends Specification {
     "https://conf.example.com:8443" | HTTPS_SCHEME | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://conf.example.com:8443"
 
     null                            | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 80       || "http://request.example.com"
-    null                            | HTTP_SCHEME  | "https://request.example.com/user/12345"      | [(HOST): "host.example.com"]      | "localhost"         | 8080     || "https://request.example.com"
     null                            | HTTPS_SCHEME | "https://request.example.com:8443/user/12345" | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://request.example.com:8443"
 
     null                            | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(X_FORWARDED_HOST) : "fhost.example.com",
@@ -78,11 +87,10 @@ class PublicAddressSpec extends Specification {
   def "Absolute request URIs are supported: #uri -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
-    def publicAddress = new InferringPublicAddress(HTTP_SCHEME)
+    def publicAddress = new InferringPublicAddress(new URI(uri).scheme)
 
     when: "The request URI is absolute"
-    def context = mockContext(mockRequest(uri, mockHeaders([(HOST): "host.example.com"]), bindAddress))
-    def address = publicAddress.get(context)
+    def address = get(publicAddress, mockRequest(uri, mockHeaders([(HOST): "host.example.com"]), bindAddress))
 
     then: "The host is part of the request URI and any Host header MUST be ignored"
     and: "The protocol and port are based on the request URI"
@@ -101,8 +109,7 @@ class PublicAddressSpec extends Specification {
     def publicAddress = new InferringPublicAddress(scheme)
 
     when: "The request URI is not absolute and the request includes a Host header"
-    def context = mockContext(mockRequest("/user/12345", mockHeaders([(HOST): host]), bindAddress))
-    def address = publicAddress.get(context)
+    def address = get(publicAddress, mockRequest("/user/12345", mockHeaders([(HOST): host]), bindAddress))
 
     then: "The host is determined by the Host header value"
     and: "The port is based on the Host header value (absent means default for scheme)"
@@ -123,8 +130,7 @@ class PublicAddressSpec extends Specification {
     def publicAddress = new InferringPublicAddress(HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Host header and no public URL is defined"
-    def context = mockContext(mockRequest("/user/12345", mockHeaders([(X_FORWARDED_HOST): fhost, (HOST): host]), bindAddress))
-    def address = publicAddress.get(context)
+    def address = get(publicAddress, mockRequest("/user/12345", mockHeaders([(X_FORWARDED_HOST): fhost, (HOST): host]), bindAddress))
 
     then: "The forwarded host is used in place of the absolute request URI and Host header"
     address.toString() == expectedUri
@@ -141,11 +147,10 @@ class PublicAddressSpec extends Specification {
     def publicAddress = new InferringPublicAddress(HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Host header with multiple comma-separated entries"
-    def context = mockContext(mockRequest("/user/12345", mockHeaders([
+    def address = get(publicAddress, mockRequest("/user/12345", mockHeaders([
       (X_FORWARDED_HOST): "fhost1.example.com:8081, fhost2.example.com:8082",
       (HOST)            : "host.example.com:8083"
     ]), bindAddress))
-    def address = publicAddress.get(context)
 
     then: "The first entry is used"
     address.toString() == "http://fhost1.example.com:8081"
@@ -158,8 +163,7 @@ class PublicAddressSpec extends Specification {
     def publicAddress = new InferringPublicAddress(HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Proto header and no public URL is defined"
-    def context = mockContext(mockRequest(uri, mockHeaders([(HOST): host, (X_FORWARDED_PROTO): HTTPS_SCHEME]), bindAddress))
-    def address = publicAddress.get(context)
+    def address = get(publicAddress, mockRequest(uri, mockHeaders([(HOST): host, (X_FORWARDED_PROTO): HTTPS_SCHEME]), bindAddress))
 
     then: "The protocol is based on the header value in preference to absolute request URI or service scheme"
     address.toString() == expectedUri
@@ -178,8 +182,7 @@ class PublicAddressSpec extends Specification {
     def publicAddress = new InferringPublicAddress(HTTP_SCHEME)
 
     when: "The request includes a X-Forwarded-Proto header and no public URL is defined"
-    def context = mockContext(mockRequest(uri, mockHeaders([(HOST): host, (X_FORWARDED_SSL): ON.toString()]), bindAddress))
-    def address = publicAddress.get(context)
+    def address = get(publicAddress, mockRequest(uri, mockHeaders([(HOST): host, (X_FORWARDED_SSL): ON.toString()]), bindAddress))
 
     then: "The protocol is based on the header value in preference to absolute request URI or service scheme"
     address.toString() == expectedUri
@@ -206,12 +209,6 @@ class PublicAddressSpec extends Specification {
       getRawUri() >> rawUri
       getHeaders() >> headers
       getLocalAddress() >> localAddress
-    }
-  }
-
-  private Context mockContext(Request request) {
-    return Mock(Context) {
-      getRequest() >> request
     }
   }
 

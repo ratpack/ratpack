@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,167 +16,282 @@
 
 package ratpack.stream.internal;
 
+import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.stream.TransformablePublisher;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
-  private final Publisher<? extends T> publisher;
+  private static final Logger LOGGER = LoggerFactory.getLogger(BufferingPublisher.class);
 
-  public BufferingPublisher(Publisher<? extends T> publisher) {
-    this.publisher = publisher;
+  private static final Object ON_COMPLETE = new Object();
+  private static final Object ON_ERROR = new Object();
+  private static final Object CANCEL = new Object();
+
+  private final Action<? super T> disposer;
+  private final Function<? super BufferedWriteStream<T>, ? extends Subscription> function;
+
+  public BufferingPublisher(Action<? super T> disposer, Publisher<T> publisher) {
+    this(disposer, write -> {
+      return new ConnectingSubscriber<>(publisher, write);
+    });
+  }
+
+  public BufferingPublisher(Action<? super T> disposer, Function<? super BufferedWriteStream<T>, ? extends Subscription> function) {
+    this.disposer = disposer;
+    this.function = function;
   }
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    new Subscription(subscriber);
+    new BufferingSubscription(subscriber);
   }
 
-  private class Subscription extends SubscriptionSupport<T> {
+  private static class ConnectingSubscriber<T> implements Subscriber<T>, Subscription {
 
-    // if null, using passthru
-    private BufferingSubscriber bufferingSubscriber;
+    private final Publisher<T> publisher;
+    private final BufferedWriteStream<T> write;
 
-    private final AtomicBoolean upstreamFinished;
+    private volatile Subscription upstream;
 
-    private final AtomicReference<org.reactivestreams.Subscription> upstreamSubscription;
-    private final AtomicBoolean requestedUpstream;
+    private final AtomicBoolean connected = new AtomicBoolean();
+    private final AtomicBoolean draining = new AtomicBoolean();
+    private final Queue<Object> signals = PlatformDependent.newMpscQueue();
 
-    public Subscription(Subscriber<? super T> subscriber) {
-      super(subscriber);
-      upstreamFinished = new AtomicBoolean();
-      upstreamSubscription = new AtomicReference<>();
-      requestedUpstream = new AtomicBoolean();
-      start();
+    ConnectingSubscriber(Publisher<T> publisher, BufferedWriteStream<T> write) {
+      this.publisher = publisher;
+      this.write = write;
     }
 
-    protected void doRequest(long n) {
-      if (!isStopped()) {
-        if (requestedUpstream.compareAndSet(false, true)) {
-          if (n == Long.MAX_VALUE) {
-            publisher.subscribe(new PassThruSubscriber());
-            upstreamSubscription.get().request(n);
-          } else {
-            bufferingSubscriber = new BufferingSubscriber();
-            publisher.subscribe(bufferingSubscriber);
-            upstreamSubscription.get().request(Long.MAX_VALUE);
-            bufferingSubscriber.wanted.addAndGet(n);
-            bufferingSubscriber.tryDrain();
-          }
-        } else {
-          if (bufferingSubscriber == null) {
-            upstreamSubscription.get().request(n);
-          } else if (!bufferingSubscriber.open.get()) {
-            if (bufferingSubscriber.wanted.addAndGet(n) >= 0) {
-              bufferingSubscriber.open.set(true);
+    @Override
+    public void request(long n) {
+      signals.add(n);
+      if (connected.compareAndSet(false, true)) {
+        publisher.subscribe(this);
+      } else {
+        drain();
+      }
+    }
+
+    @Override
+    public void cancel() {
+      signals.add(CANCEL);
+      drain();
+    }
+
+    private void drain() {
+      if (draining.compareAndSet(false, true)) {
+        try {
+          Subscription upstreamRead = upstream;
+          if (upstreamRead != null) {
+            Object signal = signals.poll();
+            while (signal != null) {
+              if (signal == CANCEL) {
+                upstreamRead.cancel();
+              } else {
+                upstreamRead.request((long) signal);
+              }
+              signal = signals.poll();
             }
-            bufferingSubscriber.tryDrain();
           }
+        } finally {
+          draining.set(false);
+        }
+        if (!signals.isEmpty() && upstream != null) {
+          drain();
         }
       }
     }
 
     @Override
-    protected void doCancel() {
-      org.reactivestreams.Subscription subscription = upstreamSubscription.getAndSet(null);
-      if (subscription != null) {
-        subscription.cancel();
-      }
-      if (bufferingSubscriber != null) {
-        bufferingSubscriber.wanted.set(Long.MIN_VALUE);
-        bufferingSubscriber = null;
-      }
+    public void onSubscribe(Subscription s) {
+      upstream = s;
+      drain();
     }
 
-    class PassThruSubscriber implements Subscriber<T> {
-      @Override
-      public void onSubscribe(org.reactivestreams.Subscription s) {
-        upstreamSubscription.set(s);
-      }
-
-      @Override
-      public void onNext(T t) {
-        Subscription.this.onNext(t);
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        Subscription.this.onError(t);
-      }
-
-      @Override
-      public void onComplete() {
-        Subscription.this.onComplete();
-      }
+    @Override
+    public void onNext(T t) {
+      write.item(t);
     }
 
-    class BufferingSubscriber implements Subscriber<T> {
-      private final AtomicLong wanted = new AtomicLong(Long.MIN_VALUE);
-      private final AtomicBoolean open = new AtomicBoolean();
-      private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
-      private final AtomicBoolean draining = new AtomicBoolean();
+    @Override
+    public void onError(Throwable t) {
+      write.error(t);
+    }
 
-      @Override
-      public void onSubscribe(org.reactivestreams.Subscription s) {
-        if (isStopped()) {
-          s.cancel();
-        }
-        upstreamSubscription.set(s);
-      }
-
-      @Override
-      public void onNext(T t) {
-        buffer.add(t);
-        tryDrain();
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        buffer.clear();
-        upstreamFinished.set(true);
-        Subscription.this.onError(t);
-      }
-
-      @Override
-      public void onComplete() {
-        upstreamFinished.set(true);
-        tryDrain();
-      }
-
-      public void tryDrain() {
-        if (draining.compareAndSet(false, true)) {
-          try {
-            long i = wanted.get();
-            while (open.get() || i > Long.MIN_VALUE) {
-              T item = buffer.poll();
-              if (item == null) {
-                if (upstreamFinished.get()) {
-                  Subscription.this.onComplete();
-                  return;
-                } else {
-                  break;
-                }
-              } else {
-                Subscription.this.onNext(item);
-                i = wanted.decrementAndGet();
-              }
-            }
-          } finally {
-            draining.set(false);
-          }
-          if (buffer.peek() != null && wanted.get() > Long.MIN_VALUE) {
-            tryDrain();
-          }
-        }
-      }
-
+    @Override
+    public void onComplete() {
+      write.complete();
     }
   }
-}
 
+  private class BufferingSubscription implements Subscription {
+    private final Deque<T> buffer = new ConcurrentLinkedDeque<>();
+
+    private final AtomicLong wanted = new AtomicLong();
+    private final AtomicBoolean draining = new AtomicBoolean();
+    private volatile boolean open;
+
+    private volatile Subscription upstreamSubscription;
+    private volatile Subscriber<? super T> downstream;
+    private volatile Throwable error;
+
+    private final BufferedWriteStream<T> writeStream = new WriteStream();
+
+    BufferingSubscription(Subscriber<? super T> downstream) {
+      this.downstream = downstream;
+      downstream.onSubscribe(this);
+      open = true;
+      drain();
+    }
+
+    private void drain() {
+      if (draining.compareAndSet(false, true)) {
+        try {
+          T item = buffer.poll();
+          while (item != null) {
+            if (item == ON_COMPLETE) {
+              if (downstream != null) {
+                downstream.onComplete();
+                downstream = null;
+              }
+            } else if (item == ON_ERROR) {
+              if (downstream != null) {
+                assert error != null;
+                downstream.onError(error);
+                downstream = null;
+              }
+            } else {
+              if (downstream == null || error != null) {
+                try {
+                  disposer.execute(item);
+                } catch (Exception e) {
+                  LOGGER.warn("exception raised disposing of " + item + " - will be ignored", e);
+                }
+              } else {
+                if (wanted.get() > 0) {
+                  downstream.onNext(item);
+                  if (wanted.decrementAndGet() == 0) {
+                    break;
+                  }
+                } else {
+                  buffer.push(item);
+                  break;
+                }
+              }
+            }
+            item = buffer.poll();
+          }
+        } finally {
+          draining.set(false);
+        }
+        T peek = buffer.peek();
+        if (peek != null && (wanted.get() > 0 || peek == ON_COMPLETE || peek == ON_ERROR)) {
+          drain();
+        }
+      }
+    }
+
+    @Override
+    public void request(long n) {
+      if (downstream == null) {
+        return;
+      }
+      if (n < 1) {
+        downstream.onError(new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0."));
+        cancel();
+      }
+
+      if (upstreamSubscription == null) {
+        try {
+          upstreamSubscription = function.apply(writeStream);
+        } catch (Exception e) {
+          writeStream.error(e);
+          return;
+        }
+      }
+
+      if (wanted.get() < Long.MAX_VALUE) {
+        long nowWanted = wanted.addAndGet(n);
+        if (nowWanted == Long.MAX_VALUE || nowWanted < 0) {
+          wanted.set(Long.MAX_VALUE);
+          upstreamSubscription.request(Long.MAX_VALUE);
+        } else {
+          long outstanding = n - buffer.size();
+          if (outstanding > 0) {
+            upstreamSubscription.request(outstanding);
+          }
+        }
+      }
+      drain();
+    }
+
+    @Override
+    public void cancel() {
+      if (downstream != null) {
+        downstream = null;
+        if (upstreamSubscription != null) {
+          upstreamSubscription.cancel();
+        }
+        drain();
+      }
+    }
+
+    class WriteStream implements BufferedWriteStream<T> {
+      @Override
+      public void item(T item) {
+        buffer.add(item);
+        if (open) {
+          drain();
+        }
+      }
+
+      @SuppressWarnings("unchecked")
+      @Override
+      public void error(Throwable throwable) {
+        error = throwable;
+        buffer.add((T) ON_ERROR);
+        if (open) {
+          drain();
+        }
+      }
+
+      @SuppressWarnings("unchecked")
+      @Override
+      public void complete() {
+        buffer.add((T) ON_COMPLETE);
+        if (open) {
+          drain();
+        }
+      }
+
+      @Override
+      public long getRequested() {
+        return wanted.get();
+      }
+
+      @Override
+      public long getBuffered() {
+        return buffer.size();
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return downstream == null;
+      }
+    }
+
+  }
+}

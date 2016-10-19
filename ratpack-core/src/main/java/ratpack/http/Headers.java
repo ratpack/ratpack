@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.api.Nullable;
 import ratpack.util.MultiValueMap;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,7 @@ public interface Headers {
    */
   @Nullable
   String get(CharSequence name);
+
   /**
    * Returns the header value with the specified header name.
    * <p>
@@ -60,6 +62,22 @@ public interface Headers {
    */
   @Nullable
   Date getDate(CharSequence name);
+
+  /**
+   * Returns the header value as an instant with the specified header name.
+   * <p>
+   * If there is more than one header value for the specified header name, the first value is returned.
+   *
+   * @param name the case insensitive name of the header to get retrieve the first value of
+   * @return the header value as an instant or {@code null} if there is no such header or the header value is not a valid date format
+   * @since 1.4
+   */
+  @Nullable
+  default Instant getInstant(CharSequence name) {
+    Date date = getDate(name);
+    return date == null ? null : Instant.ofEpochMilli(date.getTime());
+  }
+
   /**
    * Returns the header value as a date with the specified header name.
    * <p>

@@ -19,7 +19,7 @@ description = "Integration with Google Guice for Ratpack applications - https://
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-    "http://google-guice.googlecode.com/git/javadoc/"
+  "https://google.github.io/guice/api-docs/${commonVersions.guice.split("\\.", 3)[0..1].join(".")}/javadoc"
 ]
 
 configurations {

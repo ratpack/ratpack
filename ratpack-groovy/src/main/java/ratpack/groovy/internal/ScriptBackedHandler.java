@@ -16,7 +16,6 @@
 
 package ratpack.groovy.internal;
 
-import io.netty.util.CharsetUtil;
 import ratpack.func.BiFunction;
 import ratpack.func.Factory;
 import ratpack.handling.Context;
@@ -32,10 +31,7 @@ public class ScriptBackedHandler implements Handler {
 
   public ScriptBackedHandler(Path script, boolean reloadable, BiFunction<? super Path, ? super String, ? extends Handler> capture) throws Exception {
     this.script = script;
-    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, (file, bytes) -> {
-      String string = bytes.toString(CharsetUtil.UTF_8);
-      return capture.apply(script, string);
-    });
+    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, capture::apply);
 
     if (reloadable) {
       new Thread(() -> {

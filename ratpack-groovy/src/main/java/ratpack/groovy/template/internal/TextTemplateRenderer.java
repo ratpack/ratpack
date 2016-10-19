@@ -32,14 +32,14 @@ public class TextTemplateRenderer extends RendererSupport<TextTemplate> {
     this.engine = engine;
   }
 
-  public void render(final Context context, final TextTemplate template) throws Exception {
+  public void render(final Context ctx, final TextTemplate template) throws Exception {
     engine.renderTemplate(template.getId(), template.getModel())
       .then(byteBuf -> {
         String type = template.getType();
         if (type == null) {
-          type = context.get(MimeTypes.class).getContentType(template.getId());
+          type = ctx.get(MimeTypes.class).getContentType(template.getId());
         }
-        context.getResponse().contentType(type).send(byteBuf);
+        ctx.getResponse().contentType(type).send(byteBuf);
       });
   }
 }

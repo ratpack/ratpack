@@ -16,7 +16,7 @@ The `ratpack-guice` library provides the [`BindingsSpec`](api/ratpack/guice/Bind
 
 ## Dependency injected handlers
 
-The Guice integration gives you a means of decoupling the components of your application.
+The Guice integration gives you a way to decouple the components of your application.
 You can factor out functionality into standalone (i.e. non `Handler`) objects and use these objects from your handlers.
 This makes your code more maintainable and more testable.
 This is the standard “Dependency Injection” or “Inversion of Control” pattern.
@@ -38,4 +38,4 @@ More usefully, this means that Ratpack infrastructure can be integrated via Guic
 For example, an implementation of the [`ServerErrorHandler`](api/ratpack/error/ServerErrorHandler.html) can be provided by a Guice module.
 Because Guice bound objects are integrated into the context registry lookup mechanism, this implementation will participate in the error handling infrastructure.
 
-This is true of all Ratpack infrastructure that works via context registry lookup, such as [Renderer](api/ratpack/render/Renderer.html) implementations for example.
+This is true for all Ratpack infrastructure that works via context registry lookup, such as [Renderer](api/ratpack/render/Renderer.html) implementations for example.

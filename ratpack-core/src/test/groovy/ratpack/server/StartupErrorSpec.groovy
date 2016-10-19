@@ -17,7 +17,7 @@
 package ratpack.server
 
 import ratpack.registry.Registry
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -29,7 +29,7 @@ class StartupErrorSpec extends Specification {
   @AutoCleanup("stop")
   RatpackServer server
 
-  TestHttpClient http = TestHttpClient.testHttpClient(ApplicationUnderTest.of({ server }))
+  TestHttpClient http = TestHttpClient.testHttpClient(ServerBackedApplicationUnderTest.of { server })
 
   def "errors in of function are fatal on startup"() {
     when:

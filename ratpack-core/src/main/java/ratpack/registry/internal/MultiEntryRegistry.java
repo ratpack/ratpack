@@ -16,14 +16,17 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Function;
 import ratpack.registry.Registry;
 import ratpack.util.Types;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 
 public class MultiEntryRegistry implements Registry {
 
@@ -39,8 +42,9 @@ public class MultiEntryRegistry implements Registry {
   }
 
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     for (RegistryEntry<?> entry : entries) {
-      if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
+      if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
         return Optional.of(cast);
       }
@@ -50,53 +54,29 @@ public class MultiEntryRegistry implements Registry {
   }
 
   public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
-    //noinspection Convert2Lambda
-    return new Iterable<O>() {
-      @Override
-      public Iterator<O> iterator() {
-        return new Iterator<O>() {
-
-          final Iterator<? extends RegistryEntry<?>> delegate = entries.iterator();
-          O next;
-
-          @Override
-          public boolean hasNext() {
-            if (next != null) {
-              return true;
-            }
-
-            while (delegate.hasNext()) {
-              RegistryEntry<?> entry = delegate.next();
-              if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
-                @SuppressWarnings("unchecked") O cast = (O) entry.get();
-                next = cast;
-                return true;
-              }
-            }
-
-            return false;
-          }
-
-          @Override
-          public O next() {
-            O nextCopy = next;
-            next = null;
-            return nextCopy;
-          }
-
-          @Override
-          public void remove() {
-            throw new UnsupportedOperationException();
-          }
-        };
+    ImmutableList.Builder<RegistryEntry<?>> builder = null;
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
+    for (RegistryEntry<?> entry : entries) {
+      if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
+        if (builder == null) {
+          builder = ImmutableList.builder();
+        }
+        builder.add(entry);
       }
-    };
+    }
+
+    if (builder == null) {
+      return Collections.emptyList();
+    } else {
+      return new EntryIterable<>(builder.build());
+    }
   }
 
   @Override
   public <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     for (RegistryEntry<?> entry : entries) {
-      if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
+      if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
         RegistryEntry<? extends T> cast = Types.cast(entry);
         O result = function.apply(cast.get());
         if (result != null) {
@@ -124,5 +104,55 @@ public class MultiEntryRegistry implements Registry {
   @Override
   public int hashCode() {
     return entries.hashCode();
+  }
+
+  private static class EntryIterable<T> implements Iterable<T> {
+    private final ImmutableList<RegistryEntry<?>> entries;
+
+    public EntryIterable(ImmutableList<RegistryEntry<?>> entries) {
+      this.entries = entries;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      EntryIterable<?> that = (EntryIterable<?>) o;
+      return entries.equals(that.entries);
+    }
+
+    @Override
+    public int hashCode() {
+      return entries.hashCode();
+    }
+
+    private static class Iter<T> implements Iterator<T> {
+      private final Iterator<RegistryEntry<?>> entryIterator;
+
+      public Iter(Iterator<RegistryEntry<?>> entryIterator) {
+        this.entryIterator = entryIterator;
+      }
+
+      @Override
+      public boolean hasNext() {
+        return entryIterator.hasNext();
+      }
+
+      @SuppressWarnings("unchecked")
+      @Override
+      public T next() {
+        return (T) entryIterator.next().get();
+      }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+      return new Iter<>(entries.iterator());
+    }
   }
 }

@@ -16,19 +16,16 @@
 
 package ratpack.guice.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.registry.internal.TypeAssignabilityCache;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.util.Types;
 
-import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import static ratpack.util.Exceptions.uncheck;
 
@@ -38,12 +35,13 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void search(Injector injector, TypeToken<T> type, Function<Provider<? extends T>, Boolean> transformer) {
+    ConcurrentMap<TypeToken<?>, Boolean> cache = TypeCaching.cache(type);
     Map<Key<?>, Binding<?>> bindings = injector.getBindings();
     for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : bindings.entrySet()) {
       final Key<?> key = keyBindingEntry.getKey();
       final Binding<?> binding = keyBindingEntry.getValue();
       TypeLiteral<?> bindingType = key.getTypeLiteral();
-      if (TypeAssignabilityCache.isAssignableFrom(type, toTypeToken(bindingType))) {
+      if (TypeCaching.isAssignableFrom(cache, type, toTypeToken(bindingType))) {
         @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) binding.getProvider();
         try {
           if (!transformer.apply(provider)) {
@@ -80,18 +78,8 @@ public abstract class GuiceUtil {
     return listBuilder.build();
   }
 
-  private static final LoadingCache<Type, TypeToken<?>> TYPE_TOKEN_CACHE = CacheBuilder.newBuilder()
-    .maximumSize(5120) // TODO - make this tuneable
-    .build(new CacheLoader<Type, TypeToken<?>>() {
-      @Override
-      public TypeToken<?> load(Type key) throws Exception {
-        return TypeToken.of(key);
-      }
-    });
-
-  @SuppressWarnings("unchecked")
   public static <T> TypeToken<T> toTypeToken(TypeLiteral<T> type) {
-    return (TypeToken<T>) TYPE_TOKEN_CACHE.getUnchecked(type.getType());
+    return TypeCaching.typeToken(type.getType());
   }
 
   public static <T> TypeLiteral<T> toTypeLiteral(TypeToken<T> type) {

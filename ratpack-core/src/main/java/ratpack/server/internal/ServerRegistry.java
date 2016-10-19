@@ -34,39 +34,33 @@ import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
-import ratpack.file.internal.DefaultFileRenderer;
+import ratpack.file.internal.FileRenderer;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Function;
 import ratpack.handling.Redirector;
 import ratpack.handling.RequestId;
-import ratpack.handling.internal.DefaultRedirector;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.health.internal.HealthCheckResultsRenderer;
 import ratpack.http.client.HttpClient;
-import ratpack.jackson.JsonRender;
+import ratpack.impose.Impositions;
 import ratpack.jackson.internal.JsonParser;
 import ratpack.jackson.internal.JsonRenderer;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
-import ratpack.render.Renderable;
-import ratpack.render.Renderer;
-import ratpack.render.internal.CharSequenceRenderer;
-import ratpack.render.internal.PromiseRenderer;
-import ratpack.render.internal.PublisherRenderer;
-import ratpack.render.internal.RenderableRenderer;
+import ratpack.render.internal.*;
 import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
 
-import java.nio.file.Path;
 import java.time.Clock;
+import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
-  public static Registry serverRegistry(RatpackServer ratpackServer, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
-    Registry baseRegistry = buildBaseRegistry(ratpackServer, execController, serverConfig);
+  public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+    Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
 
     execController.setInterceptors(ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class)));
@@ -86,43 +80,52 @@ public abstract class ServerRegistry {
     return userRegistry;
   }
 
-  public static Registry buildBaseRegistry(RatpackServer ratpackServer, ExecController execController, ServerConfig serverConfig) {
+  public static Registry buildBaseRegistry(RatpackServer ratpackServer, Impositions impositions, ExecController execController, ServerConfig serverConfig) {
     ErrorHandler errorHandler = serverConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
 
     RegistryBuilder baseRegistryBuilder;
     try {
-      PromiseRenderer promiseRenderer = new PromiseRenderer();
-      PublisherRenderer publisherRenderer = new PublisherRenderer();
+
+      HttpClient httpClient = HttpClient.of(s -> s
+        .poolSize(0)
+        .byteBufAllocator(PooledByteBufAllocator.DEFAULT)
+        .maxContentLength(serverConfig.getMaxContentLength())
+      );
 
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
+        .add(Impositions.class, impositions)
         .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
-        .add(MimeTypes.class, new ActivationBackedMimeTypes())
-        .add(PublicAddress.class, serverConfig.getPublicAddress() == null ? new InferringPublicAddress(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME) : PublicAddress.of(serverConfig.getPublicAddress()))
-        .add(Redirector.class, new DefaultRedirector())
+        .add(MimeTypes.class, ActivationBackedMimeTypes.INSTANCE)
+        .add(PublicAddress.class, Optional.ofNullable(serverConfig.getPublicAddress())
+          .map(PublicAddress::of)
+          .orElseGet(() -> PublicAddress.inferred(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+        )
+        .add(Redirector.TYPE, Redirector.standard())
         .add(ClientErrorHandler.class, errorHandler)
         .add(ServerErrorHandler.class, errorHandler)
-        .add(Renderer.typeOf(Path.class), new DefaultFileRenderer())
-        .add(Renderer.typeOf(promiseRenderer.getType()), promiseRenderer)
-        .add(Renderer.typeOf(publisherRenderer.getType()), publisherRenderer)
-        .add(Renderer.typeOf(Renderable.class), new RenderableRenderer())
-        .add(Renderer.typeOf(CharSequence.class), new CharSequenceRenderer())
-        .add(Renderer.typeOf(JsonRender.class), new JsonRenderer())
-        .add(FormParser.class, new FormParser())
+        .add(FileRenderer.TYPE, serverConfig.isDevelopment() ? FileRenderer.NON_CACHING : FileRenderer.CACHING)
+        .add(PromiseRenderer.TYPE, PromiseRenderer.INSTANCE)
+        .add(PublisherRenderer.TYPE, PublisherRenderer.INSTANCE)
+        .add(OptionalRenderer.TYPE, OptionalRenderer.INSTANCE)
+        .add(RenderableRenderer.TYPE, RenderableRenderer.INSTANCE)
+        .add(CharSequenceRenderer.TYPE, CharSequenceRenderer.INSTANCE)
+        .add(JsonRenderer.TYPE, JsonRenderer.INSTANCE)
+        .add(FormParser.TYPE, FormParser.INSTANCE)
+        .add(JsonParser.TYPE, JsonParser.INSTANCE)
         .add(Clock.class, Clock.systemDefaultZone())
-        .add(JsonParser.class, new JsonParser())
         .add(RatpackServer.class, ratpackServer)
         .add(ObjectMapper.class, new ObjectMapper())
-          // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
+        // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {
           ratpackServer.stop();
           return null;
         }))
-        .add(HttpClient.class, HttpClient.httpClient(PooledByteBufAllocator.DEFAULT, serverConfig.getMaxContentLength()))
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.sseStreamClient(PooledByteBufAllocator.DEFAULT))
-        .add(HealthCheckResultsRenderer.class, new HealthCheckResultsRenderer())
-        .add(RequestId.Generator.class, new UuidBasedRequestIdGenerator());
+        .add(HttpClient.class, httpClient)
+        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
+        .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
+        .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE);
 
       addConfigObjects(serverConfig, baseRegistryBuilder);
     } catch (Exception e) {
@@ -144,6 +147,6 @@ public abstract class ServerRegistry {
   }
 
   private static <T> void addConfigObject(RegistryBuilder baseRegistryBuilder, ConfigObject<T> configObject) {
-    baseRegistryBuilder.add(configObject.getType(), configObject.getObject());
+    baseRegistryBuilder.add(configObject.getTypeToken(), configObject.getObject());
   }
 }

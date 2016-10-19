@@ -154,7 +154,21 @@ public interface HealthCheck {
      * @return an unhealthy result, with the given error
      */
     public static Result unhealthy(Throwable error) {
-      return new Result(false, error.getMessage(), error);
+      return unhealthy(error.getMessage(), error);
+    }
+
+    /**
+     * Creates an unhealthy result, with the given exception and message.
+     * <p>
+     * The supplied message will be used as the message of the result.
+     *
+     * @param message a message to accompany the result
+     * @param error an exception thrown during health check
+     * @return an unhealthy result, with the given error and message
+     * @since 1.2
+     */
+    public static Result unhealthy(String message, Throwable error) {
+      return new Result(false, message, error);
     }
   }
 

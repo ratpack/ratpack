@@ -44,7 +44,7 @@ public abstract class ErrorPageRenderer {
         throw new IllegalStateException("Couldn't find style resource");
       }
 
-      InputStreamReader reader = new InputStreamReader(resourceAsStream, CharsetUtil.UTF_8);
+      InputStreamReader reader = new InputStreamReader(resourceAsStream, CharsetUtil.decoder(CharsetUtil.UTF_8));
       try {
         style = CharStreams.toString(reader);
       } catch (IOException e) {
@@ -151,7 +151,7 @@ public abstract class ErrorPageRenderer {
   protected void render(Context context, String pageTitle, Consumer<? super BodyWriter> body) {
     ByteBuf buffer = context.get(ByteBufAllocator.class).buffer();
     OutputStream out = new ByteBufOutputStream(buffer);
-    PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(out, CharsetUtil.UTF_8));
+    PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(out, CharsetUtil.encoder(CharsetUtil.UTF_8)));
     BodyWriter writer = new BodyWriter(printWriter);
 
     writer

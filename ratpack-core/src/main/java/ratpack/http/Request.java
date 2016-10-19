@@ -18,13 +18,19 @@ package ratpack.http;
 
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.cookie.Cookie;
+import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
+import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
+import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
+import ratpack.util.Types;
 
 import java.time.Instant;
 import java.util.Set;
@@ -36,6 +42,13 @@ import java.util.function.Supplier;
 public interface Request extends MutableRegistry {
 
   /**
+   * A type token for this type.
+   *
+   * @since 1.1
+   */
+  TypeToken<Request> TYPE = Types.token(Request.class);
+
+  /**
    * The method of the request.
    *
    * @return The method of the request.
@@ -44,6 +57,9 @@ public interface Request extends MutableRegistry {
 
   /**
    * The HTTP protocol of the request.
+   * <p>
+   * e.g. {@code "HTTP/1.1}
+   *
    *
    * @return The HTTP protocol of the request.
    */
@@ -115,24 +131,185 @@ public interface Request extends MutableRegistry {
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * The body content must be less than or equal to {@link ServerConfig#getMaxContentLength()} else a {@link HttpResponseStatus#REQUEST_ENTITY_TOO_LARGE} is sent.
+   * If the transmitted content is larger than provided {@link ServerConfig#getMaxContentLength()}, the given block will be invoked.
+   * If the block completes successfully, the promise will be terminated.
+   * If the block errors, the promise will carry the failure.
    *
    * @return the body of the request
    */
   Promise<TypedData> getBody();
 
   /**
+   * The body of the request.
+   * <p>
+   * If this request does not have a body, a non null object is still returned but it effectively has no data.
+   * <p>
+   * If the transmitted content is larger than provided {@code maxContentLength}, the given block will be invoked.
+   * If the block completes successfully, the promise will be terminated.
+   * If the block errors, the promise will carry the failure.
+   *
+   * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
+   * @return the body of the request
+   * @since 1.1
+   */
+  Promise<TypedData> getBody(Block onTooLarge);
+
+  /**
    * The body of the request allowing up to the provided size for the content.
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * If the transmitted content is larger than provided maxContentLength, then a {@link HttpResponseStatus#REQUEST_ENTITY_TOO_LARGE} is sent.
+   * If the transmitted content is larger than the provided {@code maxContentLength}, an {@code 413} client error will be issued.
    *
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @return the body of the request.
-   * @since 1.1.0
+   * @since 1.1
    */
   Promise<TypedData> getBody(long maxContentLength);
+
+  /**
+   * The body of the request allowing up to the provided size for the content.
+   * <p>
+   * If this request does not have a body, a non null object is still returned but it effectively has no data.
+   * <p>
+   * If the transmitted content is larger than the provided {@code maxContentLength}, the given block will be invoked.
+   * If the block completes successfully, the promise will be terminated.
+   * If the block errors, the promise will carry the failure.
+   *
+   * @param maxContentLength the maximum number of bytes allowed for the request.
+   * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
+   * @return the body of the request.
+   * @since 1.1
+   */
+  Promise<TypedData> getBody(long maxContentLength, Block onTooLarge);
+
+  /**
+   * Allows reading the body as a stream, with back pressure.
+   * <p>
+   * Similar to {@link #getBodyStream(long)}, except uses {@link ServerConfig#getMaxContentLength()} as the max content length.
+   *
+   * @return a publisher of the request body
+   * @see #getBodyStream(long)
+   * @since 1.2
+   */
+  TransformablePublisher<? extends ByteBuf> getBodyStream();
+
+  /**
+   * Allows reading the body as a stream, with back pressure.
+   * <p>
+   * The returned publisher emits the body as {@link ByteBuf}s.
+   * The subscriber <b>MUST</b> {@code release()} each emitted byte buf.
+   * Failing to do so will leak memory.
+   * <p>
+   * If the request body is larger than the given {@code maxContentLength}, a {@link RequestBodyTooLargeException} will be emitted.
+   * If the request body has already been read, a {@link RequestBodyAlreadyReadException} will be emitted.
+   * <p>
+   * The returned publisher is bound to the calling execution via {@link Streams#bindExec(Publisher)}.
+   * If your subscriber's onNext(), onComplete() or onError() methods are asynchronous they <b>MUST</b> use {@link Promise},
+   * {@link Blocking} or similar execution control constructs.
+   * <p>
+   * The following demonstrates how to use this method to stream the request body to a file, using asynchronous IO.
+   *
+   * <pre class="java">
+   * import com.google.common.io.Files;
+   * import io.netty.buffer.ByteBuf;
+   * import org.apache.commons.lang3.RandomStringUtils;
+   * import org.reactivestreams.Subscriber;
+   * import org.reactivestreams.Subscription;
+   * import org.junit.Assert;
+   * import ratpack.exec.Promise;
+   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.test.embed.EmbeddedApp;
+   * import ratpack.test.embed.EphemeralBaseDir;
+   *
+   * import java.io.IOException;
+   * import java.nio.channels.AsynchronousFileChannel;
+   * import java.nio.charset.StandardCharsets;
+   * import java.nio.file.Path;
+   * import java.nio.file.StandardOpenOption;
+   *
+   * public class Example {
+   *   public static void main(String[] args) throws Exception {
+   *     EphemeralBaseDir.tmpDir().use(dir -> {
+   *       String string = RandomStringUtils.random(1024 * 1024);
+   *       int length = string.getBytes(StandardCharsets.UTF_8).length;
+   *
+   *       Path file = dir.path("out.txt");
+   *
+   *       EmbeddedApp.fromHandler(ctx ->
+   *         ctx.getRequest().getBodyStream(length).subscribe(new Subscriber<ByteBuf>() {
+   *
+   *           private Subscription subscription;
+   *           private AsynchronousFileChannel out;
+   *           long written;
+   *
+   *           {@literal @}Override
+   *           public void onSubscribe(Subscription s) {
+   *             subscription = s;
+   *             try {
+   *               this.out = AsynchronousFileChannel.open(
+   *                 file, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
+   *               );
+   *               subscription.request(1);
+   *             } catch (IOException e) {
+   *               subscription.cancel();
+   *               ctx.error(e);
+   *             }
+   *           }
+   *
+   *           {@literal @}Override
+   *           public void onNext(ByteBuf byteBuf) {
+   *             Promise.<Integer>async(down ->
+   *               out.write(byteBuf.nioBuffer(), written, null, down.completionHandler())
+   *             ).onError(error -> {
+   *               byteBuf.release();
+   *               subscription.cancel();
+   *               out.close();
+   *               ctx.error(error);
+   *             }).then(bytesWritten -> {
+   *               byteBuf.release();
+   *               written += bytesWritten;
+   *               subscription.request(1);
+   *             });
+   *           }
+   *
+   *           {@literal @}Override
+   *           public void onError(Throwable t) {
+   *             ctx.error(t);
+   *             try {
+   *               out.close();
+   *             } catch (IOException ignore) {
+   *               // ignore
+   *             }
+   *           }
+   *
+   *           {@literal @}Override
+   *           public void onComplete() {
+   *             try {
+   *               out.close();
+   *             } catch (IOException ignore) {
+   *               // ignore
+   *             }
+   *             ctx.render("ok");
+   *           }
+   *         })
+   *       ).test(http -> {
+   *         ReceivedResponse response = http.request(requestSpec -> requestSpec.method("POST").getBody().text(string));
+   *         Assert.assertEquals(response.getBody().getText(), "ok");
+   *
+   *         String fileContents = Files.toString(file.toFile(), StandardCharsets.UTF_8);
+   *         Assert.assertEquals(fileContents, string);
+   *       });
+   *     });
+   *   }
+   * }
+   * </pre>
+   *
+   * @return a publisher of the request body
+   * @see #getBodyStream(long)
+   * @since 1.2
+   */
+  TransformablePublisher<? extends ByteBuf> getBodyStream(long maxContentLength);
 
   /**
    * The request headers.
@@ -172,6 +349,41 @@ public interface Request extends MutableRegistry {
   boolean isAjaxRequest();
 
   /**
+   * Whether this request contains a {@code Expect: 100-Continue} header.
+   * <p>
+   * You do not need to send the {@code 100 Continue} status response.
+   * It will be automatically sent when the body is read via {@link #getBody()} or {@link #getBodyStream(long)} (or variants).
+   * Ratpack will not emit a {@code 417 Expectation Failed} response if the body is not read.
+   * The response specified by the handling code will not be altered, as per normal.
+   * <p>
+   * If the header is present for the request, this method will return {@code true} before and after the {@code 100 Continue} response has been sent.
+   *
+   * @return whether this request includes the {@code Expect: 100-Continue} header
+   * @since 1.2
+   */
+  boolean isExpectsContinue();
+
+  /**
+   * Whether this request contains a {@code Transfer-Encoding: chunked} header.
+   * <p>
+   * See <a href="https://en.wikipedia.org/wiki/Chunked_transfer_encoding">https://en.wikipedia.org/wiki/Chunked_transfer_encoding</a>.
+   *
+   * @return whether this request contains a {@code Transfer-Encoding: chunked} header
+   * @since 1.2
+   */
+  boolean isChunkedTransfer();
+
+  /**
+   * The advertised content length of the request body.
+   * <p>
+   * Will return {@code -1} if no {@code Content-Length} header is present, or is not valid long value.
+   *
+   * @return the advertised content length of the request body.
+   * @since 1.2
+   */
+  long getContentLength();
+
+  /**
    * The timestamp for when this request was received.
    * Specifically, this is the timestamp of creation of the request object.
    *
@@ -183,13 +395,13 @@ public interface Request extends MutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  <O> Request add(Class<? super O> type, O object);
+  <O> Request add(Class<O> type, O object);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> Request add(TypeToken<? super O> type, O object);
+  <O> Request add(TypeToken<O> type, O object);
 
   /**
    * {@inheritDoc}

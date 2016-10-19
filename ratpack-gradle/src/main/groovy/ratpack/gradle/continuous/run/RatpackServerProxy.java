@@ -16,12 +16,15 @@
 
 package ratpack.gradle.continuous.run;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 
 public class RatpackServerProxy {
 
   public static final String CAPTURER_CLASS_NAME = "ratpack.server.internal.ServerCapturer";
+  public static final String BLOCK_CLASS_NAME = "ratpack.func.Block";
   public static final String SERVER_CLASS_NAME = "ratpack.server.internal.DefaultRatpackServer";
   private final Object server;
 
@@ -37,7 +40,7 @@ public class RatpackServerProxy {
     }
   }
 
-  public static RatpackServerProxy capture(ClassLoader classLoader, String mainClassName, String[] args) {
+  public static RatpackServerProxy capture(ClassLoader classLoader, final String mainClassName, final String[] appArgs) {
     Class<?> mainClass;
     try {
       mainClass = classLoader.loadClass(mainClassName);
@@ -56,29 +59,42 @@ public class RatpackServerProxy {
       throw new RuntimeException("main(String...) is not static on class: " + mainClassName);
     }
 
-    try {
-      main.invoke(null, new Object[]{args});
-    } catch (Exception e) {
-      throw new RuntimeException("failed to invoke main(String...) on class: " + mainClassName, e);
-    }
-
     Class<?> capturer;
     try {
       capturer = classLoader.loadClass(CAPTURER_CLASS_NAME);
     } catch (ClassNotFoundException e) {
-      throw new RuntimeException("could not load capturer", e);
+      throw new RuntimeException("could not load " + CAPTURER_CLASS_NAME, e);
+    }
+    Class<?> blockType;
+    try {
+      blockType = classLoader.loadClass(BLOCK_CLASS_NAME);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("could not load " + BLOCK_CLASS_NAME, e);
     }
 
-    Method getMethod;
+    Method captureMethod;
     try {
-      getMethod = capturer.getMethod("get");
+      captureMethod = capturer.getMethod("capture", blockType);
     } catch (NoSuchMethodException e) {
-      throw new RuntimeException("Could not find get() on ServerCapturer");
+      throw new RuntimeException("Could not find capture() on ServerCapturer");
     }
+
+    final Method finalMain = main;
+    Object block = Proxy.newProxyInstance(classLoader, new Class<?>[]{blockType}, new InvocationHandler() {
+      @Override
+      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        try {
+          finalMain.invoke(null, new Object[]{appArgs});
+        } catch (Exception e) {
+          throw new RuntimeException("failed to invoke main(String...) on class: " + mainClassName, e);
+        }
+        return null;
+      }
+    });
 
     Object server;
     try {
-      server = getMethod.invoke(null);
+      server = captureMethod.invoke(null, block);
     } catch (Exception e) {
       throw new RuntimeException("Failed to invoke get() on ServerCapturer");
     }

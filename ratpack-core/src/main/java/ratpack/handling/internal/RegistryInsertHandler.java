@@ -22,11 +22,11 @@ import ratpack.registry.Registry;
 
 public class RegistryInsertHandler implements Handler {
 
-  private final Handler handler;
+  private final Handler[] handler;
   private final Registry registry;
 
   public RegistryInsertHandler(Registry registry, Handler handler) {
-    this.handler = handler;
+    this.handler = ChainHandler.unpack(handler);
     this.registry = registry;
   }
 

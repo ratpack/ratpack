@@ -16,20 +16,15 @@
 
 package ratpack.session.store.internal;
 
-
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.inject.Inject;
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.AsciiString;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
 import ratpack.session.SessionStore;
 import ratpack.session.store.RedisSessionModule;
 
@@ -38,7 +33,7 @@ public class RedisSessionStore implements SessionStore {
   private final RedisSessionModule.Config config;
 
   private TimerExposingRedisClient redisClient;
-  private RedisAsyncConnection<AsciiString, ByteBuf> connection;
+  private RedisAsyncCommands<AsciiString, ByteBuf> connection;
 
   @Inject
   public RedisSessionStore(RedisSessionModule.Config config) {
@@ -47,28 +42,25 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Operation store(AsciiString sessionId, ByteBuf sessionData) {
-    return Promise.<Boolean>of(d ->
-        Futures.addCallback(connection.set(sessionId, sessionData), new FutureCallback<String>() {
-          @Override
-          public void onSuccess(String result) {
-            if (result != null && result.equalsIgnoreCase("OK")) {
-              d.success(true);
-            } else {
-              d.error(new RuntimeException("Failed to set session data"));
-            }
+    return Promise.<Boolean>async(d ->
+      connection.set(sessionId, sessionData).handleAsync((value, failure) -> {
+        if (failure == null) {
+          if (value != null && value.equalsIgnoreCase("OK")) {
+            d.success(true);
+          } else {
+            d.error(new RuntimeException("Failed to set session data"));
           }
-
-          @Override
-          public void onFailure(Throwable t) {
-            d.error(new RuntimeException("Failed to set session data.", t));
-          }
-        }, Execution.current().getEventLoop())
+        } else {
+          d.error(new RuntimeException("Failed to set session data.", failure));
+        }
+        return null;
+      }, Execution.current().getEventLoop())
     ).operation();
   }
 
   @Override
   public Promise<ByteBuf> load(AsciiString sessionId) {
-    return Promise.<ByteBuf>of(downstream -> {
+    return Promise.<ByteBuf>async(downstream -> {
       downstream.accept(connection.get(sessionId));
     }).map(byteBuf -> {
       if (byteBuf == null) {
@@ -81,7 +73,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public Operation remove(AsciiString sessionId) {
-    return Promise.<Long>of(d -> d.accept(connection.del(sessionId))).operation();
+    return Promise.<Long>async(d -> d.accept(connection.del(sessionId))).operation();
   }
 
   @Override
@@ -95,13 +87,13 @@ public class RedisSessionStore implements SessionStore {
   }
 
   @Override
-  public void onStart(StartEvent event) throws Exception {
+  public void onStart(@SuppressWarnings("deprecation") ratpack.server.StartEvent event) throws Exception {
     redisClient = new TimerExposingRedisClient(getRedisURI());
-    connection = redisClient.connectAsync(new AsciiStringByteBufRedisCodec());
+    connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 
   @Override
-  public void onStop(StopEvent event) throws Exception {
+  public void onStop(@SuppressWarnings("deprecation") ratpack.server.StopEvent event) throws Exception {
     if (redisClient != null) {
       try {
         redisClient.getTimer().stop();

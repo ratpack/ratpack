@@ -18,7 +18,14 @@ package ratpack.dropwizard.metrics;
 
 import java.time.Duration;
 
-abstract class ScheduledReporterConfigSupport<T extends ReporterConfigSupport<T>> extends ReporterConfigSupport<T> {
+/**
+ * A common base for scheduled reporter config classes.
+ *
+ * @param <T> self type
+ * @since 1.4
+ */
+public abstract class ScheduledReporterConfigSupport<T extends ReporterConfigSupport<T>> extends ReporterConfigSupport<T> {
+
   private Duration reporterInterval = Duration.ofSeconds(30);
 
   /**

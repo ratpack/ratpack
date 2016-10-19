@@ -285,7 +285,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Promise.of { d ->
+        Promise.async { d ->
           Execution.fork().onError { d.error(it) }.start {
             Execution.current().get(Session)
           }

@@ -29,6 +29,8 @@ description = "Build time Ratpack support with the Gradle build tool - http://gr
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
+apply from: "$rootDir/gradle/projectLocalRepo.gradle"
+apply plugin: "maven"
 
 configurations.testCompile.dependencies.clear()
 
@@ -36,15 +38,17 @@ sourceCompatibility = "1.6"
 targetCompatibility = "1.6"
 
 dependencies {
-  compile localGroovy()
   compile gradleApi()
 
+  testCompile gradleTestKit()
+  testCompile commonDependencies.guava
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
     exclude module: "groovy-all", group: "org.codehaus.groovy"
   }
 }
 
 test {
+  dependsOn install
   dependsOn { apiModules*.install }
   onlyIf { !System.getenv('CI_GROOVY_VERSION') }
   allprojects {
@@ -77,4 +81,8 @@ pluginBundle {
       tags = ['groovy', 'application', 'web', 'http', 'ratpack']
     }
   }
+}
+
+test.doFirst {
+  maxParallelForks 1
 }

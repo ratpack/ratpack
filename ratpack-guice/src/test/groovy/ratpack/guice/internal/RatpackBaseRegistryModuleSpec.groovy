@@ -28,10 +28,12 @@ import ratpack.exec.Promise
 import ratpack.exec.internal.DefaultExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
-import ratpack.form.internal.FormParser
+import ratpack.form.FormParseOpts
 import ratpack.guice.Guice
 import ratpack.handling.Redirector
 import ratpack.http.client.HttpClient
+import ratpack.impose.Impositions
+import ratpack.parse.Parser
 import ratpack.render.Renderable
 import ratpack.render.Renderer
 import ratpack.server.PublicAddress
@@ -51,7 +53,7 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     def ratpackServer = Mock(RatpackServer)
     def execController = new DefaultExecController(4)
     def serverConfig = ServerConfig.builder().build()
-    def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, execController, serverConfig, Guice.registry {})
+    def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, Impositions.none(), execController, serverConfig, Guice.registry {})
     def injector = baseRegistry.get(Injector)
 
     then:
@@ -65,11 +67,11 @@ class RatpackBaseRegistryModuleSpec extends Specification {
     injector.getInstance(ServerErrorHandler) == baseRegistry.get(ServerErrorHandler)
     injector.getInstance(RatpackServer) == ratpackServer
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Path>>() {}))
-    injector.getInstance(Key.get(new TypeLiteral<Renderer<Promise>>() {}))
-    injector.getInstance(Key.get(new TypeLiteral<Renderer<Publisher>>() {}))
+    injector.getInstance(Key.get(new TypeLiteral<Renderer<Promise<?>>>() {}))
+    injector.getInstance(Key.get(new TypeLiteral<Renderer<Publisher<?>>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<Renderable>>() {}))
     injector.getInstance(Key.get(new TypeLiteral<Renderer<CharSequence>>() {}))
-    injector.getInstance(Key.get(FormParser))
+    injector.getInstance(Key.get(new TypeLiteral<Parser<FormParseOpts>>() {}))
     !injector.getExistingBinding(Key.get(FileSystemBinding))
     injector.getInstance(HttpClient)
   }

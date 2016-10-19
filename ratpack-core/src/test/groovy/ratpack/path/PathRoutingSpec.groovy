@@ -27,7 +27,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix("abc") {
         all {
-          response.send(get(PathBinding).boundTo)
+          render(pathBinding.boundTo)
         }
       }
     }
@@ -45,7 +45,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
       prefix("abc") {
         prefix("def") {
           all {
-            response.send(get(PathBinding).pastBinding)
+            render(pathBinding.pastBinding)
           }
         }
       }
@@ -63,8 +63,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix(":a/:b/:c") {
         all {
-          def binding = get(PathBinding)
-          response.send("$binding.tokens - $binding.pastBinding")
+          def binding = pathBinding
+          render("$binding.tokens - $binding.pastBinding")
         }
       }
     }
@@ -79,7 +79,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
       prefix(":a/:b") {
         prefix(":d/:e") {
           all {
-            def binding = get(PathBinding)
+            def binding = pathBinding
             render "$binding.tokens - $binding.allTokens - $binding.pastBinding"
           }
         }
@@ -94,7 +94,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       path("abc") {
-        response.send(get(PathBinding).boundTo)
+        def binding = pathBinding
+        render(binding.boundTo)
       }
     }
 
@@ -109,7 +110,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix("abc") {
         path("def") {
-          response.send(get(PathBinding).boundTo)
+          render(pathBinding.boundTo)
         }
       }
     }
@@ -125,8 +126,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       path(":a/:b/:c") {
-        def binding = get(PathBinding)
-        response.send("$binding.tokens - $binding.pastBinding")
+        def binding = pathBinding
+        render("$binding.tokens - $binding.pastBinding")
       }
     }
 
@@ -140,8 +141,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix(":a/:b") {
         path(":d/:e") {
-          def binding = get(PathBinding)
-          response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+          def binding = pathBinding
+          render("$binding.tokens - $binding.allTokens - $binding.pastBinding")
         }
       }
     }
@@ -156,8 +157,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix(":a:[a-c]{1,3}/:b") {
         path(":d/:e?:4") {
-          def binding = get(PathBinding)
-          response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+          def binding = pathBinding
+          render("$binding.tokens - $binding.allTokens - $binding.pastBinding")
         }
       }
     }
@@ -182,8 +183,8 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix(":a:[a-c]{1,3}/:b") {
         path("::[a-z]{3}/:c?:4") {
-          def binding = get(PathBinding)
-          response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+          def binding = pathBinding
+          render("$binding.tokens - $binding.allTokens - $binding.pastBinding")
         }
       }
     }
@@ -200,11 +201,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        response.send("root")
+        render("root")
       }
 
       get("a") {
-        response.send("a")
+        render("a")
       }
     }
 
@@ -218,11 +219,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        response.send("root")
+        render("root")
       }
 
       post("a") {
-        response.send("a")
+        render("a")
       }
     }
 
@@ -236,11 +237,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       put {
-        response.send("root")
+        render("root")
       }
 
       put("a") {
-        response.send("a")
+        render("a")
       }
     }
 
@@ -254,11 +255,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       patch {
-        response.send("root")
+        render("root")
       }
 
       patch("a") {
-        response.send("a")
+        render("a")
       }
     }
 
@@ -272,11 +273,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       options {
-        response.send("root")
+        render("root")
       }
 
       options("a") {
-        response.send("a")
+        render("a")
       }
     }
 
@@ -290,11 +291,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       delete {
-        response.send("root")
+        render("root")
       }
 
       delete("a") {
-        response.send("a")
+        render("a")
       }
     }
 
@@ -308,10 +309,10 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("a/b") {
-        response.send "de-dup"
+        render "de-dup"
       }
       get("a//b") {
-        response.send "no de-dup"
+        render "no de-dup"
       }
     }
 
@@ -323,7 +324,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":a/:b?/:c?") {
-        response.send "a=${pathTokens.a},b=${pathTokens.b},c=${pathTokens.c}"
+        render "a=${pathTokens.a},b=${pathTokens.b},c=${pathTokens.c}"
       }
     }
 
@@ -335,13 +336,13 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("bar") {
-        response.send "0"
+        render "0"
       }
       get("/bar") {
-        response.send "1"
+        render "1"
       }
       get("//bar") {
-        response.send "2"
+        render "2"
       }
     }
 
@@ -355,13 +356,13 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("bar") {
-        response.send "0"
+        render "0"
       }
       get("bar/") {
-        response.send "1"
+        render "1"
       }
       get("bar//") {
-        response.send "2"
+        render "2"
       }
     }
 

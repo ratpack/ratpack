@@ -19,19 +19,23 @@ package ratpack.render.internal;
 import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
 import ratpack.handling.Context;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 import ratpack.stream.Streams;
 
 public class PublisherRenderer extends RendererSupport<Publisher<?>> {
 
-  public static final TypeToken<Renderer<Publisher<?>>> TYPE = new TypeToken<Renderer<Publisher<?>>>() {
-  };
+  public static final TypeToken<Renderer<Publisher<?>>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<Publisher<?>>>() {});
 
+  public static final Renderer<Publisher<?>> INSTANCE = new PublisherRenderer();
+
+  private PublisherRenderer() {
+  }
 
   @Override
-  public void render(Context context, Publisher<?> publisher) throws Exception {
-    Streams.toPromise(publisher).then(context::render);
+  public void render(Context ctx, Publisher<?> publisher) throws Exception {
+    Streams.toPromise(publisher).then(ctx::render);
   }
 
 }

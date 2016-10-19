@@ -44,7 +44,7 @@ public class CachingBackedRegistry implements Registry {
     if (!suppliers.hasNext()) {
       return Optional.empty();
     } else {
-      return Optional.of(suppliers.next().get());
+      return Optional.ofNullable(suppliers.next().get());
     }
   }
 

@@ -17,17 +17,28 @@
 package ratpack.util.internal;
 
 import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Paths2 {
+
   public static ByteSource asByteSource(Path path) {
     return new PathByteSource(path);
+  }
+
+  public static CharSource asCharSource(Path path, Charset charset) {
+    return asByteSource(path).asCharSource(charset);
+  }
+
+  public static String readText(Path path, Charset charset) throws IOException {
+    return asCharSource(path, charset).read();
   }
 
   private static final class PathByteSource extends ByteSource {

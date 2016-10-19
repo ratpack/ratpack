@@ -31,10 +31,12 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
 
   boolean isRedisAlreadyRunning() {
     try {
-      new RedisClient('localhost').connect().withCloseable {
+      new RedisClient('localhost').connect().sync().withCloseable {
         it.ping().equalsIgnoreCase('pong')
       }
     } catch (Exception ignored) {
+      println "Error checking for redis server."
+      println ignored
       false
     }
   }

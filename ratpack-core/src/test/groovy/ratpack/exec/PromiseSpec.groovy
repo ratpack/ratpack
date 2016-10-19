@@ -26,7 +26,7 @@ class PromiseSpec extends Specification {
   def "simple promise"() {
     expect:
     exec.run {
-      Promise.of {
+      Promise.async {
         it.success(1)
       }.then {
         assert it == 1

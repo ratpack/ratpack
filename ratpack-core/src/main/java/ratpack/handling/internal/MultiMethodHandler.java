@@ -41,7 +41,7 @@ public class MultiMethodHandler implements Handler {
   @Override
   public void handle(Context context) throws Exception {
     HttpMethod method = context.getRequest().getMethod();
-    if (method.isOptions()) {
+    if (method.isOptions() && !blocks.containsKey(DefaultByMethodSpec.METHOD_OPTIONS)) {
       String methods = Joiner.on(",").join(blocks.keySet());
       context.getResponse().getHeaders().add(HttpHeaderConstants.ALLOW, methods);
       context.getResponse().status(200).send();

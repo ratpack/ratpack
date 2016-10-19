@@ -61,6 +61,23 @@ class GroovyScriptHandlersSpec extends RatpackGroovyScriptAppSpec {
     text == "foo"
   }
 
+
+  def "cannot use handlers method from anywhere but top level"() {
+    when:
+    script """
+      ratpack {
+        handlers {
+          handlers { }
+        }
+      }
+    """
+    getText()
+
+    then:
+    def e = thrown IllegalStateException
+    e.message == "handlers {} DSL method can only be used at the top level of the ratpack {} block"
+  }
+
   def "changes to handlers are respected during development"() {
     given:
     compileStatic = true

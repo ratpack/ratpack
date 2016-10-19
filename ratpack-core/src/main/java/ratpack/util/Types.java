@@ -20,7 +20,9 @@ package ratpack.util;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
+import ratpack.registry.internal.TypeCaching;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -46,6 +48,33 @@ public abstract class Types {
   }
 
   /**
+   * Create a type token for the given runtime type.
+   *
+   * This method should be preferred over {@link TypeToken#of(Type)} as the result may be interned when not in development.
+   *
+   * @param type the type
+   * @return a type token for the given type
+   * @since 1.1
+   */
+  public static TypeToken<?> token(Type type) {
+    return TypeCaching.typeToken(type);
+  }
+
+  /**
+   * Create a type token for the given class.
+   *
+   * This method should be preferred over {@link TypeToken#of(Class)} as the result may be interned when not in development.
+   *
+   * @param clazz the class
+   * @param <T> the type
+   * @return a type token for the given class
+   * @since 1.1
+   */
+  public static <T> TypeToken<T> token(Class<T> clazz) {
+    return TypeCaching.typeToken(clazz);
+  }
+
+  /**
    * Creates a type token for a list of of the given type.
    * <pre class="java">{@code
    * import ratpack.util.Types;
@@ -67,7 +96,9 @@ public abstract class Types {
    * @return a type token for a list of of the given type.
    */
   public static <T> TypeToken<List<T>> listOf(Class<T> type) {
-    return new TypeToken<List<T>>() {}.where(new TypeParameter<T>() {}, TypeToken.of(type));
+    return new TypeToken<List<T>>() {
+    }.where(new TypeParameter<T>() {
+    }, token(type));
   }
 
   /**
@@ -93,11 +124,12 @@ public abstract class Types {
    * @return a type token for a promise of of the given type.
    */
   public static <T> TypeToken<Promise<T>> promiseOf(Class<T> type) {
-    return promiseOf(TypeToken.of(type));
+    return promiseOf(token(type));
   }
 
   /**
-   * Creates a type token for a promise of of the given type.
+   * Creates a type token for a promise of the given type.
+   *
    * <pre class="java">{@code
    * import ratpack.util.Types;
    * import ratpack.exec.Promise;
@@ -122,7 +154,9 @@ public abstract class Types {
    * @return a type token for a promise of of the given type.
    */
   public static <T> TypeToken<Promise<T>> promiseOf(TypeToken<T> type) {
-    return new TypeToken<Promise<T>>() {}.where(new TypeParameter<T>() {}, type);
+    return new TypeToken<Promise<T>>() {
+    }.where(new TypeParameter<T>() {
+    }, type);
   }
 
 }

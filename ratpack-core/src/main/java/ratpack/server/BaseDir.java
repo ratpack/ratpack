@@ -35,7 +35,7 @@ public abstract class BaseDir {
   }
 
   /**
-   * Finds the the “directory” on the classpath that contains a file called {@code .ratpack}.
+   * Finds the “directory” on the classpath that contains a file called {@code .ratpack}.
    * <p>
    * Calling this method is equivalent to calling {@link #find(String) findBaseDir(".ratpack")}.
    *

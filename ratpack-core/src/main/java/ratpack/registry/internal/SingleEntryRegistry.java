@@ -33,7 +33,7 @@ public class SingleEntryRegistry implements Registry {
 
   @Override
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
-    if (TypeAssignabilityCache.isAssignableFrom(type, entry.getType())) {
+    if (TypeCaching.isAssignableFrom(TypeCaching.cache(type), type, entry.getType())) {
       @SuppressWarnings("unchecked") O cast = (O) entry.get();
       return Optional.of(cast);
     } else {

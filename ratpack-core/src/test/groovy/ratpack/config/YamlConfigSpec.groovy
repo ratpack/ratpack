@@ -25,6 +25,9 @@ class YamlConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
     configFile.text = """
     |---
@@ -42,6 +45,8 @@ class YamlConfigSpec extends BaseConfigSpec {
     |  ssl:
     |      keystoreFile: ${keyStoreFile.toString()}
     |      keystorePassword: ${keyStorePassword}
+    |      truststoreFile: ${trustStoreFile.toString()}
+    |      truststorePassword: ${trustStorePassword}
     |...
     |""".stripMargin()
 
@@ -64,6 +69,9 @@ class YamlConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
     configFile.text = """
     |---
@@ -80,6 +88,8 @@ class YamlConfigSpec extends BaseConfigSpec {
     |ssl:
     |    keystoreFile: ${keyStoreFile.toString()}
     |    keystorePassword: ${keyStorePassword}
+    |    truststoreFile: ${trustStoreFile.toString()}
+    |    truststorePassword: ${trustStorePassword}
     |...
     |""".stripMargin()
 

@@ -17,26 +17,11 @@
 package ratpack.gradle.functional
 
 import com.google.common.base.StandardSystemProperty
-import org.gradle.BuildResult
-import org.gradle.StartParameter
-import org.gradle.api.Task
-import org.gradle.api.execution.TaskExecutionListener
-import org.gradle.api.logging.StandardOutputListener
-import org.gradle.api.tasks.TaskState
-import org.gradle.cli.CommandLineParser
-import org.gradle.initialization.*
-import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.BuildSessionScopeServices
-import org.gradle.internal.service.scopes.GlobalScopeServices
-import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.Clock
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.gradle.RatpackGroovyPlugin
-import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
@@ -46,89 +31,31 @@ abstract class FunctionalSpec extends Specification {
   @Rule
   TemporaryFolder dir
 
-  static class ExecutedTask {
-    Task task
-    TaskState state
-  }
+  private static final String RATPACK_VERSION = FunctionalSpec.classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
-  List<ExecutedTask> executedTasks = []
-
-  @AutoCleanup
-  ServiceRegistry services
-
-  GradleLauncher launcher(String... args) {
-    def converter = new DefaultCommandLineConverter()
-    def commandLineParser = new CommandLineParser()
-    converter.configure(commandLineParser)
-    def commandLine = commandLineParser.parse(args)
-    StartParameter startParameter = converter.convert(commandLine, new StartParameter())
-    startParameter.setProjectDir(dir.root)
-
-    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter, new BuildRequestContext() {
-      @Override
-      BuildCancellationToken getCancellationToken() {
-        return new DefaultBuildCancellationToken()
-      }
-
-      @Override
-      BuildEventConsumer getEventConsumer() {
-        new BuildEventConsumer() {
-          @Override
-          void dispatch(Object o) {
-
-          }
-        }
-      }
-
-      @Override
-      StandardOutputListener getOutputListener() {
-        new StandardOutputListener() {
-          @Override
-          void onOutput(CharSequence charSequence) {
-
-          }
-        }
-      }
-
-      @Override
-      StandardOutputListener getErrorListener() {
-        new StandardOutputListener() {
-          @Override
-          void onOutput(CharSequence charSequence) {
-
-          }
-        }
-      }
-
-      @Override
-      BuildClientMetaData getClient() {
-        return null
-      }
-
-      @Override
-      Clock getBuildTimeClock() {
-        return new Clock()
-      }
-    }, new BuildSessionScopeServices(services))
-    executedTasks.clear()
-    launcher.addListener(new TaskExecutionListener() {
-      void beforeExecute(Task task) {
-        getExecutedTasks() << new ExecutedTask(task: task)
-      }
-
-      void afterExecute(Task task, TaskState taskState) {
-        getExecutedTasks().last().state = taskState
-        taskState.metaClass.upToDate = taskState.skipMessage == "UP-TO-DATE"
-      }
-    })
-    launcher
+  GradleRunner runner(String... args) {
+    GradleRunner.create()
+      .withProjectDir(dir.root)
+      .withDebug(true) // always run inline to save memory, especially on CI
+      .forwardOutput()
+      .withTestKitDir(getTestKitDir())
+      .withArguments(args.toList())
   }
 
   BuildResult run(String... args) {
-    def launcher = launcher(*args)
-    def result = launcher.run()
-    result.rethrowFailure()
-    result
+    runner(args).build()
+  }
+
+  BuildResult fail(String... args) {
+    runner(args).buildAndFail()
+  }
+
+  private static File getTestKitDir() {
+    def gradleUserHome = System.getenv("GRADLE_USER_HOME")
+    if (!gradleUserHome) {
+      gradleUserHome = new File(System.getProperty("user.home"), ".gradle").absolutePath
+    }
+    return new File(gradleUserHome, "testkit")
   }
 
   File getBuildFile() {
@@ -153,29 +80,23 @@ abstract class FunctionalSpec extends Specification {
     file
   }
 
-  ExecutedTask task(String name) {
-    executedTasks.find { it.task.name == name }
-  }
 
   def setup() {
-    NativeServices.initialize(dir.root)
-
-    services = ServiceRegistryBuilder.builder()
-      .provider(new GlobalScopeServices(false))
-      .parent(LoggingServiceRegistry.newEmbeddableLogging())
-      .parent(NativeServices.instance)
-      .build()
-
-
     file("settings.gradle") << "rootProject.name = 'test-app'"
     buildFile << """
       buildscript {
+        repositories {
+          maven { url "${localRepo.toURI()}" }
+          jcenter()
+        }
         repositories { jcenter() }
-        dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2' }
+        dependencies {
+          classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+          classpath 'io.ratpack:ratpack-gradle:${RATPACK_VERSION}'
+        }
       }
 
-      ext.RatpackGroovyPlugin = project.class.classLoader.loadClass('${RatpackGroovyPlugin.name}')
-      apply plugin: RatpackGroovyPlugin
+      apply plugin: 'io.ratpack.ratpack-groovy'
       apply plugin: 'com.github.johnrengelman.shadow'
       version = "1.0"
       repositories {
@@ -197,7 +118,6 @@ abstract class FunctionalSpec extends Specification {
       into destination
     }
   }
-
 
   File getDistZip() {
     def f = file("build/distributions/test-app-1.0.zip")

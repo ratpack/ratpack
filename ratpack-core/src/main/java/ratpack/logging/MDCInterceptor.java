@@ -22,6 +22,7 @@ import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Action;
 import ratpack.func.Block;
+import ratpack.util.Types;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public final class MDCInterceptor implements ExecInterceptor {
   private final Action<? super Execution> init;
 
   private static class MDCHolder {
-    static final TypeToken<MDCHolder> TYPE = TypeToken.of(MDCHolder.class);
+    static final TypeToken<MDCHolder> TYPE = Types.token(MDCHolder.class);
     Map<String, String> map = new HashMap<>();
   }
 
@@ -116,10 +117,10 @@ public final class MDCInterceptor implements ExecInterceptor {
    * Creates an interceptor with no initialisation action.
    *
    * @return an interceptor with no initialisation action.
-   * @see #of(Action)
+   * @see #withInit(Action)
    */
   public static MDCInterceptor instance() {
-    return of(Action.noop());
+    return withInit(Action.noop());
   }
 
   /**
@@ -142,7 +143,7 @@ public final class MDCInterceptor implements ExecInterceptor {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
    *         .registryOf(r -> r
-   *             .add(MDCInterceptor.of(e ->
+   *             .add(MDCInterceptor.withInit(e ->
    *                 e.maybeGet(RequestId.class).ifPresent(requestId ->
    *                     MDC.put("requestId", requestId.toString())
    *                 )
@@ -163,9 +164,9 @@ public final class MDCInterceptor implements ExecInterceptor {
    *
    * @param init the initialisation action
    * @return an {@link MDCInterceptor}
-   * @since 1.1.0
+   * @since 1.1
    */
-  public static MDCInterceptor of(Action<? super Execution> init) {
+  public static MDCInterceptor withInit(Action<? super Execution> init) {
     return new MDCInterceptor(init);
   }
 

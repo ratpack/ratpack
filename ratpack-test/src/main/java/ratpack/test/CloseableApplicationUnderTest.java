@@ -20,7 +20,12 @@ import ratpack.func.Action;
 import ratpack.test.http.TestHttpClient;
 
 /**
- * An application under test that is able to be shut down.
+ * An {@link ApplicationUnderTest} that is able to be shut down.
+ * <p>
+ * Typically, the {@link #close()} method is called by “test infrastructure”, such as in a JUnit {@code @After} method.
+ *
+ * @see ServerBackedApplicationUnderTest
+ * @see MainClassApplicationUnderTest
  */
 public interface CloseableApplicationUnderTest extends ApplicationUnderTest, AutoCloseable {
 

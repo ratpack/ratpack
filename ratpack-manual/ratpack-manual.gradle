@@ -43,8 +43,9 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
-  testRuntime "org.gradle:gradle-tooling-api:${gradle.gradleVersion}" // used by gradle snippet fixture
+  testCompile gradleTestKit()
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
   testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 
@@ -75,6 +76,7 @@ modifyPom { pom ->
 }
 
 apiModules.each { evaluationDependsOn(it.path) }
+evaluationDependsOn ":ratpack-gradle"
 
 task configureApi << {
   api {
@@ -154,11 +156,11 @@ test {
   dependsOn ":ratpack-gradle:install" // used in gradle snippets
   apiModules.each {
     inputs.files apiModules.sourceSets.main.allSource
+    inputs.files project(":ratpack-gradle").sourceSets.main.allSource
   }
   systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
   systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
   systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
-  forkEvery 1
 }
 
 task checkApi(type: Checkstyle) {
@@ -185,6 +187,8 @@ task tokeniseManual(type: Sync) {
       "ratpack-version": project.version,
       "ratpack-group": project.group,
       "groovy-version": commonVersions.groovy,
+      "pac4j-version": commonVersions.pac4j,
+      "retrofit-version": commonVersions.retrofit,
       "slf4j-version": commonVersions.slf4j,
       "gradle-version": gradle.gradleVersion,
       head: """

@@ -16,9 +16,6 @@
 
 package ratpack.groovy.template.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
@@ -27,13 +24,16 @@ import ratpack.groovy.script.internal.ScriptEngine;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class TextTemplateRenderingEngine {
 
-  private final LoadingCache<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache;
+  private final ConcurrentMap<TextTemplateSource, CompiledTextTemplate> compiledTemplateCache;
   private final TextTemplateCompiler templateCompiler;
   private final ByteBufAllocator byteBufAllocator;
   private final boolean reloadable;
@@ -47,19 +47,27 @@ public class TextTemplateRenderingEngine {
 
     ScriptEngine<DefaultTextTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, DefaultTextTemplateScript.class);
     this.templateCompiler = new TextTemplateCompiler(scriptEngine, byteBufAllocator);
+    this.compiledTemplateCache = new ConcurrentHashMap<>();
+  }
 
-    //noinspection NullableProblems
-    this.compiledTemplateCache = CacheBuilder.newBuilder().build(new CacheLoader<TextTemplateSource, CompiledTextTemplate>() {
-      @Override
-      public CompiledTextTemplate load(TextTemplateSource templateSource) throws Exception {
-        ByteBuf content = templateSource.getContent();
-        try {
-          return templateCompiler.compile(content, templateSource.getName());
-        } finally {
-          content.release();
-        }
-      }
-    });
+  private CompiledTextTemplate get(TextTemplateSource templateSource) {
+    return compiledTemplateCache.computeIfAbsent(templateSource, this::compile);
+  }
+
+  private CompiledTextTemplate compile(TextTemplateSource templateSource) {
+    ByteBuf content;
+    try {
+      content = templateSource.getContent();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    try {
+      return templateCompiler.compile(content, templateSource.getName());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } finally {
+      content.release();
+    }
   }
 
   public Promise<ByteBuf> renderTemplate(String templateId, Map<String, ?> model) throws Exception {
@@ -73,7 +81,7 @@ public class TextTemplateRenderingEngine {
   }
 
   private Promise<ByteBuf> render(final TextTemplateSource templateSource, Map<String, ?> model) throws Exception {
-    return Render.render(byteBufAllocator, compiledTemplateCache, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
+    return Render.render(byteBufAllocator, this::get, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
   }
 
   private Path getTemplateFile(String templateName) {

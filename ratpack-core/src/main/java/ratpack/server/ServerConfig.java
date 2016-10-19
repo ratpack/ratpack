@@ -17,13 +17,16 @@
 package ratpack.server;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.impose.Impositions;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
+import ratpack.util.Types;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -43,6 +46,13 @@ import java.util.Optional;
 public interface ServerConfig extends ConfigData {
 
   /**
+   * A type token for this type.
+   *
+   * @since 1.1
+   */
+  TypeToken<ServerConfig> TYPE = Types.token(ServerConfig.class);
+
+  /**
    * The default port for Ratpack applications, {@value}.
    */
   int DEFAULT_PORT = 5050;
@@ -60,6 +70,35 @@ public interface ServerConfig extends ConfigData {
   int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
+   * The default maximum chunk size to use when reading request/response bodies.
+   * <p>
+   * Defaults to {@value}.
+   *
+   * @see #getMaxChunkSize()
+   */
+  int DEFAULT_MAX_CHUNK_SIZE = 8192;
+
+  /**
+   * The default maximum initial line length to use when reading requests.
+   * <p>
+   * Defaults to {@value}
+   *
+   * @see #getMaxInitialLineLength()
+   * @since 1.4
+   */
+  int DEFAULT_MAX_INITIAL_LINE_LENGTH = 4096;
+
+  /**
+   * The default maximum header size to use when reading requests.
+   * <p>
+   * Defaults to {@value}
+   *
+   * @see #getMaxHeaderSize()
+   * @since 1.4
+   */
+  int DEFAULT_MAX_HEADER_SIZE = 8192;
+
+  /**
    * Creates a builder configured for development mode and an ephemeral port.
    *
    * @return a server config builder
@@ -69,7 +108,7 @@ public interface ServerConfig extends ConfigData {
   }
 
   static ServerConfigBuilder builder() {
-    return new DefaultServerConfigBuilder(ServerEnvironment.env());
+    return new DefaultServerConfigBuilder(ServerEnvironment.env(), Impositions.current());
   }
 
   static ServerConfig of(Action<? super ServerConfigBuilder> action) throws Exception {
@@ -202,6 +241,50 @@ public interface ServerConfig extends ConfigData {
    * @return whether or not the base dir of the application has been set.
    */
   boolean isHasBaseDir();
+
+  /**
+   * The maximum chunk size to use when reading request (server) or response (client) bodies.
+   * <p>
+   * This value is used to determine the size of chunks to emit when consuming request/response bodies.
+   * This generally only has an impact when consuming the body as a stream.
+   * A lower value will reduce memory pressure by requiring less memory at one time,
+   * but at the expense of throughput.
+   * <p>
+   * Defaults to {@link #DEFAULT_MAX_CHUNK_SIZE}.
+   * This value is suitable for most applications.
+   * If your application deals with very large bodies, you may want to increase it.
+   *
+   * @return the maximum chunk size
+   */
+  int getMaxChunkSize();
+
+  /**
+   * The maximum initial line length allowed for reading http requests.
+   * <p>
+   * This value is used to determine the maximum allowed length for the initial line of an http request.
+   * <p>
+   * Defaults to {@link #DEFAULT_MAX_INITIAL_LINE_LENGTH}.
+   * This value is suitable for most applications.
+   * If your application deals with very large request URIs, you may want to increase it.
+   *
+   * @return the maximum initial line length allowed for http requests.
+   * @since 1.4
+   */
+  int getMaxInitialLineLength();
+
+  /**
+   * The maximum size of all headers allowed for reading http requests.
+   * <p>
+   * This value is used to determine the maximum allowed size for the sum of the length all headers of an http request.
+   * <p>
+   * Defaults to {@link #DEFAULT_MAX_HEADER_SIZE}.
+   * This value is suitable for most applications.
+   * If your application deals with very large http headers, you may want to increase it.
+   *
+   * @return the maximum size of http headers allowed for an incoming http requests.
+   * @since 1.4
+   */
+  int getMaxHeaderSize();
 
   /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.

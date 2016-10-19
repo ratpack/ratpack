@@ -16,14 +16,21 @@
 
 package ratpack.render.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
+import ratpack.registry.internal.TypeCaching;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
 public class CharSequenceRenderer extends RendererSupport<CharSequence> {
 
+  public static final TypeToken<Renderer<CharSequence>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<CharSequence>>() {});
+
+  public static final Renderer<CharSequence> INSTANCE = new CharSequenceRenderer();
+
   @Override
-  public void render(Context context, CharSequence charSequence) {
-    context.getResponse().send(charSequence.toString());
+  public void render(Context ctx, CharSequence charSequence) {
+    ctx.getResponse().send(charSequence.toString());
   }
 
 }

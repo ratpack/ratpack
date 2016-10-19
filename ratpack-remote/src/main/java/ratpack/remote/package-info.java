@@ -15,6 +15,6 @@
  */
 
 /**
- * Integration with <a href="http://groovy.codehaus.org/modules/remote/" target="_blank">Groovy Remote Control</a>.
+ * Integration with Groovy Remote Control.
  */
 package ratpack.remote;

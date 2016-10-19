@@ -23,11 +23,11 @@ import ratpack.handling.Handler;
 public class WhenHandler implements Handler {
 
   private final Predicate<? super Context> test;
-  private final Handler handler;
+  private final Handler[] handler;
 
   public WhenHandler(Predicate<? super Context> test, Handler handler) {
     this.test = test;
-    this.handler = handler;
+    this.handler = ChainHandler.unpack(handler);
   }
 
   @Override

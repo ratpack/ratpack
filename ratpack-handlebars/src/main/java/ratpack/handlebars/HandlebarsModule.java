@@ -17,9 +17,9 @@
 package ratpack.handlebars;
 
 import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.cache.ConcurrentMapTemplateCache;
 import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.io.TemplateLoader;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -29,8 +29,6 @@ import ratpack.guice.ConfigurableModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
-import ratpack.handlebars.internal.RatpackTemplateCache;
-import ratpack.handlebars.internal.TemplateKey;
 import ratpack.server.ServerConfig;
 
 /**
@@ -173,9 +171,10 @@ public class HandlebarsModule extends ConfigurableModule<HandlebarsModule.Config
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
+  @Singleton
   TemplateCache provideTemplateCache(Config config, ServerConfig serverConfig) {
     boolean reloadable = config.isReloadable() == null ? serverConfig.isDevelopment() : config.isReloadable();
-    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(config.getCacheSize()).<TemplateKey, com.github.jknack.handlebars.Template>build());
+    return new ConcurrentMapTemplateCache().setReload(reloadable);
   }
 
   @SuppressWarnings("UnusedDeclaration")

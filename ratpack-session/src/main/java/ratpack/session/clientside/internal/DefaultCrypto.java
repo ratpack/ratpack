@@ -20,12 +20,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Crypto;
-import ratpack.util.Exceptions;
 
-import javax.crypto.Cipher;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 public class DefaultCrypto implements Crypto {
 
@@ -41,73 +43,67 @@ public class DefaultCrypto implements Crypto {
   }
 
   @Override
-  public ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator) {
-    return Exceptions.uncheck(() -> {
-      Cipher cipher = Cipher.getInstance(algorithm);
-      cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+  public ByteBuf encrypt(ByteBuf message, ByteBufAllocator allocator) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, ShortBufferException, IllegalBlockSizeException {
+    Cipher cipher = Cipher.getInstance(algorithm);
+    cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
 
-      int blockSize = cipher.getBlockSize();
-      int messageLength = message.readableBytes();
-      int encMessageLength = cipher.getOutputSize(messageLength);
+    int blockSize = cipher.getBlockSize();
+    int messageLength = message.readableBytes();
+    int encMessageLength = cipher.getOutputSize(messageLength);
 
-      ByteBuf paddedMessage = null;
-      if (messageLength == encMessageLength && (encMessageLength % blockSize) != 0) {
-        int paddedMessageSize = messageLength + blockSize - (messageLength % blockSize);
-        paddedMessage = allocator.buffer(paddedMessageSize);
-        paddedMessage.setZero(0, paddedMessageSize);
-        paddedMessage.setBytes(0, message, messageLength);
-        paddedMessage.writerIndex(paddedMessageSize);
-        encMessageLength = cipher.getOutputSize(paddedMessageSize);
-      }
+    ByteBuf paddedMessage = null;
+    if (messageLength == encMessageLength && (encMessageLength % blockSize) != 0) {
+      int paddedMessageSize = messageLength + blockSize - (messageLength % blockSize);
+      paddedMessage = allocator.buffer(paddedMessageSize);
+      paddedMessage.setZero(0, paddedMessageSize);
+      paddedMessage.setBytes(0, message, messageLength);
+      paddedMessage.writerIndex(paddedMessageSize);
+      encMessageLength = cipher.getOutputSize(paddedMessageSize);
+    }
 
-      ByteBuf encMessage = allocator.buffer(encMessageLength);
-      ByteBuffer nioBuffer = encMessage.internalNioBuffer(0, encMessageLength);
-      cipher.doFinal(paddedMessage == null ? message.nioBuffer() : paddedMessage.nioBuffer(), nioBuffer);
-      encMessage.writerIndex(encMessageLength);
+    ByteBuf encMessage = allocator.buffer(encMessageLength);
+    ByteBuffer nioBuffer = encMessage.nioBuffer(0, encMessageLength);
+    cipher.doFinal(paddedMessage == null ? message.nioBuffer() : paddedMessage.nioBuffer(), nioBuffer);
+    encMessage.writerIndex(encMessageLength);
 
-      if (paddedMessage != null) {
-        paddedMessage.release();
-      }
+    if (paddedMessage != null) {
+      paddedMessage.release();
+    }
 
-      if (isInitializationVectorRequired) {
-        byte[] ivBytes = cipher.getIV();
-        ByteBuf iv = allocator.buffer(1 + ivBytes.length);
-        iv.writeByte(ivBytes.length).writeBytes(ivBytes);
-        return Unpooled.wrappedBuffer(2, iv, encMessage);
-      } else {
-        return encMessage;
-      }
-    });
+    if (isInitializationVectorRequired) {
+      byte[] ivBytes = cipher.getIV();
+      ByteBuf iv = allocator.buffer(1 + ivBytes.length);
+      iv.writeByte(ivBytes.length).writeBytes(ivBytes);
+      return Unpooled.wrappedBuffer(2, iv, encMessage);
+    } else {
+      return encMessage;
+    }
   }
 
   @Override
-  public ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator) {
-    return Exceptions.uncheck(() -> {
-      Cipher cipher = Cipher.getInstance(algorithm);
+  public ByteBuf decrypt(ByteBuf message, ByteBufAllocator allocator) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, ShortBufferException, IllegalBlockSizeException {
+    Cipher cipher = Cipher.getInstance(algorithm);
 
-      if (isInitializationVectorRequired) {
-        int ivByteLength = message.readByte();
-        ByteBuf ivBytes = message.readBytes(ivByteLength);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes.array());
-        ivBytes.release();
+    if (isInitializationVectorRequired) {
+      int ivByteLength = message.readByte();
+      byte[] iv = new byte[ivByteLength];
+      message.readBytes(iv);
+      cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, new IvParameterSpec(iv));
+    } else {
+      cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+    }
 
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+    int messageLength = message.readableBytes();
+    ByteBuf decMessage = allocator.buffer(cipher.getOutputSize(messageLength));
+    int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), decMessage.nioBuffer(0, messageLength));
+    for (int i = count - 1; i >= 0; i--) {
+      if (decMessage.getByte(i) == 0x00) {
+        count--;
       } else {
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        break;
       }
-
-      int messageLength = message.readableBytes();
-      ByteBuf decMessage = allocator.buffer(cipher.getOutputSize(messageLength));
-      int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), decMessage.internalNioBuffer(0, messageLength));
-      for (int i = count - 1; i >= 0; i--) {
-        if (decMessage.getByte(i) == 0x00) {
-          count--;
-        } else {
-          break;
-        }
-      }
-      decMessage.writerIndex(count);
-      return decMessage;
-    });
+    }
+    decMessage.writerIndex(count);
+    return decMessage;
   }
 }

@@ -81,7 +81,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .map {}
         .onError { events << it }
@@ -98,7 +98,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .flatMap { Blocking.get { "foo" } }
         .onError { events << it }
@@ -115,7 +115,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .onError { events << it }
         .map {}
@@ -151,7 +151,7 @@ class PromiseOperationsSpec extends Specification {
 
     when:
     exec { e ->
-      Promise.of { it.error(ex) }
+      Promise.async { it.error(ex) }
         .map {}
         .mapError { throw new RuntimeException(it.message + "-changed") }
         .map {}
@@ -211,7 +211,7 @@ class PromiseOperationsSpec extends Specification {
       Blocking.get {
         "foo"
       } flatMap {
-        Promise.of { f -> Thread.start { f.success("foo") } }
+        Promise.async { f -> Thread.start { f.success("foo") } }
       } then {
         events << it
       }
@@ -225,7 +225,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     def runner = new BlockingVariable<Runnable>()
     execHarness.controller.fork().onComplete { latch.countDown() }.start {
-      Promise.of { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
+      Promise.async { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
         events << it
       }
     }
@@ -246,7 +246,7 @@ class PromiseOperationsSpec extends Specification {
     def runner = new BlockingVariable<Runnable>(200)
     execHarness.controller.fork().onComplete { latch.countDown() }.start {
       Promise.value("foo").defer { runner.set(it) }.then {
-        Promise.of { it.success("foo") }.then {
+        Promise.async { it.success("foo") }.then {
           events << "inner"
         }
       }
@@ -281,6 +281,16 @@ class PromiseOperationsSpec extends Specification {
 
     then:
     events == ["yield", "blocking", "wiretap", "foo", "complete"]
+  }
+
+  def "wiretap receives failure results"() {
+    when:
+    exec { e ->
+      Promise.error(new Exception("!")).wiretap { r -> events.add(r.throwable.message) }.then {}
+    }
+
+    then:
+    events == ["!", "complete"]
   }
 
   def "can use blocking map"() {
@@ -344,4 +354,127 @@ class PromiseOperationsSpec extends Specification {
     events == ["!", "complete"]
   }
 
+  def "can apply action to promised value before continuing"() {
+    when:
+    exec {
+      Promise.value("foo").next { v ->
+        events << "one"
+      }.map { v ->
+        v.reverse()
+      }.next { v ->
+        events << "two"
+      }.then { v ->
+        events << "three"
+      }
+    }
+
+    then:
+    events == ["one", "two", "three", "complete"]
+  }
+
+  def "can execute async actions on promise"() {
+    when:
+    exec {
+      Promise.value("foo").next { v ->
+        Promise.async { d -> Thread.start { d.success(v) } }.then { v2 ->
+          events << "one"
+        }
+      }.then { v ->
+        events << "two"
+      }
+    }
+
+    then:
+    events == ["one", "two", "complete"]
+  }
+
+  def "can apply operation to promised value before continuing"() {
+    when:
+    exec {
+      Promise.value("foo").nextOp { v ->
+        return Operation.of {
+          events << "one"
+        }
+      }.next { v ->
+        events << v
+      }.nextOp { v ->
+        return Operation.of {
+          events << "two"
+        }
+      }.map { v ->
+        return v.reverse()
+      }.nextOp { v ->
+        Operation.of {
+          events << "three"
+        }
+      }.next { v ->
+        events << v
+      }.operation { v ->
+        events << "four"
+      }.next {
+        events << "five"
+      }.then()
+    }
+
+    then:
+    events == ["one", "foo", "two", "three", "oof", "four", "five", "complete"]
+  }
+
+  def "exception thrown in promise consumer is routed to execution error handler"() {
+    given:
+    def ex = new Exception("!")
+
+    when:
+    exec ({
+      Promise.value("foo").onError {
+        events << "unexpected"
+      }.then {
+        throw ex
+      }
+    }, {
+      events << it
+    }
+    )
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "unchecked exception thrown in promise consumer is routed to execution error handler"() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec ({
+      Promise.value("foo").onError {
+        events << "unexpected"
+      }.then {
+        throw ex
+      }
+    }, {
+      events << it
+    })
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "error thrown in promise consumer is routed to execution error handler"() {
+    given:
+    def ex = new Error("!")
+
+    when:
+    exec ({
+      Promise.value("foo").onError {
+        events << "unexpected"
+      }.then {
+        throw ex
+      }
+    }, {
+      events << it
+    })
+
+    then:
+    events == [ex, "complete"]
+  }
 }

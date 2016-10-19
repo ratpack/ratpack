@@ -24,6 +24,7 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -42,7 +43,7 @@ import java.util.function.Supplier;
  * An execution segment has exclusive access to a thread.
  * All executions start with the segment given to the {@link ExecStarter#start(Action)} method.
  * If the initial execution segment does not use any asynchronous APIs, the execution will be comprised of that single segment.
- * When an asynchronous API is used, via {@link Promise#of(Upstream)}, the resumption of work when the result becomes available is within a new execution segment.
+ * When an asynchronous API is used, via {@link Promise#async(Upstream)}, the resumption of work when the result becomes available is within a new execution segment.
  * During any execution segment, the {@link Execution#current()} method will return the current execution, giving global access to the execution object.
  * <p>
  * Segments of an execution are never executed concurrently.
@@ -76,9 +77,21 @@ public interface Execution extends MutableRegistry {
    *
    * @return the currently executing execution
    * @throws UnmanagedThreadException if called from outside of an execution
+   * @see #currentOpt()
    */
   static Execution current() throws UnmanagedThreadException {
     return DefaultExecution.require();
+  }
+
+  /**
+   * Provides the currently executing execution, if any.
+   *
+   * @return the currently executing execution
+   * @see #current()
+   * @since 1.5
+   */
+  static Optional<Execution> currentOpt() {
+    return Optional.ofNullable(DefaultExecution.get());
   }
 
   /**
@@ -93,14 +106,39 @@ public interface Execution extends MutableRegistry {
     return ExecController.require().fork();
   }
 
+  /**
+   * Whether there is currently a bound execution.
+   *
+   * @return whether there is currently a bound execution
+   * @since 1.5
+   */
+  static boolean isBound() {
+    return DefaultExecution.get() != null;
+  }
+
+  /**
+   * Whether the current thread is a thread that is managed by Ratpack.
+   *
+   * @return whether the current thread is a thread that is managed by Ratpack
+   */
   static boolean isManagedThread() {
     return ThreadBinding.get().isPresent();
   }
 
+  /**
+   * Whether the current thread is a Ratpack compute thread.
+   *
+   * @return whether the current thread is a Ratpack compute thread
+   */
   static boolean isComputeThread() {
     return ThreadBinding.get().map(ThreadBinding::isCompute).orElse(false);
   }
 
+  /**
+   * Whether the current thread is a Ratpack blocking thread.
+   *
+   * @return whether the current thread is a Ratpack blocking thread
+   */
   static boolean isBlockingThread() {
     return ThreadBinding.get().map(threadBinding -> !threadBinding.isCompute()).orElse(false);
   }
@@ -136,7 +174,7 @@ public interface Execution extends MutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  default <O> Execution add(Class<? super O> type, O object) {
+  default <O> Execution add(Class<O> type, O object) {
     MutableRegistry.super.add(type, object);
     return this;
   }
@@ -145,7 +183,7 @@ public interface Execution extends MutableRegistry {
    * {@inheritDoc}
    */
   @Override
-  default <O> Execution add(TypeToken<? super O> type, O object) {
+  default <O> Execution add(TypeToken<O> type, O object) {
     MutableRegistry.super.add(type, object);
     return this;
   }

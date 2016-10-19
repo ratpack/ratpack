@@ -16,18 +16,13 @@
 
 package ratpack.http.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.http.MediaType;
 
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutionException;
-
-import static ratpack.util.Exceptions.toException;
-import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultMediaType implements MediaType {
 
@@ -37,33 +32,32 @@ public class DefaultMediaType implements MediaType {
   private final ImmutableListMultimap<String, String> params;
   private final String string;
 
-  private static final int CACHE_SIZE = 200;
+  private static final int CACHE_SIZE = 1024;
 
-  private static final Cache<String, MediaType> CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
+  private static final LoadingCache<String, MediaType> CACHE = Caffeine.newBuilder()
+    .maximumSize(CACHE_SIZE)
+    .build(DefaultMediaType::new);
 
   public static MediaType get(final String contentType) {
-    String contentType1 = contentType;
-    if (contentType1 == null) {
-      contentType1 = "";
-    } else {
-      contentType1 = contentType1.trim();
-    }
-
-    final String finalContentType = contentType1;
-    try {
-      return CACHE.get(contentType1, () -> new DefaultMediaType(finalContentType));
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw uncheck(toException(e.getCause()));
-    }
+    return CACHE.get(contentType == null ? "" : contentType);
   }
 
-  public DefaultMediaType(String value) {
-    if (value == null || value.trim().length() == 0) {
+  private DefaultMediaType(String value) {
+    value = value.trim();
+    if (value.length() == 0) {
       type = null;
       params = ImmutableListMultimap.of();
       string = "";
     } else {
-      com.google.common.net.MediaType mediaType = com.google.common.net.MediaType.parse(value.trim());
+      com.google.common.net.MediaType mediaType;
+      try {
+        mediaType = com.google.common.net.MediaType.parse(value);
+      } catch (IllegalArgumentException e) {
+        type = value;
+        string = value;
+        params = ImmutableListMultimap.of();
+        return;
+      }
       if (mediaType != null && mediaType.type() != null) {
         if (mediaType.subtype() != null) {
           type = mediaType.type() + "/" + mediaType.subtype();
@@ -75,7 +69,7 @@ public class DefaultMediaType implements MediaType {
       } else {
         type = null;
         params = ImmutableListMultimap.of();
-        string ="";
+        string = "";
       }
     }
   }

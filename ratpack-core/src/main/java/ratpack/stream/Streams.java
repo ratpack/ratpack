@@ -16,11 +16,14 @@
 
 package ratpack.stream;
 
+import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecController;
-import ratpack.exec.Promise;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
+import ratpack.func.BiFunction;
 import ratpack.func.Function;
 import ratpack.func.Predicate;
 import ratpack.registry.Registry;
@@ -30,6 +33,7 @@ import ratpack.util.Types;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Some lightweight utilities for working with <a href="http://www.reactive-streams.org/">reactive streams</a>.
@@ -96,7 +100,7 @@ public class Streams {
    * @param promise the promise
    * @param <T> the element type of the promised iterable
    * @return a publisher for each element of the promised iterable
-   * @since 1.1.0
+   * @since 1.1
    */
   public static <T> TransformablePublisher<T> publish(Promise<? extends Iterable<T>> promise) {
     return new IterablePromisePublisher<>(promise);
@@ -254,28 +258,13 @@ public class Streams {
    * @return the input stream filtered
    */
   public static <T> TransformablePublisher<T> filter(Publisher<T> input, Predicate<? super T> filter) {
-    return streamMap(input, out -> new WriteStream<T>() {
-      @Override
-      public void item(T item) {
-        try {
-          if (filter.apply(item)) {
-            out.item(item);
-          }
-        } catch (Throwable throwable) {
-          out.error(throwable);
-        }
+    return streamMap(input, (s, out) -> out.itemMap(s, item -> {
+      if (filter.apply(item)) {
+        out.item(item);
+      } else {
+        s.request(1);
       }
-
-      @Override
-      public void error(Throwable throwable) {
-        out.error(throwable);
-      }
-
-      @Override
-      public void complete() {
-        out.complete();
-      }
-    });
+    }));
   }
 
   /**
@@ -299,7 +288,7 @@ public class Streams {
    *   public static void main(String... args) throws Exception {
    *     List<String> result = ExecHarness.yieldSingle(execControl -> {
    *       Publisher<String> chars = Streams.publish(Arrays.asList("a", "b", "c"));
-   *       TransformablePublisher<String> mapped = Streams.streamMap(chars, out ->
+   *       TransformablePublisher<String> mapped = Streams.streamMap(chars, (subscription, out) ->
    *         new WriteStream<String>() {
    *           public void item(String item) {
    *             out.item(item);
@@ -325,7 +314,10 @@ public class Streams {
    * <p>
    * The {@code mapper} function receives a {@link WriteStream} for emitting items and returns a {@link WriteStream} that will be written to by the upstream publisher.
    * Calling {@link WriteStream#complete()} or {@link WriteStream#error(Throwable)} on the received write stream will {@link org.reactivestreams.Subscription#cancel() cancel} the upstream subscription and it is guaranteed that no more items will be emitted from the upstream.
-   * If the complete/error signals from upstream don't need to be intercepted, the {@link WriteStream#itemMap(Action)} can be used on the write stream given to the mapping function to create the return write stream.
+   * If the complete/error signals from upstream don't need to be intercepted, the {@link WriteStream#itemMap(Subscription, Action)} can be used on the write stream given to the mapping function to of the return write stream.
+   * <p>
+   * Implementations must take care to call {@link Subscription#cancel()} on the provided subscription if they introduce an error.
+   * This is not required when simply forwarding an upstream error.
    * <p>
    * The returned stream is {@link #buffer buffered}, which allows the stream transformation to emit more items downstream than what was received from the upstream.
    * Currently, the upstream subscription will always receive a single {@link org.reactivestreams.Subscription#request(long) request} for {@link Long#MAX_VALUE}, effectively asking upstream to emit as fast as it can.
@@ -333,23 +325,25 @@ public class Streams {
    *
    * @param input the stream to map
    * @param mapper the mapping function
-   * @param <T> the type of item received
-   * @param <O> the type of item produced
+   * @param <U> the type of item received
+   * @param <D> the type of item produced
    * @return the input stream transformed
+   * @since 1.4
    */
-  public static <T, O> TransformablePublisher<O> streamMap(Publisher<T> input, Function<? super WriteStream<O>, ? extends WriteStream<? super T>> mapper) {
-    /*
-       Implementation note: we need a smarter buffering strategy here.
-
-       We'll need to translate demand in a smart way as the arity of the outgoing stream may be different.
-       If the downstream requests, say 5 items, which the mapper then receives and translates into only 3 items
-       we'll need to ask for more from the upstream to meet the downstream demand.
-
-       We get around this now by always opening up the firehose to upstream, but this means we are nullifying back pressure and buffering in memory.
-
-       https://github.com/ratpack/ratpack/issues/515
-    */
+  public static <U, D> TransformablePublisher<D> streamMap(Publisher<? extends U> input, StreamMapper<? super U, D> mapper) {
     return new StreamMapPublisher<>(input, mapper).buffer();
+  }
+
+  /**
+   * @deprecated since 1.4, use {@link #streamMap(Publisher, StreamMapper)}
+   */
+  @Deprecated
+  public static <U, D> TransformablePublisher<D> streamMap(Publisher<U> input, Function<? super WriteStream<D>, ? extends WriteStream<? super U>> mapper) {
+    return streamMap(input, (subscription, downstream) -> {
+      @SuppressWarnings("UnnecessaryLocalVariable")
+      WriteStream<? super U> writeStream = mapper.apply(downstream);
+      return writeStream;
+    });
   }
 
   /**
@@ -370,22 +364,22 @@ public class Streams {
   }
 
   /**
-   * Returns a publisher that allows the given publisher to emit as fast as it can, while applying flow control downstream.
+   * Returns a publisher that allows the given publisher to without respecting demand.
    * <p>
-   * When the return publisher is subscribed to, a subscription will be made to the given publisher with a request for {@link Long#MAX_VALUE} items.
-   * This effectively allows the given publisher to emit each item as soon as it can.
-   * The return publisher will manage the back pressure by holding excess items from the given publisher in memory until the downstream subscriber is ready for them.
+   * The given publisher may violate the Reactive Streams contract in that it may emit more items than have been requested.
+   * Any excess will be buffered until there is more demand.
+   * All requests for items from the subscriber will be satisfied from the buffer first.
+   * If a request is made at any time for more items than are currently in the buffer,
+   * a request for the unmet demand will be made of the given publisher.
    * <p>
-   * This is a simple, naive, flow control mechanism.
-   * If the given producer emits far faster than the downstream subscriber requests, the intermediate queue will grow large and consume substantial memory.
-   * However, it is useful or adapting non-infinite publishers that cannot meaningfully respect back pressure.
+   * If the given producer emits far faster than the downstream subscriber requests, the intermediate queue will grow large and consume memory.
    *
    * @param publisher a data source
    * @param <T> the type of item
-   * @return a publisher that applies respects back pressure, effectively throttling the given publisher
+   * @return a publisher that buffers items emitted by the given publisher that were not requested
    */
   public static <T> TransformablePublisher<T> buffer(Publisher<T> publisher) {
-    return new BufferingPublisher<>(publisher);
+    return new BufferingPublisher<>(Action.noop(), publisher);
   }
 
   /**
@@ -491,7 +485,7 @@ public class Streams {
    * @return a publisher that splits collection items into new items per collection element
    */
   public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<? extends T>> publisher) {
-    return new FanOutPublisher<>(publisher).buffer();
+    return new FanOutPublisher<>(publisher);
   }
 
   /**
@@ -541,7 +535,7 @@ public class Streams {
    * @return a promise for the publisher's single item
    */
   public static <T> Promise<T> toPromise(Publisher<T> publisher) {
-    return Promise.of(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
+    return Promise.async(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
   }
 
   /**
@@ -552,10 +546,125 @@ public class Streams {
    * @return a promise for the streams contents as a list
    */
   public static <T> Promise<List<T>> toList(Publisher<T> publisher) {
-    return Promise.of(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
+    return Promise.async(f -> publisher.subscribe(new CollectingSubscriber<>(f::accept, s -> s.request(Long.MAX_VALUE))));
   }
 
-  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
-    return DefaultExecution.stream(publisher);
+  /**
+   * Reduces the stream to a single value, by applying the given function successively.
+   *
+   * @param publisher the publisher to reduce
+   * @param seed the initial value
+   * @param reducer the reducing function
+   * @param <R> the type of result
+   * @return a promise for the reduced value
+   * @since 1.4
+   */
+  public static <T, R> Promise<R> reduce(Publisher<T> publisher, R seed, BiFunction<R, T, R> reducer) {
+    return Promise.async(d ->
+      publisher.subscribe(new Subscriber<T>() {
+        private Subscription subscription;
+        private volatile R value = seed;
+        private AtomicInteger count = new AtomicInteger();
+
+        @Override
+        public void onSubscribe(Subscription s) {
+          subscription = s;
+          s.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(T t) {
+          count.incrementAndGet();
+          try {
+            value = reducer.apply(value, t);
+          } catch (Throwable e) {
+            subscription.cancel();
+            d.error(e);
+          }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+          d.error(t);
+        }
+
+        @Override
+        public void onComplete() {
+          d.success(value);
+        }
+      })
+    );
   }
+
+  /**
+   * Binds the given publisher to the current {@link Execution}.
+   * <p>
+   * Calls {@link #bindExec(Publisher, Action)} with {@link Action#noop()} as the disposer.
+   *
+   * @param publisher the publisher to bind to the execution
+   * @param <T> the type of item emitted by the publisher
+   * @return a new publisher that binds the given publisher to the current execution
+   */
+  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
+    return bindExec(publisher, Action.noop());
+  }
+
+  /**
+   * Binds the given publisher to the current {@link Execution}.
+   * <p>
+   * Publishers may emit signals asynchronously and on any thread.
+   * An execution bound publisher emits all of its “signals” (e.g. {@code onNext()}) on its execution (and therefore same thread).
+   * By binding the publisher to the execution, the execution can remain open while the publisher is emitting
+   * and subscribers receive signals within the execution and can therefore use {@link Promise} etc
+   * and have the appropriate execution state and error handling.
+   * <p>
+   * There is a performance overhead in binding a publisher to an execution.
+   * It is typically only necessary to bind the last publisher in a chain to the execution.
+   * If the processing of items does not require execution mechanics, it can be faster to wrap the publisher subscription
+   * in {@link Promise#async(Upstream)} and complete the promise in the subscriber's {@link Subscriber#onComplete()}.
+   * <p>
+   * The given {@code disposer} is used to “free” any items that were not yet received by the subscriber when
+   * the subscription is cancelled, or if the subscriber errors.
+   * This is only required if the emitted items are reference counted (e.g. {@link ByteBuf}) or hold open resources (e.g. file handles).
+   * Any exceptions raised by the disposer will be logged then ignored.
+   * If items do not need disposing, pass {@link Action#noop()}.
+   *
+   * @param publisher the publisher to bind to the execution
+   * @param disposer the disposer of unhandled items
+   * @param <T> the type of item emitted by the publisher
+   * @return a new publisher that binds the given publisher to the current execution
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher, Action<? super T> disposer) {
+    return DefaultExecution.stream(publisher, disposer);
+  }
+
+  /**
+   * Consumes the given publisher eagerly in a forked execution, buffering results until ready to be consumed by this execution.
+   * <p>
+   * This can be used when wanting to effectively parallelize the production of values and the consumption.
+   * The given publisher can emit items as fast as possible, independent of consumption.
+   * <p>
+   * If the given publisher emits faster than the consumer of the returned publisher,
+   * excessive memory may be used to buffer the items until the consumer can process them.
+   * <p>
+   * The given publisher will not be subscribed to until the returned publisher is.
+   * When the first {@link Subscription#request(long)} is issued,
+   * a request for {@link Long#MAX_VALUE} will be issued to the subscription to the given publisher.
+   * <p>
+   * The returned publisher is {@link #bindExec(Publisher) execution bound}.
+   *
+   * @param publisher the publisher to consume as fast as possible in a forked execution
+   * @param execConfig the configuration for the forked execution
+   * @param disposer the disposer for any buffered items when the stream errors or is cancelled
+   * @param <T> the type of emitted item
+   * @return an execution bound publisher that propagates the items of the given publisher
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> fork(Publisher<T> publisher, Action<? super ExecSpec> execConfig, Action<? super T> disposer) {
+    return new BufferingPublisher<T>(disposer, write -> {
+      return new ForkingSubscription<>(execConfig, publisher, write);
+    }).bindExec(disposer);
+  }
+
 }

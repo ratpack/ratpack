@@ -27,6 +27,10 @@ configurations {
   }
 }
 
+repositories {
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+
 dependencies {
   compile project(":ratpack-session")
   compile("org.pac4j:pac4j-core:${commonVersions.pac4j}") {
@@ -34,10 +38,20 @@ dependencies {
     exclude group: "com.google.inject", module: "guice"
   }
 
-  testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") {
+  testCompile("org.pac4j:pac4j-jwt:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
   }
+
+  testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.google.inject", module: "guice"
+    exclude group: "commons-codec", module: "commons-codec"
+    exclude group: "xml-apis", module: "xml-apis"
+    exclude group: "org.slf4j", module: "jcl-over-slf4j"
+  }
+  testCompile "commons-codec:commons-codec:${commonVersions.commonsCodec}"
+  testCompile "xml-apis:xml-apis:${commonVersions.xmlApis}"
 
   testCompile("org.pac4j:pac4j-http:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
@@ -50,7 +64,5 @@ dependencies {
 }
 
 ext.apiLinks = [
-  "http://docs.oracle.com/javase/8/docs/api/",
-  "http://google-guice.googlecode.com/git/javadoc/",
-  "http://www.pac4j.org/apidocs/pac4j/"
+  "http://www.pac4j.org/apidocs/pac4j/${commonVersions.pac4j}/"
 ]

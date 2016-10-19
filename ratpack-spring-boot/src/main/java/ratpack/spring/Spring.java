@@ -100,7 +100,6 @@ public abstract class Spring {
    * @see #spring(org.springframework.beans.factory.ListableBeanFactory)
    */
   public static Registry spring(SpringApplicationBuilder builder, String... args) {
-    builder.web(false);
     return spring(builder.run(args));
   }
 

@@ -18,6 +18,7 @@ package ratpack.groovy.template;
 
 import groovy.lang.Closure;
 import groovy.xml.MarkupBuilder;
+import io.netty.util.CharsetUtil;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Context;
 import ratpack.render.Renderable;
@@ -53,7 +54,7 @@ public class Markup implements Renderable {
   @Override
   public void render(Context context) throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    OutputStreamWriter writer = new OutputStreamWriter(out, getEncoding());
+    OutputStreamWriter writer = new OutputStreamWriter(out, CharsetUtil.encoder(getEncoding()));
     MarkupBuilder markupBuilder = new MarkupBuilder(writer);
 
     ClosureUtil.configureDelegateFirst(markupBuilder, markupBuilder, getDefinition());

@@ -24,7 +24,10 @@ import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.jackson.JsonParseOpts;
 import ratpack.parse.Parse;
+import ratpack.parse.Parser;
 import ratpack.parse.ParserSupport;
+import ratpack.registry.internal.TypeCaching;
+import ratpack.util.Types;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +36,13 @@ import static ratpack.util.Types.cast;
 
 public class JsonParser extends ParserSupport<JsonParseOpts> {
 
-  private static final TypeToken<JsonNode> JSON_NODE_TYPE = TypeToken.of(JsonNode.class);
+  private static final TypeToken<JsonNode> JSON_NODE_TYPE = Types.token(JsonNode.class);
+
+  public static final TypeToken<Parser<JsonParseOpts>> TYPE = TypeCaching.typeToken(new TypeToken<Parser<JsonParseOpts>>() {});
+  public static final Parser<JsonParseOpts> INSTANCE = new JsonParser();
+
+  private JsonParser() {
+  }
 
   @Override
   public <T> T parse(Context context, TypedData body, Parse<T, JsonParseOpts> parse) throws IOException {

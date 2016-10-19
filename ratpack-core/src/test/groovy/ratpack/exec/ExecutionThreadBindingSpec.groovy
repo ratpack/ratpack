@@ -24,7 +24,7 @@ class ExecutionThreadBindingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { ExecController execController ->
-        Promise.of { f ->
+        Promise.async { f ->
           assert Execution.current()
           Thread.start {
             assert !Execution.isManagedThread()

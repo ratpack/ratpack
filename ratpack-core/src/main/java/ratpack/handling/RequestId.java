@@ -16,10 +16,12 @@
 
 package ratpack.handling;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.internal.DefaultRequestId;
 import ratpack.handling.internal.HeaderBasedRequestIdGenerator;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.http.Request;
+import ratpack.util.Types;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -66,6 +68,13 @@ import java.util.concurrent.ThreadLocalRandom;
 public interface RequestId extends CharSequence {
 
   /**
+   * A type token for this type.
+   *
+   * @since 1.1
+   */
+  TypeToken<RequestId> TYPE = Types.token(RequestId.class);
+
+  /**
    * Creates a new request ID from the given string.
    *
    * @param requestId the string of the request id
@@ -110,6 +119,13 @@ public interface RequestId extends CharSequence {
    * @see #header(CharSequence)
    */
   interface Generator {
+
+    /**
+     * A type token for this type.
+     *
+     * @since 1.1
+     */
+    TypeToken<Generator> TYPE = Types.token(Generator.class);
 
     /**
      * Generates IDs based of a random UUID.

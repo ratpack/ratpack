@@ -18,6 +18,7 @@ package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
+import ratpack.util.Types;
 
 import java.util.function.Supplier;
 
@@ -36,8 +37,8 @@ public interface RegistrySpec {
    * @param <O> the public type of the registry entry
    * @return this
    */
-  default <O> RegistrySpec add(Class<? super O> type, O object) {
-    return add(TypeToken.of(type), object);
+  default <O> RegistrySpec add(Class<O> type, O object) {
+    return add(Types.token(type), object);
   }
 
   /**
@@ -48,7 +49,7 @@ public interface RegistrySpec {
    * @param <O> the public type of the registry entry
    * @return this
    */
-  default <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+  default <O> RegistrySpec add(TypeToken<O> type, O object) {
     return addLazy(type, () -> object);
   }
 
@@ -60,7 +61,7 @@ public interface RegistrySpec {
    */
   default RegistrySpec add(Object object) {
     @SuppressWarnings("unchecked")
-    TypeToken<? super Object> type = (TypeToken<? super Object>) TypeToken.of(object.getClass());
+    TypeToken<? super Object> type = (TypeToken<? super Object>) Types.token(object.getClass());
     return add(type, object);
   }
 
@@ -75,7 +76,7 @@ public interface RegistrySpec {
    * @return this
    */
   default <O> RegistrySpec addLazy(Class<O> type, Supplier<? extends O> supplier) {
-    return addLazy(TypeToken.of(type), supplier);
+    return addLazy(Types.token(type), supplier);
   }
 
   /**

@@ -114,4 +114,27 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     options()
     response.headers.get("Allow") == "GET,POST"
   }
+
+  def "options requests can be overridden for multi method handlers"() {
+    when:
+    handlers {
+      all {
+        byMethod {
+          get {
+            render "foo"
+          }
+          post {
+            render "bar"
+          }
+          options {
+            render "baz"
+          }
+        }
+      }
+    }
+
+    then:
+    options()
+    response.body.getText() == "baz"
+  }
 }

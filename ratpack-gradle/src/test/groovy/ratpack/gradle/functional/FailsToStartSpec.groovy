@@ -16,12 +16,12 @@
 
 package ratpack.gradle.functional
 
-import org.gradle.initialization.ReportedException
+import org.gradle.testkit.runner.TaskOutcome
 
 class FailsToStartSpec extends FunctionalSpec {
 
   def "process does not hang if it fails to start"() {
-    given:
+    when:
     buildFile << """
       configureRun.doLast { run.systemProperty "ratpack.development", false }
       mainClassName = "org.Main"
@@ -39,11 +39,10 @@ class FailsToStartSpec extends FunctionalSpec {
       }
     """
 
-    when:
-    run("run").failure
-
     then:
-    thrown ReportedException
+    with(fail("run")) {
+      task(":run").outcome == TaskOutcome.FAILED
+    }
   }
 
 }

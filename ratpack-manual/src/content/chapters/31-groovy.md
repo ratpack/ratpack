@@ -286,7 +286,7 @@ class ListTest extends GroovyTestCase {
 
 If the thrown exception would be another type, `shouldFail` would rethrow the exception letting the test method fail
 
-A complete overview of all`GroovyTestCase` methods can be found in the [JavaDoc documentation](http://groovy.codehaus.org/api/groovy/util/GroovyTestCase.html).
+A complete overview of all`GroovyTestCase` methods can be found in the [JavaDoc documentation](http://docs.groovy-lang.org/@groovy-version@/html/api/groovy/util/GroovyTestCase.html).
 
 ### JUnit 4 support
 
@@ -307,7 +307,7 @@ class ListTest {
 }
 ```
 
-A complete overview of all `GroovyAssert` methods can be found in the [JavaDoc documentation](http://groovy.codehaus.org/api/groovy/test/GroovyAssert.html).
+A complete overview of all `GroovyAssert` methods can be found in the [JavaDoc documentation](http://docs.groovy-lang.org/@groovy-version@/html/api/groovy/test/GroovyAssert.html).
 
 ### Spock
 
@@ -317,13 +317,13 @@ beautiful and highly expressive specification DSL. Spock specifications are writ
 Spock can be used for unit, integration or BDD (behavior-driven-development) testing, it doesn’t put itself into a specific category of
 testing frameworks or libraries.
 
-In the following paragraphs we will have a first look at the anatomy of a Spock specification. It is not ment to be as seen as full blown documentation,
-it rather should give a pretty good feeling on what Spock is up to.
+In the following paragraphs we will have a first look at the anatomy of a Spock specification. It is not meant to be a full blown documentation,
+but rather give a pretty good feeling on what Spock is up to.
 
 #### First steps
 
 Spock lets you write specifications that describe features (properties, aspects) exhibited by a system of interest. The "system"
-can be anything between a single class and an entire application, a more advanced term for it is system under specification. The
+can be anything between a single class and an entire application, a more advanced term for it is _system under specification_. The
 feature description starts from a specific snapshot of the system and its collaborators, this snapshot is called the _feature’s
 fixture_.
 

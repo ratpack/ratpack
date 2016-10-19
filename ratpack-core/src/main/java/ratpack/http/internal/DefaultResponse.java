@@ -18,7 +18,6 @@ package ratpack.http.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
@@ -234,6 +233,14 @@ public class DefaultResponse implements Response {
     return this;
   }
 
+  @Override
+  public Response contentTypeIfNotSet(CharSequence contentType) {
+    if (!contentTypeSet) {
+      contentType(contentType);
+    }
+    return this;
+  }
+
   public void send(String text) {
     ByteBuf byteBuf = ByteBufUtil.encodeString(byteBufAllocator, CharBuffer.wrap(text), CharsetUtil.UTF_8);
     contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8).send(byteBuf);
@@ -284,9 +291,21 @@ public class DefaultResponse implements Response {
     return this;
   }
 
+  private static class OverwritingSet<T> extends HashSet<T> {
+    @Override
+    public boolean add(T item) {
+      if (!super.add(item)) {
+        super.remove(item);
+        return super.add(item);
+      } else {
+        return true;
+      }
+    }
+  }
+
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      cookies = Sets.newHashSet();
+      cookies = new OverwritingSet<>();
     }
     return cookies;
   }
@@ -326,7 +345,7 @@ public class DefaultResponse implements Response {
         .curry(this)
         .operation()
         .then(() ->
-            finalizeResponse(finalizers, then)
+          finalizeResponse(finalizers, then)
         );
     } else {
       List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);

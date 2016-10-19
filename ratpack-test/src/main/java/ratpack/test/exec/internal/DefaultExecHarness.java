@@ -17,7 +17,6 @@
 package ratpack.test.exec.internal;
 
 import ratpack.exec.*;
-import ratpack.exec.internal.CompleteExecResult;
 import ratpack.exec.internal.ResultBackedExecResult;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -48,15 +47,15 @@ public class DefaultExecHarness implements ExecHarness {
 
     controller.fork()
       .register(registry)
-      .onError(throwable -> reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable), Execution.current())))
+      .onError(throwable -> reference.set(new ResultBackedExecResult<>(Result.<T>error(throwable))))
       .onComplete(exec -> latch.countDown())
       .start(execution -> {
-        reference.set(new CompleteExecResult<>(execution));
+        reference.set(ExecResult.complete());
         Promise<T> promise = func.apply(execution);
         if (promise == null) {
           reference.set(null);
         } else {
-          promise.then(t -> reference.set(new ResultBackedExecResult<>(Result.success(t), execution)));
+          promise.then(t -> reference.set(new ResultBackedExecResult<>(Result.success(t))));
         }
       });
     latch.await();
@@ -72,7 +71,7 @@ public class DefaultExecHarness implements ExecHarness {
       .onError(thrown::set)
       .register(registry)
       .onComplete(e ->
-          latch.countDown()
+        latch.countDown()
       )
       .start(action::execute);
 

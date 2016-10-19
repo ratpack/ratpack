@@ -17,13 +17,13 @@
 package ratpack.http.internal
 
 import io.netty.buffer.Unpooled
+import io.netty.channel.Channel
 import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.util.concurrent.BlockingVariable
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
-import static io.netty.handler.codec.http.HttpHeaders.Values.CLOSE
 import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
@@ -300,20 +300,38 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can set connection close response header"() {
     given:
+    def i = 0
+    def channel = new BlockingVariable<Channel>(5)
+    def closed = new BlockingVariable(5)
     handlers {
       get {
-        response.headers.set(CONNECTION, CLOSE)
+        if (i++ > 0) {
+          response.forceCloseConnection()
+          directChannelAccess.channel.closeFuture().addListener {
+            closed.set(true)
+          }
+        } else {
+          channel.set(directChannelAccess.channel)
+        }
+
         response.send()
       }
     }
 
     when:
-    get()
+    def connection1 = applicationUnderTest.getAddress().toURL().openConnection()
 
     then:
-    with(response) {
-      headers.get(CONNECTION) == CLOSE
-    }
+    connection1.getHeaderField("Connection") == null
+    channel.get().open
+
+    when:
+    def connection2 = applicationUnderTest.getAddress().toURL().openConnection()
+
+    then:
+    connection2.getHeaderField("Connection") == "close"
+    closed.get()
+    !channel.get().open
   }
 }
 

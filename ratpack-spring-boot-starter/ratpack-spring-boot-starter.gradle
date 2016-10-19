@@ -1,0 +1,54 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+description = "Spring Boot starter for Ratpack - http://projects.spring.io/spring-boot/"
+
+apply plugin: "maven"
+
+configurations {
+  compile
+}
+
+dependencies {
+  compile project(":ratpack-spring-boot")
+  compile("org.springframework.boot:spring-boot-starter:$commonVersions.springBoot") {
+    exclude group: "org.yaml", module: "snakeyaml"
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compile commonDependencies.snakeyaml
+  compile commonDependencies.slf4j
+}
+
+conf2ScopeMappings.addMapping(100, configurations.compile, "compile")
+
+task install(type: Upload) {
+  repositories { mavenInstaller() }
+  configuration = configurations.archives
+}
+
+apply from: "$rootDir/gradle/projectLocalRepo.gradle"
+
+// This isn't actually used, but the maven plugin requires *a* artifact in order to go through the publishing motions.
+// It could be any, existing, file.
+artifacts {
+  archives file("${project.name}.gradle")
+}
+
+modifyPom {
+  project {
+    packaging "pom"
+  }
+}

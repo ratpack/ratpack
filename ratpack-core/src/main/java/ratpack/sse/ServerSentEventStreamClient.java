@@ -19,22 +19,42 @@ package ratpack.sse;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
+import ratpack.http.client.HttpClient;
 import ratpack.http.client.RequestSpec;
 import ratpack.sse.internal.DefaultServerSentEventStreamClient;
 import ratpack.stream.TransformablePublisher;
+import ratpack.util.Exceptions;
 
 import java.net.URI;
 
 public interface ServerSentEventStreamClient {
 
+  /**
+   * Creates an SSE client.
+   *
+   * @param httpClient the underlying HTTP client to use
+   * @return an SSE client
+   * @since 1.4
+   */
+  static ServerSentEventStreamClient of(HttpClient httpClient) {
+    return new DefaultServerSentEventStreamClient(httpClient);
+  }
+
+  /**
+   * @deprecated since 1.4, use {@link #of(HttpClient)}.
+   */
+  @Deprecated
   static ServerSentEventStreamClient sseStreamClient(ByteBufAllocator byteBufAllocator) {
-    return new DefaultServerSentEventStreamClient(byteBufAllocator);
+    return Exceptions.uncheck(() -> of(HttpClient.of(s -> s
+      .poolSize(0)
+      .byteBufAllocator(byteBufAllocator))
+    ));
   }
 
   Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action);
 
   default Promise<TransformablePublisher<Event<?>>> request(URI uri) {
-   return request(uri, Action.noop());
+    return request(uri, Action.noop());
   }
 
 }

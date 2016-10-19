@@ -20,6 +20,7 @@ import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ChainHandler;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 
@@ -31,14 +32,14 @@ import static ratpack.handling.Handlers.*;
 public class RemoteControlHandler implements Handler {
 
   private final Registry registry;
-  private final Handler rest;
+  private final Handler[] rest;
 
   private final AtomicReference<Registry> registryReference = new AtomicReference<>();
   private final Handler handler;
 
   public RemoteControlHandler(String endpointPath, Registry registry, Handler rest) {
     this.registry = registry;
-    this.rest = rest;
+    this.rest = ChainHandler.unpack(rest);
     this.handler = chain(
       path(
         endpointPath,
@@ -58,7 +59,7 @@ public class RemoteControlHandler implements Handler {
     public void handle(Context context) throws Exception {
       Registry registryInjection = registryReference.get();
       if (registryInjection == null) {
-        rest.handle(context);
+        context.insert(rest);
       } else {
         context.insert(registryInjection, rest);
       }

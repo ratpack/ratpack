@@ -103,9 +103,9 @@ TIP: Ratpack will register handlers automatically for static content in the clas
 
 ### Re-using existing Guice modules
 
-If Ratpack is embedded in a Spring application it can vbe helpful to re-use existing Guice modules, e.g. for JSON rendering.
+If Ratpack is embedded in a Spring application it can be helpful to re-use existing Guice modules, e.g. for template rendering.
 To do this just include a `@Bean` of type `Module`.
-For example with the `JacksonModule` for JSON support:
+For example with the `ThymeleafModule` for Thymeleaf support:
 
 ```java
 package my.app;
@@ -118,22 +118,26 @@ import org.springframework.context.annotation.Bean;
 
 import ratpack.func.Action;
 import ratpack.handling.Chain;
-import ratpack.jackson.guice.JacksonModule;
+import ratpack.thymeleaf.ThymeleafModule;
 import ratpack.spring.config.EnableRatpack;
+
+import static ratpack.thymeleaf.Template.thymeleafTemplate;
 
 @SpringBootApplication
 @EnableRatpack
 public class Main {
 
   @Bean
-  public Action<Chain> home() {
+  public Action<Chain> home(Service service) {
     return chain -> chain.get(ctx -> ctx
-      .render(json(Collections.singletonMap("message", "Hello"))));
+      .render(thymeleafTemplate("myTemplate", 
+        m -> m.put("key", "Hello " + service.message())))
+    );
   }
 
   @Bean
-  public JacksonModule jacksonModule() {
-    return new JacksonModule();
+  public ThymeleafModule thymeleafModule() {
+    return new ThymeleafModule();
   }
 
   @Bean

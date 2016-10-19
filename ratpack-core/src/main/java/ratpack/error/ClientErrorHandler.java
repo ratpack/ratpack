@@ -16,7 +16,9 @@
 
 package ratpack.error;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
+import ratpack.util.Types;
 
 /**
  * The client error handler deals with errors that are due to the client doing something wrong.
@@ -28,6 +30,13 @@ import ratpack.handling.Context;
  * </ul>
  */
 public interface ClientErrorHandler {
+
+  /**
+   * A type token for this type.
+   *
+   * @since 1.1
+   */
+  TypeToken<ClientErrorHandler> TYPE = Types.token(ClientErrorHandler.class);
 
   /**
    * Handle a client error.

@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
@@ -31,6 +32,10 @@ import ratpack.config.internal.module.SSLContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.impose.ForceDevelopmentImposition;
+import ratpack.impose.ForceServerListenPortImposition;
+import ratpack.impose.Impositions;
+import ratpack.impose.ServerConfigImposition;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 
@@ -47,13 +52,28 @@ import java.util.function.Supplier;
 
 public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
-  private final ConfigDataBuilder configDataBuilder;
-  private final Map<String, Class<?>> required = Maps.newHashMap();
+  private final DefaultConfigDataBuilder configDataBuilder;
+  private final Map<String, TypeToken<?>> required = Maps.newHashMap();
   private final BaseDirSupplier baseDirSupplier = new BaseDirSupplier();
+  private final ServerEnvironment serverEnvironment;
+  private final Impositions impositions;
 
-  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment) {
-    configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
-    this.configDataBuilder.jacksonModules(new ConfigModule(serverEnvironment, baseDirSupplier));
+  public DefaultServerConfigBuilder(ServerEnvironment serverEnvironment, Impositions impositions) {
+    this.impositions = impositions;
+    this.configDataBuilder = new DefaultConfigDataBuilder(serverEnvironment);
+    this.serverEnvironment = serverEnvironment;
+  }
+
+  private DefaultServerConfigBuilder(DefaultConfigDataBuilder configDataBuilder, Map<String, TypeToken<?>> required, BaseDirSupplier baseDirSupplier, ServerEnvironment serverEnvironment, Impositions impositions) {
+    this.configDataBuilder = configDataBuilder.copy();
+    this.required.putAll(required);
+    this.baseDirSupplier.baseDir = baseDirSupplier.baseDir;
+    this.serverEnvironment = serverEnvironment;
+    this.impositions = impositions;
+  }
+
+  private DefaultServerConfigBuilder copy() {
+    return new DefaultServerConfigBuilder(configDataBuilder, required, baseDirSupplier, serverEnvironment, impositions);
   }
 
   @Override
@@ -68,13 +88,17 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   private ServerConfigBuilder addToServer(Consumer<? super ObjectNode> action) {
-    add((m, f) -> {
-      ObjectNode rootNode = new ObjectNode(getObjectMapper().getNodeFactory());
+    addToServer(configDataBuilder, action);
+    return this;
+  }
+
+  private static void addToServer(ConfigDataBuilder configDataBuilder, Consumer<? super ObjectNode> action) {
+    configDataBuilder.add((m, f) -> {
+      ObjectNode rootNode = new ObjectNode(configDataBuilder.getObjectMapper().getNodeFactory());
       ObjectNode server = rootNode.putObject("server");
       action.accept(server);
       return rootNode;
     });
-    return this;
   }
 
   @Override
@@ -108,6 +132,21 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder maxContentLength(int maxContentLength) {
     return addToServer(n -> n.put("maxContentLength", maxContentLength));
+  }
+
+  @Override
+  public ServerConfigBuilder maxChunkSize(int maxChunkSize) {
+    return addToServer(n -> n.put("maxChunkSize", maxChunkSize));
+  }
+
+  @Override
+  public ServerConfigBuilder maxInitialLineLength(int maxInitialLineLength) {
+    return addToServer(n -> n.put("maxInitialLineLength", maxInitialLineLength));
+  }
+
+  @Override
+  public ServerConfigBuilder maxHeaderSize(int maxHeaderSize) {
+    return addToServer(n -> n.put("maxHeaderSize", maxHeaderSize));
   }
 
   @Override
@@ -274,8 +313,14 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
-  public ServerConfigBuilder require(String pointer, Class<?> type) {
-    Class<?> previous = required.put(
+  public ServerConfigBuilder object(String path, Object object) {
+    configDataBuilder.object(path, object);
+    return this;
+  }
+
+  @Override
+  public ServerConfigBuilder require(String pointer, TypeToken<?> type) {
+    TypeToken<?> previous = required.put(
       Objects.requireNonNull(pointer, "pointer cannot be null"),
       Objects.requireNonNull(type, "type cannot be null")
     );
@@ -316,17 +361,31 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfig build() {
-    ConfigData configData = new DefaultConfigData(configDataBuilder.getObjectMapper(), getConfigSources(), MoreObjects.firstNonNull(baseDirSupplier.baseDir, FileSystemBinding.root()));
-    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, required);
+    DefaultServerConfigBuilder copy = copy();
+
+    impositions.get(ServerConfigImposition.class)
+      .ifPresent(c -> c.apply(copy));
+
+    impositions.get(ForceServerListenPortImposition.class)
+      .map(ForceServerListenPortImposition::getPort)
+      .ifPresent(copy::port);
+
+    impositions.get(ForceDevelopmentImposition.class)
+      .map(ForceDevelopmentImposition::isDevelopment)
+      .ifPresent(copy::development);
+
+    copy.configDataBuilder.jacksonModules(new ConfigModule(copy.serverEnvironment, copy.baseDirSupplier));
+    ConfigData configData = new DefaultConfigData(copy.configDataBuilder.getObjectMapper(), copy.getConfigSources(), MoreObjects.firstNonNull(copy.baseDirSupplier.baseDir, FileSystemBinding.root()));
+    ImmutableSet<ConfigObject<?>> requiredConfig = extractRequiredConfig(configData, copy.required);
     return new DefaultServerConfig(configData, requiredConfig);
   }
 
-  private static ImmutableSet<ConfigObject<?>> extractRequiredConfig(ConfigData configData, Map<String, Class<?>> required) {
+  private static ImmutableSet<ConfigObject<?>> extractRequiredConfig(ConfigData configData, Map<String, TypeToken<?>> required) {
     RuntimeException badConfig = new IllegalStateException("Failed to build required config items");
     ImmutableSet.Builder<ConfigObject<?>> config = ImmutableSet.builder();
-    for (Map.Entry<String, Class<?>> requiredConfig : required.entrySet()) {
+    for (Map.Entry<String, TypeToken<?>> requiredConfig : required.entrySet()) {
       String path = requiredConfig.getKey();
-      Class<?> type = requiredConfig.getValue();
+      TypeToken<?> type = requiredConfig.getValue();
       try {
         config.add(configData.getAsConfigObject(path, type));
       } catch (Exception e) {

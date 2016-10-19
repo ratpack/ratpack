@@ -19,6 +19,7 @@ package ratpack.config
 import ratpack.server.ServerConfig
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
+import ratpack.impose.Impositions
 
 class PropsConfigSpec extends BaseConfigSpec {
   def "supports properties"() {
@@ -26,6 +27,9 @@ class PropsConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def configFile = tempFolder.newFile("file.properties").toPath()
     configFile.text = """
     |# This is a comment
@@ -39,6 +43,8 @@ class PropsConfigSpec extends BaseConfigSpec {
     |server.indexFiles[1]: index.htm
     |server.ssl.keystoreFile: ${keyStoreFile.toString().replaceAll("\\\\", "/")}
     |server.ssl.keystorePassword: ${keyStorePassword}
+    |server.ssl.truststoreFile: ${trustStoreFile.toString().replaceAll("\\\\", "/")}
+    |server.ssl.truststorePassword: ${trustStorePassword}
     |""".stripMargin()
 
     when:
@@ -61,6 +67,9 @@ class PropsConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def properties = new Properties()
     properties.with {
       setProperty("ratpack.port", "8080")
@@ -73,10 +82,12 @@ class PropsConfigSpec extends BaseConfigSpec {
       setProperty("ratpack.server.indexFiles[1]", "index.htm")
       setProperty("ratpack.server.ssl.keystoreFile", keyStoreFile.toString())
       setProperty("ratpack.server.ssl.keystorePassword", keyStorePassword)
+      setProperty("ratpack.server.ssl.truststoreFile", trustStoreFile.toString())
+      setProperty("ratpack.server.ssl.truststorePassword", trustStorePassword)
     }
 
     when:
-    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties)).sysProps().baseDir(baseDir).build()
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment([:], properties), Impositions.none()).sysProps().baseDir(baseDir).build()
 
     then:
     serverConfig.baseDir.file == baseDir

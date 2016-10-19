@@ -16,14 +16,14 @@
 
 package ratpack.groovy
 
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.MainClassApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class StaticCompilationSpec extends Specification {
   @AutoCleanup
-  def aut = ApplicationUnderTest.of(TestCompileStaticApp)
+  def aut = new MainClassApplicationUnderTest(TestCompileStaticApp)
   def httpClient = TestHttpClient.testHttpClient(aut)
 
   def "can run apps that are statically compiled"() {

@@ -16,7 +16,6 @@
 
 package ratpack.sse.internal;
 
-import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
@@ -30,17 +29,16 @@ import java.net.URI;
 public class DefaultServerSentEventStreamClient implements ServerSentEventStreamClient {
 
   private final HttpClient httpClient;
-  private final ByteBufAllocator byteBufAllocator;
 
-  public DefaultServerSentEventStreamClient(ByteBufAllocator byteBufAllocator) {
-    this.httpClient = HttpClient.httpClient(byteBufAllocator, Integer.MAX_VALUE);
-    this.byteBufAllocator = byteBufAllocator;
+  public DefaultServerSentEventStreamClient(HttpClient httpClient) {
+    this.httpClient = httpClient;
   }
 
   @Override
   public Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
-    return httpClient.requestStream(uri, action).
-      map(stream -> stream.getBody().streamMap(new ServerSentEventStreamMapDecoder(byteBufAllocator)));
+    return httpClient.requestStream(uri, action).map(r ->
+      new ServerSentEventDecodingPublisher(r.getBody(), httpClient.getByteBufAllocator())
+    );
   }
 
 }

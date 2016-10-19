@@ -39,10 +39,13 @@ abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
   }
 
   void script(String text) {
-    ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
+    def lastMod = ratpackFile.lastModified()
+    while (lastMod == ratpackFile.lastModified()) {
+      ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
+    }
   }
 
-  protected getApplicationFile(String fileName) {
+  protected File getApplicationFile(String fileName) {
     if (!appFile) {
       appFile = temporaryFolder.newFile(fileName)
     }

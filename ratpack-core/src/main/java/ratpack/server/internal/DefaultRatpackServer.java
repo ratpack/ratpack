@@ -16,8 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -35,29 +33,35 @@ import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.exec.internal.DefaultExecController;
+import ratpack.exec.internal.ThreadBinding;
 import ratpack.func.Action;
-import ratpack.func.BiAction;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
+import ratpack.impose.Impositions;
+import ratpack.impose.UserRegistryImposition;
 import ratpack.registry.Registry;
-import ratpack.server.*;
+import ratpack.server.RatpackServer;
+import ratpack.server.RatpackServerSpec;
+import ratpack.server.ReloadInformant;
+import ratpack.server.ServerConfig;
+import ratpack.service.internal.DefaultEvent;
+import ratpack.service.internal.ServicesGraph;
 import ratpack.util.Exceptions;
+import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.InetSocketAddress;
-import java.util.Iterator;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultRatpackServer implements RatpackServer {
+
+  public static final TypeToken<ReloadInformant> RELOAD_INFORMANT_TYPE = Types.token(ReloadInformant.class);
 
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
@@ -65,7 +69,7 @@ public class DefaultRatpackServer implements RatpackServer {
     }
   }
 
-  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = TypeToken.of(HandlerDecorator.class);
+  public static final TypeToken<HandlerDecorator> HANDLER_DECORATOR_TYPE_TOKEN = Types.token(HandlerDecorator.class);
   public static final Logger LOGGER = LoggerFactory.getLogger(RatpackServer.class);
 
   protected final Action<? super RatpackServerSpec> definitionFactory;
@@ -74,17 +78,20 @@ public class DefaultRatpackServer implements RatpackServer {
   protected Channel channel;
   protected DefaultExecController execController;
   protected Registry serverRegistry = Registry.empty();
+  protected ServicesGraph servicesGraph;
 
   protected boolean reloading;
   protected final AtomicBoolean needsReload = new AtomicBoolean();
 
   protected boolean useSsl;
-  private final ServerCapturer.Overrides overrides;
+  private final Impositions impositions;
   private Thread shutdownHookThread;
 
-  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory) throws Exception {
+  public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory, Impositions impositions) throws Exception {
     this.definitionFactory = definitionFactory;
-    this.overrides = ServerCapturer.capture(this);
+    this.impositions = impositions;
+
+    ServerCapturer.capture(this);
   }
 
   @Override
@@ -109,7 +116,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
     serverConfig = definitionBuild.getServerConfig();
     execController = new DefaultExecController(serverConfig.getThreads());
-    ChannelHandler channelHandler = buildHandler(definitionBuild);
+    ChannelHandler channelHandler = ThreadBinding.bindFor(true, execController, () -> buildHandler(definitionBuild));
     channel = buildChannel(serverConfig, channelHandler);
 
     boundAddress = (InetSocketAddress) channel.localAddress();
@@ -138,39 +145,30 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private static class DefinitionBuild {
-    private final ServerCapturer.Overrides overrides;
+    private final Impositions impositions;
     private final RatpackServerDefinition definition;
     private final Throwable error;
     private final ServerConfig serverConfig;
     private final Function<? super Registry, ? extends Registry> userRegistryFactory;
 
-    public DefinitionBuild(ServerCapturer.Overrides overrides, RatpackServerDefinition definition, Throwable error) {
-      this.overrides = overrides;
+    public DefinitionBuild(Impositions impositions, RatpackServerDefinition definition, Throwable error) {
+      this.impositions = impositions;
       this.definition = definition;
       this.error = error;
-      this.serverConfig = new DelegatingServerConfig(definition.getServerConfig()) {
-        @Override
-        public int getPort() {
-          return overrides.getPort() < 0 ? super.getPort() : overrides.getPort();
-        }
+      this.serverConfig = definition.getServerConfig();
 
-        @Override
-        public boolean isDevelopment() {
-          return overrides.isDevelopment() == null ? super.isDevelopment() : overrides.isDevelopment();
-        }
-      };
-
-      Registry serverConfigOverrideRegistry = Registry.single(ServerConfig.class, serverConfig);
       this.userRegistryFactory = baseRegistry -> {
-        Registry actualBaseRegistry = baseRegistry.join(serverConfigOverrideRegistry);
-        Registry userRegistry = definition.getRegistry().apply(actualBaseRegistry);
-        Registry overrideRegistry = overrides.getRegistryFunction().apply(userRegistry);
-        return userRegistry.join(overrideRegistry);
+        Registry userRegistry = definition.getRegistry().apply(baseRegistry);
+        Registry userRegistryOverrides = impositions.get(UserRegistryImposition.class)
+          .orElse(UserRegistryImposition.none())
+          .build(userRegistry);
+
+        return userRegistry.join(userRegistryOverrides);
       };
     }
 
-    public ServerCapturer.Overrides getOverrides() {
-      return overrides;
+    public Impositions getImpositions() {
+      return impositions;
     }
 
     public ServerConfig getServerConfig() {
@@ -187,11 +185,13 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   protected DefinitionBuild buildUserDefinition() throws Exception {
-    try {
-      return new DefinitionBuild(overrides, RatpackServerDefinition.build(definitionFactory), null);
-    } catch (Exception e) {
-      return new DefinitionBuild(overrides, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
-    }
+    return Impositions.impose(impositions, () -> {
+      try {
+        return new DefinitionBuild(impositions, RatpackServerDefinition.build(definitionFactory), null);
+      } catch (Exception e) {
+        return new DefinitionBuild(impositions, RatpackServerDefinition.build(s -> s.handler(r -> ctx -> ctx.error(e))), e);
+      }
+    });
   }
 
   private ChannelHandler buildHandler(DefinitionBuild definitionBuild) throws Exception {
@@ -244,11 +244,17 @@ public class DefaultRatpackServer implements RatpackServer {
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 
-          pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
+          pipeline.addLast("decoder", new HttpRequestDecoder(
+            serverConfig.getMaxInitialLineLength(),
+            serverConfig.getMaxHeaderSize(),
+            serverConfig.getMaxChunkSize(),
+            false)
+          );
           pipeline.addLast("encoder", new HttpResponseEncoder());
           pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);
+          ch.config().setAutoRead(false);
         }
       })
       .bind(buildSocketAddress(serverConfig))
@@ -263,29 +269,13 @@ public class DefaultRatpackServer implements RatpackServer {
     Handler ratpackHandler = buildRatpackHandler(serverRegistry, definition.getHandlerFactory());
     ratpackHandler = decorateHandler(ratpackHandler, serverRegistry);
 
-    Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
-    if (!services.isEmpty()) {
-
-      LOGGER.info("Initializing " + services.size() + " services...");
-      try {
-        executeEvents(services.iterator(), new DefaultEvent(serverRegistry, reloading), Service::onStart, (service, error) -> {
-          throw new StartupFailureException("Service '" + service.getName() + "' failed startup", error);
-        });
-      } catch (StartupFailureException e) {
-        try {
-          shutdownServices();
-        } catch (Exception e1) {
-          e.addSuppressed(e1);
-        }
-        throw e;
-      }
-    }
-
+    servicesGraph = new ServicesGraph(serverRegistry);
+    servicesGraph.start(new DefaultEvent(serverRegistry, reloading));
     return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
   }
 
   private Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
-    return ServerRegistry.serverRegistry(this, execController, serverConfig, userRegistryFactory);
+    return ServerRegistry.serverRegistry(this, impositions, execController, serverConfig, userRegistryFactory);
   }
 
   private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
@@ -338,17 +328,8 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private void shutdownServices() throws Exception {
-    if (serverRegistry != null) {
-      Set<? extends Service> services = Sets.newLinkedHashSet(serverRegistry.getAll(Service.class));
-      if (services.isEmpty()) {
-        return;
-      }
-
-      LOGGER.info("Stopping " + services.size() + " services...");
-      Iterator<Service> reverseServices = ImmutableList.copyOf(services).reverse().iterator();
-      executeEvents(reverseServices, new DefaultEvent(serverRegistry, reloading), Service::onStop, (service, error) ->
-          LOGGER.warn("Service '" + service.getName() + "' thrown an exception while stopping.", error)
-      );
+    if (servicesGraph != null) {
+      servicesGraph.stop(new DefaultEvent(serverRegistry, reloading));
     }
   }
 
@@ -396,49 +377,8 @@ public class DefaultRatpackServer implements RatpackServer {
     return (serverConfig.getAddress() == null) ? new InetSocketAddress(serverConfig.getPort()) : new InetSocketAddress(serverConfig.getAddress(), serverConfig.getPort());
   }
 
-  private <E> void executeEvents(Iterator<? extends Service> services, E event, BiAction<Service, E> action, BiAction<? super Service, ? super Throwable> onError) throws Exception {
-    if (!services.hasNext()) {
-      return;
-    }
-
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Throwable> error = new AtomicReference<>();
-    executeEvents(services, latch, error, event, action, onError);
-    latch.await();
-
-    Throwable thrown = error.get();
-    if (thrown != null) {
-      throw Exceptions.toException(thrown);
-    }
-  }
-
-  private <E> void executeEvents(Iterator<? extends Service> services, CountDownLatch latch, AtomicReference<Throwable> error, E event, BiAction<Service, E> action, BiAction<? super Service, ? super Throwable> onError) throws Exception {
-    if (services.hasNext()) {
-      Service service = services.next();
-      execController.fork()
-        .onError(t -> {
-          try {
-            onError.execute(service, t);
-          } catch (Throwable e) {
-            error.set(e);
-          }
-        })
-        .onComplete(e -> {
-          //noinspection ThrowableResultOfMethodCallIgnored
-          if (error.get() == null) {
-            executeEvents(services, latch, error, event, action, onError);
-          } else {
-            latch.countDown();
-          }
-        })
-        .start(e -> action.execute(service, event));
-    } else {
-      latch.countDown();
-    }
-  }
-
   @ChannelHandler.Sharable
-  class ReloadHandler extends SimpleChannelInboundHandler<HttpRequest> {
+  class ReloadHandler extends ChannelInboundHandlerAdapter {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
@@ -446,15 +386,22 @@ public class DefaultRatpackServer implements RatpackServer {
     private ChannelHandler inner;
 
     public ReloadHandler(DefinitionBuild definition) {
-      super(false);
+      super();
       this.definitionBuild = definition;
       this.lastServerConfig = definitionBuild.getServerConfig();
       try {
         this.inner = buildAdapter(definitionBuild);
       } catch (Exception e) {
+        LOGGER.warn("An error occurred during startup. This will be ignored due to being in development mode.", e);
         this.inner = null;
         serverRegistry = buildServerRegistry(lastServerConfig, r -> r);
       }
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+      ctx.read();
+      super.channelActive(ctx);
     }
 
     ChannelHandler getDelegate() {
@@ -462,49 +409,48 @@ public class DefaultRatpackServer implements RatpackServer {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
-      ctx.channel().config().setAutoRead(false);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
-          Promise.<ChannelHandler>of(f -> {
-            boolean rebuild = false;
+        Promise.<ChannelHandler>async(f -> {
+          boolean rebuild = false;
 
-            if (inner == null || definitionBuild.error != null) {
+          if (inner == null || definitionBuild.error != null) {
+            rebuild = true;
+          } else if (msg instanceof HttpRequest) {
+            Optional<ReloadInformant> reloadInformant = serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(serverRegistry) ? r : null);
+            if (reloadInformant.isPresent()) {
+              LOGGER.debug("reload requested by '" + reloadInformant.get() + "'");
               rebuild = true;
-            } else {
-              Optional<ReloadInformant> reloadInformant = serverRegistry.first(TypeToken.of(ReloadInformant.class), r -> r.shouldReload(serverRegistry) ? r : null);
-              if (reloadInformant.isPresent()) {
-                LOGGER.warn("reload requested by '" + reloadInformant.get() + "'");
-                rebuild = true;
-              }
             }
+          }
 
-            if (rebuild) {
-              Blocking.get(() -> {
-                definitionBuild = buildUserDefinition();
-                lastServerConfig = definitionBuild.getServerConfig();
-                return buildAdapter(definitionBuild);
-              })
-                .wiretap(r -> {
-                  if (r.isSuccess()) {
-                    inner = r.getValue();
-                  }
-                })
-                .mapError(this::buildErrorRenderingAdapter)
-                .result(f::accept);
-            } else {
-              f.success(inner);
-            }
-          })
-            .wiretap(r -> {
-              try {
-                ctx.pipeline().remove("inner");
-              } catch (Exception ignore) {
-                // ignore
-              }
-              ctx.pipeline().addLast("inner", r.getValueOrThrow());
+          if (rebuild) {
+            Blocking.get(() -> {
+              definitionBuild = buildUserDefinition();
+              lastServerConfig = definitionBuild.getServerConfig();
+              return buildAdapter(definitionBuild);
             })
-            .throttled(reloadThrottle)
-            .then(adapter -> ctx.fireChannelRead(msg))
+              .wiretap(r -> {
+                if (r.isSuccess()) {
+                  inner = r.getValue();
+                }
+              })
+              .mapError(this::buildErrorRenderingAdapter)
+              .result(f::accept);
+          } else {
+            f.success(inner);
+          }
+        })
+          .wiretap(r -> {
+            try {
+              ctx.pipeline().remove("inner");
+            } catch (Exception ignore) {
+              // ignore
+            }
+            ctx.pipeline().addLast("inner", r.getValueOrThrow());
+          })
+          .throttled(reloadThrottle)
+          .then(adapter -> ctx.fireChannelRead(msg))
       );
     }
 

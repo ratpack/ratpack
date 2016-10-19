@@ -19,17 +19,17 @@ package ratpack.handling.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
-import ratpack.event.internal.EventRegistry;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
+import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Function;
@@ -37,6 +37,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.Status;
 import ratpack.http.TypedData;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -44,12 +45,11 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
-import ratpack.path.PathTokens;
-import ratpack.path.internal.DefaultPathTokens;
+import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.registry.internal.DelegatingRegistry;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
@@ -58,18 +58,22 @@ import ratpack.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
+import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
 
-  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = new TypeToken<Parser<?>>() {
-  };
+  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = TypeCaching.typeToken(new TypeToken<Parser<?>>() {});
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultContext.class);
+
+  public static Context current() {
+    return Execution.current().get(Context.TYPE);
+  }
 
   public static class ApplicationConstants {
     private final RenderController renderController;
@@ -80,18 +84,18 @@ public class DefaultContext implements Context {
     public ApplicationConstants(Registry registry, RenderController renderController, ExecController execController, Handler end) {
       this.renderController = renderController;
       this.execController = execController;
-      this.serverConfig = registry.get(ServerConfig.class);
+      this.serverConfig = registry.get(ServerConfig.TYPE);
       this.end = end;
     }
   }
 
-  public static class RequestConstants {
+  public static class RequestConstants implements DirectChannelAccess {
     private final ApplicationConstants applicationConstants;
-
     private final DefaultRequest request;
+    private final Channel channel;
+    private final ResponseTransmitter responseTransmitter;
+    private final Action<Action<Object>> onTakeOwnership;
 
-    private final DirectChannelAccess directChannelAccess;
-    private final EventRegistry<RequestOutcome> onCloseRegistry;
     private Execution execution;
 
     private final Deque<ChainIndex> indexes = new ArrayDeque<>();
@@ -100,14 +104,26 @@ public class DefaultContext implements Context {
     public Context context;
     public Handler handler;
 
-    public RequestConstants(
-      ApplicationConstants applicationConstants, DefaultRequest request,
-      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
-    ) {
+    public RequestConstants(ApplicationConstants applicationConstants, DefaultRequest request, Channel channel, ResponseTransmitter responseTransmitter, Action<Action<Object>> onTakeOwnership) {
       this.applicationConstants = applicationConstants;
       this.request = request;
-      this.directChannelAccess = directChannelAccess;
-      this.onCloseRegistry = onCloseRegistry;
+      this.channel = channel;
+      this.responseTransmitter = responseTransmitter;
+      this.onTakeOwnership = onTakeOwnership;
+    }
+
+    @Override
+    public Channel getChannel() {
+      return channel;
+    }
+
+    @Override
+    public void takeOwnership(Action<Object> messageReceiver) {
+      try {
+        onTakeOwnership.execute(messageReceiver);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
     }
   }
 
@@ -135,24 +151,26 @@ public class DefaultContext implements Context {
 
   private final RequestConstants requestConstants;
   private Registry joinedRegistry;
+  private PathBindingStorage pathBindings;
 
   public static void start(EventLoop eventLoop, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
-    PathBinding initialPathBinding = new RootPathBinding(requestConstants.request.getPath());
-    Registry pathBindingRegistry = Registry.single(PathBinding.class, initialPathBinding);
-    ChainIndex index = new ChainIndex(handlers, registry.join(pathBindingRegistry), true);
+    ChainIndex index = new ChainIndex(handlers, registry, true);
     requestConstants.indexes.push(index);
 
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
+    context.pathBindings = new PathBindingStorage(new RootPathBinding(requestConstants.request.getPath()));
+
     requestConstants.applicationConstants.execController.fork()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
       .register(s -> s
-          .add(Context.class, context)
-          .add(Request.class, requestConstants.request)
-          .add(Response.class, requestConstants.response)
-          .addLazy(RequestId.class, () -> registry.get(RequestId.Generator.class).generate(requestConstants.request))
+        .add(Context.TYPE, context)
+        .add(Request.TYPE, requestConstants.request)
+        .add(Response.TYPE, requestConstants.response)
+        .add(PathBindingStorage.TYPE, context.pathBindings)
+        .addLazy(RequestId.TYPE, () -> registry.get(RequestId.Generator.TYPE).generate(requestConstants.request))
       )
       .eventLoop(eventLoop)
       .onStart(e -> DefaultRequest.setDelegateRegistry(requestConstants.request, e))
@@ -163,7 +181,7 @@ public class DefaultContext implements Context {
       });
   }
 
-  private static class ContextRegistry implements DelegatingRegistry {
+  private static class ContextRegistry implements Registry {
     private final DefaultContext context;
 
     public ContextRegistry(DefaultContext context) {
@@ -171,8 +189,13 @@ public class DefaultContext implements Context {
     }
 
     @Override
-    public Registry getDelegate() {
-      return context.getCurrentRegistry();
+    public <O> Optional<O> maybeGet(TypeToken<O> type) {
+      return context.getCurrentRegistry().maybeGet(type);
+    }
+
+    @Override
+    public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
+      return context.getCurrentRegistry().getAll(type);
     }
   }
 
@@ -263,18 +286,13 @@ public class DefaultContext implements Context {
     next();
   }
 
-  public PathTokens getPathTokens() {
-    return maybeGet(PathBinding.class)
-      .map(PathBinding::getTokens)
-      .orElseGet(DefaultPathTokens::empty);
-  }
-
-  public PathTokens getAllPathTokens() {
-    return get(PathBinding.class).getAllTokens();
+  @Override
+  public PathBinding getPathBinding() {
+    return pathBindings.peek();
   }
 
   public Path file(String path) {
-    return get(FileSystemBinding.class).file(path);
+    return get(FileSystemBinding.TYPE).file(path);
   }
 
   public void render(Object object) throws NoSuchRendererException {
@@ -338,49 +356,49 @@ public class DefaultContext implements Context {
 
   @Override
   public void onClose(Action<? super RequestOutcome> callback) {
-    requestConstants.onCloseRegistry.register(callback);
+    requestConstants.responseTransmitter.addOutcomeListener(callback);
   }
 
   @Override
   public DirectChannelAccess getDirectChannelAccess() {
-    return requestConstants.directChannelAccess;
+    return requestConstants;
   }
 
-  public void redirect(String location) {
-    redirect(HttpResponseStatus.FOUND.code(), location);
+  public void redirect(Object to) {
+    redirect(302, to);
   }
 
-  public void redirect(int code, String location) {
-    Redirector redirector = joinedRegistry.get(Redirector.class);
-    redirector.redirect(this, location, code);
+  public void redirect(int code, Object to) {
+    Redirector redirector = joinedRegistry.get(Redirector.TYPE);
+    redirector.redirect(this, code, to);
   }
 
   @Override
-  public void lastModified(Date date, Runnable runnable) {
-    Date ifModifiedSinceHeader = requestConstants.request.getHeaders().getDate(IF_MODIFIED_SINCE);
-    long lastModifiedSecs = date.getTime() / 1000;
+  public void lastModified(Instant lastModified, Runnable runnable) {
+    Instant ifModifiedSince = requestConstants.request.getHeaders().getInstant(IF_MODIFIED_SINCE);
 
-    if (ifModifiedSinceHeader != null) {
-      long time = ifModifiedSinceHeader.getTime();
-      long ifModifiedSinceSecs = time / 1000;
+    if (ifModifiedSince != null) {
+      // Normalise to second resolution
+      ifModifiedSince = Instant.ofEpochSecond(ifModifiedSince.getEpochSecond());
+      lastModified = Instant.ofEpochSecond(lastModified.getEpochSecond());
 
-      if (lastModifiedSecs == ifModifiedSinceSecs) {
-        requestConstants.response.status(NOT_MODIFIED.code()).send();
+      if (!lastModified.isAfter(ifModifiedSince)) {
+        requestConstants.response.status(Status.NOT_MODIFIED).send();
         return;
       }
     }
 
-    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, date);
+    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, lastModified);
     runnable.run();
   }
 
   public void error(Throwable throwable) {
-    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
+    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
     throwable = unpackThrowable(throwable);
 
-    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.class).orElse(null);
+    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.TYPE).orElse(null);
     if (throwableHolder == null) {
-      getRequest().add(ThrowableHolder.class, new ThrowableHolder(throwable));
+      getRequest().add(ThrowableHolder.TYPE, new ThrowableHolder(throwable));
 
       try {
         serverErrorHandler.error(this, throwable);
@@ -417,7 +435,7 @@ public class DefaultContext implements Context {
 
   public void clientError(int statusCode) {
     try {
-      get(ClientErrorHandler.class).error(this, statusCode);
+      get(ClientErrorHandler.TYPE).error(this, statusCode);
     } catch (Throwable e) {
       error(Exceptions.toException(e));
     }
@@ -439,6 +457,9 @@ public class DefaultContext implements Context {
 
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    if (type.equals(PathBinding.TYPE)) {
+      return Types.cast(getPathBinding());
+    }
     return joinedRegistry.get(type);
   }
 

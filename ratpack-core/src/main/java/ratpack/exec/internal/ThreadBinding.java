@@ -16,9 +16,11 @@
 
 package ratpack.exec.internal;
 
+import io.netty.util.concurrent.FastThreadLocal;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecutionException;
 import ratpack.exec.UnmanagedThreadException;
+import ratpack.func.Factory;
 
 import java.util.Optional;
 
@@ -32,10 +34,27 @@ public class ThreadBinding {
     this.execController = execController;
   }
 
-  private static final ThreadLocal<ThreadBinding> STORAGE = new ThreadLocal<>();
+  private static final FastThreadLocal<ThreadBinding> STORAGE = new FastThreadLocal<>();
 
   static void bind(boolean compute, ExecController execController) {
     STORAGE.set(new ThreadBinding(compute, execController));
+  }
+
+  public static <T> T bindFor(boolean compute, ExecController execController, Factory<T> function) throws Exception {
+    ThreadBinding current = STORAGE.get();
+    if (current != null && current.getExecController() == execController) {
+      return function.create();
+    }
+
+    bind(compute, execController);
+    try {
+      return function.create();
+    } finally {
+      STORAGE.remove();
+      if (current != null) {
+        STORAGE.set(current);
+      }
+    }
   }
 
   public static Optional<ThreadBinding> get() {

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+apply plugin: "java"
 apply plugin: "groovy"
+apply plugin: "jacoco"
 apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/codenarc.gradle"
+apply from: "$rootDir/gradle/projectLocalRepo.gradle"
 
 dependencies {
   testCompile commonDependencies.groovy
@@ -32,9 +35,34 @@ tasks.withType(AbstractCompile) {
   options.compilerArgs << "-Xlint:-classfile" // Needed due to https://issues.jboss.org/browse/JASSIST-245
 }
 
+if (project.path != ":ratpack-benchmark") {
+  tasks.withType(JavaCompile) {
+    options.compilerArgs = ["-proc:none"]
+  }
+  tasks.withType(GroovyCompile) {
+    groovyOptions.forkOptions.memoryMaximumSize = "512m"
+    options.compilerArgs = ["-proc:none"]
+    allprojects { mustRunAfter tasks.withType(CodeNarc) }
+  }
+}
+
+tasks.withType(Javadoc) {
+  options.encoding = "utf-8"
+  options.docEncoding = "utf-8"
+  options.charSet = "utf-8"
+  exclude "**/internal/**"
+
+  options.addStringOption('Xdoclint:none', '-quiet')
+
+  doFirst {
+    if (project.ext.has("apiLinks")) {
+      options.links(*project.apiLinks)
+    }
+  }
+}
+
 javadoc {
   options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
-  options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 task sourceJar(type: Jar) {
@@ -53,54 +81,44 @@ artifacts {
   archives javadocJar, sourceJar
 }
 
-signing {
-  if (!isSnapshot) {
-    sign configurations.archives
+tasks.withType(Test) {
+  allprojects {
+    mustRunAfter tasks.withType(Checkstyle)
   }
-}
 
-install {
-  repositories {
-    mavenDeployer {
-      repository(url: localRepoUrl)
-    }
+  jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=64m"
+  minHeapSize "120m"
+  maxHeapSize "200m"
+
+  testLogging {
+    exceptionFormat "full"
   }
-}
 
-install.repositories["mavenInstaller"].beforeDeployment { deployment ->
-  if (!isSnapshot) {
-    artifacts {
-      signatures signing.signPom(deployment)
-    }
-  }
-}
-
-configurations {
-  configurations {
-    all {
-      incoming.afterResolve {
-        dependencies.withType(ModuleDependency) { dep ->
-          excludeRules.each {
-            if ([it.group, it.module].any { it == null }) {
-              throw new InvalidUserDataException(
-                "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
-              )
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-javadoc {
   doFirst {
-    if (project.ext.has("apiLinks")) {
-      options.links(*project.apiLinks)
+    if (isCloudCi) {
+      maxParallelForks 1
+      systemProperty "cloudCi", "true"
     }
   }
+
+  environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir
+}
+
+jacoco {
+  toolVersion = "0.7.6.201602180812"
 }
 
 task codeQuality {
   dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
+}
+
+jacocoTestReport {
+  additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+  sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+  classDirectories = files(sourceSets.main.output)
+  reports {
+    html.enabled = true
+    xml.enabled = true
+    csv.enabled = false
+  }
 }

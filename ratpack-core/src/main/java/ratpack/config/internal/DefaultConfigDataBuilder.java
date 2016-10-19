@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.datatype.jdk7.Jdk7Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
@@ -58,6 +57,17 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   public DefaultConfigDataBuilder(ServerEnvironment serverEnvironment, ObjectMapper objectMapper) {
     this.serverEnvironment = serverEnvironment;
     this.objectMapper = objectMapper;
+  }
+
+  private DefaultConfigDataBuilder(ServerEnvironment serverEnvironment, ObjectMapper objectMapper, ImmutableList.Builder<ConfigSource> sources, Action<? super Throwable> errorHandler) {
+    this.serverEnvironment = serverEnvironment;
+    this.objectMapper = objectMapper;
+    this.sources.addAll(sources.build());
+    this.errorHandler = errorHandler;
+  }
+
+  public DefaultConfigDataBuilder copy() {
+    return new DefaultConfigDataBuilder(serverEnvironment, objectMapper, sources, errorHandler);
   }
 
   @Override
@@ -109,11 +119,6 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   @Override
   public ConfigDataBuilder env(EnvironmentParser environmentParser) {
     return add(new EnvironmentConfigSource(serverEnvironment, environmentParser));
-  }
-
-  @Override
-  public ConfigDataBuilder args(String prefix, String separator, String[] args) {
-    return add(new ArgsConfigSource(prefix, separator, args));
   }
 
   @Override
@@ -182,6 +187,11 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   }
 
   @Override
+  public ConfigDataBuilder object(String path, Object object) {
+    return add(new ObjectConfigSource(path, object));
+  }
+
+  @Override
   public ConfigDataBuilder onError(Action<? super Throwable> errorHandler) {
     this.errorHandler = errorHandler;
     return this;
@@ -190,7 +200,6 @@ public class DefaultConfigDataBuilder implements ConfigDataBuilder {
   public static ObjectMapper newDefaultObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    objectMapper.registerModule(new Jdk7Module());
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new GuavaModule());
     objectMapper.registerModule(new JavaTimeModule());

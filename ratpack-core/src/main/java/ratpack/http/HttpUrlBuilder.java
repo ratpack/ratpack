@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import ratpack.func.Action;
 import ratpack.http.internal.DefaultHttpUrlBuilder;
+import ratpack.util.MultiValueMap;
 
 import java.net.URI;
 import java.util.Map;
@@ -92,7 +93,7 @@ public interface HttpUrlBuilder {
    * <p>
    * If the port has not been explicitly set, it will be changed to match the default for HTTPS.
    *
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder secure();
 
@@ -100,7 +101,7 @@ public interface HttpUrlBuilder {
    * Sets the host to the given value.
    *
    * @param host The host.
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder host(String host);
 
@@ -110,12 +111,12 @@ public interface HttpUrlBuilder {
    * Any value less than 1 will throw an {@link IllegalAccessException}.
    *
    * @param port The port number.
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder port(int port);
 
   /**
-   * Appends some path to the URL.
+   * Appends the path to the URL.
    * <p>
    * The given value will may be a string such as {@code "foo"} or {@code "foo/bar"}.
    * In the case of the latter, the {@code "/"} character will not be URL escaped.
@@ -123,11 +124,55 @@ public interface HttpUrlBuilder {
    * <p>
    * If the value to append should be exactly one path segment (i.e. {@code "/"} should be encoded), use {@link #segment(String, Object...)}.
    *
-   * @param path The path to append.
-   * @return this
+   * @param path the path to append
+   * @return {@code this}
    */
   HttpUrlBuilder path(String path);
 
+  /**
+   * Appends the path to the URL, unless it is empty or {@code null}.
+   * <p>
+   * Has the same result as {@link #path(String)}, except that empty or {@code null} values are ignored.
+   *
+   * @param path the path to append
+   * @return {@code this}
+   * @since 1.2
+   */
+  default HttpUrlBuilder maybePath(String path) {
+    if (path != null && !path.isEmpty()) {
+      path(path);
+    }
+    return this;
+  }
+
+  /**
+   * Appends the path to the URL, without escaping any meta characters.
+   * <p>
+   * This can be used when it is guaranteed that the value has already been suitably encoded.
+   * <p>
+   * If the value has not already been encoded, use {@link #path(String)}
+   *
+   * @param path the path to append
+   * @return {@code this}
+   * @since 1.2
+   */
+  HttpUrlBuilder encodedPath(String path);
+
+  /**
+   * Appends the path to the URL, without escaping any meta characters, unless it is empty or {@code null}.
+   * <p>
+   * Has the same result as {@link #encodedPath(String)}, except that empty or {@code null} values are ignored.
+   *
+   * @param path the path to append
+   * @return {@code this}
+   * @since 1.2
+   */
+  default HttpUrlBuilder maybeEncodedPath(String path) {
+    if (path != null && !path.isEmpty()) {
+      encodedPath(path);
+    }
+    return this;
+  }
   /**
    * Appends one path segment to the URL.
    * <p>
@@ -138,7 +183,7 @@ public interface HttpUrlBuilder {
    *
    * @param pathSegment the path segment format string
    * @param args token arguments
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder segment(String pathSegment, Object... args);
 
@@ -149,7 +194,7 @@ public interface HttpUrlBuilder {
    * If param list ends in a key, a subsequent value of {@code ""} will be implied.
    *
    * @param params the param list
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder params(String... params);
 
@@ -161,7 +206,7 @@ public interface HttpUrlBuilder {
    * This method is additive with regard to the query params of this builder.
    *
    * @param params an action that contributes query params
-   * @return this
+   * @return {@code this}
    * @throws Exception any thrown by {@code params}
    */
   default HttpUrlBuilder params(Action<? super ImmutableMultimap.Builder<String, Object>> params) throws Exception {
@@ -176,7 +221,7 @@ public interface HttpUrlBuilder {
    * This method is additive with regard to the query params of this builder.
    *
    * @param params a map of query params to add to the URL being built
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder params(Map<String, ?> params);
 
@@ -188,9 +233,22 @@ public interface HttpUrlBuilder {
    * This method is additive with regard to the query params of this builder.
    *
    * @param params a multi map of query params to add to the URL being built
-   * @return this
+   * @return {@code this}
    */
   HttpUrlBuilder params(Multimap<String, ?> params);
+
+  /**
+   * Add some query params to the URL.
+   * <p>
+   * The entries of the given multi value map are added as query params to the URL being built.
+   * <p>
+   * This method is additive with regard to the query params of this builder.
+   *
+   * @param params a multi value map of query params to add to the URL being built
+   * @return {@code this}
+   * @since 1.2
+   */
+  HttpUrlBuilder params(MultiValueMap<String, ?> params);
 
   /**
    * Builds the URI based on this builder's current state.

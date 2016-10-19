@@ -21,9 +21,11 @@ import com.codahale.metrics.Timer;
 import com.codahale.metrics.annotation.Timed;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import ratpack.exec.Promise;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An implementation of MethodInterceptor that collects {@link com.codahale.metrics.Timer} metrics for any method
@@ -37,13 +39,23 @@ public class TimedMethodInterceptor implements MethodInterceptor {
   @Override
   public Object invoke(MethodInvocation invocation) throws Throwable {
     String timerTag = buildTimerTag(invocation.getMethod().getAnnotation(Timed.class), invocation.getMethod());
-    final Timer.Context timer = metricRegistry.timer(timerTag).time();
-
+    final Timer timer = metricRegistry.timer(timerTag);
+    final Timer.Context timerContext = timer.time();
+    Object result;
     try {
-      return invocation.proceed();
-    } finally {
-      timer.stop();
+      result = invocation.proceed();
+      if (result instanceof Promise<?>) {
+        result = ((Promise<?>) result).time(duration ->
+                timer.update(duration.getNano(), TimeUnit.NANOSECONDS)
+        );
+      } else {
+        timerContext.stop();
+      }
+    } catch (Exception e) {
+      timerContext.stop();
+      throw e;
     }
+    return result;
   }
 
   private String buildTimerTag(Timed annotation, Method method) {

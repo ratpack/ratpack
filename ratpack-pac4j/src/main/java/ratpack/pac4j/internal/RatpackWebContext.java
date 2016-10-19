@@ -20,31 +20,31 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
+import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
+import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.form.internal.DefaultForm;
 import ratpack.form.internal.FormDecoder;
 import ratpack.handling.Context;
-import ratpack.http.HttpMethod;
-import ratpack.http.MediaType;
-import ratpack.http.Request;
-import ratpack.http.TypedData;
+import ratpack.http.*;
 import ratpack.server.PublicAddress;
+import ratpack.session.Session;
 import ratpack.session.SessionData;
+import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class RatpackWebContext implements WebContext {
 
   private final Context context;
   private final SessionData session;
   private final Request request;
+  private final Response response;
   private final Form form;
 
   private String responseContent = "";
@@ -53,11 +53,23 @@ public class RatpackWebContext implements WebContext {
     this.context = ctx;
     this.session = session;
     this.request = ctx.getRequest();
+    this.response = ctx.getResponse();
 
     if (isFormAvailable(request, body)) {
       this.form = FormDecoder.parseForm(ctx, body, MultiValueMap.empty());
     } else {
       this.form = new DefaultForm(MultiValueMap.empty(), MultiValueMap.empty());
+    }
+  }
+
+  public static Promise<RatpackWebContext> from(Context ctx, boolean bodyBacked) {
+    Promise<SessionData> sessionDataPromise = ctx.get(Session.class).getData();
+    if (bodyBacked) {
+      return ctx.getRequest().getBody().flatMap(body ->
+        sessionDataPromise.map(sessionData -> new RatpackWebContext(ctx, body, sessionData))
+      );
+    } else {
+      return sessionDataPromise.map(sessionData -> new RatpackWebContext(ctx, null, sessionData));
     }
   }
 
@@ -72,6 +84,25 @@ public class RatpackWebContext implements WebContext {
     return flattenMap(combineMaps(request.getQueryParams(), form));
   }
 
+  private RequestAttributes getRequestAttributes() {
+    RequestAttributes attributes = request.get(RequestAttributes.class);
+    if (attributes == null) {
+      attributes = new RequestAttributes();
+      request.add(attributes);
+    }
+    return attributes;
+  }
+
+  @Override
+  public Object getRequestAttribute(String name) {
+    return getRequestAttributes().getAttributes().get(name);
+  }
+
+  @Override
+  public void setRequestAttribute(String name, Object value) {
+    getRequestAttributes().getAttributes().put(name, value);
+  }
+
   @Override
   public String getRequestHeader(String name) {
     return request.getHeaders().get(name);
@@ -82,18 +113,28 @@ public class RatpackWebContext implements WebContext {
     if (value == null) {
       session.remove(name);
     } else {
-      session.set(name, value, session.getJavaSerializer());
+      Exceptions.uncheck(() -> session.set(name, value, session.getJavaSerializer()));
     }
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return session.get(name, session.getJavaSerializer()).orElse(null);
+    return Exceptions.uncheck(() -> session.get(name, session.getJavaSerializer()).orElse(null));
+  }
+
+  @Override
+  public Object getSessionIdentifier() {
+    return session.getSession().getId();
   }
 
   @Override
   public String getRequestMethod() {
     return request.getMethod().getName();
+  }
+
+  @Override
+  public String getRemoteAddr() {
+    return request.getRemoteAddress().getHostText();
   }
 
   @Override
@@ -103,12 +144,17 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public void setResponseStatus(int code) {
-    context.getResponse().status(code);
+    response.status(code);
   }
 
   @Override
   public void setResponseHeader(String name, String value) {
-    context.getResponse().getHeaders().set(name, value);
+    response.getHeaders().set(name, value);
+  }
+
+  @Override
+  public void setResponseContentType(String content) {
+    response.contentType(content);
   }
 
   @Override
@@ -127,22 +173,59 @@ public class RatpackWebContext implements WebContext {
   }
 
   @Override
+  public boolean isSecure() {
+    return "HTTPS".equalsIgnoreCase(getScheme());
+  }
+
+  @Override
   public String getFullRequestURL() {
     return getAddress().toString() + request.getUri();
   }
 
   public void sendResponse(RequiresHttpAction action) {
-    context.getResponse().status(action.getCode());
+    response.status(action.getCode());
     sendResponse();
   }
 
   public void sendResponse() {
-    int statusCode = context.getResponse().getStatus().getCode();
+    int statusCode = response.getStatus().getCode();
     if (statusCode >= 400) {
       context.clientError(statusCode);
     } else {
-      context.getResponse().send(MediaType.TEXT_HTML, responseContent);
+      response.send(MediaType.TEXT_HTML, responseContent);
     }
+  }
+
+  @Override
+  public Collection<Cookie> getRequestCookies() {
+    final List<Cookie> newCookies = new ArrayList<>();
+    final Set<io.netty.handler.codec.http.cookie.Cookie> cookies = request.getCookies();
+    for (final io.netty.handler.codec.http.cookie.Cookie cookie : cookies) {
+      final Cookie newCookie = new Cookie(cookie.name(), cookie.value());
+      newCookie.setDomain(cookie.domain());
+      newCookie.setPath(cookie.path());
+      newCookie.setMaxAge((int) cookie.maxAge());
+      newCookie.setSecure(cookie.isSecure());
+      newCookie.setHttpOnly(cookie.isHttpOnly());
+      newCookies.add(newCookie);
+    }
+    return newCookies;
+  }
+
+  @Override
+  public void addResponseCookie(Cookie cookie) {
+    final DefaultCookie newCookie = new DefaultCookie(cookie.getName(), cookie.getValue());
+    newCookie.setDomain(cookie.getDomain());
+    newCookie.setPath(cookie.getPath());
+    newCookie.setMaxAge(cookie.getMaxAge());
+    newCookie.setSecure(cookie.isSecure());
+    newCookie.setHttpOnly(cookie.isHttpOnly());
+    response.getCookies().add(newCookie);
+  }
+
+  @Override
+  public String getPath() {
+    return request.getPath();
   }
 
   public SessionData getSession() {
@@ -150,12 +233,12 @@ public class RatpackWebContext implements WebContext {
   }
 
   private URI getAddress() {
-    return context.get(PublicAddress.class).get(context);
+    return context.get(PublicAddress.class).get();
   }
 
   private static boolean isFormAvailable(Request request, TypedData body) {
     HttpMethod method = request.getMethod();
-    return body.getContentType().isForm() && (method.isPost() || method.isPut());
+    return body != null && body.getContentType().isForm() && (method.isPost() || method.isPut());
   }
 
   private Map<String, List<String>> combineMaps(MultiValueMap<String, String> first, MultiValueMap<String, String> second) {
@@ -173,5 +256,13 @@ public class RatpackWebContext implements WebContext {
       result.put(key, Iterables.toArray(map.get(key), String.class));
     }
     return result;
+  }
+
+  private class RequestAttributes {
+    private Map<String, Object> attributes = new HashMap<>();
+
+    public Map<String, Object> getAttributes() {
+      return attributes;
+    }
   }
 }

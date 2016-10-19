@@ -18,6 +18,7 @@ package ratpack.config
 
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
+import ratpack.impose.Impositions
 import spock.lang.Unroll
 
 class EnvVarConfigSpec extends BaseConfigSpec {
@@ -25,7 +26,7 @@ class EnvVarConfigSpec extends BaseConfigSpec {
   @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
-    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties())).env().build()
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties()), Impositions.none()).env().build()
 
     then:
     serverConfig.port == expectedPort
@@ -42,20 +43,25 @@ class EnvVarConfigSpec extends BaseConfigSpec {
     def keyStoreFile = tempFolder.newFile("keystore.jks").toPath()
     def keyStorePassword = "changeit"
     createKeystore(keyStoreFile, keyStorePassword)
+    def trustStoreFile = tempFolder.newFile('truststore.jks').toPath()
+    def trustStorePassword = 'something'
+    createKeystore(trustStoreFile, trustStorePassword)
     def envData = [
-      RATPACK_SERVER__PORT                  : "8080",
-      RATPACK_SERVER__ADDRESS               : "localhost",
-      RATPACK_SERVER__DEVELOPMENT           : "true",
-      RATPACK_SERVER__THREADS               : "3",
-      RATPACK_SERVER__PUBLIC_ADDRESS        : "http://localhost:8080",
-      RATPACK_SERVER__MAX_CONTENT_LENGTH    : "50000",
-      RATPACK_SERVER__TIME_RESPONSES        : "true",
-      RATPACK_SERVER__SSL__KEYSTORE_FILE    : keyStoreFile.toString(),
-      RATPACK_SERVER__SSL__KEYSTORE_PASSWORD: keyStorePassword,
+      RATPACK_SERVER__PORT                    : "8080",
+      RATPACK_SERVER__ADDRESS                 : "localhost",
+      RATPACK_SERVER__DEVELOPMENT             : "true",
+      RATPACK_SERVER__THREADS                 : "3",
+      RATPACK_SERVER__PUBLIC_ADDRESS          : "http://localhost:8080",
+      RATPACK_SERVER__MAX_CONTENT_LENGTH      : "50000",
+      RATPACK_SERVER__TIME_RESPONSES          : "true",
+      RATPACK_SERVER__SSL__KEYSTORE_FILE      : keyStoreFile.toString(),
+      RATPACK_SERVER__SSL__KEYSTORE_PASSWORD  : keyStorePassword,
+      RATPACK_SERVER__SSL__TRUSTSTORE_FILE    : trustStoreFile.toString(),
+      RATPACK_SERVER__SSL__TRUSTSTORE_PASSWORD: trustStorePassword
     ]
 
     when:
-    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties())).env().baseDir(baseDir).build()
+    def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties()), Impositions.none()).env().baseDir(baseDir).build()
 
     then:
     serverConfig.baseDir.file == baseDir

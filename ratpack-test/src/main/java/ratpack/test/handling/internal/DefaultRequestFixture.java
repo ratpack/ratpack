@@ -30,14 +30,16 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.path.PathBinding;
+import ratpack.impose.Impositions;
 import ratpack.path.internal.DefaultPathBinding;
+import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -45,7 +47,10 @@ import ratpack.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
+import ratpack.server.internal.RequestBodyReader;
 import ratpack.server.internal.ServerRegistry;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -116,15 +121,42 @@ public class DefaultRequestFixture implements RequestFixture {
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
     ServerConfig serverConfig = registry.get(ServerConfig.class);
 
-    DefaultRequest request = new DefaultRequest(Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
+    DefaultRequest request = new DefaultRequest(
+      Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
       new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       serverConfig,
-      maxContentLength -> Promise.value(requestBody));
+      new RequestBodyReader() {
+        @Override
+        public long getContentLength() {
+          return requestBody.readableBytes();
+        }
+
+        @Override
+        public Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
+          return Promise.value(requestBody)
+            .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());
+        }
+
+        @Override
+        public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
+          return Streams.<ByteBuf>yield(r -> {
+            if (r.getRequestNum() > 0) {
+              return null;
+            } else {
+              return requestBody;
+            }
+          });
+        }
+      }
+    );
 
     if (pathBinding != null) {
       handler = Handlers.chain(
-        Handlers.register(Registry.single(PathBinding.class, pathBinding)),
+        ctx -> {
+          ctx.getExecution().get(PathBindingStorage.TYPE).push(pathBinding);
+          ctx.next();
+        },
         handler
       );
     }
@@ -174,7 +206,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
-    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding));
+    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding), "");
     return this;
   }
 
@@ -250,7 +282,7 @@ public class DefaultRequestFixture implements RequestFixture {
     return Exceptions.uncheck(() -> {
       ServerConfig serverConfig = serverConfigBuilder.build();
       DefaultExecController execController = new DefaultExecController(serverConfig.getThreads());
-      return ServerRegistry.serverRegistry(new TestServer(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
+      return ServerRegistry.serverRegistry(new TestServer(), Impositions.none(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
     });
   }
 

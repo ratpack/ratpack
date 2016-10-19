@@ -20,18 +20,17 @@ import com.google.common.collect.ImmutableList;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.exec.ExecInitializer;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.ExecStarter;
-import ratpack.exec.Execution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.ChannelImplDetector;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Queue;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.func.Action.noop;
 
@@ -39,13 +38,18 @@ public class DefaultExecController implements ExecControllerInternal {
 
   private static final Action<Throwable> LOG_UNCAUGHT = t -> DefaultExecution.LOGGER.error("Uncaught execution exception", t);
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExecController.class);
+
   private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
   private final int numThreads;
   private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+  private final AtomicBoolean closed = new AtomicBoolean();
 
   private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
   private ImmutableList<? extends ExecInitializer> initializers = ImmutableList.of();
+
+  private Queue<Block> onClose = new ConcurrentLinkedQueue<>();
 
   public DefaultExecController() {
     this(Runtime.getRuntime().availableProcessors() * 2);
@@ -77,9 +81,28 @@ public class DefaultExecController implements ExecControllerInternal {
     return initializers;
   }
 
+  @Override
+  public boolean onClose(Block block) {
+    if (closed.get()) {
+      return false;
+    } else {
+      onClose.add(block);
+      return true;
+    }
+  }
+
   public void close() {
-    eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
+    Block onClose = this.onClose.poll();
+    while (onClose != null) {
+      try {
+        onClose.execute();
+      } catch (Exception e) {
+        LOGGER.warn("Exception thrown by exec controller onClose callback will be ignored - ", e);
+      }
+      onClose = this.onClose.poll();
+    }
     blockingExecutor.shutdown();
+    eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
   }
 
   @Override
@@ -100,7 +123,7 @@ public class DefaultExecController implements ExecControllerInternal {
   private class ExecControllerBindingThreadFactory extends DefaultThreadFactory {
     private final boolean compute;
 
-    public ExecControllerBindingThreadFactory(boolean compute, String name, int priority) {
+    ExecControllerBindingThreadFactory(boolean compute, String name, int priority) {
       super(name, priority);
       this.compute = compute;
     }
@@ -164,12 +187,12 @@ public class DefaultExecController implements ExecControllerInternal {
         if (eventLoop.inEventLoop() && DefaultExecution.get() == null) {
           try {
             new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete);
-          } catch (Exception e) {
+          } catch (Throwable e) {
             throw new InternalError("could not start execution", e);
           }
         } else {
           eventLoop.submit(() ->
-              new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
+            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
           );
         }
       }

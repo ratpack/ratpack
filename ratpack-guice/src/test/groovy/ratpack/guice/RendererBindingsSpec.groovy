@@ -33,15 +33,15 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
   static class IntRenderer extends RendererSupport<Integer> {
     @Override
-    void render(Context context, Integer object) {
-      context.response.send("text/integer", object.toString())
+    void render(Context ctx, Integer object) {
+      ctx.response.send("text/integer", object.toString())
     }
   }
 
   static class InstantRenderer extends RendererSupport<Instant> {
     @Override
-    void render(Context context, Instant object) {
-      context.response.send("text/instant", DateTimeFormatter.ISO_INSTANT.format(object))
+    void render(Context ctx, Instant object) {
+      ctx.response.send("text/instant", DateTimeFormatter.ISO_INSTANT.format(object))
     }
   }
 

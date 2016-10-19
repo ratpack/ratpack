@@ -16,7 +16,6 @@
 
 package ratpack.server.internal;
 
-import ratpack.handling.Context;
 import ratpack.server.PublicAddress;
 import ratpack.util.Exceptions;
 
@@ -36,7 +35,8 @@ public class ConstantPublicAddress implements PublicAddress {
   }
 
   @Override
-  public URI get(Context ctx) {
+  public URI get() {
     return uri;
   }
+
 }

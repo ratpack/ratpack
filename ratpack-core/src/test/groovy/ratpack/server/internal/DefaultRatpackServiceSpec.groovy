@@ -21,7 +21,6 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
-import ratpack.test.embed.EmbeddedApp
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -53,21 +52,6 @@ class DefaultRatpackServiceSpec extends Specification {
         it.stop()
       }
     }
-  }
-
-  def "responds to Expect: 100-continue header"() {
-    given:
-    def app = EmbeddedApp.fromHandlers {
-      it.post { it.render("Hello") }
-    }
-    def client = app.httpClient
-
-    when:
-    client.requestSpec { it.headers.add("Expect", "100-continue") }.post()
-
-    then:
-    client.response.statusCode == 100
-    client.response.body.text == ""
   }
 
 }

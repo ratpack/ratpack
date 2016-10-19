@@ -19,16 +19,21 @@ package ratpack.render.internal;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
 import ratpack.handling.Context;
+import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
 public class PromiseRenderer extends RendererSupport<Promise<?>> {
 
-  public static final TypeToken<Renderer<Promise<?>>> TYPE = new TypeToken<Renderer<Promise<?>>>() {};
+  public static final TypeToken<Renderer<Promise<?>>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<Promise<?>>>() {});
+
+  public static final Renderer<Promise<?>> INSTANCE = new PromiseRenderer();
+
+  private PromiseRenderer() {}
 
   @Override
-  public void render(Context context, Promise<?> promise) throws Exception {
-    promise.then(context::render);
+  public void render(Context ctx, Promise<?> promise) throws Exception {
+    promise.then(ctx::render);
   }
 
 }

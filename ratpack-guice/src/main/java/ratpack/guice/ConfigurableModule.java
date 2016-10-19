@@ -138,7 +138,7 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
   /**
    * Creates the configuration object.
    * <p>
-   * This implementation reflectively creates an instance of the type denoted by type param {@code C}.
+   * This implementation reflectively creates an instance of the type denoted by type param {@code T}.
    * In order for this to succeed, the following needs to be met:
    * <ul>
    * <li>The type must be public.</li>

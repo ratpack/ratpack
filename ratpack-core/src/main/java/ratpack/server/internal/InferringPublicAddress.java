@@ -20,8 +20,9 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
-import ratpack.handling.Context;
+import ratpack.exec.Execution;
 import ratpack.http.Headers;
+import ratpack.http.Request;
 import ratpack.server.PublicAddress;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.ProtocolUtil;
@@ -36,37 +37,39 @@ public class InferringPublicAddress implements PublicAddress {
 
   private static final Splitter FORWARDED_HOST_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
-  private final String scheme;
+  private final String defaultScheme;
 
-  public InferringPublicAddress(String scheme) {
-    this.scheme = scheme;
+  public InferringPublicAddress(String defaultScheme) {
+    this.defaultScheme = defaultScheme;
   }
 
-  public URI get(Context ctx) {
-    String scheme;
+  @Override
+  public URI get() {
+    Request request = Execution.current().maybeGet(Request.class).orElseThrow(() ->
+      new IllegalStateException("Inferring the public address is only supported during a request execution.")
+    );
+
+    String scheme = determineScheme(request);
     String host;
     int port;
-    HostAndPort forwardedHostData = getForwardedHostData(ctx);
+    HostAndPort forwardedHostData = getForwardedHostData(request);
     if (forwardedHostData != null) {
-      scheme = determineScheme(ctx, this.scheme);
       host = forwardedHostData.getHostText();
       port = forwardedHostData.getPortOrDefault(-1);
     } else {
-      URI absoluteRequestURI = getAbsoluteRequestUri(ctx);
+      URI absoluteRequestURI = getAbsoluteRequestUri(request);
       if (absoluteRequestURI != null) {
-        scheme = determineScheme(ctx, absoluteRequestURI.getScheme());
         host = absoluteRequestURI.getHost();
         port = absoluteRequestURI.getPort();
       } else {
-        scheme = determineScheme(ctx, this.scheme);
-        HostAndPort hostData = getHostData(ctx);
+        HostAndPort hostData = getHostData(request);
         if (hostData != null) {
           host = hostData.getHostText();
           port = hostData.getPortOrDefault(-1);
         } else {
-          HostAndPort localAddress = ctx.getRequest().getLocalAddress();
+          HostAndPort localAddress = request.getLocalAddress();
           host = localAddress.getHostText();
-          port = ProtocolUtil.isDefaultPortForScheme(localAddress.getPort(), this.scheme) ? -1 : localAddress.getPort();
+          port = ProtocolUtil.isDefaultPortForScheme(localAddress.getPort(), scheme) ? -1 : localAddress.getPort();
         }
       }
     }
@@ -77,29 +80,29 @@ public class InferringPublicAddress implements PublicAddress {
     }
   }
 
-  private URI getAbsoluteRequestUri(Context context) {
-    String rawUri = Strings.nullToEmpty(context.getRequest().getRawUri());
+  private URI getAbsoluteRequestUri(Request request) {
+    String rawUri = Strings.nullToEmpty(request.getRawUri());
     if (rawUri.isEmpty() || rawUri.startsWith("/")) {
       return null;
     }
     return URI.create(rawUri);
   }
 
-  private HostAndPort getForwardedHostData(Context context) {
-    Headers headers = context.getRequest().getHeaders();
+  private HostAndPort getForwardedHostData(Request request) {
+    Headers headers = request.getHeaders();
     String forwardedHostHeader = Strings.emptyToNull(headers.get(X_FORWARDED_HOST.toString()));
     String hostPortString = forwardedHostHeader != null ? Iterables.getFirst(FORWARDED_HOST_SPLITTER.split(forwardedHostHeader), null) : null;
     return hostPortString != null ? HostAndPort.fromString(hostPortString) : null;
   }
 
-  private HostAndPort getHostData(Context context) {
-    Headers headers = context.getRequest().getHeaders();
+  private HostAndPort getHostData(Request request) {
+    Headers headers = request.getHeaders();
     String hostPortString = Strings.emptyToNull(headers.get(HOST.toString()));
     return hostPortString != null ? HostAndPort.fromString(hostPortString) : null;
   }
 
-  private String determineScheme(Context context, String defaultScheme) {
-    Headers headers = context.getRequest().getHeaders();
+  private String determineScheme(Request request) {
+    Headers headers = request.getHeaders();
     String forwardedSsl = headers.get(X_FORWARDED_SSL.toString());
     String forwardedProto = headers.get(X_FORWARDED_PROTO.toString());
     if (ON.toString().equalsIgnoreCase(forwardedSsl)) {

@@ -40,13 +40,20 @@ section(id: "promo") {
 section(id: "main") {
   article(class: "content") {
 
+    a(href: "https://shop.oreilly.com/product/0636920037545.do") {
+      img src: "learning-ratpack.jpg", id: "learning-ratpack", align: "right"
+    }
     p {
       strong('Want to know more?')
       yield ' Check out the  '
       a(href: "/manual/current", 'manual')
-      yield ' or '
-      a(href: "/resources", 'resources')
       yield '.'
+    }
+    p {
+      strong('More the bookish type?')
+      yield ' Get '
+      a(href: "https://shop.oreilly.com/product/0636920037545.do", '“Learning Ratpack”')
+      yield ' from O\'Reilly Media.'
     }
     p {
       strong('Have a question or problem?')

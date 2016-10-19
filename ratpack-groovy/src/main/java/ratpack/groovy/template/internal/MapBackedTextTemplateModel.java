@@ -18,6 +18,7 @@ package ratpack.groovy.template.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.groovy.template.TextTemplateModel;
+import ratpack.util.Types;
 
 import java.util.Collection;
 import java.util.Map;
@@ -101,7 +102,7 @@ public class MapBackedTextTemplateModel implements TextTemplateModel {
   }
 
   public <T> T get(String key, Class<T> type) {
-    return get(key, TypeToken.of(type));
+    return get(key, Types.token(type));
   }
 
   @Override

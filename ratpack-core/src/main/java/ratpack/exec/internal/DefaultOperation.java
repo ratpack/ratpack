@@ -16,6 +16,7 @@
 
 package ratpack.exec.internal;
 
+import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -36,7 +37,37 @@ public class DefaultOperation implements Operation {
 
   @Override
   public Operation onError(Action<? super Throwable> onError) {
-    return new DefaultOperation(promise.onError(onError));
+    return promise.transform(up -> down -> up.connect(new Downstream<Void>() {
+      @Override
+      public void success(Void value) {
+        down.success(value);
+      }
+
+      @Override
+      public void error(Throwable throwable) {
+        Operation.of(() -> onError.execute(throwable)).promise().connect(new Downstream<Void>() {
+          @Override
+          public void success(Void value) {
+            down.complete();
+          }
+
+          @Override
+          public void error(Throwable throwable) {
+            down.error(throwable);
+          }
+
+          @Override
+          public void complete() {
+            down.complete();
+          }
+        });
+      }
+
+      @Override
+      public void complete() {
+        down.complete();
+      }
+    })).operation();
   }
 
   @Override
