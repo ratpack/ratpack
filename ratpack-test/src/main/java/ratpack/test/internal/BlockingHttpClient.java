@@ -37,7 +37,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.netty.buffer.Unpooled.copiedBuffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 public class BlockingHttpClient {
@@ -52,7 +51,7 @@ public class BlockingHttpClient {
           .map(response -> {
             TypedData responseBody = response.getBody();
             ByteBuf responseBuffer = responseBody.getBuffer();
-            ByteBuf heapResponseBodyBuffer = unreleasableBuffer(responseBuffer.isDirect() ? copiedBuffer(responseBuffer) : responseBuffer);
+            ByteBuf heapResponseBodyBuffer = unreleasableBuffer(responseBuffer.isDirect() ? TestByteBufAllocators.LEAKING_UNPOOLED_HEAP.heapBuffer(responseBuffer.readableBytes()).writeBytes(responseBuffer) : responseBuffer.retain());
 
             return new DefaultReceivedResponse(
               response.getStatus(),

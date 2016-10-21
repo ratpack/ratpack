@@ -210,12 +210,14 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
       @Override
       public void onNext(ByteBuf o) {
+        o.touch();
         if (channel.isOpen()) {
           channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
           if (channel.isWritable()) {
             subscription.request(1);
           }
         } else {
+          o.release();
           cancel();
         }
       }

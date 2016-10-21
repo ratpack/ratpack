@@ -34,6 +34,7 @@ import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
 
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class MetricsSpec extends RatpackGroovyDslSpec {
@@ -591,7 +592,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can apply custom groups for request timer metrics"() {
     def reporter = Mock(MetricRegistryListener)
-
+    def latch = new CountDownLatch(5)
     given:
     bindings {
       module new DropwizardMetricsModule(), {
@@ -601,7 +602,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
-      all { render "" }
+      all {
+        onClose { latch.countDown() }
+        render ""
+      }
     }
 
     when:
@@ -610,11 +614,13 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get("far")
     get("foo/3/bar")
     get("tar?id=3")
+    latch.await()
 
     then:
+    1 * reporter.onTimerAdded("tar.get-requests", !null)
     1 * reporter.onTimerAdded("foo.get-requests", !null)
     1 * reporter.onTimerAdded("f.get-requests", !null)
-    1 * reporter.onTimerAdded("tar.get-requests", !null)
+    1 * reporter.onCounterAdded('2xx-responses', !null)
   }
 
   def "can collect status code metrics"() {

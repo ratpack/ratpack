@@ -60,7 +60,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   public void add(HttpContent httpContent) {
     if (onAdd == null) {
       if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
-        ByteBuf byteBuf = httpContent.content();
+        ByteBuf byteBuf = httpContent.content().touch();
         length += byteBuf.readableBytes();
         if (maxContentLength > 0 && maxContentLength < length) {
           assert downstream != null;
@@ -168,9 +168,10 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
             } else {
               onAdd = httpContent -> {
                 if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
-                  ByteBuf byteBuf = httpContent.content();
+                  ByteBuf byteBuf = httpContent.content().touch();
                   length += byteBuf.readableBytes();
                   if (maxContentLength > 0 && maxContentLength < length) {
+                    byteBuf.release();
                     forceCloseConnection();
                     write.error(new RequestBodyTooLargeException(maxContentLength, length));
                     return;

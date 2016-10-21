@@ -201,6 +201,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        forceDispose(ctx.pipeline());
+
         if (cause instanceof ReadTimeoutException) {
           cause = new HttpClientReadTimeoutException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
         }
@@ -302,6 +304,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   protected ReceivedResponse toReceivedResponse(HttpResponse msg, ByteBuf responseBuffer) {
+    responseBuffer.touch();
     final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
     String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE);
     final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));

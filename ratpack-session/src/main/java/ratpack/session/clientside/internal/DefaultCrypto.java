@@ -95,15 +95,24 @@ public class DefaultCrypto implements Crypto {
 
     int messageLength = message.readableBytes();
     ByteBuf decMessage = allocator.buffer(cipher.getOutputSize(messageLength));
-    int count = cipher.doFinal(message.readBytes(messageLength).nioBuffer(), decMessage.nioBuffer(0, messageLength));
-    for (int i = count - 1; i >= 0; i--) {
-      if (decMessage.getByte(i) == 0x00) {
-        count--;
-      } else {
-        break;
+    ByteBuf byteBuf = message.readBytes(messageLength);
+
+    try {
+      int count = cipher.doFinal(byteBuf.nioBuffer(), decMessage.nioBuffer(0, messageLength));
+      for (int i = count - 1; i >= 0; i--) {
+        if (decMessage.getByte(i) == 0x00) {
+          count--;
+        } else {
+          break;
+        }
       }
+      decMessage.writerIndex(count);
+      return decMessage;
+    } catch (Exception e) {
+      decMessage.release();
+      throw e;
+    } finally {
+      byteBuf.release();
     }
-    decMessage.writerIndex(count);
-    return decMessage;
   }
 }
