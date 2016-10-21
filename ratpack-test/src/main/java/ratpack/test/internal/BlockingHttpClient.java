@@ -52,7 +52,7 @@ public class BlockingHttpClient {
           .map(response -> {
             TypedData responseBody = response.getBody();
             ByteBuf responseBuffer = responseBody.getBuffer();
-            ByteBuf heapResponseBodyBuffer = unreleasableBuffer(responseBuffer.isDirect() ? copiedBuffer(responseBuffer) : responseBuffer.retain());
+            ByteBuf heapResponseBodyBuffer = unreleasableBuffer(responseBuffer.isDirect() ? copiedBuffer(responseBuffer) : responseBuffer);
 
             return new DefaultReceivedResponse(
               response.getStatus(),
