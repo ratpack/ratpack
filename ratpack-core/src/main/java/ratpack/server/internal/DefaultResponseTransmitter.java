@@ -95,6 +95,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       }
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
+      if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+        HttpUtil.setTransferEncodingChunked(headersResponse, true);
+      }
 
       if (channel.isOpen()) {
         return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
@@ -257,7 +260,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {
     if (outcomeListeners != null) {
       future.addListener(ignore -> {
-        channel.attr(ATTRIBUTE_KEY).remove();
+        channel.attr(ATTRIBUTE_KEY).set(null);
         SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
         RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
         for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {

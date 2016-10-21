@@ -229,7 +229,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
           wanted.set(Long.MAX_VALUE);
           upstreamSubscription.request(Long.MAX_VALUE);
         } else {
-          long outstanding = nowWanted - buffer.size();
+          long outstanding = n - buffer.size();
           if (outstanding > 0) {
             upstreamSubscription.request(outstanding);
           }
@@ -240,11 +240,13 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
 
     @Override
     public void cancel() {
-      downstream = null;
-      if (upstreamSubscription != null) {
-        upstreamSubscription.cancel();
+      if (downstream != null) {
+        downstream = null;
+        if (upstreamSubscription != null) {
+          upstreamSubscription.cancel();
+        }
+        drain();
       }
-      drain();
     }
 
     class WriteStream implements BufferedWriteStream<T> {
@@ -283,6 +285,11 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
       @Override
       public long getBuffered() {
         return buffer.size();
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return downstream == null;
       }
     }
 

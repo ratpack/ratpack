@@ -44,17 +44,17 @@ class ServerSentEventsSpec extends BaseHttpClientSpec {
 
     expect:
     def response = get()
-    response.body.text == """event: add
+    response.body.text == """id: 1
+event: add
 data: Event 1
-id: 1
 
+id: 2
 event: add
 data: Event 2
-id: 2
 
+id: 3
 event: add
 data: Event 3
-id: 3
 
 """
     response.statusCode == OK.code()
@@ -174,7 +174,7 @@ id: 3
     response.headers["Content-Encoding"] == "gzip"
 
     new GZIPInputStream(response.body.inputStream).bytes ==
-      "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n".bytes
+      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\nid: 3\nevent: add\ndata: Event 3\n\n".bytes
   }
 
   def "can consume server sent event stream"() {

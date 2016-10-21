@@ -20,5 +20,26 @@ if (project.isCi) {
   buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
     licenseAgree = 'yes'
+
+    publishAlways()
+
+    tag "CI"
+
+    def commitId
+    try {
+      commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
+    } catch (ignore) {
+      // ignore
+    }
+
+    link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
+
+    def env = System.getenv()
+    if (env.SNAP_CI) {
+      link "Snap CI", "https://snap-ci.com/ratpack/ratpack/branch/${env.SNAP_BRANCH}/logs/defaultPipeline/${env.SNAP_PIPELINE_COUNTER}/${env.SNAP_STAGE_NAME}" +
+        ""
+    }
+
+
   }
 }

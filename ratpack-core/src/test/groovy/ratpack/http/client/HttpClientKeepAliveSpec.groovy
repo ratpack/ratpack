@@ -22,6 +22,8 @@ import java.util.concurrent.CountDownLatch
 
 class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
 
+  def poolingHttpClient = HttpClient.of { it.poolSize(1) }
+
   def "keep alive connection is silently discarded when it closes"() {
     when:
     Channel channel = null
@@ -37,7 +39,7 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
     }
     handlers {
       get {
-        render HttpClient.of { it.poolSize(1) }.get(otherAppUrl()).map { it.body.text }
+        render poolingHttpClient.get(otherAppUrl()).map { it.body.text }
       }
     }
 
@@ -52,4 +54,28 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
     latch.await()
     text == "ok"
   }
+
+  def "clients can safely be used across different exec controllers"() {
+    when:
+    Channel channel
+    handlers { get { render poolingHttpClient.get(otherAppUrl()).map { it.body.text } } }
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        render "ok"
+      }
+    }
+
+    then:
+    text == "ok"
+    channel.isOpen()
+
+    when:
+    application.close()
+
+    then:
+    !channel.isOpen()
+    text == "ok"
+  }
+
 }

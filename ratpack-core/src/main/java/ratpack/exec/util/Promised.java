@@ -16,13 +16,13 @@
 
 package ratpack.exec.util;
 
-import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.Downstream;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Promise;
 import ratpack.exec.Result;
 
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -79,7 +79,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class Promised<T> implements Downstream<T> {
 
   private final AtomicReference<ExecResult<? extends T>> ref = new AtomicReference<>();
-  private final Queue<Downstream<? super T>> listeners = PlatformDependent.newMpscQueue();
+  private final Queue<Downstream<? super T>> listeners = new ConcurrentLinkedDeque<>();
 
   /**
    * Creates a new promise for the eventual value.

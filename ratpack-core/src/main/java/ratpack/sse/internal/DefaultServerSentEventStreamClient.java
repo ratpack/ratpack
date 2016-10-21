@@ -36,8 +36,9 @@ public class DefaultServerSentEventStreamClient implements ServerSentEventStream
 
   @Override
   public Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
-    return httpClient.requestStream(uri, action).
-      map(stream -> stream.getBody().streamMap(new ServerSentEventStreamMapDecoder(httpClient.getByteBufAllocator())));
+    return httpClient.requestStream(uri, action).map(r ->
+      new ServerSentEventDecodingPublisher(r.getBody(), httpClient.getByteBufAllocator())
+    );
   }
 
 }

@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal;
-
-import ratpack.stream.WriteStream;
+package ratpack.http.client;
 
 /**
- * Note: should become a public type in 1.3, along with a public factory for {@link BufferingPublisher}.
- * @param <T> element type
+ * Thrown when the read timeout duration for a request is reached.
+ * <p>
+ * This will occur if the server fails to send any data back in response within the given duration,
+ * since the last time any data was received.
+ *
+ * @since 1.4.1
  */
-public interface BufferedWriteStream<T> extends WriteStream<T> {
+public class HttpClientReadTimeoutException extends RuntimeException {
 
   /**
-   * The number of the outstanding requested items that the subscriber has asked for.
+   * Constructor.
    *
-   * @return
+   * @param message the exception message
    */
-  long getRequested();
-
-  /**
-   * How many items have been emitted but not yet requested
-   *
-   * @return
-   */
-  long getBuffered();
-
-  boolean isCancelled();
-
+  public HttpClientReadTimeoutException(String message) {
+    super(message);
+  }
 }

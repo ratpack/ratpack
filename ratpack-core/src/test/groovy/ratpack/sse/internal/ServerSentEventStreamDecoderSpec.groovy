@@ -16,28 +16,31 @@
 
 package ratpack.sse.internal
 
-import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
+import io.netty.buffer.UnpooledByteBufAllocator
+import io.netty.util.ByteProcessor
+import ratpack.sse.Event
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
 
-  def decoder = ServerSentEventDecoder.INSTANCE
+  List<Event<?>> events = []
+  def decoder = new ServerSentEventDecoder(UnpooledByteBufAllocator.DEFAULT, events.&add)
 
   @Unroll
   def "can decode valid server sent event"() {
     given:
-    def event
     def bytebuf = Unpooled.copiedBuffer(sseStream.bytes)
 
     when:
-    decoder.decode(bytebuf, ByteBufAllocator.DEFAULT, { e -> event = e })
+    decoder.decode(bytebuf)
+    def event = events.first()
 
     then:
     event.id == expectedEventId
     event.event == expectedEventType
-    event. data == expectedEventData
+    event.data == expectedEventData
 
     where:
     sseStream                                       | expectedEventId | expectedEventType | expectedEventData
@@ -60,11 +63,10 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
 
   def "can decode multiple events"() {
     given:
-    def events = []
-    def bytebuf = Unpooled.copiedBuffer("data: fooData1\ndata: fooData2\n\nevent:fooType\ndata: fooData\nid: fooId\n\ndata:fooData\nid: fooId\n\n".bytes)
+    def bytebuf = Unpooled.copiedBuffer("data: fooData1\ndata: fooData2\n\nevent:fooType\ndata: fooData3\nid: fooId\n\ndata:fooData4\nid: fooId\n\n".bytes)
 
     when:
-    decoder.decode(bytebuf, ByteBufAllocator.DEFAULT, { e -> events << e })
+    decoder.decode(bytebuf)
 
     then:
     events.size() == 3
@@ -75,11 +77,11 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
 
     events[1].id == "fooId"
     events[1].event == "fooType"
-    events[1].data == "fooData"
+    events[1].data == "fooData3"
 
     events[2].id == "fooId"
     events[2].event == null
-    events[2].data == "fooData"
+    events[2].data == "fooData4"
 
     and:
     bytebuf.refCnt() == 0
@@ -88,17 +90,44 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "can handle when no events"() {
     given:
-    def events = []
     def bytebuf = Unpooled.copiedBuffer(sseStream.bytes)
 
     when:
-    decoder.decode(bytebuf, ByteBufAllocator.DEFAULT, { e -> events << e })
+    decoder.decode(bytebuf)
 
     then:
     events.empty
 
     where:
     sseStream << ["data: fooData1\ndata: fooData2\n", "just a line with no EOL"]
+  }
+
+  def "can decode data split across bytebufs"() {
+    given:
+    def bytebuf = Unpooled.copiedBuffer("""id: 1
+event: foo1
+data: bar1
+
+id: 2
+event: foo2
+data: bar2
+
+""".bytes)
+
+    when:
+    bytebuf.forEachByte({
+      def b = Unpooled.wrappedBuffer([it] as byte[])
+      decoder.decode(b)
+      true
+    } as ByteProcessor)
+
+    then:
+    events[0].id == "1"
+    events[0].event == "foo1"
+    events[0].data == "bar1"
+    events[1].id == "2"
+    events[1].event == "foo2"
+    events[1].data == "bar2"
   }
 
 }
