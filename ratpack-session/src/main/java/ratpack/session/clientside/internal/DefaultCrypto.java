@@ -34,12 +34,14 @@ public class DefaultCrypto implements Crypto {
   private final SecretKeySpec secretKeySpec;
   private final String algorithm;
   private final boolean isInitializationVectorRequired;
+  private final boolean hasPadding;
 
   public DefaultCrypto(byte[] key, String algorithm) {
     String[] parts = algorithm.split("/");
     this.secretKeySpec = new SecretKeySpec(key, parts[0]);
     this.algorithm = algorithm;
     this.isInitializationVectorRequired = parts.length > 1 && !parts[1].equalsIgnoreCase("ECB");
+    this.hasPadding = parts.length <= 2 || !parts[2].equals("NoPadding");
   }
 
   @Override
@@ -52,7 +54,7 @@ public class DefaultCrypto implements Crypto {
     int encMessageLength = cipher.getOutputSize(messageLength);
 
     ByteBuf paddedMessage = null;
-    if (messageLength == encMessageLength && (encMessageLength % blockSize) != 0) {
+    if (!hasPadding && messageLength == encMessageLength && (encMessageLength % blockSize) != 0) {
       int paddedMessageSize = messageLength + blockSize - (messageLength % blockSize);
       paddedMessage = allocator.buffer(paddedMessageSize);
       paddedMessage.setZero(0, paddedMessageSize);
@@ -99,11 +101,13 @@ public class DefaultCrypto implements Crypto {
 
     try {
       int count = cipher.doFinal(byteBuf.nioBuffer(), decMessage.nioBuffer(0, messageLength));
-      for (int i = count - 1; i >= 0; i--) {
-        if (decMessage.getByte(i) == 0x00) {
-          count--;
-        } else {
-          break;
+      if (!hasPadding) {
+        for (int i = count - 1; i >= 0; i--) {
+          if (decMessage.getByte(i) == 0x00) {
+            count--;
+          } else {
+            break;
+          }
         }
       }
       decMessage.writerIndex(count);
