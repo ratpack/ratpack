@@ -512,7 +512,9 @@ bar
         } then { StreamedResponse stream ->
           render stringChunks(
             stream.body.map {
-              it.toString(CharsetUtil.UTF_8).toUpperCase()
+              def string = it.toString(CharsetUtil.UTF_8)
+              it.release()
+              string.toUpperCase()
             }
           )
         }

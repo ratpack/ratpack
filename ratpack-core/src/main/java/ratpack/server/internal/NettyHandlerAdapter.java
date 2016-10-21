@@ -81,8 +81,11 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     if (msg instanceof HttpRequest) {
       newRequest(ctx, (HttpRequest) msg);
     } else if (msg instanceof HttpContent) {
+      ((HttpContent) msg).touch();
       RequestBodyAccumulator bodyAccumulator = ctx.channel().attr(BODY_ACCUMULATOR_KEY).get();
-      if (bodyAccumulator != null) {
+      if (bodyAccumulator == null) {
+        ((HttpContent) msg).release();
+      } else {
         bodyAccumulator.add((HttpContent) msg);
       }
       if (msg instanceof LastHttpContent) {

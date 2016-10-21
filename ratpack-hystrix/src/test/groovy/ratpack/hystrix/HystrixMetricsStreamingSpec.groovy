@@ -89,7 +89,7 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
   List<String> streamEvents(String path, int numberOfEvents = 1, Charset charset = CharsetUtil.UTF_8) {
     def events = []
     Socket socket = new Socket(getAddress().host, getAddress().port)
-    socket.setSoTimeout(500)
+    socket.setSoTimeout(30 * 1000)
 
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {

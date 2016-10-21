@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -38,6 +37,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
+import ratpack.test.internal.TestByteBufAllocators;
 import ratpack.util.Exceptions;
 
 import java.net.URI;
@@ -50,8 +50,6 @@ import java.util.Map;
 import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultTestHttpClient implements TestHttpClient {
-
-  private static final UnpooledByteBufAllocator UNPOOLED_HEAP_ALLOCATOR = new UnpooledByteBufAllocator(false);
 
   private final ApplicationUnderTest applicationUnderTest;
   private final BlockingHttpClient client = new BlockingHttpClient();
@@ -258,7 +256,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   private HttpClient httpClient() {
     return Exceptions.uncheck(() -> HttpClient.of(s -> s
-      .byteBufAllocator(UNPOOLED_HEAP_ALLOCATOR)
+      .byteBufAllocator(TestByteBufAllocators.LEAKING_UNPOOLED_HEAP)
       .maxContentLength(Integer.MAX_VALUE)
       .poolSize(8)
     ));

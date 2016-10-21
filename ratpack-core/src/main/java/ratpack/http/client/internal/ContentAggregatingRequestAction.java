@@ -60,6 +60,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+        response.touch();
         dispose(ctx.pipeline(), response);
 
         ByteBuf content = response.content();
