@@ -42,6 +42,8 @@ abstract class EmbeddedRatpackSpec extends Specification {
   @Delegate
   TestHttpClient client
 
+  boolean failOnLeak = true
+
   abstract EmbeddedApp getApplication()
 
   void configureRequest(RequestSpec requestSpecification) {
@@ -62,14 +64,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
 
     }
 
-//    sleep 1000
-//    System.gc()
-//    sleep 1000
-//    System.gc()
-//    sleep 1000
-//    System.gc()
-
-    if (LEAKED.get()) {
+    if (LEAKED.get() && failOnLeak) {
       throw new Exception("A resource has leaked in this test!")
     }
   }
