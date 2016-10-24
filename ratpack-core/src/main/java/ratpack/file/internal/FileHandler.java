@@ -41,11 +41,6 @@ public class FileHandler implements Handler {
   }
 
   public void handle(Context context) throws Exception {
-    if (!context.getRequest().getMethod().isGet()) {
-      context.clientError(405);
-      return;
-    }
-
     String path = context.getExecution().get(PathBindingStorage.TYPE).peek().getPastBinding();
 
     // Decode the path.
@@ -57,6 +52,7 @@ public class FileHandler implements Handler {
 
     Path asset = context.file(path);
     if (asset != null) {
+
       servePath(context, asset);
     } else {
       context.clientError(404);
@@ -68,9 +64,17 @@ public class FileHandler implements Handler {
       if (attributes == null) {
         context.next();
       } else if (attributes.isRegularFile()) {
-        sendFile(context, file, attributes);
+        if (context.getRequest().getMethod().isGet()) {
+          sendFile(context, file, attributes);
+        } else {
+          context.clientError(405);
+        }
       } else if (attributes.isDirectory()) {
-        maybeSendFile(context, file, 0);
+        if (context.getRequest().getMethod().isGet()) {
+          maybeSendFile(context, file, 0);
+        } else {
+          context.clientError(405);
+        }
       } else {
         context.next();
       }
