@@ -432,6 +432,18 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     response.statusCode == 404
   }
 
+  def "only supports GET"() {
+    when:
+    write("public/foo.txt", "bar")
+    handlers {
+      files { dir "public" }
+    }
+
+    then:
+    getText("foo.txt") == "bar"
+    post("foo.txt").statusCode == 405
+  }
+
   private static Date parseDateHeader(ReceivedResponse response, String name) {
     HttpHeaderDateFormat.get().parse(response.headers.get(name))
   }

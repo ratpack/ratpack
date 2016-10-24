@@ -41,6 +41,11 @@ public class FileHandler implements Handler {
   }
 
   public void handle(Context context) throws Exception {
+    if (!context.getRequest().getMethod().isGet()) {
+      context.clientError(405);
+      return;
+    }
+
     String path = context.getExecution().get(PathBindingStorage.TYPE).peek().getPastBinding();
 
     // Decode the path.

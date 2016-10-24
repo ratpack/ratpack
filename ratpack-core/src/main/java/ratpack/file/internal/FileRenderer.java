@@ -69,11 +69,6 @@ public class FileRenderer extends RendererSupport<Path> {
   }
 
   public static void sendFile(Context context, Path file, BasicFileAttributes attributes) {
-    if (!context.getRequest().getMethod().isGet()) {
-      context.clientError(405);
-      return;
-    }
-
     Date date = new Date(attributes.lastModifiedTime().toMillis());
 
     context.lastModified(date, () -> {
