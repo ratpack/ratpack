@@ -29,24 +29,26 @@ One reason to provide a custom redirector implementation would be to interpret d
 
 ## Reading the request
 
-The body of the request is available via [`Request.getBody()`](api/ratpack/http/Request.html#getBody--).
-Alternatively, you can use the parser mechanism to turn the request body into an object representation.
-The context object provides the [`parse()`](api/ratpack/handling/Context.html#parse-ratpack.parse.Parse-) method (and some variants).
+Several mechanisms are available for obtaining the body of a request.
+For simple use cases, [`Context.parse(Class<T>)`](api/ratpack/handling/Context.html#parse-ratpack.parse.Parse-) will buffer the entire class into memory and yield an object of the specified type.
+When you just need a text or byte view of the entire request, you may use the lower-level [`Request.getBody()`](api/ratpack/http/Request.html#getBody--) method.
+For advanced uses or for handling extra large requests, [`Request.getBodyStream()`] provides access to the individual byte chunks as they are recieved.
 
-Parsing works by selecting a [`Parser`](api/ratpack/parse/Parser.html) implementation from context registry.
-See [`parse()`](api/ratpack/handling/Context.html#parse-ratpack.parse.Parse-)
+### Parsers
 
-### JSON
+The parser mechanism to turn the request body into an object representation. 
+It works by selecting a [`Parser`](api/ratpack/parse/Parser.html) implementation from context registry.
+See [`Context.parse(Class<T>)`](api/ratpack/handling/Context.html#parse-ratpack.parse.Parse-) for details and additional variants. 
+
+#### JSON
 
 Support for dealing with JSON request bodies is provided out of the box, based on Jackson.
 See [`Jackson parsing`](api/ratpack/jackson/Jackson.html#parsing) for examples.
 
-### Forms
+#### Forms
 
 Ratpack provides a parser for [`Form`](api/ratpack/form/Form.html) objects in the core.
 This can be used for reading POST'd (or PUT'd etc. for that matter) forms, both URL encoded and multi part (including file uploads).
-
-Here's an example of using this from Java…
 
 ```language-java tested
 import ratpack.handling.Handler;
@@ -61,13 +63,13 @@ public class MyHandler implements Handler {
     form.then(f -> {
       // Get the first attribute sent with name “foo”
       String foo = form.get("foo");
-  
+
       // Get all attributes sent with name “bar”
       List<String> bar = form.getAll("bar");
-  
+
       // Get the file uploaded with name “myFile”
       UploadedFile myFile = form.file("myFile");
-  
+
       // Send back a response …
     });
   }
@@ -75,6 +77,45 @@ public class MyHandler implements Handler {
 ```
 
 See [`Form`](api/ratpack/form/Form.html) and [`UploadedFile`](api/ratpack/form/UploadedFile.html) for more information and examples.
+
+### Bytes and Text
+
+[`Request.getBody()`](api/ratpack/http/Request.html#getBody--) reads the entire request into memory, providing access to the data as either bytes or a string.
+
+This method will default to rejecting requests which are larger than the server's configured [max content length](api/ratpack/server/ServerConfig.html#getMaxContentLength--).
+Additional flavors are available for configuring the [rejection action](api/ratpack/http/Request.html#getBody-ratpack.func.Block-) and the [maximum size](api/ratpack/http/Request.html#getBody-long-).
+
+```language-java
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+
+import static org.junit.Assert.assertEquals;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> {
+         ctx.getRequest().getBody().then(data -> ctx.render("hello: "+data.getText()));
+      })
+      .test(httpClient -> {
+        ReceivedResponse response = httpClient.request(req->{
+          req.method("POST");
+          req.getBody().text("world");
+        });
+        assertEquals("hello: world", response.getBody().getText());
+      });
+  }
+}
+```
+
+### Byte Chunk Stream
+
+[`Request.getBodyStream()`](api/ratpack/http/Request.html#getBodyStream--) returns a stream of the individual chunks as they are received.
+
+This method defaults to rejecting requests which are larger than the server's configured [max content length](api/ratpack/server/ServerConfig.html#getMaxContentLength--).
+Additional flavors are available for configuring the [maximum size](api/ratpack/http/Request.html#getBodyStream-long-).
+
+See the [java docs](api/ratpack/http/Request.html#getBodyStream-long-) for an example of how to stream the request body to a file.
 
 ## Sending a response
 
