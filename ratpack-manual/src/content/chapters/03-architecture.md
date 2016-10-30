@@ -26,12 +26,12 @@ and uses an innovative approach for structuring request processing into a self b
 > In the following section, “quotes” are used to denote key Ratpack terms and concepts.
 
 A Ratpack application begins with a “launch configuration”, which as you would assume provides the configuration that is needed to start the application.
-One key piece of configuration provided by the “launch configuration” is the “handler factory”, which given the “launch configuration” creates a “handler”.
 A Ratpack “server” can be built and started solely from a “launch configuration”.
 The “server” once started, starts listening for requests. 
 See the [“Launching”](launching.html) chapter for more detail on this aspect.
 
-The “handler” provided by the “handler factory” provided by the “launch configuration” is asked to respond to each request.
+One key piece of configuration provided to the “launch configuration” is the “handler factory”, which creates a “handler”.
+The “handler” is asked to respond to each request.
 A handler can do one of three things:
 
 1. Respond to the request
