@@ -19,8 +19,29 @@ package ratpack.http.client
 import io.netty.buffer.ByteBuf
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.exec.Blocking
 
 class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
+
+  def "can not read streamed request body"() {
+    when:
+    otherApp {
+      get {
+        render "1" * 1024
+      }
+    }
+
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl()) {}.then {
+          Blocking.op { sleep 1000 }.then { render "ok" }
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+  }
 
   def "can cancel subscription in complete signal"() {
     when:

@@ -617,6 +617,6 @@ public class Streams {
    * @return a new publisher that binds the given publisher to the current execution
    */
   public static <T> TransformablePublisher<T> bindExec(Publisher<T> publisher) {
-    return DefaultExecution.stream(publisher);
+    return DefaultExecution.stream(publisher, Action.noop());
   }
 }
