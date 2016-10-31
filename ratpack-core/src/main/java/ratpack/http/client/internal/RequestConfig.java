@@ -133,9 +133,19 @@ class RequestConfig {
     }
 
     @Override
+    public int getRedirects() {
+      return this.maxRedirects;
+    }
+
+    @Override
     public RequestSpec sslContext(SSLContext sslContext) {
       this.sslContext = sslContext;
       return this;
+    }
+
+    @Override
+    public SSLContext getSslContext() {
+      return this.sslContext;
     }
 
     @Override
@@ -147,6 +157,11 @@ class RequestConfig {
     public RequestSpec maxContentLength(int numBytes) {
       this.maxContentLength = numBytes;
       return this;
+    }
+
+    @Override
+    public int getMaxContentLength() {
+      return this.maxContentLength;
     }
 
     @Override
@@ -162,6 +177,11 @@ class RequestConfig {
     }
 
     @Override
+    public HttpMethod getMethod() {
+      return this.method;
+    }
+
+    @Override
     public URI getUri() {
       return uri;
     }
@@ -173,15 +193,30 @@ class RequestConfig {
     }
 
     @Override
+    public boolean getDecompressResponse() {
+      return this.decompressResponse;
+    }
+
+    @Override
     public RequestSpec connectTimeout(Duration duration) {
       this.connectTimeout = duration;
       return this;
     }
 
     @Override
+    public Duration getConnectTimeout() {
+      return this.connectTimeout;
+    }
+
+    @Override
     public RequestSpec readTimeout(Duration duration) {
       this.readTimeout = duration;
       return this;
+    }
+
+    @Override
+    public Duration getReadTimeout() {
+      return this.readTimeout;
     }
 
     private void setBodyByteBuf(ByteBuf byteBuf) {
