@@ -13,3 +13,4 @@ It should not be considered the final announcement for any release at any time.
 * Added `Promise.delay`
 * Added `Streams.take`
 * Added `Streams.concat`
+* Add HttpClient interceptors

@@ -96,12 +96,17 @@ public class DefaultHttpClient implements HttpClientInternal {
   private final int maxContentLength;
   private final int poolSize;
   private final Duration readTimeout;
+  private final Action<? super RequestSpec> requestInterceptor;
+  private final Action<? super ReceivedResponse> responseInterceptor;
 
-  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout) {
+  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout,
+                            Action<? super RequestSpec> requestInterceptor, Action<? super ReceivedResponse> responseInterceptor) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLength = maxContentLength;
     this.poolSize = poolSize;
     this.readTimeout = readTimeout;
+    this.requestInterceptor = requestInterceptor;
+    this.responseInterceptor = responseInterceptor;
   }
 
   @Override
@@ -116,6 +121,16 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public HttpChannelPoolMap getChannelPoolMap() {
     return channelPoolMap;
+  }
+
+  @Override
+  public Action<? super RequestSpec> getRequestInterceptor() {
+    return requestInterceptor;
+  }
+
+  @Override
+  public Action<? super ReceivedResponse> getResponseInterceptor() {
+    return responseInterceptor;
   }
 
   public ByteBufAllocator getByteBufAllocator() {
@@ -135,6 +150,20 @@ public class DefaultHttpClient implements HttpClientInternal {
     channelPoolMap.close();
   }
 
+  @Override
+  public HttpClient copyWith(Action<? super HttpClientSpec> action) throws Exception {
+    DefaultHttpClient.Spec spec = new DefaultHttpClient.Spec();
+    Action<? super HttpClientSpec> clonedConfig = s -> {
+      s.byteBufAllocator(getByteBufAllocator());
+      s.maxContentLength(getMaxContentLength());
+      s.poolSize(getPoolSize());
+      s.readTimeout(getReadTimeout());
+      s.requestIntercept(getRequestInterceptor());
+      s.responseIntercept(getResponseInterceptor());
+    };
+    return of(clonedConfig.append(action));
+  }
+
   public static HttpClient of(Action<? super HttpClientSpec> action) throws Exception {
     DefaultHttpClient.Spec spec = new DefaultHttpClient.Spec();
     action.execute(spec);
@@ -143,7 +172,9 @@ public class DefaultHttpClient implements HttpClientInternal {
       spec.byteBufAllocator,
       spec.maxContentLength,
       spec.poolSize,
-      spec.readTimeout
+      spec.readTimeout,
+      spec.requestInterceptor,
+      spec.responseInterceptor
     );
   }
 
@@ -153,6 +184,8 @@ public class DefaultHttpClient implements HttpClientInternal {
     private int poolSize;
     private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
     private Duration readTimeout = Duration.ofSeconds(30);
+    private Action<? super RequestSpec> requestInterceptor = Action.noop();
+    private Action<? super ReceivedResponse> responseInterceptor = Action.noop();
 
     private Spec() {
     }
@@ -180,6 +213,18 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.readTimeout = readTimeout;
       return this;
     }
+
+    @Override
+    public HttpClientSpec requestIntercept(Action<? super RequestSpec> interceptor) {
+      requestInterceptor = requestInterceptor.append(interceptor);
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec responseIntercept(Action<? super ReceivedResponse> interceptor) {
+      responseInterceptor = responseInterceptor.append(interceptor);
+      return this;
+    }
   }
 
   @Override
@@ -194,12 +239,12 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer).connect(downstream));
+    return Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(requestInterceptor)).connect(downstream));
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
-    return Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer).connect(downstream));
+    return Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(requestInterceptor)).connect(downstream));
   }
 
 }

@@ -76,4 +76,26 @@ public interface HttpClientSpec {
    */
   HttpClientSpec readTimeout(Duration readTimeout);
 
+  /**
+   * Add an interceptor for all requests handled by this client.
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the spec before transmitting.
+   * @return {@code} this
+   * @since 1.5
+   */
+  HttpClientSpec requestIntercept(Action<? super RequestSpec> interceptor);
+
+  /**
+   * Add an interceptor for all responses returned by this client.
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the response before returning.
+   * @return {@code} this
+   * @since 1.5
+   */
+  HttpClientSpec responseIntercept(Action<? super ReceivedResponse> interceptor);
+
 }
