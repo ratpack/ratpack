@@ -172,8 +172,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
                 httpContent.release();
               }
               if (httpContent instanceof LastHttpContent) {
-                write.complete();
                 dispose(channelPipeline, response);
+                write.complete();
               }
             }
           }
