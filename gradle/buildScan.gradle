@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: "com.gradle.build-scan"
 
 if (project.isCi) {
-  apply plugin: "com.gradle.build-scan"
 
   buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
