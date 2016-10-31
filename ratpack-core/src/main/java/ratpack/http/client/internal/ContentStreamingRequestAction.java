@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCounted;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -92,6 +93,9 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         execution.onComplete(() -> {
           if (write == null) {
             forceDispose(channelPipeline);
+          }
+          if (received != null) {
+            received.forEach(ReferenceCounted::release);
           }
         });
         success(downstream, new DefaultStreamedResponse(channelPipeline));
