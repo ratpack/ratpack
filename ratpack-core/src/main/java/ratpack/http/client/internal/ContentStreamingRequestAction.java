@@ -101,7 +101,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (received == null) {
             received = new ArrayList<>();
           }
-          received.add(httpContent);
+          received.add(httpContent.touch());
           if (httpObject instanceof LastHttpContent) {
             dispose(ctx.pipeline(), response);
           }
