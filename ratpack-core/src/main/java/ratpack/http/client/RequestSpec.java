@@ -51,9 +51,18 @@ public interface RequestSpec {
    * The given value must be &gt;= 0.
    *
    * @param maxRedirects the maximum number of redirects to follow
-   * @return The RequestSpec
+   * @return {@code this}
    */
   RequestSpec redirects(int maxRedirects);
+
+  /**
+   * Get the configured maximum number of redirects.
+   *
+   * @return The maximum number of redirects
+   * @see #redirects(int)
+   * @since 1.5
+   */
+  int getRedirects();
 
   /**
    * Specifies a function to invoke when a redirectable response is received.
@@ -73,15 +82,24 @@ public interface RequestSpec {
    * Sets the {@link SSLContext} used for client and server SSL authentication.
    *
    * @param sslContext SSL context with keystore as well as trust store
-   * @return the {@link RequestSpec}
+   * @return {@code this}
    */
   RequestSpec sslContext(SSLContext sslContext);
+
+  /**
+   * Get the configured {@link SSLContext} used for client and server SSL authentication.
+   *
+   * @return The {@code SSLContext} used for SSL authentication
+   * @see #sslContext(SSLContext)
+   * @since 1.5
+   */
+  SSLContext getSslContext();
 
   /**
    * Factory method to create {@link SSLContext} used for client and server SSL authentication.
    *
    * @param factory provides a factory that will create {@link SSLContext} instance
-   * @return the {@link RequestSpec}
+   * @return {@code this}
    * @throws Exception this can be thrown from the action
    */
   default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
@@ -103,10 +121,19 @@ public interface RequestSpec {
   RequestSpec maxContentLength(int numBytes);
 
   /**
+   * Get the configured maximum response length.
+   *
+   * @return The maximum response length
+   * @see #maxContentLength(int)
+   * @since 1.5
+   */
+  int getMaxContentLength();
+
+  /**
    * This method can be used to compose changes to the headers.
    *
    * @param action Provide an action that will act on MutableHeaders.
-   * @return The RequestSpec
+   * @return {@code this}
    * @throws Exception This can be thrown from the action supplied.
    */
   RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
@@ -115,7 +142,7 @@ public interface RequestSpec {
    * Specifies the request method.
    *
    * @param method the method
-   * @return this
+   * @return {@code this}
    */
   default RequestSpec method(String method) {
     return method(HttpMethod.of(method));
@@ -129,6 +156,15 @@ public interface RequestSpec {
    * @since 1.4
    */
   RequestSpec method(HttpMethod method);
+
+  /**
+   * Get the configured request method.
+   *
+   * @return The request method.
+   * @see #method(HttpMethod)
+   * @since 1.5
+   */
+  HttpMethod getMethod();
 
   /**
    * Specifies to use the GET request method.
@@ -204,9 +240,18 @@ public interface RequestSpec {
    * Enables automatic decompression of the response.
    *
    * @param shouldDecompress whether to enable decompression
-   * @return this
+   * @return {@code this}
    */
   RequestSpec decompressResponse(boolean shouldDecompress);
+
+  /**
+   * Gets if responses are automatically decompressed.
+   *
+   * @return Whether response decompression is enabled
+   * @see #decompressResponse(boolean)
+   * @since 1.5
+   */
+  boolean getDecompressResponse();
 
   /**
    * The request URI.
@@ -245,6 +290,15 @@ public interface RequestSpec {
   RequestSpec connectTimeout(Duration duration);
 
   /**
+   * Gets the configured socket connection timeout.
+   *
+   * @return The socket connection timeout
+   * @see #connectTimeout(Duration)
+   * @since 1.5
+   */
+  Duration getConnectTimeout();
+
+  /**
    * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
    */
   @Deprecated
@@ -252,7 +306,24 @@ public interface RequestSpec {
     return readTimeout(Duration.of(seconds, SECONDS));
   }
 
+  /**
+   * Sets the socket read timeout.
+   * <p>
+   * This value defaults to 30 seconds.
+   *
+   * @param duration the socket read timeout
+   * @return {@code this}
+   */
   RequestSpec readTimeout(Duration duration);
+
+  /**
+   * Gets the configured socket read timeout.
+   *
+   * @return The socket read timeout
+   * @see #readTimeout(Duration)
+   * @since 1.5
+   */
+  Duration getReadTimeout();
 
   /**
    * The body of the request, used for specifying the body content.
