@@ -96,7 +96,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         });
         success(downstream, new DefaultStreamedResponse(channelPipeline));
       } else if (httpObject instanceof HttpContent) {
-        HttpContent httpContent = (HttpContent) httpObject;
+        HttpContent httpContent = ((HttpContent) httpObject).touch();
         if (write == null) {
           if (received == null) {
             received = new ArrayList<>();
@@ -107,7 +107,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
         } else {
           if (httpContent.content().readableBytes() > 0) {
-            write.item(httpContent.content());
+            write.item(httpContent.content().touch("emitting to user code"));
           } else {
             httpContent.release();
           }
@@ -121,11 +121,6 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
         }
       }
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-      super.channelInactive(ctx);
     }
 
     @Override
@@ -168,7 +163,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (received != null) {
             for (HttpContent httpContent : received) {
               if (httpContent.content().readableBytes() > 0) {
-                write.item(httpContent.content());
+                write.item(httpContent.content().touch("emitting to user code"));
               } else {
                 httpContent.release();
               }
