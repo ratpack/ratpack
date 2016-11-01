@@ -26,6 +26,8 @@ import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.util.concurrent.CountDownLatch
+
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
@@ -125,6 +127,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
   }
 
   def "log user id in request log"() {
+    def latch = new CountDownLatch(4)
     def logger = Mock(Logger) {
       isInfoEnabled() >> true
     }
@@ -135,6 +138,10 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       all RequestLogger.ncsa(logger)
+      all {
+        onClose { latch.countDown() }
+        next()
+      }
       all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator()))
       prefix("foo") {
         all(RatpackPac4j.requireAuth(FormClient))
@@ -179,6 +186,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     resp4.statusCode == OK.code()
 
     then: 'the request is logged with the user id'
+    latch.await()
     1 * logger.info({ it ==~ /(?s).*127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/ })
   }
 }
