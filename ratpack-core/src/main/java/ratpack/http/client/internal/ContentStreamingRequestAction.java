@@ -21,10 +21,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCounted;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
@@ -92,21 +94,24 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (write == null) {
             forceDispose(channelPipeline);
           }
+          if (received != null) {
+            received.forEach(ReferenceCounted::release);
+          }
         });
         success(downstream, new DefaultStreamedResponse(channelPipeline));
       } else if (httpObject instanceof HttpContent) {
-        HttpContent httpContent = (HttpContent) httpObject;
+        HttpContent httpContent = ((HttpContent) httpObject).touch();
         if (write == null) {
           if (received == null) {
             received = new ArrayList<>();
           }
-          received.add(httpContent);
+          received.add(httpContent.touch());
           if (httpObject instanceof LastHttpContent) {
             dispose(ctx.pipeline(), response);
           }
         } else {
           if (httpContent.content().readableBytes() > 0) {
-            write.item(httpContent.content());
+            write.item(httpContent.content().touch("emitting to user code"));
           } else {
             httpContent.release();
           }
@@ -120,11 +125,6 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           }
         }
       }
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-      super.channelInactive(ctx);
     }
 
     @Override
@@ -167,13 +167,13 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (received != null) {
             for (HttpContent httpContent : received) {
               if (httpContent.content().readableBytes() > 0) {
-                write.item(httpContent.content());
+                write.item(httpContent.content().touch("emitting to user code"));
               } else {
                 httpContent.release();
               }
               if (httpContent instanceof LastHttpContent) {
-                write.complete();
                 dispose(channelPipeline, response);
+                write.complete();
               }
             }
           }
@@ -206,7 +206,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
         response.status(status);
 
-        response.sendStream(getBody().bindExec());
+        response.sendStream(DefaultExecution.stream(getBody(), ByteBuf::release));
       }
 
     }

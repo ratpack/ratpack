@@ -115,7 +115,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       HttpVersion.HTTP_1_1,
       requestConfig.method.getNettyMethod(),
       getFullPath(requestConfig.uri),
-      requestConfig.body,
+      requestConfig.body.touch(),
       requestConfig.headers.getNettyHeaders(),
       EmptyHttpHeaders.INSTANCE
     );

@@ -49,7 +49,8 @@ ext {
   isSnapCi = System.getenv("SNAP_CI") != null
   isAppveyor = System.getenv("APPVEYOR") != null
   isHeroku = System.getenv("HEROKU") != null
-  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
+  isSemaphore = System.getenv("SEMAPHORE") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor || isSemaphore
   isCi = isCloudCi
 
   publishedModules = [
