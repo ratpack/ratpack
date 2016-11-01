@@ -23,7 +23,6 @@ import io.netty.handler.codec.http.*;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
-import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Block;
 import ratpack.http.RequestBodyAlreadyReadException;
 import ratpack.http.RequestBodyTooLargeException;
@@ -138,7 +137,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public TransformablePublisher<ByteBuf> readStream(long maxContentLength) {
-    TransformablePublisher<ByteBuf> publisher = new BufferingPublisher<>(ByteBuf::release, write -> {
+    return new BufferingPublisher<ByteBuf>(ByteBuf::release, write -> {
       if (read) {
         throw new RequestBodyAlreadyReadException();
       }
@@ -204,9 +203,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
           forceCloseConnection();
         }
       };
-    });
-
-    return DefaultExecution.stream(publisher, ByteBuf::release);
+    }).bindExec(ByteBuf::release);
   }
 
   @Override

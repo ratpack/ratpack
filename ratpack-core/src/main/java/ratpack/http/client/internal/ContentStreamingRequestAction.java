@@ -26,7 +26,6 @@ import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
-import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
@@ -206,7 +205,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
         response.status(status);
 
-        response.sendStream(DefaultExecution.stream(getBody(), ByteBuf::release));
+        response.sendStream(getBody().bindExec(ByteBuf::release));
       }
 
     }
