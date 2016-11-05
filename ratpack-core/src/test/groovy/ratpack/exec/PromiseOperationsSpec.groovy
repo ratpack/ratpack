@@ -64,6 +64,24 @@ class PromiseOperationsSpec extends Specification {
   }
 
   @Unroll
+  def "can mapIf promise when the predicate is #predicate"() {
+    when:
+    exec {
+      Blocking.get { originalValue }
+        .mapIf( { it == "foo" }, { it + "-true" })
+        .then { events << it }
+    }
+
+    then:
+    events == [mappedValue, "complete"]
+
+    where:
+    originalValue | mappedValue | predicate
+    "foo"         | "foo-true"  | true
+    "bar"         | "bar"       | false
+  }
+
+  @Unroll
   def "can mapIfOrElse promise when the predicate is #predicate"() {
     when:
     exec {
@@ -92,6 +110,24 @@ class PromiseOperationsSpec extends Specification {
 
     then:
     events == ["FOO-BAR", "complete"]
+  }
+
+  @Unroll
+  def "can flatMapIf promise when the predicate is #predicate"() {
+    when:
+    exec {
+      Blocking.get { originalValue }
+        .flatMapIf( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } )
+        .then { events << it }
+    }
+
+    then:
+    events == [mappedValue, "complete"]
+
+    where:
+    originalValue | mappedValue | predicate
+    "foo"         | "foo-true"  | true
+    "bar"         | "bar" | false
   }
 
   @Unroll
