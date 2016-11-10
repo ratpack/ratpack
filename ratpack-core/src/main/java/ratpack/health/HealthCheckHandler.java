@@ -226,6 +226,7 @@ public class HealthCheckHandler implements Handler {
       Iterable<Promise<Pair<HealthCheck.Result, String>>> resultPromises = Iterables.transform(healthChecks, h ->
         Promise.wrap(() -> h.check(registry))
           .throttled(throttle)
+          .mapError(HealthCheck.Result::unhealthy)
           .right(r -> h.getName())
       );
 
