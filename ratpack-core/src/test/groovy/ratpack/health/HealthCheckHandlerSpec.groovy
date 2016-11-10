@@ -109,8 +109,34 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
 
     then:
     def result = get("health-checks")
-    result.body.text.startsWith("foo")
-    result.body.text.contains("HEALTHY")
+    result.body.text == """foo : HEALTHY"""
+    result.statusCode == 200
+  }
+
+  def "render healthy check with message"() {
+    when:
+    bindings {
+      bindInstance HealthCheck, new HealthCheck() {
+        @Override
+        String getName() {
+          return "foo"
+        }
+
+        @Override
+        Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+          return Promise.value(HealthCheck.Result.healthy("some message"))
+        }
+      }
+    }
+    handlers {
+      register {
+      }
+      get("health-checks", new HealthCheckHandler())
+    }
+
+    then:
+    def result = get("health-checks")
+    result.body.text == """foo : HEALTHY [some message]"""
     result.statusCode == 200
   }
 
