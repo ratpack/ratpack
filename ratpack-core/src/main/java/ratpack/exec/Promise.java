@@ -1206,7 +1206,7 @@ public interface Promise<T> {
   }
 
   /**
-   * Transforms the promised value by applying one of the given functions to it that returns a promise for the transformed value,, depending if it satisfies the predicate.
+   * Transforms the promised value by applying one of the given functions to it that returns a promise for the transformed value, depending if it satisfies the predicate.
    *
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
@@ -1219,8 +1219,8 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
    *         Promise.value("foo")
-   *           .flatMapIfOrElse(s -> s.contains("f"), Promise.value(s.toUpperCase), Promise.value(s)
-   *           .flatMapIfOrElse(s -> s.contains("f"), Promise.value(s), Promise.value(s + "-BAR"))
+   *           .flatMapIfOrElse(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()), s -> Promise.value(s))
+   *           .flatMapIfOrElse(s -> s.contains("f"), s -> Promise.value(s), s -> Promise.value(s + "-BAR"))
    *     );
    *
    *     assertEquals("FOO-BAR", result.getValue());

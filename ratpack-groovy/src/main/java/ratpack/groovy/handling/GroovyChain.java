@@ -710,8 +710,18 @@ public interface GroovyChain extends Chain {
   }
 
   @Override
+  default GroovyChain when(Predicate<? super Context> test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
+    return from(Chain.super.when(test, ifAction, elseAction));
+  }
+
+  @Override
   default GroovyChain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
     return from(Chain.super.when(test, action));
+  }
+
+  @Override
+  default GroovyChain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
+    return from(Chain.super.when(test, ifAction, elseAction));
   }
 
   default GroovyChain when(
@@ -726,6 +736,14 @@ public interface GroovyChain extends Chain {
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers
   ) throws Exception {
     return when(test, chainAction(handlers));
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
+  ) throws Exception {
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
   }
 
   default GroovyChain when(
@@ -745,9 +763,34 @@ public interface GroovyChain extends Chain {
 
   default GroovyChain when(
     @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Action<? super Chain> ifChain,
+    Action<? super Chain> elseChain
+  ) throws Exception {
+    return when(
+      ctx -> {
+        final GroovyContext groovyContext = GroovyContext.from(ctx);
+        return DefaultGroovyMethods.asBoolean(
+          ClosureUtil.cloneAndSetDelegate(groovyContext, test, Closure.DELEGATE_FIRST).isCase(groovyContext)
+        );
+      },
+      ifChain,
+      elseChain
+    );
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
     Class<? extends Action<? super Chain>> action
   ) throws Exception {
     return when(test, getRegistry().get(action));
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Class<? extends Action<? super Chain>> ifAction,
+    Class<? extends Action<? super Chain>> elseAction
+  ) throws Exception {
+    return when(test, getRegistry().get(ifAction), getRegistry().get(elseAction));
   }
 
   /**
@@ -779,8 +822,24 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
+  default GroovyChain when(boolean test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
+    return from(Chain.super.when(test, ifAction, elseAction));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   default GroovyChain when(boolean test, Class<? extends Action<? super Chain>> action) throws Exception {
     return from(Chain.super.when(test, action));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
+    return from(Chain.super.when(test, ifAction, elseAction));
   }
 
   /**
