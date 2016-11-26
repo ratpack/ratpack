@@ -24,6 +24,7 @@ import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
+import ratpack.http.ConnectionClosedException;
 import ratpack.http.RequestBodyAlreadyReadException;
 import ratpack.http.RequestBodyTooLargeException;
 import ratpack.stream.TransformablePublisher;
@@ -154,9 +155,19 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
       return new Subscription() {
         boolean autoRead;
+        boolean unexpectedCloseHandled;
 
         @Override
         public void request(long n) {
+          if (!unexpectedCloseHandled) {
+            ctx.channel().closeFuture().addListener(f1 -> {
+              if (!done) {
+                cancel();
+                write.error(new ConnectionClosedException("The connection closed unexpectedly"));
+              }
+            });
+            unexpectedCloseHandled = true;
+          }
           if (onAdd == null) {
             ByteBuf alreadyReceived = composeReceived();
             if (alreadyReceived.readableBytes() > 0) {
