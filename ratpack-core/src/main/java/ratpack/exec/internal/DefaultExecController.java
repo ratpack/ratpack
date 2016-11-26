@@ -17,6 +17,7 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -28,6 +29,7 @@ import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.ChannelImplDetector;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,8 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static ratpack.func.Action.noop;
 
 public class DefaultExecController implements ExecControllerInternal {
-
-  private static final Action<Throwable> LOG_UNCAUGHT = t -> DefaultExecution.LOGGER.error("Uncaught execution exception", t);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecController.class);
 
@@ -146,7 +146,7 @@ public class DefaultExecController implements ExecControllerInternal {
   @Override
   public ExecStarter fork() {
     return new ExecStarter() {
-      private Action<? super Throwable> onError = LOG_UNCAUGHT;
+      private List<ExecutionErrorListener> errorListeners = Lists.newArrayList();
       private Action<? super Execution> onComplete = noop();
       private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
@@ -160,7 +160,7 @@ public class DefaultExecController implements ExecControllerInternal {
 
       @Override
       public ExecStarter onError(Action<? super Throwable> onError) {
-        this.onError = onError;
+        this.errorListeners.add((e, t) -> onError.execute(t));
         return this;
       }
 
@@ -186,13 +186,13 @@ public class DefaultExecController implements ExecControllerInternal {
       public void start(Action<? super Execution> initialExecutionSegment) {
         if (eventLoop.inEventLoop() && DefaultExecution.get() == null) {
           try {
-            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete);
+            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onStart, onComplete, errorListeners);
           } catch (Throwable e) {
             throw new InternalError("could not start execution", e);
           }
         } else {
           eventLoop.submit(() ->
-            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
+            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onStart, onComplete, errorListeners)
           );
         }
       }
