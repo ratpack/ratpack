@@ -44,12 +44,16 @@ public class DefaultExecution implements Execution {
 
   public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
+  private static final ExecutionErrorListener LOG_UNCAUGHT = (e, t) ->
+    DefaultExecution.LOGGER.error("Uncaught execution exception in execution " + e + " :", t);
+
+//  public final static FastThreadLocal<DefaultExecution> THREAD_BINDING = new FastThreadLocal<>();
+
   private ExecStream execStream;
 
   private final Ref ref;
   private final ExecControllerInternal controller;
   private final EventLoop eventLoop;
-  private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
   private List<AutoCloseable> closeables;
@@ -66,17 +70,18 @@ public class DefaultExecution implements Execution {
     EventLoop eventLoop,
     Action<? super RegistrySpec> registryInit,
     Action<? super Execution> action,
-    Action<? super Throwable> onError,
     Action<? super Execution> onStart,
-    Action<? super Execution> onComplete
-  ) throws Exception {
-    this.ref = new Ref(this, parent);
-    this.controller = controller;
+    Action<? super Execution> onComplete,
+    Iterable<ExecutionErrorListener> errorListeners
+    ) throws Exception {
+      this.ref = new Ref(this, parent);
+
+      this.controller = controller;
     this.eventLoop = eventLoop;
-    this.onError = onError;
     this.onComplete = onComplete;
 
     registryInit.execute(registry);
+    errorListeners.forEach(el -> registry.add(ExecutionErrorListener.class, el));
     onStart.execute(this);
 
     this.execStream = new InitialExecStream(() -> action.execute(this));
@@ -335,6 +340,25 @@ public class DefaultExecution implements Execution {
 
   }
 
+  private static class InErrorHandlerExecStream extends ExecStream {
+    static final ExecStream INSTANCE = new InErrorHandlerExecStream();
+
+    @Override
+    boolean exec() {
+      return false;
+    }
+
+    @Override
+    void enqueue(Block segment) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
+    @Override
+    void error(Throwable throwable) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+  }
+
   private static class TerminalExecStream extends ExecStream {
 
     private static final ExecStream INSTANCE = new TerminalExecStream();
@@ -419,16 +443,34 @@ public class DefaultExecution implements Execution {
 
     @Override
     void error(Throwable throwable) {
+      execStream = InErrorHandlerExecStream.INSTANCE;
+
       initial = null;
       if (segments != null) {
         segments.clear();
       }
-      try {
-        onError.execute(throwable);
-      } catch (Throwable errorHandlerError) {
-        LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
-        execStream = TerminalExecStream.INSTANCE;
-      }
+
+      final Execution currentExecution = DefaultExecution.this;
+      List<ExecutionErrorListener> errorListeners =
+        Lists.newArrayList(registry.getAll(ExecutionErrorListener.class));
+
+      controller.fork()
+        .onComplete(e -> {
+          execStream = TerminalExecStream.INSTANCE;
+          DefaultExecution.this.exec();
+        })
+        .start(e -> {
+          if (errorListeners.size() == 0) {
+            errorListeners.add(LOG_UNCAUGHT);
+          }
+          errorListeners.forEach(errorListener -> {
+            try {
+              errorListener.onError(currentExecution, throwable);
+            } catch (Throwable errorListenerError) {
+              LOGGER.error("error listener " + errorListener + " threw error: ", errorListenerError);
+            }
+          });
+        });
     }
   }
 
