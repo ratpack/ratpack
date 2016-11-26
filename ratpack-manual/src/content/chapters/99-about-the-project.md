@@ -72,7 +72,7 @@ The following people have provided significant contributions.
 * [Martin Lundvall](https://github.com/lundvall)
 * [Fabian Förster](https://github.com/ffoers)
 * [Guillaume Laforge](https://github.com/glaforge)
-* [Ari Becker](https://github.com/solatic)
+* [Ari Becker](https://github.com/ari-becker)
 * [James Lee](https://github.com/brucenunk)
 * [Bob wen](https://github.com/bobwenx)
 * [Edinson Padrón](https://github.com/epadronu)
