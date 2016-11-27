@@ -72,11 +72,11 @@ repositories {
 }
 
 dependencies {
-  compile ratpack.dependency("jackson")
+  compile ratpack.dependency("handlebars")
 }
 ```
 
-Using `ratpack.dependency("jackson")` is equivalent to `"io.ratpack:ratpack-jackson:«version of ratpack-gradle dependency»"`.
+Using `ratpack.dependency("handlebars")` is equivalent to `"io.ratpack:ratpack-handlebars:«version of ratpack-gradle dependency»"`.
 This is the recommended way to add dependencies that are part of the core distribution.
 
 The `'io.ratpack.ratpack-java'` plugin adds the following implicit dependencies:
