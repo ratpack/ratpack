@@ -183,12 +183,6 @@ abstract class Crawler {
 
     if (connection instanceof HttpsURLConnection) {
       def https = connection as HttpsURLConnection
-      https.setHostnameVerifier(new HostnameVerifier() {
-        @Override
-        boolean verify(String s, SSLSession sslSession) {
-          return true
-        }
-      })
 
       def trustManager = new X509TrustManager() {
         @Override
