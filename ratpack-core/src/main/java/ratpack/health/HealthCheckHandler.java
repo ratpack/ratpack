@@ -17,21 +17,21 @@
 package ratpack.health;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
+import ratpack.exec.util.ParallelBatch;
+import ratpack.func.Pair;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
 import ratpack.util.Types;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A handler that executes {@link HealthCheck health checks} and renders the results.
@@ -221,35 +221,19 @@ public class HealthCheckHandler implements Handler {
     }
   }
 
-  private Promise<HealthCheck.Result> execute(Registry registry, HealthCheck healthCheck) {
-    return Promise.wrap(() -> healthCheck.check(registry)).mapError(HealthCheck.Result::unhealthy);
-  }
-
   private Promise<HealthCheckResults> execute(Registry registry, Iterable<? extends HealthCheck> healthChecks) {
-    Iterator<? extends HealthCheck> iterator = healthChecks.iterator();
-    if (!iterator.hasNext()) {
-      return Promise.value(new HealthCheckResults(ImmutableSortedMap.of()));
-    }
+    return Promise.wrap(() -> {
+      Iterable<Promise<Pair<HealthCheck.Result, String>>> resultPromises = Iterables.transform(healthChecks, h ->
+        Promise.wrap(() -> h.check(registry))
+          .throttled(throttle)
+          .mapError(HealthCheck.Result::unhealthy)
+          .right(r -> h.getName())
+      );
 
-    return Promise.<Map<String, HealthCheck.Result>>async(f -> {
-      AtomicInteger counter = new AtomicInteger();
       Map<String, HealthCheck.Result> results = new ConcurrentHashMap<>();
-      while (iterator.hasNext()) {
-        counter.incrementAndGet();
-        HealthCheck healthCheck = iterator.next();
-        Execution.fork().start(e ->
-          execute(registry, healthCheck)
-            .throttled(throttle)
-            .then(r -> {
-              results.put(healthCheck.getName(), r);
-              if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
-                f.success(results);
-              }
-            })
-        );
-      }
-    })
-      .map(ImmutableSortedMap::copyOf)
-      .map(HealthCheckResults::new);
+      return ParallelBatch.of(resultPromises)
+        .forEach((i, result) -> results.put(result.right, result.left))
+        .map(() -> new HealthCheckResults(ImmutableSortedMap.copyOf(results)));
+    });
   }
 }
