@@ -353,12 +353,11 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
     }
-    def nonRoutableIp = '192.168.0.0'
 
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get("http://$nonRoutableIp".toURI()) {
+        httpClient.get("http://netty.io:65535".toURI()) {
           it.connectTimeout(Duration.ofMillis(20))
         } onError {
           render it.toString()
@@ -369,7 +368,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://192.168.0.0"
+    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://netty.io:65535"
 
     where:
     pooled << [true, false]
