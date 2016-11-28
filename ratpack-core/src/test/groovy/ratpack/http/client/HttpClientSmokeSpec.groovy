@@ -350,6 +350,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
   def "can set connect timeout"() {
     setup:
     ServerSocket ss = new ServerSocket(0, 1)
+    new Socket().connect(ss.localSocketAddress, 10*1000)
 
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
@@ -358,14 +359,10 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-       Promise.sync {
-          new Socket().connect(ss.localSocketAddress)
-        } flatMap {
-          httpClient.get("http://localhost:${ss.localPort}".toURI()) {
-            it.connectTimeout(Duration.ofMillis(20))
-          } onError {
-            render it.toString()
-          }
+        httpClient.get("http://localhost:${ss.localPort}".toURI()) {
+          it.connectTimeout(Duration.ofMillis(20))
+        } onError {
+          render it.toString()
         } then {
           render "success"
         }
