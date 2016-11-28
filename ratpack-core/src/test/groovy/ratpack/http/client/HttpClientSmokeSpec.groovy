@@ -23,7 +23,6 @@ import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.time.Duration
@@ -347,7 +346,6 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
-  @Ignore
   def "can set connect timeout"() {
     setup:
     ServerSocket ss = new ServerSocket(0, 1)
