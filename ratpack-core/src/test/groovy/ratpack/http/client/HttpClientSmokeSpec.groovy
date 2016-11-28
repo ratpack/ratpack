@@ -23,6 +23,7 @@ import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.time.Duration
@@ -346,20 +347,18 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
   def "can set connect timeout"() {
     setup:
-    ServerSocket ss = new ServerSocket(0, 1)
-    def socket = new Socket()
-    socket.connect(ss.localSocketAddress)
-
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
     }
+    def nonRoutableIp = '192.168.0.0'
 
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get("http://localhost:${ss.localPort}".toURI()) {
+        httpClient.get("http://$nonRoutableIp".toURI()) {
           it.connectTimeout(Duration.ofMillis(20))
         } onError {
           render it.toString()
@@ -370,15 +369,10 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://localhost:${ss.localPort}"
-
-    cleanup:
-    println "Connected: $socket.connected, Bound: $socket.bound, Closed: $socket.closed"
-    ss?.close()
+    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://192.168.0.0"
 
     where:
     pooled << [true, false]
-
   }
 
   def "can set read timeout from pooling config"() {
