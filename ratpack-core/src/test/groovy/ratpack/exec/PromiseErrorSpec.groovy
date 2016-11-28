@@ -17,11 +17,14 @@
 package ratpack.exec
 
 import ratpack.func.Action
+import ratpack.func.BiAction
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 
 class PromiseErrorSpec extends Specification {
 
@@ -278,4 +281,32 @@ class PromiseErrorSpec extends Specification {
     events == [e, "complete"]
   }
 
+  def "can retry failed promise and succeed"() {
+    when:
+    def i = new AtomicInteger()
+
+    exec {
+      Promise.sync { i.incrementAndGet() }
+        .mapIf({ it < 3 }, { throw new IllegalStateException() })
+        .retry(3, Duration.ofMillis(5), { n, e -> events << "retry$n" } as BiAction)
+        .then(events.&add)
+    }
+
+    then:
+    events == ["retry1", "retry2", 3, "complete"]
+  }
+
+  def "can retry failed promise and fail"() {
+    when:
+    def e = new RuntimeException("!")
+
+    exec({
+      Promise.error(e)
+        .retry(3, Duration.ofMillis(5), { n, ex -> events << "retry$n" } as BiAction)
+        .then { events << "then" }
+    }, events.&add)
+
+    then:
+    events == ["retry1", "retry2", "retry3", e, "complete"]
+  }
 }
