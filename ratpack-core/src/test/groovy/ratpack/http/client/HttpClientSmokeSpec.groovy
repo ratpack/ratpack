@@ -22,7 +22,6 @@ import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
-import ratpack.exec.Promise
 import ratpack.stream.Streams
 import spock.lang.Unroll
 
@@ -350,7 +349,8 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
   def "can set connect timeout"() {
     setup:
     ServerSocket ss = new ServerSocket(0, 1)
-    new Socket().connect(ss.localSocketAddress, 10*1000)
+    def socket = new Socket()
+    socket.connect(ss.localSocketAddress)
 
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
@@ -373,6 +373,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://localhost:${ss.localPort}"
 
     cleanup:
+    println "Connected: $socket.connected, Bound: $socket.bound, Closed: $socket.closed"
     ss?.close()
 
     where:
