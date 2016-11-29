@@ -9,3 +9,4 @@ It should not be considered the final announcement for any release at any time.
 * Added `Streams.fork()`
 * Netty upgrade to 4.1.5.Final
 * Groovy upgrade to 2.4.7
+* Added `Streams.take`
