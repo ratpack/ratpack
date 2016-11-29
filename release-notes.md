@@ -11,3 +11,4 @@ It should not be considered the final announcement for any release at any time.
 * Groovy upgrade to 2.4.7
 * Added `Promise.retry`
 * Added `Promise.delay`
+* Added `Streams.take`
