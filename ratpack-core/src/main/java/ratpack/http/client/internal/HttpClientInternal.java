@@ -18,7 +18,7 @@ package ratpack.http.client.internal;
 
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.http.client.HttpResponse;
 import ratpack.http.client.RequestSpec;
 
 interface HttpClientInternal extends HttpClient {
@@ -27,6 +27,6 @@ interface HttpClientInternal extends HttpClient {
 
   Action<? super RequestSpec> getRequestInterceptor();
 
-  Action<? super ReceivedResponse> getResponseInterceptor();
+  Action<? super HttpResponse> getResponseInterceptor();
 
 }

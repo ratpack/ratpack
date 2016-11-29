@@ -104,7 +104,9 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             received.forEach(ReferenceCounted::release);
           }
         });
-        success(downstream, new DefaultStreamedResponse(channelPipeline));
+        StreamedResponse response = new DefaultStreamedResponse(channelPipeline);
+        client.getResponseInterceptor().execute(response);
+        success(downstream, response);
       } else if (httpObject instanceof HttpContent) {
         HttpContent httpContent = ((HttpContent) httpObject).touch();
         boolean hasContent = httpContent.content().readableBytes() > 0;

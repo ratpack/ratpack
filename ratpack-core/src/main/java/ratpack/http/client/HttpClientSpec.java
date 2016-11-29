@@ -120,6 +120,6 @@ public interface HttpClientSpec {
    * @return {@code} this
    * @since 1.6
    */
-  HttpClientSpec responseIntercept(Action<? super ReceivedResponse> interceptor);
+  HttpClientSpec responseIntercept(Action<? super HttpResponse> interceptor);
 
 }

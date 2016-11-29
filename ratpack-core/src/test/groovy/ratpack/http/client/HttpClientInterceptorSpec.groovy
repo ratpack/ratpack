@@ -23,8 +23,11 @@ import java.util.concurrent.TimeUnit
 
 class HttpClientInterceptorSpec extends BaseHttpClientSpec {
 
-  def "can intercept request"() {
+  @Timeout(5)
+  def "can intercept requests and responses"() {
     given:
+
+    def latch = new CountDownLatch(1)
 
     otherApp {
       get {
@@ -39,32 +42,6 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
             headers.add 'X-GLOBAL', 'foo'
           }
         }
-      }
-    }
-    handlers {
-      get { HttpClient client ->
-        render client.get(otherAppUrl("")).map { it.body.text }
-      }
-    }
-
-    expect:
-    text == 'foo'
-  }
-
-  @Timeout(5)
-  def "can intercept response"() {
-    given:
-
-    def latch = new CountDownLatch(1)
-
-    otherApp {
-      get {
-        render 'ok'
-      }
-    }
-
-    bindings {
-      bindInstance HttpClient, HttpClient.of { spec ->
         spec.responseIntercept { response ->
           latch.countDown()
         }
@@ -81,14 +58,14 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
     latch.await(5, TimeUnit.SECONDS)
 
     then:
-    result == 'ok'
+    result == 'foo'
   }
 
   @Timeout(5)
   def "can override http client"() {
     given:
 
-    def latch = new CountDownLatch(1)
+    def latch = new CountDownLatch(2)
 
     otherApp {
       get {
@@ -111,6 +88,9 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
               headers.add 'X-GLOBAL', 'foo'
             }
           }
+          spec.responseIntercept { response ->
+            latch.countDown()
+          }
         })
       }
       get { HttpClient client ->
@@ -124,5 +104,39 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
 
     then:
     result == 'foo'
+  }
+
+  @Timeout(5)
+  def "can intercept streamed requests and responses"() {
+    given:
+    def payload = new byte[15 * 8012]
+    new Random().nextBytes(payload)
+    def latch = new CountDownLatch(1)
+
+    bindings {
+      bindInstance HttpClient, HttpClient.of { spec ->
+        spec.responseIntercept { response ->
+          latch.countDown()
+        }
+      }
+    }
+
+    when:
+    otherApp {
+      get {
+        response.send(payload)
+      }
+    }
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl(), {}).then { StreamedResponse streamedResponse ->
+          streamedResponse.forwardTo(response)
+        }
+      }
+    }
+
+    then:
+    (1..10).collect { get().body.bytes == payload }.every()
+    latch.await(5, TimeUnit.SECONDS)
   }
 }
