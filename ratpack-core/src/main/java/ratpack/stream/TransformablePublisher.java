@@ -268,4 +268,13 @@ public interface TransformablePublisher<T> extends Publisher<T> {
     return Streams.fork(this, Action.noop(), Action.noop());
   }
 
+  /**
+   * See {@link Streams#take(long, Publisher)}.
+   *
+   * @return a publisher that will emit a max of {@code n} elements
+   * @since 1.5
+   */
+  default TransformablePublisher<T> take(long count) {
+    return Streams.take(count, this);
+  }
 }
