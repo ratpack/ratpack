@@ -194,7 +194,7 @@ class RequestConfig {
 
     private class BodyImpl implements Body {
       @Override
-      public Body type(String contentType) {
+      public Body type(CharSequence contentType) {
         getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, contentType);
         return this;
       }

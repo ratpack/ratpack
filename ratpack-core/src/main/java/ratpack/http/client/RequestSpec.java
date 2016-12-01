@@ -309,7 +309,7 @@ public interface RequestSpec {
      * @param contentType the value of the Content-Type header
      * @return this
      */
-    Body type(String contentType);
+    Body type(CharSequence contentType);
 
     /**
      * Specifies the request body by writing to an output stream.
