@@ -21,9 +21,12 @@ import ratpack.exec.ExecutionException;
 import ratpack.exec.Promise;
 import ratpack.exec.Upstream;
 import ratpack.func.Action;
+import ratpack.func.BiAction;
 import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.util.Exceptions;
+
+import java.time.Duration;
 
 public class DefaultPromise<T> implements Promise<T> {
 
@@ -85,6 +88,30 @@ public class DefaultPromise<T> implements Promise<T> {
     } catch (Exception e) {
       throw Exceptions.uncheck(e);
     }
+  }
+
+  @Override
+  public Promise<T> retry(int maxAttempts, Function<Integer, Duration> delay, BiAction<? super Integer, ? super Throwable> onError) {
+    return transform(up -> down -> retryAttempt(1, maxAttempts, delay, up, down, onError));
+  }
+
+  private void retryAttempt(int attemptNum, int maxAttempts, Function<Integer, Duration> delay, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
+    up.connect(down.onError(e -> {
+      if (attemptNum > maxAttempts) {
+        down.error(e);
+      } else {
+        try {
+          onError.execute(attemptNum, e);
+        } catch (Throwable errorHandlerError) {
+          if (errorHandlerError != e) {
+            errorHandlerError.addSuppressed(e);
+          }
+          down.error(errorHandlerError);
+          return;
+        }
+        Promise.value(null).delay(delay.apply(attemptNum)).then(v -> retryAttempt(attemptNum + 1, maxAttempts, delay, up, down, onError));
+      }
+    }));
   }
 
 }

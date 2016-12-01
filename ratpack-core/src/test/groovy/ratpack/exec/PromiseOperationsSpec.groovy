@@ -23,6 +23,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
 
 import static ratpack.func.Action.throwException
@@ -476,5 +477,23 @@ class PromiseOperationsSpec extends Specification {
 
     then:
     events == [ex, "complete"]
+  }
+
+  def "can delay promise"() {
+    given:
+    def delay = Duration.ofMillis(500)
+    def totalDuration = Duration.ofMillis(0)
+
+    when:
+    exec {
+      Promise.value(null)
+        .delay(delay)
+        .time { totalDuration = it }
+        .operation()
+        .then()
+    }
+
+    then:
+    totalDuration >= delay
   }
 }
