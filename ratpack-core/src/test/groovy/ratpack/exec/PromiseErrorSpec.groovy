@@ -288,7 +288,7 @@ class PromiseErrorSpec extends Specification {
     exec {
       Promise.sync { i.incrementAndGet() }
         .mapIf({ it < 3 }, { throw new IllegalStateException() })
-        .retry(3, Duration.ofMillis(5), { n, e -> events << "retry$n" } as BiAction)
+        .retry(3, { attempt -> Duration.ofMillis(5 * attempt) }, { n, e -> events << "retry$n" } as BiAction)
         .then(events.&add)
     }
 
@@ -297,6 +297,35 @@ class PromiseErrorSpec extends Specification {
   }
 
   def "can retry failed promise and fail"() {
+    when:
+    def e = new RuntimeException("!")
+
+    exec({
+      Promise.error(e)
+        .retry(3, { attempt -> Duration.ofMillis(5 * attempt) }, { n, ex -> events << "retry$n" } as BiAction)
+        .then { events << "then" }
+    }, events.&add)
+
+    then:
+    events == ["retry1", "retry2", "retry3", e, "complete"]
+  }
+
+  def "can retry failed promise with fixed delay and succeed"() {
+    when:
+    def i = new AtomicInteger()
+
+    exec {
+      Promise.sync { i.incrementAndGet() }
+        .mapIf({ it < 3 }, { throw new IllegalStateException() })
+        .retry(3, Duration.ofMillis(5), { n, e -> events << "retry$n" } as BiAction)
+        .then(events.&add)
+    }
+
+    then:
+    events == ["retry1", "retry2", 3, "complete"]
+  }
+
+  def "can retry failed promise with fixed delay and fail"() {
     when:
     def e = new RuntimeException("!")
 

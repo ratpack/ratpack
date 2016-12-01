@@ -91,11 +91,11 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
-  public Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError) {
+  public Promise<T> retry(int maxAttempts, Function<Integer, Duration> delay, BiAction<? super Integer, ? super Throwable> onError) {
     return transform(up -> down -> retryAttempt(1, maxAttempts, delay, up, down, onError));
   }
 
-  private void retryAttempt(int attemptNum, int maxAttempts, Duration delay, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
+  private void retryAttempt(int attemptNum, int maxAttempts, Function<Integer, Duration> delay, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
     up.connect(down.onError(e -> {
       if (attemptNum > maxAttempts) {
         down.error(e);
@@ -109,7 +109,7 @@ public class DefaultPromise<T> implements Promise<T> {
           down.error(errorHandlerError);
           return;
         }
-        Promise.value(null).delay(delay).then(v -> retryAttempt(attemptNum + 1, maxAttempts, delay, up, down, onError));
+        Promise.value(null).delay(delay.apply(attemptNum)).then(v -> retryAttempt(attemptNum + 1, maxAttempts, delay, up, down, onError));
       }
     }));
   }

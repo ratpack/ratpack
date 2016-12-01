@@ -1937,7 +1937,7 @@ public interface Promise<T> {
   }
 
   /**
-   * Retries {@code this} promise if an error occurs trying to produce the promised value.
+   * Retries {@code this} promise, with a fixed delay, if an error occurs trying to produce the promised value.
    * <p>
    * The promise is retried with a fixed delay between attempts for the given max number of attempts.
    *
@@ -1976,7 +1976,56 @@ public interface Promise<T> {
    * @param delay the duration to wait between retry attempts
    * @param onError the action to take if an error occurs
    * @return a promise with a retry error handler
+   * @see #retry(int, Function, BiAction)
    * @since 1.5
    */
-  Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError);
+  default Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError) {
+    return retry(maxAttempts, i -> delay, onError);
+  }
+
+  /**
+   * Retries {@code this} promise if an error occurs trying to produce the promised value.
+   * <p>
+   * The delay between retries is calculated by executing the given delay function.  The promise is retried for the given
+   * max number of attempts.
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.time.Duration;
+   * import java.util.Arrays;
+   * import java.util.LinkedList;
+   * import java.util.List;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   private static final List<String> LOG = new LinkedList<>();
+   *
+   *   public static void main(String... args) throws Exception {
+   *     AtomicInteger source = new AtomicInteger();
+   *
+   *     ExecResult<Integer> result = ExecHarness.yieldSingle(exec ->
+   *       Promise.sync(source::incrementAndGet)
+   *         .mapIf(i -> i < 3, i -> { throw new IllegalStateException(); })
+   *         .retry(3, i -> Duration.ofMillis(500 * i), (i, t) -> LOG.add("retry attempt: " + i))
+   *     );
+   *
+   *     assertEquals(Integer.valueOf(3), result.getValue());
+   *     assertEquals(Arrays.asList("retry attempt: 1", "retry attempt: 2"), LOG);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param maxAttempts the maximum number of times to retry the failing promise
+   * @param delay the function that gives the duration to wait between retry attempts
+   * @param onError the action to take if an error occurs
+   * @return a promise with a retry error handler
+   * @see #retry(int, Duration, BiAction)
+   * @since 1.5
+   */
+  Promise<T> retry(int maxAttempts, Function<Integer, Duration> delay, BiAction<? super Integer, ? super Throwable> onError);
 }
