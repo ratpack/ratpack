@@ -68,9 +68,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
             content.release();
           }
         });
-        ReceivedResponse receivedResponse = toReceivedResponse(response, content);
-        client.getResponseInterceptor().execute(receivedResponse);
-        success(downstream, receivedResponse);
+        success(downstream, toReceivedResponse(response, content));
       }
 
       @Override
