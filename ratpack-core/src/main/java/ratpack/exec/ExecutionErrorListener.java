@@ -21,7 +21,6 @@ import ratpack.registry.Registry;
 
 /**
  * A handler for capturing unhandled errors in an {@link Execution}.
- * This must be added to the {@link Registry} for the execution.
  *
  * <pre class="java">{@code
  * import ratpack.exec.Execution;
