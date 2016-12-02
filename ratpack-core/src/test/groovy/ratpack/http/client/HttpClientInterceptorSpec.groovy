@@ -16,6 +16,7 @@
 
 package ratpack.http.client
 
+import ratpack.exec.Operation
 import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
@@ -117,6 +118,77 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
       bindInstance HttpClient, HttpClient.of { spec ->
         spec.responseIntercept { response ->
           latch.countDown()
+        }
+      }
+    }
+
+    when:
+    otherApp {
+      get {
+        response.send(payload)
+      }
+    }
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl(), {}).then { StreamedResponse streamedResponse ->
+          streamedResponse.forwardTo(response)
+        }
+      }
+    }
+
+    then:
+    (1..10).collect { get().body.bytes == payload }.every()
+    latch.await(5, TimeUnit.SECONDS)
+  }
+
+  @Timeout(5)
+  def "can execute promises in response interceptor"() {
+    given:
+    def latch = new CountDownLatch(1)
+
+    otherApp {
+      get {
+        render 'foo'
+      }
+    }
+
+    bindings {
+      bindInstance HttpClient, HttpClient.of { spec ->
+        spec.responseIntercept { response ->
+          Operation.of {
+            latch.countDown()
+          }.then()
+        }
+      }
+    }
+
+    handlers {
+      get { HttpClient client ->
+        render client.get(otherAppUrl("")).map { it.body.text }
+      }
+    }
+
+    when:
+    def result = text
+    latch.await(5, TimeUnit.SECONDS)
+
+    then:
+    result == 'foo'
+  }
+
+  @Timeout(5)
+  def "can execute promises in streaming response interceptor"() {
+    given:
+    def payload = new byte[15 * 8012]
+    new Random().nextBytes(payload)
+    def latch = new CountDownLatch(1)
+
+    bindings {
+      bindInstance HttpClient, HttpClient.of { spec ->
+        spec.responseIntercept { response ->
+          Operation.of {
+            latch.countDown()
+          }.then()
         }
       }
     }
