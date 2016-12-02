@@ -19,7 +19,6 @@ package ratpack.http
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.Unpooled
-import io.netty.util.CharsetUtil
 import org.apache.commons.lang3.RandomStringUtils
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
