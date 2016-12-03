@@ -1,4 +1,4 @@
-[![Build Status](https://snap-ci.com/ratpack/ratpack/branch/master/build_image)](https://snap-ci.com/ratpack/ratpack/branch/master)
+[![Build Status](https://semaphoreci.com/api/v1/ratpack/ratpack/branches/master/badge.svg)](https://semaphoreci.com/ratpack/ratpack)
 [![codecov.io](http://codecov.io/github/ratpack/ratpack/coverage.svg?branch=master)](http://codecov.io/github/ratpack/ratpack?branch=master)
 
 [![Ratpack.io](/ratpack-site/src/assets/images/ratpack-logo.png?raw=true)](https://ratpack.io)
