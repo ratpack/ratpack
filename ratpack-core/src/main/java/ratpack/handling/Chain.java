@@ -862,8 +862,16 @@ public interface Chain {
     return all(Handlers.when(test, chain(action)));
   }
 
+  default Chain when(Predicate<? super Context> test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
+    return all(Handlers.when(test, chain(ifAction), chain(elseAction)));
+  }
+
   default Chain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> action) throws Exception {
     return all(Handlers.when(test, chain(action)));
+  }
+
+  default Chain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
+    return all(Handlers.when(test, chain(ifAction), chain(elseAction)));
   }
 
   /**
@@ -918,6 +926,62 @@ public interface Chain {
   }
 
   /**
+   * Inlines the appropriated chain if {@code test} is {@code true}.
+   * <p>
+   * This is literally just sugar for wrapping the given action in an {@code if/else} statement.
+   * It can be useful when conditionally adding handlers based on state available when building the chain.
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(a -> a
+   *       .registryOf(r -> r.add(1))
+   *       .handlers(c -> c
+   *         .when(c.getRegistry().get(Integer.class) == 0,
+   *            i -> i.get(ctx -> ctx.render("ok")),
+   *            i -> i.get(ctx -> ctx.render("ko"))
+   *         )
+   *       )
+   *     ).test(httpClient ->
+   *       assertEquals(httpClient.getText(), "ko")
+   *     );
+   *
+   *     EmbeddedApp.of(a -> a
+   *       .registryOf(r -> r.add(0))
+   *       .handlers(c -> c
+   *         .when(c.getRegistry().get(Integer.class) == 0,
+   *            i -> i.get(ctx -> ctx.render("ok")),
+   *            i -> i.get(ctx -> ctx.render("ko"))
+   *         )
+   *       )
+   *     ).test(httpClient ->
+   *       assertEquals(httpClient.getText(), "ok")
+   *     );
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param test predicate to decide which action include
+   * @param ifAction the chain action to include when the predicate is true
+   * @param elseAction the chain action to include when the predicate is false
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   */
+  default Chain when(boolean test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
+    if (test) {
+      ifAction.execute(this);
+    } else {
+      elseAction.execute(this);
+    }
+    return this;
+  }
+
+  /**
    * Inlines the given chain if {@code test} is {@code true}.
    * <p>
    * Similar to {@link #when(boolean, Action)}, except obtains the action instance from the registry by the given type.
@@ -930,6 +994,22 @@ public interface Chain {
    */
   default Chain when(boolean test, Class<? extends Action<? super Chain>> action) throws Exception {
     return when(test, getRegistry().get(action));
+  }
+
+  /**
+   * Inlines the appropriated chain if {@code test} is {@code true}.
+   * <p>
+   * Similar to {@link #when(boolean, Action, Action)}, except obtains the action instance from the registry by the given type.
+   *
+   * @param test whether to include the given chain action
+   * @param ifAction the chain action to include when the predicate is true
+   * @param elseAction the chain action to include when the predicate is false
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   */
+  default Chain when(boolean test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
+    return when(test, getRegistry().get(ifAction), getRegistry().get(elseAction));
   }
 
   /**

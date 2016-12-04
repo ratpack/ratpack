@@ -23,19 +23,31 @@ import ratpack.handling.Handler;
 public class WhenHandler implements Handler {
 
   private final Predicate<? super Context> test;
-  private final Handler[] handler;
+  private final Handler[] ifHandler;
+  private final Handler[] elseHandler;
 
   public WhenHandler(Predicate<? super Context> test, Handler handler) {
     this.test = test;
-    this.handler = ChainHandler.unpack(handler);
+    this.ifHandler = ChainHandler.unpack(handler);
+    this.elseHandler = null;
+  }
+
+  public WhenHandler(Predicate<? super Context> test, Handler ifHandler, Handler elseHandler) {
+    this.test = test;
+    this.ifHandler = ChainHandler.unpack(ifHandler);
+    this.elseHandler = ChainHandler.unpack(elseHandler);
   }
 
   @Override
   public void handle(Context ctx) throws Exception {
     if (test.apply(ctx)) {
-      ctx.insert(handler);
+      ctx.insert(ifHandler);
     } else {
-      ctx.next();
+      if (elseHandler == null) {
+        ctx.next();
+      } else {
+        ctx.insert(elseHandler);
+      }
     }
   }
 }
