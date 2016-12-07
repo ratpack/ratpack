@@ -518,6 +518,39 @@ public interface Promise<T> {
   }
 
   /**
+   * Transforms the promised value by applying one of the given functions to it, depending if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .mapIfOrElse(s -> s.contains("f"), String::toUpperCase, s -> s)
+   *           .mapIfOrElse(s -> s.contains("f"), s -> s, s -> s + "-BAR")
+   *     );
+   *
+   *     assertEquals("FOO-BAR", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to decide which transformation to apply
+   * @param ifTransformer the transformation to apply when the predicate is true
+   * @param elseTransformer the transformation to apply when the predicate is false
+   * @return a promise
+   * @since 1.5
+   */
+  default Promise<T> mapIfOrElse(Predicate<? super T> predicate, Function<? super T, ? extends T> ifTransformer, Function<? super T, ? extends T> elseTransformer) {
+    return map(t -> predicate.apply(t) ? ifTransformer.apply(t) : elseTransformer.apply(t));
+  }
+
+  /**
    * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
    * <p>
    * This is simply a more convenient form of using {@link Blocking#get(Factory)} and {@link #flatMap(Function)}.
@@ -1171,6 +1204,39 @@ public interface Promise<T> {
    */
   default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> transformer) {
     return flatMap(t -> predicate.apply(t) ? transformer.apply(t) : Promise.value(t));
+  }
+
+  /**
+   * Transforms the promised value by applying one of the given functions to it that returns a promise for the transformed value, depending if it satisfies the predicate.
+   *
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
+   *         Promise.value("foo")
+   *           .flatMapIfOrElse(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()), s -> Promise.value(s))
+   *           .flatMapIfOrElse(s -> s.contains("f"), s -> Promise.value(s), s -> Promise.value(s + "-BAR"))
+   *     );
+   *
+   *     assertEquals("FOO-BAR", result.getValue());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the condition to decide which transformation to apply
+   * @param ifTransformer the transformation to apply to the promised value when the predicate is true
+   * @param elseTransformer the transformation to apply to the promised value when the predicate is false
+   * @return a promise
+   * @since 1.5
+   */
+  default Promise<T> flatMapIfOrElse(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> ifTransformer, Function<? super T, ? extends Promise<T>> elseTransformer) {
+    return flatMap(t -> predicate.apply(t) ? ifTransformer.apply(t) : elseTransformer.apply(t));
   }
 
   /**

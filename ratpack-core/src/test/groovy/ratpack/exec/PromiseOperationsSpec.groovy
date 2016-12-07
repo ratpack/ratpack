@@ -21,6 +21,7 @@ import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
 import java.time.Duration
@@ -63,6 +64,42 @@ class PromiseOperationsSpec extends Specification {
     events == ["FOO-BAR", "complete"]
   }
 
+  @Unroll
+  def "can mapIf promise when the predicate is #predicate"() {
+    when:
+    exec {
+      Blocking.get { originalValue }
+        .mapIf( { it == "foo" }, { it + "-true" })
+        .then { events << it }
+    }
+
+    then:
+    events == [mappedValue, "complete"]
+
+    where:
+    originalValue | mappedValue | predicate
+    "foo"         | "foo-true"  | true
+    "bar"         | "bar"       | false
+  }
+
+  @Unroll
+  def "can mapIfOrElse promise when the predicate is #predicate"() {
+    when:
+    exec {
+      Blocking.get { originalValue }
+        .mapIfOrElse( { it == "foo" }, { it + "-true" }, { it + "-false" })
+        .then { events << it }
+    }
+
+    then:
+    events == [mappedValue, "complete"]
+
+    where:
+    originalValue | mappedValue | predicate
+    "foo"         | "foo-true"  | true
+    "bar"         | "bar-false" | false
+  }
+
   def "can flat map promise"() {
     when:
     exec({ e ->
@@ -74,6 +111,42 @@ class PromiseOperationsSpec extends Specification {
 
     then:
     events == ["FOO-BAR", "complete"]
+  }
+
+  @Unroll
+  def "can flatMapIf promise when the predicate is #predicate"() {
+    when:
+    exec {
+      Blocking.get { originalValue }
+        .flatMapIf( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } )
+        .then { events << it }
+    }
+
+    then:
+    events == [mappedValue, "complete"]
+
+    where:
+    originalValue | mappedValue | predicate
+    "foo"         | "foo-true"  | true
+    "bar"         | "bar" | false
+  }
+
+  @Unroll
+  def "can flatMapIfOrElse promise when the predicate is #predicate"() {
+    when:
+    exec {
+      Blocking.get { originalValue }
+        .flatMapIfOrElse( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } , { s -> Blocking.get { s + "-false" } } )
+        .then { events << it }
+    }
+
+    then:
+    events == [mappedValue, "complete"]
+
+    where:
+    originalValue | mappedValue | predicate
+    "foo"         | "foo-true"  | true
+    "bar"         | "bar-false" | false
   }
 
   def "errors are propagated down map chain"() {

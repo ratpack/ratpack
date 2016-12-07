@@ -16,6 +16,8 @@
 
 package ratpack.groovy.handling
 
+import spock.lang.Unroll
+
 class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
 
   def "can use groovy truth in condition for true"() {
@@ -28,6 +30,27 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
 
     then:
     text == "true"
+  }
+
+  @Unroll
+  def "can use whenOrElse construct when predicate is #predicate"() {
+    when:
+    handlers {
+      whenOrElse { predicate } {
+        get { render "true" }
+      }
+      {
+        get { render "false" }
+      }
+    }
+
+    then:
+    text == expectedText
+
+    where:
+    predicate | expectedText
+    true      | "true"
+    false     | "false"
   }
 
   def "can use groovy truth in condition for false"() {
@@ -72,10 +95,53 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
     text == "from chain action class"
   }
 
+  @Unroll
+  def "can use whenOrElse construct and chain action classes when predicate is #predicate"() {
+    when:
+    bindings {
+      bindInstance(new TestIfChainAction("true"))
+      bindInstance(new TestElseChainAction("false"))
+    }
+    handlers {
+      whenOrElse({ predicate }, TestIfChainAction, TestElseChainAction)
+    }
+
+    then:
+    text == expectedText
+
+    where:
+    predicate | expectedText
+    true      | "true"
+    false     | "false"
+  }
+
   static class TestChainAction extends GroovyChainAction {
     void execute() throws Exception {
       get { render "from chain action class" }
     }
   }
 
+  static class TestIfChainAction extends GroovyChainAction {
+    private String text
+
+    TestIfChainAction(String text) {
+      this.text = text
+    }
+
+    void execute() throws Exception {
+      get { render text }
+    }
+  }
+
+  static class TestElseChainAction extends TestChainAction {
+    private String text
+
+    TestElseChainAction(String text) {
+      this.text = text
+    }
+
+    void execute() throws Exception {
+      get { render text }
+    }
+  }
 }
