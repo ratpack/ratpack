@@ -31,7 +31,6 @@ import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -686,15 +685,15 @@ public class Streams {
   public static <T> TransformablePublisher<T> take(long count, Publisher<T> upstreamPublisher) {
     return new TakePublisher<>(count, upstreamPublisher);
   }
-  
+
   /**
    * Returns a publisher that aggregates the given publishers into a single stream of elements, without interleaving them.
    * <p>
    * The returned publisher obeys the following rules:
    * <ul>
    *   <li>
-   *    Given publishers are subscribed to lazily and in the order they are supplied. That is, a publisher is not subscribed
-   *    to until the previous publisher has completed.
+   *    Given publishers are subscribed to lazily and in the order they are supplied.
+   *    That is, a publisher is not subscribed to until the previous publisher has completed.
    *   </li>
    *   <li>
    *    Elements emitted from the given publishers are not interleaved.
@@ -705,14 +704,26 @@ public class Streams {
    * </ul>
    * <p>
    *
+   * @param <T> the type of emitted item
    * @param publishers the publishers to concatenate
+   * @param disposer the disposer of unhandled items
+   * @return a publisher that emits a single stream of elements from multiple publishers
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> concat(Iterable<? extends Publisher<T>> publishers, Action<? super T> disposer) {
+    return new ConcatPublisher<>(disposer, publishers);
+  }
+
+  /**
+   * Similar to {@link #concat(Iterable, Action)}, but with a noop disposer.
+   *
+   * @param publishers the publishers to concatenate.
    * @param <T> the type of emitted item
    * @return a publisher that emits a single stream of elements from multiple publishers
    * @since 1.5
    */
-  @SafeVarargs
-  public static <T> TransformablePublisher<T> concat(Publisher<? extends T>... publishers) {
-    return new ConcatPublisher<>(Arrays.asList(publishers));
+  public static <T> TransformablePublisher<T> concat(Iterable<? extends Publisher<T>> publishers) {
+    return new ConcatPublisher<>(Action.noop(), publishers);
   }
 
 }

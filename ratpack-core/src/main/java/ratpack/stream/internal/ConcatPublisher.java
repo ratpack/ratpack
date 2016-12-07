@@ -20,77 +20,73 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.Iterator;
 
-public final class ConcatPublisher<T> extends BufferingPublisher<T> {
+public class ConcatPublisher<T> implements TransformablePublisher<T> {
 
-  public ConcatPublisher(Iterable<Publisher<? extends T>> publishers) {
-    super(Action.noop(), write -> {
-      return new Subscription() {
+  private final Iterable<? extends Publisher<T>> publishers;
+  private final Action<? super T> disposer;
 
-        private final Iterator<Publisher<? extends T>> iterator = publishers.iterator();
-        private Subscription subscription;
-        private boolean open;
+  public ConcatPublisher(Action<? super T> disposer, Iterable<? extends Publisher<T>> publishers) {
+    this.publishers = publishers;
+    this.disposer = disposer;
+  }
 
-        @Override
-        public void request(long n) {
-          if (n == Long.MAX_VALUE) {
-            open = true;
-          }
+  @Override
+  public void subscribe(Subscriber<? super T> s) {
 
-          if (subscription == null) {
-            next();
-          } else {
-            subscription.request(n);
-          }
+    s.onSubscribe(new ManagedSubscription<T>(s, disposer) {
 
-        }
+      Iterator<? extends Publisher<? extends T>> iterator = publishers.iterator();
+      Subscription current;
 
-        private void next() {
+      @Override
+      protected void onRequest(long n) {
+        if (current == null) {
           if (iterator.hasNext()) {
             Publisher<? extends T> publisher = iterator.next();
             publisher.subscribe(new Subscriber<T>() {
               @Override
               public void onSubscribe(Subscription s) {
-                subscription = s;
-                if (open) {
-                  s.request(Long.MAX_VALUE);
-                } else {
-                  long requested = write.getRequested();
-                  if (requested > 0) {
-                    s.request(requested);
-                  }
-                }
+                current = s;
+                s.request(n);
               }
 
               @Override
               public void onNext(T t) {
-                write.item(t);
+                emitNext(t);
               }
 
               @Override
               public void onError(Throwable t) {
-                write.error(t);
+                emitError(t);
               }
 
               @Override
               public void onComplete() {
-                next();
+                current = null;
+                long demand = getDemand();
+                if (demand > 0) {
+                  onRequest(demand);
+                }
               }
             });
           } else {
-            write.complete();
+            emitComplete();
           }
+        } else {
+          current.request(n);
         }
+      }
 
-        @Override
-        public void cancel() {
-          if (subscription != null) {
-            subscription.cancel();
-          }
+      @Override
+      protected void onCancel() {
+        if (current != null) {
+          current.cancel();
         }
-      };
+      }
     });
   }
 

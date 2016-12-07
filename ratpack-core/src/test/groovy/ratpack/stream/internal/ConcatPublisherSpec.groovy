@@ -27,7 +27,7 @@ class ConcatPublisherSpec extends Specification {
     def p1 = (1..10).publish()
     def p2 = (11..15).publish()
     def p3 = (16..100).publish()
-    def p = concat(p1, p2, p3)
+    def p = concat([p1, p2, p3])
     def s = CollectingSubscriber.subscribe(p)
 
     when:
