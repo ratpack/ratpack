@@ -269,9 +269,8 @@ run {
 task deployToHeroku(type: SourceTask) {
   source tasks.distTar
 
-  def apiKey = project.ratpackHerokuApiKey
-
   doLast {
+    def apiKey = project.ratpackHerokuApiKey
     File tgz = inputs.files.singleFile
 
     def heroku = new groovyx.net.http.RESTClient("https://api.heroku.com/apps/ratpack-site/")
