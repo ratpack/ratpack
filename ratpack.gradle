@@ -201,3 +201,10 @@ task downloadDependencies << {
     }
   }
 }
+
+task sanityCheck { t ->
+  allprojects {
+    dependsOn it.tasks.withType(CodeNarc)
+    dependsOn it.tasks.withType(Checkstyle)
+  }
+}
