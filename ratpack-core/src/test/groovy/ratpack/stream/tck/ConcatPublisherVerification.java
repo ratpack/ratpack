@@ -47,7 +47,7 @@ public class ConcatPublisherVerification extends PublisherVerification<Long> {
 
   @Override
   public Publisher<Long> createFailedPublisher() {
-    return null;// because subscription always succeeds. Nothing is attempted until a request is received.
+    return null; // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 
 }
