@@ -33,10 +33,10 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
   }
 
   @Unroll
-  def "can use ifOrElse construct when predicate is #predicate"() {
+  def "can use whenOrElse construct when predicate is #predicate"() {
     when:
     handlers {
-      when { predicate } {
+      whenOrElse { predicate } {
         get { render "true" }
       }
       {
@@ -96,14 +96,14 @@ class GroovyWhenHandlerSpec extends BasicGroovyDslSpec {
   }
 
   @Unroll
-  def "can use ifOrElse construct and chain action classes when predicate is #predicate"() {
+  def "can use whenOrElse construct and chain action classes when predicate is #predicate"() {
     when:
     bindings {
       bindInstance(new TestIfChainAction("true"))
       bindInstance(new TestElseChainAction("false"))
     }
     handlers {
-      when({ predicate }, TestIfChainAction, TestElseChainAction)
+      whenOrElse({ predicate }, TestIfChainAction, TestElseChainAction)
     }
 
     then:

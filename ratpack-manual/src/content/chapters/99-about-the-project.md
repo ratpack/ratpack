@@ -84,6 +84,7 @@ The following people have provided significant contributions.
 * [Sebastien Bonnet] (https://github.com/sebbonnet)
 * [Alex Edwards](https://github.com/set321go)
 * [Ho Yan Leung](https://github.com/hyleung)
+* [Felipe Fernández](https://github.com/felipefzdz)
 
 ### Past project members
 

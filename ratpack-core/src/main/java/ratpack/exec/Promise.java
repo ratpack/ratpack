@@ -544,7 +544,7 @@ public interface Promise<T> {
    * @param ifTransformer the transformation to apply when the predicate is true
    * @param elseTransformer the transformation to apply when the predicate is false
    * @return a promise
-   * @since 1.4
+   * @since 1.5
    */
   default Promise<T> mapIfOrElse(Predicate<? super T> predicate, Function<? super T, ? extends T> ifTransformer, Function<? super T, ? extends T> elseTransformer) {
     return map(t -> predicate.apply(t) ? ifTransformer.apply(t) : elseTransformer.apply(t));
@@ -1233,7 +1233,7 @@ public interface Promise<T> {
    * @param ifTransformer the transformation to apply to the promised value when the predicate is true
    * @param elseTransformer the transformation to apply to the promised value when the predicate is false
    * @return a promise
-   * @since 1.4
+   * @since 1.5
    */
   default Promise<T> flatMapIfOrElse(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> ifTransformer, Function<? super T, ? extends Promise<T>> elseTransformer) {
     return flatMap(t -> predicate.apply(t) ? ifTransformer.apply(t) : elseTransformer.apply(t));

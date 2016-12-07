@@ -340,8 +340,9 @@ public abstract class Handlers {
    * @param ifHandler the handler to insert if the predicate applies
    * @param elseHandler the handler to insert if the predicate doesn't apply
    * @return a handler
+   * @since 1.5
    */
-  public static Handler when(Predicate<? super Context> test, Handler ifHandler, Handler elseHandler) {
+  public static Handler whenOrElse(Predicate<? super Context> test, Handler ifHandler, Handler elseHandler) {
     return new WhenHandler(test, ifHandler, elseHandler);
   }
   /**
