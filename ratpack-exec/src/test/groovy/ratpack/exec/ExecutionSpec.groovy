@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
+import ratpack.registry.Registry
 import ratpack.stream.Streams
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -44,8 +45,16 @@ class ExecutionSpec extends Specification {
     exec(action, Action.noop())
   }
 
+  def exec(Registry registry, Action<? super Execution> action) {
+    exec(registry, action, Action.noop())
+  }
+
   def exec(Action<? super Execution> action, Action<? super Throwable> onError) {
-    harness.controller.fork().onError(onError).onComplete {
+    exec(Registry.empty(), action, onError)
+  }
+
+  def exec(Registry registry, Action<? super Execution> action, Action<? super Throwable> onError) {
+    harness.controller.fork().baseRegistry(registry).onError(onError).onComplete {
       events << "complete"
       latch.countDown()
     } start {
@@ -414,5 +423,19 @@ class ExecutionSpec extends Specification {
     then:
     l.await()
     i.get() == 0
+  }
+
+  def "can supply parent registry"() {
+    when:
+    exec(Registry.single(String, "foo")) { e ->
+      Promise.sync {
+        e.get(String)
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["foo", "complete"]
   }
 }

@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import io.netty.channel.EventLoop;
 import ratpack.func.Action;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -104,6 +105,21 @@ public interface ExecSpec {
    * @return {@code this}
    */
   ExecSpec register(Action<? super RegistrySpec> action);
+
+  /**
+   * Uses the provided registry as the basis for the execution's registry.
+   * <p>
+   * This method is not additive.
+   * That is, any subsequent calls replace the previous value.
+   * <p>
+   * Calls to {@link #register(Action)} are appended to this registry.
+   * However, items in the base registry are unmodifiable.
+   *
+   * @param registry the registry to use for the execution.
+   * @return {@code this}
+   * @since 1.6
+   */
+  ExecSpec baseRegistry(Registry registry);
 
   /**
    * Specifies that the execution must run on the given event loop.

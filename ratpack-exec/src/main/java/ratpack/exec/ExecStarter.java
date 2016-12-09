@@ -19,6 +19,7 @@ package ratpack.exec;
 import io.netty.channel.EventLoop;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -70,6 +71,12 @@ public interface ExecStarter extends ExecSpec {
    */
   @Override
   ExecStarter register(Action<? super RegistrySpec> action);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  ExecStarter baseRegistry(Registry registry);
 
   /**
    * {@inheritDoc}
