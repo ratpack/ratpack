@@ -438,4 +438,39 @@ class ExecutionSpec extends Specification {
     then:
     events == ["foo", "complete"]
   }
+
+  def "can fork child execution"() {
+    when:
+    exec({ e ->
+      e.add(String, "foo")
+      e.add(Integer, 100)
+      def latch = new CountDownLatch(1)
+      def latch2 = new CountDownLatch(1)
+
+      e.forkChild().register { r ->
+        r.add(Integer, 500)
+      } onComplete {
+        events << "complete2"
+        latch.countDown()
+      } start { e2 ->
+        latch2.await()
+        Promise.sync {
+          Promise.sync {
+            e2.get(Integer)
+          } then {
+            events << it
+          }
+          e2.get(String)
+        } then {
+          events << it
+        }
+      }
+      e.add(String, "parent-foo")
+      latch2.countDown()
+      latch.await()
+    })
+
+    then:
+    events == [500, "foo", "complete2", "complete"]
+  }
 }
