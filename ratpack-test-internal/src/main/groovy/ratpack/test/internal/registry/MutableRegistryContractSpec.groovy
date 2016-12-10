@@ -111,4 +111,20 @@ abstract class MutableRegistryContractSpec extends RegistryContractSpec {
     then:
     called
   }
+
+  def "locking"() {
+    given:
+    def r = build { }
+    r.add("foo")
+    r.add("bar")
+
+    when:
+    def r2 = r.asImmutable()
+
+    then:
+    r2.get(String) == "bar"
+    r2.get(CharSequence) == "bar"
+    r2.getAll(String).toList() == ["bar", "foo"]
+    r2.getAll(CharSequence).toList() == ["bar", "foo"]
+  }
 }

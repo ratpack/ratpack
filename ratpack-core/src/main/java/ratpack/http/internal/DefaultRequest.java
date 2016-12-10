@@ -35,6 +35,7 @@ import ratpack.func.Function;
 import ratpack.http.*;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.RequestBodyReader;
 import ratpack.stream.Streams;
@@ -370,6 +371,11 @@ public class DefaultRequest implements Request {
   @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     getDelegateRegistry().remove(type);
+  }
+
+  @Override
+  public Registry asImmutable() {
+    return getDelegateRegistry().asImmutable();
   }
 
   @Override

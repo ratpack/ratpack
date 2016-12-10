@@ -26,16 +26,23 @@ import java.util.function.Supplier;
 
 public class HierarchicalMutableRegistry extends HierarchicalRegistry implements MutableRegistry {
 
+  private final Registry parent;
   private final MutableRegistry child;
 
   public HierarchicalMutableRegistry(Registry parent, MutableRegistry child) {
     super(parent, child);
+    this.parent = parent;
     this.child = child;
   }
 
   @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     child.remove(type);
+  }
+
+  @Override
+  public Registry asImmutable() {
+    return parent.join(child.asImmutable());
   }
 
   @Override

@@ -31,6 +31,7 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
@@ -263,6 +264,11 @@ public class DefaultExecution implements Execution {
   @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     registry.remove(type);
+  }
+
+  @Override
+  public Registry immutable() {
+    return registry.immutable();
   }
 
   @Override
