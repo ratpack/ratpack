@@ -16,12 +16,9 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Downstream;
-import ratpack.exec.ExecutionException;
-import ratpack.exec.Promise;
-import ratpack.exec.Upstream;
+import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.BiAction;
+import ratpack.func.BiFunction;
 import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.util.Exceptions;
@@ -67,7 +64,7 @@ public class DefaultPromise<T> implements Promise<T> {
     doConnect(downstream);
   }
 
-  public void doConnect(Downstream<? super T> downstream) {
+  private void doConnect(Downstream<? super T> downstream) {
     try {
       upstream.connect(downstream);
     } catch (ExecutionException e) {
@@ -90,18 +87,15 @@ public class DefaultPromise<T> implements Promise<T> {
     }
   }
 
-  @Override
-  public Promise<T> retry(int maxAttempts, Function<Integer, Duration> delay, BiAction<? super Integer, ? super Throwable> onError) {
-    return transform(up -> down -> retryAttempt(1, maxAttempts, delay, up, down, onError));
-  }
 
-  private void retryAttempt(int attemptNum, int maxAttempts, Function<Integer, Duration> delay, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
+  public static <T> void retryAttempt(int attemptNum, int maxAttempts, Upstream<? extends T> up, Downstream<? super T> down, BiFunction<? super Integer, ? super Throwable, Duration> onError) throws Exception {
     up.connect(down.onError(e -> {
       if (attemptNum > maxAttempts) {
         down.error(e);
       } else {
+        Duration delay;
         try {
-          onError.execute(attemptNum, e);
+          delay = onError.apply(attemptNum, e);
         } catch (Throwable errorHandlerError) {
           if (errorHandlerError != e) {
             errorHandlerError.addSuppressed(e);
@@ -109,7 +103,10 @@ public class DefaultPromise<T> implements Promise<T> {
           down.error(errorHandlerError);
           return;
         }
-        Promise.value(null).delay(delay.apply(attemptNum)).then(v -> retryAttempt(attemptNum + 1, maxAttempts, delay, up, down, onError));
+
+        Execution.current().sleep(delay, () ->
+          retryAttempt(attemptNum + 1, maxAttempts, up, down, onError)
+        );
       }
     }));
   }

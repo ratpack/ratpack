@@ -28,7 +28,6 @@ import ratpack.util.Exceptions;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import static ratpack.func.Action.ignoreArg;
 
@@ -1999,7 +1998,7 @@ public interface Promise<T> {
    * @since 1.5
    */
   default Promise<T> delay(Duration delay) {
-    return defer(r -> Execution.current().getEventLoop().schedule(r, delay.toMillis(), TimeUnit.MILLISECONDS));
+    return defer(r -> Execution.current().sleep(delay, r::run));
   }
 
   /**
@@ -2046,7 +2045,10 @@ public interface Promise<T> {
    * @since 1.5
    */
   default Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError) {
-    return retry(maxAttempts, i -> delay, onError);
+    return retry(maxAttempts, (i, error) -> {
+      onError.execute(i, error);
+      return delay;
+    });
   }
 
   /**
@@ -2093,5 +2095,7 @@ public interface Promise<T> {
    * @see #retry(int, Duration, BiAction)
    * @since 1.5
    */
-  Promise<T> retry(int maxAttempts, Function<Integer, Duration> delay, BiAction<? super Integer, ? super Throwable> onError);
+  default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Duration> onError) {
+    return transform(up -> down -> DefaultPromise.retryAttempt(1, maxAttempts, up, down, onError));
+  }
 }

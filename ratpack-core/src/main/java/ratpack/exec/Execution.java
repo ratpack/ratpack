@@ -24,6 +24,7 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -231,4 +232,17 @@ public interface Execution extends MutableRegistry {
    */
   void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception;
 
+  /**
+   * Pauses this execution for the given duration.
+   * <p>
+   * Unlike {@link Thread#sleep(long)}, this method does not block the thread.
+   * The thread will be relinquished for use by other executions.
+   * <p>
+   * The given block will be invoked after the duration has passed.
+   *
+   * @param duration the duration this execution should sleep for
+   * @param onWake the code to resume with upon awaking
+   * @since 1.5
+   */
+  void sleep(Duration duration, Block onWake);
 }

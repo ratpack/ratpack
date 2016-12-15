@@ -36,7 +36,6 @@ class PromiseOperationsSpec extends Specification {
   List<String> events = []
   def latch = new CountDownLatch(1)
 
-
   def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
     execHarness
       .controller.fork()
