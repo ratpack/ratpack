@@ -277,4 +277,15 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   default TransformablePublisher<T> take(long count) {
     return Streams.take(count, this);
   }
+
+  /**
+   * See {@link Streams#batch(int, Publisher, Action)}.
+   *
+   * @return a publisher that batches upstream requests
+   * @since 1.5
+   */
+  default TransformablePublisher<T> batch(int batchSize, Action<? super T> disposer) {
+    return Streams.batch(batchSize, this, disposer);
+  }
+
 }

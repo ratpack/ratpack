@@ -36,7 +36,6 @@ public class ConcatPublisher<T> implements TransformablePublisher<T> {
 
   @Override
   public void subscribe(Subscriber<? super T> s) {
-
     s.onSubscribe(new ManagedSubscription<T>(s, disposer) {
 
       Iterator<? extends Publisher<? extends T>> iterator = publishers.iterator();

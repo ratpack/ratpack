@@ -726,4 +726,25 @@ public class Streams {
     return new ConcatPublisher<>(Action.noop(), publishers);
   }
 
+  /**
+   * Batches and serialised demand.
+   * <p>
+   * Subscribers often request items one at a time.
+   * This can cause inefficient data fetching patterns in publishers (e.g fetching one row at a time from a database result set).
+   * Such publishers can be wrapped in a batch publisher, which transforms demand into regular sizes.
+   * <p>
+   * Excess items are buffered until the subscriber wants them.
+   * Therefore, using a very large batch size with a very slow subscriber may require significant memory.
+   *
+   * @param batchSize the batch size
+   * @param publisher the publisher to issue request to in batches
+   * @param disposer the disposer of unhandled items (e.g. buffered, unwanted, items)
+   * @param <T> the type of emitted item
+   * @return a publisher that batches requests upstream
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> batch(int batchSize, Publisher<T> publisher, Action<? super T> disposer) {
+    return new BatchingPublisher<>(publisher, batchSize, disposer);
+  }
+
 }

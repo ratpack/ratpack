@@ -19,6 +19,7 @@ package ratpack.stream.tck
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
+import org.testng.annotations.AfterTest
 import ratpack.stream.Streams
 import ratpack.test.exec.ExecHarness
 
@@ -26,11 +27,16 @@ import java.time.Duration
 
 class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
-  public BufferingPublisherVerification() {
+  BufferingPublisherVerification() {
     super(new TestEnvironment(300L), 5000)
   }
 
   ExecHarness harness = ExecHarness.harness()
+
+  @AfterTest
+  void stopHarness() throws Exception {
+    harness.close()
+  }
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
@@ -44,4 +50,8 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 
+  @Override
+  void required_createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
+    super.required_createPublisher1MustProduceAStreamOfExactly1Element()
+  }
 }

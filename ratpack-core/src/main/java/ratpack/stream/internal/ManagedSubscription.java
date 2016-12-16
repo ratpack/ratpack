@@ -68,7 +68,7 @@ public abstract class ManagedSubscription<T> implements Subscription {
   }
 
   protected long getDemand() {
-    return demand.get();
+    return done.get() ? 0 : demand.get();
   }
 
   protected abstract void onRequest(long n);
