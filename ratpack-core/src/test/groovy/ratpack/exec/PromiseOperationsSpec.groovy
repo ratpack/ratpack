@@ -21,7 +21,6 @@ import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 
@@ -46,138 +45,6 @@ class PromiseOperationsSpec extends Specification {
     }
 
     latch.await()
-  }
-
-  def "can map promise"() {
-    when:
-    exec {
-      Blocking.get { "foo" }
-        .map { it + "-bar" }
-        .map { it.toUpperCase() }
-        .then { events << it }
-    }
-
-    then:
-    events == ["FOO-BAR", "complete"]
-  }
-
-  @Unroll
-  def "can mapIf promise when the predicate is #predicate"() {
-    when:
-    exec {
-      Blocking.get { originalValue }
-        .mapIf( { it == "foo" }, { it + "-true" })
-        .then { events << it }
-    }
-
-    then:
-    events == [mappedValue, "complete"]
-
-    where:
-    originalValue | mappedValue | predicate
-    "foo"         | "foo-true"  | true
-    "bar"         | "bar"       | false
-  }
-
-  @Unroll
-  def "can mapIfOrElse promise when the predicate is #predicate"() {
-    when:
-    exec {
-      Blocking.get { originalValue }
-        .mapIfOrElse( { it == "foo" }, { it + "-true" }, { it + "-false" })
-        .then { events << it }
-    }
-
-    then:
-    events == [mappedValue, "complete"]
-
-    where:
-    originalValue | mappedValue | predicate
-    "foo"         | "foo-true"  | true
-    "bar"         | "bar-false" | false
-  }
-
-  def "can flat map promise"() {
-    when:
-    exec({ e ->
-      Blocking.get { "foo" }
-        .flatMap { s -> Blocking.get { s + "-bar" } }
-        .map { it.toUpperCase() }
-        .then { events << it }
-    })
-
-    then:
-    events == ["FOO-BAR", "complete"]
-  }
-
-  @Unroll
-  def "can flatMapIf promise when the predicate is #predicate"() {
-    when:
-    exec {
-      Blocking.get { originalValue }
-        .flatMapIf( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } )
-        .then { events << it }
-    }
-
-    then:
-    events == [mappedValue, "complete"]
-
-    where:
-    originalValue | mappedValue | predicate
-    "foo"         | "foo-true"  | true
-    "bar"         | "bar" | false
-  }
-
-  @Unroll
-  def "can flatMapIfOrElse promise when the predicate is #predicate"() {
-    when:
-    exec {
-      Blocking.get { originalValue }
-        .flatMapIfOrElse( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } , { s -> Blocking.get { s + "-false" } } )
-        .then { events << it }
-    }
-
-    then:
-    events == [mappedValue, "complete"]
-
-    where:
-    originalValue | mappedValue | predicate
-    "foo"         | "foo-true"  | true
-    "bar"         | "bar-false" | false
-  }
-
-  def "errors are propagated down map chain"() {
-    given:
-    def ex = new RuntimeException("!")
-
-    when:
-    exec { e ->
-      Promise.async { it.error(ex) }
-        .map {}
-        .map {}
-        .onError { events << it }
-        .then { throw new IllegalStateException("cant get here") }
-    }
-
-    then:
-    events == [ex, "complete"]
-  }
-
-  def "errors are propagated down flatmap chain"() {
-    given:
-    def ex = new RuntimeException("!")
-
-    when:
-    exec { e ->
-      Promise.async { it.error(ex) }
-        .map {}
-        .flatMap { Blocking.get { "foo" } }
-        .onError { events << it }
-        .then { throw new IllegalStateException("cant get here") }
-    }
-
-    then:
-    events == [ex, "complete"]
   }
 
   def "errors handler can terminate exception"() {
@@ -276,21 +143,6 @@ class PromiseOperationsSpec extends Specification {
     events == ["null", "complete"]
   }
 
-  def "can use other promise with flatMap"() {
-    when:
-    exec { e ->
-      Blocking.get {
-        "foo"
-      } flatMap {
-        Promise.async { f -> Thread.start { f.success("foo") } }
-      } then {
-        events << it
-      }
-    }
-
-    then:
-    events == ["foo", "complete"]
-  }
 
   def "can be notified on promise starting"() {
     when:

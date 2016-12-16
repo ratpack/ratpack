@@ -513,7 +513,7 @@ public interface Promise<T> {
    * @since 1.4
    */
   default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> transformer) {
-    return map(t -> predicate.apply(t) ? transformer.apply(t) : t);
+    return mapIfOrElse(predicate, transformer, Function.identity());
   }
 
   /**
@@ -1202,7 +1202,7 @@ public interface Promise<T> {
    * @since 1.4
    */
   default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> transformer) {
-    return flatMap(t -> predicate.apply(t) ? transformer.apply(t) : Promise.value(t));
+    return flatMapIfOrElse(predicate, transformer, Promise::value);
   }
 
   /**
