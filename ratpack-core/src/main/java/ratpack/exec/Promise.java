@@ -2059,7 +2059,7 @@ public interface Promise<T> {
    * @param delay the duration to wait between retry attempts
    * @param onError the error handler
    * @return a promise with a retry error handler
-   * @see #retry(int, Function, BiFunction)
+   * @see #retry(int, BiFunction)
    * @since 1.5
    */
   default Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError) {
