@@ -222,9 +222,9 @@ public class HealthCheckHandler implements Handler {
   }
 
   private Promise<HealthCheckResults> execute(Registry registry, Iterable<? extends HealthCheck> healthChecks) {
-    return Promise.wrap(() -> {
+    return Promise.flatten(() -> {
       Iterable<Promise<Pair<HealthCheck.Result, String>>> resultPromises = Iterables.transform(healthChecks, h ->
-        Promise.wrap(() -> h.check(registry))
+        Promise.flatten(() -> h.check(registry))
           .throttled(throttle)
           .mapError(HealthCheck.Result::unhealthy)
           .right(r -> h.getName())

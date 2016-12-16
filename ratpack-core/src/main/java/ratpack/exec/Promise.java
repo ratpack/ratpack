@@ -157,7 +157,32 @@ public interface Promise<T> {
    * @since 1.5
    */
   static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
-    return async(down -> factory.create().connect(down));
+    return async(down -> {
+      Promise<T> promise;
+      try {
+        promise = factory.create();
+      } catch (Throwable e) {
+        down.error(e);
+        return;
+      }
+      promise.connect(down);
+    });
+  }
+
+  /**
+   * Deprecated. Use {@link #flatten(Factory)}.
+   *
+   * @param factory deprecated.
+   * @param <T> the type of promised value
+   * @return deprecated.
+   * @deprecated since 1.5, replaced by {@link #flatten(Factory)}.
+   */
+  static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
+    try {
+      return factory.create();
+    } catch (Exception e) {
+      return Promise.error(e);
+    }
   }
 
   /**
@@ -1996,14 +2021,6 @@ public interface Promise<T> {
    */
   default Promise<T> fork() {
     return Exceptions.uncheck(() -> fork(Action.noop()));
-  }
-
-  static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
-    try {
-      return factory.create();
-    } catch (Exception e) {
-      return Promise.error(e);
-    }
   }
 
   /**
