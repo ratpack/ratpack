@@ -177,6 +177,7 @@ public interface Promise<T> {
    * @return deprecated.
    * @deprecated since 1.5, replaced by {@link #flatten(Factory)}.
    */
+  @Deprecated
   static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
     try {
       return factory.create();
