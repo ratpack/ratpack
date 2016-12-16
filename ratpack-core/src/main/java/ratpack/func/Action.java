@@ -17,6 +17,7 @@
 package ratpack.func;
 
 import ratpack.api.Nullable;
+import ratpack.exec.Promise;
 import ratpack.util.Exceptions;
 
 import java.util.function.Consumer;
@@ -268,4 +269,41 @@ public interface Action<T> {
   default Block curry(T value) {
     return () -> execute(value);
   }
+
+  /**
+   * Creates an exception-taking action that executes the given action before throwing the exception.
+   * <p>
+   * This can be used with methods such as {@link Promise#onError(Action)} to simulate the Java {@code finally} construct.
+   *
+   * @param action the action to perform before throwing the exception
+   * @return an action that performs the given action before throwing its argument
+   * @since 1.5
+   */
+  static Action<Throwable> beforeThrow(Action<? super Throwable> action) {
+    return t -> {
+      try {
+        action.execute(t);
+      } catch (Exception e) {
+        if (t != e) {
+          e.addSuppressed(t);
+        }
+        throw e;
+      }
+      throw Exceptions.toException(t);
+    };
+  }
+
+  /**
+   * Creates an exception-taking action that executes the given block before throwing the exception.
+   * <p>
+   * This can be used with methods such as {@link Promise#onError(Action)} to simulate the Java {@code finally} construct.
+   *
+   * @param block the block to execute before throwing the exception
+   * @return an action that executes the given block before throwing its argument
+   * @since 1.5
+   */
+  static Action<Throwable> beforeThrow(Block block) {
+    return beforeThrow(block.action());
+  }
+
 }
