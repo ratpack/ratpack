@@ -50,7 +50,7 @@ class ExecutionSleepSpec extends BaseExecutionSpec {
     def stop = 0
 
     when:
-    exec {
+    execStarter {
       it.register { it.add(new RecordingInterceptor("")) }.start {
         start = System.currentTimeMillis()
         it.sleep(Duration.ofSeconds(1)) {

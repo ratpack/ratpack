@@ -25,7 +25,7 @@ class PromiseRetrySpec extends BaseExecutionSpec {
     when:
     def i = new AtomicInteger()
 
-    execAction {
+    exec {
       Promise.sync { i.incrementAndGet() }
         .mapIf({ it < 3 }, { throw new IllegalStateException() })
         .retry(3, { n, e -> events << "retry$n"; Duration.ofMillis(5 * n) })
@@ -40,7 +40,7 @@ class PromiseRetrySpec extends BaseExecutionSpec {
     when:
     def e = new RuntimeException("!")
 
-    execAction({
+    exec({
       Promise.error(e)
         .retry(3, { n, ex -> events << "retry$n"; Duration.ofMillis(5 * n) })
         .then { events << "then" }
@@ -54,7 +54,7 @@ class PromiseRetrySpec extends BaseExecutionSpec {
     when:
     def i = new AtomicInteger()
 
-    execAction {
+    exec {
       Promise.sync { i.incrementAndGet() }
         .mapIf({ it < 3 }, { throw new IllegalStateException() })
         .retry(3, Duration.ofMillis(5), { n, e -> events << "retry$n" })
@@ -69,7 +69,7 @@ class PromiseRetrySpec extends BaseExecutionSpec {
     when:
     def e = new RuntimeException("!")
 
-    execAction({
+    exec({
       Promise.error(e)
         .retry(3, Duration.ofMillis(5), { n, ex -> events << "retry$n" })
         .then { events << "then" }

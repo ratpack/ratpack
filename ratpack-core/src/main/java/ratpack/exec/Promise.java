@@ -1565,10 +1565,12 @@ public interface Promise<T> {
   }
 
   /**
-   * Allows the execution of the promise to be deferred to a later time.
+   * Defers the subscription of {@code this} promise until later.
    * <p>
    * When the returned promise is subscribed to, the given {@code releaser} action will be invoked.
    * The execution of {@code this} promise is deferred until the runnable given to the {@code releaser} is run.
+   * <p>
+   * It is important to note that this defers the <i>subscription</i> of the promise, not the delivery of the value.
    * <p>
    * It is generally more convenient to use {@link #throttled(Throttle)} or {@link #onYield(Runnable)} than this operation.
    *
@@ -1583,6 +1585,22 @@ public interface Promise<T> {
         up.connect(down)
       )
     );
+  }
+
+  /**
+   * Defers the subscription of {@code this} promise for the given duration.
+   * <p>
+   * This operation is roughly the promise based analog of {@link Execution#sleep(Duration, Block)}.
+   * <p>
+   * The given duration must be non-negative.
+   *
+   * @param duration the amount of time to defer for
+   * @return a deferred promise
+   * @see #defer(Action)
+   * @since 1.5
+   */
+  default Promise<T> defer(Duration duration) {
+    return defer(r -> Execution.current().sleep(duration, r::run));
   }
 
   /**
@@ -1989,22 +2007,22 @@ public interface Promise<T> {
   }
 
   /**
-   * Pauses the execution of {@code this} promise for the given duration.
+   * Causes {@code this} yielding the promised value to be retried on error, after a fixed delay.
    * <p>
-   * This method is analogous to doing a {@code Thread.sleep} but is completely non-blocking.
-   *
-   * @param delay the duration to delay for
-   * @return a deferred promise
-   * @since 1.5
-   */
-  default Promise<T> delay(Duration delay) {
-    return defer(r -> Execution.current().sleep(delay, r::run));
-  }
-
-  /**
-   * Retries {@code this} promise, with a fixed delay, if an error occurs trying to produce the promised value.
+   * The given function is invoked for each failure,
+   * with the sequence number of the failure as the first argument and the failure exception as the second.
+   * This may be used to log or collect exceptions.
+   * If all errors are to be ignored, use {@link BiAction#noop()}.
    * <p>
-   * The promise is retried with a fixed delay between attempts for the given max number of attempts.
+   * Any exception thrown by the function – possibly the exception it receives as an argument – will
+   * be propagated to the subscriber, yielding a failure.
+   * This can be used to selectively retry on certain failures, but immediately fail on others.
+   * <p>
+   * If the promise fails {@code maxAttempts} times,
+   * the given function will not be invoked and the most and the most recent exception will propagate.
+   * <p>
+   * To retry immediately, pass a zero duration.
+   * Use {@link #retry(int, BiFunction)} if desiring a dynamic (e.g. increasing) delay between attempts.
    *
    * <pre class="java">{@code
    * import ratpack.exec.ExecResult;
@@ -2037,11 +2055,11 @@ public interface Promise<T> {
    * }
    * }</pre>
    *
-   * @param maxAttempts the maximum number of times to retry the failing promise
+   * @param maxAttempts the maximum number of times to retry
    * @param delay the duration to wait between retry attempts
-   * @param onError the action to take if an error occurs
+   * @param onError the error handler
    * @return a promise with a retry error handler
-   * @see #retry(int, Function, BiAction)
+   * @see #retry(int, Function, BiFunction)
    * @since 1.5
    */
   default Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError) {
@@ -2052,10 +2070,20 @@ public interface Promise<T> {
   }
 
   /**
-   * Retries {@code this} promise if an error occurs trying to produce the promised value.
+   * Causes {@code this} yielding the promised value to be retried on error, after a calculated delay.
    * <p>
-   * The delay between retries is calculated by executing the given delay function.  The promise is retried for the given
-   * max number of attempts.
+   * The given function is invoked for each failure,
+   * with the sequence number of the failure as the first argument and the failure exception as the second.
+   * It should return the duration of time to wait before retrying.
+   * To retry immediately, return a zero duration.
+   * Use {@link #retry(int, Duration, BiAction)} if desiring a fixed delay between attempts.
+   * <p>
+   * Any exception thrown by the function – possibly the exception it receives as an argument – will
+   * be propagated to the subscriber, yielding a failure.
+   * This can be used to selectively retry on certain failures, but immediately fail on others.
+   * <p>
+   * If the promise fails {@code maxAttempts} times,
+   * the given function will not be invoked and the most and the most recent exception will propagate.
    *
    * <pre class="java">{@code
    * import ratpack.exec.ExecResult;
@@ -2079,7 +2107,10 @@ public interface Promise<T> {
    *     ExecResult<Integer> result = ExecHarness.yieldSingle(exec ->
    *       Promise.sync(source::incrementAndGet)
    *         .mapIf(i -> i < 3, i -> { throw new IllegalStateException(); })
-   *         .retry(3, i -> Duration.ofMillis(500 * i), (i, t) -> LOG.add("retry attempt: " + i))
+   *         .retry(3, (i, t) -> {
+   *           LOG.add("retry attempt: " + i);
+   *           return Duration.ofMillis(500 * i);
+   *         })
    *     );
    *
    *     assertEquals(Integer.valueOf(3), result.getValue());
@@ -2088,9 +2119,8 @@ public interface Promise<T> {
    * }
    * }</pre>
    *
-   * @param maxAttempts the maximum number of times to retry the failing promise
-   * @param delay the function that gives the duration to wait between retry attempts
-   * @param onError the action to take if an error occurs
+   * @param maxAttempts the maximum number of times to retry
+   * @param onError the error handler
    * @return a promise with a retry error handler
    * @see #retry(int, Duration, BiAction)
    * @since 1.5

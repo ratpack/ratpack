@@ -239,6 +239,7 @@ public interface Execution extends MutableRegistry {
    * The thread will be relinquished for use by other executions.
    * <p>
    * The given block will be invoked after the duration has passed.
+   * The duration must be non-negative.
    *
    * @param duration the duration this execution should sleep for
    * @param onWake the code to resume with upon awaking

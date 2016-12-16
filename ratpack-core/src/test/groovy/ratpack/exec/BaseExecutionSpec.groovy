@@ -31,11 +31,11 @@ class BaseExecutionSpec extends Specification {
   List<Object> events = []
   def latch = new CountDownLatch(1)
 
-  def execAction(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
-    exec { it.onError(onError).start(action) }
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
+    execStarter { it.onError(onError).start(action) }
   }
 
-  def exec(Action<? super ExecStarter> exec) {
+  def execStarter(Action<? super ExecStarter> exec) {
     def spec = execHarness.controller.fork()
       .onError { events << it }
       .onComplete { events << "complete"; latch.countDown() }

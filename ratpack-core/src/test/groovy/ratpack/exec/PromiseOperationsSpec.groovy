@@ -22,9 +22,7 @@ import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.concurrent.BlockingVariable
 
-import java.time.Duration
 import java.util.concurrent.CountDownLatch
 
 import static ratpack.func.Action.throwException
@@ -294,49 +292,6 @@ class PromiseOperationsSpec extends Specification {
     events == ["foo", "complete"]
   }
 
-  def "can defer promise"() {
-    when:
-    def runner = new BlockingVariable<Runnable>()
-    execHarness.controller.fork().onComplete { latch.countDown() }.start {
-      Promise.async { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
-        events << it
-      }
-    }
-
-    then:
-    events == []
-
-    when:
-    runner.get().run()
-
-    then:
-    latch.await()
-    events == ["foo"]
-  }
-
-  def "deferred promise can use promises even when promises are queued"() {
-    when:
-    def runner = new BlockingVariable<Runnable>(200)
-    execHarness.controller.fork().onComplete { latch.countDown() }.start {
-      Promise.value("foo").defer { runner.set(it) }.then {
-        Promise.async { it.success("foo") }.then {
-          events << "inner"
-        }
-      }
-      Promise.value("outer").then { events << it }
-    }
-
-    then:
-    events == []
-
-    when:
-    runner.get().run()
-
-    then:
-    latch.await()
-    events == ["inner", "outer"]
-  }
-
   def "can be notified on promise starting"() {
     when:
     exec { e ->
@@ -551,21 +506,5 @@ class PromiseOperationsSpec extends Specification {
     events == [ex, "complete"]
   }
 
-  def "can delay promise"() {
-    given:
-    def delay = Duration.ofMillis(500)
-    def totalDuration = Duration.ofMillis(0)
 
-    when:
-    exec {
-      Promise.value(null)
-        .delay(delay)
-        .time { totalDuration = it }
-        .operation()
-        .then()
-    }
-
-    then:
-    totalDuration >= delay
-  }
 }
