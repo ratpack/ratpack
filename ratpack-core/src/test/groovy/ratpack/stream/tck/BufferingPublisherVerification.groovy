@@ -50,8 +50,4 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 
-  @Override
-  void required_createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
-    super.required_createPublisher1MustProduceAStreamOfExactly1Element()
-  }
 }
