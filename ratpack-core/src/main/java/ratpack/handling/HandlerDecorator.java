@@ -57,9 +57,9 @@ import ratpack.registry.Registry;
  *   public static void main(String... args) throws Exception {
  *     EmbeddedApp.of(s -> s
  *       .registryOf(r -> r
- *         .add(HandlerDecorator.prependHandlers(new AddListToRequestRegistry()))
- *         .add(HandlerDecorator.prependHandlers(new AddStringToList("foo")))
- *         .add(HandlerDecorator.prependHandlers(new AddStringToList("bar")))
+ *         .add(HandlerDecorator.prepend(new AddListToRequestRegistry()))
+ *         .add(HandlerDecorator.prepend(new AddStringToList("foo")))
+ *         .add(HandlerDecorator.prepend(new AddStringToList("bar")))
  *       )
  *       .handler(r ->
  *         ctx -> ctx.render(ctx.getRequest().get(Types.listOf(String.class)).toString())
