@@ -98,20 +98,21 @@ artifactoryPublish { task ->
   skip true
 }
 
-task bintrayPublish << {
-  if (!project.hasProperty("ratpackOssJfrogApiKey")) {
-    throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
-  }
+task bintrayPublish() {
+  doLast {
+    if (!project.hasProperty("ratpackOssJfrogApiKey")) {
+      throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
+    }
 
-  if (!project.hasProperty('buildNumber')) {
-    throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
-  }
+    if (!project.hasProperty('buildNumber')) {
+      throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
+    }
 
-  def curl = ['curl',
-              '-X', 'POST',
-              "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
-              "-H", "Content-Type: application/json",
-              "-d", """{
+    def curl = ['curl',
+                '-X', 'POST',
+                "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
+                "-H", "Content-Type: application/json",
+                "-d", """{
     "subject": "ratpack",
     "repoName": "maven",
     "packageName": "ratpack",
@@ -120,9 +121,10 @@ task bintrayPublish << {
     "vcs_url": "https://github.com/ratpack/ratpack"
 }
 """,
-              "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
-  ].execute()
-  logger.info("Received response: ${curl.text}")
+                "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
+    ].execute()
+    logger.info("Received response: ${curl.text}")
+  }
 }
 
 allprojects {
@@ -193,11 +195,13 @@ gradle.taskGraph.afterTask {
   }
 }
 
-task downloadDependencies << {
-  allprojects { p ->
-    configurations.each { c ->
-      println "Downloading dependencies for $p.path - $c.name"
-      c.files
+task downloadDependencies() {
+  doLast {
+    allprojects { p ->
+      configurations.each { c ->
+        println "Downloading dependencies for $p.path - $c.name"
+        c.files
+      }
     }
   }
 }
