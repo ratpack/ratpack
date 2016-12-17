@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 public class ServerEnvironment {
 
   public static final ServerEnvironment INSTANCE = new ServerEnvironment(System.getenv(), System.getProperties());
+  public static final String ADDRESS_PROPERTY = "ratpack.address";
   public static final String DEVELOPMENT_PROPERTY = "ratpack.development";
   public static final String PORT_PROPERTY = "ratpack.port";
   public static final String INTELLIJ_MAIN = "com.intellij.rt.execution.application.AppMain";
@@ -45,7 +46,6 @@ public class ServerEnvironment {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);
   private static final Pattern STARTS_WITH_SCHEME_PATTERN = Pattern.compile("^(.+)://.+$");
-  private static final String ADDRESS_PROPERTY = "ratpack.address";
   private static final int MAX_PORT = 65535;
 
   private final Map<String, String> env;
