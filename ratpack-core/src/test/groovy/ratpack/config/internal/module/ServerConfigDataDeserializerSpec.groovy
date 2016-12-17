@@ -33,7 +33,7 @@ class ServerConfigDataDeserializerSpec extends Specification {
   def originalClassLoader
   def classLoader = new GroovyClassLoader()
   def serverEnvironment = new ServerEnvironment([:], new Properties())
-  def deserializer = new ServerConfigDataDeserializer(serverEnvironment.port, serverEnvironment.development, serverEnvironment.publicAddress, { -> FileSystemBinding.of(b1.root) } as Supplier)
+  def deserializer = new ServerConfigDataDeserializer(serverEnvironment.address, serverEnvironment.port, serverEnvironment.development, serverEnvironment.publicAddress, { -> FileSystemBinding.of(b1.root) } as Supplier)
   def objectMapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
 
   def setup() {
@@ -68,6 +68,7 @@ class ServerConfigDataDeserializerSpec extends Specification {
     def serverConfig = deserialize(objectMapper.createObjectNode())
 
     then:
+    !serverConfig.address
     serverConfig.port == 5050
     !serverConfig.development
     !serverConfig.publicAddress

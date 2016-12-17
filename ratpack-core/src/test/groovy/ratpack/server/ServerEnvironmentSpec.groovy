@@ -20,10 +20,20 @@ import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
 class ServerEnvironmentSpec extends Specification {
+
   ServerEnvironment env(Map<String, String> env, Map<String, String> props) {
     def p = new Properties()
     p.putAll(props)
     new ServerEnvironment(env, p)
+  }
+
+  def "address"() {
+    expect:
+    env([:], [:]).address == null
+    env([RATPACK_ADDRESS: "192.168.1.2"], [:]).address == InetAddress.getByName('192.168.1.2')
+    env([:], ["ratpack.address": "192.168.1.2"]).address == InetAddress.getByName('192.168.1.2')
+    env([RATPACK_ADDRESS: "192.168.1.3"], ["ratpack.address": "192.168.1.2"]).address == InetAddress.getByName('192.168.1.2')
+    env([:], ["ratpack.address": "192.168.1.2"]).address == InetAddress.getByName('192.168.1.2')
   }
 
   def "port"() {

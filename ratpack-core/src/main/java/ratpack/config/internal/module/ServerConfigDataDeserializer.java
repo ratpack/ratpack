@@ -41,12 +41,14 @@ import java.util.function.Supplier;
 public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigData> {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigDataDeserializer.class);
 
+  private final InetAddress address;
   private final int port;
   private final boolean development;
   private final URI publicAddress;
   private final Supplier<FileSystemBinding> baseDirSupplier;
 
-  public ServerConfigDataDeserializer(int port, boolean development, URI publicAddress, Supplier<FileSystemBinding> baseDirSupplier) {
+  public ServerConfigDataDeserializer(InetAddress address, int port, boolean development, URI publicAddress, Supplier<FileSystemBinding> baseDirSupplier) {
+    this.address = address;
     this.port = port;
     this.development = development;
     this.publicAddress = publicAddress;
@@ -57,7 +59,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
   public ServerConfigData deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
-    ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), port, development, publicAddress);
+    ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), address, port, development, publicAddress);
     if (serverNode.hasNonNull("port")) {
       data.setPort(parsePort(serverNode.get("port")));
     }
