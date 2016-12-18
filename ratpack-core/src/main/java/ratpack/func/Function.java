@@ -170,7 +170,29 @@ public interface Function<I, O> {
     return t -> t;
   }
 
+  /**
+   * Returns a constant function (return values always the same regardless of input).
+   *
+   * @param t the value to return
+   * @param <T> The type of the output object from the function
+   * @return a function that always returns the same value regardless of the input
+   */
   static <T> Function<Object, T> constant(T t) {
     return i -> t;
+  }
+
+  /**
+   * Creates a function that returns one of the provided functions depending on the results of the supplied predicate
+   *
+   * @param predicate the condition which selects the applied function
+   * @param ifFunction the function applied if the predicate is satisfied
+   * @param elseFunction the function applied if teh predicate is not satisfied
+   * @param <I> the type of the input to the functions and the predicate
+   * @param <O> the type of the output of the functions
+   *
+   * @return a function based on the condition of the predicate
+   */
+  static <I, O> Function<? super I, ? extends O> applyIfOrElse(Predicate<? super I> predicate, Function<? super I, ? extends O> ifFunction, Function<? super I, ? extends O> elseFunction) {
+    return i -> predicate.apply(i) ? ifFunction.apply(i) : elseFunction.apply(i);
   }
 }

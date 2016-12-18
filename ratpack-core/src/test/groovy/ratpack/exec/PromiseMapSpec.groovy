@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import ratpack.func.Function
 import spock.lang.Unroll
 
 class PromiseMapSpec extends BaseExecutionSpec {
@@ -52,11 +53,11 @@ class PromiseMapSpec extends BaseExecutionSpec {
   }
 
   @Unroll
-  def "can mapIfOrElse promise when the predicate is #predicate"() {
+  def "can map If Or Else promise when the predicate is #predicate"() {
     when:
     exec {
       Blocking.get { originalValue }
-        .mapIfOrElse( { it == "foo" }, { it + "-true" }, { it + "-false" })
+        .map(Function.applyIfOrElse( { it == "foo" }, { it + "-true" }, { it + "-false" } ))
         .then { events << it }
     }
 
