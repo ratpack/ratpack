@@ -276,7 +276,7 @@ public interface Function<I, O> {
     conditions.execute(new ConditionalSpec<I, O>() {
       @Override
       public ConditionalSpec<I, O> when(Predicate<? super I> predicate, Function<? super I, ? extends O> function) {
-        builder.add(new ConditionalFunction.Branch<I, O>(predicate, function));
+        builder.add(new ConditionalFunction.Branch<>(predicate, function));
         return this;
       }
     });

@@ -16,8 +16,10 @@
 
 package ratpack.func;
 
+import com.google.common.collect.ImmutableList;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
+import ratpack.func.internal.ConditionalAction;
 import ratpack.util.Exceptions;
 
 import java.util.function.Consumer;
@@ -306,4 +308,92 @@ public interface Action<T> {
     return beforeThrow(block.action());
   }
 
+  /**
+   * Creates an action that delegates to the given action if the given predicate applies, else delegates to {@link #noop()}.
+   * <p>
+   * This is equivalent to {@link #when(Predicate, Action, Action) when(predicate, action, noop())}.
+   *
+   * @param predicate the condition for the argument
+   * @param action the action to execute if the predicate applies
+   * @param <I> the type of argument
+   * @return an action that delegates to the given action if the predicate applies, else noops
+   * @see #when(Predicate, Action, Action)
+   * @see #conditional(Action, Action)
+   * @since 1.5
+   */
+  static <I> Action<I> when(Predicate<? super I> predicate, Action<? super I> action) {
+    return when(predicate, action, Action.noop());
+  }
+
+  /**
+   * Creates an action that delegates to the first action if the given predicate applies, else the second action.
+   *
+   * @param predicate the condition for the argument
+   * @param onTrue the action to execute if the predicate applies
+   * @param onFalse the action to execute if the predicate DOES NOT apply
+   * @param <I> the type of argument
+   * @return an action that delegates to the first action if the predicate applies, else the second argument
+   * @see #when(Predicate, Action)
+   * @see #conditional(Action, Action)
+   * @since 1.5
+   */
+  static <I> Action<I> when(Predicate<? super I> predicate, Action<? super I> onTrue, Action<? super I> onFalse) {
+    return Exceptions.uncheck(() -> conditional(onFalse, s -> s.when(predicate, onTrue)));
+  }
+
+  /**
+   * Creates an action that delegates based on the specified conditions.
+   * <p>
+   * If no conditions match, an {@link IllegalArgumentException} will be thrown.
+   * Use {@link #conditional(Action, Action)} alternatively to specify a different “else” strategy.
+   *
+   * @param conditions the conditions
+   * @param <I> the input type
+   * @return a conditional action
+   * @see #conditional(Action, Action)
+   * @throws Exception any thrown by {@code conditions}
+   * @since 1.5
+   */
+  static <I> Action<I> conditional(Action<? super ConditionalSpec<I>> conditions) throws Exception {
+    return conditional(i -> {
+      throw new IllegalArgumentException("Unhandled argument: " + i);
+    }, conditions);
+  }
+
+  /**
+   * Creates an action that delegates based on the specified conditions.
+   * <p>
+   * If no condition applies, the {@code onElse} action will be delegated to.
+   *
+   * @param onElse the action to delegate to if no condition matches
+   * @param conditions the conditions
+   * @param <I> the input type
+   * @return a conditional action
+   * @see #conditional(Action)
+   * @throws Exception any thrown by {@code conditions}
+   * @since 1.5
+   */
+  static <I> Action<I> conditional(Action<? super I> onElse, Action<? super ConditionalSpec<I>> conditions) throws Exception {
+    ImmutableList.Builder<ConditionalAction.Branch<I>> builder = ImmutableList.builder();
+    conditions.execute(new ConditionalSpec<I>() {
+      @Override
+      public ConditionalSpec<I> when(Predicate<? super I> predicate, Action<? super I> action) {
+        builder.add(new ConditionalAction.Branch<>(predicate, action));
+        return this;
+      }
+    });
+
+    return new ConditionalAction<>(builder.build(), onElse);
+  }
+
+  /**
+   * A spec for adding conditions to a conditional action.
+   *
+   * @param <I> the input type
+   * @see #conditional(Action, Action)
+   * @since 1.5
+   */
+  interface ConditionalSpec<I> {
+    ConditionalSpec<I> when(Predicate<? super I> predicate, Action<? super I> action);
+  }
 }

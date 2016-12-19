@@ -13,3 +13,10 @@ It should not be considered the final announcement for any release at any time.
 * Added `Promise.delay`
 * Added `Streams.take`
 * Added `Streams.concat`
+* Conditional Functions and Actions
+* Composing ByteBuf publisher
+* Configurable ServerConfig.address
+* Lookup `Handler`s/`Chain`s from Registry
+* Added `Stream.batch`
+* Added `Execution.sleep`
+* Deprecated `Promise.wrap`
