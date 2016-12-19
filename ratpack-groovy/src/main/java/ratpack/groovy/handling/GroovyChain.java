@@ -784,37 +784,37 @@ public interface GroovyChain extends Chain {
   }
 
   @Override
-  default GroovyChain whenOrElse(Predicate<? super Context> test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
-    return from(Chain.super.whenOrElse(test, ifAction, elseAction));
+  default GroovyChain when(Predicate<? super Context> test, Action<? super Chain> onTrue, Action<? super Chain> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
   }
 
   @Override
-  default GroovyChain whenOrElse(Predicate<? super Context> test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
-    return from(Chain.super.whenOrElse(test, ifAction, elseAction));
+  default GroovyChain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> onTrue, Class<? extends Action<? super Chain>> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
   }
 
-  default GroovyChain whenOrElse(
+  default GroovyChain when(
     Predicate<? super Context> test,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
   ) throws Exception {
-    return whenOrElse(test, chainAction(ifHandlers), chainAction(elseHandlers));
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
   }
 
-  default GroovyChain whenOrElse(
+  default GroovyChain when(
     @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
   ) throws Exception {
-    return whenOrElse(test, chainAction(ifHandlers), chainAction(elseHandlers));
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
   }
 
-  default GroovyChain whenOrElse(
+  default GroovyChain when(
     @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
     Action<? super Chain> ifChain,
     Action<? super Chain> elseChain
   ) throws Exception {
-    return whenOrElse(
+    return when(
       ctx -> {
         final GroovyContext groovyContext = GroovyContext.from(ctx);
         return DefaultGroovyMethods.asBoolean(
@@ -826,12 +826,12 @@ public interface GroovyChain extends Chain {
     );
   }
 
-  default GroovyChain whenOrElse(
+  default GroovyChain when(
     @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
     Class<? extends Action<? super Chain>> ifAction,
     Class<? extends Action<? super Chain>> elseAction
   ) throws Exception {
-    return whenOrElse(test, getRegistry().get(ifAction), getRegistry().get(elseAction));
+    return when(test, getRegistry().get(ifAction), getRegistry().get(elseAction));
   }
 
   /**
@@ -849,30 +849,30 @@ public interface GroovyChain extends Chain {
    * @return this
    * @throws Exception any thrown by {@code action}
    * @since 1.5
-   * @see Chain#whenOrElse(boolean, Action, Action)
+   * @see Chain#when(boolean, Action, Action)
    */
-  default GroovyChain whenOrElse(
+  default GroovyChain when(
     boolean test,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
     @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
   ) throws Exception {
-    return whenOrElse(test, chainAction(ifHandlers), chainAction(elseHandlers));
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default GroovyChain whenOrElse(boolean test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
-    return from(Chain.super.whenOrElse(test, ifAction, elseAction));
+  default GroovyChain when(boolean test, Action<? super Chain> onTrue, Action<? super Chain> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default GroovyChain whenOrElse(boolean test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
-    return from(Chain.super.whenOrElse(test, ifAction, elseAction));
+  default GroovyChain when(boolean test, Class<? extends Action<? super Chain>> onTrue, Class<? extends Action<? super Chain>> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
   }
 
   /**

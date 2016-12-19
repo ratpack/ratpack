@@ -932,12 +932,12 @@ public interface Chain {
     return when(test, getRegistry().get(action));
   }
 
-  default Chain whenOrElse(Predicate<? super Context> test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
-    return all(Handlers.whenOrElse(test, chain(ifAction), chain(elseAction)));
+  default Chain when(Predicate<? super Context> test, Action<? super Chain> onTrue, Action<? super Chain> onFalse) throws Exception {
+    return all(Handlers.whenOrElse(test, chain(onTrue), chain(onFalse)));
   }
 
-  default Chain whenOrElse(Predicate<? super Context> test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
-    return all(Handlers.whenOrElse(test, chain(ifAction), chain(elseAction)));
+  default Chain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> onTrue, Class<? extends Action<? super Chain>> onFalse) throws Exception {
+    return all(Handlers.whenOrElse(test, chain(onTrue), chain(onFalse)));
   }
 
   /**
@@ -956,7 +956,7 @@ public interface Chain {
    *     EmbeddedApp.of(a -> a
    *       .registryOf(r -> r.add(1))
    *       .handlers(c -> c
-   *         .whenOrElse(c.getRegistry().get(Integer.class) == 0,
+   *         .when(c.getRegistry().get(Integer.class) == 0,
    *            i -> i.get(ctx -> ctx.render("ok")),
    *            i -> i.get(ctx -> ctx.render("ko"))
    *         )
@@ -968,7 +968,7 @@ public interface Chain {
    *     EmbeddedApp.of(a -> a
    *       .registryOf(r -> r.add(0))
    *       .handlers(c -> c
-   *         .whenOrElse(c.getRegistry().get(Integer.class) == 0,
+   *         .when(c.getRegistry().get(Integer.class) == 0,
    *            i -> i.get(ctx -> ctx.render("ok")),
    *            i -> i.get(ctx -> ctx.render("ko"))
    *         )
@@ -981,17 +981,17 @@ public interface Chain {
    * }</pre>
    *
    * @param test predicate to decide which action include
-   * @param ifAction the chain action to include when the predicate is true
-   * @param elseAction the chain action to include when the predicate is false
+   * @param onTrue the chain action to include when the predicate is true
+   * @param onFalse the chain action to include when the predicate is false
    * @return this
    * @throws Exception any thrown by {@code action}
    * @since 1.5
    */
-  default Chain whenOrElse(boolean test, Action<? super Chain> ifAction, Action<? super Chain> elseAction) throws Exception {
+  default Chain when(boolean test, Action<? super Chain> onTrue, Action<? super Chain> onFalse) throws Exception {
     if (test) {
-      ifAction.execute(this);
+      onTrue.execute(this);
     } else {
-      elseAction.execute(this);
+      onFalse.execute(this);
     }
     return this;
   }
@@ -999,17 +999,17 @@ public interface Chain {
   /**
    * Inlines the appropriate chain based on the given {@code test}.
    * <p>
-   * Similar to {@link #whenOrElse(boolean, Action, Action)}, except obtains the action instance from the registry by the given type.
+   * Similar to {@link #when(boolean, Action, Action)}, except obtains the action instance from the registry by the given type.
    *
    * @param test predicate to decide which action to include
-   * @param ifAction the chain action to include when the predicate is true
-   * @param elseAction the chain action to include when the predicate is false
+   * @param onTrue the chain action to include when the predicate is true
+   * @param onFalse the chain action to include when the predicate is false
    * @return this
    * @throws Exception any thrown by {@code action}
    * @since 1.5
    */
-  default Chain whenOrElse(boolean test, Class<? extends Action<? super Chain>> ifAction, Class<? extends Action<? super Chain>> elseAction) throws Exception {
-    return whenOrElse(test, getRegistry().get(ifAction), getRegistry().get(elseAction));
+  default Chain when(boolean test, Class<? extends Action<? super Chain>> onTrue, Class<? extends Action<? super Chain>> onFalse) throws Exception {
+    return when(test, getRegistry().get(onTrue), getRegistry().get(onFalse));
   }
 
   /**

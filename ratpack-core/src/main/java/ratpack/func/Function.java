@@ -16,6 +16,8 @@
 
 package ratpack.func;
 
+import com.google.common.collect.ImmutableList;
+import ratpack.func.internal.ConditionalFunction;
 import ratpack.util.Exceptions;
 
 import java.util.Objects;
@@ -170,7 +172,115 @@ public interface Function<I, O> {
     return t -> t;
   }
 
+  /**
+   * Returns a function that <i>always</i> returns the given argument.
+   *
+   * @param t the value to always return
+   * @param <T> the type of returned value
+   * @return a function that returns the given value
+   */
   static <T> Function<Object, T> constant(T t) {
     return i -> t;
+  }
+
+  /**
+   * Creates a function that delegates to the given function if the given predicate applies, else delegates to {@link #identity()}.
+   * <p>
+   * This is equivalent to {@link #when(Predicate, Function, Function) when(predicate, function, identity())}.
+   *
+   * @param predicate the condition for the argument
+   * @param function the function to apply if the predicate applies
+   * @param <I> the type of argument and return value
+   * @return a function that delegates to the given function if the predicate applies, else returns the argument
+   * @see #when(Predicate, Function, Function)
+   * @see #conditional(Function, Action)
+   * @since 1.5
+   */
+  static <I> Function<I, I> when(Predicate<? super I> predicate, Function<? super I, ? extends I> function) {
+    return when(predicate, function, Function.identity());
+  }
+
+  /**
+   * Creates a function that delegates to the first function if the given predicate applies, else the second function.
+   *
+   * @param predicate the condition for the argument
+   * @param onTrue the function to apply if the predicate applies
+   * @param onFalse the function to apply if the predicate DOES NOT apply
+   * @param <I> the type of argument
+   * @param <O> the type of return value
+   * @return a function that delegates to the first function if the predicate applies, else the second argument
+   * @see #when(Predicate, Function)
+   * @see #conditional(Function, Action)
+   * @since 1.5
+   */
+  static <I, O> Function<I, O> when(Predicate<? super I> predicate, Function<? super I, ? extends O> onTrue, Function<? super I, ? extends O> onFalse) {
+    return Exceptions.uncheck(() -> conditional(onFalse, s -> s.when(predicate, onTrue)));
+  }
+
+  /**
+   * A spec for adding conditions to a conditional function.
+   *
+   * @param <I> the input type
+   * @param <O> the output type
+   * @see #conditional(Function, Action)
+   * @since 1.5
+   */
+  interface ConditionalSpec<I, O> {
+
+    /**
+     * Adds a conditional function.
+     *
+     * @param predicate the condition predicate
+     * @param function the function to apply if the predicate applies
+     * @return {@code this}
+     */
+    ConditionalSpec<I, O> when(Predicate<? super I> predicate, Function<? super I, ? extends O> function);
+  }
+
+  /**
+   * Creates a function that delegates based on the specified conditions.
+   * <p>
+   * If no conditions match, an {@link IllegalArgumentException} will be thrown.
+   * Use {@link #conditional(Function, Action)} alternatively to specify a different “else” strategy.
+   *
+   * @param conditions the conditions
+   * @param <I> the input type
+   * @param <O> the output type
+   * @return a conditional function
+   * @see #conditional(Function, Action)
+   * @throws Exception any thrown by {@code conditions}
+   * @since 1.5
+   */
+  static <I, O> Function<I, O> conditional(Action<? super ConditionalSpec<I, O>> conditions) throws Exception {
+    return conditional(i -> {
+      throw new IllegalArgumentException("Unhandled argument: " + i);
+    }, conditions);
+  }
+
+  /**
+   * Creates a function that delegates based on the specified conditions.
+   * <p>
+   * If no condition applies, the {@code onElse} function will be delegated to.
+   *
+   * @param onElse the function to delegate to if no condition matches
+   * @param conditions the conditions
+   * @param <I> the input type
+   * @param <O> the output type
+   * @return a conditional function
+   * @see #conditional(Action)
+   * @throws Exception any thrown by {@code conditions}
+   * @since 1.5
+   */
+  static <I, O> Function<I, O> conditional(Function<? super I, ? extends O> onElse, Action<? super ConditionalSpec<I, O>> conditions) throws Exception {
+    ImmutableList.Builder<ConditionalFunction.Branch<I, O>> builder = ImmutableList.builder();
+    conditions.execute(new ConditionalSpec<I, O>() {
+      @Override
+      public ConditionalSpec<I, O> when(Predicate<? super I> predicate, Function<? super I, ? extends O> function) {
+        builder.add(new ConditionalFunction.Branch<I, O>(predicate, function));
+        return this;
+      }
+    });
+
+    return new ConditionalFunction<>(builder.build(), onElse);
   }
 }

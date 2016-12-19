@@ -34,11 +34,11 @@ class PromiseMapSpec extends BaseExecutionSpec {
   }
 
   @Unroll
-  def "can mapIf promise when the predicate is #predicate"() {
+  "can mapIf promise when the predicate is #predicate"() {
     when:
     exec {
       Blocking.get { originalValue }
-        .mapIf( { it == "foo" }, { it + "-true" })
+        .mapIf({ it == "foo" }, { it + "-true" })
         .then { events << it }
     }
 
@@ -52,11 +52,11 @@ class PromiseMapSpec extends BaseExecutionSpec {
   }
 
   @Unroll
-  def "can mapIfOrElse promise when the predicate is #predicate"() {
+  "can mapIfOrElse promise when the predicate is #predicate"() {
     when:
     exec {
       Blocking.get { originalValue }
-        .mapIfOrElse( { it == "foo" }, { it + "-true" }, { it + "-false" })
+        .mapIf({ it == "foo" }, { it + "-true" }, { it + "-false" })
         .then { events << it }
     }
 

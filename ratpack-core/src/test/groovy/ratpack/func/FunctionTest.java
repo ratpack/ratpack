@@ -19,6 +19,8 @@ package ratpack.func;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static ratpack.func.Function.conditional;
+import static ratpack.func.Function.constant;
 
 public class FunctionTest {
 
@@ -34,6 +36,21 @@ public class FunctionTest {
     Function<String, String> f = String::toUpperCase;
     f = f.compose(in -> in + "-bar");
     assertEquals("FOO-BAR", f.apply("foo"));
+  }
+
+  @Test
+  public void testConditional() throws Exception {
+    Function<Integer, String> f1 = Function.when(i -> i == 1, i -> "1", i -> "2");
+    assertEquals("1", f1.apply(1));
+    assertEquals("2", f1.apply(10));
+
+    Function<String, Integer> f2 = conditional(constant(3), s -> s
+      .when(i -> i.length() < 2, i -> 2)
+      .when(i -> i.length() < 1, i -> 1)
+    );
+
+    assertEquals(Integer.valueOf(2), f2.apply("a"));
+    assertEquals(Integer.valueOf(3), f2.apply("aaaa"));
   }
 
 }

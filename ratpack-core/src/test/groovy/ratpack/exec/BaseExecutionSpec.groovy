@@ -31,7 +31,7 @@ class BaseExecutionSpec extends Specification {
   List<Object> events = []
   def latch = new CountDownLatch(1)
 
-  def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError = { events << it }) {
     execStarter { it.onError(onError).start(action) }
   }
 

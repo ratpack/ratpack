@@ -539,7 +539,7 @@ public interface Promise<T> {
    * @since 1.4
    */
   default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> transformer) {
-    return mapIfOrElse(predicate, transformer, Function.identity());
+    return map(Function.when(predicate, transformer));
   }
 
   /**
@@ -556,8 +556,8 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
    *         Promise.value("foo")
-   *           .mapIfOrElse(s -> s.contains("f"), String::toUpperCase, s -> s)
-   *           .mapIfOrElse(s -> s.contains("f"), s -> s, s -> s + "-BAR")
+   *           .mapIf(s -> s.contains("f"), String::toUpperCase, s -> s)
+   *           .mapIf(s -> s.contains("f"), s -> s, s -> s + "-BAR")
    *     );
    *
    *     assertEquals("FOO-BAR", result.getValue());
@@ -566,13 +566,13 @@ public interface Promise<T> {
    * }</pre>
    *
    * @param predicate the condition to decide which transformation to apply
-   * @param ifTransformer the transformation to apply when the predicate is true
-   * @param elseTransformer the transformation to apply when the predicate is false
+   * @param onTrue the transformation to apply when the predicate is true
+   * @param onFalse the transformation to apply when the predicate is false
    * @return a promise
    * @since 1.5
    */
-  default Promise<T> mapIfOrElse(Predicate<? super T> predicate, Function<? super T, ? extends T> ifTransformer, Function<? super T, ? extends T> elseTransformer) {
-    return map(t -> predicate.apply(t) ? ifTransformer.apply(t) : elseTransformer.apply(t));
+  default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> onTrue, Function<? super T, ? extends T> onFalse) {
+    return map(Function.when(predicate, onTrue, onFalse));
   }
 
   /**
@@ -1228,7 +1228,7 @@ public interface Promise<T> {
    * @since 1.4
    */
   default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> transformer) {
-    return flatMapIfOrElse(predicate, transformer, Promise::value);
+    return flatMapIf(predicate, transformer, Promise::value);
   }
 
   /**
@@ -1245,8 +1245,8 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecResult<String> result = ExecHarness.yieldSingle(c ->
    *         Promise.value("foo")
-   *           .flatMapIfOrElse(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()), s -> Promise.value(s))
-   *           .flatMapIfOrElse(s -> s.contains("f"), s -> Promise.value(s), s -> Promise.value(s + "-BAR"))
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s.toUpperCase()), s -> Promise.value(s))
+   *           .flatMapIf(s -> s.contains("f"), s -> Promise.value(s), s -> Promise.value(s + "-BAR"))
    *     );
    *
    *     assertEquals("FOO-BAR", result.getValue());
@@ -1255,13 +1255,13 @@ public interface Promise<T> {
    * }</pre>
    *
    * @param predicate the condition to decide which transformation to apply
-   * @param ifTransformer the transformation to apply to the promised value when the predicate is true
-   * @param elseTransformer the transformation to apply to the promised value when the predicate is false
+   * @param onTrue the transformation to apply to the promised value when the predicate is true
+   * @param onFalse the transformation to apply to the promised value when the predicate is false
    * @return a promise
    * @since 1.5
    */
-  default Promise<T> flatMapIfOrElse(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> ifTransformer, Function<? super T, ? extends Promise<T>> elseTransformer) {
-    return flatMap(t -> predicate.apply(t) ? ifTransformer.apply(t) : elseTransformer.apply(t));
+  default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> onTrue, Function<? super T, ? extends Promise<T>> onFalse) {
+    return flatMap(Function.when(predicate, onTrue, onFalse));
   }
 
   /**

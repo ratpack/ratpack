@@ -56,7 +56,7 @@ class PromiseFlatMapSpec extends BaseExecutionSpec {
     when:
     exec {
       Blocking.get { originalValue }
-        .flatMapIfOrElse( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } , { s -> Blocking.get { s + "-false" } } )
+        .flatMapIf( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } , { s -> Blocking.get { s + "-false" } } )
         .then { events << it }
     }
 
