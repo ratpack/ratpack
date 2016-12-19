@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import ratpack.func.Function
 import spock.lang.Unroll
 
 class PromiseFlatMapSpec extends BaseExecutionSpec {
@@ -52,11 +53,11 @@ class PromiseFlatMapSpec extends BaseExecutionSpec {
   }
 
   @Unroll
-  def "can flatMapIfOrElse promise when the predicate is #predicate"() {
+  def "can flatMap If Or Else promise when the predicate is #predicate"() {
     when:
     exec {
       Blocking.get { originalValue }
-        .flatMapIfOrElse( { s -> s == "foo" }, { s -> Blocking.get { s + "-true" } } , { s -> Blocking.get { s + "-false" } } )
+        .flatMap(Function.applyIfOrElse( { s -> s == "foo"}, { s -> Blocking.get { s + "-true" } }, { s -> Blocking.get { s + "-false" } } ))
         .then { events << it }
     }
 
