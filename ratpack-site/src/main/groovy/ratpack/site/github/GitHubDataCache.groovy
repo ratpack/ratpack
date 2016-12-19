@@ -38,7 +38,7 @@ class GitHubDataCache implements GitHubData {
   }
 
   private <T> Promise<T> get(Key<T> key) {
-    def promise = key.factory().transform(new TimedFaultTolerantCachingPromiseTransform<T>(cacheFor, errorTimeout))
+    def promise = key.factory().cacheResultFor { it.error ? errorTimeout : cacheFor }
     (cache.putIfAbsent(key, promise) ?: promise).map { Types.<T> cast(it) }
   }
 

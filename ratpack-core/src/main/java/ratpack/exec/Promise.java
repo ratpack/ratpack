@@ -16,7 +16,6 @@
 
 package ratpack.exec;
 
-import com.google.common.cache.LoadingCache;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
@@ -1435,6 +1434,7 @@ public interface Promise<T> {
    * @return a caching promise
    * @see #cacheIf(Predicate)
    * @see #cacheResultIf(Predicate)
+   * @see #cacheResultFor(Function)
    */
   default Promise<T> cache() {
     return cacheResultIf(Predicate.TRUE);
@@ -1450,6 +1450,8 @@ public interface Promise<T> {
    *
    * @param shouldCache the test for whether a successful result is cacheable
    * @return a caching promise
+   * @see #cacheResultIf(Predicate)
+   * @see #cacheResultFor(Function)
    * @since 1.4
    */
   default Promise<T> cacheIf(Predicate<? super T> shouldCache) {
@@ -1457,17 +1459,7 @@ public interface Promise<T> {
   }
 
   /**
-   * Caches the promise result and provides it to all future subscribers, if it satisfies the predicate.
-   * <p>
-   * This method is typically used when wanting to cache a failure result or a success result.
-   * Moreover, the error throwable or success value can be inspected to determine whether it should be cached.
-   * <p>
-   * A cached promise is fully threadsafe and and can be subscribed to concurrently.
-   * While there is no cached value, yielding the upstream value is serialised.
-   * That is, one value is requested at a time regardless of concurrent subscription.
-   * If a cache-able value is received, all pending subscribers will received the cache-able value.
-   * If a received value is not cache-able the corresponding subscriber will receive the value,
-   * and the upstream promise will be subscribed to again on behalf of the next subscriber.
+   * Caches the promise result eternally and provide it to all future subscribers, if it satisfies the predicate.
    *
    * <pre class="java">{@code
    * import ratpack.exec.ExecResult;
@@ -1523,20 +1515,49 @@ public interface Promise<T> {
    *
    * <p>
    * Note, the cached value never expires.
-   * If you wish to cache a value only for a certain amount of time,
-   * use a general caching tool such as Guava's {@link LoadingCache}.
+   * If you wish to cache for a certain amount of time, use {@link #cacheResultFor(Function)}.
+   *
+   * @param shouldCache the test for whether a result is cacheable
+   * @return a caching promise
+   * @see #cache()
+   * @see #cacheIf(Predicate)
+   * @see #cacheResultFor(Function)
+   * @since 1.4
+   */
+  default Promise<T> cacheResultIf(Predicate<? super ExecResult<T>> shouldCache) {
+    return transform(up ->
+      new CachingUpstream<>(up, shouldCache.function(Duration.ofSeconds(-1), Duration.ZERO))
+    );
+  }
+
+  /**
+   * Caches the promise result for a calculated amount of time.
+   * <p>
+   * A cached promise is fully threadsafe and and can be subscribed to concurrently.
+   * While there is no valid cached value, yielding the upstream value is serialised.
+   * That is, one value is requested at a time regardless of concurrent subscription.
+   * <p>
+   * As the result is received, it is given to the {@code ttlFunc} which determines how long to cache it for.
+   * A {@link Duration#ZERO} duration indicates that the value should not be cached.
+   * Any {@link Duration#isNegative()} duration indicates that the value should be cached eternally.
+   * Any other duration indicates how long to cache the result for.
+   * <p>
+   * If the promise is subscribed to again after the cached value has expired, the process repeats.
+   * <p>
+   * As such promises tend to be held and reused, it is sometimes necessary to consider garbage collection implications.
+   * A caching promise (like all multi-use promises) must retain all of its upstream functions/objects.
+   * Care should be taken to ensure that this does not cause long lived references to objects that should be collected.
+   * <p>
+   * It is common to use cached promises in conjunction with a cache implementation such as Google Guava or Caffeine.
    *
    * <pre class="java">{@code
-   * import com.google.common.cache.CacheBuilder;
-   * import com.google.common.cache.CacheLoader;
-   * import com.google.common.cache.LoadingCache;
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.ArrayList;
    * import java.util.List;
-   * import java.util.concurrent.TimeUnit;
+   * import java.time.Duration;
    * import java.util.concurrent.atomic.AtomicInteger;
    *
    * import static org.junit.Assert.assertEquals;
@@ -1544,50 +1565,48 @@ public interface Promise<T> {
    * public class Example {
    *
    *   public static void main(String... args) throws Exception {
-   *     List<ExecResult<Integer>> results = new ArrayList<>();
+   *     List<Integer> results = new ArrayList<>();
    *     AtomicInteger counter = new AtomicInteger();
-   *     Promise<Integer> promise = Promise.sync(counter::getAndIncrement);
+   *     Promise<Integer> promise = Promise.sync(counter::getAndIncrement)
+   *       .cacheResultFor(
+   *         i -> i.isSuccess() && i.getValue() > 1
+   *         ? Duration.ofSeconds(1)
+   *         : Duration.ZERO
+   *       );
    *
-   *     LoadingCache<String, Promise<Integer>> cache = CacheBuilder.newBuilder()
-   *       .expireAfterWrite(2, TimeUnit.SECONDS)
-   *       .build(new CacheLoader<String, Promise<Integer>>() {
-   *         public Promise<Integer> load(String key) throws Exception {
-   *           return promise.cacheResultIf(i -> i.isSuccess() && i.getValue() > 1);
-   *         }
-   *       });
+   *     for (int i = 0; i < 4; ++i) {
+   *       ExecHarness.runSingle(e -> promise.then(results::add));
+   *     }
    *
-   *     ExecHarness.runSingle(e -> {
-   *       for (int i = 0; i < 4; i++) {
-   *         cache.get("key").result(results::add);
-   *       }
+   *     // let the cache entry expire
+   *     Thread.sleep(1500);
    *
-   *       // let the cache entry expire
-   *       Thread.sleep(2000);
+   *     for (int i = 0; i < 2; ++i) {
+   *       ExecHarness.runSingle(e -> promise.then(results::add));
+   *     }
    *
-   *       for (int i = 0; i < 2; i++) {
-   *         cache.get("key").result(results::add);
-   *       }
-   *     });
-   *
-   *     assertEquals(results.get(0).getValueOrThrow(), Integer.valueOf(0));
-   *     assertEquals(results.get(1).getValueOrThrow(), Integer.valueOf(1));
-   *     assertEquals(results.get(2).getValueOrThrow(), Integer.valueOf(2));
-   *     assertEquals(results.get(3).getValueOrThrow(), Integer.valueOf(2));
+   *     assertEquals(results.get(0), Integer.valueOf(0));
+   *     assertEquals(results.get(1), Integer.valueOf(1));
+   *     assertEquals(results.get(2), Integer.valueOf(2));
+   *     assertEquals(results.get(3), Integer.valueOf(2));
    *
    *     // cache entry has expired
    *
-   *     assertEquals(results.get(4).getValueOrThrow(), Integer.valueOf(3));
-   *     assertEquals(results.get(5).getValueOrThrow(), Integer.valueOf(3));
+   *     assertEquals(results.get(4), Integer.valueOf(3));
+   *     assertEquals(results.get(5), Integer.valueOf(3));
    *   }
    * }
    * }</pre>
    *
-   * @param shouldCache the test for whether a result is cacheable
+   * @param cacheFor a function that determines how long to cache the given result for
    * @return a caching promise
-   * @since 1.4
+   * @since 1.5
+   * @see #cache()
+   * @see #cacheIf(Predicate)
+   * @see #cacheResultIf(Predicate)
    */
-  default Promise<T> cacheResultIf(Predicate<? super ExecResult<T>> shouldCache) {
-    return transform(up -> new CachingUpstream<>(up, shouldCache));
+  default Promise<T> cacheResultFor(Function<? super ExecResult<T>, Duration> cacheFor) {
+    return transform(up -> new CachingUpstream<>(up, cacheFor));
   }
 
   /**

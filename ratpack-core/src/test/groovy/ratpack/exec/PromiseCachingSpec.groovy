@@ -23,6 +23,7 @@ import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
+import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
@@ -31,7 +32,7 @@ class PromiseCachingSpec extends Specification {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()
-  Queue<?> events = new ConcurrentLinkedQueue<>()
+  Queue<Object> events = new ConcurrentLinkedQueue<>()
   def latch = new CountDownLatch(1)
 
   def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
@@ -190,7 +191,35 @@ class PromiseCachingSpec extends Specification {
 
     then:
     events.toList().subList(0, events.size() - 1).message == (0..10).collect { "1" }
+  }
 
+  def "can cache for time"() {
+    given:
+    def i = new AtomicInteger()
+    def p = Promise.sync(i.&getAndIncrement).cacheResultFor { Duration.ofSeconds(1) }
+
+    when:
+    exec {
+      p.then {
+        events.add(it)
+        p.then {
+          events.add(it)
+          sleep 1000
+          p.then {
+            events.add(it)
+            p.then {
+              events.add(it)
+            }
+          }
+        }
+      }
+    }
+
+    then:
+    events.poll() == 0
+    events.poll() == 0
+    events.poll() == 1
+    events.poll() == 1
   }
 
 }

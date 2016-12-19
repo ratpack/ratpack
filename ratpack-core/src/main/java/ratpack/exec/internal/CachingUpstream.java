@@ -16,10 +16,14 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.*;
-import ratpack.func.Predicate;
+import ratpack.func.Function;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -28,23 +32,30 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private Upstream<? extends T> upstream;
 
-  private final AtomicReference<ExecResult<? extends T>> resultRef = new AtomicReference<>();
-  private final Predicate<? super ExecResult<T>> predicate;
+  private final Clock clock;
+  private final AtomicReference<Cached<? extends T>> ref = new AtomicReference<>();
+  private final Function<? super ExecResult<T>, Duration> ttlFunc;
 
   private final AtomicBoolean pending = new AtomicBoolean();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final Queue<Downstream<? super T>> waiting = PlatformDependent.newMpscQueue();
 
-  public CachingUpstream(Upstream<? extends T> upstream, Predicate<? super ExecResult<T>> predicate) {
+  public CachingUpstream(Upstream<? extends T> upstream, Function<? super ExecResult<T>, Duration> ttl) {
+    this(upstream, ttl, Clock.systemUTC());
+  }
+
+  @VisibleForTesting
+  CachingUpstream(Upstream<? extends T> upstream, Function<? super ExecResult<T>, Duration> ttl, Clock clock) {
     this.upstream = upstream;
-    this.predicate = predicate;
+    this.ttlFunc = ttl;
+    this.clock = clock;
   }
 
   private void tryDrain() {
     if (draining.compareAndSet(false, true)) {
       try {
-        ExecResult<? extends T> result = this.resultRef.get();
-        if (result == null) {
+        Cached<? extends T> cached = ref.get();
+        if (needsFetch(cached)) {
           if (pending.compareAndSet(false, true)) {
             Downstream<? super T> downstream = waiting.poll();
             if (downstream == null) {
@@ -60,7 +71,7 @@ public class CachingUpstream<T> implements Upstream<T> {
         } else {
           Downstream<? super T> downstream = waiting.poll();
           while (downstream != null) {
-            downstream.accept(result);
+            downstream.accept(cached.result);
             downstream = waiting.poll();
           }
         }
@@ -69,9 +80,13 @@ public class CachingUpstream<T> implements Upstream<T> {
       }
     }
 
-    if (!waiting.isEmpty() && (resultRef.get() != null || !pending.get())) {
+    if (!waiting.isEmpty() && !pending.get() && needsFetch(ref.get())) {
       tryDrain();
     }
+  }
+
+  private boolean needsFetch(Cached<? extends T> cached) {
+    return cached == null || (cached.expireAt != null && cached.expireAt.isBefore(clock.instant()));
   }
 
   private void yield(final Downstream<? super T> downstream) throws Exception {
@@ -94,21 +109,21 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   @Override
   public void connect(Downstream<? super T> downstream) throws Exception {
-    ExecResult<? extends T> result = this.resultRef.get();
-    if (result == null) {
+    Cached<? extends T> cached = this.ref.get();
+    if (needsFetch(cached)) {
       Promise.<T>async(d -> {
         waiting.add(d);
         tryDrain();
       }).result(downstream::accept);
     } else {
-      downstream.accept(result);
+      downstream.accept(cached.result);
     }
   }
 
   private void receiveResult(Downstream<? super T> downstream, ExecResult<T> result) {
-    boolean shouldCache = false;
+    Duration ttl = Duration.ofSeconds(0);
     try {
-      shouldCache = predicate.apply(result);
+      ttl = ttlFunc.apply(result);
     } catch (Throwable e) {
       if (result.isError()) {
         //noinspection ThrowableResultOfMethodCallIgnored
@@ -118,16 +133,32 @@ public class CachingUpstream<T> implements Upstream<T> {
       }
     }
 
-    if (shouldCache) {
-      this.resultRef.set(result);
-      this.upstream = null; // release
+    Instant expiresAt;
+    if (ttl.isNegative()) {
+      expiresAt = null; // eternal
+      upstream = null; // release
+    } else if (ttl.isZero()) {
+      expiresAt = clock.instant().minus(Duration.ofSeconds(1));
     } else {
-      pending.set(false);
+      expiresAt = clock.instant().plus(ttl);
     }
+
+    ref.set(new Cached<>(result, expiresAt));
+    pending.set(false);
 
     downstream.accept(result);
 
     tryDrain();
+  }
+
+  private static class Cached<T> {
+    final ExecResult<T> result;
+    final Instant expireAt;
+
+    Cached(ExecResult<T> result, Instant expireAt) {
+      this.result = result;
+      this.expireAt = expireAt;
+    }
   }
 
 }

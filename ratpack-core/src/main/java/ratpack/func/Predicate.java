@@ -131,4 +131,17 @@ public interface Predicate<T> {
     return Types.cast(FALSE);
   }
 
+  /**
+   * Creates a function the returns one of the given values.
+   *
+   * @param onTrue the value to return if the predicate applies
+   * @param onFalse the value to return if the predicate does not apply
+   * @param <O> the output value
+   * @return a function
+   * @since 1.5
+   */
+  default <O> Function<T, O> function(O onTrue, O onFalse) {
+    return t -> apply(t) ? onTrue : onFalse;
+  }
+
 }
