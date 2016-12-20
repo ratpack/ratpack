@@ -300,12 +300,35 @@ class PromiseOperationsSpec extends Specification {
     events == ["one", "foo", "two", "three", "oof", "four", "five", "complete"]
   }
 
+  def "can apply operation conditionally"() {
+    when:
+    exec {
+      Promise.value("foo")
+      .nextOpIf({ it.startsWith("f") }) {
+        Operation.of {
+          events << "one"
+        }
+      }
+      .nextOpIf({ it.startsWith("aaa") }) {
+        Operation.of {
+          events << "two"
+        }
+      }
+      .then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["one", "foo", "complete"]
+  }
+
   def "exception thrown in promise consumer is routed to execution error handler"() {
     given:
     def ex = new Exception("!")
 
     when:
-    exec ({
+    exec({
       Promise.value("foo").onError {
         events << "unexpected"
       }.then {
@@ -325,7 +348,7 @@ class PromiseOperationsSpec extends Specification {
     def ex = new RuntimeException("!")
 
     when:
-    exec ({
+    exec({
       Promise.value("foo").onError {
         events << "unexpected"
       }.then {
@@ -344,7 +367,7 @@ class PromiseOperationsSpec extends Specification {
     def ex = new Error("!")
 
     when:
-    exec ({
+    exec({
       Promise.value("foo").onError {
         events << "unexpected"
       }.then {
