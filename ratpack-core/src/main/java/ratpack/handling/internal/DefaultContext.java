@@ -44,6 +44,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
+import ratpack.path.InvalidPathEncodingException;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
@@ -401,7 +402,11 @@ public class DefaultContext implements Context {
       getRequest().add(ThrowableHolder.TYPE, new ThrowableHolder(throwable));
 
       try {
-        serverErrorHandler.error(this, throwable);
+        if (throwable instanceof InvalidPathEncodingException) {
+          serverErrorHandler.error(this, (InvalidPathEncodingException) throwable);
+        } else {
+          serverErrorHandler.error(this, throwable);
+        }
       } catch (Throwable errorHandlerThrowable) {
         onErrorHandlerError(serverErrorHandler, throwable, errorHandlerThrowable);
       }
