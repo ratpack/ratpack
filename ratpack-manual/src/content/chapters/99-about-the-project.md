@@ -85,6 +85,7 @@ The following people have provided significant contributions.
 * [Alex Edwards](https://github.com/set321go)
 * [Ho Yan Leung](https://github.com/hyleung)
 * [Felipe Fernández](https://github.com/felipefzdz)
+* [Nick Pocock](https://github.com/pocockn)
 
 ### Past project members
 

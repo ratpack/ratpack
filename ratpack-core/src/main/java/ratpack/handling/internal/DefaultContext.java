@@ -24,6 +24,7 @@ import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
+import ratpack.error.InvalidPathEncodingErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
@@ -44,6 +45,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
+import ratpack.path.InvalidPathEncodingException;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
@@ -401,7 +403,11 @@ public class DefaultContext implements Context {
       getRequest().add(ThrowableHolder.TYPE, new ThrowableHolder(throwable));
 
       try {
-        serverErrorHandler.error(this, throwable);
+        if (throwable instanceof InvalidPathEncodingException) {
+          get(InvalidPathEncodingErrorHandler.TYPE).error(this, (InvalidPathEncodingException) throwable);
+        } else {
+          serverErrorHandler.error(this, throwable);
+        }
       } catch (Throwable errorHandlerThrowable) {
         onErrorHandlerError(serverErrorHandler, throwable, errorHandlerThrowable);
       }
