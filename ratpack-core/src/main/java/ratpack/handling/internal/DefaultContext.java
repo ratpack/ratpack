@@ -24,7 +24,6 @@ import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
-import ratpack.error.InvalidPathEncodingErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
@@ -404,7 +403,7 @@ public class DefaultContext implements Context {
 
       try {
         if (throwable instanceof InvalidPathEncodingException) {
-          get(InvalidPathEncodingErrorHandler.TYPE).error(this, (InvalidPathEncodingException) throwable);
+          serverErrorHandler.error(this, (InvalidPathEncodingException) throwable);
         } else {
           serverErrorHandler.error(this, throwable);
         }

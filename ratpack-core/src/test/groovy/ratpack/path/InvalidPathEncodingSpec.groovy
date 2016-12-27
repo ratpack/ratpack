@@ -16,7 +16,7 @@
 
 package ratpack.path
 
-import ratpack.error.InvalidPathEncodingErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -38,9 +38,7 @@ class InvalidPathEncodingSpec extends RatpackGroovyDslSpec {
   def "responses to requests with incorrectly formatted paths can be customised"() {
     when:
     bindings {
-      add(InvalidPathEncodingErrorHandler, { Context context, InvalidPathEncodingException exception ->
-        context.clientError(404)
-      } as InvalidPathEncodingErrorHandler)
+      bind(ServerErrorHandler, CustomInvalidPathEncodingServerErrorHandler)
     }
     handlers {
       get(":token") {
@@ -65,6 +63,19 @@ class InvalidPathEncodingSpec extends RatpackGroovyDslSpec {
       reader.readLine()
     }
     statusLine.tokenize()[1].toInteger()
+  }
+
+  private static class CustomInvalidPathEncodingServerErrorHandler implements ServerErrorHandler {
+
+    @Override
+    void error(Context context, Throwable throwable) throws Exception {
+      context.response.status(500).send()
+    }
+
+    @Override
+    void error(Context context, InvalidPathEncodingException exception) throws Exception {
+      context.clientError(404)
+    }
   }
 
 }

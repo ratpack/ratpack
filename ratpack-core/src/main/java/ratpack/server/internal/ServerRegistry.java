@@ -23,10 +23,8 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.config.ConfigObject;
 import ratpack.error.ClientErrorHandler;
-import ratpack.error.InvalidPathEncodingErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultDevelopmentErrorHandler;
-import ratpack.error.internal.DefaultInvalidPathEncodingErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
@@ -127,8 +125,7 @@ public abstract class ServerRegistry {
         .add(HttpClient.class, httpClient)
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
         .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
-        .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE)
-        .add(InvalidPathEncodingErrorHandler.class, DefaultInvalidPathEncodingErrorHandler.INSTANCE);
+        .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE);
 
       addConfigObjects(serverConfig, baseRegistryBuilder);
     } catch (Exception e) {
