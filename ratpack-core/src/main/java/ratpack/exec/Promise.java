@@ -2026,7 +2026,7 @@ public interface Promise<T> {
     return around(System::nanoTime, (start, result) -> {
       // protect against clock skew causing negative durations
       Duration duration = Duration.ofNanos(Math.max(0, System.nanoTime() - start));
-      return ExecResult.of(Result.success((Pair.of(result, duration))));
+      return ExecResult.of(Result.success(Pair.of(result, duration)));
     });
 
   }
