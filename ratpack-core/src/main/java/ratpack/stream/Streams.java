@@ -772,4 +772,20 @@ public class Streams {
     return new ByteBufComposingPublisher(maxNum, sizeWatermark, alloc, publisher);
   }
 
+  /**
+   * Creates a single publisher from a publisher of publishers.
+   * <p>
+   * Each emitted publisher is delegated to until it completes,
+   * upon which the next publisher will be requested and the actual demand delegated to it and so forth.
+   *
+   * @param publisher the publisher of publishers
+   * @param disposer the disposer of unhandled items (e.g. buffered, unwanted, items)
+   * @param <T> the type of emitted item
+   * @return a publisher that flattens the given publisher
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> flatten(Publisher<? extends Publisher<T>> publisher, Action<? super T> disposer) {
+    return new FlattenPublisher<>(publisher, disposer);
+  }
+
 }
