@@ -49,8 +49,9 @@ class PromiseTimingSpec extends Specification {
     expect:
     Duration time
     execHarness.yield {
-      Promise.async { sleep(500); it.complete() }.next { sleep(500) }.time { time = it }
+      Execution.sleep(Duration.ofMillis(500)).next(Execution.sleep(Duration.ofMillis(500))).promise().time { time = it }
     }
+
     time.toMillis() >= 500
   }
 

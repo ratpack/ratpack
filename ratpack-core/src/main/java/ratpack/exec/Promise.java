@@ -1707,7 +1707,7 @@ public interface Promise<T> {
    * @since 1.5
    */
   default Promise<T> defer(Duration duration) {
-    return defer(r -> Execution.current().sleep(duration, r::run));
+    return defer(r -> Execution.sleep(duration, r::run));
   }
 
   /**
@@ -1992,47 +1992,98 @@ public interface Promise<T> {
    *
    * @param action a callback for the time
    * @since 1.3
+   * @see #timeResult(BiAction)
    * @return effectively {@code this}
    */
   default Promise<T> time(Action<? super Duration> action) {
+    return timeResult((r, d) -> action.execute(d));
+  }
+
+  /**
+   * Emits the time taken from when the promise is subscribed to to when the result is available.
+   * <p>
+   * The given {@code action} is called regardless of whether the promise is successful or not.
+   * <p>
+   * If the promise fails and this method throws an exception, the original exception will propagate with the thrown exception suppressed.
+   * If the promise succeeds and this method throws an exception, the thrown exception will propagate.
+   *
+   * @param action a callback for the time
+   * @since 1.5
+   * @see #time(Action)
+   * @return effectively {@code this}
+   */
+  default Promise<T> timeResult(BiAction<? super ExecResult<T>, ? super Duration> action) {
+    return around(System::nanoTime, (start, result) -> {
+      // protect against clock skew causing negative durations
+      Duration duration = Duration.ofNanos(Math.max(0, System.nanoTime() - start));
+      action.execute(result, duration);
+      return result;
+    });
+
+  }
+
+  default Promise<Pair<ExecResult<T>, Duration>> timeResult() {
+    return around(System::nanoTime, (start, result) -> {
+      // protect against clock skew causing negative durations
+      Duration duration = Duration.ofNanos(Math.max(0, System.nanoTime() - start));
+      return ExecResult.of(Result.success((Pair.of(result, duration))));
+    });
+
+  }
+
+  /**
+   * Facilitates capturing a value before the the promise is subscribed and using it to later augment the result.
+   * <p>
+   * The {@code before} factory is invoked as the promise is subscribed.
+   * As the promise result becomes available, it and the result are given to the {@code after} function.
+   * The return value of the {@code after} function forms the basis of the promise returned from this method.
+   *
+   * @param before the before value supplier
+   * @param after the after function
+   * @param <B> the before value type
+   * @param <A> the after value type
+   * @return a promise
+   * @since 1.5
+   */
+  default <B, A> Promise<A> around(Factory<? extends B> before, BiFunction<? super B, ? super ExecResult<T>, ? extends ExecResult<A>> after) {
     return transform(up -> down -> {
-      long start = System.nanoTime();
+      B start;
+      try {
+        start = before.create();
+      } catch (Throwable e) {
+        down.error(e);
+        return;
+      }
+
       up.connect(new Downstream<T>() {
-        private Duration duration() {
-          // protect against clock skew causing negative durations
-          return Duration.ofNanos(Math.max(0, System.nanoTime() - start));
+        private void onResult(ExecResult<T> originalResult) {
+          ExecResult<A> newResult;
+          try {
+            newResult = after.apply(start, originalResult);
+          } catch (Throwable t) {
+            if (originalResult.isError() && originalResult.getThrowable() != t) {
+              t.addSuppressed(originalResult.getThrowable());
+            }
+            down.error(t);
+            return;
+          }
+
+          down.accept(newResult);
         }
 
         @Override
         public void success(T value) {
-          try {
-            action.execute(duration());
-          } catch (Throwable t) {
-            down.error(t);
-            return;
-          }
-          down.success(value);
+          onResult(ExecResult.of(Result.success(value)));
         }
 
         @Override
         public void error(Throwable throwable) {
-          try {
-            action.execute(duration());
-          } catch (Throwable t) {
-            throwable.addSuppressed(t);
-          }
-          down.error(throwable);
+          onResult(ExecResult.of(Result.error(throwable)));
         }
 
         @Override
         public void complete() {
-          try {
-            action.execute(duration());
-          } catch (Throwable t) {
-            down.error(t);
-            return;
-          }
-          down.complete();
+          onResult(ExecResult.complete());
         }
       });
     });

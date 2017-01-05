@@ -53,7 +53,7 @@ class ExecutionSleepSpec extends BaseExecutionSpec {
     execStarter {
       it.register { it.add(new RecordingInterceptor("")) }.start {
         start = System.currentTimeMillis()
-        it.sleep(Duration.ofSeconds(1)) {
+        Execution.sleep(Duration.ofSeconds(1)) {
           stop = System.currentTimeMillis()
         }
       }

@@ -37,9 +37,7 @@ import ratpack.registry.RegistrySpec;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -276,26 +274,6 @@ public class DefaultExecution implements Execution {
     }
     adhocInterceptors.add(execInterceptor);
     execInterceptor.intercept(this, ExecInterceptor.ExecType.COMPUTE, continuation);
-  }
-
-  @Override
-  public void sleep(Duration duration, Block onWake) {
-    if (duration.isNegative()) {
-      throw new IllegalArgumentException("Sleep duration must be non negative (value: " + duration + ")");
-    } else {
-      delimit(
-        Action.throwException(),
-        continuation -> {
-          if (duration.isZero()) {
-            continuation.resume(onWake);
-          } else {
-            getEventLoop().schedule(() ->
-              continuation.resume(onWake), duration.toNanos(), TimeUnit.NANOSECONDS
-            );
-          }
-        }
-      );
-    }
   }
 
   @Override

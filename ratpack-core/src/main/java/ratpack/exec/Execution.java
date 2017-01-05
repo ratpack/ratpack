@@ -26,6 +26,7 @@ import ratpack.registry.MutableRegistry;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -245,5 +246,38 @@ public interface Execution extends MutableRegistry {
    * @param onWake the code to resume with upon awaking
    * @since 1.5
    */
-  void sleep(Duration duration, Block onWake);
+  static void sleep(Duration duration, Block onWake) {
+    sleep(duration).then(onWake);
+  }
+
+  /**
+   * Creates a sleep operation.
+   * <p>
+   * Unlike {@link Thread#sleep(long)}, this method does not block the thread.
+   * The thread will be relinquished for use by other executions.
+   * <p>
+   * The given block will be invoked after the duration has passed.
+   * The duration must be non-negative.
+   *
+   * @param duration the duration this execution should sleep for
+   * @since 1.5
+   */
+  static Operation sleep(Duration duration) {
+    if (duration.isNegative()) {
+      throw new IllegalArgumentException("Sleep duration must be non negative (value: " + duration + ")");
+    } else {
+      if (duration.isZero()) {
+        return Operation.noop();
+      } else {
+        return Promise.async(down -> {
+          try {
+            current().getEventLoop().schedule(() -> down.success(null), duration.toNanos(), TimeUnit.NANOSECONDS);
+          } catch (Throwable e) {
+            down.error(e);
+          }
+        }).operation();
+      }
+    }
+  }
+
 }

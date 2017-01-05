@@ -104,7 +104,7 @@ public class DefaultPromise<T> implements Promise<T> {
           return;
         }
 
-        Execution.current().sleep(delay, () ->
+        Execution.sleep(delay, () ->
           retryAttempt(attemptNum + 1, maxAttempts, up, down, onError)
         );
       }
