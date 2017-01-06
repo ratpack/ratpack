@@ -57,6 +57,40 @@ class FlattenPublisherSpec extends Specification {
     s.complete
   }
 
+  def "transfers unmet demand to next publisher"() {
+    given:
+    def p1 = [1, 2].publish()
+    def p2 = [3, 4].publish()
+    def p = flatten(Streams.publish([p1, p2]), {})
+    def s = CollectingSubscriber.subscribe(p)
+
+    when:
+    s.subscription.request(3)
+
+    then:
+    s.received == [1, 2, 3]
+
+    when:
+    s.subscription.request(1)
+
+    then:
+    s.received == [1, 2, 3, 4]
+  }
+
+  def "can be firehosed"() {
+    given:
+    def p1 = [1, 2].publish()
+    def p2 = [3, 4].publish()
+    def p = flatten(Streams.publish([p1, p2]), {})
+    def s = CollectingSubscriber.subscribe(p)
+
+    when:
+    s.subscription.request(Long.MAX_VALUE)
+
+    then:
+    s.received == [1, 2, 3, 4]
+  }
+
   def "emits error and cancels outer when inner fails"() {
     given:
     List<StreamEvent<?>> events = []
