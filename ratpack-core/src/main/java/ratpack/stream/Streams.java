@@ -775,8 +775,49 @@ public class Streams {
   /**
    * Creates a single publisher from a publisher of publishers.
    * <p>
+   * Delegates to {@link #flatten(Publisher, Action)} with {@link Action#noop()}.
+   *
+   * @param publisher the publisher of publishers
+   * @param <T> the type of emitted item
+   * @return a publisher that flattens the given publisher
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> flatten(Publisher<? extends Publisher<T>> publisher) {
+    return flatten(publisher, Action.noop());
+  }
+
+  /**
+   * Creates a single publisher from a publisher of publishers.
+   * <p>
    * Each emitted publisher is delegated to until it completes,
    * upon which the next publisher will be requested and the actual demand delegated to it and so forth.
+   *
+   * <pre class="java">{@code
+   * import org.reactivestreams.Publisher;
+   * import ratpack.stream.Streams;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.List;
+   *
+   * import static java.util.Arrays.asList;
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     List<Integer> value = ExecHarness.yieldSingle(e -> {
+   *       Publisher<Integer> p1 = Streams.publish(asList(1, 2));
+   *       Publisher<Integer> p2 = Streams.publish(asList(3, 4));
+   *       Publisher<Publisher<Integer>> nested = Streams.publish(asList(p1, p2));
+   *
+   *       Publisher<Integer> flattened = Streams.flatten(nested);
+   *       return Streams.toList(flattened);
+   *     }).getValueOrThrow();
+   *
+   *     assertEquals(asList(1, 2, 3, 4), value);
+   *   }
+   * }
+   * }</pre>
    *
    * @param publisher the publisher of publishers
    * @param disposer the disposer of unhandled items (e.g. buffered, unwanted, items)
