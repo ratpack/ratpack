@@ -27,7 +27,7 @@ import java.time.Duration;
 
 public class DefaultPromise<T> implements Promise<T> {
 
-  public static Promise<Void> NULL = Promise.value(null);
+  public static final Promise<Void> NULL = Promise.value(null);
 
   private final Upstream<T> upstream;
 
