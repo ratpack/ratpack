@@ -219,6 +219,18 @@ public interface Promise<T> {
   }
 
   /**
+   * A promise for {@code null}.
+   *
+   * @param <T> the type of promised value
+   * @return a promise for {@code null}.
+   * @since 1.5
+   */
+  @SuppressWarnings("unchecked")
+  static <T> Promise<T> ofNull() {
+    return (Promise<T>) DefaultPromise.NULL;
+  }
+
+  /**
    * Creates a failed promise with the given error.
    * <p>
    * The given error will be used every time that the value is requested.

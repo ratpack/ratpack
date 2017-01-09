@@ -72,7 +72,7 @@ class PromiseDeferSpec extends BaseExecutionSpec {
 
     when:
     exec {
-      Promise.value(null)
+      Promise.ofNull()
         .defer(delay)
         .time { totalDuration = it }
         .operation()

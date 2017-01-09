@@ -176,7 +176,7 @@ public class Streams {
    *         if (r.getRequestNum() < 2) {
    *           return Promise.value(Long.toString(r.getRequestNum()));
    *         } else {
-   *           return Promise.value(null);
+   *           return Promise.ofNull();
    *         }
    *       }).toList()
    *     ).getValue();

@@ -82,7 +82,7 @@ public class DefaultSerialBatch<T> implements SerialBatch<T> {
       if (iterator.hasNext()) {
         return iterator.next();
       } else {
-        return Promise.value(null);
+        return Promise.ofNull();
       }
     });
   }
