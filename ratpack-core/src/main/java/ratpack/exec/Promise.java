@@ -2143,6 +2143,13 @@ public interface Promise<T> {
    *
    * }
    * }</pre>
+   * <p>
+   * <b>Warning:</b> be mindful of error handling for forked promises.
+   * If the forked promise is never subscribed to, its failure may go unnoticed.
+   * In scenarios, where it cannot be guaranteed that the forked promise will be subscribed to
+   * or that subscribers would satisfactorily deal with error conditions,
+   * consider <i>listening</i> for errors by using {@link #wiretap(Action)} before {@link #fork()}
+   * and logging the error or similar.
    *
    * @param execSpec configuration for the forked execution
    * @return a promise
