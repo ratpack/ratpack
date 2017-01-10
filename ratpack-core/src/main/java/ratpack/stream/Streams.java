@@ -562,7 +562,7 @@ public class Streams {
    * @return a promise for the reduced value
    * @since 1.4
    */
-  public static <T, R> Promise<R> reduce(Publisher<T> publisher, R seed, BiFunction<R, T, R> reducer) {
+  public static <T, R> Promise<R> reduce(Publisher<T> publisher, R seed, BiFunction<? super R, ? super T, ? extends R> reducer) {
     return Promise.async(d ->
       publisher.subscribe(new Subscriber<T>() {
         private Subscription subscription;

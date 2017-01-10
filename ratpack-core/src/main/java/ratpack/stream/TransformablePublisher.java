@@ -238,7 +238,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    * @return a promise for the reduced value
    * @since 1.4
    */
-  default <R> Promise<R> reduce(R seed, BiFunction<R, T, R> reducer) {
+  default <R> Promise<R> reduce(R seed, BiFunction<? super R, ? super T, ? extends R> reducer) {
     return Streams.reduce(this, seed, reducer);
   }
 
