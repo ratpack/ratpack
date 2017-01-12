@@ -90,6 +90,9 @@ task configureApi() {
           }
         }
 
+        if (it.name == "ratpack-core") {
+          packages = packages - ["ratpack.util", "ratpack.util.internal", "ratpack.func"]
+        }
         options.group it.name, packages
       }
     }
