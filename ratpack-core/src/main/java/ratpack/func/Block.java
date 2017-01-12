@@ -69,7 +69,9 @@ public interface Block {
    *
    * @return an operation
    * @see Operation#of(Block)
+   * @deprecated since 1.5
    */
+  @Deprecated
   default Operation operation() {
     return Operation.of(this);
   }
@@ -82,5 +84,18 @@ public interface Block {
    */
   default Action<Object> action() {
     return t -> execute();
+  }
+
+  /**
+   * Maps a block onto a new object with the provided function.
+   * <p>
+   * The block is not implicitly handled and the mapping function must call {@link #execute()} if desired.
+   *
+   * @param function the mapping function
+   * @param <T> the return type
+   * @return the mapped block
+   */
+  default <T> T map(Function<? super Block, ? extends T> function) {
+    return Exceptions.uncheck(() -> function.apply(this));
   }
 }

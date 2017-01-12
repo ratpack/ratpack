@@ -58,7 +58,7 @@ ext {
     "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
     "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
     "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2",
-    "ratpack-jdbc-tx", "ratpack-consul"
+    "ratpack-jdbc-tx", "ratpack-consul", "ratpack-base"
   ].collect { project(it) }
 
   noCodeModules = [

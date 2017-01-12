@@ -16,23 +16,20 @@
 
 package ratpack.api;
 
-import ratpack.exec.Operation;
-import ratpack.exec.Promise;
-
 import java.lang.annotation.*;
 
 /**
- * Declares that a method or function-like method parameter is non-blocking and can freely use {@link Promise} and other async constructs.
+ * Declares that a method or function-like method parameter is non-blocking and can freely use <a href="../exec/Promise.html">Promise</a> and other async constructs.
  * <p>
  * If this annotation is present on a method, it indicates that the method may be asynchronous.
  * That is, it is not necessarily expected to have completed its logical work when the method returns.
- * The method must however use {@link Promise}, {@link Operation}, or other execution mechanisms to perform asynchronous work.
+ * The method must however use <a href="../exec/Promise.html">Promise</a>, <a href="../exec/Operation.html">Operation</a>, or other execution mechanisms to perform asynchronous work.
  * <p>
  * Most such methods are invoked as part of Ratpack.
- * If you need to invoke such a method, do so as part of a discrete {@link Operation}.
+ * If you need to invoke such a method, do so as part of a discrete <a href="../exec/Operation.html">Operation</a>.
  * <p>
  * If this annotation is present on a function type method parameter, it indicates that the annotated function may be asynchronous.
- * Similarly, if you need to invoke such a parameter, do so as part of a discrete {@link Operation}.
+ * Similarly, if you need to invoke such a parameter, do so as part of a discrete <a href="../exec/Operation.html">Operation</a>.
  * <p>
  * <b>Note:</b> the ability to annotate method parameters with this annotation was added in version {@code 1.1.0}.
  */

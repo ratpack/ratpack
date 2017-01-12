@@ -122,7 +122,9 @@ public abstract class Types {
    * @param type the promise element type
    * @param <T> the promise element type
    * @return a type token for a promise of of the given type.
+   * @deprecated since 1.5, replaced with {@link ratpack.exec.util.Types#promiseOf(Class)}
    */
+  @Deprecated
   public static <T> TypeToken<Promise<T>> promiseOf(Class<T> type) {
     return promiseOf(token(type));
   }
@@ -152,7 +154,9 @@ public abstract class Types {
    * @param type the promise element type
    * @param <T> the promise element type
    * @return a type token for a promise of of the given type.
+   * @deprecated since 1.5, replaced with {@link ratpack.exec.util.Types#promiseOf(TypeToken)}
    */
+  @Deprecated
   public static <T> TypeToken<Promise<T>> promiseOf(TypeToken<T> type) {
     return new TypeToken<Promise<T>>() {
     }.where(new TypeParameter<T>() {
