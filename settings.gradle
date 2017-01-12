@@ -44,7 +44,8 @@ include \
     "ratpack-retrofit2",
     "ratpack-jdbc-tx",
     "ratpack-consul",
-    "ratpack-base"
+    "ratpack-base",
+    "ratpack-exec"
 
 include "perf"
 

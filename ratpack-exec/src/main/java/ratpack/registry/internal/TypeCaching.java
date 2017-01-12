@@ -17,7 +17,7 @@
 package ratpack.registry.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.server.internal.ServerEnvironment;
+import ratpack.util.internal.Environment;
 
 import java.lang.reflect.Type;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,7 +85,7 @@ public abstract class TypeCaching {
     }
   }
 
-  private static final Impl IMPL = ServerEnvironment.INSTANCE.isDevelopment() ? new Impl() : new CachingImpl();
+  private static final Impl IMPL = Environment.INSTANCE.isDevelopment() ? new Impl() : new CachingImpl();
 
   public static ConcurrentMap<TypeToken<?>, Boolean> cache(TypeToken<?> left) {
     return IMPL.cache(left);

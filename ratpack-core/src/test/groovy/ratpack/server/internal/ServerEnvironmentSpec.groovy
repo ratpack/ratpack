@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package ratpack.server
+package ratpack.server.internal
 
-import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
 
 class ServerEnvironmentSpec extends Specification {
