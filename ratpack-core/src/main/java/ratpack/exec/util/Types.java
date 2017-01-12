@@ -25,7 +25,7 @@ public class Types {
   /**
    * Creates a type token for a promise of of the given type.
    * <pre class="java">{@code
-   * import ratpack.util.Types;
+   * import ratpack.exec.util.Types;
    * import ratpack.exec.Promise;
    * import com.google.common.reflect.TypeToken;
    *
@@ -52,7 +52,7 @@ public class Types {
    * Creates a type token for a promise of the given type.
    *
    * <pre class="java">{@code
-   * import ratpack.util.Types;
+   * import ratpack.exec.util.Types;
    * import ratpack.exec.Promise;
    * import com.google.common.reflect.TypeToken;
    *

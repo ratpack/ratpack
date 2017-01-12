@@ -113,6 +113,7 @@ public abstract class Types {
    * import static org.junit.Assert.*;
    *
    * public class Example {
+   *   @SuppressWarnings("deprecation")
    *   public static void main(String... args) {
    *     assertEquals(Types.promiseOf(String.class), new TypeToken<Promise<String>>() {});
    *   }
@@ -142,6 +143,7 @@ public abstract class Types {
    * import static org.junit.Assert.*;
    *
    * public class Example {
+   *   @SuppressWarnings("deprecation")
    *   public static void main(String... args) {
    *     assertEquals(
    *       Types.promiseOf(new TypeToken<List<String>>() {}),
