@@ -115,7 +115,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
     installDist()
 
     def processBuilder = new ProcessBuilder(applicationLaunchScript.absolutePath).redirectErrorStream(true)
-    processBuilder.environment().TEMPLATED_OPTS = "-Dratpack.port=0 -Dorg.slf4j.simpleLogger.logFile=System.out"
+    processBuilder.environment().TEMPLATED_OPTS = "-Dratpack.port=0"
     processBuilder.directory(new File(projectDirectory, "build/install/templated"))
 
     def process = processBuilder.start()
