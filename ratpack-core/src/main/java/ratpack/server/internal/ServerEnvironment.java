@@ -36,7 +36,6 @@ public class ServerEnvironment extends Environment {
   public static final String PORT_PROPERTY = "ratpack.port";
   public static final String INTELLIJ_MAIN = "com.intellij.rt.execution.application.AppMain";
   public static final String INTELLIJ_JUNIT = "com.intellij.rt.execution.junit.JUnitStarter";
-  public static final String GROOVY_MAIN = "org.codehaus.groovy.tools.GroovyStarter";
   public static final String SUN_JAVA_COMMAND = "sun.java.command";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);

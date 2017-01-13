@@ -17,6 +17,8 @@
 package ratpack.util.internal;
 
 import com.google.common.collect.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
@@ -33,6 +35,8 @@ public class Environment {
   public static final String INTELLIJ_JUNIT = "com.intellij.rt.execution.junit.JUnitStarter";
   public static final String GROOVY_MAIN = "org.codehaus.groovy.tools.GroovyStarter";
   public static final String SUN_JAVA_COMMAND = "sun.java.command";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Environment.class);
 
   private final Map<String, String> env;
   private final Properties properties;
