@@ -26,7 +26,13 @@ import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.Subscriber
+import rx.exceptions.CompositeException
+import rx.exceptions.OnCompletedFailedException
+import rx.exceptions.OnErrorFailedException
 import rx.exceptions.OnErrorNotImplementedException
+import rx.schedulers.Schedulers
+
+import java.util.concurrent.Executors
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -321,10 +327,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
-  def "exception thrown by oncomplete is not re-thrown"() {
-    given:
-    def e = new Exception("!")
-
+  def "exception thrown by oncomplete is propagated"() {
     when:
     handlers {
       get {
@@ -332,7 +335,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
           subscribe(new Subscriber<Integer>() {
             @Override
             void onCompleted() {
-              throw e
+              throw error
             }
 
             @Override
@@ -350,7 +353,55 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     get()
-    errorHandler.errors == [e]
+    def e = errorHandler.errors.first()
+    e instanceof OnCompletedFailedException
+    e.cause == error
   }
 
+  def "exception thrown by onerror are propagated"() {
+    when:
+    handlers {
+      get {
+        Observable.error(new RuntimeException("1")).
+          subscribe(new Subscriber<Integer>() {
+            @Override
+            void onCompleted() {
+              throw new UnsupportedOperationException()
+            }
+
+            @Override
+            void onError(Throwable t) {
+              throw error
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    then:
+    get()
+    def e = errorHandler.errors.first()
+    e instanceof OnErrorFailedException
+    e.cause instanceof CompositeException
+    (e.cause as CompositeException).exceptions.first().message == "1"
+    (e.cause as CompositeException).exceptions[1] == error
+  }
+
+  def "exceptions from bound observable are propagated"() {
+    when:
+    handlers {
+      get {
+        Observable.error(error).subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).bindExec().promise()
+          .onError { render it.toString() }
+          .then { render "no error" }
+      }
+    }
+
+    then:
+    text == error.toString()
+  }
 }
