@@ -136,6 +136,7 @@ task api(type: Javadoc) {
       <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
+  options.addStringOption "--allow-script-in-comments"
   options.bottom = ext.additionalAssets
 
   inputs.property "additionalAssets", ext.additionalAssets
