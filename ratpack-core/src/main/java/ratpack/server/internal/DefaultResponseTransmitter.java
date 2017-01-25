@@ -171,6 +171,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         }
       };
 
+      private final ChannelFutureListener onCloseListener = future -> {
+        cancel();
+      };
+
       private void cancel() {
         if (done.compareAndSet(false, true)) {
           subscription.cancel();
@@ -202,6 +206,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           notifyListeners(responseStatus, channel.close());
         } else {
           channelFuture.addListener(cancelOnFailure);
+          channel.closeFuture().addListener(onCloseListener);
           if (channel.isWritable()) {
             this.subscription.request(1);
           }
