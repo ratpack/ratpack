@@ -16,10 +16,15 @@
 
 package ratpack.exec
 
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.http.ResponseChunks
 import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
+import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.AutoCleanup
+import spock.lang.Timeout
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -27,6 +32,9 @@ import java.util.concurrent.TimeUnit
 import static ratpack.stream.Streams.periodically
 
 class StreamExecutionSpec extends RatpackGroovyDslSpec {
+
+  @AutoCleanup
+  def harness = ExecHarness.harness()
 
   def "stream can use promises"() {
     when:
@@ -75,6 +83,196 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "0123456789"
+  }
+
+  def "requests for more items can be issued off execution"() {
+    when:
+    def p = Streams.flatYield { r -> r.requestNum < 3 ? Promise.value(1) : Promise.value(null) }.bindExec()
+    def e = []
+
+    harness.yield {
+      Promise.async { down ->
+        p.subscribe(new Subscriber() {
+          Subscription subscription
+
+          private void request() {
+            Thread.start {
+              sleep 100
+              subscription.request(1)
+            }
+          }
+
+          @Override
+          void onSubscribe(Subscription s) {
+            subscription = s
+            request()
+          }
+
+          @Override
+          void onNext(Object o) {
+            e << o
+            request()
+          }
+
+          @Override
+          void onError(Throwable t) {
+            down.error(t)
+          }
+
+          @Override
+          void onComplete() {
+            down.success(e)
+          }
+        })
+      }
+    }
+
+    then:
+    e == [1, 1, 1]
+  }
+
+  def "cancel can be issued off thread"() {
+    when:
+    def p = Streams.flatYield { r -> r.requestNum < 3 ? Promise.value(1) : Promise.value(null) }.bindExec()
+    def e = []
+
+    harness.yield {
+      Promise.async { down ->
+        p.subscribe(new Subscriber() {
+          Subscription subscription
+
+          private void request() {
+            Thread.start {
+              sleep 100
+              subscription.request(1)
+            }
+          }
+
+          private void cancel() {
+            Thread.start {
+              sleep 100
+              subscription.cancel()
+              down.complete()
+            }
+          }
+
+          @Override
+          void onSubscribe(Subscription s) {
+            subscription = s
+            request()
+          }
+
+          @Override
+          void onNext(Object o) {
+            e << o
+            cancel()
+          }
+
+          @Override
+          void onError(Throwable t) {
+            down.error(t)
+          }
+
+          @Override
+          void onComplete() {
+            down.success(e)
+          }
+        })
+      }
+    }
+
+    then:
+    e == [1]
+  }
+
+  @Timeout(5)
+  def "exec bound publisher will stop publishing on sync cancel"() {
+    when:
+    def p = Streams.constant(1).bindExec()
+
+    then:
+    def v = harness.yield {
+      Promise.async { down ->
+        p.subscribe(new Subscriber<Integer>() {
+          Subscription subscription
+
+          @Override
+          void onSubscribe(Subscription s) {
+            subscription = s
+            s.request(Long.MAX_VALUE)
+          }
+
+          def i = 0
+
+          @Override
+          void onNext(Integer integer) {
+            if (++i == 100) {
+              subscription.cancel()
+              down.success(true)
+            }
+          }
+
+          @Override
+          void onError(Throwable t) {
+            down.error(t)
+          }
+
+          @Override
+          void onComplete() {
+            down.complete()
+          }
+        })
+      }
+    }.valueOrThrow
+
+    then:
+    v == true
+  }
+
+  @Timeout(5)
+  def "exec bound publisher will stop publishing on async cancel"() {
+    when:
+    def p = Streams.constant(1).bindExec()
+
+    then:
+    def v = harness.yield {
+      Promise.async { down ->
+        p.subscribe(new Subscriber<Integer>() {
+          Subscription subscription
+
+          @Override
+          void onSubscribe(Subscription s) {
+            subscription = s
+            s.request(Long.MAX_VALUE)
+          }
+
+          def i = 0
+
+          @Override
+          void onNext(Integer integer) {
+            if (++i == 100) {
+              Thread.start {
+                subscription.cancel()
+                down.success(true)
+              }
+            }
+          }
+
+          @Override
+          void onError(Throwable t) {
+            down.error(t)
+          }
+
+          @Override
+          void onComplete() {
+            down.complete()
+          }
+        })
+      }
+    }.valueOrThrow
+
+    then:
+    v == true
   }
 
 }

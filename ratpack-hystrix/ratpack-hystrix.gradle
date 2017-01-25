@@ -28,10 +28,13 @@ dependencies {
   compile("com.netflix.hystrix:hystrix-core:$commonVersions.hystrix") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "io.reactivex", module: "rxjava"
+    exclude group: "org.reactivestreams", module: "reactive-streams"
     exclude group: "commons-logging", module: "commons-logging"
   }
   compile "commons-logging:commons-logging:${commonVersions.commonsLogging}"
-  compile commonDependencies.rxjava
+  compile commonDependencies.rxjava, {
+    exclude group: "org.reactivestreams", module: "reactive-streams"
+  }
   compile commonDependencies.jackson
 
   testCompile project(":ratpack-rx")
