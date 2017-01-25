@@ -19,7 +19,7 @@ description = "Integration with the RxJava library - https://github.com/Reactive
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-  "http://reactivex.io/RxJava/javadoc/1.0.0/"
+  "http://reactivex.io/RxJava/javadoc/"
 ]
 
 dependencies {
