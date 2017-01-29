@@ -18,6 +18,7 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.exec.Operation;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 
@@ -117,9 +118,20 @@ public interface HttpClientSpec {
    * This function is additive.
    *
    * @param interceptor the action to perform on the response before returning.
-   * @return {@code} this
+   * @return {@code this}
    * @since 1.6
    */
   HttpClientSpec responseIntercept(Action<? super HttpResponse> interceptor);
 
+  /**
+   * Execute the provide {@link Operation} for all responses returned by this client.
+   * <p>
+   * This function will wrap the provided operation and subscribe to it.
+   * This function is additive with {@link #responseIntercept(Action)}.
+   *
+   * @param operation the operation to subscribe to before return the response.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec responseIntercept(Operation operation);
 }

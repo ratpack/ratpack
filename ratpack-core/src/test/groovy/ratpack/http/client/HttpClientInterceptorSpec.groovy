@@ -63,7 +63,7 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
   }
 
   @Timeout(5)
-  def "can override http client"() {
+  def "can append request specific http client interceptors"() {
     given:
 
     def latch = new CountDownLatch(2)
@@ -185,11 +185,11 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
 
     bindings {
       bindInstance HttpClient, HttpClient.of { spec ->
-        spec.responseIntercept { response ->
+        spec.responseIntercept(
           Operation.of {
             latch.countDown()
-          }.then()
-        }
+          }
+        )
       }
     }
 
