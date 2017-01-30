@@ -17,6 +17,7 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -96,6 +97,7 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  @Timeout(10)
   def "can forward an EOF framed response"() {
     when:
     bindings {
