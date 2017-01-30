@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext
+
+import static org.pegdown.Extensions.*
+
 description = "The manual for Ratpack (documentation & API reference)"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
@@ -136,7 +140,28 @@ task api(type: Javadoc) {
       <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
-  options.addStringOption "--allow-script-in-comments"
+  options.addOption new JavadocOptionFileOption<String>() {
+
+    @Override
+    String getOption() {
+      "-allow-script-in-comments"
+    }
+
+    @Override
+    String getValue() {
+      return null
+    }
+
+    @Override
+    void setValue(String s) {
+
+    }
+
+    @Override
+    void write(JavadocOptionFileWriterContext context) throws IOException {
+      context.writeOption(getOption())
+    }
+  }
   options.bottom = ext.additionalAssets
 
   inputs.property "additionalAssets", ext.additionalAssets
@@ -226,8 +251,6 @@ task tokeniseManual(type: Sync) {
     }
   }
 }
-
-import static org.pegdown.Extensions.*
 
 task compileManual {
   group "manual"
