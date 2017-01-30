@@ -24,8 +24,6 @@ import io.netty.channel.EventLoop;
 import io.netty.util.concurrent.FastThreadLocal;
 import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
@@ -167,13 +165,17 @@ public class DefaultExecution implements Execution {
     drain();
   }
 
-  private void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+  public void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
     execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
     drain();
   }
 
   public void eventLoopDrain() {
     eventLoop.execute(this::drain);
+  }
+
+  public boolean isBound() {
+    return THREAD_BINDING.get() == this;
   }
 
   private void drain() {
@@ -319,84 +321,6 @@ public class DefaultExecution implements Execution {
     @Override
     void error(Throwable throwable) {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
-    }
-  }
-
-  private static class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
-
-    private final Publisher<T> publisher;
-    private final Action<? super T> disposer;
-
-    private ExecutionBoundPublisher(Publisher<T> publisher, Action<? super T> disposer) {
-      this.publisher = publisher;
-      this.disposer = disposer;
-    }
-
-    @Override
-    public void subscribe(Subscriber<? super T> subscriber) {
-      require().delimitStream(subscriber::onError, continuation ->
-        publisher.subscribe(new Subscriber<T>() {
-
-          private final AtomicBoolean cancelled = new AtomicBoolean();
-
-          @Override
-          public void onSubscribe(final Subscription subscription) {
-            continuation.event(() ->
-              subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long n) {
-                  subscription.request(n);
-                }
-
-                @Override
-                public void cancel() {
-                  cancelled.set(true);
-                  subscription.cancel();
-                  continuation.complete(Block.noop());
-                }
-              })
-            );
-          }
-
-          @Override
-          public void onNext(final T element) {
-            boolean added = continuation.event(() -> {
-              if (cancelled.get()) {
-                dispose(element);
-              } else {
-                subscriber.onNext(element);
-              }
-            });
-            if (!added) {
-              dispose(element);
-            }
-          }
-
-          private void dispose(T element) {
-            try {
-              disposer.execute(element);
-            } catch (Exception e) {
-              LOGGER.warn("Exception raised disposing stream item will be ignored - ", e);
-            }
-          }
-
-          @Override
-          public void onComplete() {
-            continuation.complete(() -> {
-              if (!cancelled.get()) {
-                subscriber.onComplete();
-              }
-            });
-          }
-
-          @Override
-          public void onError(final Throwable cause) {
-            if (!cancelled.get()) {
-              continuation.complete(() -> subscriber.onError(cause));
-            }
-          }
-        })
-      );
     }
   }
 

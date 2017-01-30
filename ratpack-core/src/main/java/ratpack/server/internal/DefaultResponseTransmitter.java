@@ -23,6 +23,8 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -161,17 +163,20 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   public Subscriber<ByteBuf> transmitter(HttpResponseStatus responseStatus) {
     return new Subscriber<ByteBuf>() {
       private Subscription subscription;
+
       private final AtomicBoolean done = new AtomicBoolean();
 
       private final ChannelFutureListener cancelOnFailure = future -> {
-        if (!done.get()) {
-          if (!future.isSuccess()) {
-            cancel();
-          }
+        if (!future.isSuccess()) {
+          cancel();
         }
       };
 
+      private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
+        c -> cancel();
+
       private void cancel() {
+        channel.closeFuture().removeListener(cancelOnCloseListener);
         if (done.compareAndSet(false, true)) {
           subscription.cancel();
           post(responseStatus);
@@ -195,6 +200,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
             this.subscription.request(1);
           }
         };
+
+        channel.closeFuture().addListener(cancelOnCloseListener);
 
         ChannelFuture channelFuture = pre(responseStatus);
         if (channelFuture == null) {
@@ -229,6 +236,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         }
         LOGGER.warn("Exception thrown transmitting stream", t);
         if (done.compareAndSet(false, true)) {
+          channel.closeFuture().removeListener(cancelOnCloseListener);
           post(responseStatus);
         }
       }
@@ -236,7 +244,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       @Override
       public void onComplete() {
         if (done.compareAndSet(false, true)) {
-          post(responseStatus);
+          channel.closeFuture().removeListener(cancelOnCloseListener);
+          channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(cancelOnFailure);
         }
       }
     };

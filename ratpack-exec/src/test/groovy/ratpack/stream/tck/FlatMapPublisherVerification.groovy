@@ -27,7 +27,7 @@ import ratpack.test.exec.ExecHarness
 
 class FlatMapPublisherVerification extends PublisherVerification<Integer> {
 
-  public FlatMapPublisherVerification() {
+  FlatMapPublisherVerification() {
     super(new TestEnvironment(500L))
   }
 
