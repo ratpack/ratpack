@@ -27,7 +27,6 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
@@ -132,7 +131,6 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   }
 
-  @Unroll
   def "ensure that onClose is called after file is rendered"() {
     given:
     write "public/index.html", "foo"
@@ -160,8 +158,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   }
 
-  @Unroll
-  "index files are always served from a path with a trailing slash"() {
+  def "index files are always served from a path with a trailing slash" ( ) {
     given:
     write "public/dir/index.html", "bar"
 
@@ -312,7 +309,6 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     this.post("nothing").statusCode == NOT_FOUND.code()
   }
 
-  @Unroll
   def "asset handler returns a #statusCode if file is #state the request's if-modified-since header"() {
     given:
     def file = write("public/file.txt", "hello!")

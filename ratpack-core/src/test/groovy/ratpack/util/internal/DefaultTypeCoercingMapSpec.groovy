@@ -18,9 +18,7 @@ package ratpack.util.internal
 
 import com.google.common.collect.ImmutableMap
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class DefaultTypeCoercingMapSpec extends Specification {
 
   def "can retrieve #type token"() {

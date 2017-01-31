@@ -19,7 +19,6 @@ package ratpack.http.client.internal
 import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.http.client.BaseHttpClientSpec
 import ratpack.http.client.HttpClient
-import spock.lang.Unroll
 
 class HttpClientRequestBodySpec extends BaseHttpClientSpec {
 
@@ -31,7 +30,6 @@ class HttpClientRequestBodySpec extends BaseHttpClientSpec {
     }
   }
 
-  @Unroll
   def "using text as request body"() {
     when:
     handlers {
@@ -49,7 +47,6 @@ class HttpClientRequestBodySpec extends BaseHttpClientSpec {
     tmp << (1..30)
   }
 
-  @Unroll
   def "using buffer as request body"() {
     when:
     handlers {
@@ -67,7 +64,6 @@ class HttpClientRequestBodySpec extends BaseHttpClientSpec {
     tmp << (1..30)
   }
 
-  @Unroll
   def "using buffer as request body where config fails"() {
     when:
     handlers {

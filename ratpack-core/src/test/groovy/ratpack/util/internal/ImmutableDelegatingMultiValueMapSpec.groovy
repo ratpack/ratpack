@@ -17,9 +17,7 @@
 package ratpack.util.internal
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class ImmutableDelegatingMultiValueMapSpec extends Specification {
 
   def delegate = Mock(Map)
@@ -173,13 +171,13 @@ class ImmutableDelegatingMultiValueMapSpec extends Specification {
 
     then:
     1 * delegate.entrySet() >> [
-        new AbstractMap.SimpleImmutableEntry<String, List<String>>('empty', []),
-        new AbstractMap.SimpleImmutableEntry<String, List<String>>('value', ['value']),
-        new AbstractMap.SimpleImmutableEntry<String, List<String>>('multi value', ['first value', 'other multi value'])
+      new AbstractMap.SimpleImmutableEntry<String, List<String>>('empty', []),
+      new AbstractMap.SimpleImmutableEntry<String, List<String>>('value', ['value']),
+      new AbstractMap.SimpleImmutableEntry<String, List<String>>('multi value', ['first value', 'other multi value'])
     ]
     entrySetResult == [
-        new AbstractMap.SimpleImmutableEntry<String, String>('value', 'value'),
-        new AbstractMap.SimpleImmutableEntry<String, String>('multi value', 'first value')
+      new AbstractMap.SimpleImmutableEntry<String, String>('value', 'value'),
+      new AbstractMap.SimpleImmutableEntry<String, String>('multi value', 'first value')
     ] as Set
   }
 

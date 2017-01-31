@@ -28,7 +28,6 @@ import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.rx.RxRatpack
 import rx.Observable
-import spock.lang.Unroll
 
 @SuppressWarnings("GrMethodMayBeStatic")
 class HystrixRequestCachingSpec extends BaseHttpClientSpec {
@@ -67,7 +66,6 @@ class HystrixRequestCachingSpec extends BaseHttpClientSpec {
     text == "exception"
   }
 
-  @Unroll
   def "can cache #executionType command execution"() {
     given:
     otherApp {

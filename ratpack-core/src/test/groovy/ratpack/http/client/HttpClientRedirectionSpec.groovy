@@ -18,9 +18,7 @@ package ratpack.http.client
 
 import ratpack.func.Action
 import ratpack.http.internal.HttpHeaderConstants
-import spock.lang.Unroll
 
-@Unroll
 class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
   def "can follow simple redirect get request"() {

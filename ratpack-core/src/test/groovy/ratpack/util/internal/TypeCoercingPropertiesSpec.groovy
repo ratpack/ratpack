@@ -19,10 +19,8 @@ package ratpack.util.internal
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 @Subject(TypeCoercingProperties)
-@Unroll
 class TypeCoercingPropertiesSpec extends Specification {
 
   def delegateProperties = new Properties()

@@ -17,7 +17,6 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
-import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
 
@@ -25,7 +24,6 @@ import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
 
-@Unroll
 class HttpReverseProxySpec extends BaseHttpClientSpec {
 
   def "can forward non streamed response as a stream"() {

@@ -18,7 +18,6 @@ package ratpack.handlebars
 
 import com.github.jknack.handlebars.Options
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import static Template.handlebarsTemplate
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
@@ -26,14 +25,17 @@ import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERR
 
 class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
-  @Unroll
   void 'can render a handlebars template from #scenario'() {
     given:
     write filePath, '{{key}}'
 
     when:
     bindings {
-      module new HandlebarsModule(), { if(configPath) { it.templatesPath(configPath) } }
+      module new HandlebarsModule(), {
+        if (configPath) {
+          it.templatesPath(configPath)
+        }
+      }
       if (templatesPath) {
         bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesPath(templatesPath))
       }
@@ -54,14 +56,17 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     'path set in config' | null          | 'fromConfig/simple.hbs' | "fromConfig"
   }
 
-  @Unroll
   void 'can configure loader suffix via #scenario'() {
     given:
     write('handlebars/simple.hbs', '{{this}}')
 
     when:
     bindings {
-      module new HandlebarsModule(), { if (configSuffix != null) { it.templatesSuffix(configSuffix) } }
+      module new HandlebarsModule(), {
+        if (configSuffix != null) {
+          it.templatesSuffix(configSuffix)
+        }
+      }
       if (templatesSuffix != null) {
         bindInstance(HandlebarsModule.Config, new HandlebarsModule.Config().templatesSuffix(templatesSuffix))
       }

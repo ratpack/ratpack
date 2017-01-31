@@ -19,7 +19,6 @@ package ratpack.exec
 import ratpack.func.Block
 import ratpack.test.exec.ExecHarness
 import spock.lang.Specification
-import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
 
@@ -29,7 +28,7 @@ class PromiseBlockingSpec extends Specification {
 
   private <T> Promise<T> async(Result<T> t) {
     Promise.async { f ->
-        f.accept(t)
+      f.accept(t)
     }
   }
 
@@ -116,7 +115,6 @@ class PromiseBlockingSpec extends Specification {
     e.message.startsWith("Blocking.on() can only be used while blocking")
   }
 
-  @Timeout(10)
   def "can intercept when using block"() {
     when:
     def events = []

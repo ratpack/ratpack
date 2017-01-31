@@ -18,7 +18,6 @@ package ratpack.http.internal
 
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 class RedirectionHandleSpec extends RatpackGroovyDslSpec {
 
@@ -57,7 +56,6 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
     statusCode << [299, 400]
   }
 
-  @Unroll
   def "Cookies should be set on testClient during redirect"() {
     given:
     requestSpec { r -> r.redirects(10) }

@@ -26,7 +26,6 @@ import ratpack.server.PublicAddress
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static ratpack.http.internal.HttpHeaderConstants.*
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME
@@ -43,7 +42,6 @@ class PublicAddressSpec extends Specification {
     }).value
   }
 
-  @Unroll
   def "Get URL #publicURL, #scheme, #requestUri, #headers, #bindHost:#bindPort -> #expected"() {
     given:
     def publicAddress = get(publicURL ? PublicAddress.of(new URI(publicURL)) : PublicAddress.inferred(scheme), mockRequest(requestUri, mockHeaders(headers), HostAndPort.fromParts(bindHost, bindPort)))
@@ -83,7 +81,6 @@ class PublicAddressSpec extends Specification {
     null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "[0:0:0:0:0:0:0:1]" | 5050     || "http://[0:0:0:0:0:0:0:1]:5050"
   }
 
-  @Unroll
   def "Absolute request URIs are supported: #uri -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
@@ -102,7 +99,6 @@ class PublicAddressSpec extends Specification {
     "https://request.example.com:8443/user/12345" || "https://request.example.com:8443"
   }
 
-  @Unroll
   def "Host headers are supported: #scheme, #host -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
@@ -123,7 +119,6 @@ class PublicAddressSpec extends Specification {
     HTTPS_SCHEME | "host.example.com:8080" || "https://host.example.com:8080"
   }
 
-  @Unroll
   def "X-Forwarded-Host header is supported: #uri, #fhost, #host -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8080)
@@ -156,7 +151,6 @@ class PublicAddressSpec extends Specification {
     address.toString() == "http://fhost1.example.com:8081"
   }
 
-  @Unroll
   def "X-Forwarded-Proto headers are supported: #uri, #host -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8081)
@@ -175,7 +169,6 @@ class PublicAddressSpec extends Specification {
     "/user/12345"                                | null                    || "https://bind.example.com:8081"
   }
 
-  @Unroll
   def "X-Forwarded-Ssl headers are supported: #uri, #host -> #expectedUri"() {
     given:
     def bindAddress = HostAndPort.fromParts("bind.example.com", 8081)

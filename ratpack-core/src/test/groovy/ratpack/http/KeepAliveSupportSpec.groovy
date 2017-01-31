@@ -17,15 +17,11 @@
 package ratpack.http
 
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Timeout
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 
 class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
 
-  @Unroll
-  @Timeout(30)
   def "can serve keep alive requests - dev = #dev, post = #post"() {
     when:
     def threads = 2

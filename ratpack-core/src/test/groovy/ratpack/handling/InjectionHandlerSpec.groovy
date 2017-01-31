@@ -24,7 +24,6 @@ import ratpack.error.internal.DefaultProductionErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
@@ -183,7 +182,6 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     text == "10:foo"
   }
 
-  @Unroll
   def "injection handler accessibility #injectionHandler.class"() {
     when:
     handlers {
