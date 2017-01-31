@@ -28,18 +28,19 @@ import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.PollingConditions
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 class StreamingResponseSpec extends RatpackGroovyDslSpec {
 
   def "client cancellation causes server publisher to receive cancel"() {
     given:
-    List<StreamEvent<ByteBuf>> events = []
+    Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
 
     when:
     handlers {
       get {
         def stream = Streams.constant(Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 1024 * 10, Charsets.UTF_8)))
           .wiretap {
-          println it
           events << it
         }
 
@@ -54,7 +55,7 @@ class StreamingResponseSpec extends RatpackGroovyDslSpec {
             void onSubscribe(Subscription s) {
               Promise.value(null).defer { r ->
                 Thread.start {
-                  sleep 1000
+                  sleep 3000
                   r.run()
                 }
               }.then {
@@ -87,7 +88,6 @@ class StreamingResponseSpec extends RatpackGroovyDslSpec {
     new PollingConditions().eventually {
       events.find { it.cancel }
     }
-    println events
   }
 
 }
