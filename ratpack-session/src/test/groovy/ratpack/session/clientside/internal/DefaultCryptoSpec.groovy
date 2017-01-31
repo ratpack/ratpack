@@ -22,14 +22,12 @@ import io.netty.util.CharsetUtil
 import ratpack.session.clientside.ClientSideSessionConfig
 import ratpack.test.internal.TestByteBufAllocators
 import spock.lang.Specification
-import spock.lang.Unroll
 
-import static ratpack.session.clientside.ClientSideSessionSpec.keyLength
 import static ratpack.session.clientside.ClientSideSessionSpec.SUPPORTED_ALGORITHMS
+import static ratpack.session.clientside.ClientSideSessionSpec.keyLength
 
 class DefaultCryptoSpec extends Specification {
 
-  @Unroll
   def "can roundtrip data with #algorithm"() {
     given:
     def config = new ClientSideSessionConfig(secretKey: "a" * keyLength(algorithm), cipherAlgorithm: algorithm)
@@ -39,7 +37,7 @@ class DefaultCryptoSpec extends Specification {
     def zeroAllowed = !algorithm.endsWith("/NoPadding")
 
     when:
-    for(int len = 1; len < 65; len++) {
+    for (int len = 1; len < 65; len++) {
       for (int i = 0; i < 50; i++) {
         byte[] plaintextBytes = randomBytes(len, zeroAllowed)
         def plaintext = Unpooled.wrappedBuffer(plaintextBytes)

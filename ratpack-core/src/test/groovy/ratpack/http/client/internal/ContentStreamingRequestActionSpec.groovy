@@ -24,12 +24,10 @@ import ratpack.exec.Promise
 import ratpack.http.client.BaseHttpClientSpec
 import ratpack.http.client.HttpClient
 import ratpack.http.client.StreamedResponse
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@Unroll
 class ContentStreamingRequestActionSpec extends BaseHttpClientSpec {
 
   def "client channel is closed when response is not subscribed to"(pooled, keepalive) {

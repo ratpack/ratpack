@@ -20,12 +20,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Timeout
-import spock.lang.Unroll
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 
-@Unroll
 class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
 
   WireMockServer wm
@@ -35,7 +32,6 @@ class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
     wm.start()
   }
 
-  @Timeout(5)
   void "handles empty response"() {
     given:
     bindings {

@@ -25,7 +25,6 @@ import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -236,7 +235,6 @@ class RatpackServerTestSpec extends Specification {
     http.getText("writeSpinCount") == "10"
   }
 
-  @Timeout(5)
   def "handle concurrent requests while in development mode"() {
     given:
     int concurrentRequests = 2

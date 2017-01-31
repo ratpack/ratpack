@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal
+package ratpack.test.internal.spock;
 
-import io.netty.util.AsciiString
-import ratpack.handling.RequestId
-import spock.lang.Specification
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
-class DefaultRequestIdSpec extends Specification {
+import java.lang.annotation.*;
 
-  def "equals based on id"() {
-    expect:
-    RequestId.of(AsciiString.of(id)).equals(RequestId.of(AsciiString.of(thatId))) == equals
+/**
+ * Annotation analogous in behavior to {@link spock.lang.Unroll}, but
+ * in addition to the original annotation, this annotation is inherited.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Inherited
+@ExtensionAnnotation(InheritedUnrollExtension.class)
+public @interface InheritedUnroll {
 
-    where:
-    id  | thatId || equals
-    "1" | "1"    || true
-    "1" | "2"    || false
-  }
+  String value() default "";
+
 }

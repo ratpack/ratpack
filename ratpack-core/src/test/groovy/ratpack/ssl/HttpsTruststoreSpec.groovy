@@ -16,8 +16,8 @@
 package ratpack.ssl
 
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
+import javax.net.ssl.SSLException
 import javax.net.ssl.SSLHandshakeException
 import javax.net.ssl.SSLProtocolException
 import java.nio.channels.ClosedChannelException
@@ -74,7 +74,6 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
     getText("foo") == "SSL VERIFIED"
   }
 
-  @Unroll
   def "throw exception for [#clientKeystore, #clientTruststore, #serverKeystore, #serverTruststore]"() {
     given:
     setupServerConfig(serverKeystore, serverTruststore)
@@ -86,13 +85,13 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
 
     then:
     UncheckedIOException ex = thrown()
-    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException || ex.getCause() instanceof SSLProtocolException
+    ex.getCause() instanceof SSLHandshakeException || ex.getCause() instanceof ClosedChannelException || ex.getCause() instanceof SSLProtocolException || ex.getCause() instanceof SSLException
 
 
     where:
-    clientKeystore            | clientTruststore          | serverKeystore          | serverTruststore
-    "dummy.keystore"          | "client_dummy.truststore" | "server_dummy.keystore" | "server_dummy.truststore"
-    "client_dummy.keystore"   | "client_dummy.truststore" | "dummy.keystore"        | "server_dummy.truststore"
-    "client_dummy.keystore"   | "client_dummy.truststore" | "server_dummy.keystore" | null
+    clientKeystore          | clientTruststore          | serverKeystore          | serverTruststore
+    "dummy.keystore"        | "client_dummy.truststore" | "server_dummy.keystore" | "server_dummy.truststore"
+    "client_dummy.keystore" | "client_dummy.truststore" | "dummy.keystore"        | "server_dummy.truststore"
+    "client_dummy.keystore" | "client_dummy.truststore" | "server_dummy.keystore" | null
   }
 }

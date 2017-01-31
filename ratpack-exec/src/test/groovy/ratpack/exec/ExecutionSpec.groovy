@@ -25,7 +25,6 @@ import ratpack.stream.Streams
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
@@ -266,7 +265,6 @@ class ExecutionSpec extends Specification {
     ]
   }
 
-  @Unroll
   def "can subscribe to promise more than once"() {
     when:
     exec({
@@ -291,7 +289,6 @@ class ExecutionSpec extends Specification {
     ]
   }
 
-  @Unroll
   def "can subscribe to success promise more than once"() {
     when:
     exec({
@@ -347,7 +344,7 @@ class ExecutionSpec extends Specification {
   def "can error from ListenableFuture"() {
     when:
     exec({ c ->
-      Promise.<String>async { f ->
+      Promise.<String> async { f ->
         f.accept(Futures.immediateFailedFuture(new RuntimeException("error")))
       } onError {
         events << "error"

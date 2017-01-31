@@ -24,7 +24,6 @@ import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -34,7 +33,6 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
-@Unroll
 class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
   def "can make simple get request"() {
@@ -695,7 +693,6 @@ BAR
     pooled << [true, false]
   }
 
-  @Unroll
   def "can configure request method #method via request spec"() {
     given:
     handlers {

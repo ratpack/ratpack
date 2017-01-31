@@ -24,7 +24,6 @@ import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
-import spock.lang.Timeout
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -185,7 +184,6 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     e == [1]
   }
 
-  @Timeout(5)
   def "exec bound publisher will stop publishing on sync cancel"() {
     when:
     def p = Streams.constant(1).bindExec()
@@ -229,7 +227,6 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     v == true
   }
 
-  @Timeout(5)
   def "exec bound publisher will stop publishing on async cancel"() {
     when:
     def p = Streams.constant(1).bindExec()

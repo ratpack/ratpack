@@ -24,7 +24,6 @@ import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.time.Duration
 
@@ -210,7 +209,6 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies("ratpack_session", "/").length == 0
   }
 
-  @Unroll
   def "a malformed cookie (#value) results in an empty session"() {
     given:
     handlers {
@@ -316,7 +314,6 @@ class ClientSideSessionSpec extends SessionSpec {
     values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
   }
 
-  @Unroll
   def "can use algorithm #algorithm"() {
     given:
     modules.clear()

@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 apply plugin: "com.gradle.build-scan"
+def env = System.getenv()
+
+
+buildScan {
+  def commitId = env.REVISION
+  try {
+    commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
+  } catch (ignore) {
+    // ignore
+  }
+
+  if (commitId) {
+    link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
+  }
+}
 
 if (project.isCi) {
 
   buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
     licenseAgree = 'yes'
+
     publishAlways()
-
     tag "CI"
-
-    def env = System.getenv()
-
-    def commitId = env.REVISION
-    try {
-      commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
-    } catch (ignore) {
-      // ignore
-    }
-
-    if (commitId) {
-      link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
-    }
 
     if (isSemaphore) {
       link "Semaphore CI", "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
@@ -67,5 +69,4 @@ if (project.isCi) {
       }
     }
   }
-
 }

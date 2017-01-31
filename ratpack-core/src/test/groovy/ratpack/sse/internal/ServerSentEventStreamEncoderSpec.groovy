@@ -26,7 +26,6 @@ import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.TestByteBufAllocators
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
@@ -35,7 +34,6 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
   def encoder = new ServerSentEventEncoder()
 
-  @Unroll
   def "can encode valid server sent events"() {
     expect:
     encoder.encode(sse, TestByteBufAllocators.LEAKING_UNPOOLED_HEAP).toString(CharsetUtil.UTF_8) == expectedEncoding

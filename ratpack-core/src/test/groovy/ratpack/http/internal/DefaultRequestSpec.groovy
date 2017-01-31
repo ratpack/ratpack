@@ -26,13 +26,11 @@ import ratpack.server.ServerConfig
 import ratpack.server.internal.RequestBodyReader
 import ratpack.stream.TransformablePublisher
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import java.time.Instant
 
 class DefaultRequestSpec extends RatpackGroovyDslSpec {
 
-  @Unroll
   def "Properly parses uri/query/path based on input #inputUri"() {
     given:
     def headers = Mock(Headers)
@@ -64,14 +62,13 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     "/user/12345"                                  | "/user/12345"                                  | ""                             | "user/12345"
     "/user?name=fred"                              | "/user?name=fred"                              | "name=fred"                    | "user"
     "/article/search?text=gradle&max=25&offset=50" | "/article/search?text=gradle&max=25&offset=50" | "text=gradle&max=25&offset=50" | "article/search"
-    "http://example.com" | "/" | "" | ""
-    "http://example.com?message=hello" | "/?message=hello" | "message=hello" | ""
-    "http://example.com:8080/?message=hello" | "/?message=hello" | "message=hello" | ""
-    "http://example.com:8080/user/12345" | "/user/12345" | "" | "user/12345"
-    "https://example.com:8443/user?name=fred" | "/user?name=fred" | "name=fred" | "user"
+    "http://example.com"                           | "/"                                            | ""                             | ""
+    "http://example.com?message=hello"             | "/?message=hello"                              | "message=hello"                | ""
+    "http://example.com:8080/?message=hello"       | "/?message=hello"                              | "message=hello"                | ""
+    "http://example.com:8080/user/12345"           | "/user/12345"                                  | ""                             | "user/12345"
+    "https://example.com:8443/user?name=fred"      | "/user?name=fred"                              | "name=fred"                    | "user"
   }
 
-  @Unroll
   def "It should detect an AJAX request"() {
     given:
     def headers = Mock(Headers)
@@ -94,11 +91,11 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     assert result == isAjaxRequest
 
     where:
-    requestedWithHeaderValue                            | isAjaxRequest
-    HttpHeaderConstants.XML_HTTP_REQUEST                | true
-    HttpHeaderConstants.XML_HTTP_REQUEST.toLowerCase()  | true
-    null                                                | false
-    ''                                                  | false
+    requestedWithHeaderValue                           | isAjaxRequest
+    HttpHeaderConstants.XML_HTTP_REQUEST               | true
+    HttpHeaderConstants.XML_HTTP_REQUEST.toLowerCase() | true
+    null                                               | false
+    ''                                                 | false
   }
 
   static class NoRequestBodyReader implements RequestBodyReader {

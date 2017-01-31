@@ -20,7 +20,6 @@ import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.func.Function
 import spock.lang.Specification
-import spock.lang.Timeout
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
@@ -173,7 +172,6 @@ class BufferingPublisherSpec extends Specification {
     subscriber.received == [1]
   }
 
-  @Timeout(60)
   def "can write/buffer/request/drain async"() {
     given:
     def latch = new CountDownLatch(1)
