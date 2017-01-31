@@ -14,36 +14,37 @@
  * limitations under the License.
  */
 
-if (project.isCi) {
-  apply plugin: "com.gradle.build-scan"
+apply plugin: "com.gradle.build-scan"
 
+buildScan {
+  def env = System.getenv()
+
+  def commitId = env.REVISION
+  try {
+    commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
+  } catch (ignore) {
+    // ignore
+  }
+
+  if (commitId) {
+    link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
+  }
+
+  if (isSemaphore) {
+    link "Semaphore CI", "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
+  }
+  if (env.SNAP_CI) {
+    link "Snap CI", "https://snap-ci.com/ratpack/ratpack/branch/${env.SNAP_BRANCH}/logs/defaultPipeline/${env.SNAP_PIPELINE_COUNTER}/${env.SNAP_STAGE_NAME}" +
+      ""
+  }
+}
+
+if (project.isCi) {
   buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
     licenseAgree = 'yes'
+
     publishAlways()
-
     tag "CI"
-
-    def env = System.getenv()
-
-    def commitId = env.REVISION
-    try {
-      commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
-    } catch (ignore) {
-      // ignore
-    }
-
-    if (commitId) {
-      link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
-    }
-
-    if (isSemaphore) {
-      link "Semaphore CI", "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
-    }
-    if (env.SNAP_CI) {
-      link "Snap CI", "https://snap-ci.com/ratpack/ratpack/branch/${env.SNAP_BRANCH}/logs/defaultPipeline/${env.SNAP_PIPELINE_COUNTER}/${env.SNAP_STAGE_NAME}" +
-        ""
-    }
-
   }
 }
