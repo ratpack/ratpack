@@ -245,7 +245,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       public void onComplete() {
         if (done.compareAndSet(false, true)) {
           channel.closeFuture().removeListener(cancelOnCloseListener);
-          post(responseStatus, channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
+          post(responseStatus);
         }
       }
     };
