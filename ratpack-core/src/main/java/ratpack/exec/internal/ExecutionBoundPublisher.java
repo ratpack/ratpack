@@ -19,6 +19,8 @@ package ratpack.exec.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.stream.TransformablePublisher;
@@ -27,6 +29,8 @@ import ratpack.util.Exceptions;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
+
+  static private final Logger LOGGER = LoggerFactory.getLogger(ExecutionBoundPublisher.class);
 
   private final Publisher<T> publisher;
   private final Action<? super T> disposer;
@@ -51,17 +55,19 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean pendingCancelSignal = new AtomicBoolean(true);
 
-        private boolean dispatch(boolean respectCancel, Block block) {
+        private boolean dispatch(boolean respectCancel, String action, Block block) {
           if (respectCancel && cancelled.get()) {
             return false;
           } else if (execution.isBound()) {
             try {
+              LOGGER.info(action + " in exec");
               block.execute();
               return true;
             } catch (Exception e) {
               throw Exceptions.uncheck(e); // really should not happen
             }
           } else {
+            LOGGER.info(action + " out exec");
             return continuation.event(block);
           }
         }
@@ -69,17 +75,17 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
         @Override
         public void onSubscribe(final Subscription subscription) {
           this.subscription = subscription;
-          dispatch(true, () ->
+          dispatch(true, "subscribe", () ->
             subscriber.onSubscribe(new Subscription() {
               @Override
               public void request(long n) {
-                dispatch(true, () -> subscription.request(n));
+                dispatch(true, "request " + n, () -> subscription.request(n));
               }
 
               @Override
               public void cancel() {
                 if (cancelled.compareAndSet(false, true)) {
-                  dispatch(false, () -> {
+                  dispatch(false, "cancel", () -> {
                     if (pendingCancelSignal.compareAndSet(true, false)) {
                       subscription.cancel();
                     }
@@ -93,7 +99,7 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
 
         @Override
         public void onNext(final T element) {
-          boolean added = dispatch(true, () -> {
+          boolean added = dispatch(true, "onNext", () -> {
             if (cancelled.get()) {
               dispose(element);
             } else {
