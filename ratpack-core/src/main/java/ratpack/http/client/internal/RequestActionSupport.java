@@ -153,6 +153,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   protected void forceDispose(ChannelPipeline channelPipeline) {
+    System.out.println("!!! disposing");
     dispose(channelPipeline, true);
   }
 
