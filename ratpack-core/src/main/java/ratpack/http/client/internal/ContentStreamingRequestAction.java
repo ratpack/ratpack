@@ -90,7 +90,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
       if (httpObject instanceof HttpResponse) {
         this.response = (HttpResponse) httpObject;
         // Switch auto reading off so we can control the flow of response content
-//        channelPipeline.channel().config().setAutoRead(false);
+        channelPipeline.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
           if (write == null) {
             forceDispose(channelPipeline);
@@ -125,7 +125,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             if (write.getRequested() > 0) {
               LoggerFactory.getLogger(ContentStreamingRequestAction.class).info("issuing read after write");
 
-              ctx.read();
+//              ctx.read();
             }
           }
         }
