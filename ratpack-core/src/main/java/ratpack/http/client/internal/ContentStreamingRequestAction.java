@@ -111,8 +111,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             dispose(ctx.pipeline(), response);
           }
         } else {
+          System.out.println("!!! write chunk " + httpContent.content().readableBytes());
           if (httpContent.content().readableBytes() > 0) {
-            System.out.println("!!! write chunk");
             write.item(httpContent.content().touch("emitting to user code"));
           } else {
             httpContent.release();
