@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -153,8 +154,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   protected void forceDispose(ChannelPipeline channelPipeline) {
-    new Exception().printStackTrace();
-    System.out.println("!!! disposing");
+    LoggerFactory.getLogger(getClass()).error("!!! disposing", new Exception());
     dispose(channelPipeline, true);
   }
 
