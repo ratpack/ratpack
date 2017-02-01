@@ -40,10 +40,6 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
     this.disposer = disposer;
   }
 
-  // TODO: we should try and get request/cancel signals to the publisher as soon as possible.
-  // If the signal comes in off execution, but the publisher is publishing lots of items in execution,
-  // It might never see the signal (because we
-
   @Override
   public void subscribe(Subscriber<? super T> subscriber) {
     DefaultExecution execution = DefaultExecution.require();
