@@ -124,8 +124,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           } else {
             if (write.getRequested() > 0) {
               LoggerFactory.getLogger(ContentStreamingRequestAction.class).info("issuing read after write");
-
-//              ctx.read();
+              ctx.read();
             }
           }
         }
