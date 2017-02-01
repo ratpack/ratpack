@@ -23,6 +23,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCounted;
 import org.reactivestreams.Subscription;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -122,6 +123,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             write.complete();
           } else {
             if (write.getRequested() > 0) {
+              LoggerFactory.getLogger(ContentStreamingRequestAction.class).info("issuing read after write");
+
               ctx.read();
             }
           }
@@ -183,6 +186,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           return new Subscription() {
             @Override
             public void request(long n) {
+              LoggerFactory.getLogger(ContentStreamingRequestAction.class).info("read received: " + n);
+
               channelPipeline.read();
             }
 
