@@ -26,12 +26,10 @@ import ratpack.http.client.HttpClient
 import ratpack.stream.StreamEvent
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
-@Ignore
 class StreamingResponseSpec extends RatpackGroovyDslSpec {
 
   def "client cancellation causes server publisher to receive cancel"() {
