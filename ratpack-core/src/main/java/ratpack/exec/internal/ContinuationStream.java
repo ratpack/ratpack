@@ -18,7 +18,7 @@ package ratpack.exec.internal;
 
 import ratpack.func.Block;
 
-interface ContinuationStream {
+public interface ContinuationStream {
 
   boolean complete(Block rest);
 
