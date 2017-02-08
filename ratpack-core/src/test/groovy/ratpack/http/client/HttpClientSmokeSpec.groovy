@@ -17,7 +17,6 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
-import io.netty.buffer.UnpooledByteBufAllocator
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
@@ -831,28 +830,4 @@ BAR
     pathResponse.status.code == 404
   }
 
-  def "should not leak request ByteBuf on connect failure"() {
-    setup:
-    def requestBody = UnpooledByteBufAllocator.DEFAULT.buffer().writeBytes("test".bytes)
-
-    when:
-    def result = exec.yield { e ->
-      def u = "http://localhost:20000".toURI()
-      http.post(u) { spec ->
-        spec.body { b ->
-          b.buffer(requestBody)
-        }
-      }
-      .onError(ConnectException) {
-        requestBody.release()
-      }
-    }
-
-    then: "should complete with no buffer leaks"
-    result.complete
-    !leaked.get()
-
-    where:
-    tmp << (1..30)
-  }
 }
