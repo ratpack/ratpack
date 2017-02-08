@@ -121,6 +121,7 @@ public class ServicesGraph {
     startLatch.await();
     StartupFailureException startupFailureException = failureRef.get();
     if (startupFailureException != null) {
+      LOGGER.error("Startup failure", startupFailureException);
       stop(new DefaultEvent(startEvent.getRegistry(), false));
       throw startupFailureException;
     }
