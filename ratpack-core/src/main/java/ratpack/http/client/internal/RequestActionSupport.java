@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.util.ReferenceCountUtil;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -130,6 +131,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   private void connectFailure(Downstream<? super T> downstream, Throwable e) {
+    ReferenceCountUtil.release(requestConfig.body);
+
     if (e instanceof ConnectTimeoutException) {
       StackTraceElement[] stackTrace = e.getStackTrace();
       e = new ConnectTimeoutException("Connect timeout (" + requestConfig.connectTimeout + ") connecting to " + requestConfig.uri);

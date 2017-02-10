@@ -36,23 +36,19 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
     this.disposer = disposer;
   }
 
-  // TODO: we should try and get request/cancel signals to the publisher as soon as possible.
-  // If the signal comes in off execution, but the publisher is publishing lots of items in execution,
-  // It might never see the signal (because we
-
   @Override
   public void subscribe(Subscriber<? super T> subscriber) {
     DefaultExecution execution = DefaultExecution.require();
     execution.delimitStream(subscriber::onError, continuation ->
       publisher.subscribe(new Subscriber<T>() {
 
-        public Subscription subscription;
+        private Subscription subscription;
 
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean pendingCancelSignal = new AtomicBoolean(true);
 
-        private boolean dispatch(boolean respectCancel, Block block) {
-          if (respectCancel && cancelled.get()) {
+        private boolean dispatch(Block block) {
+          if (cancelled.get()) {
             return false;
           } else if (execution.isBound()) {
             try {
@@ -69,22 +65,27 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
         @Override
         public void onSubscribe(final Subscription subscription) {
           this.subscription = subscription;
-          dispatch(true, () ->
+          dispatch(() ->
             subscriber.onSubscribe(new Subscription() {
               @Override
               public void request(long n) {
-                dispatch(true, () -> subscription.request(n));
+                dispatch(() -> subscription.request(n));
               }
 
               @Override
               public void cancel() {
                 if (cancelled.compareAndSet(false, true)) {
-                  dispatch(false, () -> {
-                    if (pendingCancelSignal.compareAndSet(true, false)) {
-                      subscription.cancel();
-                    }
-                  });
-                  continuation.complete(Block.noop());
+                  if (execution.isBound()) {
+                    subscription.cancel();
+                    continuation.complete(Block.noop());
+                  } else {
+                    pendingCancelSignal.set(true);
+                    continuation.complete(() -> {
+                      if (pendingCancelSignal.compareAndSet(true, false)) {
+                        subscription.cancel();
+                      }
+                    });
+                  }
                 }
               }
             })
@@ -93,7 +94,7 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
 
         @Override
         public void onNext(final T element) {
-          boolean added = dispatch(true, () -> {
+          boolean added = dispatch(() -> {
             if (cancelled.get()) {
               dispose(element);
             } else {
@@ -105,6 +106,7 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
             if (cancelled.get()) {
               if (execution.isBound() && pendingCancelSignal.compareAndSet(true, false)) {
                 subscription.cancel();
+                continuation.complete(Block.noop());
               }
             }
           }
