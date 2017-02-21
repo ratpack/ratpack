@@ -16,6 +16,7 @@
 
 package ratpack.groovy.handling.internal;
 
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import ratpack.api.NonBlocking;
@@ -23,11 +24,14 @@ import ratpack.api.Nullable;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.handling.internal.DefaultByMethodSpec;
+import ratpack.handling.internal.MultiMethodHandler;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
@@ -39,6 +43,7 @@ import ratpack.server.ServerConfig;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -71,7 +76,16 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   public void byMethod(Closure<?> closure) throws Exception {
-    delegate.byMethod(ClosureUtil.delegatingAction(ByMethodSpec.class, closure));
+    Map<String, Block> blocks = Maps.newLinkedHashMap();
+    ByMethodSpec byMethodSpec = new DefaultGroovyByMethodSpec(new DefaultByMethodSpec(blocks, this), this);
+    closure.setDelegate(byMethodSpec);
+    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+    if (closure.getMaximumNumberOfParameters() == 0) {
+      closure.call();
+    } else {
+      closure.call(byMethodSpec);
+    }
+    new MultiMethodHandler(blocks).handle(this);
   }
 
   @Override

@@ -34,12 +34,44 @@ public interface ByMethodSpec {
   ByMethodSpec get(Block block);
 
   /**
+   * Inserts the handler to chain if the request has a HTTP method of GET.
+   *
+   * @param clazz a handler class
+   * @return this
+   */
+  ByMethodSpec get(Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of GET.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  ByMethodSpec get(Handler handler);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of POST.
    *
    * @param block the code to invoke if the request method matches
    * @return this
    */
   ByMethodSpec post(Block block);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of POST.
+   *
+   * @param clazz a handler class
+   * @return this
+   */
+  ByMethodSpec post(Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of POST.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  ByMethodSpec post(Handler handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -50,12 +82,44 @@ public interface ByMethodSpec {
   ByMethodSpec put(Block block);
 
   /**
+   * Inserts the handler to chain if the request has a HTTP method of PUT.
+   *
+   * @param clazz a handler class
+   * @return this
+   */
+  ByMethodSpec put(Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of PUT.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  ByMethodSpec put(Handler handler);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of PATCH.
    *
    * @param block the code to invoke if the request method matches
    * @return this
    */
   ByMethodSpec patch(Block block);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of PATCH.
+   *
+   * @param clazz a handler class
+   * @return this
+   */
+  ByMethodSpec patch(Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of PATCH.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  ByMethodSpec patch(Handler handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of OPTIONS.
@@ -67,12 +131,46 @@ public interface ByMethodSpec {
   ByMethodSpec options(Block block);
 
   /**
+   * Inserts the handler to chain if the request has a HTTP method of OPTIONS.
+   *
+   * @param clazz a handler class
+   * @return this
+   * @since 1.1
+   */
+  ByMethodSpec options(Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of OPTIONS.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   * @since 1.1
+   */
+  ByMethodSpec options(Handler handler);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
    *
    * @param block the code to invoke if the request method matches
    * @return this
    */
   ByMethodSpec delete(Block block);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of DELETE.
+   *
+   * @param clazz a handler class
+   * @return this
+   */
+  ByMethodSpec delete(Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of DELETE.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  ByMethodSpec delete(Handler handler);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.
@@ -84,5 +182,27 @@ public interface ByMethodSpec {
    * @return this
    */
   ByMethodSpec named(String methodName, Block block);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of {@code methodName}.
+   * <p>
+   * The method name is case insensitive.
+   *
+   * @param methodName The HTTP method to map the given action to
+   * @param clazz a handler class
+   * @return this
+   */
+  ByMethodSpec named(String methodName, Class<? extends Handler> clazz);
+
+  /**
+   * Inserts the handler to chain if the request has a HTTP method of {@code methodName}.
+   * <p>
+   * The method name is case insensitive.
+   *
+   * @param methodName The HTTP method to map the given action to
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  ByMethodSpec named(String methodName, Handler handler);
 
 }

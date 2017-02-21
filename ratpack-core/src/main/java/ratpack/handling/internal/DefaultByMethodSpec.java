@@ -18,6 +18,8 @@ package ratpack.handling.internal;
 
 import ratpack.func.Block;
 import ratpack.handling.ByMethodSpec;
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
 
 import java.util.Map;
 
@@ -31,9 +33,11 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   public static final String METHOD_DELETE = "DELETE";
 
   private final Map<String, Block> blocks;
+  private final Context context;
 
-  public DefaultByMethodSpec(Map<String, Block> blocks) {
+  public DefaultByMethodSpec(Map<String, Block> blocks, Context context) {
     this.blocks = blocks;
+    this.context = context;
   }
 
   @Override
@@ -42,8 +46,28 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   }
 
   @Override
+  public ByMethodSpec get(Class<? extends Handler> clazz) {
+    return get(block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec get(Handler handler) {
+    return get(block(handler));
+  }
+
+  @Override
   public ByMethodSpec post(Block block) {
     return named(METHOD_POST, block);
+  }
+
+  @Override
+  public ByMethodSpec post(Class<? extends Handler> clazz) {
+    return post(block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec post(Handler handler) {
+    return post(block(handler));
   }
 
   @Override
@@ -52,8 +76,28 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   }
 
   @Override
+  public ByMethodSpec put(Class<? extends Handler> clazz) {
+    return put(block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec put(Handler handler) {
+    return put(block(handler));
+  }
+
+  @Override
   public ByMethodSpec patch(Block block) {
     return named(METHOD_PATCH, block);
+  }
+
+  @Override
+  public ByMethodSpec patch(Class<? extends Handler> clazz) {
+    return patch(block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec patch(Handler handler) {
+    return patch(block(handler));
   }
 
   @Override
@@ -62,8 +106,28 @@ public class DefaultByMethodSpec implements ByMethodSpec {
   }
 
   @Override
+  public ByMethodSpec options(Class<? extends Handler> clazz) {
+    return options(block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec options(Handler handler) {
+    return options(block(handler));
+  }
+
+  @Override
   public ByMethodSpec delete(Block block) {
     return named(METHOD_DELETE, block);
+  }
+
+  @Override
+  public ByMethodSpec delete(Class<? extends Handler> clazz) {
+    return delete(block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec delete(Handler handler) {
+    return delete(block(handler));
   }
 
   @Override
@@ -72,4 +136,21 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return this;
   }
 
+  @Override
+  public ByMethodSpec named(String methodName, Class<? extends Handler> clazz) {
+    return named(methodName, block(clazz));
+  }
+
+  @Override
+  public ByMethodSpec named(String methodName, Handler handler) {
+    return named(methodName, block(handler));
+  }
+
+  private Block block(Class<? extends Handler> clazz) {
+    return block(context.get(clazz));
+  }
+
+  private Block block(Handler handler) {
+    return () -> context.insert(handler);
+  }
 }

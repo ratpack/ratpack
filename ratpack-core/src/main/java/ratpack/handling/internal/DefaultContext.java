@@ -448,7 +448,7 @@ public class DefaultContext implements Context {
 
   public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
     Map<String, Block> blocks = Maps.newLinkedHashMap();
-    DefaultByMethodSpec spec = new DefaultByMethodSpec(blocks);
+    DefaultByMethodSpec spec = new DefaultByMethodSpec(blocks, this);
     action.execute(spec);
     new MultiMethodHandler(blocks).handle(this);
   }
