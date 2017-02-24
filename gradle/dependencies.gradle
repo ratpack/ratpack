@@ -38,7 +38,7 @@ ext {
     commonsLogging: "1.2",
     commonsCodec: "1.10",
     xmlApis: "1.4.01",
-    snakeyaml: "1.15",
+    snakeyaml: "1.17",
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
