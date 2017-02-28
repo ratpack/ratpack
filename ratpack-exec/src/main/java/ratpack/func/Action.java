@@ -21,7 +21,6 @@ import ratpack.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.func.internal.ConditionalAction;
 import ratpack.util.Exceptions;
-import ratpack.util.Types;
 
 import java.util.function.Consumer;
 
@@ -45,20 +44,13 @@ public interface Action<T> {
   void execute(T t) throws Exception;
 
   /**
-   * An action that does precisely nothing.
-   *
-   * @since 1.5
-   */
-  Action<Object> NOOP = thing -> {
-  };
-
-  /**
    * Returns an action that does precisely nothing.
    *
    * @return an action that does precisely nothing
    */
   static Action<Object> noop() {
-    return NOOP;
+    return thing -> {
+    };
   }
 
   /**
@@ -96,17 +88,13 @@ public interface Action<T> {
    * Returns a new action that executes this action and then the given action.
    *
    * @param action the action to execute after this action
+   * @param <O> the type of object the action accepts
    * @return the newly created aggregate action
    */
-  default Action<T> append(Action<? super T> action) {
-    if (this == NOOP) {
-      return Types.cast(action);
-    } else if (action == NOOP) {
-      return this;
-    }
-
+  default <O extends T> Action<O> append(Action<? super O> action) {
+    Action<T> self = this;
     return thing -> {
-      this.execute(thing);
+      self.execute(thing);
       action.execute(thing);
     };
   }
@@ -115,19 +103,11 @@ public interface Action<T> {
    * Returns a new action that executes the given action and then this action.
    *
    * @param action the action to execute before this action
+   * @param <O> the type of object the action accepts
    * @return the newly created aggregate action
    */
-  default Action<T> prepend(Action<? super T> action) {
-    if (this == NOOP) {
-      return Types.cast(action);
-    } else if (action == NOOP) {
-      return this;
-    }
-
-    return thing -> {
-      action.execute(thing);
-      this.execute(thing);
-    };
+  default <O extends T> Action<O> prepend(Action<? super O> action) {
+    return action.append(this);
   }
 
   /**
