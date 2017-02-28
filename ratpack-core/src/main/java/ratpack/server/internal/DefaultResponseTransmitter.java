@@ -94,6 +94,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         isKeepAlive = false;
       } else if (!isKeepAlive) {
         responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+      } else {
+        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
       }
 
       HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);

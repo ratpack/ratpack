@@ -63,7 +63,7 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
     }
     latch.await()
     connections.size() == threads * requests
-    connections.every { it == 'keep-alive' }
+    connections.every { it == "keep-alive" }
 
     where:
     dev << [true, false, true, false]
