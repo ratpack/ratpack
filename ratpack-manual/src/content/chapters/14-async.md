@@ -113,7 +113,7 @@ See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.func.Factory
 
 ## Performing async operations
 
-The [Promise#of(Upstream<T>>)](api/ratpack/exec/Promise.html#of-ratpack.exec.Upstream-) for integrating with async APIs.
+The [Promise#async(Upstream<T>>)](api/ratpack/exec/Promise.html#async-ratpack.exec.Upstream-) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
 ```language-java
