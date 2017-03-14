@@ -1,0 +1,31 @@
+### Gradle
+.gradle
+build/
+
+# Ignore Gradle GUI config
+gradle-server.setting
+
+### Java
+*.class
+
+# Package Files #
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+### JetBrains
+*.iml
+
+## Directory-based project format:
+.idea/
+
+## File-based project format:
+*.ipr
+*.iws
+
+## Plugin-specific files:
+
+# IntelliJ
+out/

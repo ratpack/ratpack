@@ -1,0 +1,75 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.netflix.nebula:nebula-release-plugin:4.1.1'
+//    classpath 'com.netflix.nebula:nebula-bintray-plugin:3.5.2'
+    classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
+    classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+  }
+}
+
+group = 'me.drmaas'
+
+apply plugin: 'idea'
+apply plugin: 'nebula.nebula-release'
+apply plugin: 'io.codearte.nexus-staging'
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+//  apply plugin: "nebula.nebula-bintray"
+apply plugin: 'com.bmuschko.nexus'
+
+apply from: 'dependencies.gradle'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  jcenter()
+}
+
+dependencies {
+  compile commonDependencies.ratpack
+  compile commonDependencies.rx2
+
+  testCompile commonDependencies.groovy
+  testCompile commonDependencies.spock
+  testCompile commonDependencies.ratpackGroovyTest
+  testCompile commonDependencies.logback
+}
+
+modifyPom {
+  project {
+    name 'Ratpack kotlin dsl library'
+    description 'Ratpack kotlin dsl library'
+    url 'https://github.com/drmaas/ratpack-kotlin'
+    inceptionYear '2016'
+
+    scm {
+      url 'https://github.com/drmaas/ratpack-kotlin'
+      connection 'scm:https://drmaas@github.com/drmaas/ratpack-kotlin.git'
+      developerConnection 'scm:git://github.com/drmaas/ratpack-kotlin.git'
+    }
+
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
+    }
+
+    developers {
+      developer {
+        id 'drmaas'
+        name 'Dan Maas'
+        email 'drmaas@gmail.com'
+      }
+    }
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.4.1'
+}
