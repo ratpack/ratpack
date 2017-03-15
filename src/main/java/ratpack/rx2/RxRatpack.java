@@ -1,34 +1,14 @@
-/*
- * Copyright 2014 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package ratpack.rx2;
 
 import io.reactivex.*;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.exceptions.CompositeException;
-import io.reactivex.exceptions.OnErrorNotImplementedException;
-import io.reactivex.exceptions.UndeliverableException;
-import io.reactivex.functions.Consumer;
 import io.reactivex.plugins.RxJavaPlugins;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
-import ratpack.rx2.internal.DefaultSchedulers;
-import ratpack.rx2.internal.ExecControllerBackedScheduler;
+import ratpack.rx2.internal.*;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
@@ -94,7 +74,40 @@ public abstract class RxRatpack {
     RxJavaPlugins.setErrorHandler(new ErrorHandler());
     RxJavaPlugins.setInitComputationSchedulerHandler(c -> DefaultSchedulers.getComputationScheduler());
     RxJavaPlugins.setInitIoSchedulerHandler(c -> DefaultSchedulers.getIoScheduler());
-    RxJavaPlugins.setOnObservableSubscribe((observable, observer) -> new ExecutionBackedObserver(observer));
+    RxJavaPlugins.setOnObservableSubscribe((observable, observer) -> new ExecutionBackedObserver<>(observer));
+    RxJavaPlugins.setOnFlowableSubscribe(((flowable, subscriber) -> new ExecutionBackedSubscriber<>(subscriber)));
+  }
+
+  /**
+   * Converts a {@link Operation} into an {@link Observable}.
+   * <p>
+   * The returned observable emits completes upon completion of the operation without emitting a value, and emits the error (i.e. via {@code onError()}) if it fails.
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.Operation;
+   * import ratpack.test.exec.ExecHarness;
+   * <p>
+   * import public static org.junit.Assert.assertTrue;
+   * <p>
+   * public class Example {
+   * public static boolean executed;
+   * public static void main(String... args) throws Exception {
+   * ExecHarness.runSingle(e ->
+   * Operation.of(() -> executed = true)
+   * .to(RxRatpack::observe)
+   * .subscribe()
+   * );
+   * <p>
+   * assertTrue(executed);
+   * }
+   * }
+   * }</pre>
+   *
+   * @param operation the operation
+   * @return an observable for the operation
+   */
+  public static Observable<Void> observe(Operation operation) {
+    return Observable.create(subscriber -> operation.onError(subscriber::onError).then(subscriber::onComplete));
   }
 
   /**
@@ -108,7 +121,7 @@ public abstract class RxRatpack {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    * <p>
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
    * public static String value;
@@ -139,38 +152,6 @@ public abstract class RxRatpack {
   }
 
   /**
-   * Converts a {@link Operation} into an {@link Observable}.
-   * <p>
-   * The returned observable emits completes upon completion of the operation without emitting a value, and emits the error (i.e. via {@code onError()}) if it fails.
-   * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
-   * import ratpack.exec.Operation;
-   * import ratpack.test.exec.ExecHarness;
-   * <p>
-   * import static org.junit.Assert.assertTrue;
-   * <p>
-   * public class Example {
-   * public static boolean executed;
-   * public static void main(String... args) throws Exception {
-   * ExecHarness.runSingle(e ->
-   * Operation.of(() -> executed = true)
-   * .to(RxRatpack::observe)
-   * .subscribe()
-   * );
-   * <p>
-   * assertTrue(executed);
-   * }
-   * }
-   * }</pre>
-   *
-   * @param operation the operation
-   * @return an observable for the operation
-   */
-  public static Observable<Void> observe(Operation operation) {
-    return Observable.create(subscriber -> operation.onError(subscriber::onError).then(subscriber::onComplete));
-  }
-
-  /**
    * Converts a {@link Promise} for an iterable into an {@link Observable}.
    * <p>
    * The promised iterable will be emitted to the observer one element at a time, like {@link Observable#fromIterable(Iterable)}.
@@ -184,7 +165,7 @@ public abstract class RxRatpack {
    * import java.util.LinkedList;
    * import java.util.List;
    * <p>
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String... args) throws Exception {
@@ -222,10 +203,10 @@ public abstract class RxRatpack {
    * import rx.Observable;
    * import java.util.List;
    * import java.util.Arrays;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
-   * static class AsyncService {
+   * public static class AsyncService {
    * public <T> Observable<T> observe(final T value) {
    * return Observable.create(subscriber ->
    * new Thread(() -> {
@@ -277,10 +258,10 @@ public abstract class RxRatpack {
    * import rx.Observable;
    * import java.util.List;
    * import java.util.Arrays;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
-   * static class AsyncService {
+   * public static class AsyncService {
    * public <T> Observable<T> observe(final T value) {
    * return Observable.create(subscriber ->
    * new Thread(() -> {
@@ -332,10 +313,10 @@ public abstract class RxRatpack {
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
-   * static class AsyncService {
+   * public static class AsyncService {
    * public <T> Observable<T> observe(final T value) {
    * return Observable.create(subscriber ->
    * new Thread(() -> {
@@ -364,7 +345,7 @@ public abstract class RxRatpack {
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Throwable {
@@ -396,12 +377,11 @@ public abstract class RxRatpack {
   }
 
   /**
-   * @see RxRatpack#promiseSingle(Observable)
-   *
    * @param single
    * @param <T>
    * @return
    * @throws UnmanagedThreadException
+   * @see RxRatpack#promiseSingle(Observable)
    */
   public static <T> Promise<T> promiseSingle(Single<T> single) throws UnmanagedThreadException {
     return Promise.async(f -> single.subscribe(f::success, f::error));
@@ -416,10 +396,10 @@ public abstract class RxRatpack {
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
-   * static class AsyncService {
+   * public static class AsyncService {
    * public <T> Observable<T> observe(final T value) {
    * return Observable.create(subscriber ->
    * new Thread(() -> {
@@ -446,7 +426,7 @@ public abstract class RxRatpack {
    * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Throwable {
@@ -479,7 +459,7 @@ public abstract class RxRatpack {
    * Converts an {@link Observable} into a {@link Publisher}, for all of the observable's items.
    * <p>
    * This method can be used to simply adapt an observable to a ReactiveStreams publisher.
-   * It is sometimes more convenient to use {@link #publisher(ObservableOnSubscribe)} over this method.
+   * It is sometimes more convenient to use {@link #publisher(ObservableOnSubscribe, BackpressureStrategy)} over this method.
    * <p>
    * <pre class="java">{@code
    * import ratpack.rx.RxRatpack;
@@ -487,10 +467,10 @@ public abstract class RxRatpack {
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
-   * static class AsyncService {
+   * public static class AsyncService {
    * public <T> Observable<T> observe(final T value) {
    * return Observable.create(subscriber ->
    * new Thread(() -> {
@@ -514,8 +494,8 @@ public abstract class RxRatpack {
    * @param <T>        the type of the value observed
    * @return a ReactiveStreams publisher containing each value of the observable
    */
-  public static <T> TransformablePublisher<T> publisher(Observable<T> observable) {
-    return Streams.transformable(observable.toFlowable(BackpressureStrategy.BUFFER));
+  public static <T> TransformablePublisher<T> publisher(Observable<T> observable, BackpressureStrategy strategy) {
+    return Streams.transformable(observable.toFlowable(strategy));
   }
 
   /**
@@ -529,10 +509,10 @@ public abstract class RxRatpack {
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
-   * static class AsyncService {
+   * public static class AsyncService {
    * public <T> Observable<T> observe(final T value) {
    * return Observable.create(subscriber ->
    * new Thread(() -> {
@@ -556,8 +536,8 @@ public abstract class RxRatpack {
    * @param <T>         the type of the value observed
    * @return a ReactiveStreams publisher containing each value of the observable
    */
-  public static <T> TransformablePublisher<T> publisher(ObservableOnSubscribe<T> onSubscribe) {
-    return publisher(Observable.create(onSubscribe));
+  public static <T> TransformablePublisher<T> publisher(ObservableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) {
+    return publisher(Observable.create(onSubscribe), strategy);
   }
 
   /**
@@ -572,7 +552,7 @@ public abstract class RxRatpack {
    * import ratpack.rx.RxRatpack;
    * import java.util.Arrays;
    * import java.util.List;
-   * import static org.junit.Assert.*;
+   * import public static org.junit.Assert.*;
    * <p>
    * public class Example {
    * public static void main(String... args) throws Exception {
@@ -621,8 +601,8 @@ public abstract class RxRatpack {
    * <p>
    * import rx.Observable;
    * <p>
-   * import static org.junit.Assert.assertEquals;
-   * import static org.junit.Assert.assertNotEquals;
+   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertNotEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Exception {
@@ -679,7 +659,7 @@ public abstract class RxRatpack {
    * <p>
    * import rx.Observable;
    * <p>
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Exception {
@@ -735,7 +715,7 @@ public abstract class RxRatpack {
    * import java.util.Collections;
    * import java.util.concurrent.CyclicBarrier;
    * <p>
-   * import static org.junit.Assert.assertEquals;
+   * import public static org.junit.Assert.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Exception {
@@ -795,6 +775,7 @@ public abstract class RxRatpack {
       @Override
       public void onSubscribe(Disposable d) {
         this.disposable = d;
+        downstream.onSubscribe(d);
       }
 
       @Override
@@ -841,6 +822,222 @@ public abstract class RxRatpack {
   }
 
   /**
+   * @param operation
+   * @param strategy  The {@link BackpressureStrategy} to use
+   * @return
+   * @see RxRatpack#observe(Operation)
+   */
+  public static Flowable<Void> flow(Operation operation, BackpressureStrategy strategy) {
+    return Flowable.create(subscriber -> operation.onError(subscriber::onError).then(subscriber::onComplete), strategy);
+  }
+
+  /**
+   * @param promise
+   * @param strategy The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @return
+   * @see RxRatpack#observe(Promise)
+   */
+  public static <T> Flowable<T> flow(Promise<T> promise, BackpressureStrategy strategy) {
+    return Flowable.create(subscriber ->
+        promise.onError(subscriber::onError).then(value -> {
+          subscriber.onNext(value);
+          subscriber.onComplete();
+        }),
+      strategy);
+  }
+
+  /**
+   * @param promise
+   * @param strategy The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @param <I>
+   * @return
+   * @see RxRatpack#observeEach(Promise)
+   */
+  public static <T, I extends Iterable<T>> Flowable<T> flowEach(Promise<I> promise, BackpressureStrategy strategy) {
+    return Flowable.merge(flow(promise, strategy).map(Flowable::fromIterable));
+  }
+
+  /**
+   * @param flowable
+   * @param <T>
+   * @return
+   * @throws UnmanagedThreadException
+   * @see RxRatpack#promise(Observable)
+   */
+  public static <T> Promise<List<T>> promise(Flowable<T> flowable) throws UnmanagedThreadException {
+    return Promise.async(f -> flowable.toList().subscribe(f::success, f::error));
+  }
+
+  /**
+   * @param onSubscribe
+   * @param strategy    The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @return
+   * @throws UnmanagedThreadException
+   * @see RxRatpack#promise(ObservableOnSubscribe)
+   */
+  public static <T> Promise<List<T>> promise(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) throws UnmanagedThreadException {
+    return promise(Flowable.create(onSubscribe, strategy));
+  }
+
+  /**
+   * @param flowable
+   * @param <T>
+   * @return
+   * @throws UnmanagedThreadException
+   * @see RxRatpack#promiseSingle(Observable)
+   */
+  public static <T> Promise<T> promiseSingle(Flowable<T> flowable) throws UnmanagedThreadException {
+    return Promise.async(f -> flowable.singleElement().subscribe(f::success, f::error));
+  }
+
+  /**
+   * @param onSubscribe
+   * @param strategy    The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @return
+   * @throws UnmanagedThreadException
+   * @see RxRatpack#promiseSingle(ObservableOnSubscribe)
+   */
+  public static <T> Promise<T> promiseSingle(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) throws UnmanagedThreadException {
+    return promiseSingle(Flowable.create(onSubscribe, strategy));
+  }
+
+  /**
+   * @param flowable
+   * @param <T>
+   * @return
+   * @see RxRatpack#publisher(Observable, BackpressureStrategy)
+   */
+  public static <T> TransformablePublisher<T> publisher(Flowable<T> flowable) {
+    return Streams.transformable(flowable);
+  }
+
+  /**
+   * @param onSubscribe
+   * @param strategy    The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @return
+   * @see RxRatpack#publisher(ObservableOnSubscribe, BackpressureStrategy)
+   */
+  public static <T> TransformablePublisher<T> publisher(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) {
+    return publisher(Flowable.create(onSubscribe, strategy));
+  }
+
+  /**
+   * @param source
+   * @param strategy The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @return
+   * @see RxRatpack#bindExec(Observable)
+   */
+  public static <T> Flowable<T> bindExec(Flowable<T> source, BackpressureStrategy strategy) {
+    return Exceptions.uncheck(() -> promise(source).to(p -> flowEach(p, strategy)));
+  }
+
+  /**
+   * @param flowable
+   * @param strategy The {@link BackpressureStrategy} to use
+   * @param <T>
+   * @return
+   * @see RxRatpack#fork(Observable)
+   */
+  public static <T> Flowable<T> fork(Flowable<T> flowable, BackpressureStrategy strategy) {
+    return flowEach(promise(flowable).fork(), strategy);
+  }
+
+  /**
+   * @param flowable
+   * @param strategy           The {@link BackpressureStrategy} to use
+   * @param doWithRegistrySpec
+   * @param <T>
+   * @return
+   * @throws Exception
+   * @see RxRatpack#fork(Observable, Action)
+   */
+  public static <T> Flowable<T> fork(Flowable<T> flowable, BackpressureStrategy strategy, Action<? super RegistrySpec> doWithRegistrySpec) throws Exception {
+    return flowEach(promise(flowable).fork(execSpec -> execSpec.register(doWithRegistrySpec)), strategy);
+  }
+
+  /**
+   * @param flowable
+   * @param <T>
+   * @return
+   * @see RxRatpack#forkEach(Observable)
+   */
+  public static <T> Flowable<T> forkEach(Flowable<T> flowable) {
+    return forkEach(flowable, Action.noop());
+  }
+
+  /**
+   * @param flowable
+   * @param doWithRegistrySpec
+   * @param <T>
+   * @return
+   * @see RxRatpack#forkEach(Observable, Action)
+   */
+  public static <T> Flowable<T> forkEach(Flowable<T> flowable, Action<? super RegistrySpec> doWithRegistrySpec) {
+    return flowable.lift(downstream -> new FlowableSubscriber<T>() {
+
+      private final AtomicInteger wip = new AtomicInteger(1);
+      private final AtomicBoolean closed = new AtomicBoolean();
+      private Subscription subscription;
+
+      @Override
+      public void onSubscribe(Subscription s) {
+        this.subscription = s;
+        s.request(1);
+        downstream.onSubscribe(s);
+      }
+
+      @Override
+      public void onComplete() {
+        maybeDone();
+      }
+
+      @Override
+      public void onError(final Throwable e) {
+        terminate(() -> downstream.onError(e));
+      }
+
+      private void maybeDone() {
+        if (wip.decrementAndGet() == 0) {
+          terminate(downstream::onComplete);
+        }
+      }
+
+      private void terminate(Runnable runnable) {
+        if (closed.compareAndSet(false, true)) {
+          subscription.cancel();
+          runnable.run();
+        }
+      }
+
+      @Override
+      public void onNext(final T t) {
+        // Avoid the overhead of creating executions if downstream is no longer interested
+        if (closed.get()) {
+          return;
+        }
+
+        wip.incrementAndGet();
+        Execution.fork()
+          .register(doWithRegistrySpec)
+          .onComplete(e -> this.maybeDone())
+          .onError(this::onError)
+          .start(e -> {
+            if (!closed.get()) {
+              subscription.request(1);
+              downstream.onNext(t);
+            }
+          });
+      }
+    });
+  }
+
+  /**
    * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ExecController#fork()}).
    *
    * @param execController the execution controller to back the scheduler
@@ -861,64 +1058,6 @@ public abstract class RxRatpack {
     return scheduler(ExecController.require());
   }
 
-  private static class ErrorHandler implements Consumer<Throwable> {
-    @Override
-    public void accept(Throwable e) throws Exception {
-      if (e instanceof OnErrorNotImplementedException) {
-        Promise.error(e.getCause()).then(Action.noop());
-      } else if (e instanceof UndeliverableException) {
-        Promise.error(e.getCause()).then(Action.noop());
-      } else {
-        Promise.error(e).then(Action.noop());
-      }
-    }
-  }
-
-  private static class ExecutionBackedObserver<T> implements Observer<T> {
-    private final Observer<? super T> observer;
-
-    public ExecutionBackedObserver(Observer<? super T> observer) {
-      this.observer = observer;
-    }
-
-    @Override
-    public void onComplete() {
-      try {
-        observer.onComplete();
-      } catch (final OnErrorNotImplementedException e) {
-        Promise.error(e.getCause()).then(Action.noop());
-      }
-    }
-
-    @Override
-    public void onError(Throwable e) {
-      try {
-        observer.onError(e);
-      } catch (final OnErrorNotImplementedException e2) {
-        Promise.error(e2.getCause()).then(Action.noop());
-      } catch (Exception e2) {
-        Promise.error(new CompositeException(e, e2)).then(Action.noop());
-      }
-    }
-
-    @Override
-    public void onSubscribe(Disposable d) {
-      try {
-        observer.onSubscribe(d);
-      } catch (final OnErrorNotImplementedException e) {
-        Promise.error(e.getCause()).then(Action.noop());
-      }
-    }
-
-    @Override
-    public void onNext(T t) {
-      try {
-        observer.onNext(t);
-      } catch (final OnErrorNotImplementedException e) {
-        Promise.error(e.getCause()).then(Action.noop());
-      }
-    }
-  }
 
 }
 

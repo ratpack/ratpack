@@ -1,29 +1,16 @@
-/*
- * Copyright 2014 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package ratpack.rx2.flowable
 
-package ratpack.rx2
-
+import io.reactivex.BackpressureStrategy
 import io.reactivex.functions.Action
+import io.reactivex.functions.Function
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
+import ratpack.rx2.RxRatpack
 import ratpack.rx2.internal.RatpackGroovyDslSpec
 import ratpack.rx2.internal.SimpleErrorHandler
 
-import static RxRatpack.observe
-import static RxRatpack.observeEach
+import static RxRatpack.flow
+import static RxRatpack.flowEach
 
 class RxBlockingSpec extends RatpackGroovyDslSpec {
 
@@ -35,13 +22,13 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        observe(Blocking.get {
+        flow(Blocking.get {
           pathTokens.value
-        }) map {
+        }, BackpressureStrategy.BUFFER) map({
           it * 2
-        } map {
+        } as Function) map({
           it.toUpperCase()
-        } subscribe {
+        } as Function) subscribe {
           render it
         }
       }
@@ -58,13 +45,13 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        observe(Blocking.get {
+        flow(Blocking.get {
           pathTokens.value
-        }) map {
+        }, BackpressureStrategy.BUFFER) map({
           it * 2
-        } map {
+        } as Function) map({
           throw new Exception("!!!!")
-        } subscribe{
+        } as Function) subscribe{
           render "shouldn't happen"
         }
       }
@@ -82,13 +69,13 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        observe(Blocking.get {
+        flow(Blocking.get {
           pathTokens.value
-        }) map {
+        },  BackpressureStrategy.BUFFER) map({
           it * 2
-        } map {
+        } as Function) map({
           throw new Exception("!!!!")
-        } subscribe({
+        } as Function) subscribe({
           render "shouldn't happen"
         }, { render "b" })
       }
@@ -104,11 +91,11 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
       get(":value") {
         def returnString = ""
 
-        observeEach(Blocking.get {
+        flowEach(Blocking.get {
           pathTokens.value.split(",") as List
-        })
+        },  BackpressureStrategy.BUFFER)
           .take(2)
-          .map { it.toLowerCase() }
+          .map({ it.toLowerCase() } as Function)
           .subscribe({
           returnString += it
         }, { Throwable error ->
