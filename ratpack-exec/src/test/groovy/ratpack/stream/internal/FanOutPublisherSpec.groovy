@@ -16,10 +16,14 @@
 
 package ratpack.stream.internal
 
+import ratpack.exec.BaseExecutionSpec
+import ratpack.exec.Execution
+import ratpack.func.Action
 import ratpack.stream.Streams
-import spock.lang.Specification
 
-class FanOutPublisherSpec extends Specification {
+import java.time.Duration
+
+class FanOutPublisherSpec extends BaseExecutionSpec {
 
   def "only sends requested amount"() {
     when:
@@ -43,4 +47,24 @@ class FanOutPublisherSpec extends Specification {
     s.received == [1, 2, 3]
   }
 
+  def "handles downstream request outside of onNext"() {
+    /*
+      This tests the scenario where there is async downstream, so demand requests may overlap.
+      It tests that the publisher knows when it has made requests of the upstream and never
+      requests when there is already a pending request.
+    */
+    when:
+    def integers = 1..10
+    def v = execHarness.yield {
+      Streams.fanOut(
+        Streams.publish(integers.collect { [it] })
+          .flatMap { i -> Execution.sleep(Duration.ofMillis(1)).map { i } }
+      )
+        .batch(3, Action.noop())
+        .toList()
+    }.valueOrThrow
+
+    then:
+    v == integers.toList()
+  }
 }

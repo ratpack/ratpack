@@ -71,6 +71,14 @@ public abstract class ManagedSubscription<T> implements Subscription {
     return done.get() ? 0 : demand.get();
   }
 
+  protected boolean shouldEmit() {
+    return done.get() || demand.get() > 0;
+  }
+
+  protected boolean hasDemand() {
+    return getDemand() > 0;
+  }
+
   protected abstract void onRequest(long n);
 
   protected abstract void onCancel();

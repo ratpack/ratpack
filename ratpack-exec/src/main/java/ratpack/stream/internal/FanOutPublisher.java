@@ -20,75 +20,100 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
+import ratpack.stream.TransformablePublisher;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class FanOutPublisher<T> extends BufferingPublisher<T> {
+public class FanOutPublisher<T> implements TransformablePublisher<T> {
 
-  public FanOutPublisher(Publisher<? extends Iterable<? extends T>> publisher) {
-    super(Action.noop(), write -> {
-      return new Subscription() {
+  private final Publisher<? extends Iterable<? extends T>> publisher;
+  private final Action<? super T> disposer;
 
-        Subscription upstream;
-        final AtomicBoolean emitting = new AtomicBoolean();
-
-        @Override
-        public void request(long n) {
-          if (emitting.get()) {
-            return;
-          }
-
-          if (upstream == null) {
-            publisher.subscribe(new Subscriber<Iterable<? extends T>>() {
-              @Override
-              public void onSubscribe(Subscription s) {
-                if (write.isCancelled()) {
-                  s.cancel();
-                  return;
-                }
-
-                upstream = s;
-                if (write.getRequested() > 0) {
-                  s.request(write.getRequested());
-                }
-              }
-
-              @Override
-              public void onNext(Iterable<? extends T> items) {
-                emitting.set(true);
-                for (T item : items) {
-                  write.item(item);
-                }
-                emitting.set(false);
-                long requested = write.getRequested();
-                if (requested > 0) {
-                  upstream.request(1);
-                }
-              }
-
-              @Override
-              public void onError(Throwable t) {
-                write.error(t);
-              }
-
-              @Override
-              public void onComplete() {
-                write.complete();
-              }
-            });
-          } else {
-            upstream.request(n);
-          }
-        }
-
-        @Override
-        public void cancel() {
-          if (upstream != null) {
-            upstream.cancel();
-          }
-        }
-      };
-    });
+  public FanOutPublisher(Publisher<? extends Iterable<? extends T>> publisher, Action<? super T> disposer) {
+    this.publisher = publisher;
+    this.disposer = disposer;
   }
 
+  enum State {
+    UNSUBSCRIBED, PENDING_SUBSCRIBE, REQUESTED, IDLE, EMITTING
+  }
+
+  @Override
+  public void subscribe(Subscriber<? super T> s) {
+    s.onSubscribe(new ManagedSubscription<T>(s, disposer) {
+
+      Iterator<? extends T> iterator;
+      Subscription subscription;
+
+      AtomicReference<State> state = new AtomicReference<>(State.UNSUBSCRIBED);
+
+      @Override
+      protected void onRequest(long n) {
+        if (state.compareAndSet(State.UNSUBSCRIBED, State.PENDING_SUBSCRIBE)) {
+          publisher.subscribe(new Subscriber<Iterable<? extends T>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+              subscription = s;
+              state.set(State.REQUESTED);
+              s.request(1);
+            }
+
+            @Override
+            public void onNext(Iterable<? extends T> ts) {
+              iterator = ts.iterator();
+              state.set(State.IDLE);
+              drain();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+              emitError(t);
+              drain();
+            }
+
+            @Override
+            public void onComplete() {
+              subscription = null;
+              state.compareAndSet(State.REQUESTED, State.IDLE);
+              drain();
+            }
+          });
+        } else if (iterator != null) {
+          drain();
+        }
+      }
+
+      private void drain() {
+        if (state.compareAndSet(State.IDLE, State.EMITTING)) {
+          boolean hasNext = iterator.hasNext();
+          if (hasNext) {
+            do {
+              emitNext(iterator.next());
+            } while (hasNext = iterator.hasNext() && shouldEmit());
+          }
+          if (!hasNext) { // iterator is empty
+            if (subscription == null) {
+              emitComplete();
+            } else if (hasDemand()) {
+              state.set(State.REQUESTED);
+              subscription.request(1);
+              return;
+            }
+          }
+          state.set(State.IDLE);
+        }
+        if (hasDemand() && state.get() == State.IDLE) {
+          drain();
+        }
+      }
+
+      @Override
+      protected void onCancel() {
+        if (subscription != null) {
+          subscription.cancel();
+        }
+      }
+    });
+  }
 }
