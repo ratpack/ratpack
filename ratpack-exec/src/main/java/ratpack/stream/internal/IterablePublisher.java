@@ -17,9 +17,11 @@
 package ratpack.stream.internal;
 
 import org.reactivestreams.Subscriber;
+import ratpack.func.Action;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IterablePublisher<T> implements TransformablePublisher<T> {
 
@@ -31,36 +33,55 @@ public class IterablePublisher<T> implements TransformablePublisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    final Iterator<? extends T> iterator = iterable.iterator();
-    new Subscription(subscriber, iterator);
-  }
-
-  private class Subscription extends SubscriptionSupport<T> {
-    private final Iterator<? extends T> iterator;
-
-    public Subscription(Subscriber<? super T> subscriber, Iterator<? extends T> iterator) {
-      super(subscriber);
-      this.iterator = iterator;
-      start();
+    Iterator<? extends T> iterator;
+    try {
+      iterator = iterable.iterator();
+    } catch (Throwable e) {
+      subscriber.onError(e);
+      return;
     }
 
-    @Override
-    protected void doRequest(long n) {
-      for (int i = 0; i < n && !isStopped(); ++i) {
-        if (iterator.hasNext()) {
-          T next;
-          try {
-            next = iterator.next();
-          } catch (Exception e) {
-            onError(e);
+    AtomicBoolean draining = new AtomicBoolean();
+    subscriber.onSubscribe(new ManagedSubscription<T>(subscriber, Action.noop()) {
+
+      @Override
+      protected void onRequest(long n) {
+        if (draining.compareAndSet(false, true)) {
+          if (isDone()) {
+            try {
+              while (iterator.hasNext()) {
+                dispose(iterator.next());
+              }
+            } catch (Exception ignore) {
+            }
             return;
           }
-          onNext(next);
-        } else {
-          onComplete();
+
+          try {
+            while (n-- > 0 && iterator.hasNext() && !isDone()) {
+              emitNext(iterator.next());
+            }
+          } catch (Exception e) {
+            emitError(e);
+            return;
+          }
+
+          if (!iterator.hasNext()) {
+            emitComplete();
+          }
+          draining.set(false);
+          n = getDemand();
+          if (n > 0) {
+            onRequest(n);
+          }
         }
       }
-    }
 
+      @Override
+      protected void onCancel() {
+        // nop
+      }
+    });
   }
+
 }
