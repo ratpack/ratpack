@@ -16,9 +16,11 @@
 
 package ratpack.stream.internal
 
+import org.reactivestreams.Subscription
 import ratpack.exec.BaseExecutionSpec
 import ratpack.exec.Execution
 import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.stream.Streams
 
 import java.time.Duration
@@ -67,4 +69,36 @@ class FanOutPublisherSpec extends BaseExecutionSpec {
     then:
     v == integers.toList()
   }
+
+  def "disposes extra items"() {
+    when:
+    BufferedWriteStream w
+    def p = new BufferingPublisher<List<Integer>>(Action.noop(), { write ->
+      w = write
+      new Subscription() {
+        @Override
+        void request(long n) {
+          n.times { write.item([1, 2, 3]) }
+        }
+
+        @Override
+        void cancel() {
+
+        }
+      }
+    } as Function)
+
+    def disposed = []
+    def f = Streams.fanOut(p, disposed.&add)
+    def s = new CollectingSubscriber()
+    f.subscribe(s)
+
+    then:
+    s.subscription.request(1)
+    s.received == [1]
+    w.error(new Exception("!"))
+    s.error.message == "!"
+    disposed == [2, 3]
+  }
 }
+

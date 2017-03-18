@@ -86,6 +86,13 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
 
       private void drain() {
         if (state.compareAndSet(State.IDLE, State.EMITTING)) {
+          if (isDone()) {
+            while (iterator.hasNext()) {
+              dispose(iterator.next());
+            }
+            return;
+          }
+
           boolean hasNext = iterator.hasNext();
           if (hasNext) {
             do {
@@ -102,9 +109,9 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
             }
           }
           state.set(State.IDLE);
-        }
-        if (hasDemand() && state.get() == State.IDLE) {
-          drain();
+          if (hasDemand() || isDone()) {
+            drain();
+          }
         }
       }
 
