@@ -93,11 +93,9 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
             return;
           }
 
-          boolean hasNext = iterator.hasNext();
-          if (hasNext) {
-            do {
-              emitNext(iterator.next());
-            } while (hasNext = iterator.hasNext() && shouldEmit());
+          boolean hasNext;
+          while ((hasNext = iterator.hasNext()) && shouldEmit()) {
+            emitNext(iterator.next());
           }
           if (!hasNext) { // iterator is empty
             if (subscription == null) {
