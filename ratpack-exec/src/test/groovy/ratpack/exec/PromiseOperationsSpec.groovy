@@ -384,7 +384,7 @@ class PromiseOperationsSpec extends Specification {
 
   def "can nest and chain promises"() {
     when:
-    def l = new CountDownLatch(3)
+    def latch = new CountDownLatch(3)
     def e = []
     execHarness.run {
       e << 1
