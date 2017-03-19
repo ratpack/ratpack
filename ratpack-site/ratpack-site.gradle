@@ -125,7 +125,7 @@ dependencies {
   testCompile project(":ratpack-test-internal")
   testCompile commonDependencies.spock
   testCompile 'org.jsoup:jsoup:1.8.1'
-  latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(":ratpack-manual")
+  latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(path: ":ratpack-manual", configuration: "zip")
 
   browserTestCompile("org.gebish:geb-spock:0.10.0") {
     exclude group: "org.codehaus.groovy", module: "groovy-all"

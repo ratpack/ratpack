@@ -379,6 +379,9 @@ task manualZip(type: Zip) {
   from packageManual
 }
 
+configurations {
+  zip
+}
 artifacts {
-  delegate.default manualZip
+  zip manualZip
 }
