@@ -16,7 +16,6 @@
 
 package ratpack.exec
 
-import org.junit.Ignore
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
@@ -28,6 +27,7 @@ import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
