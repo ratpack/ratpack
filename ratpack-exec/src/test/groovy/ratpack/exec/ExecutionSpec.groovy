@@ -388,7 +388,7 @@ class ExecutionSpec extends Specification {
 
   def "can safely resume from different thread"() {
     when:
-    def n = 1_000_000
+    def n = 10_000
     def l = new CountDownLatch(n)
     def i = new AtomicInteger()
 
