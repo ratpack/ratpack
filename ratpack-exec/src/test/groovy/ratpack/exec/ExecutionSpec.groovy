@@ -28,6 +28,8 @@ import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 class ExecutionSpec extends Specification {
@@ -382,5 +384,35 @@ class ExecutionSpec extends Specification {
 
     then:
     events == ["1", "complete"]
+  }
+
+  def "can safely resume from different thread"() {
+    when:
+    def n = 1_000_000
+    def l = new CountDownLatch(n)
+    def i = new AtomicInteger()
+
+    n.times {
+      harness.controller.fork().start {
+        def d = new AtomicBoolean()
+        Execution.current().onComplete {
+          if (!d.get()) {
+            i.incrementAndGet()
+          }
+          l.countDown()
+        }
+        Promise.async { down ->
+          harness.controller.eventLoopGroup.execute {
+            down.success(1)
+          }
+        }.then {
+          d.set(true)
+        }
+      }
+    }
+
+    then:
+    l.await()
+    i.get() == 0
   }
 }

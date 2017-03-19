@@ -435,6 +435,14 @@ public class DefaultExecution implements Execution {
     }
 
     public void resume(Block action) {
+      if (isBound()) {
+        doResume(action);
+      } else {
+        eventLoop.execute(() -> doResume(action));
+      }
+    }
+
+    private void doResume(Block action) {
       resumed = true;
       resume = action;
       drain();
