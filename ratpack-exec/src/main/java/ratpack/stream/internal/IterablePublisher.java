@@ -53,6 +53,7 @@ public class IterablePublisher<T> implements TransformablePublisher<T> {
                 dispose(iterator.next());
               }
             } catch (Exception ignore) {
+              // ignore
             }
             return;
           }
