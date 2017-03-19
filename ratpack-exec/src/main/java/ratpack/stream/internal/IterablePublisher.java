@@ -59,7 +59,7 @@ public class IterablePublisher<T> implements TransformablePublisher<T> {
           }
 
           try {
-            while (n-- > 0 && iterator.hasNext() && !isDone()) {
+            while (--n >= 0 && iterator.hasNext() && !isDone()) {
               emitNext(iterator.next());
             }
           } catch (Exception e) {
