@@ -94,20 +94,23 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
 
         @Override
         public void onNext(final T element) {
-          boolean added = dispatch(() -> {
-            if (cancelled.get()) {
-              dispose(element);
-            } else {
-              subscriber.onNext(element);
-            }
-          });
-          if (!added) {
-            dispose(element);
-            if (cancelled.get()) {
-              if (execution.isBound() && pendingCancelSignal.compareAndSet(true, false)) {
-                subscription.cancel();
-                continuation.complete(Block.noop());
+          if (!cancelled.get()) {
+            boolean added = continuation.event(() -> {
+              if (cancelled.get()) {
+                dispose(element);
+              } else {
+                subscriber.onNext(element);
               }
+            });
+            if (added) {
+              return;
+            }
+          }
+          dispose(element);
+          if (cancelled.get()) {
+            if (execution.isBound() && pendingCancelSignal.compareAndSet(true, false)) {
+              subscription.cancel();
+              continuation.complete(Block.noop());
             }
           }
         }
