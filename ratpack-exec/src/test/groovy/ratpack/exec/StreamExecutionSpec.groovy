@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import org.junit.Ignore
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
@@ -315,6 +316,7 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     max == 1
   }
 
+  @Ignore("LD")
   def "items are serialized even when dispatched on event loop"() {
     when:
     def max = 0
