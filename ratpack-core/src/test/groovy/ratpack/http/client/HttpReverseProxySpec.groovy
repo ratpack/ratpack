@@ -17,6 +17,7 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
+import ratpack.stream.Streams
 
 import java.util.zip.GZIPInputStream
 
@@ -66,8 +67,8 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
     }
     otherApp {
       post {
-        request.body.then {
-          render stringChunks("text/plain", publish([it.text] * 1000))
+        request.body.then { t ->
+          render stringChunks("text/plain", Streams.yield { it.requestNum < 1000 ? t.text : null })
         }
       }
     }
