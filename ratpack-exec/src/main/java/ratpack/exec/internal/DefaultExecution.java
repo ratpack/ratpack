@@ -36,7 +36,6 @@ import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -112,48 +111,20 @@ public class DefaultExecution implements Execution {
   }
 
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
-    return downstream -> {
-      final AtomicBoolean fired = new AtomicBoolean();
+    return downstream ->
       require().delimit(downstream::error, continuation -> {
+          AsyncDownstream<T> asyncDownstream = new AsyncDownstream<>(continuation, downstream);
           try {
-            upstream.connect(new Downstream<T>() {
-              @Override
-              public void error(Throwable throwable) {
-                if (!fired.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-                  return;
-                }
-                continuation.resume(() -> downstream.error(throwable));
-              }
-
-              @Override
-              public void success(T value) {
-                if (!fired.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-                  return;
-                }
-                continuation.resume(() -> downstream.success(value));
-              }
-
-              @Override
-              public void complete() {
-                if (!fired.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-                  return;
-                }
-                continuation.resume(downstream::complete);
-              }
-            });
+            upstream.connect(asyncDownstream);
           } catch (Throwable throwable) {
-            if (!fired.compareAndSet(false, true)) {
+            if (asyncDownstream.fire()) {
+              continuation.resume(() -> downstream.error(throwable));
+            } else {
               LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-              return;
             }
-            continuation.resume(() -> downstream.error(throwable));
           }
         }
       );
-    };
   }
 
   public EventLoop getEventLoop() {
