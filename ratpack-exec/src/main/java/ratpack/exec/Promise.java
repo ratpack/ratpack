@@ -130,16 +130,20 @@ public interface Promise<T> {
    * @since 1.3
    */
   static <T> Promise<T> sync(Factory<T> factory) {
-    return async(down -> {
-      T t;
-      try {
-        t = factory.create();
-      } catch (Exception e) {
-        down.error(e);
-        return;
-      }
-      down.success(t);
-    });
+    return new DefaultPromise<>(down ->
+      DefaultExecution.require().delimit(down::error, continuation ->
+        continuation.resume(() -> {
+          T t;
+          try {
+            t = factory.create();
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.success(t);
+        })
+      )
+    );
   }
 
   /**
@@ -156,16 +160,20 @@ public interface Promise<T> {
    * @since 1.5
    */
   static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
-    return async(down -> {
-      Promise<T> promise;
-      try {
-        promise = factory.create();
-      } catch (Throwable e) {
-        down.error(e);
-        return;
-      }
-      promise.connect(down);
-    });
+    return new DefaultPromise<>(down ->
+      DefaultExecution.require().delimit(down::error, continuation ->
+        continuation.resume(() -> {
+          Promise<T> promise;
+          try {
+            promise = factory.create();
+          } catch (Throwable e) {
+            down.error(e);
+            return;
+          }
+          promise.connect(down);
+        })
+      )
+    );
   }
 
   /**
@@ -215,7 +223,9 @@ public interface Promise<T> {
    * @see #error(Throwable)
    */
   static <T> Promise<T> value(T t) {
-    return async(down -> down.success(t));
+    return new DefaultPromise<>(down -> DefaultExecution.require().delimit(down::error, continuation ->
+      continuation.resume(() -> down.success(t))
+    ));
   }
 
   /**
@@ -261,7 +271,9 @@ public interface Promise<T> {
    * @see #value(Object)
    */
   static <T> Promise<T> error(Throwable t) {
-    return async(down -> down.error(t));
+    return new DefaultPromise<>(down -> DefaultExecution.require().delimit(down::error, continuation ->
+      continuation.resume(() -> down.error(t))
+    ));
   }
 
   /**
