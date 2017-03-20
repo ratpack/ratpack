@@ -57,6 +57,21 @@ class FlattenPublisherSpec extends Specification {
     s.complete
   }
 
+  def "can flatten single element"() {
+    given:
+    def p1 = [1, 2].publish()
+    def p2 = [3].publish()
+    def p = flatten(Streams.publish([p1, p2]), {})
+    def s = CollectingSubscriber.subscribe(p)
+
+    when:
+    s.subscription.request(4)
+
+    then:
+    s.received == [1, 2, 3]
+    s.complete
+  }
+
   def "transfers unmet demand to next publisher"() {
     given:
     def p1 = [1, 2].publish()

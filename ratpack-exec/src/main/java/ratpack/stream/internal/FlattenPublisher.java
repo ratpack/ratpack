@@ -112,6 +112,7 @@ public class FlattenPublisher<T> implements TransformablePublisher<T> {
           @Override
           public void onComplete() {
             pendingComplete = true;
+            nextPublisher();
           }
         });
       }
@@ -141,7 +142,10 @@ public class FlattenPublisher<T> implements TransformablePublisher<T> {
               nextPublisher();
             }
           }
+        } else if (state.get() == State.PENDING && pendingComplete) {
+          emitComplete();
         }
+
       }
     });
 
