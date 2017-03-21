@@ -102,8 +102,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         HttpContent httpContent = ((HttpContent) httpObject).touch();
         boolean hasContent = httpContent.content().readableBytes() > 0;
         boolean isLast = httpObject instanceof LastHttpContent;
-        if (write == null) {
-          // We have a subscriber
+
+        if (write == null) { // the stream has not yet been subscribed to
           if (hasContent) {
             if (received == null) {
               received = new ArrayList<>();
@@ -115,8 +115,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (isLast) {
             dispose(ctx.pipeline(), response);
           }
-        } else {
-          // Stream is not yet subscribed to
+        } else { // the stream has been subscribed to
           if (hasContent) {
             write.item(httpContent.content().touch("emitting to user code"));
           } else {
