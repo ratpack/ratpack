@@ -100,21 +100,29 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         success(downstream, new DefaultStreamedResponse(channelPipeline));
       } else if (httpObject instanceof HttpContent) {
         HttpContent httpContent = ((HttpContent) httpObject).touch();
+        boolean hasContent = httpContent.content().readableBytes() > 0;
+        boolean isLast = httpObject instanceof LastHttpContent;
         if (write == null) {
-          if (received == null) {
-            received = new ArrayList<>();
+          // We have a subscriber
+          if (hasContent) {
+            if (received == null) {
+              received = new ArrayList<>();
+            }
+            received.add(httpContent.touch());
+          } else {
+            httpContent.release();
           }
-          received.add(httpContent.touch());
-          if (httpObject instanceof LastHttpContent) {
+          if (isLast) {
             dispose(ctx.pipeline(), response);
           }
         } else {
-          if (httpContent.content().readableBytes() > 0) {
+          // Stream is not yet subscribed to
+          if (hasContent) {
             write.item(httpContent.content().touch("emitting to user code"));
           } else {
             httpContent.release();
           }
-          if (httpObject instanceof LastHttpContent) {
+          if (isLast) {
             dispose(ctx.pipeline(), response);
             write.complete();
           } else {
