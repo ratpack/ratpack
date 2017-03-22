@@ -104,7 +104,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         boolean isLast = httpObject instanceof LastHttpContent;
 
         if (write == null) { // the stream has not yet been subscribed to
-          if (hasContent) {
+          if (hasContent || isLast) {
             if (received == null) {
               received = new ArrayList<>();
             }

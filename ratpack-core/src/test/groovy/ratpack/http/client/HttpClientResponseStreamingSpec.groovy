@@ -20,6 +20,8 @@ import io.netty.buffer.ByteBuf
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
+import ratpack.exec.util.ParallelBatch
+import ratpack.test.exec.ExecHarness
 
 class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
 
@@ -110,4 +112,28 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     (1..10).collect { get().body.bytes == payload }.every()
   }
 
+  def "can safely stream empty body"() {
+    when:
+    otherApp {
+      get {
+        response.status(204).send()
+      }
+    }
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          it.forwardTo(context.response)
+        }
+      }
+    }
+    def http = HttpClient.of { it.poolSize(30) }
+
+    then:
+    def p = (1..5000).collect { http.get(applicationUnderTest.address) }
+    def b = ParallelBatch.of(p)
+
+    ExecHarness.runSingle {
+      b.forEach { i, v -> }.then()
+    }
+  }
 }
