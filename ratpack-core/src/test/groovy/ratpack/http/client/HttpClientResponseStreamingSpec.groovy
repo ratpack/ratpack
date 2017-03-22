@@ -129,7 +129,7 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     def http = HttpClient.of { it.poolSize(30) }
 
     then:
-    def p = (1..5000).collect { http.get(applicationUnderTest.address) }
+    def p = (1..100).collect { http.get(applicationUnderTest.address) }
     def b = ParallelBatch.of(p)
 
     ExecHarness.runSingle {
