@@ -49,6 +49,7 @@ import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
+  public static final Block RAISE_413 = () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code());
   private MutableRegistry registry;
 
   private final Headers headers;
@@ -67,6 +68,8 @@ public class DefaultRequest implements Request {
   private String path;
   private Set<Cookie> cookies;
 
+  private long maxContentLength;
+
   public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
                         InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, @Nullable RequestBodyReader bodyReader) {
     this.headers = headers;
@@ -78,6 +81,10 @@ public class DefaultRequest implements Request {
     this.localSocket = localSocket;
     this.timestamp = timestamp;
     this.serverConfig = serverConfig;
+    this.maxContentLength = serverConfig.getMaxContentLength();
+    if (bodyReader != null) {
+      bodyReader.setMaxContentLength(serverConfig.getMaxContentLength());
+    }
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -98,6 +105,24 @@ public class DefaultRequest implements Request {
 
   public Instant getTimestamp() {
     return timestamp;
+  }
+
+  @Override
+  public void setMaxContentLength(long maxContentLength) {
+    if (bodyReader == null) {
+      this.maxContentLength = maxContentLength;
+    } else {
+      bodyReader.setMaxContentLength(maxContentLength);
+    }
+  }
+
+  @Override
+  public long getMaxContentLength() {
+    if (bodyReader == null) {
+      return maxContentLength;
+    } else {
+      return bodyReader.getMaxContentLength();
+    }
   }
 
   public String getRawUri() {
@@ -210,40 +235,43 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    return getBody(serverConfig.getMaxContentLength());
+    return getBody(RAISE_413);
   }
 
   @Override
   public Promise<TypedData> getBody(Block onTooLarge) {
-    return getBody(serverConfig.getMaxContentLength(), onTooLarge);
+    return getBody(onTooLarge);
   }
 
   @Override
   public Promise<TypedData> getBody(long maxContentLength) {
-    return getBody(maxContentLength, () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code()));
+    setMaxContentLength(maxContentLength);
+    return getBody(RAISE_413);
   }
 
   @Override
   public Promise<TypedData> getBody(long maxContentLength, Block onTooLarge) {
+    setMaxContentLength(maxContentLength);
     if (bodyReader == null) {
       return Promise.value(new ByteBufBackedTypedData(Unpooled.EMPTY_BUFFER, getContentType()));
     } else {
-      return bodyReader.read(maxContentLength, onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+      return bodyReader.read(onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
     }
   }
 
   @Override
   public TransformablePublisher<? extends ByteBuf> getBodyStream() {
-    return getBodyStream(serverConfig.getMaxContentLength());
+    if (bodyReader == null) {
+      return EmptyPublisher.instance();
+    } else {
+      return bodyReader.readStream();
+    }
   }
 
   @Override
   public TransformablePublisher<? extends ByteBuf> getBodyStream(long maxContentLength) {
-    if (bodyReader == null) {
-      return EmptyPublisher.instance();
-    } else {
-      return bodyReader.readStream(maxContentLength);
-    }
+    setMaxContentLength(maxContentLength);
+    return getBodyStream();
   }
 
   @Override

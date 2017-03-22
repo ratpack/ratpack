@@ -40,15 +40,14 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private final HttpRequest request;
   private final ChannelHandlerContext ctx;
 
-  private boolean read;
-  private boolean done;
   private long maxContentLength = -1;
   private Block onTooLarge;
   private long length;
   private Downstream<? super ByteBuf> downstream;
   private ByteBuf compositeBuffer;
-
+  private boolean receivedLast;
   private Consumer<? super HttpContent> onAdd;
+  private State state = State.UNREAD;
 
   public RequestBody(long advertisedLength, HttpRequest request, ChannelHandlerContext ctx) {
     this.advertisedLength = advertisedLength;
@@ -70,7 +69,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         byteBufs.add(byteBuf);
       }
       if (httpContent instanceof LastHttpContent) {
-        done = true;
+        receivedLast = true;
         if (downstream != null) {
           complete(downstream);
         }
@@ -82,8 +81,13 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     }
   }
 
+  @Override
+  public State getState() {
+    return state;
+  }
+
   public boolean isComplete() {
-    return done;
+    return state == State.READ;
   }
 
   @Override
@@ -107,6 +111,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private void tooLarge(Downstream<? super ByteBuf> downstream) {
+    state = State.READ;
     forceCloseConnection();
     try {
       onTooLarge.execute();
@@ -117,6 +122,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private void complete(Downstream<? super ByteBuf> downstream) {
+    state = State.READ;
     if (byteBufs.isEmpty()) {
       downstream.success(Unpooled.EMPTY_BUFFER);
     } else {
@@ -136,17 +142,17 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
-  public TransformablePublisher<ByteBuf> readStream(long maxContentLength) {
+  public TransformablePublisher<ByteBuf> readStream() {
     return new BufferingPublisher<ByteBuf>(ByteBuf::release, write -> {
-      if (read) {
+      if (state != State.UNREAD) {
         throw new RequestBodyAlreadyReadException();
       }
 
-      read = true;
-      RequestBody.this.maxContentLength = maxContentLength;
+      state = State.READING;
 
       if (advertisedLength > maxContentLength || length > maxContentLength) {
         forceCloseConnection();
+        state = State.READ;
         throw new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length));
       }
 
@@ -162,7 +168,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
             if (alreadyReceived.readableBytes() > 0) {
               write.item(alreadyReceived);
             }
-            if (done) {
+            if (state == State.READ) {
               write.complete();
               return;
             } else {
@@ -180,7 +186,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                   write.item(byteBuf);
                 }
                 if (httpContent instanceof LastHttpContent) {
-                  done = true;
+                  state = State.READ;
                   ctx.channel().config().setAutoRead(false);
                   write.complete();
                 } else if (!autoRead && write.getRequested() > 0) {
@@ -212,21 +218,30 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
-  public Promise<ByteBuf> read(long maxContentLength, Block onTooLarge) {
-    return Promise.<ByteBuf>async(downstream -> {
-      if (read) {
+  public void setMaxContentLength(long maxContentLength) {
+    this.maxContentLength = maxContentLength;
+  }
+
+  @Override
+  public long getMaxContentLength() {
+    return maxContentLength;
+  }
+
+  @Override
+  public Promise<ByteBuf> read(Block onTooLarge) {
+    return Promise.async(downstream -> {
+      if (state != State.UNREAD) {
         downstream.error(new RequestBodyAlreadyReadException());
         return;
       }
-      read = true;
+      state = State.READING;
       this.onTooLarge = onTooLarge;
 
       if (advertisedLength > maxContentLength || length > maxContentLength) {
         tooLarge(downstream);
-      } else if (done) {
+      } else if (receivedLast) {
         complete(downstream);
       } else {
-        this.maxContentLength = maxContentLength;
         this.downstream = downstream;
         if (HttpUtil.is100ContinueExpected(request)) {
           HttpResponse continueResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);

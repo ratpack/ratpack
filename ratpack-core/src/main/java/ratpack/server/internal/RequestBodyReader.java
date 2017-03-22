@@ -23,10 +23,20 @@ import ratpack.stream.TransformablePublisher;
 
 public interface RequestBodyReader {
 
+  enum State {
+    UNREAD, READING, READ
+  }
+
+  State getState();
+
   long getContentLength();
 
-  Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge);
+  void setMaxContentLength(long maxContentLength);
 
-  TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength);
+  long getMaxContentLength();
+
+  Promise<? extends ByteBuf> read(Block onTooLarge);
+
+  TransformablePublisher<? extends ByteBuf> readStream();
 
 }

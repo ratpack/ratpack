@@ -189,4 +189,30 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  def "can follow a redirect when sending a large request"() {
+    when:
+    otherApp {
+      post("a") {
+        request.maxContentLength = Long.MAX_VALUE
+        redirect "b"
+      }
+      post("b") {
+        request.maxContentLength = Long.MAX_VALUE
+        render "ok"
+      }
+    }
+
+    handlers {
+      get {
+        get(HttpClient).post(otherAppUrl("a")) {
+          it.body.text("a" * 1024 * 1024 * 10)
+        }.then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    getText() == "ok"
+  }
 }

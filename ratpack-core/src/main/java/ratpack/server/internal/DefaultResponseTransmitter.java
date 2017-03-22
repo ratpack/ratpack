@@ -31,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.exec.Blocking;
+import ratpack.exec.Operation;
+import ratpack.exec.Promise;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.RequestOutcome;
@@ -62,7 +64,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final Channel channel;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
-  private final RequestBodyAccumulator requestBodyAccumulator;
+  private final RequestBodyReader requestBody;
   private final boolean isSsl;
 
   private List<Action<? super RequestOutcome>> outcomeListeners;
@@ -72,45 +74,54 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBodyAccumulator requestBodyAccumulator) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBodyReader requestBody) {
     this.transmitted = transmitted;
     this.channel = channel;
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
-    this.requestBodyAccumulator = requestBodyAccumulator;
+    this.requestBody = requestBody;
     this.isKeepAlive = HttpUtil.isKeepAlive(nettyRequest);
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
+  Operation drainRequestBody() {
+    if (requestBody == null || requestBody.getState() == RequestBodyReader.State.READ) {
+      return Operation.noop();
+    } else {
+      return requestBody.readStream().bindExec().reduce(null, (i, b) -> {
+        b.release();
+        return null;
+      }).operation();
+    }
+  }
+
   @SuppressWarnings("deprecation")
-  private ChannelFuture pre(HttpResponseStatus responseStatus) {
-    if (transmitted.compareAndSet(false, true)) {
-      stopTime = Instant.now();
+  private Promise<ChannelFuture> pre(HttpResponseStatus responseStatus) {
+    return drainRequestBody().map(() -> {
+      if (transmitted.compareAndSet(false, true)) {
+        stopTime = Instant.now();
+        if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
+          isKeepAlive = false;
+        } else if (!isKeepAlive) {
+          responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+        }
 
-      if (requestBodyAccumulator != null && !requestBodyAccumulator.isComplete()) {
-        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-        isKeepAlive = false;
-      } else if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
-        isKeepAlive = false;
-      } else if (!isKeepAlive) {
-        responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-      }
+        HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
+        if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+          HttpUtil.setTransferEncodingChunked(headersResponse, true);
+        }
 
-      HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-      if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
-        HttpUtil.setTransferEncodingChunked(headersResponse, true);
-      }
-
-      if (channel.isOpen()) {
-        return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+        if (channel.isOpen()) {
+          return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+        } else {
+          return null;
+        }
       } else {
+        String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
+        LOGGER.warn(msg, new DoubleTransmissionException(msg));
         return null;
       }
-    } else {
-      String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
-      LOGGER.warn(msg, new DoubleTransmissionException(msg));
-      return null;
-    }
+    });
   }
 
   @Override
@@ -119,23 +130,24 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
-    ChannelFuture channelFuture = pre(responseStatus);
-    if (channelFuture == null) {
-      ReferenceCountUtil.release(body);
-      return;
-    }
-
-    channelFuture.addListener(future -> {
-      if (channel.isOpen()) {
-        if (sendLastHttpContent) {
-          channel.write(body);
-          post(responseStatus);
-        } else {
-          post(responseStatus, channel.writeAndFlush(body));
-        }
-      } else {
+    pre(responseStatus).then(channelFuture -> {
+      if (channelFuture == null) {
         ReferenceCountUtil.release(body);
+        return;
       }
+
+      channelFuture.addListener(future -> {
+        if (channel.isOpen()) {
+          if (sendLastHttpContent) {
+            channel.write(body);
+            post(responseStatus);
+          } else {
+            post(responseStatus, channel.writeAndFlush(body));
+          }
+        } else {
+          ReferenceCountUtil.release(body);
+        }
+      });
     });
   }
 
@@ -203,16 +215,17 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
         channel.closeFuture().addListener(cancelOnCloseListener);
 
-        ChannelFuture channelFuture = pre(responseStatus);
-        if (channelFuture == null) {
-          subscription.cancel();
-          notifyListeners(responseStatus, channel.close());
-        } else {
-          channelFuture.addListener(cancelOnFailure);
-          if (channel.isWritable()) {
-            this.subscription.request(1);
+        pre(responseStatus).then(channelFuture -> {
+          if (channelFuture == null) {
+            subscription.cancel();
+            notifyListeners(responseStatus, channel.close());
+          } else {
+            channelFuture.addListener(cancelOnFailure);
+            if (channel.isWritable()) {
+              this.subscription.request(1);
+            }
           }
-        }
+        });
       }
 
       @Override
