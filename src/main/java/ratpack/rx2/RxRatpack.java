@@ -890,7 +890,7 @@ public abstract class RxRatpack {
    * @see RxRatpack#promiseSingle(Observable)
    */
   public static <T> Promise<T> promiseSingle(Flowable<T> flowable) throws UnmanagedThreadException {
-    return Promise.async(f -> flowable.singleElement().subscribe(f::success, f::error));
+    return Promise.async(f -> flowable.singleOrError().subscribe(f::success, f::error));
   }
 
   /**
