@@ -223,7 +223,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().writabilityChanged();
   }
 
-  private boolean isIgnorableException(Throwable throwable) {
+  private static boolean isIgnorableException(Throwable throwable) {
     if (throwable instanceof ClosedChannelException) {
       return true;
     } else if (throwable instanceof IOException) {
@@ -235,7 +235,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     }
   }
 
-  public static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+  private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
     response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);
