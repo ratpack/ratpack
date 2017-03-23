@@ -101,7 +101,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     }
   }
 
-  private void newRequest(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
+  private void newRequest(ChannelHandlerContext ctx, HttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
@@ -118,7 +118,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     RequestBody requestBody = hasBody ? new RequestBody(contentLength, nettyRequest, ctx) : null;
 
-    final Channel channel = ctx.channel();
+    Channel channel = ctx.channel();
 
     if (requestBody != null) {
       channel.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
@@ -126,7 +126,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-    final DefaultRequest request = new DefaultRequest(
+    DefaultRequest request = new DefaultRequest(
       Instant.now(),
       requestHeaders,
       nettyRequest.method(),
@@ -137,11 +137,12 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       serverRegistry.get(ServerConfig.class),
       requestBody
     );
-    final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
-    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
-    final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
+    HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
+    MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
+    AtomicBoolean transmitted = new AtomicBoolean(false);
+
+    DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
 
     ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 
@@ -150,7 +151,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
     };
 
-    final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants,
       request,
       channel,
@@ -158,7 +159,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       subscribeHandler
     );
 
-    final Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
+    Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
