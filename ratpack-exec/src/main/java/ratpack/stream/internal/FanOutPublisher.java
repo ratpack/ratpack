@@ -87,15 +87,19 @@ public class FanOutPublisher<T> implements TransformablePublisher<T> {
       private void drain() {
         if (state.compareAndSet(State.IDLE, State.EMITTING)) {
           if (isDone()) {
-            while (iterator.hasNext()) {
-              dispose(iterator.next());
+            if (iterator != null) {
+              while (iterator.hasNext()) {
+                dispose(iterator.next());
+              }
             }
             return;
           }
 
-          boolean hasNext;
-          while ((hasNext = iterator.hasNext()) && shouldEmit()) {
-            emitNext(iterator.next());
+          boolean hasNext = false;
+          if (iterator != null) {
+            while ((hasNext = iterator.hasNext()) && shouldEmit()) {
+              emitNext(iterator.next());
+            }
           }
           if (!hasNext) { // iterator is empty
             if (subscription == null) {

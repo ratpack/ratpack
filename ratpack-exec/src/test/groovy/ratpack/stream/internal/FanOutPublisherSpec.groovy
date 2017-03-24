@@ -35,6 +35,7 @@ class FanOutPublisherSpec extends BaseExecutionSpec {
     p.subscribe(s)
 
     then:
+    !s.complete
     s.received == [1, 2, 3]
   }
 
@@ -46,7 +47,21 @@ class FanOutPublisherSpec extends BaseExecutionSpec {
     p.subscribe(s)
 
     then:
+    !s.complete
     s.received == [1, 2, 3]
+  }
+
+  def "empty publisher can be consumed"() {
+    given:
+    def p = Streams.fanOut(Streams.publish([]))
+    def s = CollectingSubscriber.subscribe(p)
+
+    when:
+    s.subscription.request(10)
+
+    then:
+    s.complete
+    s.received == []
   }
 
   def "handles downstream request outside of onNext"() {
