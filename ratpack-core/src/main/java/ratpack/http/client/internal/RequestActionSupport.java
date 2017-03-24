@@ -43,6 +43,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -65,11 +66,16 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private ChannelPool channelPool;
   private final int redirectCount;
   private final Action<? super RequestSpec> requestConfigurer;
+  private final HttpClientRequestInterceptorChain requestInterceptorChain;
 
   private boolean fired;
   private boolean disposed;
 
   RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
+    this(uri, client, redirectCount, execution, requestConfigurer, new HttpClientRequestInterceptorChain(Collections.emptyList()));
+  }
+
+  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer, HttpClientRequestInterceptorChain requestInterceptorChain) {
     this.requestConfigurer = requestConfigurer;
     this.requestConfig = uncheck(() -> RequestConfig.of(uri, client, requestConfigurer));
     this.client = client;
@@ -77,7 +83,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     this.redirectCount = redirectCount;
     this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
-
+    this.requestInterceptorChain = requestInterceptorChain;
     finalizeHeaders();
   }
 
@@ -111,7 +117,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private void send(Downstream<? super T> downstream, Channel channel) throws Exception {
     channel.config().setAutoRead(true);
-
+    
     FullHttpRequest request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       requestConfig.method.getNettyMethod(),
@@ -124,6 +130,9 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     addCommonResponseHandlers(channel.pipeline(), downstream);
 
     channel.writeAndFlush(request).addListener(writeFuture -> {
+      //invoke the request interceptor
+      requestInterceptorChain.intercept(new ImmutableSentRequest(request.method().name(),
+        request.uri(), request.headers()));
       if (!writeFuture.isSuccess()) {
         error(downstream, writeFuture.cause());
       }

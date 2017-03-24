@@ -828,5 +828,4 @@ BAR
     and:
     pathResponse.status.code == 404
   }
-
 }
