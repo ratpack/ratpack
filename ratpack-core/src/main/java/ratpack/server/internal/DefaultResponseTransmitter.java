@@ -99,7 +99,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
             }
           })
 
-        ).onError(next::accept).then(n -> next.accept(null));
+        )
+          .onError(next::accept)
+          .then(n -> next.accept(null));
       } else {
         requestBody.discard(next);
       }
@@ -290,7 +292,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           }
         }
         if (channel.isOpen()) {
-          if (isKeepAlive) {
+          if (isKeepAlive && e == null) {
             lastContentFuture.channel().read();
           } else {
             lastContentFuture.channel().close();

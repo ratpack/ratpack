@@ -63,11 +63,6 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
         ByteBuf byteBuf = httpContent.content().touch();
         length += byteBuf.readableBytes();
-        if (maxContentLength > 0 && maxContentLength < length) {
-          assert downstream != null;
-          tooLarge(downstream);
-          return;
-        }
         byteBufs.add(byteBuf);
       }
       if (httpContent instanceof LastHttpContent) {
