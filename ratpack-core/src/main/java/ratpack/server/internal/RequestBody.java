@@ -22,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.http.RequestBodyAlreadyReadException;
@@ -44,7 +45,6 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private Block onTooLarge;
   private long length;
   private Downstream<? super ByteBuf> downstream;
-  private ByteBuf compositeBuffer;
   private boolean receivedLast;
   private Consumer<? super HttpContent> onAdd;
   private State state = State.UNREAD;
@@ -79,7 +79,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         ctx.read();
       }
     } else {
-      onAdd.accept(httpContent);
+      onAdd.accept(httpContent.touch());
     }
   }
 
@@ -94,17 +94,11 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public void close() {
-    if (compositeBuffer == null) {
-      //noinspection Convert2streamapi
-      for (ByteBuf byteBuf : byteBufs) {
-        byteBuf.release();
-      }
-      byteBufs.clear();
-    } else {
-      if (compositeBuffer.refCnt() > 0) {
-        compositeBuffer.release();
-      }
+    //noinspection Convert2streamapi
+    for (ByteBuf byteBuf : byteBufs) {
+      byteBuf.release();
     }
+    byteBufs.clear();
   }
 
   public void forceCloseConnection() {
@@ -125,11 +119,11 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private void complete(Downstream<? super ByteBuf> downstream) {
     state = State.READ;
+
     if (byteBufs.isEmpty()) {
       downstream.success(Unpooled.EMPTY_BUFFER);
     } else {
-      compositeBuffer = composeReceived();
-      downstream.success(compositeBuffer);
+      downstream.success(composeReceived());
     }
   }
 
@@ -217,13 +211,14 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   public void discard(Consumer<? super Throwable> resume) {
+    close();
+
     if (state != State.UNREAD) {
       throw new RequestBodyAlreadyReadException();
     }
 
     state = State.READING;
 
-    close();
     if (advertisedLength > maxContentLength || length > maxContentLength) {
       state = State.READ;
       forceCloseConnection();
@@ -266,7 +261,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public Promise<ByteBuf> read(Block onTooLarge) {
-    return Promise.async(downstream -> {
+    return Promise.<ByteBuf>async(downstream -> {
       if (state != State.UNREAD) {
         downstream.error(new RequestBodyAlreadyReadException());
         return;
@@ -292,6 +287,13 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
         ctx.read();
       }
+    }).map(byteBuf -> {
+      Execution.current().onComplete(() -> {
+        if (byteBuf.refCnt() > 0) {
+          byteBuf.release();
+        }
+      });
+      return byteBuf;
     });
   }
 

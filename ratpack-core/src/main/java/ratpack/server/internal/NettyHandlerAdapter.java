@@ -199,6 +199,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
         response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
         responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body);
+
       }
     });
   }
