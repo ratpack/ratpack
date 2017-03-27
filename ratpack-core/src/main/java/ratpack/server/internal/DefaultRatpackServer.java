@@ -413,6 +413,7 @@ public class DefaultRatpackServer implements RatpackServer {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
       if (execController == null) {
         ReferenceCountUtil.release(msg);
+        ctx.fireChannelReadComplete();
         return;
       }
 
