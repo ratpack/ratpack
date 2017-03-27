@@ -23,6 +23,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
@@ -94,9 +95,9 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     } else {
       Action<Object> subscriber = ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber == null) {
-        super.channelRead(ctx, msg);
+        super.channelRead(ctx, ReferenceCountUtil.touch(msg));
       } else {
-        subscriber.execute(msg);
+        subscriber.execute(ReferenceCountUtil.touch(msg));
       }
     }
   }
