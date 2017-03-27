@@ -57,15 +57,7 @@ class ContentStreamingRequestActionSpec extends BaseHttpClientSpec {
     expect:
     text == 'foo'
     latch.await()
-    //sometimes it takes a while for netty to actually close the channel - wait a few seconds for that to happen
-    for (int i = 0; i < 3; i++) {
-      if (requestAction.channel.open) {
-        TimeUnit.SECONDS.sleep(1)
-      } else {
-        break
-      }
-    }
-    assert !requestAction.channel.open
+    requestAction.channel.closeFuture().get() == null
 
     where:
     pooled << [true, false]
