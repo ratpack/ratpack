@@ -92,7 +92,7 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
     application.close()
 
     then:
-    !channel.isOpen()
+    wait.eventually { !channel.isOpen() }
     text == "ok"
   }
 
