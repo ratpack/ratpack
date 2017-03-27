@@ -163,11 +163,6 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
-      if (requestBody != null) {
-        requestBody.close();
-        channel.attr(BODY_ACCUMULATOR_KEY).set(null);
-      }
-
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();

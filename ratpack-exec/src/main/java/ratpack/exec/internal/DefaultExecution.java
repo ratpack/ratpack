@@ -202,6 +202,7 @@ public class DefaultExecution implements Execution {
     }
 
     if (execStream == TerminalExecStream.INSTANCE) {
+      THREAD_BINDING.set(null);
       try {
         onComplete.execute(this);
       } catch (Throwable e) {
