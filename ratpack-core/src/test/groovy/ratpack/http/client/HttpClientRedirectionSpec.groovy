@@ -194,10 +194,16 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     otherApp {
       post("a") {
         request.maxContentLength = Long.MAX_VALUE
+        onClose {
+          println "a finished"
+        }
         redirect "b"
       }
       post("b") {
         request.maxContentLength = Long.MAX_VALUE
+        onClose {
+          println "b finished"
+        }
         render "ok"
       }
     }

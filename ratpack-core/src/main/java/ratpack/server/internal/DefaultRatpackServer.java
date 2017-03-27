@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -410,6 +411,11 @@ public class DefaultRatpackServer implements RatpackServer {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+      if (execController == null) {
+        ReferenceCountUtil.release(msg);
+        return;
+      }
+
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
         Promise.<ChannelHandler>async(f -> {
           boolean rebuild = false;

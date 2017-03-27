@@ -240,7 +240,11 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody(Block onTooLarge) {
-    return getBody(onTooLarge);
+    if (bodyReader == null) {
+      return Promise.value(new ByteBufBackedTypedData(Unpooled.EMPTY_BUFFER, getContentType()));
+    } else {
+      return bodyReader.read(onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
+    }
   }
 
   @Override
@@ -252,11 +256,7 @@ public class DefaultRequest implements Request {
   @Override
   public Promise<TypedData> getBody(long maxContentLength, Block onTooLarge) {
     setMaxContentLength(maxContentLength);
-    if (bodyReader == null) {
-      return Promise.value(new ByteBufBackedTypedData(Unpooled.EMPTY_BUFFER, getContentType()));
-    } else {
-      return bodyReader.read(onTooLarge).map(b -> (TypedData) new ByteBufBackedTypedData(b, getContentType()));
-    }
+    return getBody(onTooLarge);
   }
 
   @Override

@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.exec.Blocking;
-import ratpack.exec.Operation;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
@@ -50,21 +50,21 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   static final AttributeKey<DefaultResponseTransmitter> ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(ResponseTransmitter.class);
+
   private static final Runnable NOOP_RUNNABLE = () -> {
   };
-  private static final ChannelFutureListener CHANNEL_READ = f -> f.channel().read();
-
   private final AtomicBoolean transmitted;
   private final Channel channel;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
-  private final RequestBodyReader requestBody;
+  private final RequestBody requestBody;
   private final boolean isSsl;
 
   private List<Action<? super RequestOutcome>> outcomeListeners;
@@ -74,7 +74,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBodyReader requestBody) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBody requestBody) {
     this.transmitted = transmitted;
     this.channel = channel;
     this.ratpackRequest = ratpackRequest;
@@ -84,44 +84,51 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
-  Operation drainRequestBody() {
+  private void drainRequestBody(Consumer<Throwable> next) {
     if (requestBody == null || requestBody.getState() == RequestBodyReader.State.READ) {
-      return Operation.noop();
+      next.accept(null);
     } else {
-      return requestBody.readStream().bindExec().reduce(null, (i, b) -> {
-        b.release();
-        return null;
-      }).operation();
+      if (Execution.isBound()) {
+        Promise.async(down ->
+          requestBody.discard(e -> {
+            if (e == null) {
+              down.success(null);
+            } else {
+              down.error(e);
+            }
+          })
+
+        ).onError(next::accept).then(n -> next.accept(null));
+      } else {
+        requestBody.discard(next);
+      }
     }
   }
 
-  @SuppressWarnings("deprecation")
-  private Promise<ChannelFuture> pre(HttpResponseStatus responseStatus) {
-    return drainRequestBody().map(() -> {
-      if (transmitted.compareAndSet(false, true)) {
-        stopTime = Instant.now();
-        if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
-          isKeepAlive = false;
-        } else if (!isKeepAlive) {
-          responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-        }
+  private ChannelFuture pre(HttpResponseStatus responseStatus) {
+    if (transmitted.compareAndSet(false, true)) {
+      stopTime = Instant.now();
 
-        HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-        if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
-          HttpUtil.setTransferEncodingChunked(headersResponse, true);
-        }
+      if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
+        isKeepAlive = false;
+      } else if (!isKeepAlive) {
+        forceCloseConnection();
+      }
 
-        if (channel.isOpen()) {
-          return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-        } else {
-          return null;
-        }
+      HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
+      if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+        HttpUtil.setTransferEncodingChunked(headersResponse, true);
+      }
+      if (channel.isOpen()) {
+        return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
       } else {
-        String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
-        LOGGER.warn(msg, new DoubleTransmissionException(msg));
         return null;
       }
-    });
+    } else {
+      String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
+      LOGGER.warn(msg, new DoubleTransmissionException(msg));
+      return null;
+    }
   }
 
   @Override
@@ -130,24 +137,27 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
-    pre(responseStatus).then(channelFuture -> {
-      if (channelFuture == null) {
-        ReferenceCountUtil.release(body);
-        return;
-      }
+    ChannelFuture channelFuture = pre(responseStatus);
+    if (channelFuture == null) {
+      ReferenceCountUtil.release(body);
+      isKeepAlive = false;
+      post(responseStatus);
+      return;
+    }
 
-      channelFuture.addListener(future -> {
-        if (channel.isOpen()) {
-          if (sendLastHttpContent) {
-            channel.write(body);
-            post(responseStatus);
-          } else {
-            post(responseStatus, channel.writeAndFlush(body));
-          }
+    channelFuture.addListener(future -> {
+      if (channel.isOpen()) {
+        if (sendLastHttpContent) {
+          channel.write(body);
+          post(responseStatus);
         } else {
-          ReferenceCountUtil.release(body);
+          post(responseStatus, channel.writeAndFlush(body));
         }
-      });
+      } else {
+        ReferenceCountUtil.release(body);
+        isKeepAlive = false;
+        post(responseStatus);
+      }
     });
   }
 
@@ -215,17 +225,17 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
         channel.closeFuture().addListener(cancelOnCloseListener);
 
-        pre(responseStatus).then(channelFuture -> {
-          if (channelFuture == null) {
-            subscription.cancel();
-            notifyListeners(responseStatus, channel.close());
-          } else {
-            channelFuture.addListener(cancelOnFailure);
-            if (channel.isWritable()) {
-              this.subscription.request(1);
-            }
+        ChannelFuture channelFuture = pre(responseStatus);
+        if (channelFuture == null) {
+          subscription.cancel();
+          isKeepAlive = false;
+          notifyListeners(responseStatus);
+        } else {
+          channelFuture.addListener(cancelOnFailure);
+          if (channel.isWritable()) {
+            this.subscription.request(1);
           }
-        });
+        }
       }
 
       @Override
@@ -269,32 +279,33 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void post(HttpResponseStatus responseStatus, ChannelFuture lastContentFuture) {
-    if (channel.isOpen()) {
-      if (isKeepAlive) {
-        lastContentFuture.addListener(CHANNEL_READ);
-      } else {
-        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-      }
-      notifyListeners(responseStatus, lastContentFuture);
-    } else {
-      notifyListeners(responseStatus, channel.newSucceededFuture());
-    }
-  }
-
-  private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {
-    if (outcomeListeners != null) {
-      future.addListener(ignore -> {
-        channel.attr(ATTRIBUTE_KEY).set(null);
-        SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
-        RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
-        for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
-          try {
-            outcomeListener.execute(requestOutcome);
-          } catch (Exception e) {
-            LOGGER.warn("request outcome listener " + outcomeListener + " threw exception", e);
+    lastContentFuture.addListener(v ->
+      drainRequestBody(e -> {
+        if (channel.isOpen()) {
+          if (isKeepAlive) {
+            lastContentFuture.channel().read();
+          } else {
+            lastContentFuture.channel().close();
           }
         }
-      });
+
+        notifyListeners(responseStatus);
+      })
+    );
+  }
+
+  private void notifyListeners(final HttpResponseStatus responseStatus) {
+    if (outcomeListeners != null) {
+      channel.attr(ATTRIBUTE_KEY).set(null);
+      SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
+      RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
+      for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
+        try {
+          outcomeListener.execute(requestOutcome);
+        } catch (Exception e) {
+          LOGGER.warn("request outcome listener " + outcomeListener + " threw exception", e);
+        }
+      }
     }
   }
 

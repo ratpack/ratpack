@@ -100,6 +100,8 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
 
   static class NoRequestBodyReader implements RequestBodyReader {
 
+    long maxContentLength = 1024
+
     @Override
     RequestBodyReader.State getState() {
       RequestBodyReader.State.UNREAD
@@ -108,16 +110,6 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     @Override
     long getContentLength() {
       -1
-    }
-
-    @Override
-    void setMaxContentLength(long maxContentLength) {
-      throw new UnsupportedOperationException()
-    }
-
-    @Override
-    long getMaxContentLength() {
-      throw new UnsupportedOperationException()
     }
 
     @Override

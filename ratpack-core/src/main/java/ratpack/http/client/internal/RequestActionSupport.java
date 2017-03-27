@@ -69,9 +69,9 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private boolean fired;
   private boolean disposed;
 
-  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
+  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
     this.requestConfigurer = requestConfigurer;
-    this.requestConfig = uncheck(() -> RequestConfig.of(uri, client, requestConfigurer));
+    this.requestConfig = RequestConfig.of(uri, client, requestConfigurer);
     this.client = client;
     this.execution = execution;
     this.redirectCount = redirectCount;
@@ -179,11 +179,12 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       channelPipeline.remove(DECOMPRESS_HANDLER_NAME);
     }
 
-    if (forceClose) {
-      channelPipeline.channel().close();
+    Channel channel = channelPipeline.channel();
+    if (forceClose && channel.isOpen()) {
+      channel.close();
     }
 
-    channelPool.release(channelPipeline.channel());
+    channelPool.release(channel);
   }
 
   private void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
@@ -204,13 +205,13 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        forceDispose(ctx.pipeline());
-
         if (cause instanceof ReadTimeoutException) {
           cause = new HttpClientReadTimeoutException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
         }
 
         error(downstream, cause);
+
+        forceDispose(ctx.pipeline());
       }
 
       @Override
@@ -286,7 +287,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     return new SslHandler(sslEngine);
   }
 
-  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig);
+  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
 
   protected void success(Downstream<? super T> downstream, T value) {
     if (!fired) {
@@ -296,7 +297,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   protected void error(Downstream<?> downstream, Throwable error) {
-    if (!fired) {
+    if (!fired && !disposed) {
       fired = true;
       downstream.error(error);
     }

@@ -234,6 +234,11 @@ public class DefaultExecution implements Execution {
   }
 
   @Override
+  public boolean isComplete() {
+    return execStream == TerminalExecStream.INSTANCE;
+  }
+
+  @Override
   public <O> Execution addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
     registry.addLazy(type, supplier);
     return this;

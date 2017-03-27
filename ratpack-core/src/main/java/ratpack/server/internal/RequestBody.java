@@ -57,7 +57,9 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public void add(HttpContent httpContent) {
-    if (onAdd == null) {
+    if (state == State.READ) {
+      httpContent.release();
+    } else if (onAdd == null) {
       if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
         ByteBuf byteBuf = httpContent.content().touch();
         length += byteBuf.readableBytes();
@@ -168,7 +170,8 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
             if (alreadyReceived.readableBytes() > 0) {
               write.item(alreadyReceived);
             }
-            if (state == State.READ) {
+            if (receivedLast) {
+              state = State.READ;
               write.complete();
               return;
             } else {
@@ -178,6 +181,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                   length += byteBuf.readableBytes();
                   if (maxContentLength > 0 && maxContentLength < length) {
                     byteBuf.release();
+                    state = State.READ;
                     forceCloseConnection();
                     write.error(new RequestBodyTooLargeException(maxContentLength, length));
                     return;
@@ -210,6 +214,39 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         }
       };
     }).bindExec(ByteBuf::release);
+  }
+
+  public void discard(Consumer<? super Throwable> resume) {
+    if (state != State.UNREAD) {
+      throw new RequestBodyAlreadyReadException();
+    }
+
+    state = State.READING;
+
+    close();
+    if (advertisedLength > maxContentLength || length > maxContentLength) {
+      state = State.READ;
+      forceCloseConnection();
+      resume.accept(new RequestBodyTooLargeException(maxContentLength, advertisedLength));
+    } else if (receivedLast) {
+      state = State.READ;
+      resume.accept(null);
+    } else {
+      onAdd = httpContent -> {
+        httpContent.release();
+        if ((length += httpContent.content().readableBytes()) > maxContentLength) {
+          state = State.READ;
+          resume.accept(new RequestBodyTooLargeException(maxContentLength, length));
+        } else if (httpContent instanceof LastHttpContent) {
+          state = State.READ;
+          resume.accept(null);
+        } else {
+          ctx.read();
+        }
+      };
+      ctx.read();
+    }
+
   }
 
   @Override

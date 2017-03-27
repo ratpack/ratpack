@@ -42,7 +42,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
     int redirectCount,
     Execution execution,
     Action<? super RequestSpec> requestConfigurer
-  ) {
+  ) throws Exception {
     super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
@@ -74,14 +74,14 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        forceDispose(ctx.pipeline());
         error(downstream, cause);
+        forceDispose(ctx.pipeline());
       }
     });
   }
 
   @Override
-  protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
+  protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
     return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 
