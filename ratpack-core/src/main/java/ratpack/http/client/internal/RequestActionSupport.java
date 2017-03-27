@@ -46,8 +46,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static ratpack.util.Exceptions.uncheck;
-
 abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
