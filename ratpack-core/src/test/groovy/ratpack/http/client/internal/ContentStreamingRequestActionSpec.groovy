@@ -26,7 +26,6 @@ import ratpack.http.client.HttpClient
 import ratpack.http.client.StreamedResponse
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class ContentStreamingRequestActionSpec extends BaseHttpClientSpec {
 
