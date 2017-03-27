@@ -185,12 +185,11 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-//    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "bar".multiply(16) }) }
-//    def response = post()
-//    response.statusCode == 413
-//    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo".multiply(16) }) }
-//    postText("allow") == "foo".multiply(16)
-    true
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "bar".multiply(16) }) }
+    def response = post()
+    response.statusCode == 413
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo".multiply(16) }) }
+    postText("allow") == "foo".multiply(16)
   }
 
   def "can read body only once"() {
