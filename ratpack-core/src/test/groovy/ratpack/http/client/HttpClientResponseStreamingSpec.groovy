@@ -17,6 +17,7 @@
 package ratpack.http.client
 
 import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
@@ -135,5 +136,55 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     ExecHarness.runSingle {
       b.forEach { i, v -> }.then()
     }
+  }
+
+  def "connection is closed if response is not read"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        render "foo"
+      }
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+    channel.closeFuture().sync()
+  }
+
+  def "keep alive connection is closed if response is not read"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        render "foo"
+      }
+    }
+
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(8) })
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+    channel.closeFuture().sync()
   }
 }
