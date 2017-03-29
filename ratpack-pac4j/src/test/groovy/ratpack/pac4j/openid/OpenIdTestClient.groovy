@@ -19,7 +19,6 @@ package ratpack.pac4j.openid
 import org.openid4java.message.AuthSuccess
 import org.openid4java.message.ax.FetchRequest
 import org.openid4java.message.ax.FetchResponse
-import org.pac4j.core.client.BaseClient
 import org.pac4j.core.context.WebContext
 import org.pac4j.openid.client.BaseOpenIdClient
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
@@ -28,7 +27,6 @@ import static org.openid4java.message.ax.AxMessage.OPENID_NS_AX
 import static org.pac4j.openid.profile.yahoo.YahooOpenIdAttributesDefinition.EMAIL
 
 class OpenIdTestClient extends BaseOpenIdClient<YahooOpenIdProfile> {
-  final boolean directRedirection = true
 
   private final int providerPort
 
@@ -56,10 +54,5 @@ class OpenIdTestClient extends BaseOpenIdClient<YahooOpenIdProfile> {
         profile.addAttribute(EMAIL, fetchResp.getAttributeValue(EMAIL))
     }
     return profile
-  }
-
-  @Override
-  protected BaseClient newClient() {
-    return new OpenIdTestClient(providerPort)
   }
 }

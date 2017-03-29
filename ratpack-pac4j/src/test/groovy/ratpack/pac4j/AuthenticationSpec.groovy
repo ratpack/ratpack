@@ -15,14 +15,13 @@
  */
 package ratpack.pac4j
 
-import org.pac4j.core.authorization.Authorizer
-import org.pac4j.core.profile.UserProfile
+import org.pac4j.core.authorization.authorizer.Authorizer
+import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.direct.DirectBasicAuthClient
 import org.pac4j.http.client.direct.ParameterClient
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.client.indirect.IndirectBasicAuthClient
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
-import org.pac4j.http.profile.HttpProfile
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.jwt.profile.JwtGenerator
 import ratpack.session.SessionModule
@@ -43,7 +42,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix('require-auth') {
         all RatpackPac4j.requireAuth(IndirectBasicAuthClient)
         get {
-          render "Hello " + get(UserProfile).getId()
+          render "Hello " + get(CommonProfile).getId()
         }
       }
       get {
@@ -75,7 +74,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix('require-auth') {
         all RatpackPac4j.requireAuth(DirectBasicAuthClient)
         get {
-          render "Hello " + get(UserProfile).getId()
+          render "Hello " + get(CommonProfile).getId()
         }
       }
       get {
@@ -105,14 +104,14 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix("notauthz") {
         all(RatpackPac4j.requireAuth(FormClient, { ctx, p -> false } as Authorizer))
         get {
-          def userProfile = maybeGet(UserProfile).orElse(null)
+          def userProfile = maybeGet(CommonProfile).orElse(null)
           response.send "notauthz:" + userProfile?.attributes?.username
         }
       }
       prefix("authz") {
         all(RatpackPac4j.requireAuth(FormClient, { ctx, p -> true } as Authorizer, { ctx, p -> true } as Authorizer))
         get {
-          def userProfile = maybeGet(UserProfile).orElse(null)
+          def userProfile = maybeGet(CommonProfile).orElse(null)
           response.send "authz:" + userProfile?.attributes?.username
         }
       }
@@ -145,13 +144,13 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix("allowed") {
         all RatpackPac4j.requireAuth(DirectBasicAuthClient, { ctx, p -> true } as Authorizer)
         get {
-          render "Hello " + get(UserProfile).getId()
+          render "Hello " + get(CommonProfile).getId()
         }
       }
       prefix("forbidden") {
         all RatpackPac4j.requireAuth(DirectBasicAuthClient, { ctx, p -> false } as Authorizer)
         get {
-          render "You're not allowed here " + get(UserProfile).getId()
+          render "You're not allowed here " + get(CommonProfile).getId()
         }
       }
     }
@@ -186,7 +185,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix("auth-post") {
         all RatpackPac4j.requireAuth(IndirectBasicAuthClient)
         post { ctx ->
-          def user = get(UserProfile)
+          def user = get(CommonProfile)
           ctx.request.body.then { body ->
             response.status(201)
             render user.id + " posted " + body.text
@@ -221,7 +220,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix("auth-post") {
         all RatpackPac4j.requireAuth(DirectBasicAuthClient)
         post { ctx ->
-          def user = get(UserProfile)
+          def user = get(CommonProfile)
           ctx.request.body.then { body ->
             response.status(201)
             render user.getId() + " posted " + body.text
@@ -247,7 +246,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     given:
     def secret = "12345678901234567890123456789012"
     def generator = new JwtGenerator(secret, false)
-    def profile = new HttpProfile()
+    def profile = new CommonProfile()
     profile.addAttribute("name", "user")
     def jwt = generator.generate(profile)
     def paramName = "jwt"
@@ -266,7 +265,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       prefix('require-auth') {
         all RatpackPac4j.requireAuth(ParameterClient)
         get {
-          render "Hello " + get(UserProfile).getAttribute("name")
+          render "Hello " + get(CommonProfile).getAttribute("name")
         }
       }
       get {

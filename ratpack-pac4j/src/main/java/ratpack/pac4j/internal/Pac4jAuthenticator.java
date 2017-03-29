@@ -21,9 +21,9 @@ import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
-import org.pac4j.core.exception.RequiresHttpAction;
+import org.pac4j.core.exception.HttpAction;
 import org.pac4j.core.exception.TechnicalException;
-import org.pac4j.core.profile.UserProfile;
+import org.pac4j.core.profile.CommonProfile;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.handling.Context;
@@ -61,7 +61,7 @@ public class Pac4jAuthenticator implements Handler {
         return createClients(ctx, pathBinding).map(clients ->
           clients.findClient(webContext)
         ).map(
-          Types::<Client<Credentials, UserProfile>>cast
+          Types::<Client<Credentials, CommonProfile>>cast
         ).flatMap(client ->
           getProfile(webContext, client)
         ).map(profile -> {
@@ -72,8 +72,8 @@ public class Pac4jAuthenticator implements Handler {
           sessionData.remove(Pac4jSessionKeys.REQUESTED_URL);
           return originalUrl;
         }).onError(t -> {
-          if (t instanceof RequiresHttpAction) {
-            webContext.sendResponse((RequiresHttpAction) t);
+          if (t instanceof HttpAction) {
+            webContext.sendResponse((HttpAction) t);
           } else {
             ctx.error(new TechnicalException("Failed to get user profile", t));
           }
@@ -107,7 +107,7 @@ public class Pac4jAuthenticator implements Handler {
     return Promise.value(new Clients(absoluteCallbackUrl, clients));
   }
 
-  private <C extends Credentials, U extends UserProfile> Promise<U> getProfile(WebContext webContext, Client<C, U> client) throws RequiresHttpAction {
+  private <C extends Credentials, U extends CommonProfile> Promise<U> getProfile(WebContext webContext, Client<C, U> client) throws HttpAction {
     return Blocking.get(() -> {
       C credentials = client.getCredentials(webContext);
       return client.getUserProfile(credentials, webContext);
