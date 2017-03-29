@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled
 import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.stream.StreamEvent
 import ratpack.stream.Streams
-import ratpack.stream.bytebuf.ByteBufStreams
 import ratpack.stream.internal.CollectingSubscriber
 import spock.lang.Specification
 
