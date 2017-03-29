@@ -187,4 +187,35 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     text == "ok"
     channel.closeFuture().sync()
   }
+
+  def "keep alive connection is not closed if response is not read but has no body"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        if (channel == null) {
+          channel = directChannelAccess.channel
+        } else {
+          assert channel == directChannelAccess.channel
+        }
+        response.send()
+      }
+    }
+
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(8) })
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+    text == "ok"
+  }
 }
