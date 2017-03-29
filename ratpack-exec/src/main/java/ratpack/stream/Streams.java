@@ -77,6 +77,17 @@ public class Streams {
   }
 
   /**
+   * An empty publisher that immediately completes.
+   *
+   * @param <T> the type of item expected
+   * @return an empty publisher
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> empty() {
+    return Types.cast(EmptyPublisher.INSTANCE);
+  }
+
+  /**
    * Converts an iterable to a publishable.
    * <p>
    * Upon subscription, a new iterator will be created from the iterable.

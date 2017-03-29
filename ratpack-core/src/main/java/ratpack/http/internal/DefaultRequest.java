@@ -36,8 +36,8 @@ import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.RequestBodyReader;
+import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
-import ratpack.stream.internal.EmptyPublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -262,7 +262,7 @@ public class DefaultRequest implements Request {
   @Override
   public TransformablePublisher<? extends ByteBuf> getBodyStream() {
     if (bodyReader == null) {
-      return EmptyPublisher.instance();
+      return Streams.empty();
     } else {
       return bodyReader.readStream();
     }

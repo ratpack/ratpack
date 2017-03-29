@@ -19,15 +19,10 @@ package ratpack.stream.internal;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.stream.TransformablePublisher;
-import ratpack.util.Types;
 
 public class EmptyPublisher<T> implements TransformablePublisher<T> {
 
-  private static final TransformablePublisher<?> INSTANCE = new EmptyPublisher<>();
-
-  public static <T> TransformablePublisher<T> instance() {
-    return Types.cast(INSTANCE);
-  }
+  public static final TransformablePublisher<?> INSTANCE = new EmptyPublisher<>();
 
   @Override
   public void subscribe(Subscriber<? super T> s) {
