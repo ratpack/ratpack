@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal;
+package ratpack.stream.bytebuf.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -24,6 +24,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.stream.TransformablePublisher;
+import ratpack.stream.internal.ManagedSubscription;
 
 public class ByteBufComposingPublisher implements TransformablePublisher<CompositeByteBuf> {
 

@@ -441,11 +441,11 @@ public class Streams {
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
   public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, Duration duration, Function<? super Integer, ? extends T> producer) {
-    return new PeriodicPublisher<>(executorService, producer, duration).buffer();
+    return new PeriodicPublisher<T>(executorService, producer, duration).buffer();
   }
 
   public static <T> TransformablePublisher<T> periodically(Registry registry, Duration duration, Function<? super Integer, ? extends T> producer) {
-    return new PeriodicPublisher<>(registry.get(ExecController.class).getExecutor(), producer, duration).buffer();
+    return new PeriodicPublisher<T>(registry.get(ExecController.class).getExecutor(), producer, duration).buffer();
   }
 
   /**
@@ -778,28 +778,6 @@ public class Streams {
    */
   public static <T> TransformablePublisher<T> batch(int batchSize, Publisher<T> publisher, Action<? super T> disposer) {
     return new BatchingPublisher<>(publisher, batchSize, disposer);
-  }
-
-  /**
-   * Buffers and composes byte bufs together into composites before emitting.
-   * <p>
-   * This is roughly analogous to {@link BufferedInputStream}.
-   * The returned published accumulates upstream buffers until {@code maxNum} have been received,
-   * or the cumulative size of buffered byte bufs is greater than or equal to {@code sizeWatermark}.
-   * Note that unlike {@link BufferedInputStream}, the downstream writes are not guaranteed to be less than the buffer size.
-   * <p>
-   * Byte bufs are requested of the given publisher one at a time.
-   * If this is innefficient, consider wrapping it with {@link #batch(int, Publisher, Action)} before giving to this method.
-   *
-   * @param publisher the publisher of byte bufs to compose
-   * @param sizeWatermark the watermark size for a composite
-   * @param maxNum the maximum number of composite components
-   * @param alloc the allocator of composites
-   * @return a byte buf composing publisher
-   * @since 1.5
-   */
-  public static TransformablePublisher<CompositeByteBuf> byteBufComposing(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
-    return new ByteBufComposingPublisher(maxNum, sizeWatermark, alloc, publisher);
   }
 
   /**

@@ -26,6 +26,7 @@ import org.reactivestreams.tck.TestEnvironment;
 import org.testng.annotations.AfterTest;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.stream.bytebuf.ByteBufStreams;
 import ratpack.test.exec.ExecHarness;
 
 import java.time.Duration;
@@ -49,7 +50,7 @@ public class ByteBufferComposingPublisherVerification extends PublisherVerificat
       i < elements * 3 ? i : null
     ).map(Unpooled::copyInt);
 
-    return Streams.byteBufComposing(periodically, Long.MAX_VALUE, 3, UnpooledByteBufAllocator.DEFAULT);
+    return ByteBufStreams.compose(periodically, Long.MAX_VALUE, 3, UnpooledByteBufAllocator.DEFAULT);
   }
 
   @Override
