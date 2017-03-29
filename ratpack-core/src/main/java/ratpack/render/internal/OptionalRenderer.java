@@ -18,15 +18,15 @@ package ratpack.render.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.util.Types;
 
 import java.util.Optional;
 
 public class OptionalRenderer extends RendererSupport<Optional<?>> {
 
-  public static final TypeToken<Renderer<Optional<?>>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<Optional<?>>>() {});
+  public static final TypeToken<Renderer<Optional<?>>> TYPE = Types.intern(new TypeToken<Renderer<Optional<?>>>() {});
 
   public static final Renderer<Optional<?>> INSTANCE = new OptionalRenderer();
 

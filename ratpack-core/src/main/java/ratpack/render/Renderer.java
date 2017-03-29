@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 import ratpack.handling.Context;
-import ratpack.registry.internal.TypeCaching;
+import ratpack.util.Types;
 
 import java.util.function.BiConsumer;
 
@@ -71,7 +71,7 @@ public interface Renderer<T> {
    * @return a type token for a renderer of the given type of object
    */
   static <T> TypeToken<Renderer<T>> typeOf(Class<T> typeToRender) {
-    return TypeCaching.typeToken(new TypeToken<Renderer<T>>(typeToRender) {}.where(new TypeParameter<T>() {}, typeToRender));
+    return Types.intern(new TypeToken<Renderer<T>>(typeToRender) {}.where(new TypeParameter<T>() {}, typeToRender));
   }
 
   /**

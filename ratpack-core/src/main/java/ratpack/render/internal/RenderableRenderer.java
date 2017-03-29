@@ -18,14 +18,14 @@ package ratpack.render.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderable;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.util.Types;
 
 public class RenderableRenderer extends RendererSupport<Renderable> {
 
-  public static final TypeToken<Renderer<Renderable>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<Renderable>>() {});
+  public static final TypeToken<Renderer<Renderable>> TYPE = Types.intern(new TypeToken<Renderer<Renderable>>() {});
 
   public static final Renderer<Renderable> INSTANCE = new RenderableRenderer();
 
