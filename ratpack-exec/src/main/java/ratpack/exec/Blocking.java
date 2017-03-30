@@ -186,11 +186,11 @@ public abstract class Blocking {
    */
   public static <T> T on(Promise<T> promise) throws Exception {
     ThreadBinding.requireBlockingThread("Blocking.on() can only be used while blocking (i.e. use Blocking.get() first)");
-    DefaultExecution backing = DefaultExecution.require();
+    DefaultExecution execution = DefaultExecution.require();
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Result<T>> resultReference = new AtomicReference<>();
 
-    backing.delimit(t -> {
+    execution.delimit(t -> {
         resultReference.set(Result.error(t));
         latch.countDown();
       }, continuation ->
@@ -212,16 +212,18 @@ public abstract class Blocking {
             }
 
             private void unlatch(Result<T> result) {
-              continuation.resume(() -> {
-                resultReference.set(result);
-                latch.countDown();
-              });
+              continuation.resume(() ->
+                execution.getEventLoop().execute(() -> {
+                  resultReference.set(result);
+                  latch.countDown();
+                })
+              );
             }
           }
         )
     );
 
-    backing.eventLoopDrain();
+    execution.eventLoopDrain();
     latch.await();
     return resultReference.get().getValueOrThrow();
   }
