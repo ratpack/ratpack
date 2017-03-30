@@ -95,8 +95,6 @@ class FileIoSpec extends RatpackGroovyDslSpec {
 
   def "propagates stream error"() {
     given:
-    def n = 10000
-    def content = "a" * n
     def file = baseDir.path("foo")
 
     when:
