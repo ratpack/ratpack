@@ -20,18 +20,24 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import org.reactivestreams.Publisher;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.stream.bytebuf.internal.ByteBufComposingPublisher;
+import ratpack.util.Exceptions;
 
 import java.io.BufferedInputStream;
 
+/**
+ * Utilities for dealing with streams of {@link ByteBuf}.
+ *
+ * @since 1.5
+ */
 public class ByteBufStreams {
 
   private ByteBufStreams() {
   }
-
 
   /**
    * Buffers and composes byte bufs together into composites before emitting.
@@ -42,16 +48,33 @@ public class ByteBufStreams {
    * Note that unlike {@link BufferedInputStream}, the downstream writes are not guaranteed to be less than the buffer size.
    * <p>
    * Byte bufs are requested of the given publisher one at a time.
-   * If this is innefficient, consider wrapping it with {@link Streams#batch(int, Publisher, Action)} before giving to this method.
+   * If this is inefficient, consider wrapping it with {@link Streams#batch(int, Publisher, Action)} before giving to this method.
    *
    * @param publisher the publisher of byte bufs to compose
    * @param sizeWatermark the watermark size for a composite
    * @param maxNum the maximum number of composite components
    * @param alloc the allocator of composites
    * @return a byte buf composing publisher
-   * @since 1.5
    */
   public static TransformablePublisher<CompositeByteBuf> compose(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
     return new ByteBufComposingPublisher(maxNum, sizeWatermark, alloc, publisher);
+  }
+
+  /**
+   * Reduces the stream to a single composite byte buf.
+   *
+   * @param publisher the stream
+   * @param alloc the buffer allocator
+   * @return the reduced composite buffer
+   */
+  public static Promise<CompositeByteBuf> reduce(Publisher<? extends ByteBuf> publisher, ByteBufAllocator alloc) {
+    return Promise.flatten(() -> {
+      CompositeByteBuf seed = alloc.compositeBuffer();
+      return Streams.reduce(publisher, seed, (c, b) -> c.addComponent(true, b))
+        .onError(e -> {
+          seed.release();
+          throw Exceptions.toException(e);
+        });
+    });
   }
 }
