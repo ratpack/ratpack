@@ -60,10 +60,13 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     if (state == State.READ) {
       httpContent.release();
     } else if (onAdd == null) {
-      if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
-        ByteBuf byteBuf = httpContent.content().touch();
-        length += byteBuf.readableBytes();
+      ByteBuf byteBuf = httpContent.content().touch();
+      int readableBytes = byteBuf.readableBytes();
+      if (readableBytes > 0) {
+        length += readableBytes;
         byteBufs.add(byteBuf);
+      } else {
+        byteBuf.release();
       }
       if (httpContent instanceof LastHttpContent) {
         receivedLast = true;
@@ -158,6 +161,8 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
             ByteBuf alreadyReceived = composeReceived();
             if (alreadyReceived.readableBytes() > 0) {
               write.item(alreadyReceived);
+            } else {
+              alreadyReceived.release();
             }
             if (receivedLast) {
               state = State.READ;
