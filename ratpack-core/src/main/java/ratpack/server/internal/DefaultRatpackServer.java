@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
@@ -63,6 +64,7 @@ import static ratpack.util.Exceptions.uncheck;
 public class DefaultRatpackServer implements RatpackServer {
 
   public static final TypeToken<ReloadInformant> RELOAD_INFORMANT_TYPE = Types.token(ReloadInformant.class);
+  public static final AttributeKey<Throttle> CHANNEL_THOTTLE_KEY = AttributeKey.<Throttle>newInstance("channelThottle");
 
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
@@ -382,7 +384,7 @@ public class DefaultRatpackServer implements RatpackServer {
   class ReloadHandler extends ChannelInboundHandlerAdapter {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
-    private final Throttle reloadThrottle = Throttle.ofSize(1);
+    private final Throttle reloadThrottle = Throttle.ofSize(10000);
 
     private ChannelHandler inner;
 
@@ -415,6 +417,14 @@ public class DefaultRatpackServer implements RatpackServer {
         ReferenceCountUtil.release(msg);
         ctx.fireChannelReadComplete();
         return;
+      }
+
+      Throttle requestThrottle;
+      if (msg instanceof HttpRequest) {
+        requestThrottle = Throttle.ofSize(1);
+        ctx.channel().attr(CHANNEL_THOTTLE_KEY).set(requestThrottle);
+      } else {
+        requestThrottle = ctx.channel().attr(CHANNEL_THOTTLE_KEY).get();
       }
 
       execController.fork().eventLoop(ctx.channel().eventLoop()).start(e ->
@@ -457,6 +467,7 @@ public class DefaultRatpackServer implements RatpackServer {
             ctx.pipeline().addLast("inner", r.getValueOrThrow());
           })
           .throttled(reloadThrottle)
+          .throttled(requestThrottle)
           .then(adapter -> ctx.fireChannelRead(msg))
       );
     }
