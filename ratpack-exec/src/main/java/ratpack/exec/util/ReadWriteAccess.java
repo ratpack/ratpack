@@ -38,6 +38,86 @@ import java.util.concurrent.locks.ReadWriteLock;
  * Access is not reentrant.
  * Deadlocks are not detected or prevented.
  *
+ * <pre class="java">{@code
+ * import com.google.common.io.Files;
+ * import io.netty.buffer.ByteBufAllocator;
+ * import ratpack.exec.Promise;
+ * import ratpack.exec.util.ParallelBatch;
+ * import ratpack.exec.util.ReadWriteAccess;
+ * import ratpack.file.FileIo;
+ * import ratpack.test.embed.EmbeddedApp;
+ * import ratpack.test.embed.EphemeralBaseDir;
+ * import ratpack.test.exec.ExecHarness;
+ *
+ * import java.nio.charset.Charset;
+ * import java.nio.file.Path;
+ * import java.util.ArrayList;
+ * import java.util.Collections;
+ * import java.util.List;
+ *
+ * import static java.nio.file.StandardOpenOption.*;
+ * import static org.junit.Assert.assertEquals;
+ *
+ * public class Example {
+ *
+ *   public static void main(String... args) throws Exception {
+ *     EphemeralBaseDir.tmpDir().use(baseDir -> {
+ *       ReadWriteAccess access = ReadWriteAccess.create();
+ *       Path f = baseDir.write("f", "foo");
+ *
+ *       EmbeddedApp.of(a -> a
+ *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
+ *         .handlers(c -> {
+ *           ByteBufAllocator allocator = c.getRegistry().get(ByteBufAllocator.class);
+ *
+ *           c.path(ctx ->
+ *             ctx.byMethod(m -> m
+ *               .get(() ->
+ *                 FileIo.read(FileIo.open(f, READ, CREATE), allocator, 8192)
+ *                   .apply(access::read)
+ *                   .map(b -> b.toString(Charset.defaultCharset()))
+ *                   .then(ctx::render)
+ *               )
+ *               .post(() ->
+ *                 FileIo.write(ctx.getRequest().getBodyStream(), FileIo.open(f, WRITE, CREATE, TRUNCATE_EXISTING))
+ *                   .apply(access::write)
+ *                   .then(written -> ctx.render(written.toString()))
+ *               )
+ *             )
+ *           );
+ *         })
+ *       ).test(httpClient -> {
+ *
+ *         // Create a bunch of reads and writes
+ *         List<Promise<String>> requests = new ArrayList<>();
+ *         for (int i = 0; i < 200; ++i) {
+ *           requests.add(Promise.sync(httpClient::getText));
+ *         }
+ *         for (int i = 0; i < 200; ++i) {
+ *           requests.add(Promise.sync(() ->
+ *             httpClient.request(r -> r
+ *               .post().getBody().text("foo")
+ *             ).getBody().getText()
+ *           ));
+ *         }
+ *
+ *         // Interleave
+ *         Collections.shuffle(requests);
+ *
+ *         // Execute them in parallel
+ *         List<String> results = ExecHarness.yieldSingle(r ->
+ *           ParallelBatch.of(requests).yield()
+ *         ).getValueOrThrow();
+ *
+ *         assertEquals("foo", Files.toString(f.toFile(), Charset.defaultCharset()));
+ *         assertEquals(400, results.size());
+ *       });
+ *     });
+ *   }
+ * }
+ *
+ * }</pre>
+ *
  * @since 1.5
  */
 public interface ReadWriteAccess {
