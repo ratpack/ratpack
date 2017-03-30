@@ -56,7 +56,7 @@ public class DefaultSerialBatch<T> implements SerialBatch<T> {
   }
 
   @Override
-  public Promise<List<? extends T>> yield() {
+  public Promise<List<T>> yield() {
     List<T> results = new ArrayList<>();
     return Promise.async(d ->
       forEach((i, r) -> results.add(r))

@@ -94,7 +94,7 @@ public interface Batch<T> {
    *
    * @return a promise for each promised value
    */
-  Promise<List<? extends T>> yield();
+  Promise<List<T>> yield();
 
   /**
    * Processes the promises of the batch, stopping at the first error, emitting results to the given callback.
