@@ -17,8 +17,6 @@
 package ratpack.stream;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.CompositeByteBuf;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -32,7 +30,6 @@ import ratpack.registry.Registry;
 import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
-import java.io.BufferedInputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
