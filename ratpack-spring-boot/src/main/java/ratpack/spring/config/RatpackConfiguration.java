@@ -105,12 +105,12 @@ public class RatpackConfiguration implements CommandLineRunner {
     }
 
     private Function<Registry, Registry> joinedRegistry(ApplicationContext context) throws Exception {
-      return baseRegistry -> Spring.spring(context).join(Guice.registry(bindingSpec -> {
+      return baseRegistry -> Guice.registry(bindingSpec -> {
         context.getBeansOfType(Module.class).values().forEach(bindingSpec::module);
         for (RatpackServerCustomizer customizer : customizers) {
           customizer.getBindings().execute(bindingSpec);
         }
-      }).apply(baseRegistry));
+      }).apply(baseRegistry).join(Spring.spring(context));
     }
 
   }

@@ -16,98 +16,74 @@
 
 package ratpack.server.internal;
 
-import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.server.ServerConfig;
+import ratpack.util.internal.Environment;
 
-import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-public class ServerEnvironment {
+public class ServerEnvironment extends Environment {
 
   public static final ServerEnvironment INSTANCE = new ServerEnvironment(System.getenv(), System.getProperties());
-
-  public static final String DEVELOPMENT_PROPERTY = "ratpack.development";
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);
-  private static final int MAX_PORT = 65535;
-  private static final Pattern STARTS_WITH_SCHEME_PATTERN = Pattern.compile("^(.+)://.+$");
+  public static final String ADDRESS_PROPERTY = "ratpack.address";
   public static final String PORT_PROPERTY = "ratpack.port";
   public static final String INTELLIJ_MAIN = "com.intellij.rt.execution.application.AppMain";
   public static final String INTELLIJ_JUNIT = "com.intellij.rt.execution.junit.JUnitStarter";
-  public static final String GROOVY_MAIN = "org.codehaus.groovy.tools.GroovyStarter";
   public static final String SUN_JAVA_COMMAND = "sun.java.command";
 
-  private final Map<String, String> env;
-  private final Properties properties;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServerEnvironment.class);
+  private static final Pattern STARTS_WITH_SCHEME_PATTERN = Pattern.compile("^(.+)://.+$");
+  private static final int MAX_PORT = 65535;
 
   public ServerEnvironment(Map<String, String> env, Properties properties) {
-    this.env = env;
-    this.properties = properties;
+    super(env, properties);
   }
 
   public static ServerEnvironment env() {
     return INSTANCE;
   }
 
-  @SafeVarargs
-  @SuppressWarnings("varargs")
-  private static <T> T get(T defaultValue, Predicate<? super T> accept, Supplier<T>... suppliers) {
-    return Iterables.find(Iterables.transform(Arrays.asList(suppliers), Supplier::get), accept::test, defaultValue);
+  public InetAddress getAddress() {
+    return get(null,
+      i -> i != null,
+      () -> parseAddressValue("ratpack.address system property", getProperties().getProperty(ADDRESS_PROPERTY)),
+      () -> parseAddressValue("RATPACK_ADDRESS env var", getenv().get("RATPACK_ADDRESS"))
+    );
   }
 
-  public Map<String, String> getenv() {
-    return env;
-  }
-
-  public Properties getProperties() {
-    return properties;
+  private InetAddress parseAddressValue(String description, String value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return InetAddress.getByName(value);
+    } catch (UnknownHostException e) {
+      LOGGER.warn("Failed to parse {} value {} to InetAddress, using default of {}", description, value, null);
+    }
+    return null;
   }
 
   public Integer getPort() {
     return get(ServerConfig.DEFAULT_PORT,
       i -> i != null,
-      () -> parsePortValue("ratpack.port system property", properties.getProperty(PORT_PROPERTY)),
-      () -> parsePortValue("RATPACK_PORT env var", env.get("RATPACK_PORT")),
-      () -> parsePortValue("PORT env var", env.get("PORT"))
-    );
-  }
-
-  public boolean isDevelopment() {
-    return Boolean.parseBoolean(
-      get("false", i -> i != null,
-        () -> properties.getProperty(DEVELOPMENT_PROPERTY),
-        () -> env.get("RATPACK_DEVELOPMENT"),
-        () -> {
-          String command = properties.getProperty(SUN_JAVA_COMMAND, "");
-          return command.startsWith(INTELLIJ_MAIN) && !command.contains(INTELLIJ_JUNIT) ? "true" : null;
-        },
-        () -> {
-          String command = properties.getProperty(SUN_JAVA_COMMAND, "");
-          return command.startsWith(GROOVY_MAIN) ? "true" : null;
-        },
-        () -> isDebuggerAttached() ? "true" : null
-      )
+      () -> parsePortValue("ratpack.port system property", getProperties().getProperty(PORT_PROPERTY)),
+      () -> parsePortValue("RATPACK_PORT env var", getenv().get("RATPACK_PORT")),
+      () -> parsePortValue("PORT env var", getenv().get("PORT"))
     );
   }
 
   public URI getPublicAddress() {
     return get(null, i -> i != null,
-      () -> parseUri("'ratpack.publicAddress' system property", properties.getProperty("ratpack.publicAddress")),
-      () -> parseUri("'RATPACK_PUBLIC_ADDRESS' env var", env.get("RATPACK_PUBLIC_ADDRESS"))
+      () -> parseUri("'ratpack.publicAddress' system property", getProperties().getProperty("ratpack.publicAddress")),
+      () -> parseUri("'RATPACK_PUBLIC_ADDRESS' env var", getenv().get("RATPACK_PUBLIC_ADDRESS"))
     );
-  }
-
-  private static boolean isDebuggerAttached() {
-    return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
   }
 
   private static URI parseUri(String description, String value) {
@@ -124,7 +100,6 @@ public class ServerEnvironment {
         LOGGER.warn("Could not convert {} with value {} to a URI ({}), ignoring value", description, value, e.getMessage());
       }
     }
-
     return null;
   }
 

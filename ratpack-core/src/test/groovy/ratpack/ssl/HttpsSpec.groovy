@@ -19,7 +19,6 @@ package ratpack.ssl
 import org.junit.Rule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.ssl.client.NonValidatingSSLClientContext
-import spock.lang.Unroll
 
 class HttpsSpec extends RatpackGroovyDslSpec {
 
@@ -36,8 +35,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       null)
   }
 
-  @Unroll("#path yields #responseBody")
-  def "can serve content over HTTPS"() {
+  def "#path yields #responseBody"() {
     given:
     serverConfig {
       ssl SSLContexts.sslContext(HttpsSpec.getResource("dummy.keystore"), "password")

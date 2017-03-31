@@ -17,7 +17,7 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
-import spock.lang.Unroll
+import ratpack.stream.Streams
 
 import java.util.zip.GZIPInputStream
 
@@ -25,7 +25,6 @@ import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.stream.Streams.publish
 
-@Unroll
 class HttpReverseProxySpec extends BaseHttpClientSpec {
 
   def "can forward non streamed response as a stream"() {
@@ -68,8 +67,8 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
     }
     otherApp {
       post {
-        request.body.then {
-          render stringChunks("text/plain", publish([it.text] * 1000))
+        request.body.then { t ->
+          render stringChunks("text/plain", Streams.yield { it.requestNum < 1000 ? t.text : null })
         }
       }
     }

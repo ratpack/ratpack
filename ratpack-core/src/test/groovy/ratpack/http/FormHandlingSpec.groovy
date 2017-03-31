@@ -30,7 +30,6 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import static ratpack.form.Form.form
 import static ratpack.http.MediaType.APPLICATION_FORM
@@ -218,7 +217,6 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     postText() == "File type: text/plain; charset=us-ascii"
   }
 
-  @Unroll
   def "Error for #message"() {
     given:
     handlers {

@@ -293,39 +293,6 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  def "request body is not eagerly read"() {
-    given:
-    def body = "a" * (4096 * 10)
-    handlers {
-      post { ctx ->
-        ctx.render(directChannelAccess.channel.id().asShortText())
-      }
-    }
-
-    when:
-    HttpURLConnection connection = applicationUnderTest.address.toURL().openConnection()
-    connection.setRequestMethod("POST")
-    connection.doOutput = true
-    connection.outputStream << body
-    def channelId1 = connection.inputStream.text
-
-    then:
-    connection.getHeaderField("Connection") == "close"
-
-    when:
-    connection = applicationUnderTest.address.toURL().openConnection()
-    connection.setRequestMethod("POST")
-    connection.doOutput = true
-    connection.outputStream << body
-    def channelId2 = connection.inputStream.text
-
-    then:
-    connection.getHeaderField("Connection") == "close"
-
-    and:
-    channelId1 != channelId2
-  }
-
   def "can read large request body over same connection"() {
     given:
     def body = "a" * (4096 * 10)

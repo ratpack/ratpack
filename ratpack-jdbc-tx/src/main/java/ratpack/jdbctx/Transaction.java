@@ -189,7 +189,7 @@ import java.util.Optional;
  *         })
  *       )
  *       .next(tx.commit())
- *       .onError(e -> assertValues().operation().then())
+ *       .onError(e -> assertValues().map(Operation::of).then())
  *       .then(assertValues("1"));
  *   }
  * }

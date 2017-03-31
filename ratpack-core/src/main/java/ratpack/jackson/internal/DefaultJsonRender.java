@@ -40,14 +40,17 @@ public class DefaultJsonRender implements JsonRender {
     this.viewClass = viewClass;
   }
 
+  @Override
   public Object getObject() {
     return object;
   }
 
+  @Override
   public ObjectWriter getObjectWriter() {
     return objectWriter;
   }
 
+  @Override
   public Class<?> getViewClass() {
     return viewClass;
   }

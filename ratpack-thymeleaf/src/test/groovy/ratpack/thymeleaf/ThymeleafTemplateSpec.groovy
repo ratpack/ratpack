@@ -20,7 +20,6 @@ import org.thymeleaf.TemplateEngine
 import org.thymeleaf.cache.StandardCacheManager
 import org.thymeleaf.fragment.DOMSelectorFragmentSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import static Template.thymeleafTemplate
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
@@ -28,7 +27,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERR
 
 class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
-  @Unroll
   void 'can render a thymeleaf template from #scenario'() {
     given:
     write filePath, '<span th:text="${key}"/>'
@@ -72,14 +70,17 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<span>it works!</span>'
   }
 
-  @Unroll
   void 'use default suffix if a #scenario suffix is used'() {
     given:
     write 'thymeleaf/simple.html', '<span th:text="${text}"/>'
 
     when:
     bindings {
-      module new ThymeleafModule(templatesSuffix: templatesSuffix), { if (configTemplatesSuffix != null) { it.templateSuffix(configTemplatesSuffix) } }
+      module new ThymeleafModule(templatesSuffix: templatesSuffix), {
+        if (configTemplatesSuffix != null) {
+          it.templateSuffix(configTemplatesSuffix)
+        }
+      }
     }
     handlers {
       get {
@@ -176,7 +177,6 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == '<div>page footer</div>'
   }
 
-  @Unroll
   void 'can render a thymeleaf template with #urlType link URL expressions'() {
     given:
     write 'thymeleaf/link.html', "<a th:href=\"${linkExpression}\">link</a>"
@@ -221,7 +221,6 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     text == 'it works!'
   }
 
-  @Unroll
   void 'can handle templates prefix with #scenario slash'() {
     given:
     write 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
@@ -265,7 +264,6 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     get("simple?type=text/xml").headers.get(CONTENT_TYPE) == "text/xml"
   }
 
-  @Unroll
   void 'can configure templates cache with #scenario'() {
     given:
     write 'thymeleaf/simple.html', 'DUMMY'

@@ -24,7 +24,7 @@ ext.apiLinks = [
     "http://www.slf4j.org/apidocs/",
     "http://docs.oracle.com/javase/8/docs/api/",
     "http://google.github.io/guava/releases/${commonVersions.guava}/api/docs",
-    "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams}-javadoc/",
+    "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams - '.final'}-javadoc/",
     "http://fasterxml.github.io/jackson-databind/javadoc/2.7/",
     "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.7",
     "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.7",
@@ -32,12 +32,10 @@ ext.apiLinks = [
 ]
 
 dependencies {
+  compile project(":ratpack-exec")
   compile "io.netty:netty-codec-http:$commonVersions.netty"
   compile "io.netty:netty-handler:$commonVersions.netty"
-  compile "io.netty:netty-transport-native-epoll:$commonVersions.netty:linux-x86_64"
-  compile commonDependencies.guava
-  compile commonDependencies.slf4j
-  compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
+
   compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"
 
   compile 'org.javassist:javassist:3.19.0-GA'
@@ -53,13 +51,7 @@ dependencies {
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
-  testCompile("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
-    exclude group: "junit", module: "junit"
-    exclude group: "org.yaml", module: "snakeyaml"
-  }
-  testCompile('org.mockito:mockito-core:1.10.19') {
-    exclude group: "org.hamcrest", module: "hamcrest-core"
-  }
+
   testCompile 'com.opencsv:opencsv:3.3'
   testCompile('com.github.tomakehurst:wiremock:1.56') {
     exclude group: "org.slf4j", module: "slf4j-api"

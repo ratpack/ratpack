@@ -22,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.http.ConnectionClosedException;
@@ -41,15 +42,13 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private final HttpRequest request;
   private final ChannelHandlerContext ctx;
 
-  private boolean read;
-  private boolean done;
   private long maxContentLength = -1;
   private Block onTooLarge;
   private long length;
   private Downstream<? super ByteBuf> downstream;
-  private ByteBuf compositeBuffer;
-
+  private boolean receivedLast;
   private Consumer<? super HttpContent> onAdd;
+  private State state = State.UNREAD;
 
   public RequestBody(long advertisedLength, HttpRequest request, ChannelHandlerContext ctx) {
     this.advertisedLength = advertisedLength;
@@ -59,19 +58,19 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public void add(HttpContent httpContent) {
-    if (onAdd == null) {
-      if (httpContent != LastHttpContent.EMPTY_LAST_CONTENT) {
-        ByteBuf byteBuf = httpContent.content().touch();
-        length += byteBuf.readableBytes();
-        if (maxContentLength > 0 && maxContentLength < length) {
-          assert downstream != null;
-          tooLarge(downstream);
-          return;
-        }
+    if (state == State.READ) {
+      httpContent.release();
+    } else if (onAdd == null) {
+      ByteBuf byteBuf = httpContent.content().touch();
+      int readableBytes = byteBuf.readableBytes();
+      if (readableBytes > 0) {
+        length += readableBytes;
         byteBufs.add(byteBuf);
+      } else {
+        byteBuf.release();
       }
       if (httpContent instanceof LastHttpContent) {
-        done = true;
+        receivedLast = true;
         if (downstream != null) {
           complete(downstream);
         }
@@ -79,27 +78,26 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         ctx.read();
       }
     } else {
-      onAdd.accept(httpContent);
+      onAdd.accept(httpContent.touch());
     }
   }
 
+  @Override
+  public State getState() {
+    return state;
+  }
+
   public boolean isComplete() {
-    return done;
+    return state == State.READ;
   }
 
   @Override
   public void close() {
-    if (compositeBuffer == null) {
-      //noinspection Convert2streamapi
-      for (ByteBuf byteBuf : byteBufs) {
-        byteBuf.release();
-      }
-      byteBufs.clear();
-    } else {
-      if (compositeBuffer.refCnt() > 0) {
-        compositeBuffer.release();
-      }
+    //noinspection Convert2streamapi
+    for (ByteBuf byteBuf : byteBufs) {
+      byteBuf.release();
     }
+    byteBufs.clear();
   }
 
   public void forceCloseConnection() {
@@ -108,6 +106,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private void tooLarge(Downstream<? super ByteBuf> downstream) {
+    state = State.READ;
     forceCloseConnection();
     try {
       onTooLarge.execute();
@@ -118,11 +117,12 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private void complete(Downstream<? super ByteBuf> downstream) {
+    state = State.READ;
+
     if (byteBufs.isEmpty()) {
       downstream.success(Unpooled.EMPTY_BUFFER);
     } else {
-      compositeBuffer = composeReceived();
-      downstream.success(compositeBuffer);
+      downstream.success(composeReceived());
     }
   }
 
@@ -137,17 +137,17 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   @Override
-  public TransformablePublisher<ByteBuf> readStream(long maxContentLength) {
+  public TransformablePublisher<ByteBuf> readStream() {
     return new BufferingPublisher<ByteBuf>(ByteBuf::release, write -> {
-      if (read) {
+      if (state != State.UNREAD) {
         throw new RequestBodyAlreadyReadException();
       }
 
-      read = true;
-      RequestBody.this.maxContentLength = maxContentLength;
+      state = State.READING;
 
       if (advertisedLength > maxContentLength || length > maxContentLength) {
         forceCloseConnection();
+        state = State.READ;
         throw new RequestBodyTooLargeException(maxContentLength, Math.max(advertisedLength, length));
       }
 
@@ -172,8 +172,11 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
             ByteBuf alreadyReceived = composeReceived();
             if (alreadyReceived.readableBytes() > 0) {
               write.item(alreadyReceived);
+            } else {
+              alreadyReceived.release();
             }
-            if (done) {
+            if (receivedLast) {
+              state = State.READ;
               write.complete();
               return;
             } else {
@@ -183,6 +186,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                   length += byteBuf.readableBytes();
                   if (maxContentLength > 0 && maxContentLength < length) {
                     byteBuf.release();
+                    state = State.READ;
                     forceCloseConnection();
                     write.error(new RequestBodyTooLargeException(maxContentLength, length));
                     return;
@@ -191,7 +195,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                   write.item(byteBuf);
                 }
                 if (httpContent instanceof LastHttpContent) {
-                  done = true;
+                  state = State.READ;
                   ctx.channel().config().setAutoRead(false);
                   write.complete();
                 } else if (!autoRead && write.getRequested() > 0) {
@@ -217,27 +221,70 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     }).bindExec(ByteBuf::release);
   }
 
+  public void discard(Consumer<? super Throwable> resume) {
+    close();
+
+    if (state != State.UNREAD) {
+      throw new RequestBodyAlreadyReadException();
+    }
+
+    state = State.READING;
+
+    if (advertisedLength > maxContentLength || length > maxContentLength) {
+      state = State.READ;
+      forceCloseConnection();
+      resume.accept(new RequestBodyTooLargeException(maxContentLength, advertisedLength));
+    } else if (receivedLast) {
+      state = State.READ;
+      resume.accept(null);
+    } else {
+      onAdd = httpContent -> {
+        httpContent.release();
+        if ((length += httpContent.content().readableBytes()) > maxContentLength) {
+          state = State.READ;
+          resume.accept(new RequestBodyTooLargeException(maxContentLength, length));
+        } else if (httpContent instanceof LastHttpContent) {
+          state = State.READ;
+          resume.accept(null);
+        } else {
+          ctx.read();
+        }
+      };
+      ctx.read();
+    }
+
+  }
+
   @Override
   public long getContentLength() {
     return advertisedLength;
   }
 
   @Override
-  public Promise<ByteBuf> read(long maxContentLength, Block onTooLarge) {
+  public void setMaxContentLength(long maxContentLength) {
+    this.maxContentLength = maxContentLength;
+  }
+
+  @Override
+  public long getMaxContentLength() {
+    return maxContentLength;
+  }
+
+  @Override
+  public Promise<ByteBuf> read(Block onTooLarge) {
     return Promise.<ByteBuf>async(downstream -> {
-      if (read) {
+      if (state != State.UNREAD) {
         downstream.error(new RequestBodyAlreadyReadException());
         return;
       }
-      read = true;
+      state = State.READING;
       this.onTooLarge = onTooLarge;
 
       if (advertisedLength > maxContentLength || length > maxContentLength) {
         tooLarge(downstream);
-      } else if (done) {
+      } else if (receivedLast) {
         complete(downstream);
       } else {
-        this.maxContentLength = maxContentLength;
         this.downstream = downstream;
         if (HttpUtil.is100ContinueExpected(request)) {
           HttpResponse continueResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
@@ -251,6 +298,13 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
         ctx.read();
       }
+    }).map(byteBuf -> {
+      Execution.current().onComplete(() -> {
+        if (byteBuf.refCnt() > 0) {
+          byteBuf.release();
+        }
+      });
+      return byteBuf;
     });
   }
 

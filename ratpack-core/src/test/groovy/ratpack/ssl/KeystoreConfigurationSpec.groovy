@@ -21,7 +21,6 @@ import org.junit.rules.TemporaryFolder
 import ratpack.server.ServerConfig
 import spock.lang.Ignore
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @Ignore("TODO - john")
 class KeystoreConfigurationSpec extends Specification {
@@ -31,8 +30,6 @@ class KeystoreConfigurationSpec extends Specification {
   @Rule
   TemporaryFolder temporaryFolder
 
-
-  @Unroll
   def "can configure SSL keystore using a keystore file property that is #description"() {
     given:
     Properties properties = new Properties()

@@ -48,7 +48,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
   private static final String HANDLER_NAME = "streaming";
 
-  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
+  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
     super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
@@ -64,7 +64,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   }
 
   @Override
-  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
+  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
     return new ContentStreamingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 
@@ -100,21 +100,28 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         success(downstream, new DefaultStreamedResponse(channelPipeline));
       } else if (httpObject instanceof HttpContent) {
         HttpContent httpContent = ((HttpContent) httpObject).touch();
-        if (write == null) {
-          if (received == null) {
-            received = new ArrayList<>();
+        boolean hasContent = httpContent.content().readableBytes() > 0;
+        boolean isLast = httpObject instanceof LastHttpContent;
+
+        if (write == null) { // the stream has not yet been subscribed to
+          if (hasContent || isLast) {
+            if (received == null) {
+              received = new ArrayList<>();
+            }
+            received.add(httpContent.touch());
+          } else {
+            httpContent.release();
           }
-          received.add(httpContent.touch());
-          if (httpObject instanceof LastHttpContent) {
+          if (isLast) {
             dispose(ctx.pipeline(), response);
           }
-        } else {
-          if (httpContent.content().readableBytes() > 0) {
+        } else { // the stream has been subscribed to
+          if (hasContent) {
             write.item(httpContent.content().touch("emitting to user code"));
           } else {
             httpContent.release();
           }
-          if (httpObject instanceof LastHttpContent) {
+          if (isLast) {
             dispose(ctx.pipeline(), response);
             write.complete();
           } else {
@@ -128,8 +135,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      forceDispose(ctx.pipeline());
       error(downstream, cause);
+      forceDispose(ctx.pipeline());
     }
 
     class DefaultStreamedResponse implements StreamedResponse {

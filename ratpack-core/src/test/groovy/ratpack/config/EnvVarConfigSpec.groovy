@@ -16,14 +16,13 @@
 
 package ratpack.config
 
+import ratpack.impose.Impositions
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
-import ratpack.impose.Impositions
-import spock.lang.Unroll
 
 class EnvVarConfigSpec extends BaseConfigSpec {
+
   @SuppressWarnings("GroovyAssignabilityCheck")
-  @Unroll
   def "support PORT environment variable: #envData to #expectedPort"() {
     when:
     def serverConfig = new DefaultServerConfigBuilder(new ServerEnvironment(envData, new Properties()), Impositions.none()).env().build()
