@@ -19,6 +19,7 @@ package ratpack.exec.util;
 import ratpack.exec.Promise;
 import ratpack.exec.util.internal.DefaultReadWriteAccess;
 
+import java.time.Duration;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -54,6 +55,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  * import java.util.ArrayList;
  * import java.util.Collections;
  * import java.util.List;
+ * import java.time.Duration;
  *
  * import static java.nio.file.StandardOpenOption.*;
  * import static org.junit.Assert.assertEquals;
@@ -62,7 +64,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  *
  *   public static void main(String... args) throws Exception {
  *     EphemeralBaseDir.tmpDir().use(baseDir -> {
- *       ReadWriteAccess access = ReadWriteAccess.create();
+ *       ReadWriteAccess access = ReadWriteAccess.create(Duration.ofSeconds(5));
  *       Path f = baseDir.write("f", "foo");
  *
  *       EmbeddedApp.of(a -> a
@@ -123,19 +125,29 @@ import java.util.concurrent.locks.ReadWriteLock;
 public interface ReadWriteAccess {
 
   /**
-   * Create a new read/write access object.
+   * Create a new read/write access object with the given default timeout.
    *
+   * @param defaultTimeout the default maximum amount of time to wait for access (must not be negative, 0 == infinite)
    * @return a new read/write access object
    */
-  static ReadWriteAccess create() {
-    return new DefaultReadWriteAccess();
+  static ReadWriteAccess create(Duration defaultTimeout) {
+    return new DefaultReadWriteAccess(defaultTimeout);
   }
+
+  /**
+   * The default timeout value.
+   *
+   * @return the default timeout value
+   */
+  Duration getDefaultTimeout();
 
   /**
    * Decorates the given promise with read serialization.
    * <p>
    * Read serialized promises may execute concurrently with other read serialized promises,
    * but not with write serialized promises.
+   * <p>
+   * If access is not granted within the default timeout, the promise will wail with {@link TimeoutException}.
    *
    * @param promise the promise to decorate
    * @param <T> the type of promised value
@@ -144,14 +156,54 @@ public interface ReadWriteAccess {
   <T> Promise<T> read(Promise<T> promise);
 
   /**
+   * Decorates the given promise with read serialization and the given timeout.
+   * <p>
+   * Read serialized promises may execute concurrently with other read serialized promises,
+   * but not with write serialized promises.
+   * <p>
+   * If access is not granted within the given timeout, the promise will wail with {@link TimeoutException}.
+   *
+   * @param promise the promise to decorate
+   * @param timeout the maximum amount of time to wait for access (must not be negative, 0 == infinite)
+   * @param <T> the type of promised value
+   * @return a decorated promise
+   */
+  <T> Promise<T> read(Promise<T> promise, Duration timeout);
+
+  /**
    * Decorates the given promise with write serialization.
    * <p>
    * Write serialized promises may not execute concurrently with read or write serialized promises.
+   * <p>
+   * If access is not granted within the default timeout, the promise will wail with {@link TimeoutException}.
    *
    * @param promise the promise to decorate
    * @param <T> the type of promised value
    * @return a decorated promise
    */
   <T> Promise<T> write(Promise<T> promise);
+
+  /**
+   * Decorates the given promise with write serialization.
+   * <p>
+   * Write serialized promises may not execute concurrently with read or write serialized promises.
+   * <p>
+   * If access is not granted within the given timeout, the promise will wail with {@link TimeoutException}.
+   *
+   * @param promise the promise to decorate
+   * @param timeout the maximum amount of time to wait for access (must not be negative, 0 == infinite)
+   * @param <T> the type of promised value
+   * @return a decorated promise
+   */
+  <T> Promise<T> write(Promise<T> promise, Duration timeout);
+
+  /**
+   * Thrown if access could not be acquired within the given timeout value.
+   */
+  class TimeoutException extends RuntimeException {
+    public TimeoutException(String message) {
+      super(message);
+    }
+  }
 
 }

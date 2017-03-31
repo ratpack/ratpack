@@ -19,14 +19,16 @@ package ratpack.exec.util
 import ratpack.exec.BaseExecutionSpec
 import ratpack.exec.Execution
 import ratpack.exec.Promise
+import spock.lang.Unroll
 
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class ReadWriteAccessSpec extends BaseExecutionSpec {
 
-  def access = ReadWriteAccess.create()
+  def access = ReadWriteAccess.create(Duration.ZERO)
 
   @SuppressWarnings("ChangeToOperator")
   def "serializes reads and writes"() {
@@ -112,4 +114,60 @@ class ReadWriteAccessSpec extends BaseExecutionSpec {
     l.await()
     i.get() == 0
   }
+
+  def "can set timeout on access - write lock"() {
+    when:
+    execHarness.yield {
+      Promise.value("write")
+        .apply { access.read(it, Duration.ofMillis(100)) }
+        .apply { access.write(it) }
+    }.valueOrThrow
+
+    then:
+    def e = thrown ReadWriteAccess.TimeoutException
+    e.message == "Could not acquire read access within PT0.1S"
+  }
+
+  def "can set timeout on access - read lock"() {
+    when:
+    execHarness.yield {
+      Promise.value("read")
+        .apply { access.write(it, Duration.ofMillis(100)) }
+        .apply { access.read(it) }
+    }.valueOrThrow
+
+    then:
+    def e = thrown ReadWriteAccess.TimeoutException
+    e.message == "Could not acquire write access within PT0.1S"
+  }
+
+  @Unroll
+  def "timeout does not hold lock - #timeoutLock lock timeout, acquire #acquireLock"() {
+    when:
+    execHarness.yield {
+      Promise.value("1")
+        .apply { access."$timeoutLock"(it, Duration.ofMillis(100)) }
+        .apply { access."${timeoutLock == "read" ? "write" : "read"}"(it) }
+    }.valueOrThrow
+
+    then:
+    thrown ReadWriteAccess.TimeoutException
+
+    when:
+    def r = execHarness.yield {
+      Promise.value("2")
+        .apply { access."$acquireLock"(it) }
+    }.valueOrThrow
+
+    then:
+    r == "2"
+
+    where:
+    timeoutLock | acquireLock
+    "write"     | "write"
+    "read"      | "read"
+    "read"      | "write"
+    "write"     | "read"
+  }
+
 }

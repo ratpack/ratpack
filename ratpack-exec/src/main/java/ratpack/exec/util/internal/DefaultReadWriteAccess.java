@@ -16,6 +16,7 @@
 
 package ratpack.exec.util.internal;
 
+import io.netty.util.concurrent.ScheduledFuture;
 import ratpack.exec.Downstream;
 import ratpack.exec.Promise;
 import ratpack.exec.Upstream;
@@ -23,145 +24,190 @@ import ratpack.exec.internal.Continuation;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.util.ReadWriteAccess;
 
+import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReadWriteLock;
 
-/**
- * Analogous to {@link ReadWriteLock}, but non blocking.
- * <p>
- * - access is “fair”
- * - access is NOT reentrant
- * <p>
- * Will move to Ratpack 1.5
- */
 public class DefaultReadWriteAccess implements ReadWriteAccess {
 
-    private final Queue<Access<?>> queue = new ConcurrentLinkedQueue<>();
-    private final AtomicBoolean draining = new AtomicBoolean();
-    private final AtomicInteger activeReaders = new AtomicInteger();
+  private final Queue<Access<?>> queue = new ConcurrentLinkedQueue<>();
+  private final AtomicBoolean draining = new AtomicBoolean();
+  private final AtomicInteger activeReaders = new AtomicInteger();
+  private final Duration defaultTimeout;
 
-    private AtomicReference<Access<?>> pendingWriteRef = new AtomicReference<>();
+  private AtomicReference<Access<?>> pendingWriteRef = new AtomicReference<>();
 
-    private class Access<T> {
-
-        private final boolean read;
-        private final Upstream<? extends T> upstream;
-        private final Downstream<? super T> downstream;
-        private final DefaultExecution execution;
-
-        private Continuation continuation;
-
-        private Access(boolean read, Upstream<? extends T> upstream, Downstream<? super T> downstream) {
-            this.read = read;
-            this.upstream = upstream;
-            this.downstream = downstream;
-            this.execution = DefaultExecution.get();
-
-            execution.delimit(e -> {
-                relinquish();
-                downstream.error(e);
-            }, continuation -> {
-                this.continuation = continuation;
-                queue.add(this);
-                drain();
-            });
-        }
-
-        private void access() {
-            if (read) {
-                activeReaders.incrementAndGet();
-            }
-
-            // Workaround for https://github.com/ratpack/ratpack/issues/1176
-            if (execution.isBound()) {
-                resume();
-            } else {
-                execution.getEventLoop().execute(this::resume);
-            }
-        }
-
-        private void resume() {
-            continuation.resume(() ->
-                upstream.connect(new Downstream<T>() {
-                    @Override
-                    public void success(T value) {
-                        relinquish();
-                        downstream.success(value);
-                    }
-
-                    @Override
-                    public void error(Throwable throwable) {
-                        relinquish();
-                        downstream.error(throwable);
-                    }
-
-                    @Override
-                    public void complete() {
-                        relinquish();
-                        downstream.complete();
-                    }
-                })
-            );
-        }
-
-        private void relinquish() {
-            if (read) {
-                if (activeReaders.decrementAndGet() == 0) {
-                    Access<?> pendingWrite = pendingWriteRef.getAndSet(null);
-                    if (pendingWrite != null) {
-                        pendingWrite.access();
-                        return;
-                    }
-                }
-            } else {
-                draining.set(false);
-            }
-
-            drain();
-        }
-
+  public DefaultReadWriteAccess(Duration defaultTimeout) {
+    if (defaultTimeout.isNegative()) {
+      throw new IllegalArgumentException("defaultTimeout must not be negative");
     }
 
-    @Override
-    public <T> Promise<T> read(Promise<T> promise) {
-        return promise.transform(up -> down -> new Access<T>(true, up, down));
-    }
+    this.defaultTimeout = defaultTimeout;
+  }
 
-    @Override
-    public <T> Promise<T> write(Promise<T> promise) {
-        return promise.transform(up -> down -> new Access<T>(false, up, down));
-    }
+  @Override
+  public Duration getDefaultTimeout() {
+    return defaultTimeout;
+  }
 
-    private void drain() {
-        if (draining.compareAndSet(false, true)) {
-            Access<?> access = queue.poll();
-            while (access != null) {
-                if (access.read) {
-                    access.access();
-                    access = queue.poll();
-                } else {
-                    if (activeReaders.get() == 0) {
-                        access.access();
-                    } else {
-                        pendingWriteRef.set(access);
-                        if (activeReaders.get() == 0) {
-                            access = pendingWriteRef.getAndSet(null);
-                            if (access != null) {
-                                access.access();
-                            }
-                        }
-                    }
-                    return;
-                }
-            }
-            draining.set(false);
-            if (!queue.isEmpty()) {
-                drain();
-            }
+  @Override
+  public <T> Promise<T> read(Promise<T> promise) {
+    return promise.transform(up -> down -> new Access<T>(true, up, defaultTimeout, down));
+  }
+
+  @Override
+  public <T> Promise<T> read(Promise<T> promise, Duration timeout) {
+    return promise.transform(up -> down -> new Access<T>(true, up, timeout, down));
+  }
+
+  @Override
+  public <T> Promise<T> write(Promise<T> promise) {
+    return promise.transform(up -> down -> new Access<T>(false, up, defaultTimeout, down));
+  }
+
+  @Override
+  public <T> Promise<T> write(Promise<T> promise, Duration timeout) {
+    return promise.transform(up -> down -> new Access<T>(false, up, timeout, down));
+  }
+
+  private class Access<T> {
+
+    private final boolean read;
+    private final Upstream<? extends T> upstream;
+    private final Duration timeout;
+    private final Downstream<? super T> downstream;
+    private final DefaultExecution execution;
+    private boolean fired;
+
+    private Continuation continuation;
+    private ScheduledFuture<?> timeoutFuture;
+
+    private Access(boolean read, Upstream<? extends T> upstream, Duration timeout, Downstream<? super T> downstream) {
+      if (timeout.isNegative()) {
+        throw new IllegalArgumentException("Timeout value must not be negative");
+      }
+
+      this.read = read;
+      this.upstream = upstream;
+      this.timeout = timeout;
+      this.downstream = downstream;
+      this.execution = DefaultExecution.get();
+
+      execution.delimit(e -> {
+        relinquish(false);
+        if (fire()) {
+          downstream.error(e);
         }
+      }, continuation -> {
+        if (!timeout.isZero()) {
+          timeoutFuture = execution.getEventLoop().schedule(this::timeout, timeout.toMillis(), TimeUnit.MILLISECONDS);
+        }
+        this.continuation = continuation;
+        queue.add(this);
+        drain();
+      });
     }
+
+    private boolean fire() {
+      //noinspection SimplifiableIfStatement
+      if (fired) {
+        return false;
+      } else {
+        return fired = true;
+      }
+    }
+
+    private void timeout() {
+      if (fire()) {
+        continuation.resume(() -> {
+          drain();
+          downstream.error(new TimeoutException("Could not acquire " + (read ? "read" : "write") + " access within " + timeout));
+        });
+      }
+    }
+
+    private void access() {
+      if (read) {
+        activeReaders.incrementAndGet();
+      }
+
+      if (fire()) {
+        if (timeoutFuture != null) {
+          timeoutFuture.cancel(false);
+        }
+        continuation.resume(() ->
+          upstream.connect(new Downstream<T>() {
+            @Override
+            public void success(T value) {
+              relinquish(false);
+              downstream.success(value);
+            }
+
+            @Override
+            public void error(Throwable throwable) {
+              relinquish(false);
+              downstream.error(throwable);
+            }
+
+            @Override
+            public void complete() {
+              relinquish(false);
+              downstream.complete();
+            }
+          })
+        );
+      } else {
+        relinquish(true);
+      }
+    }
+
+    private void relinquish(boolean didTimeout) {
+      if (read) {
+        if (activeReaders.decrementAndGet() == 0) {
+          Access<?> pendingWrite = pendingWriteRef.getAndSet(null);
+          if (pendingWrite != null) {
+            pendingWrite.access();
+            return;
+          }
+        }
+      } else {
+        draining.set(false);
+      }
+
+      drain();
+    }
+  }
+
+  private void drain() {
+    if (draining.compareAndSet(false, true)) {
+      Access<?> access = queue.poll();
+      while (access != null) {
+        if (access.read) {
+          access.access();
+          access = queue.poll();
+        } else {
+          if (activeReaders.get() == 0) {
+            access.access();
+          } else {
+            pendingWriteRef.set(access);
+            if (activeReaders.get() == 0) {
+              access = pendingWriteRef.getAndSet(null);
+              if (access != null) {
+                access.access();
+              }
+            }
+          }
+          return;
+        }
+      }
+      draining.set(false);
+      if (!queue.isEmpty()) {
+        drain();
+      }
+    }
+  }
 }
