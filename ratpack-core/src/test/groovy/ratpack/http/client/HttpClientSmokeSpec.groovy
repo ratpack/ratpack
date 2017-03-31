@@ -799,11 +799,11 @@ BAR
 
     then:
     response.status.code == 200
-    response.headers.get("ALLOW") == ["GET", "PUT", "POST", "DELETE", "PATCH"].join(",")
+    response.headers.get("ALLOW") == "DELETE,GET,PATCH,POST,PUT"
 
     and:
     pathResponse.status.code == 200
-    pathResponse.headers.get("ALLOW") == ["GET"].join(",")
+    pathResponse.headers.get("ALLOW") == "GET"
   }
 
   def "can configure request method HEAD via request spec"() {
