@@ -277,12 +277,20 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private SslHandler createSslHandler() throws NoSuchAlgorithmException {
     SSLEngine sslEngine;
     if (requestConfig.sslContext != null) {
-      sslEngine = requestConfig.sslContext.createSSLEngine(requestConfig.uri.getHost(), requestConfig.uri.getPort());
+      sslEngine = createSslEngine(requestConfig.sslContext);
     } else {
-      sslEngine = SSLContext.getDefault().createSSLEngine(requestConfig.uri.getHost(), requestConfig.uri.getPort());
+      sslEngine = createSslEngine(SSLContext.getDefault());
     }
     sslEngine.setUseClientMode(true);
     return new SslHandler(sslEngine);
+  }
+
+  private SSLEngine createSslEngine(SSLContext sslContext) {
+    int port = requestConfig.uri.getPort();
+    if (port == -1) {
+      port = 443;
+    }
+    return sslContext.createSSLEngine(requestConfig.uri.getHost(), port);
   }
 
   protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
