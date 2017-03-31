@@ -68,7 +68,19 @@ public abstract class ManagedSubscription<T> implements Subscription {
   }
 
   protected long getDemand() {
-    return done.get() ? 0 : demand.get();
+    return isDone() ? 0 : demand.get();
+  }
+
+  protected boolean shouldEmit() {
+    return isDone() || demand.get() > 0;
+  }
+
+  protected boolean isDone() {
+    return done.get();
+  }
+
+  protected boolean hasDemand() {
+    return getDemand() > 0;
   }
 
   protected abstract void onRequest(long n);
@@ -76,7 +88,7 @@ public abstract class ManagedSubscription<T> implements Subscription {
   protected abstract void onCancel();
 
   protected void emitNext(T item) {
-    if (done.get()) {
+    if (isDone()) {
       dispose(item);
     } else {
       if (!open) {

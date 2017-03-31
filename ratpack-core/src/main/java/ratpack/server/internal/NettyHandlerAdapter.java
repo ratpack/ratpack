@@ -23,6 +23,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
@@ -94,14 +95,14 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     } else {
       Action<Object> subscriber = ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber == null) {
-        super.channelRead(ctx, msg);
+        super.channelRead(ctx, ReferenceCountUtil.touch(msg));
       } else {
-        subscriber.execute(msg);
+        subscriber.execute(ReferenceCountUtil.touch(msg));
       }
     }
   }
 
-  private void newRequest(final ChannelHandlerContext ctx, final HttpRequest nettyRequest) throws Exception {
+  private void newRequest(ChannelHandlerContext ctx, HttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.decoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
@@ -118,7 +119,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     RequestBody requestBody = hasBody ? new RequestBody(contentLength, nettyRequest, ctx) : null;
 
-    final Channel channel = ctx.channel();
+    Channel channel = ctx.channel();
 
     if (requestBody != null) {
       channel.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
@@ -126,7 +127,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
-    final DefaultRequest request = new DefaultRequest(
+    DefaultRequest request = new DefaultRequest(
       Instant.now(),
       requestHeaders,
       nettyRequest.method(),
@@ -137,11 +138,12 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       serverRegistry.get(ServerConfig.class),
       requestBody
     );
-    final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
-    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
-    final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
+    HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
+    MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
+    AtomicBoolean transmitted = new AtomicBoolean(false);
+
+    DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
 
     ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 
@@ -150,7 +152,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
     };
 
-    final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants,
       request,
       channel,
@@ -158,15 +160,10 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       subscribeHandler
     );
 
-    final Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
+    Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
-      if (requestBody != null) {
-        requestBody.close();
-        channel.attr(BODY_ACCUMULATOR_KEY).set(null);
-      }
-
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();
@@ -203,6 +200,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
         response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
         responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body);
+
       }
     });
   }
@@ -222,7 +220,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().writabilityChanged();
   }
 
-  private boolean isIgnorableException(Throwable throwable) {
+  private static boolean isIgnorableException(Throwable throwable) {
     if (throwable instanceof ClosedChannelException) {
       return true;
     } else if (throwable instanceof IOException) {
@@ -234,7 +232,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     }
   }
 
-  public static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+  private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
     response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);

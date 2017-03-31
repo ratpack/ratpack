@@ -173,6 +173,16 @@ public interface Execution extends MutableRegistry {
   void onComplete(AutoCloseable closeable);
 
   /**
+   * Indicates whether the execution has completed or not.
+   * <p>
+   * Will return {@code true} if called during an {@link #onComplete(AutoCloseable)} or {@link ExecSpec#onComplete(Action)} callback.
+   *
+   * @return whether the execution has completed or not
+   * @since 1.5
+   */
+  boolean isComplete();
+
+  /**
    * {@inheritDoc}
    */
   @Override

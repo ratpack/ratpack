@@ -33,7 +33,7 @@ buildscript {
 
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
-    classpath "com.gradle:build-scan-plugin:1.5"
+    classpath "com.gradle:build-scan-plugin:1.6"
   }
 }
 
@@ -199,8 +199,10 @@ task downloadDependencies() {
   doLast {
     allprojects { p ->
       configurations.each { c ->
-        println "Downloading dependencies for $p.path - $c.name"
-        c.files
+        if (c.canBeResolved) {
+          println "Downloading dependencies for $p.path - $c.name"
+          c.files
+        }
       }
     }
   }

@@ -27,10 +27,10 @@ import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 import ratpack.util.Exceptions;
+import ratpack.util.Types;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,7 +44,7 @@ public class FileRenderer extends RendererSupport<Path> {
 
   private final boolean cacheMetadata;
 
-  public static final TypeToken<Renderer<Path>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<Path>>() {});
+  public static final TypeToken<Renderer<Path>> TYPE = Types.intern(new TypeToken<Renderer<Path>>() {});
 
   public static final Renderer<Path> CACHING = new FileRenderer(true);
   public static final Renderer<Path> NON_CACHING = new FileRenderer(false);

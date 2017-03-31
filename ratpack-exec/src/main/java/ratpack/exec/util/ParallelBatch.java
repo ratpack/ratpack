@@ -91,7 +91,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    * Subsequent errors will be {@link Throwable#addSuppressed(Throwable)} suppressed by the first error.
    */
   @Override
-  Promise<List<? extends T>> yield();
+  Promise<List<T>> yield();
 
   /**
    * {@inheritDoc}

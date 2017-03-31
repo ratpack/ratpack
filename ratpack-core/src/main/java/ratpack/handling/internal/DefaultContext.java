@@ -50,7 +50,6 @@ import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
@@ -68,7 +67,7 @@ import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
 
-  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = TypeCaching.typeToken(new TypeToken<Parser<?>>() {});
+  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = Types.intern(new TypeToken<Parser<?>>() {});
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultContext.class);
 

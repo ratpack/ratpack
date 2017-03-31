@@ -17,8 +17,6 @@
 package ratpack.stream;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.CompositeByteBuf;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -32,7 +30,6 @@ import ratpack.registry.Registry;
 import ratpack.stream.internal.*;
 import ratpack.util.Types;
 
-import java.io.BufferedInputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,6 +71,17 @@ public class Streams {
     } else {
       return new DefaultTransformablePublisher<>(publisher);
     }
+  }
+
+  /**
+   * An empty publisher that immediately completes.
+   *
+   * @param <T> the type of item expected
+   * @return an empty publisher
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> empty() {
+    return Types.cast(EmptyPublisher.INSTANCE);
   }
 
   /**
@@ -430,11 +438,11 @@ public class Streams {
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
   public static <T> TransformablePublisher<T> periodically(ScheduledExecutorService executorService, Duration duration, Function<? super Integer, ? extends T> producer) {
-    return new PeriodicPublisher<>(executorService, producer, duration).buffer();
+    return new PeriodicPublisher<T>(executorService, producer, duration).buffer();
   }
 
   public static <T> TransformablePublisher<T> periodically(Registry registry, Duration duration, Function<? super Integer, ? extends T> producer) {
-    return new PeriodicPublisher<>(registry.get(ExecController.class).getExecutor(), producer, duration).buffer();
+    return new PeriodicPublisher<T>(registry.get(ExecController.class).getExecutor(), producer, duration).buffer();
   }
 
   /**
@@ -488,7 +496,26 @@ public class Streams {
    * @return a publisher that splits collection items into new items per collection element
    */
   public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<? extends T>> publisher) {
-    return new FanOutPublisher<>(publisher);
+    return fanOut(publisher, Action.noop());
+  }
+
+  /**
+   * Returns a publisher that publishes each element from Collections that are produced from the given input publisher.
+   * <p>
+   * For each item the return publisher receives from the given input publisher, the return publisher will iterate over its elements and publish a
+   * new item for each element to its downstream subscriber e.g. if the return publisher receives a Collection with 10 elements then the downstream
+   * subscriber will receive 10 calls to its onNext method.
+   * <p>
+   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(Publisher)}.
+   *
+   * @param publisher the data source
+   * @param disposer the disposer of unhandled items
+   * @param <T> the type of item emitted
+   * @return a publisher that splits collection items into new items per collection element
+   * @since 1.5
+   */
+  public static <T> TransformablePublisher<T> fanOut(Publisher<? extends Iterable<? extends T>> publisher, Action<? super T> disposer) {
+    return new FanOutPublisher<>(publisher, disposer);
   }
 
   /**
@@ -748,28 +775,6 @@ public class Streams {
    */
   public static <T> TransformablePublisher<T> batch(int batchSize, Publisher<T> publisher, Action<? super T> disposer) {
     return new BatchingPublisher<>(publisher, batchSize, disposer);
-  }
-
-  /**
-   * Buffers and composes byte bufs together into composites before emitting.
-   * <p>
-   * This is roughly analogous to {@link BufferedInputStream}.
-   * The returned published accumulates upstream buffers until {@code maxNum} have been received,
-   * or the cumulative size of buffered byte bufs is greater than or equal to {@code sizeWatermark}.
-   * Note that unlike {@link BufferedInputStream}, the downstream writes are not guaranteed to be less than the buffer size.
-   * <p>
-   * Byte bufs are requested of the given publisher one at a time.
-   * If this is innefficient, consider wrapping it with {@link #batch(int, Publisher, Action)} before giving to this method.
-   *
-   * @param publisher the publisher of byte bufs to compose
-   * @param sizeWatermark the watermark size for a composite
-   * @param maxNum the maximum number of composite components
-   * @param alloc the allocator of composites
-   * @return a byte buf composing publisher
-   * @since 1.5
-   */
-  public static TransformablePublisher<CompositeByteBuf> byteBufComposing(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
-    return new ByteBufComposingPublisher(maxNum, sizeWatermark, alloc, publisher);
   }
 
   /**

@@ -18,12 +18,16 @@ package ratpack.exec
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.http.ResponseChunks
 import ratpack.stream.Streams
+import ratpack.stream.internal.BufferingPublisher
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -272,4 +276,62 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     v == true
   }
 
+  def "items are serialized"() {
+    when:
+    def p = new BufferingPublisher(Action.noop(), { write ->
+      Thread.start {
+        100.times {
+          sleep(3)
+          write.item(it)
+        }
+        write.complete()
+      }
+
+      new Subscription() {
+        @Override
+        void request(long n) {
+
+        }
+
+        @Override
+        void cancel() {
+
+        }
+      }
+    } as Function)
+
+    def max = 0
+    def i = 0
+    def l = harness.yield {
+      p.bindExec().flatMap {
+        max = Math.max(max, ++i)
+        Promise.value(it).wiretap {
+          --i
+        }.defer(Duration.ofMillis(5))
+      }.toList()
+    }.valueOrThrow
+
+    then:
+    l == (0..99).toList()
+    max == 1
+  }
+
+  @Ignore("LD")
+  def "items are serialized even when dispatched on event loop"() {
+    when:
+    def max = 0
+    def i = 0
+    def l = harness.yield {
+      Streams.publish(1..100).bindExec().flatMap {
+        max = Math.max(max, ++i)
+        Promise.value(it).wiretap {
+          --i
+        }
+      }.toList()
+    }.valueOrThrow
+
+    then:
+    l == (1..100).toList()
+    max == 1
+  }
 }

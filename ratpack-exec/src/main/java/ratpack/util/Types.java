@@ -75,6 +75,18 @@ public abstract class Types {
   }
 
   /**
+   * Intern the given type token.
+   *
+   * @param typeToken the type token to intern
+   * @param <T> the type
+   * @return the given type token interned
+   * @since 1.5
+   */
+  public static <T> TypeToken<T> intern(TypeToken<T> typeToken) {
+    return TypeCaching.typeToken(typeToken);
+  }
+
+  /**
    * Creates a type token for a list of of the given type.
    * <pre class="java">{@code
    * import ratpack.util.Types;
@@ -123,7 +135,7 @@ public abstract class Types {
    * @param type the promise element type
    * @param <T> the promise element type
    * @return a type token for a promise of of the given type.
-   * @deprecated since 1.5, replaced with {@link ratpack.exec.util.Types#promiseOf(Class)}
+   * @deprecated since 1.5, no replacement.
    */
   @Deprecated
   public static <T> TypeToken<Promise<T>> promiseOf(Class<T> type) {
@@ -156,7 +168,7 @@ public abstract class Types {
    * @param type the promise element type
    * @param <T> the promise element type
    * @return a type token for a promise of of the given type.
-   * @deprecated since 1.5, replaced with {@link ratpack.exec.util.Types#promiseOf(TypeToken)}
+   * @deprecated since 1.5, no replacement.
    */
   @Deprecated
   public static <T> TypeToken<Promise<T>> promiseOf(TypeToken<T> type) {

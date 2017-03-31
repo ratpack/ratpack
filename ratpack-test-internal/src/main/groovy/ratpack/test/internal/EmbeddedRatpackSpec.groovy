@@ -26,6 +26,7 @@ import ratpack.test.http.TestHttpClient
 import ratpack.test.internal.spock.InheritedTimeout
 import ratpack.test.internal.spock.InheritedUnroll
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicReference
@@ -49,6 +50,9 @@ abstract class EmbeddedRatpackSpec extends Specification {
   boolean failOnLeak = true
 
   abstract EmbeddedApp getApplication()
+
+  @SuppressWarnings("FieldName")
+  public static final PollingConditions wait = new PollingConditions(timeout: 3)
 
   void configureRequest(RequestSpec requestSpecification) {
     // do nothing

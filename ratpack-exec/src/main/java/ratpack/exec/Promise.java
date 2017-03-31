@@ -130,16 +130,20 @@ public interface Promise<T> {
    * @since 1.3
    */
   static <T> Promise<T> sync(Factory<T> factory) {
-    return async(down -> {
-      T t;
-      try {
-        t = factory.create();
-      } catch (Exception e) {
-        down.error(e);
-        return;
-      }
-      down.success(t);
-    });
+    return new DefaultPromise<>(down ->
+      DefaultExecution.require().delimit(down::error, continuation ->
+        continuation.resume(() -> {
+          T t;
+          try {
+            t = factory.create();
+          } catch (Exception e) {
+            down.error(e);
+            return;
+          }
+          down.success(t);
+        })
+      )
+    );
   }
 
   /**
@@ -156,16 +160,20 @@ public interface Promise<T> {
    * @since 1.5
    */
   static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
-    return async(down -> {
-      Promise<T> promise;
-      try {
-        promise = factory.create();
-      } catch (Throwable e) {
-        down.error(e);
-        return;
-      }
-      promise.connect(down);
-    });
+    return new DefaultPromise<>(down ->
+      DefaultExecution.require().delimit(down::error, continuation ->
+        continuation.resume(() -> {
+          Promise<T> promise;
+          try {
+            promise = factory.create();
+          } catch (Throwable e) {
+            down.error(e);
+            return;
+          }
+          promise.connect(down);
+        })
+      )
+    );
   }
 
   /**
@@ -215,7 +223,9 @@ public interface Promise<T> {
    * @see #error(Throwable)
    */
   static <T> Promise<T> value(T t) {
-    return async(down -> down.success(t));
+    return new DefaultPromise<>(down -> DefaultExecution.require().delimit(down::error, continuation ->
+      continuation.resume(() -> down.success(t))
+    ));
   }
 
   /**
@@ -261,7 +271,9 @@ public interface Promise<T> {
    * @see #value(Object)
    */
   static <T> Promise<T> error(Throwable t) {
-    return async(down -> down.error(t));
+    return new DefaultPromise<>(down -> DefaultExecution.require().delimit(down::error, continuation ->
+      continuation.resume(() -> down.error(t))
+    ));
   }
 
   /**
@@ -1954,6 +1966,8 @@ public interface Promise<T> {
    * This method is then called on the returned promise to cleanup the resource.
    *
    * @param closeable the closeable to close
+   * @see #close(Operation)
+   * @return a promise
    * @since 1.3
    */
   default Promise<T> close(AutoCloseable closeable) {
@@ -1989,6 +2003,80 @@ public interface Promise<T> {
             return;
           }
           down.complete();
+        }
+      })
+    );
+  }
+
+  /**
+   * Like {@link #close(AutoCloseable)}, but allows async close operations.
+   *
+   * @param closer the close operation.
+   * @return a promise
+   * @since 1.5
+   */
+  default Promise<T> close(Operation closer) {
+    return transform(up -> down ->
+      up.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          closer.promise().connect(new Downstream<Void>() {
+            @Override
+            public void success(Void v) {
+              down.success(value);
+            }
+
+            @Override
+            public void error(Throwable throwable) {
+              down.error(throwable);
+            }
+
+            @Override
+            public void complete() {
+              down.success(value);
+            }
+          });
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          closer.promise().connect(new Downstream<Void>() {
+            @Override
+            public void success(Void v) {
+              down.error(throwable);
+            }
+
+            @Override
+            public void error(Throwable innerThrowable) {
+              innerThrowable.addSuppressed(throwable);
+              down.error(innerThrowable);
+            }
+
+            @Override
+            public void complete() {
+              down.error(throwable);
+            }
+          });
+        }
+
+        @Override
+        public void complete() {
+          closer.promise().connect(new Downstream<Void>() {
+            @Override
+            public void success(Void v) {
+              down.complete();
+            }
+
+            @Override
+            public void error(Throwable innerThrowable) {
+              down.error(innerThrowable);
+            }
+
+            @Override
+            public void complete() {
+              down.complete();
+            }
+          });
         }
       })
     );

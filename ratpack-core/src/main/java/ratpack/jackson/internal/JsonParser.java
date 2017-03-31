@@ -26,7 +26,6 @@ import ratpack.jackson.JsonParseOpts;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.parse.ParserSupport;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.util.Types;
 
 import java.io.IOException;
@@ -38,7 +37,7 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
 
   private static final TypeToken<JsonNode> JSON_NODE_TYPE = Types.token(JsonNode.class);
 
-  public static final TypeToken<Parser<JsonParseOpts>> TYPE = TypeCaching.typeToken(new TypeToken<Parser<JsonParseOpts>>() {});
+  public static final TypeToken<Parser<JsonParseOpts>> TYPE = Types.intern(new TypeToken<Parser<JsonParseOpts>>() {});
   public static final Parser<JsonParseOpts> INSTANCE = new JsonParser();
 
   private JsonParser() {

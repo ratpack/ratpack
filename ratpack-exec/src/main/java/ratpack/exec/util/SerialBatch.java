@@ -72,7 +72,7 @@ public interface SerialBatch<T> extends Batch<T> {
    * {@inheritDoc}
    */
   @Override
-  Promise<List<? extends T>> yield();
+  Promise<List<T>> yield();
 
   /**
    * {@inheritDoc}

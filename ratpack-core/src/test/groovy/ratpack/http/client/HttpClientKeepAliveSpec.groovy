@@ -90,9 +90,9 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
 
     when:
     application.close()
+    channel.closeFuture().get()
 
     then:
-    !channel.isOpen()
     text == "ok"
   }
 

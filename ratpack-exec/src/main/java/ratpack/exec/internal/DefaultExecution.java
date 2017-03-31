@@ -36,7 +36,6 @@ import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -77,7 +76,7 @@ public class DefaultExecution implements Execution {
     registryInit.execute(registry);
     onStart.execute(this);
 
-    this.execStream = new InitialExecStream(action);
+    this.execStream = new InitialExecStream(() -> action.execute(this));
 
     this.interceptors = Iterables.concat(
       controller.getInterceptors(),
@@ -112,48 +111,20 @@ public class DefaultExecution implements Execution {
   }
 
   public static <T> Upstream<T> upstream(Upstream<T> upstream) {
-    return downstream -> {
-      final AtomicBoolean fired = new AtomicBoolean();
+    return downstream ->
       require().delimit(downstream::error, continuation -> {
+          AsyncDownstream<T> asyncDownstream = new AsyncDownstream<>(continuation, downstream);
           try {
-            upstream.connect(new Downstream<T>() {
-              @Override
-              public void error(Throwable throwable) {
-                if (!fired.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-                  return;
-                }
-                continuation.resume(() -> downstream.error(throwable));
-              }
-
-              @Override
-              public void success(T value) {
-                if (!fired.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-                  return;
-                }
-                continuation.resume(() -> downstream.success(value));
-              }
-
-              @Override
-              public void complete() {
-                if (!fired.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-                  return;
-                }
-                continuation.resume(downstream::complete);
-              }
-            });
+            upstream.connect(asyncDownstream);
           } catch (Throwable throwable) {
-            if (!fired.compareAndSet(false, true)) {
+            if (asyncDownstream.fire()) {
+              continuation.resume(() -> downstream.error(throwable));
+            } else {
               LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-              return;
             }
-            continuation.resume(() -> downstream.error(throwable));
           }
         }
       );
-    };
   }
 
   public EventLoop getEventLoop() {
@@ -161,12 +132,12 @@ public class DefaultExecution implements Execution {
   }
 
   public void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
-    execStream.enqueue(() -> execStream = new SingleEventExecStream(execStream, onError, segment));
+    execStream.delimit(onError, segment);
     drain();
   }
 
   public void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
-    execStream.enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
+    execStream.delimitStream(onError, segment);
     drain();
   }
 
@@ -231,6 +202,7 @@ public class DefaultExecution implements Execution {
     }
 
     if (execStream == TerminalExecStream.INSTANCE) {
+      THREAD_BINDING.set(null);
       try {
         onComplete.execute(this);
       } catch (Throwable e) {
@@ -260,6 +232,11 @@ public class DefaultExecution implements Execution {
       closeables = Lists.newArrayList();
     }
     closeables.add(closeable);
+  }
+
+  @Override
+  public boolean isComplete() {
+    return execStream == TerminalExecStream.INSTANCE;
   }
 
   @Override
@@ -296,14 +273,29 @@ public class DefaultExecution implements Execution {
   private abstract static class ExecStream {
     abstract boolean exec() throws Exception;
 
-    abstract void enqueue(Block block);
+    abstract void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment);
+
+    abstract void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment);
+
+    abstract void enqueue(Block segment);
 
     abstract void error(Throwable throwable);
   }
 
+  private abstract class BaseExecStream extends ExecStream {
+    void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+      enqueue(() -> execStream = new SingleEventExecStream(execStream, onError, segment));
+    }
+
+    void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+      enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
+    }
+
+  }
+
   private static class TerminalExecStream extends ExecStream {
 
-    static final ExecStream INSTANCE = new TerminalExecStream();
+    private static final ExecStream INSTANCE = new TerminalExecStream();
 
     private TerminalExecStream() {
     }
@@ -311,6 +303,16 @@ public class DefaultExecution implements Execution {
     @Override
     boolean exec() {
       return false;
+    }
+
+    @Override
+    void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
+    @Override
+    void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
 
     @Override
@@ -324,11 +326,11 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  private class InitialExecStream extends ExecStream {
-    Action<? super Execution> initial;
+  private class InitialExecStream extends BaseExecStream {
+    Block initial;
     Queue<Block> segments;
 
-    InitialExecStream(Action<? super Execution> initial) {
+    InitialExecStream(Block initial) {
       this.initial = initial;
     }
 
@@ -349,18 +351,23 @@ public class DefaultExecution implements Execution {
           }
         }
       } else {
-        initial.execute(DefaultExecution.this);
-        initial = null;
+        Block initial = this.initial;
+        this.initial = null;
+        initial.execute();
         return true;
       }
     }
 
     @Override
     void enqueue(Block segment) {
-      if (segments == null) {
-        segments = new ArrayDeque<>(1);
+      if (initial == null) {
+        initial = segment;
+      } else {
+        if (segments == null) {
+          segments = new ArrayDeque<>(1);
+        }
+        segments.add(segment);
       }
-      segments.add(segment);
     }
 
     @Override
@@ -378,14 +385,31 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  private class SingleEventExecStream extends ExecStream implements Continuation {
+  private class SingleEventExecStream extends BaseExecStream implements Continuation {
+
+    private class ContinuationBlock implements Block {
+      final Action<? super Throwable> onError;
+      final Action<? super Continuation> segment;
+
+      public ContinuationBlock(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+        this.onError = onError;
+        this.segment = segment;
+      }
+
+      @Override
+      public void execute() throws Exception {
+        execStream = new SingleEventExecStream(execStream, onError, segment);
+      }
+    }
+
     final ExecStream parent;
 
-    private final Action<? super Throwable> onError;
+    Action<? super Throwable> onError;
     Action<? super Continuation> initial;
-    Block resume;
+    Block resumer;
     boolean resumed;
-    Queue<Block> segments;
+
+    final Queue<Block> segments = new ArrayDeque<>();
 
     SingleEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super Continuation> initial) {
       this.parent = parent;
@@ -396,8 +420,8 @@ public class DefaultExecution implements Execution {
     @Override
     boolean exec() throws Exception {
       if (initial == null) {
-        if (segments == null || segments.isEmpty()) {
-          if (resume == null) {
+        if (segments.isEmpty()) {
+          if (resumer == null) {
             if (resumed) {
               execStream = parent;
               return true;
@@ -405,8 +429,21 @@ public class DefaultExecution implements Execution {
               return false;
             }
           } else {
-            resume.execute();
-            resume = null;
+            resumer.execute();
+            resumer = null;
+
+            // Try to reuse this exec stream instead of branching for another.
+            // If the stream only initiates one promise, then this stream is effectively empty at this point.
+            // So, we unpack the block and reuse this.
+            // This is a dramatic saving for the extremely common case where an execution is a long series of serial promises.
+            // We can almost always do this.
+            if (segments.size() == 1 && segments.peek() instanceof ContinuationBlock) {
+              ContinuationBlock poll = (ContinuationBlock) segments.poll();
+              initial = poll.segment;
+              onError = poll.onError;
+              resumed = false;
+            }
+
             return true;
           }
         } else {
@@ -427,23 +464,33 @@ public class DefaultExecution implements Execution {
     }
 
     @Override
+    void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+      enqueue(new ContinuationBlock(onError, segment));
+    }
+
+    @Override
     void enqueue(Block segment) {
-      if (segments == null) {
-        segments = new ArrayDeque<>(1);
-      }
       segments.add(segment);
     }
 
     public void resume(Block action) {
+      if (isBound()) {
+        doResume(action);
+      } else {
+        eventLoop.execute(() -> doResume(action));
+      }
+    }
+
+    private void doResume(Block action) {
       resumed = true;
-      resume = action;
+      resumer = action;
       drain();
     }
 
     @Override
     void error(Throwable throwable) {
       execStream = parent;
-      if (resumed && resume == null) {
+      if (resumed && resumer == null) {
         parent.error(throwable);
       } else {
         try {
@@ -455,7 +502,7 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  private class MultiEventExecStream extends ExecStream implements ContinuationStream {
+  private class MultiEventExecStream extends BaseExecStream implements ContinuationStream {
     final ExecStream parent;
     private final Action<? super Throwable> onError;
     final Queue<Queue<Block>> events = PlatformDependent.newMpscQueue();

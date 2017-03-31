@@ -58,6 +58,7 @@ import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 
 import static io.netty.buffer.Unpooled.buffer;
@@ -127,24 +128,46 @@ public class DefaultRequestFixture implements RequestFixture {
       new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
       serverConfig,
       new RequestBodyReader() {
+
+        private RequestBodyReader.State state = State.UNREAD;
+        private long maxContentLength = 8096;
+
+        @Override
+        public State getState() {
+          return state;
+        }
+
         @Override
         public long getContentLength() {
           return requestBody.readableBytes();
         }
 
         @Override
-        public Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
-          return Promise.value(requestBody)
+        public long getMaxContentLength() {
+          return maxContentLength;
+        }
+
+        @Override
+        public void setMaxContentLength(long maxContentLength) {
+          this.maxContentLength = maxContentLength;
+        }
+
+        @Override
+        public Promise<? extends ByteBuf> read(Block onTooLarge) {
+          return Promise.sync(() -> {
+            state = State.READ;
+            return requestBody;
+          })
             .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());
         }
 
         @Override
-        public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
-          return Streams.<ByteBuf>yield(r -> {
-            if (r.getRequestNum() > 0) {
-              return null;
-            } else {
-              return requestBody;
+        public TransformablePublisher<? extends ByteBuf> readStream() {
+          return Streams.publish(Collections.singleton(requestBody)).wiretap(e -> {
+            if (state == State.UNREAD) {
+              state = State.READING;
+            } else if (e.isCancel() || e.isComplete() || e.isError()) {
+              state = State.READ;
             }
           });
         }

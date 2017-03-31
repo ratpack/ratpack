@@ -79,7 +79,7 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
   }
 
   @Override
-  public Promise<List<? extends T>> yield() {
+  public Promise<List<T>> yield() {
     List<Promise<T>> promises = Lists.newArrayList(this.promises);
     List<T> results = Types.cast(promises);
     return Promise.async(d -> forEach(results::set).onError(d::error).then(() -> d.success(results)));

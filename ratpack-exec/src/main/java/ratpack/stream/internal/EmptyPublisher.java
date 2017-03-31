@@ -17,29 +17,29 @@
 package ratpack.stream.internal;
 
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import ratpack.stream.TransformablePublisher;
-import ratpack.util.Types;
 
 public class EmptyPublisher<T> implements TransformablePublisher<T> {
 
-  private static final TransformablePublisher<?> INSTANCE = new EmptyPublisher<>();
-
-  public static <T> TransformablePublisher<T> instance() {
-    return Types.cast(INSTANCE);
-  }
+  public static final TransformablePublisher<?> INSTANCE = new EmptyPublisher<>();
 
   @Override
   public void subscribe(Subscriber<? super T> s) {
-    s.onSubscribe(new SubscriptionSupport<T>(s) {
-      {
-        start();
+    s.onSubscribe(new Subscription() {
+      @Override
+      public void request(long n) {
+        if (n < 1) {
+          s.onError(new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0."));
+        }
       }
 
       @Override
-      protected void doRequest(long n) {
-        onComplete();
+      public void cancel() {
+
       }
     });
+    s.onComplete();
   }
 
 }

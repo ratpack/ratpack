@@ -99,18 +99,26 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
   }
 
   static class NoRequestBodyReader implements RequestBodyReader {
+
+    long maxContentLength = 1024
+
+    @Override
+    RequestBodyReader.State getState() {
+      RequestBodyReader.State.UNREAD
+    }
+
     @Override
     long getContentLength() {
       -1
     }
 
     @Override
-    Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
+    Promise<? extends ByteBuf> read(Block onTooLarge) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
+    TransformablePublisher<? extends ByteBuf> readStream() {
       throw new UnsupportedOperationException()
     }
   }

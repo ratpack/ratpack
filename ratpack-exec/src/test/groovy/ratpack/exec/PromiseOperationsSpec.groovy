@@ -23,6 +23,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 
 import static ratpack.func.Action.throwException
 
@@ -304,7 +305,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     exec {
       Promise.value("foo")
-      .nextOpIf({ it.startsWith("f") }) {
+        .nextOpIf({ it.startsWith("f") }) {
         Operation.of {
           events << "one"
         }
@@ -381,5 +382,70 @@ class PromiseOperationsSpec extends Specification {
     events == [ex, "complete"]
   }
 
+  def "can nest and chain promises"() {
+    when:
+    def latch = new CountDownLatch(3)
+    def e = []
+    execHarness.run {
+      e << 1
+      Promise.value(1).then {
+        e << 3
+        Promise.sync { e << 5 }.then {
+          e << 6
+          latch.countDown()
+        }
 
+        e << 4
+        Promise.sync { e << 7 }.then {
+          e << 8
+          latch.countDown()
+        }
+      }
+
+      e << 2
+      Promise.value(1).then {
+        Promise.value(1).then {
+          e << 9
+          latch.countDown()
+        }
+      }
+    }
+
+    then:
+    latch.await()
+    e == (1..9).toList()
+  }
+
+  def "can chain promises"() {
+    when:
+    execHarness.run {
+      Promise.value(1).then {
+        Promise.value(2).then {
+          Promise.value(3).then {
+            Promise.value(4).then {
+              Promise.value(5).then {
+                latch.countDown()
+              }
+            }
+          }
+        }
+      }
+    }
+
+    then:
+    latch.await()
+  }
+
+  Promise<Integer> until(Promise<Integer> source, int n) {
+    source.flatMap { it < n ? until(source, n) : Promise.value(n) }
+  }
+
+  def "can recurse through promises"() {
+    when:
+    def i = new AtomicInteger()
+    def v = execHarness.yield { until(Promise.sync { i.incrementAndGet() }, 100) }.valueOrThrow
+
+    then:
+    v == 100
+  }
 }
