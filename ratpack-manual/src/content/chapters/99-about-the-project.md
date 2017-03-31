@@ -86,6 +86,7 @@ The following people have provided significant contributions.
 * [Ho Yan Leung](https://github.com/hyleung)
 * [Felipe Fernández](https://github.com/felipefzdz)
 * [Nick Pocock](https://github.com/pocockn)
+* [Timur Salyakhutdinov](https://github.com/timic)
 
 ### Past project members
 
