@@ -86,12 +86,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void drainRequestBody(Consumer<Throwable> next) {
-    if (requestBody == null || requestBody.getState() == RequestBodyReader.State.READ) {
+    if (requestBody == null || !requestBody.isUnread()) {
       next.accept(null);
     } else {
       if (Execution.isBound()) {
         Promise.async(down ->
-          requestBody.discard(e -> {
+          requestBody.drain(e -> {
             if (e == null) {
               down.success(null);
             } else {
@@ -103,7 +103,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           .onError(next::accept)
           .then(n -> next.accept(null));
       } else {
-        requestBody.discard(next);
+        requestBody.drain(next);
       }
     }
   }

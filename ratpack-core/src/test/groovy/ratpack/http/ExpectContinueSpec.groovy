@@ -64,7 +64,6 @@ class ExpectContinueSpec extends RatpackGroovyDslSpec {
       post("read") { request.body.then { render "ok" } }
     }
 
-
     def bytes = ("a" * 1024 * 10).bytes
     def input = new ByteArrayInputStream(bytes)
 

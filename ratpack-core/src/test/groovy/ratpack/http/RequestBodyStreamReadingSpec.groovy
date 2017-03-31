@@ -18,6 +18,7 @@ package ratpack.http
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufUtil
+import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import org.apache.commons.lang3.RandomStringUtils
 import org.reactivestreams.Subscriber
@@ -27,11 +28,11 @@ import ratpack.handling.Context
 import ratpack.http.client.RequestSpec
 import ratpack.registry.Registry
 import ratpack.stream.Streams
+import ratpack.stream.bytebuf.ByteBufStreams
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Timeout
+import spock.util.concurrent.BlockingVariable
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.CountDownLatch
 
 class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
 
@@ -346,41 +347,14 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     file.text == string
   }
 
-  @Timeout(10)
   def "request body stream errors when client closes connection unexpectedly"() {
     when:
-    def subscribed = new CountDownLatch(1)
-    def error = new CountDownLatch(1)
-
+    def error = new BlockingVariable<Throwable>()
     handlers {
       all { ctx ->
-        request.getBodyStream(Long.MAX_VALUE).subscribe(new Subscriber<ByteBuf>() {
-          Subscription subscription
-
-          @Override
-          void onSubscribe(Subscription s) {
-            subscribed.countDown()
-            subscription = s
-            subscription.request 1
-          }
-
-          @Override
-          void onNext(ByteBuf byteBuf) {
-            byteBuf.release()
-            subscription.request 1
-          }
-
-          @Override
-          void onError(Throwable t) {
-            error.countDown()
-            ctx.error(t)
-          }
-
-          @Override
-          void onComplete() {
-
-          }
-        })
+        ByteBufStreams.reduce(request.bodyStream, PooledByteBufAllocator.DEFAULT)
+          .onError { error.set(it) }
+          .then { response.send(it) }
       }
     }
 
@@ -389,20 +363,14 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     socket.connect(new InetSocketAddress(address.host, address.port))
     new OutputStreamWriter(socket.outputStream, "UTF-8").with {
       write("POST / HTTP/1.1\r\n")
-      write("Content-Type: multipart/form-data;boundary=---foo\r\n")
       write("Content-Length: 4000\r\n")
       write("\r\n")
       close()
     }
-
-    and:
     socket.close()
-    subscribed.await()
-    error.await()
 
     then:
-    subscribed.count == 0
-    error.count == 0
+    error.get() instanceof ConnectionClosedException
   }
 
   class BufferThenSendSubscriber implements Subscriber<ByteBuf> {

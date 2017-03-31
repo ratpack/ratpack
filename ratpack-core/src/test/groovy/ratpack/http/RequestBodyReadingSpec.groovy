@@ -21,6 +21,7 @@ import ratpack.http.client.RequestSpec
 import ratpack.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
+import spock.util.concurrent.BlockingVariable
 
 class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
@@ -327,4 +328,31 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     and:
     channelId1 == channelId2
   }
+
+  def "request body errors when client closes connection unexpectedly"() {
+    when:
+    def error = new BlockingVariable<Throwable>()
+    handlers {
+      all { ctx ->
+        request.body
+          .onError { error.set(it) }
+          .then { response.send(it.buffer) }
+      }
+    }
+
+    and:
+    Socket socket = new Socket()
+    socket.connect(new InetSocketAddress(address.host, address.port))
+    new OutputStreamWriter(socket.outputStream, "UTF-8").with {
+      write("POST / HTTP/1.1\r\n")
+      write("Content-Length: 4000\r\n")
+      write("\r\n")
+      close()
+    }
+    socket.close()
+
+    then:
+    error.get() instanceof ConnectionClosedException
+  }
+
 }

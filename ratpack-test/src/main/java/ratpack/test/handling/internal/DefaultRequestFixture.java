@@ -129,12 +129,11 @@ public class DefaultRequestFixture implements RequestFixture {
       serverConfig,
       new RequestBodyReader() {
 
-        private RequestBodyReader.State state = State.UNREAD;
+        private boolean unread = true;
         private long maxContentLength = 8096;
 
-        @Override
-        public State getState() {
-          return state;
+        public boolean isUnread() {
+          return unread;
         }
 
         @Override
@@ -155,7 +154,7 @@ public class DefaultRequestFixture implements RequestFixture {
         @Override
         public Promise<? extends ByteBuf> read(Block onTooLarge) {
           return Promise.sync(() -> {
-            state = State.READ;
+            unread = false;
             return requestBody;
           })
             .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());
@@ -163,13 +162,9 @@ public class DefaultRequestFixture implements RequestFixture {
 
         @Override
         public TransformablePublisher<? extends ByteBuf> readStream() {
-          return Streams.publish(Collections.singleton(requestBody)).wiretap(e -> {
-            if (state == State.UNREAD) {
-              state = State.READING;
-            } else if (e.isCancel() || e.isComplete() || e.isError()) {
-              state = State.READ;
-            }
-          });
+          return Streams.publish(Collections.singleton(requestBody)).wiretap(e ->
+            unread = false
+          );
         }
       }
     );
