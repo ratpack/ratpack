@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class ReadWriteAccessSpec extends BaseExecutionSpec {
 
-  def access = ReadWriteAccess.create(Duration.ZERO)
+  def access = ReadWriteAccess.create(Duration.ofMinutes(1))
 
   @SuppressWarnings("ChangeToOperator")
   def "serializes reads and writes"() {
