@@ -51,7 +51,7 @@ public class DefaultByMethodSpec implements ByMethodSpec {
 
   @Override
   public ByMethodSpec post(Block block) {
-    return post(handler((block)));
+    return post(handler(block));
   }
 
   @Override
@@ -149,6 +149,8 @@ public class DefaultByMethodSpec implements ByMethodSpec {
     return context.get(clazz);
   }
 
-  private Handler handler(Block block) { return ctx -> block.execute(); }
+  private Handler handler(Block block) {
+    return ctx -> block.execute();
+  }
 
 }
