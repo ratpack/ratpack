@@ -17,39 +17,44 @@
 package ratpack.handling.internal;
 
 import com.google.common.base.Joiner;
-import ratpack.func.Block;
+import com.google.common.collect.Collections2;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.HttpMethod;
 import ratpack.http.internal.HttpHeaderConstants;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
 public class MultiMethodHandler implements Handler {
 
+  private static final Joiner JOINER = Joiner.on(",");
   private static final Handler NO_METHOD_HANDLER = Handlers.clientError(METHOD_NOT_ALLOWED.code());
+  private final Map<HttpMethod, Handler> handlers;
 
-  private final Map<String, Block> blocks;
-
-  public MultiMethodHandler(Map<String, Block> blocks) {
-    this.blocks = blocks;
+  public MultiMethodHandler(Map<HttpMethod, Handler> handlers) {
+    this.handlers = handlers;
   }
 
   @Override
   public void handle(Context context) throws Exception {
     HttpMethod method = context.getRequest().getMethod();
-    if (method.isOptions() && !blocks.containsKey(DefaultByMethodSpec.METHOD_OPTIONS)) {
-      String methods = Joiner.on(",").join(blocks.keySet());
+    if (method.isOptions() && !handlers.containsKey(HttpMethod.OPTIONS)) {
+      List<String> parts = new ArrayList<>(Collections2.transform(handlers.keySet(), HttpMethod::getName));
+      Collections.sort(parts);
+      String methods = JOINER.join(parts);
       context.getResponse().getHeaders().add(HttpHeaderConstants.ALLOW, methods);
       context.getResponse().status(200).send();
     } else {
-      for (Map.Entry<String, Block> entry : blocks.entrySet()) {
-        String key = entry.getKey();
-        if (method.name(key)) {
-          entry.getValue().execute();
+      for (Map.Entry<HttpMethod, Handler> entry : handlers.entrySet()) {
+        HttpMethod key = entry.getKey();
+        if (key.equals(method)) {
+          context.insert(entry.getValue());
           return;
         }
       }

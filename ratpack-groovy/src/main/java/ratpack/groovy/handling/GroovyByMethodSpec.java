@@ -18,68 +18,192 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Block;
 import ratpack.handling.ByMethodSpec;
+import ratpack.handling.Handler;
 
 /**
  * A Groovy oriented multi-method handler builder.
+ *
+ * @see GroovyContext#byMethod(Closure)
+ * @see ByMethodSpec
+ * @since 1.5
  */
 public interface GroovyByMethodSpec extends ByMethodSpec {
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec get(Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec get(Class<? extends Handler> clazz);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec get(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec post(Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec post(Class<? extends Handler> clazz);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec post(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec put(Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec put(Class<? extends Handler> clazz);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec put(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec patch(Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec patch(Class<? extends Handler> clazz);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec patch(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec options(Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec options(Class<? extends Handler> clazz);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec options(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec delete(Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec delete(Class<? extends Handler> clazz);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec delete(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByMethodSpec named(String methodName, Block block);
+
+  @Override
+  GroovyByMethodSpec named(String methodName, Class<? extends Handler> clazz);
+
+  @Override
+  GroovyByMethodSpec named(String methodName, Handler handler);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of GET.
    *
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+  GroovyByMethodSpec get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of POST.
    *
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+  GroovyByMethodSpec post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of PUT.
    *
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+  GroovyByMethodSpec put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of PATCH.
    *
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
-
+  GroovyByMethodSpec patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of OPTIONS.
    *
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec options(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
-
+  GroovyByMethodSpec options(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of DELETE.
    *
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+  GroovyByMethodSpec delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   /**
    * Inserts the handler to chain if the request has a HTTP method of {@code methodName}.
    * @param closure a handler closure
-   * @return this {@code ByMethodSpec}
+   * @return this
    */
-  ByMethodSpec named(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) String methodName, Closure<?> closure);
+  GroovyByMethodSpec named(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) String methodName, Closure<?> closure);
 
 }

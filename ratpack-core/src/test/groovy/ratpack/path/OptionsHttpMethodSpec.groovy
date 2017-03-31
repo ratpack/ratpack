@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,62 +18,7 @@ package ratpack.path
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
-
-  def "can use path and method routes"() {
-    when:
-    handlers {
-      get("a/b/c") {
-        response.headers.set("X-value", request.query)
-        response.send request.query
-      }
-      prefix(":a/:b") {
-        path(":c/:d") {
-          byMethod {
-            post {
-              response.send new LinkedHashMap(allPathTokens).toString()
-            }
-            put {
-              response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-            }
-          }
-        }
-      }
-    }
-
-    then:
-    getText("a/b/c?foo=baz") == "foo=baz"
-    resetRequest()
-    postText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
-    putText("5/6/7/8") == "[A:5, B:6, C:7, D:8]"
-    with(head("a/b/c?head")) {
-      statusCode == 200
-      headers.get("X-value") == "head"
-      text.size() == 0
-    }
-  }
-
-  def "can use method chain"() {
-    when:
-    handlers {
-      path("foo") {
-        def prefix = "common"
-        byMethod {
-          get {
-            response.send("$prefix: get")
-          }
-          post {
-            response.send("$prefix: post")
-          }
-        }
-      }
-    }
-
-    then:
-    getText("foo") == "common: get"
-    postText("foo") == "common: post"
-    put("foo").statusCode == 405
-  }
+class OptionsHttpMethodSpec extends RatpackGroovyDslSpec {
 
   def "options requests are handled for single method handlers"() {
     when:
@@ -137,4 +82,5 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     options()
     response.body.getText() == "baz"
   }
+
 }

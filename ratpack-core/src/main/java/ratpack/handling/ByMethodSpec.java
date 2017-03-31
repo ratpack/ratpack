@@ -38,6 +38,7 @@ public interface ByMethodSpec {
    *
    * @param clazz a handler class
    * @return this
+   * @since 1.5
    */
   ByMethodSpec get(Class<? extends Handler> clazz);
 
@@ -46,6 +47,7 @@ public interface ByMethodSpec {
    *
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.5
    */
   ByMethodSpec get(Handler handler);
 
@@ -62,6 +64,7 @@ public interface ByMethodSpec {
    *
    * @param clazz a handler class
    * @return this
+   * @since 1.5
    */
   ByMethodSpec post(Class<? extends Handler> clazz);
 
@@ -70,6 +73,7 @@ public interface ByMethodSpec {
    *
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.5
    */
   ByMethodSpec post(Handler handler);
 
@@ -86,6 +90,7 @@ public interface ByMethodSpec {
    *
    * @param clazz a handler class
    * @return this
+   * @since 1.5
    */
   ByMethodSpec put(Class<? extends Handler> clazz);
 
@@ -94,6 +99,7 @@ public interface ByMethodSpec {
    *
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.5
    */
   ByMethodSpec put(Handler handler);
 
@@ -110,6 +116,7 @@ public interface ByMethodSpec {
    *
    * @param clazz a handler class
    * @return this
+   * @since 1.5
    */
   ByMethodSpec patch(Class<? extends Handler> clazz);
 
@@ -118,6 +125,7 @@ public interface ByMethodSpec {
    *
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.5
    */
   ByMethodSpec patch(Handler handler);
 
@@ -135,7 +143,7 @@ public interface ByMethodSpec {
    *
    * @param clazz a handler class
    * @return this
-   * @since 1.1
+   * @since 1.5
    */
   ByMethodSpec options(Class<? extends Handler> clazz);
 
@@ -144,7 +152,7 @@ public interface ByMethodSpec {
    *
    * @param handler the handler to delegate to
    * @return this
-   * @since 1.1
+   * @since 1.5
    */
   ByMethodSpec options(Handler handler);
 
@@ -161,6 +169,7 @@ public interface ByMethodSpec {
    *
    * @param clazz a handler class
    * @return this
+   * @since 1.5
    */
   ByMethodSpec delete(Class<? extends Handler> clazz);
 
@@ -169,6 +178,7 @@ public interface ByMethodSpec {
    *
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.5
    */
   ByMethodSpec delete(Handler handler);
 
@@ -191,6 +201,7 @@ public interface ByMethodSpec {
    * @param methodName The HTTP method to map the given action to
    * @param clazz a handler class
    * @return this
+   * @since 1.5
    */
   ByMethodSpec named(String methodName, Class<? extends Handler> clazz);
 
@@ -202,6 +213,7 @@ public interface ByMethodSpec {
    * @param methodName The HTTP method to map the given action to
    * @param handler the handler to delegate to
    * @return this
+   * @since 1.5
    */
   ByMethodSpec named(String methodName, Handler handler);
 
