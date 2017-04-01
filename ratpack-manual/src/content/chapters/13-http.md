@@ -85,7 +85,7 @@ See [`Form`](api/ratpack/form/Form.html) and [`UploadedFile`](api/ratpack/form/U
 This method will default to rejecting requests which are larger than the server's configured [max content length](api/ratpack/server/ServerConfig.html#getMaxContentLength--).
 Additional flavors are available for configuring the [rejection action](api/ratpack/http/Request.html#getBody-ratpack.func.Block-) and the [maximum size](api/ratpack/http/Request.html#getBody-long-).
 
-```language-java
+```language-java tested
 import ratpack.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
