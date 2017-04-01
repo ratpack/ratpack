@@ -16,6 +16,7 @@
 
 package ratpack.guice;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
@@ -178,6 +179,8 @@ import static ratpack.util.Exceptions.uncheck;
  */
 public abstract class Guice {
 
+  private static final ThreadLocal<Action<? super BindingsSpec>> OVERRIDES_HOLDER = ThreadLocal.withInitial(Action::noop);
+
   private Guice() {
   }
 
@@ -209,6 +212,18 @@ public abstract class Guice {
     return from -> from == null ? createInjector(stage) : createInjector(stage, from);
   }
 
+  /**
+   * Override existing bindings and modules in Guice.
+   * <p>
+   * This method is intended for use in testing applications only.
+   *
+   * @param bindings An action that specifies the bindings and modules to use to override the existing Guice configuration
+   */
+  public static void overrideBindings(Action<? super BindingsSpec> bindings) {
+    Preconditions.checkNotNull(bindings);
+    OVERRIDES_HOLDER.set(bindings);
+  }
+
   private static Function<Module, Injector> childInjectorFactory(final Injector parent) {
     return from -> from == null ? parent.createChildInjector() : parent.createChildInjector(from);
   }
@@ -229,6 +244,7 @@ public abstract class Guice {
 
     modules.add(new AdHocModule(binderActions));
     modules.add(new ConfigModule(serverConfig.getRequiredConfig()));
+    modules.add(overrideModule(serverConfig, modules));
 
     Optional<BindingsImposition> bindingsImposition = Impositions.current().get(BindingsImposition.class);
     if (bindingsImposition.isPresent()) {
@@ -247,6 +263,21 @@ public abstract class Guice {
     Module masterModule = modules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
 
     return injectorFactory.apply(masterModule);
+  }
+
+  static Module overrideModule(ServerConfig serverConfig, List<Module> modules) {
+    List<Action<? super Binder>> binderActions = Lists.newLinkedList();
+
+    BindingsSpec bindings = new DefaultBindingsSpec(serverConfig, binderActions, modules);
+
+    try {
+      OVERRIDES_HOLDER.get().execute(bindings);
+      return new AdHocModule(binderActions);
+    } catch (Exception e) {
+      throw uncheck(e);
+    } finally {
+      OVERRIDES_HOLDER.remove();
+    }
   }
 
   private static class AdHocModule implements Module {

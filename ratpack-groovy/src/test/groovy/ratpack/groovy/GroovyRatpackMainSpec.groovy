@@ -19,6 +19,8 @@ package ratpack.groovy
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
+import ratpack.guice.BindingsSpec
+import ratpack.guice.Guice
 import ratpack.test.MainClassApplicationUnderTest
 import spock.lang.Specification
 
@@ -55,6 +57,47 @@ class GroovyRatpackMainSpec extends Specification {
 
     then:
     response == "foo"
+
+    cleanup:
+    aut?.close()
+  }
+
+  def "can override Guice bindings"() {
+    given:
+    GroovyRatpackMainSpec.classLoader.addURL(dir.root.toURI().toURL())
+    File ratpackFile = dir.newFile("ratpack.groovy")
+    this.class.classLoader
+
+    Guice.overrideBindings { BindingsSpec spec ->
+      spec.bindInstance String, "bar"
+    }
+
+    ratpackFile << """
+      import static ratpack.groovy.Groovy.*
+      import ratpack.server.Stopper
+
+      ratpack {
+        bindings {
+          bindInstance String, "foo"
+        }
+        handlers {
+          get { String s ->
+            render s
+          }
+          get("stop") {
+            get(ratpack.server.Stopper).stop()
+          }
+        }
+      }
+    """
+
+    MainClassApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
+
+    when:
+    String response = aut.httpClient.text
+
+    then:
+    response == "bar"
 
     cleanup:
     aut?.close()
