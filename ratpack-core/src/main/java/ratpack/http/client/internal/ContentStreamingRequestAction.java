@@ -92,7 +92,6 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         execution.onComplete(() -> {
           if (write == null) {
             forceDispose(channelPipeline);
-          } else {
           }
           if (received != null) {
             received.forEach(ReferenceCounted::release);
