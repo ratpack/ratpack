@@ -165,8 +165,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     if (!disposed) {
       disposed = true;
       doDispose(channelPipeline, forceClose);
-    } else {
-      System.out.println("already disposed");
     }
   }
 
@@ -181,7 +179,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
     Channel channel = channelPipeline.channel();
     if (forceClose && channel.isOpen()) {
-      System.out.println("closing channel");
       channel.close();
     }
 

@@ -90,11 +90,9 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         // Switch auto reading off so we can control the flow of response content
         channelPipeline.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
-          System.out.println("exec complete");
           if (write == null) {
             forceDispose(channelPipeline);
           } else {
-            System.out.println("subscribed");
           }
           if (received != null) {
             received.forEach(ReferenceCounted::release);

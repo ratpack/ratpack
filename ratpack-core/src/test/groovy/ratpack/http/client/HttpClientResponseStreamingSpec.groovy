@@ -24,6 +24,9 @@ import ratpack.exec.Blocking
 import ratpack.exec.util.ParallelBatch
 import ratpack.test.exec.ExecHarness
 
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+
 class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
 
   def "can not read streamed request body"() {
@@ -167,7 +170,7 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     otherApp {
       get {
         channel = directChannelAccess.channel
-        render "foo"
+        render "foo" * 8192 * 100 // must be bigger than one buffer, otherwise may be read implicitly.
       }
     }
 
@@ -186,10 +189,38 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     then:
     text == "ok"
     channel.closeFuture().sync()
+  }
 
+  def "keep alive connection is not closed if response is not read but had no body"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        response.send()
+      }
+    }
 
-    where:
-    i << (1..5000).toList()
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(8) })
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+
+    when:
+    channel.closeFuture().get(2, TimeUnit.SECONDS)
+
+    then:
+    thrown TimeoutException
   }
 
   def "keep alive connection is not closed if response is not read but has no body"() {
