@@ -186,6 +186,10 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     then:
     text == "ok"
     channel.closeFuture().sync()
+
+
+    where:
+    i << (1..5000).toList()
   }
 
   def "keep alive connection is not closed if response is not read but has no body"() {
