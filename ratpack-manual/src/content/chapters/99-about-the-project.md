@@ -87,6 +87,7 @@ The following people have provided significant contributions.
 * [Felipe Fernández](https://github.com/felipefzdz)
 * [Nick Pocock](https://github.com/pocockn)
 * [Timur Salyakhutdinov](https://github.com/timic)
+* [Matthew Kavanagh](https://github.com/mkavanagh)
 
 ### Past project members
 
