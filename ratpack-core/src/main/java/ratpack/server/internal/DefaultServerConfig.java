@@ -17,6 +17,8 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableSet;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
@@ -76,11 +78,23 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
 
   @Nullable
   @Override
+  @SuppressWarnings("deprecation")
   public SSLContext getSslContext() {
+    SslContext sslContext = serverConfigData.getSslContext();
+    if (sslContext instanceof JdkSslContext) {
+      return ((JdkSslContext) sslContext).context();
+    } else {
+      throw new UnsupportedOperationException("Cannot provide sslContext as JDK type");
+    }
+  }
+
+  @Override
+  public SslContext getNettySslContext() {
     return serverConfigData.getSslContext();
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public boolean isRequireClientSslAuth() {
     return serverConfigData.isRequireClientSslAuth();
   }

@@ -19,6 +19,8 @@ package ratpack.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
 import com.google.common.reflect.TypeToken;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
@@ -238,7 +240,9 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @return {@code this}
    * @see ratpack.ssl.SSLContexts
    * @see ServerConfig#getSslContext()
+   * @deprecated since 1.5, replaced by {@link #ssl(SslContext)}
    */
+  @Deprecated
   ServerConfigBuilder ssl(SSLContext sslContext);
 
   /**
@@ -246,8 +250,20 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    * @param requireClientSslAuth whether or not server needs client SSL authentication
    * @return {@code this}
+   * @deprecated since 1.5, prefer {@link #ssl(SslContext)}
    */
+  @Deprecated
   ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth);
+
+  /**
+   * The SSL context to use if the application serves content over HTTPS.
+   *
+   * @param sslContext the SSL context
+   * @return {@code this}
+   * @see SslContextBuilder
+   * @since 1.5
+   */
+  ServerConfigBuilder ssl(SslContext sslContext);
 
   /**
    * {@inheritDoc}

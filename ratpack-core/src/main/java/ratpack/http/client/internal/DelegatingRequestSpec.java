@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.handler.ssl.SslContext;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
@@ -53,14 +54,22 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public RequestSpec sslContext(SSLContext sslContext) {
     delegate.sslContext(sslContext);
     return this;
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
     delegate.sslContext(factory);
+    return this;
+  }
+
+  @Override
+  public RequestSpec sslContext(SslContext sslContext) {
+    delegate.sslContext(sslContext);
     return this;
   }
 

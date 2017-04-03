@@ -18,6 +18,8 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
@@ -74,7 +76,9 @@ public interface RequestSpec {
    *
    * @param sslContext SSL context with keystore as well as trust store
    * @return the {@link RequestSpec}
+   * @deprecated since 1.5, use {@link #sslContext(SslContext)}
    */
+  @Deprecated
   RequestSpec sslContext(SSLContext sslContext);
 
   /**
@@ -83,10 +87,22 @@ public interface RequestSpec {
    * @param factory provides a factory that will create {@link SSLContext} instance
    * @return the {@link RequestSpec}
    * @throws Exception this can be thrown from the action
+   * @deprecated since 1.5, no replacement.
    */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
     return sslContext(factory.create());
   }
+
+  /**
+   * Sets the {@link SslContext} used for client and server SSL authentication.
+   *
+   * @param sslContext SSL context with keystore as well as trust store
+   * @return the {@link RequestSpec}
+   * @see SslContextBuilder#forClient()
+   */
+  RequestSpec sslContext(SslContext sslContext);
 
   /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.

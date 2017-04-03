@@ -24,6 +24,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.AttributeKey;
@@ -53,7 +54,6 @@ import ratpack.util.Exceptions;
 import ratpack.util.Types;
 import ratpack.util.internal.ChannelImplDetector;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.InetSocketAddress;
 import java.util.Optional;
@@ -207,8 +207,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   protected Channel buildChannel(final ServerConfig serverConfig, final ChannelHandler handlerAdapter) throws InterruptedException {
 
-    SSLContext sslContext = serverConfig.getSslContext();
-    boolean requireClientSslAuth = serverConfig.isRequireClientSslAuth();
+    SslContext sslContext = serverConfig.getNettySslContext();
     this.useSsl = sslContext != null;
 
     ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -241,9 +240,7 @@ public class DefaultRatpackServer implements RatpackServer {
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
           if (sslContext != null) {
-            SSLEngine sslEngine = sslContext.createSSLEngine();
-            sslEngine.setUseClientMode(false);
-            sslEngine.setNeedClientAuth(requireClientSslAuth);
+            SSLEngine sslEngine = sslContext.newEngine(PooledByteBufAllocator.DEFAULT);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 

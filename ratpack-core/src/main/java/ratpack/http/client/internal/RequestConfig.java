@@ -22,6 +22,9 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -50,7 +53,7 @@ class RequestConfig {
   final Duration readTimeout;
   final boolean decompressResponse;
   final int maxRedirects;
-  final SSLContext sslContext;
+  final SslContext sslContext;
   final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
 
   static RequestConfig of(URI uri, HttpClient httpClient, Action<? super RequestSpec> action) throws Exception {
@@ -83,7 +86,7 @@ class RequestConfig {
     );
   }
 
-  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, ByteBuf body, int maxContentLength, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SSLContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
+  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, ByteBuf body, int maxContentLength, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
@@ -110,7 +113,7 @@ class RequestConfig {
     private ByteBuf bodyByteBuf = Unpooled.EMPTY_BUFFER;
     private HttpMethod method = HttpMethod.GET;
     private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
-    private SSLContext sslContext;
+    private SslContext sslContext;
     private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
     private BodyImpl body = new BodyImpl();
 
@@ -133,7 +136,14 @@ class RequestConfig {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public RequestSpec sslContext(SSLContext sslContext) {
+      this.sslContext = new JdkSslContext(sslContext, true, ClientAuth.NONE);
+      return this;
+    }
+
+    @Override
+    public RequestSpec sslContext(SslContext sslContext) {
       this.sslContext = sslContext;
       return this;
     }

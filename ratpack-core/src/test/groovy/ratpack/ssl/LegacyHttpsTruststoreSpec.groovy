@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,47 +15,44 @@
  */
 package ratpack.ssl
 
-import io.netty.handler.ssl.ClientAuth
-import io.netty.handler.ssl.SslContextBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.net.ssl.*
+import javax.net.ssl.SSLException
+import javax.net.ssl.SSLHandshakeException
+import javax.net.ssl.SSLProtocolException
 import java.nio.channels.ClosedChannelException
-import java.security.KeyStore
-import java.security.Security
 
-class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
+class LegacyHttpsTruststoreSpec extends RatpackGroovyDslSpec {
   private setupServerConfig(String keystore, String truststore) {
-    def builder = SslContextBuilder.forServer(
-      keyManagerFactory(keystore)
-    )
-    if (truststore) {
-      builder.trustManager(trustManagerFactory(truststore))
-    }
-
-    builder.clientAuth(ClientAuth.REQUIRE)
-
     serverConfig {
-      ssl builder.build()
+      if (keystore && truststore) {
+        ssl SSLContexts.sslContext(
+          LegacyHttpsTruststoreSpec.getResource(keystore), "password",
+          LegacyHttpsTruststoreSpec.getResource(truststore), "password")
+      } else if (keystore) {
+        ssl SSLContexts.sslContext(LegacyHttpsTruststoreSpec.getResource(keystore), "password")
+      }
+
+      requireClientSslAuth true
     }
   }
 
   private def setupRequestSpec(String keystore, String truststore) {
     resetRequest()
-    def builder = SslContextBuilder.forClient()
-    if (keystore) {
-      builder.keyManager(keyManagerFactory(keystore))
-    }
-    if (truststore) {
-      builder.trustManager(trustManagerFactory(truststore))
-    }
-
     requestSpec {
-      it.sslContext builder.build()
+      it.sslContext {
+        if (keystore && truststore) {
+          SSLContexts.sslContext(
+            LegacyHttpsTruststoreSpec.getResource(keystore), "password",
+            LegacyHttpsTruststoreSpec.getResource(truststore), "password")
+        } else if (keystore) {
+          SSLContexts.sslContext(LegacyHttpsTruststoreSpec.getResource(keystore), "password")
+        }
+      }
     }
   }
 
-  private setupHandlers() {
+  private def setupHandlers() {
     handlers {
       get("foo") {
         render "SSL VERIFIED"
@@ -97,29 +94,4 @@ class HttpsTruststoreSpec extends RatpackGroovyDslSpec {
     "client_dummy.keystore" | "client_dummy.truststore" | "dummy.keystore"        | "server_dummy.truststore"
     "client_dummy.keystore" | "client_dummy.truststore" | "server_dummy.keystore" | null
   }
-
-  static String getAlgorithm() {
-    String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm")
-    if (algorithm == null) {
-      algorithm = "SunX509"
-    }
-    algorithm
-  }
-
-  static KeyManagerFactory keyManagerFactory(String file) {
-    KeyStore keyStore = KeyStore.getInstance("JKS")
-    keyStore.load(HttpsTruststoreSpec.getResource(file).newInputStream(), "password" as char[])
-    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(algorithm)
-    keyManagerFactory.init(keyStore, "password" as char[])
-    keyManagerFactory
-  }
-
-  static TrustManagerFactory trustManagerFactory(String file) {
-    KeyStore trustStore = KeyStore.getInstance("JKS")
-    trustStore.load(HttpsTruststoreSpec.getResource(file).newInputStream(), "password" as char[])
-    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(algorithm)
-    trustManagerFactory.init(trustStore)
-    trustManagerFactory
-  }
-
 }

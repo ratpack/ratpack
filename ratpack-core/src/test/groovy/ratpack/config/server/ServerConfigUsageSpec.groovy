@@ -39,7 +39,7 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     !config.development
     config.threads == ServerConfig.DEFAULT_THREADS
     !config.publicAddress
-    !config.sslContext
+    !config.nettySslContext
     config.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
   }
 

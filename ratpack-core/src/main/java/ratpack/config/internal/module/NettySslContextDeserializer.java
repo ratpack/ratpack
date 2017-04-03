@@ -20,17 +20,23 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import ratpack.ssl.SSLContexts;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import ratpack.ssl.internal.SslContexts;
 import ratpack.util.Exceptions;
 
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.KeyManagerFactory;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 
-public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
+public class NettySslContextDeserializer extends JsonDeserializer<SslContext> {
+
+  @SuppressWarnings("Duplicates")
   @Override
-  public SSLContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+  public SslContext deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectNode node = jp.readValueAsTree();
 
     try {
@@ -53,12 +59,20 @@ public class SSLContextDeserializer extends JsonDeserializer<SSLContext> {
         );
       }
 
-      if (trustStoreFile.isEmpty()) {
-        return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword);
-      } else {
-        return SSLContexts.sslContext(Paths.get(keyStoreFile), keyStorePassword,
-                                      Paths.get(trustStoreFile), trustStorePassword);
+      KeyManagerFactory keyManagerFactory;
+      try (InputStream is = Files.newInputStream(Paths.get(keyStoreFile))) {
+        keyManagerFactory = SslContexts.keyManagerFactory(is, keyStorePassword.toCharArray());
       }
+
+      SslContextBuilder builder = SslContextBuilder.forServer(keyManagerFactory);
+
+      if (!trustStoreFile.isEmpty()) {
+        try (InputStream is = Files.newInputStream(Paths.get(trustStoreFile))) {
+          builder.trustManager(SslContexts.trustManagerFactory(is, trustStorePassword.toCharArray()));
+        }
+      }
+
+      return builder.build();
     } catch (GeneralSecurityException ex) {
       throw Exceptions.uncheck(ex);
     }

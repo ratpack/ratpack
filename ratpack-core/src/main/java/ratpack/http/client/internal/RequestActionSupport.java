@@ -23,6 +23,9 @@ import io.netty.channel.*;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.PrematureChannelClosureException;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -279,18 +282,18 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     if (requestConfig.sslContext != null) {
       sslEngine = createSslEngine(requestConfig.sslContext);
     } else {
-      sslEngine = createSslEngine(SSLContext.getDefault());
+      sslEngine = createSslEngine(new JdkSslContext(SSLContext.getDefault(), true, ClientAuth.NONE));
     }
     sslEngine.setUseClientMode(true);
     return new SslHandler(sslEngine);
   }
 
-  private SSLEngine createSslEngine(SSLContext sslContext) {
+  private SSLEngine createSslEngine(SslContext sslContext) {
     int port = requestConfig.uri.getPort();
     if (port == -1) {
       port = 443;
     }
-    return sslContext.createSSLEngine(requestConfig.uri.getHost(), port);
+    return sslContext.newEngine(client.getByteBufAllocator(), requestConfig.uri.getHost(), port);
   }
 
   protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception;

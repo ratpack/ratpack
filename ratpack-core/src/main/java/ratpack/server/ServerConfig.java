@@ -18,6 +18,7 @@ package ratpack.server;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
+import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
@@ -179,17 +180,31 @@ public interface ServerConfig extends ConfigData {
 
   /**
    * The SSL context to use if the application will serve content over HTTPS.
+   * <p>
+   * If the SSL context was configured with {@link ServerConfigBuilder#ssl(SslContext)},
+   * this method will throw {@link UnsupportedOperationException}.
+   *
+   * @return The SSL context or <code>null</code> if the application does not use SSL.
+   * @deprecated since 1.5, prefer {@link #getNettySslContext()}
+   */
+  @Nullable
+  @Deprecated
+  SSLContext getSslContext();
+
+  /**
+   * The SSL context to use if the application will serve content over HTTPS.
    *
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
-  @Nullable
-  SSLContext getSslContext();
+  SslContext getNettySslContext();
 
   /**
    * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}.
    *
    * @return whether or not the server needs client SSL authentication
+   * @deprecated since 1.5, replaced by {@link #getNettySslContext()}
    */
+  @Deprecated
   boolean isRequireClientSslAuth();
 
   /**

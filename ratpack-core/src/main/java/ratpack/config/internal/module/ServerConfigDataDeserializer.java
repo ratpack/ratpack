@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.file.FileSystemBinding;
@@ -87,11 +90,14 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("maxHeaderSize")) {
       data.setMaxHeaderSize(serverNode.get("maxHeaderSize").asInt(ServerConfig.DEFAULT_MAX_HEADER_SIZE));
     }
-    if (serverNode.hasNonNull("ssl")) {
-      data.setSslContext(toValue(codec, serverNode.get("ssl"), SSLContext.class));
-    }
     if (serverNode.hasNonNull("requireClientSslAuth")) {
       data.setRequireClientSslAuth(serverNode.get("requireClientSslAuth").asBoolean(false));
+    }
+    if (serverNode.hasNonNull("ssl")) {
+      data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
+    } else if (serverNode.hasNonNull("jdkSsl")) {
+      SSLContext jdkSslContext = toValue(codec, serverNode.get("jdkSsl"), SSLContext.class);
+      data.setSslContext(new JdkSslContext(jdkSslContext, false, data.isRequireClientSslAuth() ? ClientAuth.REQUIRE : ClientAuth.NONE));
     }
     if (serverNode.hasNonNull("baseDir")) {
       throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");

@@ -25,10 +25,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.reflect.TypeToken;
+import io.netty.handler.ssl.SslContext;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
-import ratpack.config.internal.module.SSLContextDeserializer;
+import ratpack.config.internal.module.JdkSslContextDeserializer;
+import ratpack.config.internal.module.NettySslContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
@@ -170,13 +172,20 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public ServerConfigBuilder ssl(SSLContext sslContext) {
-    return addToServer(n -> n.putPOJO("ssl", sslContext));
+    return addToServer(n -> n.putPOJO("jdkSsl", sslContext));
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth) {
     return addToServer(n -> n.put("requireClientSslAuth", requireClientSslAuth));
+  }
+
+  @Override
+  public ServerConfigBuilder ssl(SslContext sslContext) {
+    return addToServer(n -> n.putPOJO("ssl", sslContext));
   }
 
   @Override
@@ -410,7 +419,8 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
         serverEnvironment.getPublicAddress(),
         baseDirSupplier
       ));
-      addDeserializer(SSLContext.class, new SSLContextDeserializer());
+      addDeserializer(SSLContext.class, new JdkSslContextDeserializer());
+      addDeserializer(SslContext.class, new NettySslContextDeserializer());
     }
   }
 

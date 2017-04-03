@@ -16,7 +16,11 @@
 
 package ratpack.ssl;
 
-import javax.net.ssl.*;
+import ratpack.ssl.internal.SslContexts;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,8 +29,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.Security;
 
 /**
  * Factory methods for initializing an {@link SSLContext}.
@@ -166,25 +168,14 @@ public class SSLContexts {
     SSLContext sslContext = SSLContext.getInstance("TLS");
 
     KeyManagerFactory keyManagerFactory = null;
-    TrustManagerFactory trustManagerFactory = null;
-
-    String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
-    if (algorithm == null) {
-      algorithm = "SunX509";
-    }
 
     if (keyStoreStream != null) {
-      KeyStore keyStore = KeyStore.getInstance("JKS");
-      keyStore.load(keyStoreStream, keyStorePassword);
-      keyManagerFactory = KeyManagerFactory.getInstance(algorithm);
-      keyManagerFactory.init(keyStore, keyStorePassword);
+      keyManagerFactory = SslContexts.keyManagerFactory(keyStoreStream, keyStorePassword);
     }
 
+    TrustManagerFactory trustManagerFactory = null;
     if (trustStoreStream != null) {
-      KeyStore trustStore = KeyStore.getInstance("JKS");
-      trustStore.load(trustStoreStream, trustStorePassword);
-      trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
-      trustManagerFactory.init(trustStore);
+      trustManagerFactory = SslContexts.trustManagerFactory(trustStoreStream, trustStorePassword);
     }
 
     sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null, trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
