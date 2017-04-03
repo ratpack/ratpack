@@ -18,7 +18,6 @@ package ratpack.handling.internal;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.func.Action;
 import ratpack.handling.ByContentSpec;
@@ -27,23 +26,24 @@ import ratpack.handling.Handler;
 import ratpack.http.internal.MimeParse;
 import ratpack.registry.Registry;
 
-import java.util.Map;
+import java.util.*;
 
 public class ContentNegotiationHandler implements Handler {
 
-  private final Map<String, Handler> handlers;
+  private final Map<String, Handler> handlers = new LinkedHashMap<>();
+  private final List<String> reverseKeys;
   private final Handler noMatchHandler;
   private final Handler unspecifiedHandler;
 
   public ContentNegotiationHandler(Registry registry, Action<? super ByContentSpec> action) throws Exception {
-    Map<String, Handler> handlers = Maps.newLinkedHashMap();
-    this.handlers = handlers;
-
     DefaultByContentSpec spec = new DefaultByContentSpec(registry, handlers);
     action.execute(spec);
 
     this.noMatchHandler = spec.noMatchHandler;
     this.unspecifiedHandler = spec.unspecifiedHandler;
+
+    this.reverseKeys = new ArrayList<>(handlers.keySet());
+    Collections.reverse(reverseKeys);
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ContentNegotiationHandler implements Handler {
     if (Strings.isNullOrEmpty(acceptHeader)) {
       unspecifiedHandler.handle(context);
     } else {
-      String winner = MimeParse.bestMatch(handlers.keySet(), acceptHeader);
+      String winner = MimeParse.bestMatch(reverseKeys, acceptHeader);
       if (Strings.isNullOrEmpty(winner)) {
         noMatchHandler.handle(context);
       } else {

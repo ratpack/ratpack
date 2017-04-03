@@ -16,11 +16,10 @@
 
 package ratpack.http
 
-import ratpack.func.Block
-import ratpack.handling.internal.ContentNegotiationHandler
-
+import ratpack.error.ServerErrorHandler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
@@ -105,11 +104,20 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
   def "refuses invalid custom mime types (#mimeType)"(String mimeType, String message) {
     when:
-    new ContentNegotiationHandler.DefaultByContentSpec(registry, [:]).type(mimeType, {} as Block)
+    bindings {
+      bindInstance(ServerErrorHandler, new SimpleErrorHandler())
+    }
+
+    handlers {
+      get {
+        byContent {
+          type(mimeType) {}
+        }
+      }
+    }
 
     then:
-    def ex = thrown(IllegalArgumentException)
-    ex.message == message
+    text == "java.lang.IllegalArgumentException: $message".toString()
 
     where:
     mimeType | message
