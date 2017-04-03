@@ -197,12 +197,12 @@ public class DefaultContext implements Context {
     new MultiMethodHandler(blocks).handle(this);
   }
 
-  public void byContent(Action<? super ByContentSpec> action) throws Exception {
+ public void byContent(Action<? super ByContentSpec> action) throws Exception {
     Map<String, Block> blocks = Maps.newLinkedHashMap();
     DefaultByContentSpec spec = new DefaultByContentSpec(blocks);
     action.execute(spec);
-    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler()).handle(this);
-  }
+    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler(), spec.getUnspecifiedHandler()).handle(this);
+ }
 
   public void error(Throwable throwable) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
@@ -418,6 +418,7 @@ public class DefaultContext implements Context {
         throw uncheck(e);
       }
     }
+
   }
 
   private static class ChainIndex implements Iterator<Handler> {

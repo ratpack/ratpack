@@ -31,9 +31,15 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   private final Map<String, Block> blocks;
   private Handler noMatchHandler = ctx -> ctx.clientError(406);
+  private Handler unspecifiedHandler;
 
   public DefaultByContentSpec(Map<String, Block> blocks) {
     this.blocks = blocks;
+    this.unspecifiedHandler = ctx -> {
+      String winner = blocks.keySet().stream().findFirst().orElseThrow(IllegalStateException::new);
+      ctx.getResponse().contentType(winner);
+      blocks.get(winner).execute();
+    };
   }
 
   @Override
@@ -83,14 +89,39 @@ public class DefaultByContentSpec implements ByContentSpec {
 
   @Override
   public ByContentSpec noMatch(String mimeType) {
-    noMatchHandler = ctx -> {
-      ctx.getResponse().contentType(mimeType);
-      blocks.get(mimeType).execute();
-    };
+    noMatchHandler = handleWithMimeTypeBlock(mimeType);
+    return this;
+  }
+
+  @Override
+  public ByContentSpec unspecified(Block handler) {
+    unspecifiedHandler = ctx -> handler.execute();
+    return this;
+  }
+
+  @Override
+  public ByContentSpec unspecified(String mimeType) {
+    unspecifiedHandler = handleWithMimeTypeBlock(mimeType);
     return this;
   }
 
   public Handler getNoMatchHandler() {
     return noMatchHandler;
+  }
+
+  public Handler getUnspecifiedHandler() {
+    return unspecifiedHandler;
+  }
+
+  private Handler handleWithMimeTypeBlock(String mimeType) {
+    return (ctx) -> {
+      Block block = blocks.get(mimeType);
+      if (block == null) {
+        ctx.error(new IllegalStateException("No block defined for mimeType " + mimeType));
+      } else {
+        ctx.getResponse().contentType(mimeType);
+        block.execute();
+      }
+    };
   }
 }

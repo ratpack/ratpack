@@ -16,6 +16,7 @@
 
 package ratpack.http
 
+import ratpack.func.Block
 import ratpack.handling.internal.DefaultByContentSpec
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -34,9 +35,6 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
             render "html"
           }
         }
-      }
-      get("noneRegistered") {
-        byContent {}
       }
     }
 
@@ -68,27 +66,6 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     withAcceptHeader("text/*")
     then:
     text == "html"
-
-    when:
-    withAcceptHeader("")
-    then:
-    text == "json"
-
-    when:
-    resetRequest()
-    // No Accept header
-    then:
-    text == "json"
-
-    when:
-    withAcceptHeader("some/nonsense")
-    then:
-    text == ""
-    response.statusCode == 406
-
-    then:
-    getText("noneRegistered") == ""
-    response.statusCode == 406
   }
 
   def "by accepts responder mime types"() {
@@ -125,9 +102,9 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     text == "html"
   }
 
-  def "refuses invalid custom mime types (#mimeType)"() {
+  def "refuses invalid custom mime types (#mimeType)"(String mimeType, String message) {
     when:
-    new DefaultByContentSpec([:]).type(mimeType) {}
+    new DefaultByContentSpec([:]).type(mimeType, {} as Block)
 
     then:
     def ex = thrown(IllegalArgumentException)
@@ -142,7 +119,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     "text/*" | "mimeType cannot include wildcards"
   }
 
-  def "default to 406 clientError when no handlers"() {
+  def "default to 406 clientError when no blocks registered"() {
     when:
     handlers {
       get {
@@ -154,7 +131,8 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     get().statusCode == 406
   }
 
-  def "default to 406 clientError when content type not matched"() {
+  @Unroll
+  def "default to 406 clientError when content type (#mimeType) not matched"(String mimeType) {
     when:
     handlers {
       get {
@@ -167,9 +145,12 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    withAcceptHeader("application/xml")
+    withAcceptHeader(mimeType)
     then:
     get().statusCode == 406
+
+    where:
+    mimeType << ["application/xml", "some/nonsense"]
   }
 
   def "responds with 406 clientError for invalid accept header values"() {
@@ -246,7 +227,25 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     text == "json"
   }
 
-  def "can register fallback content type"() {
+  def "default noMatch behavior is 406 error"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+        }
+      }
+    }
+
+    and:
+    withAcceptHeader("application/xml")
+    then:
+    get().statusCode == 406
+  }
+
+  def "can register fallback noMatch content type"() {
     when:
     handlers {
       get {
@@ -266,7 +265,26 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     response.body.contentType.type == "application/json"
   }
 
-  def "can register custom noMatch handler"() {
+  def "noMatch for a type without a matching block results in an error"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          noMatch("some/nonsense")
+        }
+      }
+    }
+
+    and:
+    withAcceptHeader("application/xml")
+    then:
+    get().statusCode == 500
+  }
+
+  def "can register custom noMatch block"() {
     when:
     handlers {
       get {
@@ -284,6 +302,101 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
     and:
     withAcceptHeader("application/xml")
+    then:
+    text == "custom"
+    response.body.contentType.type == "text/html"
+  }
+
+  def "default unspecified behavior is first block"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+        }
+      }
+    }
+
+    then:
+    text == "json"
+    response.body.contentType.type == "application/json"
+  }
+
+  def "treats empty accept headers as unspecified"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+        }
+      }
+    }
+
+    and:
+    withAcceptHeader("")
+    then:
+    text == "json"
+    response.body.contentType.type == "application/json"
+  }
+
+  def "can register fallback unspecified content type"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          xml {
+            render "xml"
+          }
+          unspecified("application/xml")
+        }
+      }
+    }
+
+    then:
+    text == "xml"
+    response.body.contentType.type == "application/xml"
+  }
+
+  def "unspecified for a type without a matching block results in an error"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          unspecified("some/nonsense")
+        }
+      }
+    }
+
+    then:
+    get().statusCode == 500
+  }
+
+  def "can register custom unspecified block"() {
+    when:
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          unspecified {
+            response.contentType("text/html")
+            render "custom"
+          }
+        }
+      }
+    }
+
     then:
     text == "custom"
     response.body.contentType.type == "text/html"
