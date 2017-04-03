@@ -21,6 +21,7 @@ import ratpack.file.FileHandlerSpec;
 import ratpack.file.internal.DefaultFileHandlerSpec;
 import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.func.Predicate;
 import ratpack.handling.internal.*;
 import ratpack.path.PathBinder;
@@ -345,6 +346,7 @@ public abstract class Handlers {
   public static Handler whenOrElse(Predicate<? super Context> test, Handler ifHandler, Handler elseHandler) {
     return new WhenHandler(test, ifHandler, elseHandler);
   }
+
   /**
    * Creates a handler that delegates to the given handler if the predicate applies to the context.
    * <p>
@@ -360,4 +362,44 @@ public abstract class Handlers {
   public static Handler onlyIf(Predicate<? super Context> test, Handler handler) {
     return new OnlyIfHandler(test, handler);
   }
+
+  /**
+   * Creates a handler from the given block
+   * <p>
+   * The created handler simply invokes the block.
+   *
+   * @param block the block to invoke
+   * @return a handler
+   * @since 1.5
+   */
+  public static Handler of(Block block) {
+    return ctx -> block.execute();
+  }
+
+  /**
+   * Builds a content negotiating handler.
+   *
+   * @param registry the registry to obtain handlers from for by-class lookups
+   * @param action the spec action
+   * @return a content negotiating handler
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   */
+  public static Handler byContent(Registry registry, Action<? super ByContentSpec> action) throws Exception {
+    return new ContentNegotiationHandler(registry, action);
+  }
+
+  /**
+   * Builds a multi method handler.
+   *
+   * @param registry the registry to obtain handlers from for by-class lookups
+   * @param action the spec action
+   * @return a multi method handler
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   */
+  public static Handler byMethod(Registry registry, Action<? super ByMethodSpec> action) throws Exception {
+    return new MultiMethodHandler(registry, action);
+  }
+
 }

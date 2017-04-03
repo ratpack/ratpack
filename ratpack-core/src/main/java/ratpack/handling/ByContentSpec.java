@@ -78,7 +78,31 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type matches
    * @return this
    */
-  ByContentSpec type(String mimeType, Block block);
+  default ByContentSpec type(String mimeType, Block block) {
+    return type(mimeType, Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType the MIME type to register for
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec type(String mimeType, Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType the MIME type to register for
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec type(String mimeType, Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/plain".
@@ -86,7 +110,27 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type matches
    * @return this
    */
-  ByContentSpec plainText(Block block);
+  default ByContentSpec plainText(Block block) {
+    return plainText(Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "text/plain".
+   *
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec plainText(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "text/plain".
+   *
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec plainText(Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/html".
@@ -94,7 +138,27 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type matches
    * @return this
    */
-  ByContentSpec html(Block block);
+  default ByContentSpec html(Block block) {
+    return html(Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "text/html".
+   *
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec html(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "text/html".
+   *
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec html(Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "application/json".
@@ -102,7 +166,27 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type matches
    * @return this
    */
-  ByContentSpec json(Block block);
+  default ByContentSpec json(Block block) {
+    return json(Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "application/json".
+   *
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec json(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "application/json".
+   *
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec json(Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "application/xml".
@@ -110,7 +194,27 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type matches
    * @return this
    */
-  ByContentSpec xml(Block block);
+  default ByContentSpec xml(Block block) {
+    return xml(Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "application/xml".
+   *
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec xml(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of type "application/xml".
+   *
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec xml(Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
@@ -118,7 +222,27 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type doesn't match
    * @return this
    */
-  ByContentSpec noMatch(Block block);
+  default ByContentSpec noMatch(Block block) {
+    return noMatch(Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
+   *
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec noMatch(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client's requested content type cannot be matched with any of the other handlers.
+   *
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec noMatch(Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the handler for the specified content type should be used if the client's requested content type cannot be matched with any of the other handlers.
@@ -137,7 +261,27 @@ public interface ByContentSpec {
    * @return this
    * @since 1.5
    */
-  ByContentSpec unspecified(Block block);
+  default ByContentSpec unspecified(Block block) {
+    return unspecified(Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client did not provide a usable "Accept" header in the request.
+   *
+   * @param handler the handler to invoke if if no usable "Accept" header is present in the request.
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec unspecified(Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client did not provide a usable "Accept" header in the request.
+   *
+   * @param handlerType the type of handler to retrieve from the registry and use if no usable "Accept" header is present in the request.
+   * @return this
+   * @since 1.5
+   */
+  ByContentSpec unspecified(Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the handler for the specified content type should be used if the client did not provide a usable "Accept" header in the request.

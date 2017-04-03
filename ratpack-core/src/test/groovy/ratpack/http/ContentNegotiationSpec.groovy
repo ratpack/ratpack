@@ -17,7 +17,8 @@
 package ratpack.http
 
 import ratpack.func.Block
-import ratpack.handling.internal.DefaultByContentSpec
+import ratpack.handling.internal.ContentNegotiationHandler
+
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -104,7 +105,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
   def "refuses invalid custom mime types (#mimeType)"(String mimeType, String message) {
     when:
-    new DefaultByContentSpec([:]).type(mimeType, {} as Block)
+    new ContentNegotiationHandler.DefaultByContentSpec(registry, [:]).type(mimeType, {} as Block)
 
     then:
     def ex = thrown(IllegalArgumentException)

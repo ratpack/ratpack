@@ -26,9 +26,9 @@ import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.GroovyContext;
+import ratpack.groovy.handling.*;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
+import ratpack.groovy.handling.internal.DefaultGroovyByMethodSpec;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
@@ -43,6 +43,7 @@ import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
+import ratpack.handling.Handlers;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
@@ -724,6 +725,32 @@ public abstract class Groovy {
 
   public static Markup markupBuilder(CharSequence contentType, Charset encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new Markup(contentType, encoding, closure);
+  }
+
+  /**
+   * Builds a content negotiating handler.
+   *
+   * @param registry the registry to obtain handlers from for by-class lookups
+   * @param closure the spec action
+   * @return a content negotiating handler
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   */
+  public static Handler byContent(Registry registry, @DelegatesTo(value = GroovyByMethodSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return Handlers.byContent(registry, s -> ClosureUtil.configureDelegateFirst(new DefaultGroovyByContentSpec(s), closure));
+  }
+
+  /**
+   * Builds a multi method handler.
+   *
+   * @param registry the registry to obtain handlers from for by-class lookups
+   * @param closure the spec action
+   * @return a multi method handler
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   */
+  public static Handler byMethod(Registry registry, @DelegatesTo(value = GroovyByContentSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return Handlers.byMethod(registry, s -> ClosureUtil.configureDelegateFirst(new DefaultGroovyByMethodSpec(s), closure));
   }
 
 }

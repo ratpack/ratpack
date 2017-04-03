@@ -24,13 +24,11 @@ import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.groovy.handling.DefaultGroovyByContentSpec;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.handling.internal.DefaultByMethodSpec;
-import ratpack.handling.internal.MultiMethodHandler;
-import ratpack.http.HttpMethod;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
@@ -42,8 +40,6 @@ import ratpack.server.ServerConfig;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -61,15 +57,12 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   public void byMethod(Closure<?> closure) throws Exception {
-    Map<HttpMethod, Handler> handlers = new HashMap<>();
-    ByMethodSpec byMethodSpec = new DefaultGroovyByMethodSpec(new DefaultByMethodSpec(handlers, this));
-    ClosureUtil.configureDelegateFirst(byMethodSpec, closure);
-    new MultiMethodHandler(handlers).handle(this);
+    delegate.byMethod(s -> ClosureUtil.configureDelegateFirst(new DefaultGroovyByMethodSpec(s), closure));
   }
 
   @Override
   public void byContent(Closure<?> closure) throws Exception {
-    delegate.byContent(ClosureUtil.delegatingAction(ByContentSpec.class, closure));
+    delegate.byContent(s -> ClosureUtil.configureDelegateFirst(new DefaultGroovyByContentSpec(s), closure));
   }
 
   @Override

@@ -17,7 +17,6 @@
 package ratpack.handling.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
@@ -31,11 +30,13 @@ import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
-import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.http.*;
+import ratpack.http.Request;
+import ratpack.http.Response;
+import ratpack.http.Status;
+import ratpack.http.TypedData;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.NoSuchParserException;
@@ -191,18 +192,12 @@ public class DefaultContext implements Context {
   }
 
   public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
-    Map<HttpMethod, Handler> blocks = Maps.newHashMap();
-    DefaultByMethodSpec spec = new DefaultByMethodSpec(blocks, this);
-    action.execute(spec);
-    new MultiMethodHandler(blocks).handle(this);
+    Handlers.byMethod(this, action).handle(this);
   }
 
- public void byContent(Action<? super ByContentSpec> action) throws Exception {
-    Map<String, Block> blocks = Maps.newLinkedHashMap();
-    DefaultByContentSpec spec = new DefaultByContentSpec(blocks);
-    action.execute(spec);
-    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler(), spec.getUnspecifiedHandler()).handle(this);
- }
+  public void byContent(Action<? super ByContentSpec> action) throws Exception {
+    Handlers.byContent(this, action).handle(this);
+  }
 
   public void error(Throwable throwable) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
