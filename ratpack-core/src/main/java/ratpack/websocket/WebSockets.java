@@ -93,7 +93,7 @@ public abstract class WebSockets {
       @Override
       public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
         WebsocketBroadcastSubscriber subscriber = new WebsocketBroadcastSubscriber(webSocket);
-        Streams.bindExec(broadcaster).subscribe(subscriber);
+        Streams.bindExec(broadcaster, ByteBuf::release).subscribe(subscriber);
         return subscriber;
       }
     });

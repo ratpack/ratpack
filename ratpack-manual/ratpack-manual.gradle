@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+
+import org.gradle.external.javadoc.internal.AbstractJavadocOptionFileOption
+import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext
+
+import static org.pegdown.Extensions.*
+
 description = "The manual for Ratpack (documentation & API reference)"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
@@ -45,7 +51,7 @@ dependencies {
     exclude group: "org.apache.httpcomponents", module: "httpclient"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
-  testRuntime commonDependencies.toolingApi // used by gradle snippet fixture
+  testCompile gradleTestKit()
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
   testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 
@@ -78,18 +84,23 @@ modifyPom { pom ->
 apiModules.each { evaluationDependsOn(it.path) }
 evaluationDependsOn ":ratpack-gradle"
 
-task configureApi << {
-  api {
-    apiModules.each {
-      def packages = []
-      def root = it.file("src/main/java")
-      root.eachDirRecurse {
-        if (it.listFiles().any { it.name.endsWith(".java") }) {
-          packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
+task configureApi() {
+  doLast {
+    api {
+      apiModules.each {
+        def packages = []
+        def root = it.file("src/main/java")
+        root.eachDirRecurse {
+          if (it.listFiles().any { it.name.endsWith(".java") }) {
+            packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
+          }
         }
-      }
 
-      options.group it.name, packages
+        if (it.name == "ratpack-exec") {
+          packages = packages - ["ratpack.util", "ratpack.util.internal", "ratpack.func"]
+        }
+        options.group it.name, packages
+      }
     }
   }
 }
@@ -131,6 +142,17 @@ task api(type: Javadoc) {
       <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
+  options.addOption new AbstractJavadocOptionFileOption<String>("-allow-script-in-comments", null) {
+    @Override
+    void write(JavadocOptionFileWriterContext context) throws IOException {
+      context.writeOption(getOption())
+    }
+
+    @Override
+    AbstractJavadocOptionFileOption<String> duplicate() {
+      this
+    }
+  }
   options.bottom = ext.additionalAssets
 
   inputs.property "additionalAssets", ext.additionalAssets
@@ -220,8 +242,6 @@ task tokeniseManual(type: Sync) {
     }
   }
 }
-
-import static org.pegdown.Extensions.*
 
 task compileManual {
   group "manual"
@@ -359,6 +379,9 @@ task manualZip(type: Zip) {
   from packageManual
 }
 
+configurations {
+  zip
+}
 artifacts {
-  delegate.default manualZip
+  zip manualZip
 }

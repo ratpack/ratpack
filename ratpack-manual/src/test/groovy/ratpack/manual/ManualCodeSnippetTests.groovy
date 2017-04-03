@@ -19,6 +19,7 @@ package ratpack.manual
 import com.google.common.base.StandardSystemProperty
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
+import ratpack.manual.snippets.executer.GradleSnippetExecuter
 import ratpack.manual.snippets.executer.GroovySnippetExecuter
 import ratpack.manual.snippets.executer.JavaSnippetExecuter
 import ratpack.manual.snippets.executer.SnippetExecuter
@@ -31,7 +32,7 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy groovy-chain-dsl": new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
     "language-groovy groovy-ratpack"  : new GroovySnippetExecuter(true, new GroovyRatpackDslNoRunFixture()),
     "language-groovy groovy-handlers" : new GroovySnippetExecuter(true, new GroovyHandlersFixture()),
-    "language-groovy gradle"          : new GroovySnippetExecuter(false, new GradleFixture()),
+    "language-groovy gradle"          : new GradleSnippetExecuter(new SnippetFixture()),
     "language-groovy tested"          : new GroovySnippetExecuter(true, new GroovyScriptFixture()),
     "language-java"                   : new JavaSnippetExecuter(new SnippetFixture()),
     "language-java hello-world"       : new HelloWorldAppSnippetExecuter(new JavaSnippetExecuter(new SnippetFixture())),

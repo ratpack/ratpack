@@ -31,6 +31,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
+import ratpack.exec.Operation;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.http.Headers;
@@ -343,7 +344,7 @@ public class DefaultResponse implements Response {
       finalizers
         .next()
         .curry(this)
-        .operation()
+        .map(Operation::of)
         .then(() ->
           finalizeResponse(finalizers, then)
         );

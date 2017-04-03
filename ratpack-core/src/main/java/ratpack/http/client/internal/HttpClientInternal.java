@@ -18,7 +18,7 @@ package ratpack.http.client.internal;
 
 import ratpack.http.client.HttpClient;
 
-public interface HttpClientInternal extends HttpClient {
+interface HttpClientInternal extends HttpClient {
 
   HttpChannelPoolMap getChannelPoolMap();
 

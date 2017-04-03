@@ -72,7 +72,7 @@ The following people have provided significant contributions.
 * [Martin Lundvall](https://github.com/lundvall)
 * [Fabian Förster](https://github.com/ffoers)
 * [Guillaume Laforge](https://github.com/glaforge)
-* [Ari Becker](https://github.com/solatic)
+* [Ari Becker](https://github.com/ari-becker)
 * [James Lee](https://github.com/brucenunk)
 * [Bob wen](https://github.com/bobwenx)
 * [Edinson Padrón](https://github.com/epadronu)
@@ -80,10 +80,14 @@ The following people have provided significant contributions.
 * [Gus Power](https://github.com/guspower)
 * [Rahul Somasunderam](https://github.com/rahulsom)
 * [Spencer Allain](https://github.com/merscwog)
-* [Phill Barber] (https://github.com/phillbarber)
-* [Sebastien Bonnet] (https://github.com/sebbonnet)
+* [Phill Barber](https://github.com/phillbarber)
+* [Sebastien Bonnet](https://github.com/sebbonnet)
 * [Alex Edwards](https://github.com/set321go)
 * [Ho Yan Leung](https://github.com/hyleung)
+* [Felipe Fernández](https://github.com/felipefzdz)
+* [Nick Pocock](https://github.com/pocockn)
+* [Timur Salyakhutdinov](https://github.com/timic)
+* [Matthew Kavanagh](https://github.com/mkavanagh)
 
 ### Past project members
 

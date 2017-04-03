@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMultimap
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class HttpUrlBuilderSpec extends Specification {
 
@@ -123,7 +122,6 @@ class HttpUrlBuilderSpec extends Specification {
     build { encodedPath "foo%2Fbar" } == "http://localhost/foo%2Fbar"
   }
 
-  @Unroll
   def "round trip - #string"() {
     expect:
     build(string) == string

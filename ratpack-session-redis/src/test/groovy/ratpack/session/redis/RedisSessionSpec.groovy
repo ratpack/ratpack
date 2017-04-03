@@ -42,6 +42,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
   }
 
   def setup() {
+    failOnLeak = false
     modules << new SessionModule()
     modules << new RedisSessionModule()
     supportsSize = false

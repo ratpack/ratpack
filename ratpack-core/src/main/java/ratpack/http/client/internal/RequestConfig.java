@@ -59,7 +59,14 @@ class RequestConfig {
     spec.readTimeout = httpClient.getReadTimeout();
     spec.maxContentLength = httpClient.getMaxContentLength();
 
-    action.execute(spec);
+    try {
+      action.execute(spec);
+    } catch (Exception any) {
+      if (spec.bodyByteBuf != null) {
+        spec.bodyByteBuf.release();
+      }
+      throw any;
+    }
 
     return new RequestConfig(
       spec.uri,
@@ -181,13 +188,13 @@ class RequestConfig {
       if (bodyByteBuf != null) {
         bodyByteBuf.release();
       }
-      bodyByteBuf = byteBuf;
+      bodyByteBuf = byteBuf.touch();
     }
 
 
     private class BodyImpl implements Body {
       @Override
-      public Body type(String contentType) {
+      public Body type(CharSequence contentType) {
         getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, contentType);
         return this;
       }
@@ -208,7 +215,7 @@ class RequestConfig {
 
       @Override
       public Body buffer(ByteBuf byteBuf) {
-        setBodyByteBuf(byteBuf.retain());
+        setBodyByteBuf(byteBuf);
         return this;
       }
 

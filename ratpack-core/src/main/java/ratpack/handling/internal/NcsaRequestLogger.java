@@ -70,7 +70,7 @@ public class NcsaRequestLogger implements RequestLogger {
           request.maybeGet(UserId.class).map(Types::cast),
           request.getTimestamp(),
           request.getMethod(),
-          "/" + request.getPath(),
+          request.getRawUri(),
           request.getProtocol(),
           outcome.getResponse().getStatus(),
           responseSize));

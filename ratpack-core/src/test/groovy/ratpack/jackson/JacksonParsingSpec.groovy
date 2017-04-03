@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.reflect.TypeToken
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import static Jackson.jsonNode
 
@@ -49,7 +48,6 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     postText() == "3"
   }
 
-  @Unroll
   def "can parse #requestBody with #jsonParserFeature enabled"() {
     given:
     bindings {
@@ -86,8 +84,7 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     def foo = [:]
   }
 
-  @Unroll("can parse json as #classType")
-  def "can parse json as object"() {
+  def "can parse json as #classType"() {
     when:
     Class returnedType
 

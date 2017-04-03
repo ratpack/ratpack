@@ -18,13 +18,13 @@ package ratpack.render.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.util.Types;
 
 public class CharSequenceRenderer extends RendererSupport<CharSequence> {
 
-  public static final TypeToken<Renderer<CharSequence>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<CharSequence>>() {});
+  public static final TypeToken<Renderer<CharSequence>> TYPE = Types.intern(new TypeToken<Renderer<CharSequence>>() {});
 
   public static final Renderer<CharSequence> INSTANCE = new CharSequenceRenderer();
 

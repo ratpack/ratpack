@@ -52,12 +52,14 @@ public class WebsocketBroadcastSubscriber implements Subscriber<ByteBuf>, AutoCl
   @Override
   public void onNext(ByteBuf s) {
     if (s == null) {
-      throw null;
+      throw new NullPointerException();
     }
 
     if (!terminated) {
       webSocket.send(s);
       this.subscription.request(1);
+    } else {
+      s.release();
     }
   }
 

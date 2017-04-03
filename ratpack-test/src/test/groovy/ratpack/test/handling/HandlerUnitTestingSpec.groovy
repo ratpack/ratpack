@@ -28,7 +28,6 @@ import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
 import ratpack.registry.Registry
 import spock.lang.Specification
-import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
@@ -279,7 +278,6 @@ class HandlerUnitTestingSpec extends Specification {
     sentResponse
   }
 
-  @Unroll
   def "can set request body"() {
     //noinspection GroovyAssignabilityCheck
     given:
@@ -380,7 +378,6 @@ class HandlerUnitTestingSpec extends Specification {
     rendered(String) == [a: "1", b: "2"].toString()
   }
 
-  @Unroll
   def "can access things inserted into registry"() {
     when:
     handle {
@@ -447,7 +444,6 @@ class HandlerUnitTestingSpec extends Specification {
     result.headers.location == "http://localhost:5050/foo"
   }
 
-  @Unroll
   def "can get remote host and port"() {
     given:
     fixture.remoteAddress(HostAndPort.fromParts(host, port))

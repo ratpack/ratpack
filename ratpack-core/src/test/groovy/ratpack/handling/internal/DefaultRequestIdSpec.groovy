@@ -19,11 +19,9 @@ package ratpack.handling.internal
 import io.netty.util.AsciiString
 import ratpack.handling.RequestId
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultRequestIdSpec extends Specification {
 
-  @Unroll
   def "equals based on id"() {
     expect:
     RequestId.of(AsciiString.of(id)).equals(RequestId.of(AsciiString.of(thatId))) == equals

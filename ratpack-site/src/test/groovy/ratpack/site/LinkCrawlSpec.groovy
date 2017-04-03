@@ -39,7 +39,9 @@ class LinkCrawlSpec extends Specification {
       "http://lea.verou.me/",
       "http://www.yourkit.com",
       "http://thecodingdesigner.com",
-      "https://kotlinlang.org"
+      "https://kotlinlang.org",
+      "http://www.slf4j.org",
+      "https://travis-ci.org"
     ]
 
     def crawler = new Crawler(aut.address.toString()) {

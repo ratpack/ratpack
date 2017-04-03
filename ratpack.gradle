@@ -33,12 +33,12 @@ buildscript {
 
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
-    classpath "com.gradle:build-scan-plugin:1.0"
+    classpath "com.gradle:build-scan-plugin:1.6"
   }
 }
 
 allprojects {
-  version = "1.4.0-SNAPSHOT"
+  version = "1.5.0-SNAPSHOT"
 }
 
 ext {
@@ -49,14 +49,16 @@ ext {
   isSnapCi = System.getenv("SNAP_CI") != null
   isAppveyor = System.getenv("APPVEYOR") != null
   isHeroku = System.getenv("HEROKU") != null
-  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
+  isSemaphore = System.getenv("SEMAPHORE") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor || isSemaphore
   isCi = isCloudCi
 
   publishedModules = [
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-session-redis", "ratpack-test", "ratpack-groovy-test",
     "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test",
     "ratpack-dropwizard-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
-    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2"
+    "ratpack-pac4j", "ratpack-hystrix", "ratpack-spring-boot", "ratpack-spring-boot-starter", "ratpack-retrofit2",
+    "ratpack-jdbc-tx", "ratpack-consul", "ratpack-base", "ratpack-exec"
   ].collect { project(it) }
 
   noCodeModules = [
@@ -96,20 +98,21 @@ artifactoryPublish { task ->
   skip true
 }
 
-task bintrayPublish << {
-  if (!project.hasProperty("ratpackOssJfrogApiKey")) {
-    throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
-  }
+task bintrayPublish() {
+  doLast {
+    if (!project.hasProperty("ratpackOssJfrogApiKey")) {
+      throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
+    }
 
-  if (!project.hasProperty('buildNumber')) {
-    throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
-  }
+    if (!project.hasProperty('buildNumber')) {
+      throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
+    }
 
-  def curl = ['curl',
-              '-X', 'POST',
-              "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
-              "-H", "Content-Type: application/json",
-              "-d", """{
+    def curl = ['curl',
+                '-X', 'POST',
+                "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
+                "-H", "Content-Type: application/json",
+                "-d", """{
     "subject": "ratpack",
     "repoName": "maven",
     "packageName": "ratpack",
@@ -118,9 +121,10 @@ task bintrayPublish << {
     "vcs_url": "https://github.com/ratpack/ratpack"
 }
 """,
-              "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
-  ].execute()
-  logger.info("Received response: ${curl.text}")
+                "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
+    ].execute()
+    logger.info("Received response: ${curl.text}")
+  }
 }
 
 allprojects {
@@ -191,11 +195,22 @@ gradle.taskGraph.afterTask {
   }
 }
 
-task downloadDependencies << {
-  allprojects { p ->
-    configurations.each { c ->
-      println "Downloading dependencies for $p.path - $c.name"
-      c.files
+task downloadDependencies() {
+  doLast {
+    allprojects { p ->
+      configurations.each { c ->
+        if (c.canBeResolved) {
+          println "Downloading dependencies for $p.path - $c.name"
+          c.files
+        }
+      }
     }
+  }
+}
+
+task sanityCheck { t ->
+  allprojects {
+    dependsOn it.tasks.withType(CodeNarc)
+    dependsOn it.tasks.withType(Checkstyle)
   }
 }

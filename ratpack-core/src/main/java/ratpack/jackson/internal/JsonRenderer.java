@@ -26,15 +26,15 @@ import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.JsonRender;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.util.Types;
 
 import java.io.OutputStream;
 
 public class JsonRenderer extends RendererSupport<JsonRender> {
 
-  public static final TypeToken<Renderer<JsonRender>> TYPE = TypeCaching.typeToken(new TypeToken<Renderer<JsonRender>>() {});
+  public static final TypeToken<Renderer<JsonRender>> TYPE = Types.intern(new TypeToken<Renderer<JsonRender>>() {});
 
   public static final Renderer<JsonRender> INSTANCE = new JsonRenderer();
 

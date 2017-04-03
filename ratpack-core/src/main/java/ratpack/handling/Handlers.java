@@ -333,6 +333,19 @@ public abstract class Handlers {
   }
 
   /**
+   * Creates a handler that inserts and delegates to the appropriate handler depending if the predicate applies to the context.
+   * <p>
+   *
+   * @param test the test whether to delegate to the appropriate handler
+   * @param ifHandler the handler to insert if the predicate applies
+   * @param elseHandler the handler to insert if the predicate doesn't apply
+   * @return a handler
+   * @since 1.5
+   */
+  public static Handler whenOrElse(Predicate<? super Context> test, Handler ifHandler, Handler elseHandler) {
+    return new WhenHandler(test, ifHandler, elseHandler);
+  }
+  /**
    * Creates a handler that delegates to the given handler if the predicate applies to the context.
    * <p>
    * If the predicate does not apply, calls {@link Context#next()}.

@@ -103,4 +103,39 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     getText() == "No response sent for GET request to / (last handler: ratpack.handling.NoResponseSentDetectionSpec\$2)"
     response.statusCode == 500
   }
+
+  def "sends error response with large request body"() {
+    when:
+    handlers {
+      post {
+        // no response sent here, no next() called
+      }
+    }
+
+    then:
+    def r = request {
+      it.post().body.text("1" * 10000)
+    }
+
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 110 of NoResponseSentDetectionSpec.groovy)"
+    response.statusCode == 500
+  }
+
+  def "sends error response with too large request body"() {
+    when:
+    handlers {
+      post {
+        request.maxContentLength = 10
+        // no response sent here, no next() called
+      }
+    }
+
+    then:
+    def r = request {
+      it.post().body.text("1" * 10000)
+    }
+
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 128 of NoResponseSentDetectionSpec.groovy)"
+    response.statusCode == 500
+  }
 }

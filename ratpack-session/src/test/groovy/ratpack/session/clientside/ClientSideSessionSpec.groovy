@@ -24,7 +24,6 @@ import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.time.Duration
 
@@ -32,6 +31,33 @@ class ClientSideSessionSpec extends SessionSpec {
 
   private String[] getCookies(String startsWith, String path) {
     getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
+  }
+
+  final static SUPPORTED_ALGORITHMS = [
+    "Blowfish",
+    "AES/CBC/NoPadding",
+    "AES/CBC/PKCS5Padding",
+    "AES/ECB/NoPadding",
+    "AES/ECB/PKCS5Padding",
+    "DES/CBC/NoPadding",
+    "DES/CBC/PKCS5Padding",
+    "DES/ECB/NoPadding",
+    "DES/ECB/PKCS5Padding",
+    "DESede/CBC/NoPadding",
+    "DESede/CBC/PKCS5Padding",
+    "DESede/ECB/NoPadding",
+    "DESede/ECB/PKCS5Padding"
+  ]
+
+  static int keyLength(String algorithm) {
+    switch (algorithm) {
+      case ~/^DESede.*/:
+        return 24
+      case ~/^DES.*/:
+        return 8
+      default:
+        return 16
+    }
   }
 
   String key
@@ -183,7 +209,6 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies("ratpack_session", "/").length == 0
   }
 
-  @Unroll
   def "a malformed cookie (#value) results in an empty session"() {
     given:
     handlers {
@@ -289,7 +314,6 @@ class ClientSideSessionSpec extends SessionSpec {
     values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
   }
 
-  @Unroll
   def "can use algorithm #algorithm"() {
     given:
     modules.clear()
@@ -297,19 +321,7 @@ class ClientSideSessionSpec extends SessionSpec {
       module SessionModule
       module ClientSideSessionModule, {
         it.with {
-          int length = 16
-          switch (algorithm) {
-            case ~/^AES.*/:
-              length = 16
-              break
-            case ~/^DESede.*/:
-              length = 24
-              break
-            case ~/^DES.*/:
-              length = 8
-              break
-          }
-          secretKey = "a" * length
+          secretKey = "a" * keyLength(algorithm)
           cipherAlgorithm = algorithm
         }
       }
@@ -329,21 +341,7 @@ class ClientSideSessionSpec extends SessionSpec {
     text == "foo"
 
     where:
-    algorithm << [
-      "Blowfish",
-      "AES/CBC/NoPadding",
-      "AES/CBC/PKCS5Padding",
-      "AES/ECB/NoPadding",
-      "AES/ECB/PKCS5Padding",
-      "DES/CBC/NoPadding",
-      "DES/CBC/PKCS5Padding",
-      "DES/ECB/NoPadding",
-      "DES/ECB/PKCS5Padding",
-      "DESede/CBC/NoPadding",
-      "DESede/CBC/PKCS5Padding",
-      "DESede/ECB/NoPadding",
-      "DESede/ECB/PKCS5Padding"
-    ]
+    algorithm << SUPPORTED_ALGORITHMS
   }
 
   @Issue("This alogrithms seem to intermittently fail, so we'll be ok if they break")

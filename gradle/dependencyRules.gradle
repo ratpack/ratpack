@@ -1,7 +1,7 @@
 configurations.all { configuration ->
   resolutionStrategy {
     gradle.taskGraph.whenReady { taskGraph ->
-      if (taskGraph.allTasks.every { it.name != "dependencies" } ) {
+      if (configuration.state != Configuration.State.RESOLVED && taskGraph.allTasks.every { it.name != "dependencies" } ) {
         failOnVersionConflict()
       }
     }

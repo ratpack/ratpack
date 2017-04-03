@@ -27,12 +27,11 @@ final class HttpChannelKey {
   final int port;
   final String host;
 
-  // intentionally not part of the equality check
-  final Duration connectTimeout;
   final Execution execution;
 
+  final Duration connectTimeout;
+
   HttpChannelKey(URI uri, Duration connectTimeout, Execution execution) {
-    this.execution = execution;
     switch (uri.getScheme()) {
       case "https":
         this.ssl = true;
@@ -46,6 +45,7 @@ final class HttpChannelKey {
 
     this.port = uri.getPort() < 0 ? ssl ? 443 : 80 : uri.getPort();
     this.host = uri.getHost();
+    this.execution = execution;
     this.connectTimeout = connectTimeout;
   }
 
@@ -60,7 +60,10 @@ final class HttpChannelKey {
 
     HttpChannelKey that = (HttpChannelKey) o;
 
-    return ssl == that.ssl && port == that.port && host.equals(that.host);
+    return execution.getController() == that.execution.getController()
+      && ssl == that.ssl
+      && port == that.port
+      && host.equals(that.host);
   }
 
   @Override
@@ -68,6 +71,7 @@ final class HttpChannelKey {
     int result = ssl ? 1 : 0;
     result = 31 * result + port;
     result = 31 * result + host.hashCode();
+    result = 31 * result + execution.getController().hashCode();
     return result;
   }
 

@@ -28,6 +28,9 @@ import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.handling.internal.DefaultByMethodSpec;
+import ratpack.handling.internal.MultiMethodHandler;
+import ratpack.http.HttpMethod;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
@@ -39,6 +42,8 @@ import ratpack.server.ServerConfig;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -55,23 +60,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public Execution getExecution() {
-    return delegate.getExecution();
-  }
-
-  @Override
-  public ServerConfig getServerConfig() {
-    return delegate.getServerConfig();
-  }
-
-  @Override
-  public DirectChannelAccess getDirectChannelAccess() {
-    return delegate.getDirectChannelAccess();
-  }
-
-  @Override
   public void byMethod(Closure<?> closure) throws Exception {
-    delegate.byMethod(ClosureUtil.delegatingAction(ByMethodSpec.class, closure));
+    Map<HttpMethod, Handler> handlers = new HashMap<>();
+    ByMethodSpec byMethodSpec = new DefaultGroovyByMethodSpec(new DefaultByMethodSpec(handlers, this));
+    ClosureUtil.configureDelegateFirst(byMethodSpec, closure);
+    new MultiMethodHandler(handlers).handle(this);
   }
 
   @Override
@@ -82,6 +75,16 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public void onClose(Closure<?> callback) {
     onClose(ClosureUtil.delegatingAction(callback));
+  }
+
+  @Override
+  public Execution getExecution() {
+    return delegate.getExecution();
+  }
+
+  @Override
+  public ServerConfig getServerConfig() {
+    return delegate.getServerConfig();
   }
 
   @Override
@@ -141,16 +144,6 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public PathBinding getPathBinding() {
-    return delegate.getPathBinding();
-  }
-
-  @Override
-  public Path file(String path) throws NotInRegistryException {
-    return delegate.file(path);
-  }
-
-  @Override
   @NonBlocking
   public void render(Object object) {
     delegate.render(object);
@@ -183,12 +176,12 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T, O> Promise<T> parse(TypeToken<T> type, O options) {
+  public <T, O> Promise<T> parse(Class<T> type, O options) {
     return delegate.parse(type, options);
   }
 
   @Override
-  public <T, O> Promise<T> parse(Class<T> type, O options) {
+  public <T, O> Promise<T> parse(TypeToken<T> type, O options) {
     return delegate.parse(type, options);
   }
 
@@ -203,12 +196,31 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public DirectChannelAccess getDirectChannelAccess() {
+    return delegate.getDirectChannelAccess();
+  }
+
+  @Override
+  public PathBinding getPathBinding() {
+    return delegate.getPathBinding();
+  }
+
+  @Override
   public void onClose(Action<? super RequestOutcome> callback) {
     delegate.onClose(callback);
   }
 
   @Override
+  public Path file(String path) throws NotInRegistryException {
+    return delegate.file(path);
+  }
+
+  @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
+    return delegate.get(type);
+  }
+
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     return delegate.get(type);
   }
 
@@ -218,18 +230,14 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return delegate.getAll(type);
-  }
-
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return delegate.get(type);
-  }
-
-  @Override
   @Nullable
   public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return delegate.maybeGet(type);
+  }
+
+  @Override
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
+    return delegate.getAll(type);
   }
 
   @Override

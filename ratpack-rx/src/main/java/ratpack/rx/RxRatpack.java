@@ -29,6 +29,7 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Scheduler;
 import rx.Subscriber;
+import rx.exceptions.OnCompletedFailedException;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.plugins.RxJavaErrorHandler;
 import rx.plugins.RxJavaObservableExecutionHook;
@@ -729,7 +730,7 @@ public abstract class RxRatpack {
    * @throws Exception
    * @since 1.4
    * @see #fork(Observable)
-     */
+   */
   public static <T> Observable<T> fork(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec) throws Exception {
     return observeEach(promise(observable).fork(execSpec -> execSpec.register(doWithRegistrySpec)));
   }
@@ -875,11 +876,20 @@ public abstract class RxRatpack {
   private static class ErrorHandler extends RxJavaErrorHandler {
     @Override
     public void handleError(Throwable e) {
-      Promise.error(e).then(Action.noop());
+
     }
   }
 
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
+
+    @Override
+    public <T> Throwable onSubscribeError(Throwable e) {
+      if (e instanceof OnCompletedFailedException) {
+        Promise.error(e).then(Action.noop());
+      }
+      return e;
+    }
+
 
     @Override
     public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, Observable.OnSubscribe<T> onSubscribe) {

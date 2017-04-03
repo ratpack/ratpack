@@ -17,10 +17,37 @@
 package ratpack.http.client
 
 import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.exec.Blocking
+import ratpack.exec.util.ParallelBatch
+import ratpack.test.exec.ExecHarness
+
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
+
+  def "can not read streamed request body"() {
+    when:
+    otherApp {
+      get {
+        render "1" * 1024
+      }
+    }
+
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl()) {}.then {
+          Blocking.op { sleep 1000 }.then { render "ok" }
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+  }
 
   def "can cancel subscription in complete signal"() {
     when:
@@ -66,5 +93,164 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     text == "ok"
   }
 
+  def "chunked responses are streamed reliably"() {
+    given:
+    def payload = new byte[15 * 8012]
+    new Random().nextBytes(payload)
 
+    when:
+    otherApp {
+      get {
+        response.send(payload)
+      }
+    }
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl(), {}).then { StreamedResponse streamedResponse ->
+          streamedResponse.forwardTo(response)
+        }
+      }
+    }
+
+    then:
+    (1..10).collect { get().body.bytes == payload }.every()
+  }
+
+  def "can safely stream empty body"() {
+    when:
+    otherApp {
+      get {
+        response.status(204).send()
+      }
+    }
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          it.forwardTo(context.response)
+        }
+      }
+    }
+    def http = HttpClient.of { it.poolSize(30) }
+
+    then:
+    def p = (1..100).collect { http.get(applicationUnderTest.address) }
+    def b = ParallelBatch.of(p)
+
+    ExecHarness.runSingle {
+      b.forEach { i, v -> }.then()
+    }
+  }
+
+  def "connection is closed if response is not read"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        render "foo"
+      }
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+    channel.closeFuture().sync()
+  }
+
+  def "keep alive connection is closed if response is not read"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        render "foo" * 8192 * 100 // must be bigger than one buffer, otherwise may be read implicitly.
+      }
+    }
+
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(8) })
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+    channel.closeFuture().sync()
+  }
+
+  def "keep alive connection is not closed if response is not read but had no body"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        channel = directChannelAccess.channel
+        response.send()
+      }
+    }
+
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(8) })
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+
+    when:
+    channel.closeFuture().get(2, TimeUnit.SECONDS)
+
+    then:
+    thrown TimeoutException
+  }
+
+  def "keep alive connection is not closed if response is not read but has no body"() {
+    when:
+    Channel channel
+    otherApp {
+      get {
+        if (channel == null) {
+          channel = directChannelAccess.channel
+        } else {
+          assert channel == directChannelAccess.channel
+        }
+        response.send()
+      }
+    }
+
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(8) })
+    }
+
+    handlers { HttpClient httpClient ->
+      get {
+        httpClient.requestStream(otherAppUrl(), {}).then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+    text == "ok"
+  }
 }

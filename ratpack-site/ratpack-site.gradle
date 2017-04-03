@@ -53,7 +53,7 @@ ext {
     "1.1.0", "1.1.1",
     "1.2.0-RC-1", "1.2.0-rc-2", "1.2.0",
     "1.3.0-rc-1", "1.3.0-rc-2", "1.3.0", "1.3.1", "1.3.2", "1.3.3",
-    "1.4.0-rc-1"
+    "1.4.0-rc-1", "1.4.0-rc-2", "1.4.0-rc-3", "1.4.0", "1.4.1", "1.4.2", "1.4.3", "1.4.4", "1.4.5"
   ]
 
   if (!isHeroku && !isCi) {
@@ -105,6 +105,7 @@ dependencies {
     exclude group: "commons-logging", module: "commons-logging"
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.google.guava", module: "guava"
+    exclude group: "org.codehaus.groovy", module: "groovy-all"
   }
   providedRuntime('com.bertramlabs.plugins:sass-asset-pipeline:2.6.1') {
     exclude group: "org.jruby", module: "jruby-complete"
@@ -124,7 +125,7 @@ dependencies {
   testCompile project(":ratpack-test-internal")
   testCompile commonDependencies.spock
   testCompile 'org.jsoup:jsoup:1.8.1'
-  latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(":ratpack-manual")
+  latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(path: ":ratpack-manual", configuration: "zip")
 
   browserTestCompile("org.gebish:geb-spock:0.10.0") {
     exclude group: "org.codehaus.groovy", module: "groovy-all"
@@ -265,26 +266,40 @@ run {
   }
 }
 
-task deployToHerokuFromSnap << {
-  def apiKey = project.ratpackHerokuApiKey
-  def buildStepName = project.snapCiBuildStepName
-  def snapApiUser = project.snapCiUserName
-  def snapApiKey = project.snapCiApiKey
+task deployToHeroku(type: SourceTask) {
+  source tasks.distTar
 
-  def pipelineId = System.getenv("SNAP_PIPELINE_COUNTER")
-  if (!pipelineId) {
-    throw new RuntimeException("SNAP_PIPELINE_COUNTER not set")
-  }
+  doLast {
+    def apiKey = project.ratpackHerokuApiKey
+    File tgz = inputs.files.singleFile
 
-  def heroku = new groovyx.net.http.RESTClient("https://api.heroku.com/apps/ratpack-site/")
-  heroku.headers['Authorization'] = "Bearer $apiKey"
-  heroku.headers['Accept'] = 'application/vnd.heroku+json; version=3'
-  def url = "https://${snapApiUser}:${snapApiKey}@api.snap-ci.com/project/ratpack/ratpack/branch/master/artifacts/tracking-pipeline/${pipelineId}/${buildStepName}/1/ratpack-site/build/distributions/ratpack-site.tgz".toString()
-  logger.lifecycle("Building $url")
-  heroku.post(path: 'builds', requestContentType: 'application/json', body: [
+    def heroku = new groovyx.net.http.RESTClient("https://api.heroku.com/apps/ratpack-site/")
+    heroku.headers['Authorization'] = "Bearer $apiKey"
+    heroku.headers['Accept'] = 'application/vnd.heroku+json; version=3'
+
+    def sourcesResponse = heroku.post(path: 'sources', requestContentType: 'application/json')
+    assert sourcesResponse.status == 201
+    def sourcesPutUrl = sourcesResponse.data.source_blob.put_url as String
+    def sourcesGetUrl = sourcesResponse.data.source_blob.get_url as String
+
+    def sourcesPutConnection = new URL(sourcesPutUrl).openConnection() as HttpURLConnection
+    sourcesPutConnection.requestMethod = "PUT"
+    sourcesPutConnection.fixedLengthStreamingMode = tgz.length()
+    sourcesPutConnection.doOutput = true
+    sourcesPutConnection.outputStream.withStream { output ->
+      tgz.newInputStream().withStream { input ->
+        output << input
+      }
+    }
+    assert sourcesPutConnection.responseCode == 200
+
+    def buildResponse = heroku.post(path: 'builds', requestContentType: 'application/json', body: [
       source_blob: [
-        url: url,
+        url    : sourcesGetUrl,
         version: "git rev-parse HEAD".execute().text.trim()
       ]
-  ])
+    ])
+    def outputStreamUrl = buildResponse.data.output_stream_url as String
+    new URL(outputStreamUrl).eachLine { println it }
+  }
 }

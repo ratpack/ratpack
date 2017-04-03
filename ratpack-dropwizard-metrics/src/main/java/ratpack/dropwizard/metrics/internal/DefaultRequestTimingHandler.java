@@ -43,7 +43,7 @@ public class DefaultRequestTimingHandler implements RequestTimingHandler {
     context.onClose(outcome -> {
       String timerName = buildRequestTimerTag(outcome.getRequest().getPath(), outcome.getRequest().getMethod().getName());
       String responseCodeCounter = String.valueOf(outcome.getResponse().getStatus().getCode()).substring(0, 1) + "xx-responses";
-      metricRegistry.timer(timerName).update(outcome.getDuration().getNano(), TimeUnit.NANOSECONDS);
+      metricRegistry.timer(timerName).update(outcome.getDuration().toNanos(), TimeUnit.NANOSECONDS);
       metricRegistry.counter(responseCodeCounter).inc();
     });
     context.next();

@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCounted;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -47,7 +48,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
   private static final String HANDLER_NAME = "streaming";
 
-  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) {
+  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
     super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
@@ -63,7 +64,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   }
 
   @Override
-  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) {
+  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
     return new ContentStreamingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 
@@ -92,27 +93,37 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (write == null) {
             forceDispose(channelPipeline);
           }
+          if (received != null) {
+            received.forEach(ReferenceCounted::release);
+          }
         });
         success(downstream, new DefaultStreamedResponse(channelPipeline));
       } else if (httpObject instanceof HttpContent) {
-        HttpContent httpContent = (HttpContent) httpObject;
-        if (write == null) {
-          if (received == null) {
-            received = new ArrayList<>();
-          }
-          received.add(httpContent);
-          if (httpObject instanceof LastHttpContent) {
-            dispose(ctx.pipeline(), response);
-          }
-        } else {
-          if (httpContent.content().readableBytes() > 0) {
-            write.item(httpContent.content());
+        HttpContent httpContent = ((HttpContent) httpObject).touch();
+        boolean hasContent = httpContent.content().readableBytes() > 0;
+        boolean isLast = httpObject instanceof LastHttpContent;
+
+        if (write == null) { // the stream has not yet been subscribed to
+          if (hasContent || isLast) {
+            if (received == null) {
+              received = new ArrayList<>();
+            }
+            received.add(httpContent.touch());
           } else {
             httpContent.release();
           }
-          if (httpObject instanceof LastHttpContent) {
-            write.complete();
+          if (isLast) {
             dispose(ctx.pipeline(), response);
+          }
+        } else { // the stream has been subscribed to
+          if (hasContent) {
+            write.item(httpContent.content().touch("emitting to user code"));
+          } else {
+            httpContent.release();
+          }
+          if (isLast) {
+            dispose(ctx.pipeline(), response);
+            write.complete();
           } else {
             if (write.getRequested() > 0) {
               ctx.read();
@@ -124,8 +135,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      forceDispose(ctx.pipeline());
       error(downstream, cause);
+      forceDispose(ctx.pipeline());
     }
 
     class DefaultStreamedResponse implements StreamedResponse {
@@ -162,13 +173,13 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
           if (received != null) {
             for (HttpContent httpContent : received) {
               if (httpContent.content().readableBytes() > 0) {
-                write.item(httpContent.content());
+                write.item(httpContent.content().touch("emitting to user code"));
               } else {
                 httpContent.release();
               }
               if (httpContent instanceof LastHttpContent) {
-                write.complete();
                 dispose(channelPipeline, response);
+                write.complete();
               }
             }
           }
@@ -200,7 +211,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         outgoingHeaders.remove(HttpHeaderNames.CONNECTION);
         Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
         response.status(status);
-        response.sendStream(getBody().bindExec());
+
+        response.sendStream(getBody().bindExec(ByteBuf::release));
       }
 
     }

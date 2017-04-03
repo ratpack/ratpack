@@ -88,8 +88,16 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     response.statusCode == OK.code()
     // compare the last modified dates formatted as milliseconds are stripped when added as a response header
     formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
+  }
 
+  def "can render in response to non GET"() {
+    when:
+    handlers {
+      post { render myFile }
+    }
 
+    then:
+    postText() == myFile.text
   }
 
   private static Date parseDateHeader(ReceivedResponse response, String name) {

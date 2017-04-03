@@ -17,16 +17,13 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
-import io.netty.channel.ConnectTimeoutException
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
-import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.stream.Streams
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -36,7 +33,6 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
-@Unroll
 class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
   def "can make simple get request"() {
@@ -355,15 +351,14 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
     }
-    def nonRoutableIp = '192.168.0.0'
 
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get("http://$nonRoutableIp".toURI()) {
+        httpClient.get("http://netty.io:65535".toURI()) {
           it.connectTimeout(Duration.ofMillis(20))
         } onError {
-          render it.class.name
+          render it.toString()
         } then {
           render "success"
         }
@@ -371,7 +366,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == ConnectTimeoutException.name
+    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://netty.io:65535"
 
     where:
     pooled << [true, false]
@@ -399,9 +394,9 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     handlers {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl()) {
-          it.readTimeoutSeconds(1)
+          it.readTimeout(Duration.ofSeconds(1))
         } onError {
-          render it.class.name
+          render it.toString()
         } then {
           render "success"
         }
@@ -409,7 +404,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == ReadTimeoutException.name
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -436,8 +431,8 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
 
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl(), { it.readTimeoutSeconds(1) }).onError {
-          render it.class.name
+        httpClient.get(otherAppUrl(), { it.readTimeout(Duration.ofSeconds(1)) }).onError {
+          render it.toString()
         } then {
           render "success"
         }
@@ -445,7 +440,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == ReadTimeoutException.name
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -514,7 +509,9 @@ bar
         } then { StreamedResponse stream ->
           render stringChunks(
             stream.body.map {
-              it.toString(CharsetUtil.UTF_8).toUpperCase()
+              def string = it.toString(CharsetUtil.UTF_8)
+              it.release()
+              string.toUpperCase()
             }
           )
         }
@@ -696,7 +693,6 @@ BAR
     pooled << [true, false]
   }
 
-  @Unroll
   def "can configure request method #method via request spec"() {
     given:
     handlers {
@@ -803,11 +799,11 @@ BAR
 
     then:
     response.status.code == 200
-    response.headers.get("ALLOW") == ["GET", "PUT", "POST", "DELETE", "PATCH"].join(",")
+    response.headers.get("ALLOW") == "DELETE,GET,PATCH,POST,PUT"
 
     and:
     pathResponse.status.code == 200
-    pathResponse.headers.get("ALLOW") == ["GET"].join(",")
+    pathResponse.headers.get("ALLOW") == "GET"
   }
 
   def "can configure request method HEAD via request spec"() {

@@ -18,9 +18,7 @@ package ratpack.http.client
 
 import ratpack.func.Action
 import ratpack.http.internal.HttpHeaderConstants
-import spock.lang.Unroll
 
-@Unroll
 class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
   def "can follow simple redirect get request"() {
@@ -191,4 +189,36 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  def "can follow a redirect when sending a large request"() {
+    when:
+    otherApp {
+      post("a") {
+        request.maxContentLength = Long.MAX_VALUE
+        onClose {
+          println "a finished"
+        }
+        redirect "b"
+      }
+      post("b") {
+        request.maxContentLength = Long.MAX_VALUE
+        onClose {
+          println "b finished"
+        }
+        render "ok"
+      }
+    }
+
+    handlers {
+      get {
+        get(HttpClient).post(otherAppUrl("a")) {
+          it.body.text("a" * 1024 * 1024 * 10)
+        }.then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    getText() == "ok"
+  }
 }

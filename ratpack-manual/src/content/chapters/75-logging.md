@@ -56,7 +56,7 @@ The request logger is a handler.
 Each request that flows through it will be logged, when the request completes.
 Typically, it is placed early in the handler chain and added with the `Chain.all(Handler)` method so that all requests are logged.
  
-Ratpack provides the [`RequestLogger.ncsa()`](api/ratpack/handling/RequestLogger.html#ncsa--) method, that logs in the [NCSA Common Log Format](http://publib.boulder.ibm.com/tividd/td/ITWSA/ITWSA_info45/en_US/HTML/guide/c-logs.html#common).
+Ratpack provides the [`RequestLogger.ncsa()`](api/ratpack/handling/RequestLogger.html#ncsa--) method, that logs in the [NCSA Common Log Format](https://en.wikipedia.org/wiki/Common_Log_Format).
 This implementation logs to an slf4j logger named `ratpack.requests` 
 (the [`RequestLogger.ncsa(Logger)`](api/ratpack/handling/RequestLogger.html#ncsa-org.slf4j.Logger-) method allows an alternative logger to be specified).  
 

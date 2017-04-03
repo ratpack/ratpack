@@ -240,7 +240,7 @@ public class ClientSideSessionStore implements SessionStore {
       }
     } finally {
       if (payload != null) {
-        payload.release();
+        payload.touch().release();
       }
       if (digest != null) {
         digest.release();
@@ -249,7 +249,7 @@ public class ClientSideSessionStore implements SessionStore {
         expectedDigest.release();
       }
     }
-    return decryptedPayload;
+    return decryptedPayload.touch();
   }
 
   private String toBase64(ByteBuf byteBuf) {

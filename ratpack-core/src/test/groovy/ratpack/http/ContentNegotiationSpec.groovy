@@ -20,7 +20,6 @@ import ratpack.func.Block
 import ratpack.handling.internal.DefaultByContentSpec
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
@@ -103,7 +102,6 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     text == "html"
   }
 
-  @Unroll
   def "refuses invalid custom mime types (#mimeType)"(String mimeType, String message) {
     when:
     new DefaultByContentSpec([:]).type(mimeType, {} as Block)

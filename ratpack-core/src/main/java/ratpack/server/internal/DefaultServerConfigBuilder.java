@@ -404,6 +404,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
     public ConfigModule(ServerEnvironment serverEnvironment, Supplier<FileSystemBinding> baseDirSupplier) {
       super("ratpack");
       addDeserializer(ServerConfigData.class, new ServerConfigDataDeserializer(
+        serverEnvironment.getAddress(),
         serverEnvironment.getPort(),
         serverEnvironment.isDevelopment(),
         serverEnvironment.getPublicAddress(),

@@ -92,7 +92,6 @@ public interface HandlingResult {
    * @param <T> The expected type of the exception captured.
    * @return the “unhandled” throwable that occurred, or raise {@link ratpack.test.handling.HandlerExceptionNotThrownException}
    */
-  @Nullable
   <T extends Throwable> T exception(Class<T> type);
 
   /**

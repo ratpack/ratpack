@@ -392,6 +392,26 @@ public interface Request extends MutableRegistry {
   Instant getTimestamp();
 
   /**
+   * Sets the allowed max content length for the request body.
+   * <p>
+   * This setting will be used when {@link #getBody()} or {@link #getBodyStream()} are called,
+   * and when implicitly reading the request body in order to respond (e.g. when issuing a response without trying to read the body).
+   *
+   * @param maxContentLength the maximum request body length in bytes
+   * @since 1.5
+   */
+  void setMaxContentLength(long maxContentLength);
+
+  /**
+   * The max allowed content length for the request body.
+   *
+   * @see #setMaxContentLength(long)
+   * @return the maximum request body length in bytes
+   * @since 1.5
+   */
+  long getMaxContentLength();
+
+  /**
    * {@inheritDoc}
    */
   @Override

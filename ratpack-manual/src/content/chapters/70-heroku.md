@@ -23,30 +23,18 @@ If the wrapper scripts are present in your project, Heroku will detect that your
 
 ### Building
 
-The Gradle buildpack will invoke `./gradlew stage`.
-The Ratpack Gradle plugins do not add a `stage` task to your build, so you need to add it yourself and make it build your application.
-The simplest way to do this is make the `stage` task depend on the `installDist` task which _is_ added by the Ratpack Gradle plugins (`installApp` prior to Gradle 2.3).
+The Gradle buildpack will invoke `./gradlew installDist -x test` by default when it detects that Ratpack is being used.
+The `installDist` task is added by the Ratpack Gradle plugins (`installApp` prior to Gradle 2.3), and should work by default. This will build your application and install it into the directory `build/install/«project name»`.
 
-A minimalistic `build.gradle` looks like this:
+If you need to run a different task, you can add a `stage` task to your `build.gradle`. A typical `stage` task might look like this:
 
-```language-groovy gradle
-buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-  }
-}
-
-apply plugin: "io.ratpack.ratpack-java"
-
+```
 task stage {
-  dependsOn installDist
+  dependsOn clean, installDist
 }
 ```
 
-This will build your application and install it into the directory `build/install/«project name»`.
+If a `stage` task is present, Heroku will run this instead of the default task.
 
 #### Setting the project name
 
@@ -61,12 +49,14 @@ This is a good practice for any Gradle project.
 
 ### Running (Procfile)
 
-The `Procfile` lives at the root of your application and specifies the command that Heroku should use to start your application.
-In this file, add a declaration that Heroku should start a `web` process by executing the launch script created by the build.
+By default, Heroku will run the following script to start your app:
 
 ```language-bash
-web: build/install/«project name»/bin/«project name»
+build/install/«project name»/bin/«project name»
 ```
+
+You can customize this command by creating a
+`Procfile` in the root of your application and specifying the command that Heroku should use to start your application prefixed by `web:`.
 
 ### Configuration
 
@@ -109,7 +99,7 @@ you can simply start the application by using `java` directly.
 web: java ratpack.groovy.GroovyRatpackMain
 ```
 
-See the [launching chapter](launching.html) chapter for more detail on starting Ratpack applications.
+See the [launching chapter](launching.html) for more detail on starting Ratpack applications.
 
 ## General Considerations
 
