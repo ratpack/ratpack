@@ -46,7 +46,7 @@ public class MultiEntryRegistry implements Registry {
     for (RegistryEntry<?> entry : entries) {
       if (TypeCaching.isAssignableFrom(cache, type, entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        return Optional.of(cast);
+        return Optional.ofNullable(cast);
       }
     }
 
