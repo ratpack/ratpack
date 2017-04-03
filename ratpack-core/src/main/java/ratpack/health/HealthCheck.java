@@ -16,10 +16,18 @@
 
 package ratpack.health;
 
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
+import ratpack.exec.Throttle;
+import ratpack.exec.util.ParallelBatch;
 import ratpack.func.Function;
+import ratpack.func.Pair;
 import ratpack.registry.Registry;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Reports on the health of some aspect of the system.
@@ -237,5 +245,46 @@ public interface HealthCheck {
         return func.apply(registry);
       }
     };
+  }
+
+  /**
+   * Execute health checks.
+   * <p>
+   * The checks will be executed in parallel.
+   *
+   * @param registry the registry to pass to each health check
+   * @param healthChecks the health checks to execute
+   * @return the results
+   * @since 1.5
+   */
+  static Promise<HealthCheckResults> checkAll(Registry registry, Iterable<? extends HealthCheck> healthChecks) {
+    return checkAll(registry, Throttle.unlimited(), healthChecks);
+  }
+
+  /**
+   * Execute health checks.
+   * <p>
+   * The checks will be executed in parallel.
+   *
+   * @param registry the registry to pass to each health check
+   * @param throttle the throttle to use to constrain the parallelism of the checks
+   * @param healthChecks the health checks to execute
+   * @return the results
+   * @since 1.5
+   */
+  static Promise<HealthCheckResults> checkAll(Registry registry, Throttle throttle, Iterable<? extends HealthCheck> healthChecks) {
+    return Promise.flatten(() -> {
+      Iterable<Promise<Pair<Result, String>>> resultPromises = Iterables.transform(healthChecks, h ->
+        Promise.flatten(() -> h.check(registry))
+          .throttled(throttle)
+          .mapError(HealthCheck.Result::unhealthy)
+          .right(r -> h.getName())
+      );
+
+      Map<String, Result> results = new ConcurrentHashMap<>();
+      return ParallelBatch.of(resultPromises)
+        .forEach((i, result) -> results.put(result.right, result.left))
+        .map(() -> new HealthCheckResults(ImmutableSortedMap.copyOf(results)));
+    });
   }
 }

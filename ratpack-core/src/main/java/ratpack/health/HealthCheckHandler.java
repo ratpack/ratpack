@@ -16,22 +16,14 @@
 
 package ratpack.health;
 
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
-import ratpack.exec.util.ParallelBatch;
-import ratpack.func.Pair;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registry;
 import ratpack.util.Types;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A handler that executes {@link HealthCheck health checks} and renders the results.
@@ -198,42 +190,23 @@ public class HealthCheckHandler implements Handler {
    * @param ctx the request context
    */
   @Override
-  public void handle(Context ctx) {
+  public void handle(Context ctx) throws Exception {
     ctx.getResponse().getHeaders()
       .add("Cache-Control", "no-cache, no-store, must-revalidate")
       .add("Pragma", "no-cache")
       .add("Expires", 0);
 
-    try {
-      String checkName = ctx.getPathTokens().get(name);
-      if (checkName != null) {
-        Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
-        if (first.isPresent()) {
-          ctx.render(execute(ctx, Collections.singleton(first.get())));
-        } else {
-          ctx.clientError(404);
-        }
+    String checkName = ctx.getPathTokens().get(name);
+    if (checkName != null) {
+      Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
+      if (first.isPresent()) {
+        ctx.render(HealthCheck.checkAll(ctx, Collections.singleton(first.get())));
       } else {
-        ctx.render(execute(ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
+        ctx.clientError(404);
       }
-    } catch (Exception e) {
-      ctx.error(e);
+    } else {
+      ctx.render(HealthCheck.checkAll(ctx, throttle, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
     }
   }
 
-  private Promise<HealthCheckResults> execute(Registry registry, Iterable<? extends HealthCheck> healthChecks) {
-    return Promise.flatten(() -> {
-      Iterable<Promise<Pair<HealthCheck.Result, String>>> resultPromises = Iterables.transform(healthChecks, h ->
-        Promise.flatten(() -> h.check(registry))
-          .throttled(throttle)
-          .mapError(HealthCheck.Result::unhealthy)
-          .right(r -> h.getName())
-      );
-
-      Map<String, HealthCheck.Result> results = new ConcurrentHashMap<>();
-      return ParallelBatch.of(resultPromises)
-        .forEach((i, result) -> results.put(result.right, result.left))
-        .map(() -> new HealthCheckResults(ImmutableSortedMap.copyOf(results)));
-    });
-  }
 }
