@@ -131,7 +131,6 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     get().statusCode == 406
   }
 
-  @Unroll
   def "default to 406 clientError when content type (#mimeType) not matched"(String mimeType) {
     when:
     handlers {
