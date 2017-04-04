@@ -409,12 +409,12 @@ public class DefaultExecution implements Execution {
     @Override
     boolean exec() throws Exception {
       if (initial == null) {
-        if (segments == null) {
-          if (next != null) {
-            execStream = new SingleEventExecStream(this, nextOnError, next);
-            next = null;
-            return true;
-          } else if (resumer == null) {
+        if (next != null) {
+          execStream = new SingleEventExecStream(this, nextOnError, next);
+          next = null;
+          return true;
+        } else if (segments == null) {
+          if (resumer == null) {
             if (resumed) {
               execStream = parent;
               return true;
@@ -449,9 +449,8 @@ public class DefaultExecution implements Execution {
           return true;
         }
       } else {
-        Action<? super Continuation> initial = this.initial;
         initial.execute(this);
-        this.initial = null;
+        initial = null;
         return true;
       }
     }
@@ -462,9 +461,11 @@ public class DefaultExecution implements Execution {
         next = segment;
         nextOnError = onError;
       } else {
-        super.delimit(nextOnError, next);
-        next = null;
-        nextOnError = null;
+        if (next != null) {
+          super.delimit(nextOnError, next);
+          next = null;
+          nextOnError = null;
+        }
         super.delimit(onError, segment);
       }
     }
