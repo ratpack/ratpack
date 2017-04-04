@@ -131,18 +131,16 @@ public interface Promise<T> {
    */
   static <T> Promise<T> sync(Factory<T> factory) {
     return new DefaultPromise<>(down ->
-      DefaultExecution.require().delimit(down::error, continuation ->
-        continuation.resume(() -> {
-          T t;
-          try {
-            t = factory.create();
-          } catch (Exception e) {
-            down.error(e);
-            return;
-          }
-          down.success(t);
-        })
-      )
+      DefaultExecution.require().delimit(down::error, continuation -> {
+        T t;
+        try {
+          t = factory.create();
+        } catch (Exception e) {
+          continuation.resume(() -> down.error(e));
+          return;
+        }
+        continuation.resume(() -> down.success(t));
+      })
     );
   }
 
@@ -161,17 +159,16 @@ public interface Promise<T> {
    */
   static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
     return new DefaultPromise<>(down ->
-      DefaultExecution.require().delimit(down::error, continuation ->
-        continuation.resume(() -> {
+      DefaultExecution.require().delimit(down::error, continuation -> {
           Promise<T> promise;
           try {
             promise = factory.create();
           } catch (Throwable e) {
-            down.error(e);
+            continuation.resume(() -> down.error(e));
             return;
           }
-          promise.connect(down);
-        })
+          continuation.resume(() -> promise.connect(down));
+        }
       )
     );
   }

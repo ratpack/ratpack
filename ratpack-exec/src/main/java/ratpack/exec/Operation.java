@@ -69,9 +69,9 @@ import java.util.Optional;
 public interface Operation {
 
   static Operation of(Block block) {
-    return new DefaultOperation(Promise.<Void>async(f -> {
+    return new DefaultOperation(Promise.sync(() -> {
       block.execute();
-      f.success(null);
+      return null;
     }));
   }
 
