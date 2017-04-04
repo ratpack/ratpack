@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import static ratpack.func.Action.throwException
 
+@SuppressWarnings("ChangeToOperator")
 class PromiseOperationsSpec extends Specification {
 
   @AutoCleanup
@@ -256,13 +257,18 @@ class PromiseOperationsSpec extends Specification {
   def "can execute async actions on promise"() {
     when:
     exec {
-      Promise.value("foo").next { v ->
-        Promise.async { d -> Thread.start { d.success(v) } }.then { v2 ->
-          events << "one"
+      Promise.value("foo").
+        next { v ->
+          Promise.sync {
+            v
+          }.
+            then { v2 ->
+              events << "one"
+            }
+        }.
+        then { v ->
+          events << "two"
         }
-      }.then { v ->
-        events << "two"
-      }
     }
 
     then:
