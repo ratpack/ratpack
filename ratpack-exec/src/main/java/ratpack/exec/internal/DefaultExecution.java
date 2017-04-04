@@ -387,29 +387,18 @@ public class DefaultExecution implements Execution {
 
   private class SingleEventExecStream extends BaseExecStream implements Continuation {
 
-    private class ContinuationBlock implements Block {
-      final Action<? super Throwable> onError;
-      final Action<? super Continuation> segment;
-
-      public ContinuationBlock(Action<? super Throwable> onError, Action<? super Continuation> segment) {
-        this.onError = onError;
-        this.segment = segment;
-      }
-
-      @Override
-      public void execute() throws Exception {
-        execStream = new SingleEventExecStream(execStream, onError, segment);
-      }
-    }
-
     final ExecStream parent;
 
-    Action<? super Throwable> onError;
     Action<? super Continuation> initial;
+    Action<? super Throwable> onError;
+
+    Action<? super Continuation> next;
+    Action<? super Throwable> nextOnError;
+
     Block resumer;
     boolean resumed;
 
-    final Queue<Block> segments = new ArrayDeque<>();
+    Queue<Block> segments;
 
     SingleEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super Continuation> initial) {
       this.parent = parent;
@@ -420,8 +409,12 @@ public class DefaultExecution implements Execution {
     @Override
     boolean exec() throws Exception {
       if (initial == null) {
-        if (segments.isEmpty()) {
-          if (resumer == null) {
+        if (segments == null) {
+          if (next != null) {
+            execStream = new SingleEventExecStream(this, nextOnError, next);
+            next = null;
+            return true;
+          } else if (resumer == null) {
             if (resumed) {
               execStream = parent;
               return true;
@@ -437,10 +430,11 @@ public class DefaultExecution implements Execution {
             // So, we unpack the block and reuse this.
             // This is a dramatic saving for the extremely common case where an execution is a long series of serial promises.
             // We can almost always do this.
-            if (segments.size() == 1 && segments.peek() instanceof ContinuationBlock) {
-              ContinuationBlock poll = (ContinuationBlock) segments.poll();
-              initial = poll.segment;
-              onError = poll.onError;
+            if (next != null) {
+              initial = next;
+              onError = nextOnError;
+              next = null;
+              nextOnError = null;
               resumed = false;
             }
 
@@ -448,28 +442,38 @@ public class DefaultExecution implements Execution {
           }
         } else {
           Block segment = segments.poll();
-          if (segment == null) {
-            execStream = parent;
-            return true;
-          } else {
-            segment.execute();
-            return true;
+          if (segments.isEmpty()) {
+            segments = null;
           }
+          segment.execute();
+          return true;
         }
       } else {
+        Action<? super Continuation> initial = this.initial;
         initial.execute(this);
-        initial = null;
+        this.initial = null;
         return true;
       }
     }
 
     @Override
     void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
-      enqueue(new ContinuationBlock(onError, segment));
+      if (next == null && segments == null) {
+        next = segment;
+        nextOnError = onError;
+      } else {
+        super.delimit(nextOnError, next);
+        next = null;
+        nextOnError = null;
+        super.delimit(onError, segment);
+      }
     }
 
     @Override
     void enqueue(Block segment) {
+      if (segments == null) {
+        segments = new ArrayDeque<>();
+      }
       segments.add(segment);
     }
 
