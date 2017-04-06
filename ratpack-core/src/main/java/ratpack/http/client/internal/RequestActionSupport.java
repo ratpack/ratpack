@@ -41,6 +41,7 @@ import ratpack.http.internal.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
@@ -276,13 +277,22 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   private SslHandler createSslHandler() throws NoSuchAlgorithmException {
+    int port = requestConfig.uri.getPort();
+    if (port == -1) {
+      port = 443;
+    }
+    String host = requestConfig.uri.getHost();
+
     SSLEngine sslEngine;
     if (requestConfig.sslContext != null) {
-      sslEngine = requestConfig.sslContext.createSSLEngine();
+      sslEngine = requestConfig.sslContext.createSSLEngine(host, port);
     } else {
-      sslEngine = SSLContext.getDefault().createSSLEngine();
+      sslEngine = SSLContext.getDefault().createSSLEngine(host, port);
     }
     sslEngine.setUseClientMode(true);
+    SSLParameters sslParams = sslEngine.getSSLParameters();
+    sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+    sslEngine.setSSLParameters(sslParams);
     return new SslHandler(sslEngine);
   }
 

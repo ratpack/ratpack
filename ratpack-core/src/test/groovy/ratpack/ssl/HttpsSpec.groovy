@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,64 +16,98 @@
 
 package ratpack.ssl
 
-import org.junit.Rule
+import com.google.common.base.Throwables
+import io.netty.handler.ssl.JdkSslContext
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.SslProvider
+import io.netty.handler.ssl.util.SelfSignedCertificate
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.test.internal.ssl.client.NonValidatingSSLClientContext
+import spock.lang.Shared
+import sun.security.provider.certpath.SunCertPathBuilderException
+
+import java.security.cert.CertificateException
 
 class HttpsSpec extends RatpackGroovyDslSpec {
 
-  @Rule
-  NonValidatingSSLClientContext clientContext = new NonValidatingSSLClientContext()
+  @Shared
+    badDomainCert = new SelfSignedCertificate("barbar")
+  @Shared
+    localHostCert = new SelfSignedCertificate("localhost")
 
-  private URI uriWithPath(URI uri, String path) {
-    new URI(uri.scheme,
-      uri.userInfo,
-      uri.host,
-      uri.port,
-      path,
-      null,
-      null)
-  }
-
-  def "#path yields #responseBody"() {
+  def "client requires verified domain name in cert - #valid"() {
     given:
+    JdkSslContext serverContext = SslContextBuilder.forServer(c.certificate(), c.privateKey())
+      .sslProvider(SslProvider.JDK)
+      .build() as JdkSslContext
+
+    JdkSslContext clientContext = SslContextBuilder.forClient()
+      .trustManager(c.cert())
+      .sslProvider(SslProvider.JDK)
+      .build() as JdkSslContext
+
     serverConfig {
-      ssl SSLContexts.sslContext(HttpsSpec.getResource("dummy.keystore"), "password")
+      ssl serverContext.context()
     }
 
-    and:
-    def staticFile = write "public/static.text", "trust no file"
-
-    and:
+    when:
     handlers {
-      files { dir "public" }
       get {
-        response.send "trust no one"
-      }
-
-      get("handler") {
-        response.send staticFile.bytes
-      }
-
-      get("file") {
-        render file("public/static.text")
+        render "ok"
       }
     }
 
-    expect:
-    def address = applicationUnderTest.address
-    address.scheme == "https"
-    uriWithPath(address, path).toURL().text == responseBody
+    then:
+    requestSpec { it.sslContext(clientContext.context()) }
+
+    if (valid) {
+      assert text == "ok"
+    } else {
+      try {
+        getText()
+      } catch (UncheckedIOException e) {
+        def root = Throwables.getRootCause(e)
+        assert root instanceof CertificateException
+        root.message == "No name matching localhost found"
+      }
+    }
 
     where:
-    path           | responseBody
-    "/"            | "trust no one"
-    "/handler"     | "trust no file"
-    "/file"        | "trust no file"
-    "/static.text" | "trust no file"
+    c             | valid
+    badDomainCert | false
+    localHostCert | true
+  }
+
+  def cleanupSpec() {
+    badDomainCert.delete()
+    localHostCert.delete()
+  }
+
+  def "client requires trusted certificate"() {
+    given:
+    JdkSslContext serverContext = SslContextBuilder.forServer(localHostCert.certificate(), localHostCert.privateKey())
+      .sslProvider(SslProvider.JDK)
+      .build() as JdkSslContext
+
+    serverConfig {
+      ssl serverContext.context()
+    }
+
+    when:
+    handlers {
+      get {
+        render "ok"
+      }
+    }
+
+    then:
+    try {
+      getText()
+    } catch (UncheckedIOException e) {
+      def root = Throwables.getRootCause(e)
+      assert root instanceof SunCertPathBuilderException
+      root.message == "unable to find valid certification path to requested target"
+    }
 
   }
 
 }
-
-
