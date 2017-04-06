@@ -39,7 +39,7 @@ public class DefaultConfigObject<T> implements ConfigObject<T> {
 
   @Override
   public Class<T> getType() {
-    return Types.cast(type.getClass());
+    return Types.cast(type.getRawType());
   }
 
   @Override
