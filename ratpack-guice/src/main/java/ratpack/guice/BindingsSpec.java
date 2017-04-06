@@ -229,21 +229,15 @@ public interface BindingsSpec extends RegistrySpec {
   }
 
   default <T> BindingsSpec multiBindInstance(Class<T> publicType, T instance) {
-    return uncheck(() -> {
-      return multiBinder(publicType, b -> b.addBinding().toInstance(instance));
-    });
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().toInstance(instance)));
   }
 
   default <T> BindingsSpec multiBindInstance(TypeLiteral<T> publicType, T instance) {
-    return uncheck(() -> {
-      return multiBinder(publicType, b -> b.addBinding().toInstance(instance));
-    });
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().toInstance(instance)));
   }
 
   default <T> BindingsSpec multiBindInstance(TypeToken<T> publicType, T instance) {
-    return uncheck(() -> {
-      return multiBinder(publicType, b -> b.addBinding().toInstance(instance));
-    });
+    return uncheck(() -> multiBinder(publicType, b -> b.addBinding().toInstance(instance)));
   }
 
   default <T> BindingsSpec multiBindInstance(T instance) {
