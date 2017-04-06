@@ -88,6 +88,7 @@ The following people have provided significant contributions.
 * [Nick Pocock](https://github.com/pocockn)
 * [Timur Salyakhutdinov](https://github.com/timic)
 * [Matthew Kavanagh](https://github.com/mkavanagh)
+* [Jason Terhune-Wold](https://github.com/jterhune)
 
 ### Past project members
 
