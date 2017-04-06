@@ -43,13 +43,15 @@ import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
-  public static final Block RAISE_413 = () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code());
+  private static final Block RAISE_413 = () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code());
+
   private MutableRegistry registry;
 
   private final Headers headers;
@@ -60,7 +62,6 @@ public class DefaultRequest implements Request {
   private final InetSocketAddress remoteSocket;
   private final InetSocketAddress localSocket;
   private final Instant timestamp;
-  private final ServerConfig serverConfig;
 
   private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
@@ -69,9 +70,20 @@ public class DefaultRequest implements Request {
   private Set<Cookie> cookies;
 
   private long maxContentLength;
+  private final RequestIdleTimeout idleTimeout;
 
-  public DefaultRequest(Instant timestamp, Headers headers, io.netty.handler.codec.http.HttpMethod method, HttpVersion protocol, String rawUri,
-                        InetSocketAddress remoteSocket, InetSocketAddress localSocket, ServerConfig serverConfig, @Nullable RequestBodyReader bodyReader) {
+  public DefaultRequest(
+    Instant timestamp,
+    Headers headers,
+    io.netty.handler.codec.http.HttpMethod method,
+    HttpVersion protocol,
+    String rawUri,
+    InetSocketAddress remoteSocket,
+    InetSocketAddress localSocket,
+    ServerConfig serverConfig,
+    @Nullable RequestBodyReader bodyReader,
+    RequestIdleTimeout idleTimeout
+  ) {
     this.headers = headers;
     this.bodyReader = bodyReader;
     this.method = DefaultHttpMethod.valueOf(method);
@@ -80,8 +92,8 @@ public class DefaultRequest implements Request {
     this.remoteSocket = remoteSocket;
     this.localSocket = localSocket;
     this.timestamp = timestamp;
-    this.serverConfig = serverConfig;
     this.maxContentLength = serverConfig.getMaxContentLength();
+    this.idleTimeout = idleTimeout;
     if (bodyReader != null) {
       bodyReader.setMaxContentLength(serverConfig.getMaxContentLength());
     }
@@ -236,6 +248,14 @@ public class DefaultRequest implements Request {
   @Override
   public Promise<TypedData> getBody() {
     return getBody(RAISE_413);
+  }
+
+  @Override
+  public void setIdleTimeout(Duration idleTimeout) {
+    if (idleTimeout.isNegative()) {
+      throw new IllegalArgumentException("idleTimeout must not be negative");
+    }
+    this.idleTimeout.setRequestIdleTimeout(idleTimeout);
   }
 
   @Override

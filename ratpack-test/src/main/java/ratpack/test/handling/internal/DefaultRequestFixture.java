@@ -166,7 +166,8 @@ public class DefaultRequestFixture implements RequestFixture {
             unread = false
           );
         }
-      }
+      },
+      idleTimeout -> {}
     );
 
     if (pathBinding != null) {

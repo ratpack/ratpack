@@ -251,7 +251,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private ConnectionClosedException closedException() {
-    return new ConnectionClosedException("Remote " + ctx.channel().remoteAddress() + " closed the connection unexpectedly");
+    return new ConnectionClosedException(ConnectionClosureReason.get(ctx.channel()));
   }
 
   @Override

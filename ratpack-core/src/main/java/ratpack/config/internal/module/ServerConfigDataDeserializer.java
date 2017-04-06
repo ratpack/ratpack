@@ -38,6 +38,7 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -68,6 +69,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("address")) {
       data.setAddress(toValue(codec, serverNode.get("address"), InetAddress.class));
+    }
+    if (serverNode.hasNonNull("idleTimeout")) {
+      data.setIdleTimeout(toValue(codec, serverNode.get("idleTimeout"), Duration.class));
     }
     if (serverNode.hasNonNull("development")) {
       data.setDevelopment(serverNode.get("development").asBoolean(false));

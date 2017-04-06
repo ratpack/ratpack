@@ -41,6 +41,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
+import ratpack.http.internal.ConnectionIdleTimeout;
 import ratpack.impose.Impositions;
 import ratpack.impose.UserRegistryImposition;
 import ratpack.registry.Registry;
@@ -239,6 +240,9 @@ public class DefaultRatpackServer implements RatpackServer {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
+
+          new ConnectionIdleTimeout(pipeline, serverConfig.getIdleTimeout());
+
           if (sslContext != null) {
             SSLEngine sslEngine = sslContext.newEngine(PooledByteBufAllocator.DEFAULT);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
@@ -254,6 +258,7 @@ public class DefaultRatpackServer implements RatpackServer {
           pipeline.addLast("deflater", new IgnorableHttpContentCompressor());
           pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
           pipeline.addLast("adapter", handlerAdapter);
+
           ch.config().setAutoRead(false);
         }
       })
@@ -381,9 +386,9 @@ public class DefaultRatpackServer implements RatpackServer {
   class ReloadHandler extends ChannelInboundHandlerAdapter {
     private ServerConfig lastServerConfig;
     private DefinitionBuild definitionBuild;
-    private final Throttle reloadThrottle = Throttle.ofSize(10000);
+    private final Throttle reloadThrottle = Throttle.ofSize(1);
 
-    private ChannelHandler inner;
+    private ChannelInboundHandlerAdapter inner;
 
     public ReloadHandler(DefinitionBuild definition) {
       super();
@@ -404,7 +409,7 @@ public class DefaultRatpackServer implements RatpackServer {
       super.channelActive(ctx);
     }
 
-    ChannelHandler getDelegate() {
+    ChannelInboundHandlerAdapter getDelegate() {
       return inner;
     }
 
@@ -467,6 +472,70 @@ public class DefaultRatpackServer implements RatpackServer {
           .throttled(requestThrottle)
           .then(adapter -> ctx.fireChannelRead(msg))
       );
+    }
+
+    @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+      if (inner == null) {
+        super.channelRegistered(ctx);
+      } else {
+        inner.channelRegistered(ctx);
+      }
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+      if (inner == null) {
+        super.channelUnregistered(ctx);
+      } else {
+        inner.channelUnregistered(ctx);
+      }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+      if (inner == null) {
+        super.channelInactive(ctx);
+      } else {
+        inner.channelInactive(ctx);
+      }
+
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+      if (inner == null) {
+        super.channelReadComplete(ctx);
+      } else {
+        inner.channelReadComplete(ctx);
+      }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+      if (inner == null) {
+        super.userEventTriggered(ctx, evt);
+      } else {
+        inner.userEventTriggered(ctx, evt);
+      }
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+      if (inner == null) {
+        super.channelWritabilityChanged(ctx);
+      } else {
+        inner.channelWritabilityChanged(ctx);
+      }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+      if (inner == null) {
+        super.exceptionCaught(ctx, cause);
+      } else {
+        inner.exceptionCaught(ctx, cause);
+      }
     }
 
     private NettyHandlerAdapter buildErrorRenderingAdapter(Throwable e) {

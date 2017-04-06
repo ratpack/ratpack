@@ -37,6 +37,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 
@@ -205,6 +206,16 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @see ServerConfig#getConnectTimeoutMillis()
    */
   ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis);
+
+  /**
+   * The default read timeout of the channel.
+   *
+   * @param idleTimeout the idleTimeout ({@link Duration#ZERO} = no timeout, must not be negative, must not be null)
+   * @return {@code this}
+   * @see ServerConfig#getIdleTimeout()
+   * @since 1.5
+   */
+  ServerConfigBuilder idleTimeout(Duration idleTimeout);
 
   /**
    * The maximum number of messages to read per read loop.

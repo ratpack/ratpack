@@ -46,6 +46,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -154,6 +155,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis) {
     return addToServer(n -> n.put("connectTimeoutMillis", connectTimeoutMillis));
+  }
+
+  @Override
+  public ServerConfigBuilder idleTimeout(Duration readTimeout) {
+    return addToServer(n -> n.putPOJO("idleTimeout", readTimeout));
   }
 
   @Override

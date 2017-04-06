@@ -24,6 +24,8 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.http.ConnectionClosedException;
+import ratpack.http.Request;
 import ratpack.impose.Impositions;
 import ratpack.server.internal.DefaultServerConfigBuilder;
 import ratpack.server.internal.ServerEnvironment;
@@ -32,6 +34,7 @@ import ratpack.util.Types;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -300,6 +303,53 @@ public interface ServerConfig extends ConfigData {
    * @since 1.4
    */
   int getMaxHeaderSize();
+
+  /**
+   * The default amount of time to allow a connection to remain open without any traffic.
+   * <p>
+   * If the connection is idle for the timeout value, it will be closed.
+   * This value can be overridden on a per request basis by {@link Request#setIdleTimeout(Duration)}.
+   * <p>
+   * A value of {@link Duration#ZERO} is interpreted as no timeout.
+   * The value is never {@link Duration#isNegative()}.
+   * <p>
+   * This timeout affects several aspects.
+   *
+   * <h4>Reading</h4>
+   * <p
+   * After making a connection, this timeout will fire if the client does not send any data within the timeout value.
+   * This includes the initial headers and the body.
+   * This may occur because the application has not requested more data.
+   * That is, it has not requested the body with {@link Request#getBody()} or similar.
+   * if the body is requested after the connection times out, a {@link ConnectionClosedException} will be propagated.
+   *
+   * <h4>Writing</h4>
+   * <p>
+   * This timeout also applies to writing the response.
+   * If the application does not emit a response within the timeout after the client has sent
+   * all the bytes it is going to, the connection will be closed.
+   * <p>
+   * When sending a response, if the client does not read within the timeout, the connection will be closed.
+   * <p>
+   * When streaming a response, if nothing is sent within the timeout, the connection will be closed.
+   * This means that if you are streaming a real time data set where new data may not be available
+   * within the timeout but you do not want to drop the connection, you should set a request specific timeout
+   * using {@link Request#setIdleTimeout(Duration)}
+   *
+   * <h4>Connection keep-alive</h4>
+   * <p>
+   * If the client supports keep alive, the connection will remain open after first use so that it can
+   * be reused for subsequent requests from the client.
+   * If the request is not reused (i.e. no new request headers are sent) within this timeout,
+   * the connection will be closed.
+   * This value is <b>always</b> used for this timeout.
+   * Any specific timeout set when handling the previous request is not used.
+   * <p>
+   *
+   * @return the default idle timeout for connections
+   * @since 1.5
+   */
+  Duration getIdleTimeout();
 
   /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.

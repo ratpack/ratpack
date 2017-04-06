@@ -45,7 +45,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
       new InetSocketAddress('localhost', 45678),
       new InetSocketAddress('localhost', 5050),
       ServerConfig.builder().build(),
-      new NoRequestBodyReader())
+      new NoRequestBodyReader(), {})
 
     then:
     request.rawUri == inputUri
@@ -83,7 +83,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
       new InetSocketAddress('localhost', 45678),
       new InetSocketAddress('localhost', 5050),
       ServerConfig.builder().build(),
-      new NoRequestBodyReader())
+      new NoRequestBodyReader(), {})
     Boolean result = request.isAjaxRequest()
 
     then:

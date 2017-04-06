@@ -75,7 +75,14 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
-  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, HttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, @Nullable RequestBody requestBody) {
+  public DefaultResponseTransmitter(
+    AtomicBoolean transmitted,
+    Channel channel,
+    HttpRequest nettyRequest,
+    Request ratpackRequest,
+    HttpHeaders responseHeaders,
+    @Nullable RequestBody requestBody
+  ) {
     this.transmitted = transmitted;
     this.channel = channel;
     this.ratpackRequest = ratpackRequest;
@@ -294,6 +301,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         if (channel.isOpen()) {
           if (isKeepAlive && e == null) {
             lastContentFuture.channel().read();
+            ConnectionIdleTimeout.of(channel).reset();
           } else {
             lastContentFuture.channel().close();
           }

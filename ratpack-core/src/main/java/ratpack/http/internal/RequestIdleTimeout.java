@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.http;
+package ratpack.http.internal;
 
-/**
- * Thrown when an operation is attempted against a connection that is closed.
- */
-public class ConnectionClosedException extends RuntimeException {
+import java.time.Duration;
 
-  public ConnectionClosedException(String message) {
-    super(message);
-  }
+public interface RequestIdleTimeout {
 
-  @Override
-  public synchronized Throwable fillInStackTrace() {
-    return this;
-  }
-  
+  void setRequestIdleTimeout(Duration duration);
+
 }

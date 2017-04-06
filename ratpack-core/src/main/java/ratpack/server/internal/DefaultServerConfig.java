@@ -30,6 +30,7 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 
 public class DefaultServerConfig extends DelegatingConfigData implements ServerConfig {
@@ -122,6 +123,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public int getMaxHeaderSize() {
     return serverConfigData.getMaxHeaderSize();
+  }
+
+  @Override
+  public Duration getIdleTimeout() {
+    return serverConfigData.getIdleTimeout();
   }
 
   @Override

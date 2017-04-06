@@ -27,11 +27,13 @@ import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -138,6 +140,19 @@ public interface Request extends MutableRegistry {
    * @return the body of the request
    */
   Promise<TypedData> getBody();
+
+  /**
+   * Overrides the idle timeout for this connection.
+   * <p>
+   * The default is set as part of server config via {@link ServerConfigBuilder#idleTimeout(Duration)}.
+   * <p>
+   * The override strictly applies to only the request/response exchange that this request is involved in.
+   *
+   * @param idleTimeout the idle timeout ({@link Duration#ZERO} = no timeout, must not be negative, must not be null)
+   * @since 1.5
+   * @see ServerConfig#getIdleTimeout()
+   */
+  void setIdleTimeout(Duration idleTimeout);
 
   /**
    * The body of the request.

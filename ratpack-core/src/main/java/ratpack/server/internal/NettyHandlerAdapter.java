@@ -21,6 +21,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
@@ -89,9 +90,6 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       } else {
         bodyAccumulator.add((HttpContent) msg);
       }
-      if (msg instanceof LastHttpContent) {
-        ctx.read();
-      }
     } else {
       Action<Object> subscriber = ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber == null) {
@@ -127,6 +125,8 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
+    ConnectionIdleTimeout connectionIdleTimeout = ConnectionIdleTimeout.of(channel);
+
     DefaultRequest request = new DefaultRequest(
       Instant.now(),
       requestHeaders,
@@ -136,7 +136,8 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       remoteAddress,
       socketAddress,
       serverRegistry.get(ServerConfig.class),
-      requestBody
+      requestBody,
+      connectionIdleTimeout
     );
 
     HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
@@ -213,6 +214,15 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
         sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
       }
     }
+  }
+
+  @Override
+  public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+    if (evt instanceof IdleStateEvent) {
+      ConnectionClosureReason.setIdle(ctx.channel());
+      ctx.close();
+    }
+    super.userEventTriggered(ctx, evt);
   }
 
   @Override

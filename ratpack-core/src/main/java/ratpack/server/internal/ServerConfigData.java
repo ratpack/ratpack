@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Optional;
 
 public class ServerConfigData {
@@ -44,6 +45,8 @@ public class ServerConfigData {
   private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
   private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
   private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
+
+  private Duration idleTimeout = Duration.ZERO;
 
   public ServerConfigData(FileSystemBinding baseDir, InetAddress address, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -183,6 +186,20 @@ public class ServerConfigData {
 
   public FileSystemBinding getBaseDir() {
     return baseDir;
+  }
+
+  public Duration getIdleTimeout() {
+    return idleTimeout;
+  }
+
+  public void setIdleTimeout(Duration idleTimeout) {
+    if (idleTimeout == null) {
+      throw new IllegalArgumentException("idleTimeout must not be null");
+    }
+    if (idleTimeout.isNegative()) {
+      throw new IllegalArgumentException("idleTimeout must not be negative");
+    }
+    this.idleTimeout = idleTimeout;
   }
 
 }
