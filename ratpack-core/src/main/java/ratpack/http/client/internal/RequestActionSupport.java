@@ -23,13 +23,13 @@ import io.netty.channel.*;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.PrematureChannelClosureException;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.concurrent.Future;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -42,8 +42,9 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLParameters;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
@@ -124,9 +125,22 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
     addCommonResponseHandlers(channel.pipeline(), downstream);
 
-    channel.writeAndFlush(request).addListener(writeFuture -> {
-      if (!writeFuture.isSuccess()) {
-        error(downstream, writeFuture.cause());
+    Future<?> channelFuture;
+    if (channelKey.ssl) {
+      channelFuture = channel.pipeline().get(SslHandler.class).handshakeFuture();
+    } else {
+      channelFuture = channel.newSucceededFuture();
+    }
+
+    channelFuture.addListener(firstFuture -> {
+      if (firstFuture.isSuccess()) {
+        channel.writeAndFlush(request).addListener(writeFuture -> {
+          if (!writeFuture.isSuccess()) {
+            error(downstream, writeFuture.cause());
+          }
+        });
+      } else {
+        error(downstream, firstFuture.cause());
       }
     });
   }
@@ -277,14 +291,17 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     addResponseHandlers(p, downstream);
   }
 
-  private SslHandler createSslHandler() throws NoSuchAlgorithmException {
+  private SslHandler createSslHandler() throws NoSuchAlgorithmException, SSLException {
     SSLEngine sslEngine;
     if (requestConfig.sslContext != null) {
       sslEngine = createSslEngine(requestConfig.sslContext);
     } else {
-      sslEngine = createSslEngine(new JdkSslContext(SSLContext.getDefault(), true, ClientAuth.NONE));
+      sslEngine = createSslEngine(SslContextBuilder.forClient().build());
     }
     sslEngine.setUseClientMode(true);
+    SSLParameters sslParameters = sslEngine.getSSLParameters();
+    sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+    sslEngine.setSSLParameters(sslParameters);
     return new SslHandler(sslEngine);
   }
 
