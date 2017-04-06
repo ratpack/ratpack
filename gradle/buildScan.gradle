@@ -46,7 +46,7 @@ if (project.isCi) {
     // Capture individual issues for some reports
     gradle.taskGraph.afterTask { Task task, TaskState state ->
       if (task instanceof Checkstyle) {
-        if (state.failure) {
+        if (state.failure && task.reports.xml.destination.exists) {
           def checkstyle = new XmlSlurper().parse(task.reports.xml.destination)
           def errors = checkstyle.file.collect {
             String filePath = task.project.rootProject.relativePath(it.@name.text())
@@ -55,7 +55,7 @@ if (project.isCi) {
           errors.each { task.project.buildScan.value 'Checkstyle Issue', it }
         }
       }
-      if (task instanceof CodeNarc) {
+      if (task instanceof CodeNarc && task.reports.xml.destination.exists) {
         if (state.failure) {
           def codenarc = new XmlSlurper().parse(task.reports.xml.destination)
           def errors = codenarc.Package.collect {
