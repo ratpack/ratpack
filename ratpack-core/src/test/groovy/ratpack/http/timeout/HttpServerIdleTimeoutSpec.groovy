@@ -122,7 +122,7 @@ class HttpServerIdleTimeoutSpec extends RatpackGroovyDslSpec {
       }
       assert false
     } catch (IOException e) {
-      assert e.message.contains("Broken pipe")
+      assertBrokenSocket(e)
     }
   }
 
@@ -211,6 +211,10 @@ class HttpServerIdleTimeoutSpec extends RatpackGroovyDslSpec {
 
     then:
     Duration.between(start, Instant.now()) < override - Duration.ofSeconds(2)
+  }
+
+  boolean assertBrokenSocket(IOException e) {
+    assert e.message.contains("Broken pipe") || e.message.contains("Connection reset")
   }
 
 }
