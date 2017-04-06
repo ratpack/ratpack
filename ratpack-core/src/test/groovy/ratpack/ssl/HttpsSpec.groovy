@@ -17,7 +17,6 @@
 package ratpack.ssl
 
 import com.google.common.base.Throwables
-import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
