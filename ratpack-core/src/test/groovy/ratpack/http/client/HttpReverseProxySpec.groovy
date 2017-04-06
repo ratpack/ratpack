@@ -154,7 +154,7 @@ class HttpReverseProxySpec extends BaseHttpClientSpec {
 
     expect:
     def response = get()
-    response.headers.asMultiValueMap() == ["x-foo-header": "foo", "content-type": "text/plain;charset=UTF-8", "content-length": "3"]
+    response.headers.asMultiValueMap() == ["x-foo-header": "foo", "content-type": "text/plain;charset=UTF-8", "content-length": "3", "connection": "keep-alive"]
     response.body.text == "bar"
 
     where:

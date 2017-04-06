@@ -18,6 +18,7 @@ package ratpack.http
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 
 class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
@@ -42,6 +43,7 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
     then:
     def url = applicationUnderTest.address.toURL()
     def latch = new CountDownLatch(threads * requests)
+    def connections = new ConcurrentLinkedQueue<String>()
     threads.times { i ->
       Thread.start {
         requests.times {
@@ -51,12 +53,17 @@ class KeepAliveSupportSpec extends RatpackGroovyDslSpec {
             connection.requestMethod = "POST"
             connection.outputStream << "a" * (1024 * 6)
           }
-          connection.getHeaderField("Connection") == "keep-alive"
+          def connectionHeader = connection.getHeaderField("Connection")
+          if (connectionHeader) {
+            connections.add(connectionHeader)
+          }
           latch.countDown()
         }
       }
     }
     latch.await()
+    connections.size() == threads * requests
+    connections.every { it == "keep-alive" }
 
     where:
     dev << [true, false, true, false]
