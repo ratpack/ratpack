@@ -109,13 +109,18 @@ public interface Execution extends MutableRegistry {
   }
 
   /**
-   * Whether there is currently a bound execution.
+   * Whether there is currently an active bound execution.
+   * <p>
+   * When {@code true}, {@link #current()} will return an execution.
+   * When completing/closing an execution (e.g. {@link #onComplete(AutoCloseable)}),
+   * this will return {@code false} but {@link #current()} will still return an execution.
    *
-   * @return whether there is currently a bound execution
+   * @return whether there is currently an active bound execution
    * @since 1.5
    */
-  static boolean isBound() {
-    return DefaultExecution.get() != null;
+  static boolean isActive() {
+    DefaultExecution execution = DefaultExecution.get();
+    return execution != null && !execution.isComplete();
   }
 
   /**

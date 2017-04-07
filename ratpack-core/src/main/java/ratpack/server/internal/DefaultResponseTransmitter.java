@@ -96,7 +96,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     if (requestBody == null || !requestBody.isUnread()) {
       next.accept(null);
     } else {
-      if (Execution.isBound()) {
+      if (Execution.isActive()) {
         Promise.async(down ->
           requestBody.drain(e -> {
             if (e == null) {
