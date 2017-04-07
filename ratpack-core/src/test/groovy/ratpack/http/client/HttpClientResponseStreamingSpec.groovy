@@ -22,8 +22,12 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
 import ratpack.exec.util.ParallelBatch
+import ratpack.http.ResponseChunks
+import ratpack.stream.Streams
+import ratpack.stream.bytebuf.ByteBufStreams
 import ratpack.test.exec.ExecHarness
 
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -253,4 +257,28 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     text == "ok"
     text == "ok"
   }
+
+  def "read timeout is propagated when reading response stream"() {
+    when:
+    otherApp {
+      get {
+        render ResponseChunks.stringChunks(Streams.periodically(context, Duration.ofSeconds(5), { "a" }))
+      }
+    }
+    handlers {
+      get {
+        get(HttpClient).requestStream(otherApp.address) {
+          it.readTimeout(Duration.ofSeconds(2))
+        }.then {
+          ByteBufStreams.compose(it.body)
+            .onError(HttpClientReadTimeoutException) { render "timeout" }
+            .then { response.send it }
+        }
+      }
+    }
+
+    then:
+    text == "timeout"
+  }
+
 }

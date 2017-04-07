@@ -135,7 +135,14 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      error(downstream, cause);
+      cause = decorateException(cause);
+
+      if (write == null) {
+        error(downstream, cause);
+      } else {
+        write.error(cause);
+      }
+
       forceDispose(ctx.pipeline());
     }
 

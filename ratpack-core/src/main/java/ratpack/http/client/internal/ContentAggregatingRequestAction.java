@@ -74,6 +74,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause = decorateException(cause);
         error(downstream, cause);
         forceDispose(ctx.pipeline());
       }

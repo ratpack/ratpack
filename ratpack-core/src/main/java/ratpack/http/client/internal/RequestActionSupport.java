@@ -219,17 +219,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       HttpResponse response;
 
       @Override
-      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause instanceof ReadTimeoutException) {
-          cause = new HttpClientReadTimeoutException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
-        }
-
-        error(downstream, cause);
-
-        forceDispose(ctx.pipeline());
-      }
-
-      @Override
       public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         Exception e = new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely");
         error(downstream, e);
@@ -344,6 +333,13 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private static boolean isRedirect(int code) {
     return code == 301 || code == 302 || code == 303 || code == 307;
+  }
+
+  protected Throwable decorateException(Throwable cause) {
+    if (cause instanceof ReadTimeoutException) {
+      cause = new HttpClientReadTimeoutException("Read timeout (" + requestConfig.readTimeout + ") waiting on HTTP server at " + requestConfig.uri);
+    }
+    return cause;
   }
 
   private static String getFullPath(URI uri) {
