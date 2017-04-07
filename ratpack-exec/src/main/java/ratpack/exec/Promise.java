@@ -794,6 +794,7 @@ public interface Promise<T> {
    * @param predicate the condition to satisfy in order to execute the operation.
    * @param function a function that returns an operation that acts on the promised value
    * @return a promise for the original value
+   * @since 1.5
    */
   default Promise<T> nextOpIf(Predicate<? super T> predicate, Function<? super T, ? extends Operation> function) {
     return transform(up -> down -> up.connect(
