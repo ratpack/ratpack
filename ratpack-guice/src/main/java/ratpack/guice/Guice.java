@@ -21,6 +21,7 @@ import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
+import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.util.Modules;
 import ratpack.config.ConfigObject;
 import ratpack.func.Action;
@@ -275,6 +276,7 @@ public abstract class Guice {
 
     @Override
     public void configure(Binder binder) {
+
       for (ConfigObject<?> configObject : config) {
         bind(binder, configObject);
       }

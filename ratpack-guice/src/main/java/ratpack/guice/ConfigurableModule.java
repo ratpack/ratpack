@@ -16,14 +16,18 @@
 
 package ratpack.guice;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.Invokable;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import ratpack.config.ConfigObject;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.server.ServerConfig;
 import ratpack.util.Exceptions;
+import ratpack.util.Types;
 
 import javax.inject.Singleton;
 import java.lang.reflect.Constructor;
@@ -154,7 +158,13 @@ public abstract class ConfigurableModule<T> extends AbstractModule {
     TypeToken<T> typeToken = new TypeToken<T>(getClass()) {
     };
 
-    if (typeToken.getType() instanceof Class) {
+    Optional<ConfigObject<?>> configObjectOptional = Iterables.tryFind(
+      serverConfig.getRequiredConfig(), c -> c.getTypeToken().equals(typeToken)
+    );
+
+    if (configObjectOptional.isPresent()) {
+      return Types.cast(configObjectOptional.get().getObject());
+    } else if (typeToken.getType() instanceof Class) {
       @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) typeToken.getRawType();
       Factory<T> factory;
       try {
