@@ -65,7 +65,7 @@ import static ratpack.util.Exceptions.uncheck;
 public class DefaultRatpackServer implements RatpackServer {
 
   public static final TypeToken<ReloadInformant> RELOAD_INFORMANT_TYPE = Types.token(ReloadInformant.class);
-  public static final AttributeKey<Throttle> CHANNEL_THOTTLE_KEY = AttributeKey.<Throttle>newInstance("channelThottle");
+  public static final AttributeKey<Throttle> CHANNEL_THOTTLE_KEY = AttributeKey.valueOf(DefaultRatpackServer.class, "channelThottle");
 
   static {
     if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
