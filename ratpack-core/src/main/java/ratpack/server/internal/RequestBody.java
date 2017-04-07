@@ -90,8 +90,10 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       }
       state = State.READING;
 
-      if (isExceedsMaxContentLength(advertisedLength) || isExceedsMaxContentLength(receivedLength)) {
-        tooLarge(onTooLarge, downstream);
+      if (isExceedsMaxContentLength(advertisedLength)) {
+        tooLarge(onTooLarge, advertisedLength, downstream);
+      } else if (isExceedsMaxContentLength(receivedLength)) {
+        tooLarge(onTooLarge, receivedLength, downstream);
       } else if (receivedLast) {
         complete(downstream);
       } else if (earlyClose) {
@@ -103,7 +105,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
           public void onContent(HttpContent httpContent) {
             addToReceived(httpContent);
             if (isExceedsMaxContentLength(receivedLength)) {
-              tooLarge(onTooLarge, downstream);
+              tooLarge(onTooLarge, receivedLength, downstream);
             } else if (httpContent instanceof LastHttpContent) {
               listener = null;
               complete(downstream);
@@ -135,13 +137,18 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     });
   }
 
-  private void tooLarge(Block onTooLarge, Downstream<? super ByteBuf> downstream) {
+  private void tooLarge(Block onTooLarge, long length, Downstream<? super ByteBuf> downstream) {
     discard();
-    try {
-      onTooLarge.execute();
+    if (onTooLarge == RequestBodyReader.DEFAULT_TOO_LARGE_SENTINEL) {
+      downstream.error(tooLargeException(length));
+    } else {
+      try {
+        onTooLarge.execute();
+      } catch (Throwable t) {
+        downstream.error(t);
+        return;
+      }
       downstream.complete();
-    } catch (Throwable t) {
-      downstream.error(t);
     }
   }
 

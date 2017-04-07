@@ -138,6 +138,8 @@ public interface Request extends MutableRegistry {
    * If the transmitted content is larger than provided {@link ServerConfig#getMaxContentLength()}, the given block will be invoked.
    * If the block completes successfully, the promise will be terminated.
    * If the block errors, the promise will carry the failure.
+   * <p>
+   * If the body is larger then {@link #getMaxContentLength()}, a {@link RequestBodyTooLargeException} will be propagated.
    *
    * @return the body of the request
    */

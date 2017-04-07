@@ -119,7 +119,7 @@ public interface RequestSpec {
   RequestSpec maxContentLength(int numBytes);
 
   /**
-   * This method can be used to compose changes to the headers.
+   * This method can be used to buffer changes to the headers.
    *
    * @param action Provide an action that will act on MutableHeaders.
    * @return The RequestSpec

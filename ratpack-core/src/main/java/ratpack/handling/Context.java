@@ -27,6 +27,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.http.ClientErrorException;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -251,13 +252,19 @@ public interface Context extends Registry {
   // Shorthands for common service lookups
 
   /**
-   * Forwards the exception to the {@link ServerErrorHandler} in this service.
+   * Handles any error thrown during request handling.
    * <p>
-   * The default configuration of Ratpack includes a {@link ServerErrorHandler} in all contexts.
-   * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
+   * Uncaught exceptions that are thrown any time during request handling will end up here.
+   * <p>
+   * Forwards the exception to the {@link ServerErrorHandler} within the current registry.
+   * Add an implementation of this interface to the registry to handle errors.
+   * The default implementation is not suitable for production usage.
+   * <p>
+   * If the exception implements {@link ClientErrorException},
+   * the {@link #clientError(int)} method will be called with the exception's status code
+   * instead of being forward to the server error handler.
    *
    * @param throwable The exception that occurred
-   * @throws NotInRegistryException if no {@link ServerErrorHandler} can be found in the service
    */
   @NonBlocking
   void error(Throwable throwable);

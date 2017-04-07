@@ -89,7 +89,7 @@ public class FileIo {
    * The file channel is closed on success or failure.
    * <p>
    * As file system writes are expensive,
-   * you may want to consider using {@link ByteBufStreams#compose(Publisher, long, int, ByteBufAllocator)}
+   * you may want to consider using {@link ByteBufStreams#buffer(Publisher, long, int, ByteBufAllocator)}
    * to “buffer” the data in memory before writing to disk.
    *
    * @param publisher the bytes to write
@@ -107,7 +107,7 @@ public class FileIo {
    * The file channel is closed on success or failure.
    * <p>
    * As file system writes are expensive,
-   * you may want to consider using {@link ByteBufStreams#compose(Publisher, long, int, ByteBufAllocator)}
+   * you may want to consider using {@link ByteBufStreams#buffer(Publisher, long, int, ByteBufAllocator)}
    * to “buffer” the data in memory before writing to disk.
    *
    * @param publisher the bytes to write
@@ -221,7 +221,7 @@ public class FileIo {
    * @return a publisher of the byte bufs
    */
   public static Promise<CompositeByteBuf> read(Promise<? extends AsynchronousFileChannel> file, ByteBufAllocator allocator, int bufferSize, long start, long stop) {
-    return ByteBufStreams.reduce(readStream(file, allocator, bufferSize, start, stop), allocator);
+    return ByteBufStreams.compose(readStream(file, allocator, bufferSize, start, stop), allocator);
   }
 
   /**
@@ -239,7 +239,7 @@ public class FileIo {
    * @return a publisher of the byte bufs
    */
   public static Promise<CompositeByteBuf> read(Promise<? extends AsynchronousFileChannel> file, ByteBufAllocator allocator, int bufferSize) {
-    return ByteBufStreams.reduce(readStream(file, allocator, bufferSize), allocator);
+    return ByteBufStreams.compose(readStream(file, allocator, bufferSize), allocator);
   }
 
 }

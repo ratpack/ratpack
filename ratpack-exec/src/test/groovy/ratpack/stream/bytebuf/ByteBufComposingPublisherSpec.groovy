@@ -30,7 +30,7 @@ class ByteBufComposingPublisherSpec extends Specification {
     given:
     List<StreamEvent<ByteBuf>> events = []
     def upstream = Streams.yield { it.requestNum < 4 ? Unpooled.copyLong(it.requestNum) : null }.wiretap(events.&add)
-    def p = ByteBufStreams.compose(upstream, 20, 5, UnpooledByteBufAllocator.DEFAULT)
+    def p = ByteBufStreams.buffer(upstream, 20, 5, UnpooledByteBufAllocator.DEFAULT)
     def s = CollectingSubscriber.subscribe(p)
 
     when:

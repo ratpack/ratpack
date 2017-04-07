@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.server.internal;
+package ratpack.http;
 
-import io.netty.buffer.ByteBuf;
-import ratpack.exec.Promise;
-import ratpack.func.Block;
-import ratpack.stream.TransformablePublisher;
+import ratpack.handling.Context;
 
-public interface RequestBodyReader {
+/**
+ * Indicates that this exception represents a client error.
+ * If thrown within a handler, will result in {@link Context#clientError(int)} being called,
+ * instead of the exception propagating.
+ *
+ * @since 1.5
+ */
+public interface ClientErrorException {
 
-  Block DEFAULT_TOO_LARGE_SENTINEL = () -> {
-  };
-
-
-  long getContentLength();
-
-  void setMaxContentLength(long maxContentLength);
-
-  long getMaxContentLength();
-
-  Promise<? extends ByteBuf> read(Block onTooLarge);
-
-  TransformablePublisher<? extends ByteBuf> readStream();
+  int getClientErrorCode();
 
 }

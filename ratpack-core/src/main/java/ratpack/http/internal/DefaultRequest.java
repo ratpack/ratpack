@@ -22,16 +22,17 @@ import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.func.Function;
-import ratpack.handling.internal.DefaultContext;
 import ratpack.http.*;
-import ratpack.http.HttpMethod;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.server.ServerConfig;
@@ -41,17 +42,15 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
+import javax.security.cert.X509Certificate;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import javax.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
-
-  private static final Block RAISE_413 = () -> DefaultContext.current().clientError(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE.code());
 
   private MutableRegistry registry;
 
@@ -256,7 +255,7 @@ public class DefaultRequest implements Request {
 
   @Override
   public Promise<TypedData> getBody() {
-    return getBody(RAISE_413);
+    return getBody(RequestBodyReader.DEFAULT_TOO_LARGE_SENTINEL);
   }
 
   @Override
@@ -279,7 +278,7 @@ public class DefaultRequest implements Request {
   @Override
   public Promise<TypedData> getBody(long maxContentLength) {
     setMaxContentLength(maxContentLength);
-    return getBody(RAISE_413);
+    return getBody(RequestBodyReader.DEFAULT_TOO_LARGE_SENTINEL);
   }
 
   @Override

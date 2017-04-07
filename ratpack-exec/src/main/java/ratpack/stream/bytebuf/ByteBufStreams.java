@@ -19,6 +19,7 @@ package ratpack.stream.bytebuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -42,6 +43,20 @@ public class ByteBufStreams {
   /**
    * Buffers and composes byte bufs together into composites before emitting.
    * <p>
+   * Calls {@link #buffer(Publisher, long, int, ByteBufAllocator)} with {@link PooledByteBufAllocator#DEFAULT}
+   *
+   * @param publisher the publisher of byte bufs to buffer
+   * @param sizeWatermark the watermark size for a composite
+   * @param maxNum the maximum number of composite components
+   * @return a byte buf composing publisher
+   */
+  public static TransformablePublisher<CompositeByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum) {
+    return buffer(publisher, sizeWatermark, maxNum, PooledByteBufAllocator.DEFAULT);
+  }
+
+  /**
+   * Buffers and composes byte bufs together into composites before emitting.
+   * <p>
    * This is roughly analogous to {@link BufferedInputStream}.
    * The returned published accumulates upstream buffers until {@code maxNum} have been received,
    * or the cumulative size of buffered byte bufs is greater than or equal to {@code sizeWatermark}.
@@ -50,14 +65,26 @@ public class ByteBufStreams {
    * Byte bufs are requested of the given publisher one at a time.
    * If this is inefficient, consider wrapping it with {@link Streams#batch(int, Publisher, Action)} before giving to this method.
    *
-   * @param publisher the publisher of byte bufs to compose
+   * @param publisher the publisher of byte bufs to buffer
    * @param sizeWatermark the watermark size for a composite
    * @param maxNum the maximum number of composite components
    * @param alloc the allocator of composites
    * @return a byte buf composing publisher
    */
-  public static TransformablePublisher<CompositeByteBuf> compose(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
+  public static TransformablePublisher<CompositeByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
     return new ByteBufComposingPublisher(maxNum, sizeWatermark, alloc, publisher);
+  }
+
+  /**
+   * Reduces the stream to a single composite byte buf.
+   * <p>
+   * Calls {@link #compose(Publisher, ByteBufAllocator)} with {@link PooledByteBufAllocator#DEFAULT}.
+   *
+   * @param publisher the stream
+   * @return the reduced composite buffer
+   */
+  public static Promise<CompositeByteBuf> compose(Publisher<? extends ByteBuf> publisher) {
+    return compose(publisher, PooledByteBufAllocator.DEFAULT);
   }
 
   /**
@@ -67,7 +94,7 @@ public class ByteBufStreams {
    * @param alloc the buffer allocator
    * @return the reduced composite buffer
    */
-  public static Promise<CompositeByteBuf> reduce(Publisher<? extends ByteBuf> publisher, ByteBufAllocator alloc) {
+  public static Promise<CompositeByteBuf> compose(Publisher<? extends ByteBuf> publisher, ByteBufAllocator alloc) {
     return Promise.flatten(() -> {
       CompositeByteBuf seed = alloc.compositeBuffer();
       return Streams.reduce(publisher, seed, (c, b) -> c.addComponent(true, b))

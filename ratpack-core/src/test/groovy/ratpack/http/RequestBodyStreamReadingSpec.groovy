@@ -17,14 +17,14 @@
 package ratpack.http
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import org.apache.commons.lang3.RandomStringUtils
+import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
-import ratpack.handling.Context
+import ratpack.exec.Promise
 import ratpack.http.client.RequestSpec
 import ratpack.registry.Registry
 import ratpack.stream.Streams
@@ -32,6 +32,7 @@ import ratpack.stream.bytebuf.ByteBufStreams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
@@ -161,7 +162,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post { ctx ->
-        request.bodyStream.subscribe(new BufferThenSendSubscriber(context))
+        render composeString(request.bodyStream)
       }
     }
 
@@ -169,8 +170,6 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "bar" * 100000 }) }
     def response = post()
     response.statusCode == 413
-//    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
-//    postText() == "foo"
   }
 
   def "override acceptable max content length per request"() {
@@ -180,10 +179,10 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post {
-        request.bodyStream.subscribe(new BufferThenSendSubscriber(context))
+        render composeString(request.bodyStream)
       }
       post("allow") {
-        request.getBodyStream(16 * 8).subscribe(new BufferThenSendSubscriber(context))
+        render composeString(request.getBodyStream(16 * 8))
       }
     }
 
@@ -210,7 +209,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
       }
       post("again") {
         request.body.then { body ->
-          request.bodyStream.subscribe(new BufferThenSendSubscriber(context))
+          composeString(request.bodyStream)
         }
       }
     }
@@ -352,7 +351,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     def error = new BlockingVariable<Throwable>()
     handlers {
       all { ctx ->
-        ByteBufStreams.reduce(request.bodyStream, PooledByteBufAllocator.DEFAULT)
+        ByteBufStreams.compose(request.bodyStream, PooledByteBufAllocator.DEFAULT)
           .onError { error.set(it) }
           .then { response.send(it) }
       }
@@ -373,49 +372,12 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     error.get() instanceof ConnectionClosedException
   }
 
-  class BufferThenSendSubscriber implements Subscriber<ByteBuf> {
-
-    private final List<ByteBuf> byteBufs = []
-    private final Context context
-    boolean error
-    Subscription subscription
-
-    BufferThenSendSubscriber(Context context) {
-      this.context = context
-    }
-
-    @Override
-    void onSubscribe(Subscription s) {
-      s.request(Long.MAX_VALUE)
-      subscription = s
-    }
-
-    @Override
-    void onNext(ByteBuf byteBuf) {
-      if (error) {
-        byteBuf.release()
-      } else {
-        byteBufs << byteBuf
-      }
-    }
-
-    @Override
-    void onError(Throwable t) {
-      error = true
-      byteBufs*.release()
-      if (t instanceof RequestBodyTooLargeException) {
-        context.clientError(413)
-      } else {
-        context.error(t)
-      }
-    }
-
-    @Override
-    void onComplete() {
-      def composite = Unpooled.unmodifiableBuffer(byteBufs as ByteBuf[])
-      def bytes = ByteBufUtil.getBytes(composite)
-      composite.release()
-      context.response.send(bytes)
+  Promise<String> composeString(Publisher<? extends ByteBuf> publisher) {
+    ByteBufStreams.compose(publisher).map {
+      def s = it.toString(Charset.defaultCharset())
+      it.release()
+      s
     }
   }
+
 }

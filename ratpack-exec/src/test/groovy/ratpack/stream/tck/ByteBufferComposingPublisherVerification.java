@@ -50,7 +50,7 @@ public class ByteBufferComposingPublisherVerification extends PublisherVerificat
       i < elements * 3 ? i : null
     ).map(Unpooled::copyInt);
 
-    return ByteBufStreams.compose(periodically, Long.MAX_VALUE, 3, UnpooledByteBufAllocator.DEFAULT);
+    return ByteBufStreams.buffer(periodically, Long.MAX_VALUE, 3, UnpooledByteBufAllocator.DEFAULT);
   }
 
   @Override

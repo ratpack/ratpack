@@ -33,10 +33,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.http.Request;
-import ratpack.http.Response;
-import ratpack.http.Status;
-import ratpack.http.TypedData;
+import ratpack.http.*;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.NoSuchParserException;
@@ -200,6 +197,11 @@ public class DefaultContext implements Context {
   }
 
   public void error(Throwable throwable) {
+    if (throwable instanceof ClientErrorException) {
+      clientError(((ClientErrorException) throwable).getClientErrorCode());
+      return;
+    }
+
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
     throwable = unpackThrowable(throwable);
 
