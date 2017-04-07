@@ -21,7 +21,6 @@ import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
-import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.util.Modules;
 import ratpack.config.ConfigObject;
 import ratpack.func.Action;
