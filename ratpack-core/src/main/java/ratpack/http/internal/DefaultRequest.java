@@ -43,6 +43,7 @@ import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import javax.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -71,6 +72,7 @@ public class DefaultRequest implements Request {
 
   private long maxContentLength;
   private final RequestIdleTimeout idleTimeout;
+  private final X509Certificate clientCertificate;
 
   public DefaultRequest(
     Instant timestamp,
@@ -82,7 +84,8 @@ public class DefaultRequest implements Request {
     InetSocketAddress localSocket,
     ServerConfig serverConfig,
     @Nullable RequestBodyReader bodyReader,
-    RequestIdleTimeout idleTimeout
+    RequestIdleTimeout idleTimeout,
+    @Nullable X509Certificate clientCertificate
   ) {
     this.headers = headers;
     this.bodyReader = bodyReader;
@@ -94,6 +97,7 @@ public class DefaultRequest implements Request {
     this.timestamp = timestamp;
     this.maxContentLength = serverConfig.getMaxContentLength();
     this.idleTimeout = idleTimeout;
+    this.clientCertificate = clientCertificate;
     if (bodyReader != null) {
       bodyReader.setMaxContentLength(serverConfig.getMaxContentLength());
     }
@@ -135,6 +139,11 @@ public class DefaultRequest implements Request {
     } else {
       return bodyReader.getMaxContentLength();
     }
+  }
+
+  @Override
+  public Optional<X509Certificate> getClientCertificate() {
+    return Optional.ofNullable(clientCertificate);
   }
 
   public String getRawUri() {

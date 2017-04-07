@@ -33,8 +33,10 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
 
+import javax.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -425,6 +427,15 @@ public interface Request extends MutableRegistry {
    * @since 1.5
    */
   long getMaxContentLength();
+
+  /**
+   * The client's verified certificate if the connection was made with HTTPS
+   * and client authentication is enabled.
+   *
+   * @return the client's certificate
+   * @since 1.5
+   */
+  Optional<X509Certificate> getClientCertificate();
 
   /**
    * {@inheritDoc}

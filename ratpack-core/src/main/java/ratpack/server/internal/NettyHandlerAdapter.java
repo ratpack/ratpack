@@ -21,6 +21,8 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
@@ -43,6 +45,9 @@ import ratpack.registry.Registry;
 import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.ServerConfig;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.security.cert.X509Certificate;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
@@ -53,8 +58,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
-  private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf("ratpack.subscriber");
-  private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(RequestBodyAccumulator.class.getName());
+  private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "subscriber");
+  private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "requestBody");
+  private static final AttributeKey<X509Certificate> CLIENT_CERT_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "principal");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -137,7 +143,8 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       socketAddress,
       serverRegistry.get(ServerConfig.class),
       requestBody,
-      connectionIdleTimeout
+      connectionIdleTimeout,
+      channel.attr(CLIENT_CERT_KEY).get()
     );
 
     HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
@@ -222,6 +229,18 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       ConnectionClosureReason.setIdle(ctx.channel());
       ctx.close();
     }
+    if (evt instanceof SslHandshakeCompletionEvent && ((SslHandshakeCompletionEvent) evt).isSuccess()) {
+      SSLEngine engine = ctx.pipeline().get(SslHandler.class).engine();
+      if (engine.getWantClientAuth() || engine.getNeedClientAuth()) {
+        try {
+          X509Certificate clientCert = engine.getSession().getPeerCertificateChain()[0];
+          ctx.channel().attr(CLIENT_CERT_KEY).set(clientCert);
+        } catch (SSLPeerUnverifiedException ignore) {
+          // ignore - there is no way to avoid this exception that I can determine
+        }
+      }
+    }
+
     super.userEventTriggered(ctx, evt);
   }
 

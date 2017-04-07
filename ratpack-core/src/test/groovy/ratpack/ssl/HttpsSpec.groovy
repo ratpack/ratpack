@@ -17,6 +17,7 @@
 package ratpack.ssl
 
 import com.google.common.base.Throwables
+import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
@@ -29,7 +30,7 @@ import java.security.cert.CertificateException
 class HttpsSpec extends RatpackGroovyDslSpec {
 
   @Shared
-    badDomainCert = new SelfSignedCertificate("barbar")
+    nonLocalHostCert = new SelfSignedCertificate("barbar")
   @Shared
     localHostCert = new SelfSignedCertificate("localhost")
 
@@ -44,7 +45,6 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
     serverConfig {
       ssl serverContext
-      development false
     }
 
     when:
@@ -71,13 +71,13 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     }
 
     where:
-    c             | valid
-    badDomainCert | false
-    localHostCert | true
+    c                | valid
+    nonLocalHostCert | false
+    localHostCert    | true
   }
 
   def cleanupSpec() {
-    badDomainCert.delete()
+    nonLocalHostCert.delete()
     localHostCert.delete()
   }
 
@@ -109,4 +109,30 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
   }
 
+  def "can obtain clients ID"() {
+    given:
+    SslContext serverContext = SslContextBuilder.forServer(localHostCert.certificate(), localHostCert.privateKey())
+      .trustManager(nonLocalHostCert.cert())
+      .clientAuth(ClientAuth.REQUIRE)
+      .build()
+
+    SslContext clientContext = SslContextBuilder.forClient()
+      .keyManager(nonLocalHostCert.key(), nonLocalHostCert.cert())
+      .trustManager(localHostCert.cert())
+      .build()
+
+    serverConfig {
+      ssl serverContext
+    }
+
+    when:
+    handlers {
+      get {
+        render request.clientCertificate.get().subjectDN.name
+      }
+    }
+
+    then:
+    requestSpec { it.sslContext(clientContext) }.text == nonLocalHostCert.cert().subjectDN.name
+  }
 }
