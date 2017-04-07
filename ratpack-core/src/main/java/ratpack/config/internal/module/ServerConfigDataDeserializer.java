@@ -118,6 +118,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("writeSpinCount")) {
       parseOptionalIntValue("writeSpinCount", serverNode.get("writeSpinCount")).ifPresent(data::setWriteSpinCount);
     }
+    if (serverNode.hasNonNull("connectQueueSize")) {
+      parseOptionalIntValue("connectQueueSize", serverNode.get("connectQueueSize")).ifPresent(data::setConnectQueueSize);
+    }
 
     return data;
   }

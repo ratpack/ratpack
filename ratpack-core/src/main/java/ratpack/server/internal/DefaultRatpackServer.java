@@ -230,6 +230,9 @@ public class DefaultRatpackServer implements RatpackServer {
       serverBootstrap.option(ChannelOption.WRITE_SPIN_COUNT, i);
       serverBootstrap.childOption(ChannelOption.WRITE_SPIN_COUNT, i);
     });
+    serverConfig.getConnectQueueSize().ifPresent(i ->
+      serverBootstrap.option(ChannelOption.SO_BACKLOG, i)
+    );
 
     return serverBootstrap
       .group(execController.getEventLoopGroup())

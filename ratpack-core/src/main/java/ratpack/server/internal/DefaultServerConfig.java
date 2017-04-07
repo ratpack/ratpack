@@ -151,6 +151,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
+  public Optional<Integer> getConnectQueueSize() {
+    return serverConfigData.getConnectQueueSize();
+  }
+
+  @Override
   public Optional<Integer> getWriteSpinCount() {
     return serverConfigData.getWriteSpinCount();
   }

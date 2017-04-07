@@ -173,6 +173,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder connectQueueSize(int connectQueueSize) {
+    return addToServer(n -> n.put("connectQueueSize", connectQueueSize));
+  }
+
+  @Override
   public ServerConfigBuilder writeSpinCount(int writeSpinCount) {
     return addToServer(n -> n.put("writeSpinCount", writeSpinCount));
   }

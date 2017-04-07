@@ -236,6 +236,21 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder receiveBufferSize(int receiveBufferSize);
 
   /**
+   * The maximum amount of connections that may be waiting to be accepted at any time.
+   * <p>
+   * This is effectively the {@code SO_BACKLOG} standard socket parameter.
+   * If the queue is full (i.e. there are too many pending connections), connection attempts will be rejected.
+   * Established connections are not part of this queue so do not contribute towards the limit.
+   * <p>
+   * The default value is platform specific, but usually either 200 or 128.
+   * Most application do not need to change this default.
+   *
+   * @param connectQueueSize connection queue size
+   * @since 1.5
+   */
+  ServerConfigBuilder connectQueueSize(int connectQueueSize);
+
+  /**
    * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.
    *
    * @param writeSpinCount the write spin count

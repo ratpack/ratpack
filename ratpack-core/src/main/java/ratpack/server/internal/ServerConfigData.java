@@ -42,6 +42,7 @@ public class ServerConfigData {
   private Optional<Integer> maxMessagesPerRead = Optional.empty();
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
+  private Optional<Integer> connectQueueSize = Optional.empty();
   private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
   private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
   private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
@@ -202,4 +203,11 @@ public class ServerConfigData {
     this.idleTimeout = idleTimeout;
   }
 
+  public void setConnectQueueSize(Integer integer) {
+    this.connectQueueSize = Optional.of(integer);
+  }
+
+  public Optional<Integer> getConnectQueueSize() {
+    return connectQueueSize;
+  }
 }
