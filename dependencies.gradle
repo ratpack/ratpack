@@ -1,7 +1,7 @@
 ext {
   commonVersions = [
-    groovy : '2.4.9',
-    ratpack: '1.4.5',
+    groovy : '2.4.10',
+    ratpack: '1.4.6',
     rx2    : '2.0.7',
     spock  : '1.1-groovy-2.4-rc-3',
     logback: '1.2.1',
