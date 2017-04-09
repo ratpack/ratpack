@@ -21,13 +21,14 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.exec.Promise
+import ratpack.exec.Execution
 import ratpack.http.client.HttpClient
 import ratpack.stream.StreamEvent
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.PollingConditions
 
+import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
 
 import static ratpack.http.ResponseChunks.stringChunks
@@ -72,15 +73,14 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
   def "client cancellation causes server publisher to receive cancel"() {
     given:
     Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
+    def buffer = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 30720, Charsets.UTF_8))
 
     when:
     handlers {
       get {
-        def stream = Streams.constant(Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 1024 * 10, Charsets.UTF_8)))
-          .wiretap {
+        def stream = Streams.constant(buffer).wiretap {
           events << it
         }
-
         response.sendStream(stream)
       }
       get("read") { ctx ->
@@ -90,12 +90,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
           it.body.subscribe(new Subscriber<ByteBuf>() {
             @Override
             void onSubscribe(Subscription s) {
-              Promise.value(null).defer { r ->
-                Thread.start {
-                  sleep 3000
-                  r.run()
-                }
-              }.then {
+              Execution.sleep(Duration.ofSeconds(1)).then {
                 s.cancel()
                 ctx.render "cancel"
               }
@@ -125,6 +120,9 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     new PollingConditions().eventually {
       events.find { it.cancel }
     }
+
+    cleanup:
+    buffer.release()
   }
 
 }
