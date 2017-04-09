@@ -16,7 +16,19 @@
 
 package ratpack.http
 
+import com.google.common.base.Charsets
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
+import ratpack.exec.Promise
+import ratpack.http.client.HttpClient
+import ratpack.stream.StreamEvent
+import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.util.concurrent.PollingConditions
+
+import java.util.concurrent.ConcurrentLinkedQueue
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.stream.Streams.publish
@@ -56,4 +68,63 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     r.status.code == 200
     r.body.text == "abc" * 3
   }
+
+  def "client cancellation causes server publisher to receive cancel"() {
+    given:
+    Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
+
+    when:
+    handlers {
+      get {
+        def stream = Streams.constant(Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 1024 * 10, Charsets.UTF_8)))
+          .wiretap {
+          events << it
+        }
+
+        response.sendStream(stream)
+      }
+      get("read") { ctx ->
+        get(HttpClient).requestStream(application.address) {
+
+        }.then {
+          it.body.subscribe(new Subscriber<ByteBuf>() {
+            @Override
+            void onSubscribe(Subscription s) {
+              Promise.value(null).defer { r ->
+                Thread.start {
+                  sleep 3000
+                  r.run()
+                }
+              }.then {
+                s.cancel()
+                ctx.render "cancel"
+              }
+            }
+
+            @Override
+            void onNext(ByteBuf byteBuf) {
+
+            }
+
+            @Override
+            void onError(Throwable t) {
+
+            }
+
+            @Override
+            void onComplete() {
+
+            }
+          })
+        }
+      }
+    }
+
+    then:
+    getText("read") == "cancel"
+    new PollingConditions().eventually {
+      events.find { it.cancel }
+    }
+  }
+
 }
