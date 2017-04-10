@@ -241,10 +241,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           isKeepAlive = false;
           notifyListeners(responseStatus);
         } else {
-          channelFuture.addListener(cancelOnFailure);
-          if (channel.isWritable()) {
-            this.subscription.request(1);
-          }
+          channelFuture.addListener(cancelOnFailure).addListener(f -> {
+            if (channel.isWritable()) {
+              this.subscription.request(1);
+            }
+          });
         }
       }
 
