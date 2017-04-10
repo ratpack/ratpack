@@ -16,10 +16,7 @@
 
 package ratpack.stream.bytebuf;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.CompositeByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.*;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -102,6 +99,23 @@ public class ByteBufStreams {
           seed.release();
           throw Exceptions.toException(e);
         });
+    });
+  }
+
+  /**
+   * Reduces the stream to a single {@code byte[]}.
+   * <p>
+   * This should only be used when it is known that the stream is small,
+   * as this will effectively force the entire stream to be held in memory.
+   *
+   * @param publisher the byte stream
+   * @return the bytes as a {@code byte[]}
+   */
+  public static Promise<byte[]> toByteArray(Publisher<? extends ByteBuf> publisher) {
+    return compose(publisher).map(byteBuf -> {
+      byte[] bytes = ByteBufUtil.getBytes(byteBuf);
+      byteBuf.release();
+      return bytes;
     });
   }
 }
