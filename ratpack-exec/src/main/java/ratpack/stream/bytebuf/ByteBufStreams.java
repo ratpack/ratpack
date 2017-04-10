@@ -118,4 +118,19 @@ public class ByteBufStreams {
       return bytes;
     });
   }
+
+  /**
+   * Converts the byte buf stream to a stream of {@code byte[]}.
+   *
+   * @param publisher the byte stream
+   * @return a publisher of {@code byte[]}
+   */
+  public static Publisher<byte[]> toByteArrays(Publisher<? extends ByteBuf> publisher) {
+    return Streams.map(publisher, b -> {
+      byte[] bytes = ByteBufUtil.getBytes(b);
+      b.release();
+      return bytes;
+    });
+  }
+
 }
