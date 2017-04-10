@@ -740,7 +740,7 @@ public class Streams {
    * @return a publisher that emits a single stream of elements from multiple publishers
    * @since 1.5
    */
-  public static <T> TransformablePublisher<T> concat(Iterable<? extends Publisher<T>> publishers, Action<? super T> disposer) {
+  public static <T> TransformablePublisher<T> concat(Iterable<? extends Publisher<? extends T>> publishers, Action<? super T> disposer) {
     return new ConcatPublisher<>(disposer, publishers);
   }
 
@@ -752,7 +752,7 @@ public class Streams {
    * @return a publisher that emits a single stream of elements from multiple publishers
    * @since 1.5
    */
-  public static <T> TransformablePublisher<T> concat(Iterable<? extends Publisher<T>> publishers) {
+  public static <T> TransformablePublisher<T> concat(Iterable<? extends Publisher<? extends T>> publishers) {
     return new ConcatPublisher<>(Action.noop(), publishers);
   }
 

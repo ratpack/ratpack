@@ -26,10 +26,10 @@ import java.util.Iterator;
 
 public class ConcatPublisher<T> implements TransformablePublisher<T> {
 
-  private final Iterable<? extends Publisher<T>> publishers;
+  private final Iterable<? extends Publisher<? extends T>> publishers;
   private final Action<? super T> disposer;
 
-  public ConcatPublisher(Action<? super T> disposer, Iterable<? extends Publisher<T>> publishers) {
+  public ConcatPublisher(Action<? super T> disposer, Iterable<? extends Publisher<? extends T>> publishers) {
     this.publishers = publishers;
     this.disposer = disposer;
   }
