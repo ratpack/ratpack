@@ -75,6 +75,17 @@ public interface Operation {
     }));
   }
 
+  /**
+   * Create an operation that delegates to another operation.
+   *
+   * @param factory a factory for the operation
+   * @return an operation
+   * @since 1.5
+   */
+  static Operation flatten(Factory<Operation> factory) {
+    return new DefaultOperation(Promise.flatten(() -> factory.create().promise()));
+  }
+
   Operation onError(Action<? super Throwable> onError);
 
   /**

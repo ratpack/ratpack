@@ -34,6 +34,7 @@ class TransactionSpec extends Specification {
   Sql sql = new Sql(ds)
   ratpack.func.Factory<Connection> factory = ds.&getConnection
   def tx = Transaction.create(factory)
+  def btx = Transaction.bound(factory)
 
   DataSource createDs() {
     def config = new HikariConfig()
@@ -265,6 +266,93 @@ class TransactionSpec extends Specification {
     !findById("2")
     !Transaction.current().present
     !tx.connection.present
+  }
+
+  def "can use bound transaction"() {
+    when:
+    run {
+      btx.begin().next {
+        assert Transaction.current().get() != btx
+        insert("1")
+        btx.begin().then {
+          insert("2")
+          btx.rollback().then {
+            btx.commit().then()
+          }
+        }
+      }.promise()
+    }
+
+    then:
+    findById("1")
+    !findById("2")
+    !Transaction.current().present
+    !btx.connection.present
+  }
+
+  def "can use nested bound transaction"() {
+    when:
+    run {
+      btx.wrap(
+        Blocking.get {
+          insert("1")
+        }.flatMap {
+          btx.wrap(
+            Blocking.get {
+              insert("2")
+              throw new Exception("!")
+            }
+          )
+        }.mapError {
+          "foo" // recover from error
+        }.blockingMap {
+          insert("3")
+        }.map {
+          throw new Exception("!!") // then fail
+        }
+      )
+    }
+
+    then:
+    def e = thrown Exception
+    e.message == "!!"
+    !findById("1")
+    !findById("2")
+    !findById("3")
+  }
+
+  def "can use nested manual bound transaction"() {
+    when:
+    run {
+      btx.begin().flatMap {
+        Blocking.get {
+          insert("1")
+        }.flatMap {
+          btx.begin().flatMap {
+            Blocking.get {
+              insert("2")
+              throw new Exception("!")
+            }
+          }
+        }
+      }.flatMapError {
+        btx.rollback().map { "foo" }
+      }.blockingMap {
+        insert("3")
+      }.nextOp {
+        btx.rollback().next {
+          throw new Exception("!!") // then fail
+        }
+
+      }
+    }
+
+    then:
+    def e = thrown Exception
+    e.message == "!!"
+    !findById("1")
+    !findById("2")
+    !findById("3")
   }
 
 }

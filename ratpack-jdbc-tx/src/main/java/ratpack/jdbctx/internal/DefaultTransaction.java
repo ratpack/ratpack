@@ -50,33 +50,32 @@ public class DefaultTransaction implements Transaction {
 
   @Override
   public <T> Promise<T> wrap(Promise<T> promise) {
-    return Promise.flatten(() ->
+    return promise.transform(up -> down ->
       begin()
-        .flatMap(
-          promise.transform(up -> down ->
-            up.connect(new Downstream<T>() {
-              @Override
-              public void success(T value) {
-                commit()
-                  .onError(down::error)
-                  .then(() -> down.success(value));
-              }
+        .onError(down::error)
+        .then(() ->
+          up.connect(new Downstream<T>() {
+            @Override
+            public void success(T value) {
+              commit()
+                .onError(down::error)
+                .then(() -> down.success(value));
+            }
 
-              @Override
-              public void error(Throwable throwable) {
-                rollback()
-                  .onError(Action.suppressAndThrow(throwable))
-                  .then(() -> down.error(throwable));
-              }
+            @Override
+            public void error(Throwable throwable) {
+              rollback()
+                .onError(Action.suppressAndThrow(throwable))
+                .then(() -> down.error(throwable));
+            }
 
-              @Override
-              public void complete() {
-                commit()
-                  .onError(down::error)
-                  .then(down::complete);
-              }
-            })
-          )
+            @Override
+            public void complete() {
+              commit()
+                .onError(down::error)
+                .then(down::complete);
+            }
+          })
         )
     );
   }
@@ -99,12 +98,12 @@ public class DefaultTransaction implements Transaction {
 
   @Override
   public Operation begin() {
-    return Operation.of(() -> {
+    return Operation.flatten(() -> {
       if (connection == null) {
         if (autoBind) {
           bind();
         }
-        Blocking.op(() -> {
+        return Blocking.op(() -> {
           connection = connectionFactory.create();
           connection.setAutoCommit(false);
         })
@@ -112,39 +111,40 @@ public class DefaultTransaction implements Transaction {
             dispose(Action.noop())
               .onError(Action.suppressAndThrow(e))
               .then()
-          )
-          .then();
+          );
       } else {
-        Blocking.get(connection::setSavepoint)
-          .then(savepoints::push);
+        return Blocking.get(connection::setSavepoint)
+          .operation(savepoints::push);
       }
     });
   }
 
   @Override
   public Operation rollback() {
-    return Operation.of(() -> {
+    return Operation.flatten(() -> {
       if (connection == null) {
         throw new IllegalStateException("Rollback attempted outside of a transaction.");
       }
       Savepoint savepoint = savepoints.poll();
       if (savepoint == null) {
-        dispose(Connection::rollback).then();
+        return dispose(Connection::rollback);
       } else {
-        Blocking.op(() -> connection.rollback(savepoint)).then();
+        return Blocking.op(() -> connection.rollback(savepoint));
       }
     });
   }
 
   @Override
   public Operation commit() {
-    return Operation.of(() -> {
+    return Operation.flatten(() -> {
       if (connection == null) {
         throw new IllegalStateException("Commit attempted outside of a transaction.");
       }
       Savepoint savepoint = savepoints.poll();
       if (savepoint == null) {
-        dispose(Connection::commit).then();
+        return dispose(Connection::commit);
+      } else {
+        return Operation.noop();
       }
     });
   }
@@ -158,6 +158,9 @@ public class DefaultTransaction implements Transaction {
       }
     }).onError(e -> {
       connection = null;
+      if (autoBind) {
+        unbind();
+      }
       throw Exceptions.toException(e);
     }).next(() -> {
       connection = null;

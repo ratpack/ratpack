@@ -20,6 +20,7 @@ import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.func.Factory;
+import ratpack.jdbctx.internal.BoundTransaction;
 import ratpack.jdbctx.internal.DefaultTransaction;
 import ratpack.jdbctx.internal.TransactionalDataSource;
 
@@ -271,6 +272,26 @@ public interface Transaction {
   }
 
   /**
+   * Creates a transaction implementation that delegates to the execution bound transaction.
+   * <p>
+   * This transaction can be used as an application wide singleton.
+   * When any transaction method is called,
+   * it will delegate to the {@link #current()} transaction if there is one,
+   * or it will {@link #create(Factory)} a new one.
+   * <p>
+   * This differs to {@link #get(Factory)} in that this method returns a dynamically delegating transaction,
+   * instead of an actual transaction.
+   * <p>
+   * Typically, this method can be used to create a single {@code Transaction} object that is used throughout the application.
+   *
+   * @param connectionFactory the connection factory
+   * @return a transaction object that delegates to the current transaction, or creates a new one, for each method
+   */
+  static Transaction bound(Factory<? extends Connection> connectionFactory) {
+    return new BoundTransaction(connectionFactory);
+  }
+
+  /**
    * Returns the current transaction if present
    *
    * @return the current transaction if present
@@ -419,6 +440,17 @@ public interface Transaction {
    * @return a promise that will yield within a transaction
    */
   <T> Promise<T> wrap(Promise<T> promise);
+
+  /**
+   * Executes the given factory and yields the resultant promise in a transaction.
+   *
+   * @param promiseFactory the factory of the promise to yield in a transaction
+   * @param <T> the type of promised value
+   * @return a promise that will yield within a transaction
+   */
+  default <T> Promise<T> wrap(Factory<? extends Promise<T>> promiseFactory) {
+    return wrap(Promise.flatten(promiseFactory));
+  }
 
   /**
    * Decorates the given operation in a transaction boundary.
