@@ -30,10 +30,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class WiretapPublisher<T> implements TransformablePublisher<T> {
 
   private final Publisher<? extends T> publisher;
-  private final Action<? super StreamEvent<? super T>> listener;
+  private final Action<? super StreamEvent<T>> listener;
   private final AtomicInteger counter = new AtomicInteger();
 
-  public WiretapPublisher(Publisher<? extends T> publisher, Action<? super StreamEvent<? super T>> listener) {
+  public WiretapPublisher(Publisher<? extends T> publisher, Action<? super StreamEvent<T>> listener) {
     this.publisher = publisher;
     this.listener = listener;
   }
@@ -53,7 +53,7 @@ public class WiretapPublisher<T> implements TransformablePublisher<T> {
           @Override
           public void request(long n) {
             try {
-              listener.execute(new RequestEvent<>(subscriptionId, n));
+              listener.execute(new RequestEvent<T>(subscriptionId, n));
             } catch (Throwable throwable) {
               subscription.cancel();
               onError(throwable);
@@ -65,7 +65,7 @@ public class WiretapPublisher<T> implements TransformablePublisher<T> {
           @Override
           public void cancel() {
             try {
-              listener.execute(new CancelEvent<>(subscriptionId));
+              listener.execute(new CancelEvent<T>(subscriptionId));
             } catch (Throwable throwable) {
               try {
                 subscription.cancel();
@@ -99,7 +99,7 @@ public class WiretapPublisher<T> implements TransformablePublisher<T> {
       public void onError(Throwable t) {
         if (done.compareAndSet(false, true)) {
           try {
-            listener.execute(new ErrorEvent<>(subscriptionId, t));
+            listener.execute(new ErrorEvent<T>(subscriptionId, t));
           } catch (Throwable throwable) {
             t.addSuppressed(throwable);
             onError(t);
@@ -113,7 +113,7 @@ public class WiretapPublisher<T> implements TransformablePublisher<T> {
       public void onComplete() {
         if (done.compareAndSet(false, true)) {
           try {
-            listener.execute(new CompletionEvent<>(subscriptionId));
+            listener.execute(new CompletionEvent<T>(subscriptionId));
           } catch (Throwable throwable) {
             outSubscriber.onError(throwable);
             return;

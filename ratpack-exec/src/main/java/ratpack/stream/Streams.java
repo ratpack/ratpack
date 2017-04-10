@@ -460,7 +460,7 @@ public class Streams {
    * @param <T> the type of item emitted
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
    */
-  public static <T> TransformablePublisher<T> wiretap(Publisher<T> publisher, Action<? super StreamEvent<? super T>> listener) {
+  public static <T> TransformablePublisher<T> wiretap(Publisher<T> publisher, Action<? super StreamEvent<T>> listener) {
     return new WiretapPublisher<>(publisher, listener);
   }
 
