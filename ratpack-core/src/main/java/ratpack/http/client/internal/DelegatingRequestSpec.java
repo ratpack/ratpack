@@ -135,4 +135,10 @@ public class DelegatingRequestSpec implements RequestSpec {
     return delegate.maxContentLength(numBytes);
   }
 
+  @Override
+  public RequestSpec responseMaxChunkSize(int numBytes) {
+    delegate.responseMaxChunkSize(numBytes);
+    return this;
+  }
+
 }

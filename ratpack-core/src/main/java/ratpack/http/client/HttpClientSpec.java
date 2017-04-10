@@ -76,4 +76,16 @@ public interface HttpClientSpec {
    */
   HttpClientSpec readTimeout(Duration readTimeout);
 
+  /**
+   * The max size of the chunks to emit when reading a response as a stream.
+   * <p>
+   * Defaults to 8192.
+   * <p>
+   * Increasing this value can increase throughput at the expense of memory use.
+   *
+   * @param numBytes the max number of bytes to emit
+   * @return {@code this}
+   * @since 1.5
+   */
+  HttpClientSpec responseMaxChunkSize(int numBytes);
 }

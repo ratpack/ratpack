@@ -281,4 +281,42 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
     text == "timeout"
   }
 
+  def "can influence chunk size"() {
+    when:
+    def s = "a" * 102400
+    int max = 0
+    otherApp {
+      get {
+        render s
+      }
+    }
+    handlers {
+      def http = HttpClient.of {
+        if (c) {
+          it.responseMaxChunkSize(c)
+        }
+      }
+
+      get {
+        http.requestStream(otherAppUrl(), { if (r) { it.responseMaxChunkSize(r) } }).then {
+          render ResponseChunks.bufferChunks("text/plain", it.getBody().wiretap {
+            if (it.data) {
+              max = Math.max(max, it.item.readableBytes())
+            }
+          })
+        }
+      }
+    }
+
+    then:
+    text == s
+    max == size
+
+    where:
+    c    | r     | size
+    0    | 0     | 8192
+    1024 | 0     | 1024
+    1024 | 2048  | 2048
+    0    | 10240 | 10240
+  }
 }

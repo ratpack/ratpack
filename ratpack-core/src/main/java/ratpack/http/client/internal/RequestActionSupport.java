@@ -210,7 +210,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       p.addLast(SSL_HANDLER_NAME, createSslHandler());
     }
 
-    p.addLast(CLIENT_CODEC_HANDLER_NAME, new HttpClientCodec(4096, 8192, 8192, false));
+    p.addLast(CLIENT_CODEC_HANDLER_NAME, new HttpClientCodec(4096, 8192, requestConfig.responseMaxChunkSize, false));
 
     p.addLast(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
 

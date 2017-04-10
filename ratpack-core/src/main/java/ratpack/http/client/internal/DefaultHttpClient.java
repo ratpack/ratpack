@@ -94,12 +94,14 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private final ByteBufAllocator byteBufAllocator;
   private final int maxContentLength;
+  private final int maxResponseChunkSize;
   private final int poolSize;
   private final Duration readTimeout;
 
-  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int poolSize, Duration readTimeout) {
+  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int maxResponseChunkSize, int poolSize, Duration readTimeout) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLength = maxContentLength;
+    this.maxResponseChunkSize = maxResponseChunkSize;
     this.poolSize = poolSize;
     this.readTimeout = readTimeout;
   }
@@ -126,6 +128,11 @@ public class DefaultHttpClient implements HttpClientInternal {
     return maxContentLength;
   }
 
+  @Override
+  public int getMaxResponseChunkSize() {
+    return maxResponseChunkSize;
+  }
+
   public Duration getReadTimeout() {
     return readTimeout;
   }
@@ -142,6 +149,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     return new DefaultHttpClient(
       spec.byteBufAllocator,
       spec.maxContentLength,
+      spec.responseMaxChunkSize,
       spec.poolSize,
       spec.readTimeout
     );
@@ -152,6 +160,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
     private int poolSize;
     private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
+    private int responseMaxChunkSize = 8192;
     private Duration readTimeout = Duration.ofSeconds(30);
 
     private Spec() {
@@ -172,6 +181,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec maxContentLength(int maxContentLength) {
       this.maxContentLength = maxContentLength;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec responseMaxChunkSize(int numBytes) {
+      this.responseMaxChunkSize = numBytes;
       return this;
     }
 

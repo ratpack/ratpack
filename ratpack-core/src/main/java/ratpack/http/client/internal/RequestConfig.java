@@ -55,12 +55,14 @@ class RequestConfig {
   final int maxRedirects;
   final SslContext sslContext;
   final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
+  final int responseMaxChunkSize;
 
   static RequestConfig of(URI uri, HttpClient httpClient, Action<? super RequestSpec> action) throws Exception {
     Spec spec = new Spec(uri, httpClient.getByteBufAllocator());
 
     spec.readTimeout = httpClient.getReadTimeout();
     spec.maxContentLength = httpClient.getMaxContentLength();
+    spec.responseMaxChunkSize = httpClient.getMaxResponseChunkSize();
 
     try {
       action.execute(spec);
@@ -77,6 +79,7 @@ class RequestConfig {
       spec.headers,
       spec.bodyByteBuf,
       spec.maxContentLength,
+      spec.responseMaxChunkSize,
       spec.connectTimeout,
       spec.readTimeout,
       spec.decompressResponse,
@@ -86,12 +89,13 @@ class RequestConfig {
     );
   }
 
-  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, ByteBuf body, int maxContentLength, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
+  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, ByteBuf body, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
     this.body = body;
     this.maxContentLength = maxContentLength;
+    this.responseMaxChunkSize = responseMaxChunkSize;
     this.connectTimeout = connectTimeout;
     this.readTimeout = readTimeout;
     this.decompressResponse = decompressResponse;
@@ -116,6 +120,7 @@ class RequestConfig {
     private SslContext sslContext;
     private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
     private BodyImpl body = new BodyImpl();
+    private int responseMaxChunkSize = 8192;
 
     Spec(URI uri, ByteBufAllocator byteBufAllocator) {
       this.uri = uri;
@@ -156,6 +161,15 @@ class RequestConfig {
     @Override
     public RequestSpec maxContentLength(int numBytes) {
       this.maxContentLength = numBytes;
+      return this;
+    }
+
+    @Override
+    public RequestSpec responseMaxChunkSize(int numBytes) {
+      if (numBytes < 1) {
+        throw new IllegalArgumentException("numBytes must be > 0");
+      }
+      this.responseMaxChunkSize = numBytes;
       return this;
     }
 

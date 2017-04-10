@@ -135,6 +135,15 @@ public interface HttpClient extends AutoCloseable {
   int getMaxContentLength();
 
   /**
+   * The max size of the chunks to emit when reading a response as a stream.
+   *
+   * @return The max size of the chunks to emit when reading a response as a stream
+   * @see HttpClientSpec#responseMaxChunkSize(int)
+   * @since 1.5
+   */
+  int getMaxResponseChunkSize();
+
+  /**
    * Closes any pooled connections.
    *
    * @since 1.4

@@ -119,6 +119,19 @@ public interface RequestSpec {
   RequestSpec maxContentLength(int numBytes);
 
   /**
+   * The max size of the chunks to emit when reading a response as a stream.
+   * <p>
+   * Defaults to the configured {@link HttpClientSpec#responseMaxChunkSize(int)} for the corresponding client.
+   * <p>
+   * Increasing this value can increase throughput at the expense of memory use.
+   *
+   * @param numBytes the max number of bytes to emit
+   * @return {@code this}
+   * @since 1.5
+   */
+  RequestSpec responseMaxChunkSize(int numBytes);
+
+  /**
    * This method can be used to buffer changes to the headers.
    *
    * @param action Provide an action that will act on MutableHeaders.
