@@ -125,4 +125,31 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     buffer.release()
   }
 
+  def "client cancellation before reading headers causes stream to cancel"() {
+    given:
+    Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
+    def buffer = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 10, Charsets.UTF_8))
+
+    when:
+    handlers {
+      get {
+        def stream = Streams.periodically(context, Duration.ofSeconds(10), { buffer }).wiretap {
+          events << it
+        }
+        response.sendStream(stream.bindExec())
+      }
+    }
+
+    then:
+    InputStream is = application.address.toURL().openStream()
+    Thread.sleep(1000)
+    is.close()
+    new PollingConditions(timeout: 2).eventually {
+      events.find { it.cancel }
+    }
+
+    cleanup:
+    buffer.release()
+  }
+
 }

@@ -96,6 +96,12 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       } else {
         bodyAccumulator.add((HttpContent) msg);
       }
+
+      // Read for the next request proactively so that we
+      // detect if the client closes the connection.
+      if (msg instanceof LastHttpContent) {
+        ctx.channel().read();
+      }
     } else {
       Action<Object> subscriber = ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
       if (subscriber == null) {
@@ -208,7 +214,6 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
         response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
         responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body);
-
       }
     });
   }
