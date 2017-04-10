@@ -189,6 +189,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
                 write.complete();
               }
             }
+            received.clear();
           }
 
           return new Subscription() {
