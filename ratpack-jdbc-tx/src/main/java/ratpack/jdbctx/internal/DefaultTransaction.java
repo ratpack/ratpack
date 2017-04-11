@@ -23,7 +23,6 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.jdbctx.Transaction;
-import ratpack.util.Exceptions;
 
 import java.sql.Connection;
 import java.sql.Savepoint;
@@ -103,9 +102,6 @@ public class DefaultTransaction implements Transaction {
   public Operation begin() {
     return Operation.flatten(() -> {
       if (connection == null) {
-        if (autoBind) {
-          bind();
-        }
         return Blocking.op(() -> {
           connection = connectionFactory.create();
           try {
@@ -120,6 +116,9 @@ public class DefaultTransaction implements Transaction {
               throw e1;
             }
             throw e;
+          }
+          if (autoBind) {
+            bind();
           }
         });
       } else {
@@ -161,21 +160,15 @@ public class DefaultTransaction implements Transaction {
 
   private Operation dispose(Action<? super Connection> disposal) {
     return Blocking.op(() -> {
+      Connection connection = this.connection;
+      this.connection = null;
+      if (autoBind) {
+        unbind();
+      }
       if (connection != null) {
         try (Connection c = connection) {
           disposal.execute(c);
         }
-      }
-    }).onError(e -> {
-      connection = null;
-      if (autoBind) {
-        unbind();
-      }
-      throw Exceptions.toException(e);
-    }).next(() -> {
-      connection = null;
-      if (autoBind) {
-        unbind();
       }
     });
   }
