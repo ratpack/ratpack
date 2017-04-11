@@ -260,7 +260,7 @@ public interface Context extends Registry {
    * Add an implementation of this interface to the registry to handle errors.
    * The default implementation is not suitable for production usage.
    * <p>
-   * If the exception implements {@link ClientErrorException},
+   * If the exception is-a {@link ClientErrorException},
    * the {@link #clientError(int)} method will be called with the exception's status code
    * instead of being forward to the server error handler.
    *

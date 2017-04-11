@@ -18,7 +18,7 @@ package ratpack.http;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-public class RequestBodyTooLargeException extends RuntimeException implements ClientErrorException {
+public class RequestBodyTooLargeException extends ClientErrorException {
 
   private final long maxContentLength;
   private final long receivedContentLength;

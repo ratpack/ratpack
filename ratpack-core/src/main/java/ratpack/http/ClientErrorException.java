@@ -25,8 +25,16 @@ import ratpack.handling.Context;
  *
  * @since 1.5
  */
-public interface ClientErrorException {
+public abstract class ClientErrorException extends RuntimeException {
 
-  int getClientErrorCode();
+  public ClientErrorException(String message) {
+    super(message);
+  }
+
+  public ClientErrorException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public abstract int getClientErrorCode();
 
 }
