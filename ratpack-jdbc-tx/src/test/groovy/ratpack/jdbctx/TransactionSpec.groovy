@@ -355,4 +355,57 @@ class TransactionSpec extends Specification {
     !findById("3")
   }
 
+  def "connection failures are propogated"() {
+    given:
+    def tx = Transaction.create { throw new IllegalStateException("!") }
+
+    when:
+    run {
+      tx.wrap(Blocking.op { insert("1") }).promise()
+    }
+
+    then:
+    thrown IllegalStateException
+  }
+
+  def "failures turning auto commit off are propagated"() {
+    given:
+    def connection = Mock(Connection) {
+      1 * setAutoCommit(false) >> { throw new IllegalStateException("!") }
+    }
+    def tx = Transaction.create { connection }
+
+    when:
+    run {
+      tx.wrap(Blocking.op { insert("1") }).promise()
+    }
+
+    then:
+    def e = thrown IllegalStateException
+    e.message == "!"
+
+    !tx.connection.isPresent()
+  }
+
+  def "failures closing after turning off auto commit are propagated"() {
+    given:
+    def connection = Mock(Connection) {
+      1 * setAutoCommit(false) >> { throw new IllegalStateException("!") }
+      1 * close() >> { throw new IllegalStateException("!!") }
+    }
+    def tx = Transaction.create { connection }
+
+    when:
+    run {
+      tx.wrap(Blocking.op { insert("1") }).promise()
+    }
+
+    then:
+    def e = thrown IllegalStateException
+    e.message == "!!"
+    e.suppressed[0].message == "!"
+
+    !tx.connection.isPresent()
+  }
+
 }

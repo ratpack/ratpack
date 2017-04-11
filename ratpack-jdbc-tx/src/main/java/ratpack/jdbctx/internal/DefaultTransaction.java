@@ -26,6 +26,7 @@ import ratpack.jdbctx.Transaction;
 import ratpack.util.Exceptions;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -65,7 +66,10 @@ public class DefaultTransaction implements Transaction {
             @Override
             public void error(Throwable throwable) {
               rollback()
-                .onError(Action.suppressAndThrow(throwable))
+                .onError(e -> {
+                  e.addSuppressed(throwable);
+                  down.error(e);
+                })
                 .then(() -> down.error(throwable));
             }
 
@@ -105,13 +109,20 @@ public class DefaultTransaction implements Transaction {
         }
         return Blocking.op(() -> {
           connection = connectionFactory.create();
-          connection.setAutoCommit(false);
-        })
-          .onError(e ->
-            dispose(Action.noop())
-              .onError(Action.suppressAndThrow(e))
-              .then()
-          );
+          try {
+            connection.setAutoCommit(false);
+          } catch (Exception e) {
+            try {
+              Connection connection = this.connection;
+              this.connection = null;
+              connection.close();
+            } catch (Exception e1) {
+              e1.addSuppressed(e);
+              throw e1;
+            }
+            throw e;
+          }
+        });
       } else {
         return Blocking.get(connection::setSavepoint)
           .operation(savepoints::push);
