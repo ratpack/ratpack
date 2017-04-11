@@ -26,7 +26,6 @@ import ratpack.jdbctx.Transaction;
 import ratpack.util.Exceptions;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayDeque;
 import java.util.Deque;
