@@ -1033,13 +1033,13 @@ public interface Promise<T> {
    * @return a promise
    * @since 1.3
    */
-  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> function) {
+  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super E, ? extends T> function) {
     return transform(up -> down ->
       up.connect(down.onError(throwable -> {
         if (type.isInstance(throwable)) {
           T transformed;
           try {
-            transformed = function.apply(throwable);
+            transformed = function.apply(type.cast(throwable));
           } catch (Throwable t) {
             down.error(t);
             return;
