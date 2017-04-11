@@ -19,7 +19,6 @@ package ratpack.http.client
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import ratpack.exec.Execution
-import ratpack.http.ResponseChunks
 import ratpack.stream.Streams
 
 import java.time.Duration
