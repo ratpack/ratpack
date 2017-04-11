@@ -16,8 +16,13 @@
 
 package ratpack.http.client
 
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
+import ratpack.exec.Execution
+import ratpack.http.ResponseChunks
+import ratpack.stream.Streams
 
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
 
 class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
@@ -94,6 +99,44 @@ class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
 
     then:
     text == "ok"
+  }
+
+  def "connection is removed from pool if server closes the connection"() {
+    when:
+    Channel channel1
+    Channel channel2
+    otherApp {
+      get {
+        Execution.fork().start {
+          it.sleep(Duration.ofMillis(500)).then {
+            def channel = context.directChannelAccess.channel
+            if (channel1 == null) {
+              channel1 = channel
+            } else {
+              channel2 = channel
+            }
+            channel.close()
+          }
+        }
+        header("content-length", 1024000)
+        response.sendStream Streams.periodically(context, Duration.ofMillis(100), { Unpooled.wrappedBuffer("a".bytes) })
+      }
+    }
+    handlers {
+      def http = HttpClient.of {
+        it.poolSize(1)
+      }
+      get {
+        render http.get(otherAppUrl()).map { it.body.text }
+      }
+    }
+
+    then:
+    get().statusCode == 500
+    get().statusCode == 500
+
+    and:
+    channel1.id().asShortText() != channel2.id().asShortText()
   }
 
 }

@@ -220,8 +220,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
       @Override
       public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        Exception e = new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely");
-        error(downstream, e);
+        ctx.fireExceptionCaught(new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely"));
       }
 
       @Override
