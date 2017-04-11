@@ -26,9 +26,11 @@ import ratpack.http.client.HttpClient
 import ratpack.stream.StreamEvent
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
 
 import static ratpack.http.ResponseChunks.stringChunks
@@ -152,4 +154,29 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     buffer.release()
   }
 
+  def "request outcome has duration if client disconnects before sending response"() {
+    when:
+    def sentAt = new BlockingVariable<Instant>(5)
+    handlers {
+      get {
+        onClose {
+          sentAt.set(it.sentAt)
+        }
+        Execution.sleep(Duration.ofMillis(1000)).then {
+          render stringChunks("text/plain", Streams.constant("a"))
+        }
+      }
+    }
+
+    def socket = socket()
+    new OutputStreamWriter(socket.outputStream, "UTF-8").with {
+      write("GET / HTTP/1.1\r\n")
+      write("\r\n")
+      flush()
+    }
+    socket.close()
+
+    then:
+    sentAt.get() != null
+  }
 }

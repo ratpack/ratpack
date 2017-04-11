@@ -79,7 +79,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
 
   String rawResponse(Charset charset = CharsetUtil.UTF_8) {
     StringBuilder builder = new StringBuilder()
-    Socket socket = new Socket(application.address.host, application.address.port)
+    Socket socket = socket()
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {
         write("GET / HTTP/1.1\r\n")
@@ -100,6 +100,12 @@ abstract class EmbeddedRatpackSpec extends Specification {
     } finally {
       socket.close()
     }
+  }
+
+  Socket socket() {
+    Socket socket = new Socket()
+    socket.connect(new InetSocketAddress(application.address.host, application.address.port))
+    socket
   }
 
 }

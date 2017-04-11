@@ -130,7 +130,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         HttpUtil.setTransferEncodingChunked(headersResponse, true);
       }
       if (channel.isOpen()) {
-        return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+        return channel.writeAndFlush(headersResponse);
       } else {
         return null;
       }
@@ -156,7 +156,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
 
     channelFuture.addListener(future -> {
-      if (channel.isOpen()) {
+      if (future.isSuccess() && channel.isOpen()) {
         if (sendLastHttpContent) {
           channel.write(body);
           post(responseStatus);
@@ -233,7 +233,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           }
         };
 
-        channel.closeFuture().addListener(cancelOnCloseListener);
 
         ChannelFuture channelFuture = pre(responseStatus);
         if (channelFuture == null) {
@@ -241,9 +240,14 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           isKeepAlive = false;
           notifyListeners(responseStatus);
         } else {
-          channelFuture.addListener(cancelOnFailure).addListener(f -> {
-            if (channel.isWritable()) {
-              this.subscription.request(1);
+          channelFuture.addListener(f -> {
+            if (f.isSuccess() && channel.isOpen()) {
+              channel.closeFuture().addListener(cancelOnCloseListener);
+              if (channel.isWritable()) {
+                this.subscription.request(1);
+              }
+            } else {
+              cancel();
             }
           });
         }
