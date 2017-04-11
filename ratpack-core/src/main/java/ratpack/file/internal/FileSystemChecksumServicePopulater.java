@@ -86,7 +86,7 @@ public class FileSystemChecksumServicePopulater {
             try {
               String nPath = root.relativize(file).toString();
               if (fileEndsWith != null && !fileEndsWith.isEmpty()) {
-                if (!fileEndsWith.stream().anyMatch(ext -> nPath.endsWith(ext))) {
+                if (fileEndsWith.stream().noneMatch(nPath::endsWith)) {
                   return FileVisitResult.CONTINUE;
                 }
               }

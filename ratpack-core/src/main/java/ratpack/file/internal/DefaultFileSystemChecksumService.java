@@ -58,7 +58,7 @@ public class DefaultFileSystemChecksumService implements FileSystemChecksumServi
       throw new NoSuchFileException(path);
     }
     if (fileEndsWith != null && !fileEndsWith.isEmpty()) {
-      if (!fileEndsWith.stream().anyMatch(s -> path.endsWith(s))) {
+      if (fileEndsWith.stream().noneMatch(path::endsWith)) {
         throw new NoSuchFileException(child.toString());
       }
     }
