@@ -158,7 +158,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "index files are always served from a path with a trailing slash" ( ) {
+  def "index files are always served from a path with a trailing slash"() {
     given:
     write "public/dir/index.html", "bar"
 
@@ -328,14 +328,18 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def response = get("file.txt")
     response.statusCode == statusCode.code()
     if (!compressResponses) {
-      assert response.headers.get(CONTENT_LENGTH).toInteger() == contentLength
+      if (contentLength == null) {
+        assert !response.headers.contains(CONTENT_LENGTH)
+      } else {
+        assert response.headers.get(CONTENT_LENGTH).toInteger() == contentLength
+      }
     }
 
     where:
     ifModifiedSince | statusCode   | contentLength
     -1000           | OK           | "hello!".length()
-    +1000           | NOT_MODIFIED | 0
-    0               | NOT_MODIFIED | 0
+    +1000           | NOT_MODIFIED | null
+    0               | NOT_MODIFIED | null
 
     state = ifModifiedSince < 0 ? "newer than" : ifModifiedSince == 0 ? "the same age as" : "older than"
   }
@@ -357,7 +361,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def response = get("")
     response.statusCode == NOT_MODIFIED.code()
     if (!compressResponses) {
-      assert response.headers.get(CONTENT_LENGTH).toInteger() == 0
+      assert !response.headers.contains(CONTENT_LENGTH)
     }
 
   }

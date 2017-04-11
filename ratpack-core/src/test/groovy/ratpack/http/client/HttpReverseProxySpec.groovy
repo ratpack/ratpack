@@ -17,6 +17,7 @@
 package ratpack.http.client
 
 import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.stream.Streams
 
 import java.util.zip.GZIPInputStream
@@ -281,8 +282,7 @@ content-type: text/plain
 content-length: 16
 connection: close
 
-Client error 404
-"""
+Client error 404"""
 
     where:
     pooled << [true, false]
@@ -392,6 +392,36 @@ connection: close
 
     where:
     pooled << [true, false]
+  }
+
+  def "does not add content length for empty upstream #status"() {
+    when:
+    otherApp {
+      get {
+        response.status(status.code()).send()
+      }
+    }
+
+    handlers {
+      get {
+        get(HttpClient).requestStream(otherAppUrl(), {}).then {
+          it.forwardTo(response)
+        }
+      }
+    }
+
+    then:
+    rawResponse() == """HTTP/1.1 ${status}
+connection: close
+
+"""
+
+    where:
+    status << noBodyResponseStatuses()
+  }
+
+  static List<HttpResponseStatus> noBodyResponseStatuses() {
+    [HttpResponseStatus.valueOf(100), HttpResponseStatus.valueOf(150), HttpResponseStatus.valueOf(199), HttpResponseStatus.valueOf(204), HttpResponseStatus.valueOf(304)]
   }
 
 }

@@ -217,7 +217,7 @@ public class DefaultResponse implements Response {
   }
 
   public void send() {
-    commit(byteBufAllocator.buffer(0, 0));
+    commit(Unpooled.EMPTY_BUFFER);
   }
 
   @Override
@@ -332,11 +332,19 @@ public class DefaultResponse implements Response {
   }
 
   private void commit(ByteBuf buffer) {
-    headers.set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
+    int readableBytes = buffer.readableBytes();
+    if (readableBytes > 0 || !mustNotHaveBody()) {
+      headers.set(HttpHeaderNames.CONTENT_LENGTH, readableBytes);
+    }
     finalizeResponse(Collections.emptyIterator(), () -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), buffer);
     });
+  }
+
+  private boolean mustNotHaveBody() {
+    int code = status.getCode();
+    return (code >= 100 && code < 200) || code == 204 || code == 304;
   }
 
   private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then) {

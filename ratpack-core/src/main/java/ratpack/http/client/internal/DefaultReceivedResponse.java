@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.buffer.ByteBuf;
 import ratpack.http.Headers;
 import ratpack.http.Response;
 import ratpack.http.Status;
@@ -58,7 +59,14 @@ public class DefaultReceivedResponse implements ReceivedResponse {
   @Override
   public void forwardTo(Response response) {
     response.getHeaders().copy(headers);
-    response.status(status).send(typedData.getBuffer().retain());
+    response.status(status);
+    ByteBuf buffer = typedData.getBuffer();
+    if (buffer.readableBytes() > 0) {
+      response.send(buffer.retain());
+    } else {
+      buffer.release();
+      response.send();
+    }
   }
 
 }

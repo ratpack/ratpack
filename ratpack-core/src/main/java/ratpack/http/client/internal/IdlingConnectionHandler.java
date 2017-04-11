@@ -20,6 +20,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 
 @ChannelHandler.Sharable
 class IdlingConnectionHandler extends ChannelInboundHandlerAdapter {
@@ -31,6 +32,7 @@ class IdlingConnectionHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    ReferenceCountUtil.release(msg);
     ctx.close();
   }
 

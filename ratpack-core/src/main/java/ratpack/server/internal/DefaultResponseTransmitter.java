@@ -118,20 +118,25 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private ChannelFuture pre(HttpResponseStatus responseStatus) {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
+      try {
+        if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
+          isKeepAlive = false;
+        } else if (!isKeepAlive) {
+          forceCloseConnection();
+        }
 
-      if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
-        isKeepAlive = false;
-      } else if (!isKeepAlive) {
-        forceCloseConnection();
-      }
+        HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
+        if (mustHaveBody(responseStatus) && isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+          HttpUtil.setTransferEncodingChunked(headersResponse, true);
+        }
 
-      HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-      if (isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
-        HttpUtil.setTransferEncodingChunked(headersResponse, true);
-      }
-      if (channel.isOpen()) {
-        return channel.writeAndFlush(headersResponse);
-      } else {
+        if (channel.isOpen()) {
+          return channel.writeAndFlush(headersResponse);
+        } else {
+          return null;
+        }
+      } catch (Exception e) {
+        LOGGER.warn("Error finalizing response", e);
         return null;
       }
     } else {
@@ -141,9 +146,19 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
+  private boolean mustHaveBody(HttpResponseStatus responseStatus) {
+    int code = responseStatus.code();
+    return (code < 100 || code >= 200) && code != 204 && code != 304;
+  }
+
   @Override
   public void transmit(HttpResponseStatus responseStatus, ByteBuf body) {
-    transmit(responseStatus, new DefaultHttpContent(body), true);
+    if (body.readableBytes() == 0) {
+      body.release();
+      transmit(responseStatus, LastHttpContent.EMPTY_LAST_CONTENT, false);
+    } else {
+      transmit(responseStatus, new DefaultLastHttpContent(body), false);
+    }
   }
 
   private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
@@ -227,13 +242,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
         this.subscription = subscription;
 
-        onWritabilityChanged = () -> {
-          if (channel.isWritable() && !done.get()) {
-            this.subscription.request(1);
-          }
-        };
-
-
         ChannelFuture channelFuture = pre(responseStatus);
         if (channelFuture == null) {
           subscription.cancel();
@@ -246,6 +254,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
               if (channel.isWritable()) {
                 this.subscription.request(1);
               }
+              onWritabilityChanged = () -> {
+                if (channel.isWritable() && !done.get()) {
+                  this.subscription.request(1);
+                }
+              };
             } else {
               cancel();
             }

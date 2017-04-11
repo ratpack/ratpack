@@ -78,7 +78,6 @@ abstract class EmbeddedRatpackSpec extends Specification {
   }
 
   String rawResponse(Charset charset = CharsetUtil.UTF_8) {
-    StringBuilder builder = new StringBuilder()
     Socket socket = socket()
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {
@@ -88,15 +87,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
         flush()
       }
 
-      InputStreamReader inputStreamReader = new InputStreamReader(socket.inputStream, charset)
-      BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
-
-      def chunk
-      while ((chunk = bufferedReader.readLine()) != null) {
-        builder.append(chunk).append("\n")
-      }
-
-      builder.toString()
+      socket.inputStream.getText(charset.name()).normalize()
     } finally {
       socket.close()
     }

@@ -71,7 +71,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == NOT_MODIFIED.code()
-      headers.get(CONTENT_LENGTH).toInteger() == 0
+      !headers.contains(CONTENT_LENGTH)
     }
   }
 

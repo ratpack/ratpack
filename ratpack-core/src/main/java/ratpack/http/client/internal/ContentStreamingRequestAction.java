@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCounted;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -87,6 +88,12 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
       if (httpObject instanceof HttpResponse) {
         this.response = (HttpResponse) httpObject;
+
+        int code = response.status().code();
+        if ((code >= 100 && code < 200) || code == 204) {
+          response.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+        }
+
         // Switch auto reading off so we can control the flow of response content
         channelPipeline.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
@@ -220,7 +227,73 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
         response.status(status);
 
-        response.sendStream(getBody().bindExec(ByteBuf::release));
+        getBody().bindExec(ByteBuf::release).subscribe(new Subscriber<ByteBuf>() {
+
+          private Subscription subscription;
+          private Subscriber<? super ByteBuf> downstream;
+
+          @Override
+          public void onSubscribe(Subscription s) {
+            subscription = s;
+            subscription.request(1);
+          }
+
+          @Override
+          public void onNext(ByteBuf byteBuf) {
+            if (downstream == null) {
+              response.sendStream(s -> {
+                downstream = s;
+                downstream.onSubscribe(new Subscription() {
+
+                  private ByteBuf initial = byteBuf;
+
+                  @Override
+                  public void request(long n) {
+                    if (initial == null) {
+                      subscription.request(n);
+                    } else {
+                      ByteBuf initialRef = this.initial;
+                      this.initial = null;
+                      downstream.onNext(initialRef);
+                      n -= 1;
+                      if (n > 0) {
+                        subscription.request(1);
+                      }
+                    }
+                  }
+
+                  @Override
+                  public void cancel() {
+                    subscription.cancel();
+                    if (initial != null) {
+                      initial.release();
+                    }
+                  }
+                });
+              });
+            } else {
+              downstream.onNext(byteBuf);
+            }
+          }
+
+          @Override
+          public void onError(Throwable t) {
+            if (downstream == null) {
+              response.sendStream(s -> s.onError(t));
+            } else {
+              downstream.onError(t);
+            }
+          }
+
+          @Override
+          public void onComplete() {
+            if (downstream == null) {
+              response.send();
+            } else {
+              downstream.onComplete();
+            }
+          }
+        });
       }
 
     }
