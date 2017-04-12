@@ -48,7 +48,7 @@ public interface Action<T> {
    *
    * @return an action that does precisely nothing
    */
-  static Action<Object> noop() {
+  static <T> Action<T> noop() {
     return thing -> {
     };
   }
