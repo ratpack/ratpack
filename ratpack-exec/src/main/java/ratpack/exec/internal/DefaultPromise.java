@@ -90,12 +90,12 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
 
-  public static <T> void retryAttempt(int attemptNum, int maxAttempts, Upstream<? extends T> up, Downstream<? super T> down, BiFunction<? super Integer, ? super Throwable, Duration> onError) throws Exception {
+  public static <T> void retryAttempt(int attemptNum, int maxAttempts, Upstream<? extends T> up, Downstream<? super T> down, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) throws Exception {
     up.connect(down.onError(e -> {
       if (attemptNum > maxAttempts) {
         down.error(e);
       } else {
-        Duration delay;
+        Promise<Duration> delay;
         try {
           delay = onError.apply(attemptNum, e);
         } catch (Throwable errorHandlerError) {
@@ -106,9 +106,24 @@ public class DefaultPromise<T> implements Promise<T> {
           return;
         }
 
-        Execution.sleep(delay, () ->
-          retryAttempt(attemptNum + 1, maxAttempts, up, down, onError)
-        );
+        delay.connect(new Downstream<Duration>() {
+          @Override
+          public void success(Duration value) {
+            Execution.sleep(value, () ->
+              retryAttempt(attemptNum + 1, maxAttempts, up, down, onError)
+            );
+          }
+
+          @Override
+          public void error(Throwable throwable) {
+            down.error(throwable);
+          }
+
+          @Override
+          public void complete() {
+            down.complete();
+          }
+        });
       }
     }));
   }

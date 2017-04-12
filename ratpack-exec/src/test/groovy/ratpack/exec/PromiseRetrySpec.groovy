@@ -28,7 +28,7 @@ class PromiseRetrySpec extends BaseExecutionSpec {
     exec {
       Promise.sync { i.incrementAndGet() }
         .mapIf({ it < 3 }, { throw new IllegalStateException() })
-        .retry(3, { n, e -> events << "retry$n"; Duration.ofMillis(5 * n) })
+        .retry(3, { n, e -> events << "retry$n"; Promise.value(Duration.ofMillis(5 * n)) })
         .then(events.&add)
     }
 
@@ -42,7 +42,7 @@ class PromiseRetrySpec extends BaseExecutionSpec {
 
     exec({
       Promise.error(e)
-        .retry(3, { n, ex -> events << "retry$n"; Duration.ofMillis(5 * n) })
+        .retry(3, { n, ex -> events << "retry$n"; Promise.value(Duration.ofMillis(5 * n)) })
         .then { events << "then" }
     }, events.&add)
 
@@ -72,6 +72,20 @@ class PromiseRetrySpec extends BaseExecutionSpec {
     exec({
       Promise.error(e)
         .retry(3, Duration.ofMillis(5), { n, ex -> events << "retry$n" })
+        .then { events << "then" }
+    }, events.&add)
+
+    then:
+    events == ["retry1", "retry2", "retry3", e, "complete"]
+  }
+
+  def "promise retry action is an execution segment"() {
+    when:
+    def e = new RuntimeException("!")
+
+    exec({
+      Promise.error(e)
+        .retry(3, Duration.ofMillis(5), { n, ex -> Operation.of { events << "retry$n" }.then() })
         .then { events << "then" }
     }, events.&add)
 

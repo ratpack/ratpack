@@ -2317,11 +2317,14 @@ public interface Promise<T> {
    * @see #retry(int, BiFunction)
    * @since 1.5
    */
-  default Promise<T> retry(int maxAttempts, Duration delay, BiAction<? super Integer, ? super Throwable> onError) {
-    return retry(maxAttempts, (i, error) -> {
-      onError.execute(i, error);
-      return delay;
-    });
+  default Promise<T> retry(int maxAttempts, Duration delay, @NonBlocking BiAction<? super Integer, ? super Throwable> onError) {
+    Promise<Duration> delayPromise = Promise.value(delay);
+    return retry(maxAttempts, (i, error) ->
+      Operation.of(() ->
+        onError.execute(i, error)
+      )
+        .flatMap(delayPromise)
+    );
   }
 
   /**
@@ -2380,7 +2383,7 @@ public interface Promise<T> {
    * @see #retry(int, Duration, BiAction)
    * @since 1.5
    */
-  default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Duration> onError) {
+  default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {
     return transform(up -> down -> DefaultPromise.retryAttempt(1, maxAttempts, up, down, onError));
   }
 }
