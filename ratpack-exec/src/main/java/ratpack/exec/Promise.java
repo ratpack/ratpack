@@ -2367,7 +2367,7 @@ public interface Promise<T> {
    *         .mapIf(i -> i < 3, i -> { throw new IllegalStateException(); })
    *         .retry(3, (i, t) -> {
    *           LOG.add("retry attempt: " + i);
-   *           return Duration.ofMillis(500 * i);
+   *           return Promise.value(Duration.ofMillis(500 * i));
    *         })
    *     );
    *
