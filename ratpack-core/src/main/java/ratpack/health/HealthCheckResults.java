@@ -27,6 +27,18 @@ public class HealthCheckResults {
 
   private final ImmutableSortedMap<String, HealthCheck.Result> results;
 
+  private final static HealthCheckResults EMPTY = new HealthCheckResults(ImmutableSortedMap.of());
+
+  /**
+   * Empty results.
+   *
+   * @return empty results.
+   * @since 1.5
+   */
+  public static HealthCheckResults empty() {
+    return EMPTY;
+  }
+
   /**
    * Constructor.
    *

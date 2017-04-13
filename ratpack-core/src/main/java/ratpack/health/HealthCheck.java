@@ -16,6 +16,7 @@
 
 package ratpack.health;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import ratpack.api.Nullable;
@@ -274,7 +275,12 @@ public interface HealthCheck {
    */
   static Promise<HealthCheckResults> checkAll(Registry registry, Throttle throttle, Iterable<? extends HealthCheck> healthChecks) {
     return Promise.flatten(() -> {
-      Iterable<Promise<Pair<Result, String>>> resultPromises = Iterables.transform(healthChecks, h ->
+      ImmutableList<? extends HealthCheck> healthChecksCopy = ImmutableList.copyOf(healthChecks);
+      if (healthChecksCopy.isEmpty()) {
+        return Promise.value(HealthCheckResults.empty());
+      }
+
+      Iterable<Promise<Pair<Result, String>>> resultPromises = Iterables.transform(healthChecksCopy, h ->
         Promise.flatten(() -> h.check(registry))
           .throttled(throttle)
           .mapError(HealthCheck.Result::unhealthy)
