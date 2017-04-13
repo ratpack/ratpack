@@ -21,7 +21,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
-import ratpack.health.HealthCheck;
 import ratpack.health.HealthCheckResults;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderer;
@@ -31,7 +30,6 @@ import ratpack.util.Types;
 import java.io.BufferedOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Map;
 
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
 
@@ -47,36 +45,9 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
   @Override
   public void render(Context ctx, HealthCheckResults healthCheckResults) throws Exception {
     ByteBuf buffer = byteBufAllocator.buffer();
-    boolean first = true;
-    boolean unhealthy = false;
 
-    try {
-      try (Writer writer = new OutputStreamWriter(new BufferedOutputStream(new ByteBufOutputStream(buffer)))) {
-        for (Map.Entry<String, HealthCheck.Result> entry : healthCheckResults.getResults().entrySet()) {
-          if (first) {
-            first = false;
-          } else {
-            writer.write("\n");
-          }
-
-          String name = entry.getKey();
-          HealthCheck.Result result = entry.getValue();
-
-          unhealthy = unhealthy || !result.isHealthy();
-
-          writer.append(name).append(" : ").append(result.isHealthy() ? "HEALTHY" : "UNHEALTHY");
-
-          String message = result.getMessage();
-          if (message != null) {
-            writer.append(" [").append(message).append("]");
-          }
-
-          Throwable error = result.getError();
-          if (error != null) {
-            writer.append(" [").append(error.toString()).append("]");
-          }
-        }
-      }
+    try (Writer writer = new OutputStreamWriter(new BufferedOutputStream(new ByteBufOutputStream(buffer)))) {
+      healthCheckResults.writeTo(writer);
     } catch (Exception e) {
       buffer.release();
       throw e;
@@ -84,7 +55,7 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
 
     ctx.getResponse()
       .contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8)
-      .status(unhealthy ? 503 : 200)
+      .status(healthCheckResults.isUnhealthy() ? 503 : 200)
       .send(buffer);
   }
 }

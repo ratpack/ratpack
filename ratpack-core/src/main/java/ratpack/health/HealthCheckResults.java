@@ -16,7 +16,14 @@
 
 package ratpack.health;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Map;
 
 /**
  * A value type representing the result of running multiple health checks.
@@ -28,6 +35,7 @@ public class HealthCheckResults {
   private final ImmutableSortedMap<String, HealthCheck.Result> results;
 
   private final static HealthCheckResults EMPTY = new HealthCheckResults(ImmutableSortedMap.of());
+  private final boolean unhealthy;
 
   /**
    * Empty results.
@@ -46,6 +54,7 @@ public class HealthCheckResults {
    */
   public HealthCheckResults(ImmutableSortedMap<String, HealthCheck.Result> results) {
     this.results = results;
+    this.unhealthy = Iterables.any(results.values(), Predicates.not(HealthCheck.Result::isHealthy));
   }
 
   /**
@@ -55,5 +64,67 @@ public class HealthCheckResults {
    */
   public ImmutableSortedMap<String, HealthCheck.Result> getResults() {
     return results;
+  }
+
+  /**
+   * Whether any result is unhealthy.
+   *
+   * @return whether any result is unhealthy
+   * @since 1.5
+   */
+  public boolean isUnhealthy() {
+    return unhealthy;
+  }
+
+  /**
+   * Writes a string representation of the results to the given writer.
+   * <p>
+   * This object's {@link #toString()} provides this representation as a string.
+   *
+   * @param writer the writer to write to.
+   * @throws IOException any thrown by {@code writer}
+   * @since 1.5
+   */
+  public void writeTo(Writer writer) throws IOException {
+    boolean first = true;
+    for (Map.Entry<String, HealthCheck.Result> entry : results.entrySet()) {
+      if (first) {
+        first = false;
+      } else {
+        writer.write("\n");
+      }
+
+      String name = entry.getKey();
+      HealthCheck.Result result = entry.getValue();
+
+      writer.append(name).append(" : ").append(result.isHealthy() ? "HEALTHY" : "UNHEALTHY");
+
+      String message = result.getMessage();
+      if (message != null) {
+        writer.append(" [").append(message).append("]");
+      }
+
+      Throwable error = result.getError();
+      if (error != null) {
+        writer.append(" [").append(error.toString()).append("]");
+      }
+    }
+  }
+
+  /**
+   * Provides a string representation of the results.
+   *
+   * @return a string representation of the results.
+   * @since 1.5
+   */
+  @Override
+  public String toString() {
+    StringWriter stringWriter = new StringWriter();
+    try {
+      writeTo(stringWriter);
+    } catch (IOException e) {
+      return "HealthCheckResults";
+    }
+    return stringWriter.toString();
   }
 }
