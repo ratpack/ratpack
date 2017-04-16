@@ -54,6 +54,8 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     serverSentEvent { it.id("fooId") }                                                              | "id: fooId\n\n"
     serverSentEvent { it.id("fooId").event("fooType") }                                             | "id: fooId\nevent: fooType\n\n"
     serverSentEvent { it.event("fooType") }                                                         | "event: fooType\n\n"
+    serverSentEvent { it.data("foo\nbar") }                                                         | "data: foo\ndata: bar\n\n"
+    serverSentEvent { it.data("foo\n") }                                                            | "data: foo\ndata: \n\n"
   }
 
   public <T> Event serverSentEvent(T t, Action<? super Event> action) {
@@ -78,4 +80,5 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     latch.await()
     ref.get().valueOrThrow
   }
+
 }

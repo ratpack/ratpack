@@ -57,6 +57,7 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
     "data:\nevent:\n\n"                             | null            | ""                | ""
     "data: foo:data\n\n"                            | null            | null              | "foo:data"
     "data:foo\nbar\n\n"                             | null            | null              | "foo"
+    "data:foo\ndata:\n\n"                           | null            | null              | "foo\n"
   }
 
   def "can decode multiple events"() {

@@ -16,16 +16,11 @@
 
 package ratpack.sse.internal;
 
-import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.ByteBufOutputStream;
-import io.netty.util.CharsetUtil;
 import ratpack.sse.Event;
 
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import static io.netty.util.CharsetUtil.UTF_8;
 
@@ -36,45 +31,49 @@ public class ServerSentEventEncoder {
   private static final byte[] EVENT_TYPE_PREFIX = "event: ".getBytes(UTF_8);
   private static final byte[] EVENT_DATA_PREFIX = "data: ".getBytes(UTF_8);
   private static final byte[] EVENT_ID_PREFIX = "id: ".getBytes(UTF_8);
-  private static final byte[] NEWLINE = "\n".getBytes(UTF_8);
+  private static final byte NEWLINE = '\n';
 
   public ByteBuf encode(Event<?> event, ByteBufAllocator bufferAllocator) throws Exception {
-    ByteBuf buffer = bufferAllocator.buffer();
-
-    OutputStream outputStream = new ByteBufOutputStream(buffer);
-    Writer writer = new OutputStreamWriter(outputStream, CharsetUtil.encoder(UTF_8));
-
     String eventId = event.getId();
-    if (eventId != null) {
-      outputStream.write(EVENT_ID_PREFIX);
-      writer.append(eventId).flush();
-      outputStream.write(NEWLINE);
-    }
-
     String eventType = event.getEvent();
-    if (eventType != null) {
-      outputStream.write(EVENT_TYPE_PREFIX);
-      writer.append(eventType).flush();
-      outputStream.write(NEWLINE);
+    String eventData = event.getData();
+
+    int initialCapacity = eventData == null ? 8192 : eventData.length() + 8192;
+    ByteBuf buffer = bufferAllocator.buffer(initialCapacity);
+
+    if (eventId != null) {
+      buffer.writeBytes(EVENT_ID_PREFIX);
+      buffer.writeCharSequence(eventId, StandardCharsets.UTF_8);
+      buffer.writeByte(NEWLINE);
     }
 
-    String eventData = event.getData();
+    if (eventType != null) {
+      buffer.writeBytes(EVENT_TYPE_PREFIX);
+      buffer.writeCharSequence(eventType, StandardCharsets.UTF_8);
+      buffer.writeByte(NEWLINE);
+    }
+
+    int from = 0;
     if (eventData != null) {
-      outputStream.write(EVENT_DATA_PREFIX);
-      for (Character character : Lists.charactersOf(eventData)) {
-        if (character == '\n') {
-          outputStream.write(NEWLINE);
-          outputStream.write(EVENT_DATA_PREFIX);
+      int length = eventData.length();
+      buffer.writeBytes(EVENT_DATA_PREFIX);
+      while (from < length) {
+        int to = eventData.indexOf('\n', from);
+        if (to == -1) {
+          buffer.writeCharSequence(eventData.substring(from), StandardCharsets.UTF_8);
+          break;
         } else {
-          writer.append(character).flush();
+          buffer.writeCharSequence(eventData.substring(from, to), StandardCharsets.UTF_8);
+          buffer.writeByte(NEWLINE);
+          buffer.writeBytes(EVENT_DATA_PREFIX);
+          from = to + 1;
         }
       }
-      outputStream.write(NEWLINE);
+      buffer.writeByte(NEWLINE);
     }
 
-    outputStream.write(NEWLINE);
-    writer.flush();
-    writer.close();
+    buffer.writeByte(NEWLINE);
+
     return buffer;
   }
 }
