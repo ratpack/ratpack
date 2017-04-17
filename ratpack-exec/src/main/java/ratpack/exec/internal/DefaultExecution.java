@@ -245,6 +245,12 @@ public class DefaultExecution implements Execution {
   }
 
   @Override
+  public <O> Execution add(TypeToken<O> type, O object) {
+    registry.add(type, object);
+    return this;
+  }
+
+  @Override
   public void addInterceptor(ExecInterceptor execInterceptor, Block continuation) throws Exception {
     if (adhocInterceptors == null) {
       adhocInterceptors = Lists.newArrayList();
