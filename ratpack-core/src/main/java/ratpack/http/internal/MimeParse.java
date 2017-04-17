@@ -147,8 +147,8 @@ public final class MimeParse {
   }
 
   public static String bestMatch(Iterable<? extends CharSequence> supported, String header) {
-    List<ParseResults> parseResults = new LinkedList<>();
-    List<FitnessAndQuality> weightedMatches = new LinkedList<>();
+    List<ParseResults> parseResults = new ArrayList<>();
+    List<FitnessAndQuality> weightedMatches = new ArrayList<>();
     for (String r : header.split(",")) {
       ParseResults parseResult = parseMediaRange(r);
       if (parseResult != null) {

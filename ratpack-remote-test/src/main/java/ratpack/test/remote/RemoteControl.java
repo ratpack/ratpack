@@ -32,9 +32,9 @@ import ratpack.remote.CommandDelegate;
 import ratpack.test.ApplicationUnderTest;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static ratpack.remote.RemoteControl.DEFAULT_REMOTE_CONTROL_PATH;
@@ -91,7 +91,7 @@ public class RemoteControl {
   }
 
   public Object exec(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure<?>... commands) throws IOException {
-    List<ClosureCommand> closureCommands = new LinkedList<>();
+    List<ClosureCommand> closureCommands = new ArrayList<>();
     for (Closure<?> command : commands) {
       ClosureCommand closureCommand = generator.generate(new RawClosureCommand(command, uses));
       closureCommands.add(closureCommand);
