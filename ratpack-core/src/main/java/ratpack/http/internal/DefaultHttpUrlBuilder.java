@@ -48,7 +48,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   private String protocol = "http";
   private String host = "localhost";
   private int port = -1;
-  private final List<String> pathSegments = new LinkedList<>();
+  private final List<String> pathSegments = new ArrayList<>();
   private final Multimap<String, Object> params = MultimapBuilder.linkedHashKeys().linkedListValues().build();
   private boolean hasTrailingSlash;
 
