@@ -25,15 +25,15 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class SimpleMutableRegistry implements MutableRegistry {
 
-  private final List<RegistryEntry<?>> entries = new LinkedList<>();
+  private final List<RegistryEntry<?>> entries = new ArrayList<>();
   private final Registry registry = new MultiEntryRegistry(Lists.reverse(entries));
 
   @Override
