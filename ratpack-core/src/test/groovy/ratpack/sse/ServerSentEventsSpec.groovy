@@ -181,7 +181,7 @@ data: Event 3
     response.headers["Content-Encoding"] == "gzip"
 
     new GZIPInputStream(response.body.inputStream).text ==
-      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last \n\n"
+      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last\n\n"
   }
 
   def "can consume server sent event stream"() {
