@@ -102,8 +102,8 @@ class StreamForkSpec extends Specification {
 
           @Override
           void onSubscribe(Subscription s) {
-            s.request(Long.MAX_VALUE)
             subscription = s
+            s.request(Long.MAX_VALUE)
           }
 
           @Override
