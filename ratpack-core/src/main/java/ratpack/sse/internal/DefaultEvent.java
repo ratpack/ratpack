@@ -26,6 +26,7 @@ public class DefaultEvent<T> implements Event<T> {
   private String id;
   private String event;
   private String data;
+  private String comment;
 
   public DefaultEvent(T item) {
     this.item = item;
@@ -83,6 +84,12 @@ public class DefaultEvent<T> implements Event<T> {
   }
 
   @Override
+  public Event<T> comment(String comment) {
+    this.comment = comment;
+    return this;
+  }
+
+  @Override
   public String getId() {
     return id;
   }
@@ -95,6 +102,11 @@ public class DefaultEvent<T> implements Event<T> {
   @Override
   public String getData() {
     return data;
+  }
+
+  @Override
+  public String getComment() {
+    return comment;
   }
 
   @Override

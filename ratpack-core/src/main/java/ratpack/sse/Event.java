@@ -65,6 +65,16 @@ public interface Event<T> {
   String getData();
 
   /**
+   * The comment for this event.
+   * <p>
+   * {@code null} by default.
+   *
+   * @return he comment for this event
+   * @since 1.5
+   */
+  String getComment();
+
+  /**
    * Sets the “id” value of the event to the return value of the given function.
    * <p>
    * The function receives the {@link #getItem() item} and is executed immediately.
@@ -128,4 +138,13 @@ public interface Event<T> {
    * @return this
    */
   Event<T> data(String data);
+
+  /**
+   * Specify a comment to include as part of this event.
+   *
+   * @param comment the comment data
+   * @return this
+   * @since 1.5
+   */
+  Event<T> comment(String comment);
 }

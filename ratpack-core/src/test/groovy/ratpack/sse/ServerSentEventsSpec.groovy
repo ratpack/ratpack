@@ -160,7 +160,14 @@ data: Event 3
     handlers {
       all {
         render serverSentEvents(publish(1..3)) {
-          it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
+          switch (it.item) {
+            case 1:
+            case 2:
+              it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
+              break
+            case 3:
+              it.comment("last")
+          }
         }
       }
     }
@@ -173,8 +180,8 @@ data: Event 3
     response.headers["Pragma"] == "no-cache"
     response.headers["Content-Encoding"] == "gzip"
 
-    new GZIPInputStream(response.body.inputStream).bytes ==
-      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\nid: 3\nevent: add\ndata: Event 3\n\n".bytes
+    new GZIPInputStream(response.body.inputStream).text ==
+      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last \n\n"
   }
 
   def "can consume server sent event stream"() {
