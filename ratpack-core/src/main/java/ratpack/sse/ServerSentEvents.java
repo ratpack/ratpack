@@ -103,7 +103,7 @@ public class ServerSentEvents implements Renderable {
     return new ServerSentEvents(Streams.map(publisher, item -> {
       Event<T> event = action.with(new DefaultEvent<>(item));
       if (event.getData() == null && event.getId() == null && event.getEvent() == null && event.getComment() == null) {
-        throw new IllegalArgumentException("You must supply at least one of data, event, id");
+        throw new IllegalArgumentException("You must supply at least one of data, event, id or comment");
       }
       return event;
     }));
