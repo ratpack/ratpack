@@ -48,6 +48,9 @@ public class DefaultEvent<T> implements Event<T> {
 
   @Override
   public Event<T> id(String id) {
+    if (id.contains("\n")) {
+      throw new IllegalArgumentException("id must not contain \\n - '" + id + "'");
+    }
     this.id = id;
     return this;
   }
@@ -60,6 +63,9 @@ public class DefaultEvent<T> implements Event<T> {
 
   @Override
   public Event<T> event(String event) {
+    if (event.contains("\n")) {
+      throw new IllegalArgumentException("event must not contain \\n - '" + event + "'");
+    }
     this.event = event;
     return this;
   }

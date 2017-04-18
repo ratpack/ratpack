@@ -58,6 +58,22 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     serverSentEvent { it.data("foo\n") }                                                            | "data: foo\ndata: \n\n"
   }
 
+  def "errors if id contains newline"() {
+    when:
+    serverSentEvent { it.id("foo\nbar") }
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "errors if event contains newline"() {
+    when:
+    serverSentEvent { it.event("foo\nbar") }
+
+    then:
+    thrown IllegalArgumentException
+  }
+
   public <T> Event serverSentEvent(T t, Action<? super Event> action) {
     toList(ServerSentEvents.serverSentEvents(Streams.publish([t]), action).publisher).get(0)
   }

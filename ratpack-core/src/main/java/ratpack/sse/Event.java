@@ -68,6 +68,8 @@ public interface Event<T> {
    * Sets the “id” value of the event to the return value of the given function.
    * <p>
    * The function receives the {@link #getItem() item} and is executed immediately.
+   * <p>
+   * The returned value must not contain a {@code '\n'} character as this is not valid in an event value.
    *
    * @param function a generator for the “id” value of the event
    * @return this
@@ -77,6 +79,8 @@ public interface Event<T> {
 
   /**
    * Specify the event id for the server sent event.
+   * <p>
+   * The value must not contain a {@code '\n'} character as this is not valid in an event value.
    *
    * @param id the event id
    * @return this
@@ -87,6 +91,8 @@ public interface Event<T> {
    * Sets the “event” value of the event to the return value of the given function.
    * <p>
    * The function receives the {@link #getItem() item} and is executed immediately.
+   * <p>
+   * The returned value must not contain a {@code '\n'} character as this is not valid in an event value.
    *
    * @param function a generator for the “event” value of the event
    * @return this
@@ -96,6 +102,8 @@ public interface Event<T> {
 
   /**
    * Specify the event type for the server sent event.
+   * <p>
+   * The value must not contain a {@code '\n'} character as this is not valid in an event value.
    *
    * @param event the event type
    * @return this
