@@ -70,6 +70,9 @@ ext {
     }),
     groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
     guava: "com.google.guava:guava:$commonVersions.guava",
+    guice:  dependencies.create("com.google.inject:guice:$commonVersions.guice", {
+      exclude group: "com.google.guava", module: "guava"
+    }),
     rxjava: "io.reactivex:rxjava:$commonVersions.rxjava",
     remote: dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"

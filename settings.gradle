@@ -45,7 +45,8 @@ include \
     "ratpack-jdbc-tx",
     "ratpack-consul",
     "ratpack-base",
-    "ratpack-exec"
+    "ratpack-exec",
+    "ratpack-rocker"
 
 include "perf"
 

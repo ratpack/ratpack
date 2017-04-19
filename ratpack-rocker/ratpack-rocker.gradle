@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-description = "Integration with Google Guice for Ratpack applications - https://code.google.com/p/google-guice/"
+description = "The foundation library for Ratpack"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
-
-ext.apiLinks = [
-  "https://google.github.io/guice/api-docs/${commonVersions.guice.split("\\.", 3)[0..1].join(".")}/javadoc"
-]
-
-configurations {
-  all*.exclude group: 'org.sonatype.sisu.inject', module: "cglib"
-}
+apply from: "$rootDir/gradle/versionFile.gradle"
 
 dependencies {
   compile project(":ratpack-core")
   compile commonDependencies.guice
-  compile "com.google.inject.extensions:guice-multibindings:$commonVersions.guice", {
-    exclude group: "com.google.guava", module: "guava"
-    exclude group: "com.google.inject", module: "guice"
+  compile 'com.fizzed:rocker-runtime:0.18.0', {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  testCompile 'com.fizzed:rocker-compiler:0.18.0', {
+    exclude group: "org.slf4j", module: "slf4j-api"
   }
 }
