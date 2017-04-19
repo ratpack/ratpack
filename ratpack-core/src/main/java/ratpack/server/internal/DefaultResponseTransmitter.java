@@ -43,7 +43,6 @@ import ratpack.http.RequestBodyTooLargeException;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
 
-import java.io.FileInputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -194,10 +193,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
     if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
       responseHeaders.remove(HttpHeaderConstants.CONTENT_ENCODING);
-      Blocking.get(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
-        FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
-        transmit(status, defaultFileRegion, true);
-      });
+      FileRegion defaultFileRegion = new DefaultFileRegion(file.toFile(), 0, size);
+      transmit(status, defaultFileRegion, true);
     } else {
       Blocking.get(() ->
         Files.newByteChannel(file)
