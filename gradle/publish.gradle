@@ -28,22 +28,20 @@ tasks.withType(Upload).matching { it.name != "install" }.all {
   }
 }
 
-tasks.withType(Upload) {
-  repositories.matching { it.name == "mavenInstaller" }.all {
-    beforeDeployment { deployment ->
-      if (!isSnapshot) {
-        artifacts {
-          signatures signing.signPom(deployment)
-        }
+//if (!isSnapshot) {
+  tasks.withType(Upload) {
+    repositories.matching { it.name == "mavenInstaller" }.all {
+      beforeDeployment { deployment ->
+        signing.signPom(deployment)
       }
     }
   }
-}
+//}
 
 signing {
-  if (!isSnapshot) {
+//  if (!isSnapshot) {
     sign configurations.archives
-  }
+//  }
 }
 
 configurations.signatures.artifacts.all {

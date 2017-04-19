@@ -23,8 +23,6 @@ import static org.pegdown.Extensions.*
 description = "The manual for Ratpack (documentation & API reference)"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
-configurations.runtime.artifacts.clear()
-configurations.archives.artifacts.clear()
 
 apply plugin: "com.github.robfletcher.compass"
 apply plugin: "com.eriwen.gradle.js"
